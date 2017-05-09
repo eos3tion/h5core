@@ -1,0 +1,12 @@
+{
+	"name": "egret",
+	"version": "4.0.2",
+	"modules": [
+		{
+			"name": "h5core",
+			"description": "君游核心库项目",
+			"files": [],
+			"root": "src"
+		}
+	]
+}

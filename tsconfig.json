@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "target": "es5",
+        "declaration": true,
+        "experimentalDecorators": true,
+        "removeComments": true,
+        "lib": [
+            "es5",
+            "dom"
+        ]
+    },
+    "exclude": [
+        "./bin"
+    ]
+}
