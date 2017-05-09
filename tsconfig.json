@@ -11,5 +11,8 @@
     },
     "exclude": [
         "./bin"
+    ],
+    "include": [
+        "typings/**"
     ]
 }
