@@ -2207,6 +2207,10 @@ declare module junyou {
      *
      */
     abstract class NetService {
+        /**
+        * 请求地址
+        */
+        protected _actionUrl: string;
         protected static _instance: NetService;
         static getInstance(): NetService;
         /**
@@ -2248,16 +2252,12 @@ declare module junyou {
             [index: number]: string | number;
         };
         /**
-         * 认证信息
-         */
-        protected _authData: AuthData;
-        /**
-         * 连接后首次登陆操作
+         * 设置地址
          *
-         *
-         * @memberOf NetService
+         * @abstract
+         * @param {string} actionUrl
          */
-        login?(): any;
+        abstract setUrl(actionUrl: string): any;
         constructor();
         protected netChange(): void;
         /**
@@ -2292,16 +2292,6 @@ declare module junyou {
         protected _autoTimeDelay: number;
         protected showReconnect(): void;
         protected onawake(): void;
-        /**
-         * 设置认证信息
-         */
-        setAuthData(data: AuthData): void;
-        /**
-         *
-         * 获取认证数据
-         * @readonly
-         */
-        readonly authData: AuthData;
         /**
          * 基础类型消息
          */
@@ -2575,8 +2565,7 @@ declare module junyou {
      * @author 3tion
      */
     class WSNetService extends NetService {
-        private _ws;
-        private _actionUrl;
+        protected _ws: WebSocket;
         constructor();
         /**
          *
@@ -2588,25 +2577,25 @@ declare module junyou {
          * 打开新的连接
          */
         connect(): void;
-        private onOpen;
+        protected onOpen: () => void;
         /**
          *
          * 发生错误
-         * @private
+         * @protected
          */
-        private onError;
+        protected onError: (ev: ErrorEvent) => void;
         /**
          *
          * 断开连接
-         * @private
+         * @protected
          */
-        private onClose;
+        protected onClose: (ev: CloseEvent) => void;
         /**
          *
          * 收到消息
-         * @private
+         * @protected
          */
-        private onData;
+        protected onData: (ev: MessageEvent) => void;
         protected _send(cmd: number, data: any, msgType: string): void;
     }
 }
@@ -2701,7 +2690,7 @@ declare module junyou {
          * @memberOf PBStructDict
          */
         $$inted?: any;
-        /**消息名称*/[index: string]: PBStruct;
+        /**消息名称*/ [index: string]: PBStruct;
     }
     /**
      *
@@ -3474,9 +3463,9 @@ declare module junyou {
         x: number;
         y: number;
     }): {
-            x: number;
-            y: number;
-        };
+        x: number;
+        y: number;
+    };
     /**
      * 检查类矩形 a 和 b 是否相交
      * @export
@@ -5314,8 +5303,8 @@ declare module junyou {
         getPath(fx: number, fy: number, tx: number, ty: number, callback: {
             (path: PathNode[], ...args): void;
         }, ...args: any[]): {
-                stop: boolean;
-            };
+            stop: boolean;
+        };
     }
 }
 declare module junyou {
@@ -7197,7 +7186,7 @@ declare module junyou {
     var DataLocator: {
         regParser: (key: keyof CfgData, parser: ConfigDataParser) => void;
         parsePakedDatas(): void;
-        regCommonParser(key: keyof CfgData, CfgCreator: 0 | (new () => Cfg), idkey?: string): void;
+        regCommonParser(key:keyof CfgData, CfgCreator: 0 | (new () => Cfg), idkey?: string): void;
     };
     /**
      * 配置数据解析函数
@@ -10053,9 +10042,9 @@ declare module junyou {
             x: number;
             y: number;
         }, hoffset?: number, voffset?: number, innerV?: boolean, innerH?: boolean): {
-                x: number;
-                y: number;
-            };
+            x: number;
+            y: number;
+        };
     };
 }
 declare module junyou {
@@ -10065,76 +10054,65 @@ declare module junyou {
      *
      */
     class HttpNetService extends NetService {
-        /**
-         * 请求地址
-         */
-        private _actionUrl;
-        /**
-         * 登录获取票据地址
-         */
-        private _loginUrl;
-        private _loader;
-        private _state;
+        protected _loader: XMLHttpRequest;
+        protected _state: RequestState;
         /**
          * 未发送的请求
          */
-        private _unsendRequest;
-        /**
-         * 最后一条消息编号
-         */
-        private _lastMid;
+        protected _unsendRequest: Recyclable<NetSendData>[];
         /**
          * 正在发送的数据
          */
-        private _sendingList;
+        protected _sendingList: Recyclable<NetSendData>[];
         /**
          * 请求发送成功的次数
          */
-        private _success;
+        protected _success: number;
         /**
          * 请求连续发送失败的次数
          */
-        private _cerror;
+        protected _cerror: number;
         /**
          * 请求失败次数
          */
-        private _error;
-        /**
-         * 登录状态
-         */
-        private _loginState;
-        /**
-         * 登录失败次数
-         */
-        private _loginErrorCount;
+        protected _error: number;
         constructor();
-        protected showReconnect(): void;
         /**
          * 重置
          * @param actionUrl             请求地址
-         * @param loginUrl              登录获取票据地址
          * @param autoTimeDelay         自动发送的最短延迟时间
          */
-        reset(actionUrl: string, loginUrl: string, autoTimeDelay?: number): void;
+        setUrl(actionUrl: string, autoTimeDelay?: number): void;
         /**
-        * @private
+        * @protected
         */
-        private onReadyStateChange();
+        protected onReadyStateChange(): void;
         /**
          * 发生错误
          */
-        private errorHandler();
-        private complete();
-        login(): void;
+        protected errorHandler(): void;
+        protected complete(): void;
         /**
          * 检查在发送过程中的请求
          */
-        private checkUnsend();
+        protected checkUnsend(): void;
         protected _send(cmd: number, data: any, msgType: string): void;
+        /**
+         * 发送消息之前，用于预处理一些http头信息等
+         *
+         * @protected
+         */
+        protected onBeforeSend(): void;
+        /**
+         * 接收到服务端Response，用于预处理一些信息
+         *
+         * @protected
+         */
+        protected onBeforeSolveData(): void;
         /**
          * 尝试发送
          */
-        private trySend();
+        protected trySend(): void;
     }
 }
 declare var $useDPR: boolean;

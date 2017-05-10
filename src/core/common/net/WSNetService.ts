@@ -85,10 +85,7 @@ module junyou {
      */
     export class WSNetService extends NetService {
 
-        private _ws: WebSocket;
-        private _actionUrl: string;
-
-
+        protected _ws: WebSocket;
 
         constructor() {
             super();
@@ -130,7 +127,7 @@ module junyou {
             ws.onopen = this.onOpen;
         }
 
-        private onOpen = () => {
+        protected onOpen = () => {
             this._ws.onopen = null;
             if (DEBUG) {
                 console.log("webSocket连接成功");
@@ -141,9 +138,9 @@ module junyou {
         /**
          * 
          * 发生错误
-         * @private
+         * @protected
          */
-        private onError = (ev: ErrorEvent) => {
+        protected onError = (ev: ErrorEvent) => {
             if (DEBUG) {
                 ThrowError("socket发生错误", ev.error);
             }
@@ -153,9 +150,9 @@ module junyou {
         /**
          * 
          * 断开连接
-         * @private
+         * @protected
          */
-        private onClose = (ev: CloseEvent) => {
+        protected onClose = (ev: CloseEvent) => {
             if (DEBUG) {
                 console.log("socket断开连接");
             }
@@ -165,9 +162,9 @@ module junyou {
         /**
          * 
          * 收到消息
-         * @private
+         * @protected
          */
-        private onData = (ev: MessageEvent) => {
+        protected onData = (ev: MessageEvent) => {
             const readBuffer = this._readBuffer;
             let ab = new Uint8Array(<ArrayBuffer>ev.data);
             let temp: Uint8Array;

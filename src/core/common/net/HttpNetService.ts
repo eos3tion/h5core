@@ -6,59 +6,34 @@ module junyou {
 	 */
     export class HttpNetService extends NetService {
 
-    	/**
-    	 * 请求地址
-    	 */
-        private _actionUrl: string;
+        protected _loader: XMLHttpRequest;
 
-    	/**
-    	 * 登录获取票据地址
-    	 */
-        private _loginUrl: string;
-
-        private _loader: XMLHttpRequest;
-
-        private _state: RequestState = RequestState.UNREQUEST;
+        protected _state: RequestState = RequestState.UNREQUEST;
 
         /**
          * 未发送的请求
          */
-        private _unsendRequest: Recyclable<NetSendData>[];
-
-        /**
-         * 最后一条消息编号
-         */
-        private _lastMid: number = 0;
+        protected _unsendRequest: Recyclable<NetSendData>[];
 
         /**
          * 正在发送的数据
          */
-        private _sendingList: Recyclable<NetSendData>[];
+        protected _sendingList: Recyclable<NetSendData>[];
 
         /**
          * 请求发送成功的次数
          */
-        private _success: number = 0;
+        protected _success: number = 0;
 
         /**
          * 请求连续发送失败的次数
          */
-        private _cerror: number = 0;
+        protected _cerror: number = 0;
 
         /**
          * 请求失败次数
          */
-        private _error: number = 0;
-
-        /**
-         * 登录状态
-         */
-        private _loginState: RequestState = RequestState.UNREQUEST;
-
-        /**
-         * 登录失败次数
-         */
-        private _loginErrorCount: number = 0;
+        protected _error: number = 0;
 
 
         public constructor() {
@@ -68,27 +43,15 @@ module junyou {
             this._unsendRequest = [];
             this._sendingList = [];
             this._loader = getXHR();
-
-        }
-
-        protected showReconnect() {
-            this._loginState = RequestState.UNREQUEST;
-            this._loginErrorCount = 0;
-            super.showReconnect();
         }
 
         /**
          * 重置
          * @param actionUrl             请求地址
-         * @param loginUrl              登录获取票据地址
          * @param autoTimeDelay         自动发送的最短延迟时间
          */
-        public reset(actionUrl: string, loginUrl: string, autoTimeDelay: number = 5000) {
+        public setUrl(actionUrl: string, autoTimeDelay: number = 5000) {
             this._actionUrl = actionUrl;
-            if (loginUrl.charAt(loginUrl.length - 1) != "?") {
-                loginUrl += "?";
-            }
-            this._loginUrl = loginUrl;
             if (autoTimeDelay != this._autoTimeDelay) {
                 this._autoTimeDelay = autoTimeDelay;
             }
@@ -99,9 +62,9 @@ module junyou {
             loader.ontimeout = this.errorHandler.bind(this);
         }
         /**
-        * @private
+        * @protected
         */
-        private onReadyStateChange(): void {
+        protected onReadyStateChange(): void {
             var xhr = this._loader;
             if (xhr.readyState == 4) {// 4 = "loaded"
                 var ioError = (xhr.status >= 400 || xhr.status == 0);
@@ -121,21 +84,7 @@ module junyou {
         /**
          * 发生错误
          */
-        private errorHandler() {
-            if (this._loginState == RequestState.REQUESTING) {
-                if (this._loginErrorCount < 3) {//做3次重新登录尝试
-                    this._loginState = RequestState.UNREQUEST;
-                    this.login();
-                } else {
-                    dispatch(EventConst.LOGIN_FAILED);
-                    if (this._reconCount > 0) {
-                        this.showReconnect();
-                    }
-                }
-                this._loginErrorCount++;
-                return;
-            }
-
+        protected errorHandler() {
             this._error++;
             this._cerror++;
             this._state = RequestState.FAILED;
@@ -160,44 +109,14 @@ module junyou {
             this.checkUnsend();
         }
 
-        private complete() {
+        protected complete() {
             this._state = RequestState.COMPLETE;
-            //如果当前正在登录
-            if (this._loginState == RequestState.REQUESTING) {
-                let result = JSON.parse(this._loader.responseText);
-                let code = result.code;
-                if (code == AuthState.AUTH_FAILED) {
-                    // TODO 进入登录页面
-                    location.reload();
-                } else if (code == AuthState.AUTH_SERVER_BUSY) {
-                    // TODO 提示服务器忙
-                    location.reload();
-                } else if (code == AuthState.AUTH_SUCCESS) {
-                    let adata = this._authData;
-                    adata.sessionID = result.sid;
-                    adata.sign = result.sign;
-                    adata.roles = result.roles;
-                    this._loginState = RequestState.COMPLETE;
-                    this._loginErrorCount = 0;
-                    dispatch(EventConst.LOGIN_COMPLETE);
-                    adata.count++;
-                }
-                return;
-            }
             this._reconCount = 0;
             //处理Response
-            //回来的数据结构为
-            //mid(最后一条广播消息的消息码),[IMessage,IMessage,IMessage,IMessage]
-            //暂时先使用明文JSON处理，后续考虑使用ProtoBuf处理
             var readBuffer = this._readBuffer;
             readBuffer.replaceBuffer(this._loader.response);
             readBuffer.position = 0;
-            var auth = readBuffer.readByte();
-            if (auth == AuthState.AUTH_FAILED) {//认证失败，重新登录
-                this._loginState = RequestState.FAILED;
-                this.login();
-                return;
-            }
+            
             //成功一次清零连续失败次数
             this._cerror = 0;
             this._success++;
@@ -208,35 +127,16 @@ module junyou {
             }
             //数据发送成功
             this._sendingList.length = 0;
+            this.onBeforeSolveData();
 
-            //读取消息编号
-            this._lastMid = readBuffer.readDouble();
             this.decodeBytes(readBuffer);
             this.checkUnsend();
-        }
-
-        public login() {
-            if (!navigator.onLine) {
-                dispatch(EventConst.Offline);
-                return;
-            }
-            if (this._loginState < RequestState.REQUESTING) {//登录失败或者未登录
-                this._loginState = RequestState.REQUESTING;
-                if (this._authData) {
-                    var loader = this._loader;
-                    loader.open("GET", this._loginUrl + this._authData.toURLString(), true);
-                    loader.responseType = "";
-                    loader.send();
-                } else {
-                    ThrowError("没有登录数据");
-                }
-            }
         }
 
         /**
          * 检查在发送过程中的请求
          */
-        private checkUnsend() {
+        protected checkUnsend() {
             //有在发送过程中，主动发送的数据
             if (this._unsendRequest.length || Global.now > this._nextAutoTime) {
                 this.trySend();
@@ -254,21 +154,35 @@ module junyou {
         }
 
         /**
+         * 发送消息之前，用于预处理一些http头信息等
+         * 
+         * @protected
+         */
+        protected onBeforeSend() {
+
+        }
+
+        /**
+         * 接收到服务端Response，用于预处理一些信息
+         * 
+         * @protected
+         */
+        protected onBeforeSolveData(){
+
+        }
+
+        /**
          * 尝试发送
          */
-        private trySend() {
-            if (this._loginState != RequestState.COMPLETE || this._state == RequestState.REQUESTING) {
+        protected trySend() {
+            if (this._state == RequestState.REQUESTING) {
                 return;
             }
             this._state = RequestState.REQUESTING;
             var loader = this._loader;
             loader.open("POST", this._actionUrl, true);
             loader.responseType = "arraybuffer";
-            loader.setRequestHeader("s", this._authData.sessionID);
-            loader.setRequestHeader("m", "" + this._lastMid);
-            //loader.setRequestHeader("Content-Type","application/octet-stream");
-            //发送的结构，mid(最后一条广播消息的消息码),[IMessage,IMessage,IMessage...]
-            //将被动发送的指令并入到未发送的指令
+            this.onBeforeSend();
             var sendBuffer = this._sendBuffer;
             sendBuffer.clear();
             // var sendPool = this._sendDataPool;

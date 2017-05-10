@@ -4222,24 +4222,6 @@ var junyou;
             this._nextAutoTime = junyou.Global.now + this._autoTimeDelay;
         };
         /**
-         * 设置认证信息
-         */
-        NetService.prototype.setAuthData = function (data) {
-            this._authData = data;
-        };
-        Object.defineProperty(NetService.prototype, "authData", {
-            /**
-             *
-             * 获取认证数据
-             * @readonly
-             */
-            get: function () {
-                return this._authData;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        /**
          * 基础类型消息
          */
         NetService.prototype.regReceiveMSGRef = function (cmd, ref) {
@@ -5182,7 +5164,7 @@ var junyou;
             /**
              *
              * 发生错误
-             * @private
+             * @protected
              */
             _this.onError = function (ev) {
                 if (DEBUG) {
@@ -5193,7 +5175,7 @@ var junyou;
             /**
              *
              * 断开连接
-             * @private
+             * @protected
              */
             _this.onClose = function (ev) {
                 if (DEBUG) {
@@ -5204,7 +5186,7 @@ var junyou;
             /**
              *
              * 收到消息
-             * @private
+             * @protected
              */
             _this.onData = function (ev) {
                 var readBuffer = _this._readBuffer;
@@ -19045,10 +19027,6 @@ var junyou;
             var _this = _super.call(this) || this;
             _this._state = 0 /* UNREQUEST */;
             /**
-             * 最后一条消息编号
-             */
-            _this._lastMid = 0;
-            /**
              * 请求发送成功的次数
              */
             _this._success = 0;
@@ -19060,14 +19038,6 @@ var junyou;
              * 请求失败次数
              */
             _this._error = 0;
-            /**
-             * 登录状态
-             */
-            _this._loginState = 0 /* UNREQUEST */;
-            /**
-             * 登录失败次数
-             */
-            _this._loginErrorCount = 0;
             //覆盖instance
             junyou.NetService._instance = _this;
             _this._unsendRequest = [];
@@ -19075,24 +19045,14 @@ var junyou;
             _this._loader = junyou.getXHR();
             return _this;
         }
-        HttpNetService.prototype.showReconnect = function () {
-            this._loginState = 0 /* UNREQUEST */;
-            this._loginErrorCount = 0;
-            _super.prototype.showReconnect.call(this);
-        };
         /**
          * 重置
          * @param actionUrl             请求地址
-         * @param loginUrl              登录获取票据地址
          * @param autoTimeDelay         自动发送的最短延迟时间
          */
-        HttpNetService.prototype.reset = function (actionUrl, loginUrl, autoTimeDelay) {
+        HttpNetService.prototype.setUrl = function (actionUrl, autoTimeDelay) {
             if (autoTimeDelay === void 0) { autoTimeDelay = 5000; }
             this._actionUrl = actionUrl;
-            if (loginUrl.charAt(loginUrl.length - 1) != "?") {
-                loginUrl += "?";
-            }
-            this._loginUrl = loginUrl;
             if (autoTimeDelay != this._autoTimeDelay) {
                 this._autoTimeDelay = autoTimeDelay;
             }
@@ -19103,7 +19063,7 @@ var junyou;
             loader.ontimeout = this.errorHandler.bind(this);
         };
         /**
-        * @private
+        * @protected
         */
         HttpNetService.prototype.onReadyStateChange = function () {
             var xhr = this._loader;
@@ -19125,20 +19085,6 @@ var junyou;
          * 发生错误
          */
         HttpNetService.prototype.errorHandler = function () {
-            if (this._loginState == 1 /* REQUESTING */) {
-                if (this._loginErrorCount < 3) {
-                    this._loginState = 0 /* UNREQUEST */;
-                    this.login();
-                }
-                else {
-                    junyou.dispatch(-198 /* LOGIN_FAILED */);
-                    if (this._reconCount > 0) {
-                        this.showReconnect();
-                    }
-                }
-                this._loginErrorCount++;
-                return;
-            }
             this._error++;
             this._cerror++;
             this._state = -1 /* FAILED */;
@@ -19164,44 +19110,11 @@ var junyou;
         };
         HttpNetService.prototype.complete = function () {
             this._state = 2 /* COMPLETE */;
-            //如果当前正在登录
-            if (this._loginState == 1 /* REQUESTING */) {
-                var result = JSON.parse(this._loader.responseText);
-                var code = result.code;
-                if (code == 1 /* AUTH_FAILED */) {
-                    // TODO 进入登录页面
-                    location.reload();
-                }
-                else if (code == 2 /* AUTH_SERVER_BUSY */) {
-                    // TODO 提示服务器忙
-                    location.reload();
-                }
-                else if (code == 0 /* AUTH_SUCCESS */) {
-                    var adata = this._authData;
-                    adata.sessionID = result.sid;
-                    adata.sign = result.sign;
-                    adata.roles = result.roles;
-                    this._loginState = 2 /* COMPLETE */;
-                    this._loginErrorCount = 0;
-                    junyou.dispatch(-199 /* LOGIN_COMPLETE */);
-                    adata.count++;
-                }
-                return;
-            }
             this._reconCount = 0;
             //处理Response
-            //回来的数据结构为
-            //mid(最后一条广播消息的消息码),[IMessage,IMessage,IMessage,IMessage]
-            //暂时先使用明文JSON处理，后续考虑使用ProtoBuf处理
             var readBuffer = this._readBuffer;
             readBuffer.replaceBuffer(this._loader.response);
             readBuffer.position = 0;
-            var auth = readBuffer.readByte();
-            if (auth == 1 /* AUTH_FAILED */) {
-                this._loginState = -1 /* FAILED */;
-                this.login();
-                return;
-            }
             //成功一次清零连续失败次数
             this._cerror = 0;
             this._success++;
@@ -19212,28 +19125,9 @@ var junyou;
             }
             //数据发送成功
             this._sendingList.length = 0;
-            //读取消息编号
-            this._lastMid = readBuffer.readDouble();
+            this.onBeforeSolveData();
             this.decodeBytes(readBuffer);
             this.checkUnsend();
-        };
-        HttpNetService.prototype.login = function () {
-            if (!navigator.onLine) {
-                junyou.dispatch(-191 /* Offline */);
-                return;
-            }
-            if (this._loginState < 1 /* REQUESTING */) {
-                this._loginState = 1 /* REQUESTING */;
-                if (this._authData) {
-                    var loader = this._loader;
-                    loader.open("GET", this._loginUrl + this._authData.toURLString(), true);
-                    loader.responseType = "";
-                    loader.send();
-                }
-                else {
-                    junyou.ThrowError("没有登录数据");
-                }
-            }
         };
         /**
          * 检查在发送过程中的请求
@@ -19254,21 +19148,31 @@ var junyou;
             this.trySend();
         };
         /**
+         * 发送消息之前，用于预处理一些http头信息等
+         *
+         * @protected
+         */
+        HttpNetService.prototype.onBeforeSend = function () {
+        };
+        /**
+         * 接收到服务端Response，用于预处理一些信息
+         *
+         * @protected
+         */
+        HttpNetService.prototype.onBeforeSolveData = function () {
+        };
+        /**
          * 尝试发送
          */
         HttpNetService.prototype.trySend = function () {
-            if (this._loginState != 2 /* COMPLETE */ || this._state == 1 /* REQUESTING */) {
+            if (this._state == 1 /* REQUESTING */) {
                 return;
             }
             this._state = 1 /* REQUESTING */;
             var loader = this._loader;
             loader.open("POST", this._actionUrl, true);
             loader.responseType = "arraybuffer";
-            loader.setRequestHeader("s", this._authData.sessionID);
-            loader.setRequestHeader("m", "" + this._lastMid);
-            //loader.setRequestHeader("Content-Type","application/octet-stream");
-            //发送的结构，mid(最后一条广播消息的消息码),[IMessage,IMessage,IMessage...]
-            //将被动发送的指令并入到未发送的指令
+            this.onBeforeSend();
             var sendBuffer = this._sendBuffer;
             sendBuffer.clear();
             // var sendPool = this._sendDataPool;

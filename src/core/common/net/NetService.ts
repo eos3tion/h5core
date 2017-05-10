@@ -270,6 +270,11 @@ module junyou {
 	 *
 	 */
     export abstract class NetService {
+         /**
+    	 * 请求地址
+    	 */
+        protected _actionUrl: string;
+
 
         protected static _instance: NetService;
 
@@ -321,20 +326,13 @@ module junyou {
          */
         protected _receiveMSG: { [index: number]: string | number };
 
-
         /**
-         * 认证信息
-         */
-        protected _authData: AuthData;
-
-        /**
-         * 连接后首次登陆操作
+         * 设置地址
          * 
-         * 
-         * @memberOf NetService
+         * @abstract
+         * @param {string} actionUrl 
          */
-        public login?();
-
+        abstract setUrl(actionUrl: string);
         constructor() {
             this._router = new NetRouter();
             this._pcmdList = [];
@@ -427,22 +425,7 @@ module junyou {
             this._reconCount = 0;
             this._nextAutoTime = Global.now + this._autoTimeDelay;
         }
-    	/**
-    	 * 设置认证信息
-    	 */
-        public setAuthData(data: AuthData) {
-            this._authData = data;
-        }
-
-        /**
-         * 
-         * 获取认证数据
-         * @readonly
-         */
-        public get authData() {
-            return this._authData;
-        }
-
+   
     	/**
     	 * 基础类型消息
     	 */
