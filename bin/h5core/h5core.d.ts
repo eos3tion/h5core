@@ -2464,84 +2464,32 @@ declare module junyou {
     }
 }
 declare module junyou {
-    interface UnitDomainConstructor {
-        /**
-         * 全部单位
-         */
-        DOMAIN_ALL: number;
-        /**
-         * 角色域
-         */
-        DOMAIN_ROLE: number;
-        /**
-         * 怪物域
-         */
-        DOMAIN_MONSTER: number;
-    }
     /**
-     * 单位的域
+     * 模型(纸娃娃)渲染器
      */
-    var UnitDomain: UnitDomainConstructor;
-    /**
-     * 单位管理器
-     * @author
-     *
-     */
-    class UnitController {
+    class UnitRender extends BaseRender {
+        faceTo: number;
+        /**单位**/
+        protected unit: Unit;
+        actionInfo: ActionInfo;
+        model: UModel;
+        protected nextRenderTime: number;
+        protected renderedTime: number;
+        constructor(unit: Unit);
+        reset(now: number): void;
         /**
-         * Key     int  domain的名称<br/>
-         * Value Object 一个字典 Key guid  value JUnit
-         */
-        protected _domains: Object;
-        /**
-         * Key 		int domain的名称<br/>
-         * Value 	int 这个域的单位数量
-         */
-        protected _domainCounts: Object;
-        protected _domainAll: Object;
-        static instance: UnitController;
-        constructor();
-        /**
-         * 注册一个单位
-         * @param unit
-         * @param domains
+         * 处理数据
          *
+         * @param {number} now 时间戳
          */
-        registerUnit(unit: Unit, ...domains: any[]): void;
-        /**
-         * 移除单位
-         * @param guid
-         * @return
-         *
-         */
-        removeUnit(guid: number | string): Unit;
-        /**
-         * 获取指定域的单位集合
-         * @param domain	指定域
-         * @return
-         *
-         */
-        getDomainUnits(domain: number): Object;
-        /**
-         * 获取指定域的单位数量
-         * @param domain
-         * @return
-         *
-         */
-        getDomainUnitCount(domain: number): number;
-        /**
-         * 根据GUID获取JUnit
-         * @param guid
-         * @return
-         *
-         */
-        getUnit(guid: number | string): Unit;
-        /**
-         * 清理对象
-         * @param exceptGuids	需要保留的单位的GUID列表
-         *
-         */
-        clear(exceptGuids?: Array<number | string>): void;
+        doData(now: number): void;
+        render(now: number): void;
+        onData(actionInfo: ActionInfo, now: number): void;
+        clearRes(): void;
+        renderFrame(frame: FrameInfo, now: number): void;
+        dispatchEvent(event: string, now: number): void;
+        doComplete(now: number): void;
+        dispose(): void;
     }
 }
 declare module junyou {
@@ -6201,6 +6149,87 @@ declare module junyou {
     }
 }
 declare module junyou {
+    interface UnitDomainConstructor {
+        /**
+         * 全部单位
+         */
+        DOMAIN_ALL: number;
+        /**
+         * 角色域
+         */
+        DOMAIN_ROLE: number;
+        /**
+         * 怪物域
+         */
+        DOMAIN_MONSTER: number;
+    }
+    /**
+     * 单位的域
+     */
+    var UnitDomain: UnitDomainConstructor;
+    /**
+     * 单位管理器
+     * @author
+     *
+     */
+    class UnitController {
+        /**
+         * Key     int  domain的名称<br/>
+         * Value Object 一个字典 Key guid  value JUnit
+         */
+        protected _domains: Object;
+        /**
+         * Key 		int domain的名称<br/>
+         * Value 	int 这个域的单位数量
+         */
+        protected _domainCounts: Object;
+        protected _domainAll: Object;
+        static instance: UnitController;
+        constructor();
+        /**
+         * 注册一个单位
+         * @param unit
+         * @param domains
+         *
+         */
+        registerUnit(unit: Unit, ...domains: any[]): void;
+        /**
+         * 移除单位
+         * @param guid
+         * @return
+         *
+         */
+        removeUnit(guid: number | string): Unit;
+        /**
+         * 获取指定域的单位集合
+         * @param domain	指定域
+         * @return
+         *
+         */
+        getDomainUnits(domain: number): Object;
+        /**
+         * 获取指定域的单位数量
+         * @param domain
+         * @return
+         *
+         */
+        getDomainUnitCount(domain: number): number;
+        /**
+         * 根据GUID获取JUnit
+         * @param guid
+         * @return
+         *
+         */
+        getUnit(guid: number | string): Unit;
+        /**
+         * 清理对象
+         * @param exceptGuids	需要保留的单位的GUID列表
+         *
+         */
+        clear(exceptGuids?: Array<number | string>): void;
+    }
+}
+declare module junyou {
     /**
      *
      * 调整ClassFactory
@@ -6223,35 +6252,6 @@ declare module junyou {
             [index: string]: any;
         });
         newInstance(): T;
-    }
-}
-declare module junyou {
-    /**
-     * 模型(纸娃娃)渲染器
-     */
-    class UnitRender extends BaseRender {
-        faceTo: number;
-        /**单位**/
-        protected unit: Unit;
-        actionInfo: ActionInfo;
-        model: UModel;
-        protected nextRenderTime: number;
-        protected renderedTime: number;
-        constructor(unit: Unit);
-        reset(now: number): void;
-        /**
-         * 处理数据
-         *
-         * @param {number} now 时间戳
-         */
-        doData(now: number): void;
-        render(now: number): void;
-        onData(actionInfo: ActionInfo, now: number): void;
-        clearRes(): void;
-        renderFrame(frame: FrameInfo, now: number): void;
-        dispatchEvent(event: string, now: number): void;
-        doComplete(now: number): void;
-        dispose(): void;
     }
 }
 declare module junyou {
@@ -7839,6 +7839,58 @@ declare module junyou {
          * 检查
          */
         check(): void;
+    }
+}
+declare module junyou {
+    /**
+     *
+     * 用于弹出窗口，并将下层模糊的工具类
+     * @export
+     * @class BlurScreen
+     * @author gushuai
+     */
+    class BlurScreen {
+        protected _engine: GameEngine;
+        /**
+         * 用于显示的位图对象
+         *
+         * @protected
+         * @type {egret.Bitmap}
+         */
+        protected _bmp: egret.Bitmap;
+        protected _stage: egret.Stage;
+        /**
+         * 用于绘制的临时容器
+         *
+         * @protected
+         * @type {egret.Sprite}
+         */
+        protected _con: egret.Sprite;
+        /**
+         * 用于绘制的RenderTexture
+         *
+         * @protected
+         * @type {egret.RenderTexture}
+         */
+        protected _tex: egret.RenderTexture;
+        /**
+         * 模块id和层绑定的字典
+         * key      {number}            模块id
+         * value    {GameLayer[]}    层id的数组
+         *
+         * @protected
+         * @type {{ [index: number]: GameLayer[] }}
+         */
+        protected _dic: {
+            [index: number]: GameLayer[];
+        };
+        protected _current: Key;
+        constructor();
+        registerModuleLayers(moduleid: Key, ...ids: GameLayerID[]): void;
+        checkShowBlur(id: Key): void;
+        checkHideBlur(id: Key): void;
+        protected drawBlur(e?: egret.Event): void;
+        hideBlur(): void;
     }
 }
 declare module junyou {

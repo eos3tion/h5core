@@ -4684,124 +4684,69 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
-     * 单位的域
+     * 模型(纸娃娃)渲染器
      */
-    junyou.UnitDomain = {};
-    junyou.UnitDomain.DOMAIN_ALL = 0;
-    junyou.UnitDomain.DOMAIN_ROLE = 1;
-    junyou.UnitDomain.DOMAIN_MONSTER = 2;
-    /**
-     * 单位管理器
-     * @author
-     *
-     */
-    var UnitController = (function () {
-        function UnitController() {
-            this._domains = {};
-            this._domainCounts = {};
-            this._domainAll = {};
-            this._domains[junyou.UnitDomain.DOMAIN_ALL] = this._domainAll;
-            this._domainCounts[junyou.UnitDomain.DOMAIN_ALL] = 0;
+    var UnitRender = (function (_super) {
+        __extends(UnitRender, _super);
+        function UnitRender(unit) {
+            var _this = _super.call(this) || this;
+            _this.faceTo = 0;
+            _this.nextRenderTime = 0;
+            _this.renderedTime = 0;
+            _this.unit = unit;
+            _this.reset(junyou.Global.now);
+            return _this;
         }
+        UnitRender.prototype.reset = function (now) {
+            this.renderedTime = now;
+            this.nextRenderTime = now;
+            this.idx = 0;
+        };
         /**
-         * 注册一个单位
-         * @param unit
-         * @param domains
+         * 处理数据
          *
+         * @param {number} now 时间戳
          */
-        UnitController.prototype.registerUnit = function (unit) {
-            var domains = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                domains[_i - 1] = arguments[_i];
+        UnitRender.prototype.doData = function (now) {
+            var actionInfo = this.actionInfo;
+            if (actionInfo) {
+                this.onData(actionInfo, now);
             }
-            var guid = unit.guid;
-            for (var _a = 0, domains_1 = domains; _a < domains_1.length; _a++) {
-                var domain = domains_1[_a];
-                var dom = this._domains[domain];
-                if (!dom) {
-                    dom = {};
-                    this._domains[domain] = dom;
-                    this._domainCounts[domain] = 0;
-                }
-                dom[guid] = unit;
+        };
+        UnitRender.prototype.render = function (now) {
+            var actionInfo = this.actionInfo;
+            if (actionInfo) {
+                this.onData(actionInfo, now);
+                this.doRender(now);
             }
-            this._domainAll[guid] = unit;
         };
-        /**
-         * 移除单位
-         * @param guid
-         * @return
-         *
-         */
-        UnitController.prototype.removeUnit = function (guid) {
-            var unit = this._domainAll[guid];
-            if (unit) {
-                var tunit;
-                var _domainCounts = this._domainCounts;
-                var _domains = this._domains;
-                _domainCounts[junyou.UnitDomain.DOMAIN_ALL]--;
-                for (var key in this._domains) {
-                    var domain = _domains[key];
-                    tunit = domain[guid];
-                    if (tunit) {
-                        _domainCounts[key]--;
-                        delete domain[guid];
-                    }
-                }
+        UnitRender.prototype.onData = function (actionInfo, now) {
+            _super.prototype.onData.call(this, actionInfo, now);
+            this.unit.lastFrame = this.willRenderFrame;
+        };
+        UnitRender.prototype.clearRes = function () {
+            //清空显示
+            for (var _i = 0, _a = this.model.$children; _i < _a.length; _i++) {
+                var res = _a[_i];
+                res.bitmapData = undefined;
             }
-            return unit;
         };
-        /**
-         * 获取指定域的单位集合
-         * @param domain	指定域
-         * @return
-         *
-         */
-        UnitController.prototype.getDomainUnits = function (domain) {
-            return this._domains[domain];
+        UnitRender.prototype.renderFrame = function (frame, now) {
+            this.model.renderFrame(frame, now, this.faceTo, this);
+            this.unit.onRenderFrame(now);
         };
-        /**
-         * 获取指定域的单位数量
-         * @param domain
-         * @return
-         *
-         */
-        UnitController.prototype.getDomainUnitCount = function (domain) {
-            return this._domainCounts[domain];
+        UnitRender.prototype.dispatchEvent = function (event, now) {
+            this.unit.fire(event, now);
         };
-        /**
-         * 根据GUID获取JUnit
-         * @param guid
-         * @return
-         *
-         */
-        UnitController.prototype.getUnit = function (guid) {
-            return this._domainAll[guid];
+        UnitRender.prototype.doComplete = function (now) {
+            this.unit.playComplete(now);
         };
-        /**
-         * 清理对象
-         * @param exceptGuids	需要保留的单位的GUID列表
-         *
-         */
-        UnitController.prototype.clear = function (exceptGuids) {
-            var gcList = junyou.Temp.SharedArray1;
-            gcList.length = 0;
-            var i = 0;
-            for (var guid in this._domainAll) {
-                if (!exceptGuids || !~exceptGuids.indexOf(guid)) {
-                    gcList[i++] = guid;
-                }
-            }
-            for (var _i = 0, gcList_1 = gcList; _i < gcList_1.length; _i++) {
-                guid = gcList_1[_i];
-                this.removeUnit(guid);
-            }
-            gcList.length = 0;
+        UnitRender.prototype.dispose = function () {
+            this.unit = undefined;
         };
-        return UnitController;
-    }());
-    UnitController.instance = new UnitController();
-    junyou.UnitController = UnitController;
+        return UnitRender;
+    }(junyou.BaseRender));
+    junyou.UnitRender = UnitRender;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -12035,6 +11980,128 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
+     * 单位的域
+     */
+    junyou.UnitDomain = {};
+    junyou.UnitDomain.DOMAIN_ALL = 0;
+    junyou.UnitDomain.DOMAIN_ROLE = 1;
+    junyou.UnitDomain.DOMAIN_MONSTER = 2;
+    /**
+     * 单位管理器
+     * @author
+     *
+     */
+    var UnitController = (function () {
+        function UnitController() {
+            this._domains = {};
+            this._domainCounts = {};
+            this._domainAll = {};
+            this._domains[junyou.UnitDomain.DOMAIN_ALL] = this._domainAll;
+            this._domainCounts[junyou.UnitDomain.DOMAIN_ALL] = 0;
+        }
+        /**
+         * 注册一个单位
+         * @param unit
+         * @param domains
+         *
+         */
+        UnitController.prototype.registerUnit = function (unit) {
+            var domains = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                domains[_i - 1] = arguments[_i];
+            }
+            var guid = unit.guid;
+            for (var _a = 0, domains_1 = domains; _a < domains_1.length; _a++) {
+                var domain = domains_1[_a];
+                var dom = this._domains[domain];
+                if (!dom) {
+                    dom = {};
+                    this._domains[domain] = dom;
+                    this._domainCounts[domain] = 0;
+                }
+                dom[guid] = unit;
+            }
+            this._domainAll[guid] = unit;
+        };
+        /**
+         * 移除单位
+         * @param guid
+         * @return
+         *
+         */
+        UnitController.prototype.removeUnit = function (guid) {
+            var unit = this._domainAll[guid];
+            if (unit) {
+                var tunit;
+                var _domainCounts = this._domainCounts;
+                var _domains = this._domains;
+                _domainCounts[junyou.UnitDomain.DOMAIN_ALL]--;
+                for (var key in this._domains) {
+                    var domain = _domains[key];
+                    tunit = domain[guid];
+                    if (tunit) {
+                        _domainCounts[key]--;
+                        delete domain[guid];
+                    }
+                }
+            }
+            return unit;
+        };
+        /**
+         * 获取指定域的单位集合
+         * @param domain	指定域
+         * @return
+         *
+         */
+        UnitController.prototype.getDomainUnits = function (domain) {
+            return this._domains[domain];
+        };
+        /**
+         * 获取指定域的单位数量
+         * @param domain
+         * @return
+         *
+         */
+        UnitController.prototype.getDomainUnitCount = function (domain) {
+            return this._domainCounts[domain];
+        };
+        /**
+         * 根据GUID获取JUnit
+         * @param guid
+         * @return
+         *
+         */
+        UnitController.prototype.getUnit = function (guid) {
+            return this._domainAll[guid];
+        };
+        /**
+         * 清理对象
+         * @param exceptGuids	需要保留的单位的GUID列表
+         *
+         */
+        UnitController.prototype.clear = function (exceptGuids) {
+            var gcList = junyou.Temp.SharedArray1;
+            gcList.length = 0;
+            var i = 0;
+            for (var guid in this._domainAll) {
+                if (!exceptGuids || !~exceptGuids.indexOf(guid)) {
+                    gcList[i++] = guid;
+                }
+            }
+            for (var _i = 0, gcList_1 = gcList; _i < gcList_1.length; _i++) {
+                guid = gcList_1[_i];
+                this.removeUnit(guid);
+            }
+            gcList.length = 0;
+        };
+        return UnitController;
+    }());
+    UnitController.instance = new UnitController();
+    junyou.UnitController = UnitController;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
      *
      * 调整ClassFactory
      * @export
@@ -12063,73 +12130,6 @@ var junyou;
         return ClassFactory;
     }());
     junyou.ClassFactory = ClassFactory;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * 模型(纸娃娃)渲染器
-     */
-    var UnitRender = (function (_super) {
-        __extends(UnitRender, _super);
-        function UnitRender(unit) {
-            var _this = _super.call(this) || this;
-            _this.faceTo = 0;
-            _this.nextRenderTime = 0;
-            _this.renderedTime = 0;
-            _this.unit = unit;
-            _this.reset(junyou.Global.now);
-            return _this;
-        }
-        UnitRender.prototype.reset = function (now) {
-            this.renderedTime = now;
-            this.nextRenderTime = now;
-            this.idx = 0;
-        };
-        /**
-         * 处理数据
-         *
-         * @param {number} now 时间戳
-         */
-        UnitRender.prototype.doData = function (now) {
-            var actionInfo = this.actionInfo;
-            if (actionInfo) {
-                this.onData(actionInfo, now);
-            }
-        };
-        UnitRender.prototype.render = function (now) {
-            var actionInfo = this.actionInfo;
-            if (actionInfo) {
-                this.onData(actionInfo, now);
-                this.doRender(now);
-            }
-        };
-        UnitRender.prototype.onData = function (actionInfo, now) {
-            _super.prototype.onData.call(this, actionInfo, now);
-            this.unit.lastFrame = this.willRenderFrame;
-        };
-        UnitRender.prototype.clearRes = function () {
-            //清空显示
-            for (var _i = 0, _a = this.model.$children; _i < _a.length; _i++) {
-                var res = _a[_i];
-                res.bitmapData = undefined;
-            }
-        };
-        UnitRender.prototype.renderFrame = function (frame, now) {
-            this.model.renderFrame(frame, now, this.faceTo, this);
-            this.unit.onRenderFrame(now);
-        };
-        UnitRender.prototype.dispatchEvent = function (event, now) {
-            this.unit.fire(event, now);
-        };
-        UnitRender.prototype.doComplete = function (now) {
-            this.unit.playComplete(now);
-        };
-        UnitRender.prototype.dispose = function () {
-            this.unit = undefined;
-        };
-        return UnitRender;
-    }(junyou.BaseRender));
-    junyou.UnitRender = UnitRender;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -14834,6 +14834,93 @@ var junyou;
         return NotificationManager;
     }());
     junyou.NotificationManager = NotificationManager;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     *
+     * 用于弹出窗口，并将下层模糊的工具类
+     * @export
+     * @class BlurScreen
+     * @author gushuai
+     */
+    var BlurScreen = (function () {
+        function BlurScreen() {
+            this._engine = junyou.GameEngine.instance;
+            this._bmp = new egret.Bitmap();
+            this._stage = egret.sys.$TempStage;
+            this._con = new egret.Sprite();
+            this._tex = new egret.RenderTexture();
+            this._dic = {};
+        }
+        BlurScreen.prototype.registerModuleLayers = function (moduleid) {
+            var _this = this;
+            var ids = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                ids[_i - 1] = arguments[_i];
+            }
+            var dic = this._dic;
+            var layers = ids.map(function (id) { return _this._engine.getLayer(id); });
+            layers.doSort("id");
+            dic[moduleid] = layers;
+        };
+        BlurScreen.prototype.checkShowBlur = function (id) {
+            var dic = this._dic;
+            var layers = dic[id];
+            this._current = id;
+            if (layers && layers.length) {
+                this._stage.on(egret.Event.RESIZE, this.drawBlur, this);
+                this.drawBlur();
+            }
+        };
+        BlurScreen.prototype.checkHideBlur = function (id) {
+            this._current = id;
+            var dic = this._dic;
+            var layers = dic[id];
+            if (layers && layers.length) {
+                this.hideBlur();
+            }
+        };
+        BlurScreen.prototype.drawBlur = function (e) {
+            if (e) {
+                junyou.dispatch(-1998 /* ReLayout */);
+            }
+            var tex = this._tex;
+            var bmp = this._bmp;
+            var stage = this._stage;
+            var layers = this._dic[this._current];
+            if (layers) {
+                var con = this._con;
+                var len = layers.length;
+                for (var i = 0; i < len; i++) {
+                    var layer = layers[i];
+                    con.addChild(layer);
+                }
+                tex.drawToTexture(con);
+                con.removeChildren();
+                bmp.texture = tex;
+                bmp.refreshBMD();
+                bmp.filters = junyou.FilterUtils.blur;
+                stage.addChildAt(bmp, 0);
+            }
+        };
+        BlurScreen.prototype.hideBlur = function () {
+            this._stage.off(egret.Event.RESIZE, this.drawBlur, this);
+            junyou.removeDisplay(this._bmp);
+            this._tex.$renderBuffer.resize(0, 0);
+            var layers = this._dic[this._current];
+            if (layers) {
+                var len = layers.length;
+                var engine = this._engine;
+                for (var i = 0; i < len; i++) {
+                    var layer = layers[i];
+                    this._engine.awakeLayer(layer.id);
+                }
+            }
+        };
+        return BlurScreen;
+    }());
+    junyou.BlurScreen = BlurScreen;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
