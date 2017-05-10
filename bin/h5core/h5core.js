@@ -4461,10 +4461,7 @@ var junyou;
                                     data = bytes.readByteArray(len);
                                     break;
                                 default:
-                                    var sp = bytes.position;
                                     data = junyou.PBMessageUtils.readFrom(type, bytes, len);
-                                    //防止ProtoBuf结构和字典中定义的结构不匹配时，还能处理后续的数据
-                                    bytes.position = sp + len;
                                     break;
                             }
                         }
