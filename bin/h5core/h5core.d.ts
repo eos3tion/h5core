@@ -2454,32 +2454,84 @@ declare module junyou {
     }
 }
 declare module junyou {
-    /**
-     * 模型(纸娃娃)渲染器
-     */
-    class UnitRender extends BaseRender {
-        faceTo: number;
-        /**单位**/
-        protected unit: Unit;
-        actionInfo: ActionInfo;
-        model: UModel;
-        protected nextRenderTime: number;
-        protected renderedTime: number;
-        constructor(unit: Unit);
-        reset(now: number): void;
+    interface UnitDomainConstructor {
         /**
-         * 处理数据
-         *
-         * @param {number} now 时间戳
+         * 全部单位
          */
-        doData(now: number): void;
-        render(now: number): void;
-        onData(actionInfo: ActionInfo, now: number): void;
-        clearRes(): void;
-        renderFrame(frame: FrameInfo, now: number): void;
-        dispatchEvent(event: string, now: number): void;
-        doComplete(now: number): void;
-        dispose(): void;
+        DOMAIN_ALL: number;
+        /**
+         * 角色域
+         */
+        DOMAIN_ROLE: number;
+        /**
+         * 怪物域
+         */
+        DOMAIN_MONSTER: number;
+    }
+    /**
+     * 单位的域
+     */
+    var UnitDomain: UnitDomainConstructor;
+    /**
+     * 单位管理器
+     * @author
+     *
+     */
+    class UnitController {
+        /**
+         * Key     int  domain的名称<br/>
+         * Value Object 一个字典 Key guid  value JUnit
+         */
+        protected _domains: Object;
+        /**
+         * Key 		int domain的名称<br/>
+         * Value 	int 这个域的单位数量
+         */
+        protected _domainCounts: Object;
+        protected _domainAll: Object;
+        static instance: UnitController;
+        constructor();
+        /**
+         * 注册一个单位
+         * @param unit
+         * @param domains
+         *
+         */
+        registerUnit(unit: Unit, ...domains: any[]): void;
+        /**
+         * 移除单位
+         * @param guid
+         * @return
+         *
+         */
+        removeUnit(guid: number | string): Unit;
+        /**
+         * 获取指定域的单位集合
+         * @param domain	指定域
+         * @return
+         *
+         */
+        getDomainUnits(domain: number): Object;
+        /**
+         * 获取指定域的单位数量
+         * @param domain
+         * @return
+         *
+         */
+        getDomainUnitCount(domain: number): number;
+        /**
+         * 根据GUID获取JUnit
+         * @param guid
+         * @return
+         *
+         */
+        getUnit(guid: number | string): Unit;
+        /**
+         * 清理对象
+         * @param exceptGuids	需要保留的单位的GUID列表
+         *
+         */
+        clear(exceptGuids?: Array<number | string>): void;
     }
 }
 declare module junyou {
@@ -2690,7 +2742,7 @@ declare module junyou {
          * @memberOf PBStructDict
          */
         $$inted?: any;
-        /**消息名称*/ [index: string]: PBStruct;
+        /**消息名称*/[index: string]: PBStruct;
     }
     /**
      *
@@ -3463,9 +3515,9 @@ declare module junyou {
         x: number;
         y: number;
     }): {
-        x: number;
-        y: number;
-    };
+            x: number;
+            y: number;
+        };
     /**
      * 检查类矩形 a 和 b 是否相交
      * @export
@@ -5303,8 +5355,8 @@ declare module junyou {
         getPath(fx: number, fy: number, tx: number, ty: number, callback: {
             (path: PathNode[], ...args): void;
         }, ...args: any[]): {
-            stop: boolean;
-        };
+                stop: boolean;
+            };
     }
 }
 declare module junyou {
@@ -6138,87 +6190,6 @@ declare module junyou {
     }
 }
 declare module junyou {
-    interface UnitDomainConstructor {
-        /**
-         * 全部单位
-         */
-        DOMAIN_ALL: number;
-        /**
-         * 角色域
-         */
-        DOMAIN_ROLE: number;
-        /**
-         * 怪物域
-         */
-        DOMAIN_MONSTER: number;
-    }
-    /**
-     * 单位的域
-     */
-    var UnitDomain: UnitDomainConstructor;
-    /**
-     * 单位管理器
-     * @author
-     *
-     */
-    class UnitController {
-        /**
-         * Key     int  domain的名称<br/>
-         * Value Object 一个字典 Key guid  value JUnit
-         */
-        protected _domains: Object;
-        /**
-         * Key 		int domain的名称<br/>
-         * Value 	int 这个域的单位数量
-         */
-        protected _domainCounts: Object;
-        protected _domainAll: Object;
-        static instance: UnitController;
-        constructor();
-        /**
-         * 注册一个单位
-         * @param unit
-         * @param domains
-         *
-         */
-        registerUnit(unit: Unit, ...domains: any[]): void;
-        /**
-         * 移除单位
-         * @param guid
-         * @return
-         *
-         */
-        removeUnit(guid: number | string): Unit;
-        /**
-         * 获取指定域的单位集合
-         * @param domain	指定域
-         * @return
-         *
-         */
-        getDomainUnits(domain: number): Object;
-        /**
-         * 获取指定域的单位数量
-         * @param domain
-         * @return
-         *
-         */
-        getDomainUnitCount(domain: number): number;
-        /**
-         * 根据GUID获取JUnit
-         * @param guid
-         * @return
-         *
-         */
-        getUnit(guid: number | string): Unit;
-        /**
-         * 清理对象
-         * @param exceptGuids	需要保留的单位的GUID列表
-         *
-         */
-        clear(exceptGuids?: Array<number | string>): void;
-    }
-}
-declare module junyou {
     /**
      *
      * 调整ClassFactory
@@ -6241,6 +6212,35 @@ declare module junyou {
             [index: string]: any;
         });
         newInstance(): T;
+    }
+}
+declare module junyou {
+    /**
+     * 模型(纸娃娃)渲染器
+     */
+    class UnitRender extends BaseRender {
+        faceTo: number;
+        /**单位**/
+        protected unit: Unit;
+        actionInfo: ActionInfo;
+        model: UModel;
+        protected nextRenderTime: number;
+        protected renderedTime: number;
+        constructor(unit: Unit);
+        reset(now: number): void;
+        /**
+         * 处理数据
+         *
+         * @param {number} now 时间戳
+         */
+        doData(now: number): void;
+        render(now: number): void;
+        onData(actionInfo: ActionInfo, now: number): void;
+        clearRes(): void;
+        renderFrame(frame: FrameInfo, now: number): void;
+        dispatchEvent(event: string, now: number): void;
+        doComplete(now: number): void;
+        dispose(): void;
     }
 }
 declare module junyou {
@@ -7186,7 +7186,7 @@ declare module junyou {
     var DataLocator: {
         regParser: (key: keyof CfgData, parser: ConfigDataParser) => void;
         parsePakedDatas(): void;
-        regCommonParser(key:keyof CfgData, CfgCreator: 0 | (new () => Cfg), idkey?: string): void;
+        regCommonParser(key: keyof CfgData, CfgCreator: 0 | (new () => Cfg), idkey?: string): void;
     };
     /**
      * 配置数据解析函数
@@ -9782,130 +9782,6 @@ declare module junyou {
     }
 }
 declare module junyou {
-    class AdapterLayOut {
-        private disList;
-        private stage;
-        private listChanged;
-        private minSize;
-        private maxSize;
-        private currentSize;
-        constructor();
-        setMinSize(width: number, height: number): void;
-        setMaxSize(width: number, height: number): void;
-        private refreshCurrentSize();
-        /**为某显示对象添加自动布局策略
-         * @param disobj 显示对象
-         * @param normalMode 当游戏界面在minsize maxsize大小范围内的布局方式
-         * @param minMode 当游戏界面小于minsize时的策略，如果传空，默认noscale
-         * @param maxMode 当游戏界面大于maxsize时的策略，如果传空，当超出尺寸时，就是UI的效果图，默认按fla中的坐标还原,
-         */
-        addLayout(disobj: egret.DisplayObject, normalMode: AdapScaleMode, minMode?: AdapScaleMode, maxMode?: AdapScaleMode): void;
-        private onListChanged();
-        private onStageResize();
-        private reLayOut(bin);
-        private ondisAddtoStage(e);
-        /**默认保持原始dis的宽高比 */
-        private calculateStageSize(scaleMode, disWidth, disHeight, screenWidth, screenHeight, contentWidth, contentHeight);
-    }
-    const enum ScaleMode {
-        /**
-         * Do not scale application content. Even when you change the player viewport size, it remains unchanged. If the player is smaller than the viewport content, possibly with some cropping.<br/>
-         * In this mode, the stage size (Stage.stageWidth, Stage.stageHeight) always with the player viewport size consistent.
-         * @language en_US
-         */
-        /**
-         * 不缩放应用程序内容。即使在更改播放器视口大小时，它仍然保持不变。如果播放器视口比内容小，则可能进行一些裁切。<br/>
-         * 在此模式下，舞台尺寸（Stage.stageWidth,Stage.stageHeight）始终跟播放器视口大小保持一致。
-         * @language zh_CN
-         */
-        NO_SCALE = 0,
-        /**
-         * Keep the original aspect ratio scaling application content, after scaling a wide directions application content to fill the viewport players on both sides in the other direction may not be wide enough and left black bars.<br/>
-         * In this mode, the stage size (Stage.stageWidth, Stage.stageHeight) is always equal to the initialization incoming external application content size.
-         * @language en_US
-         */
-        /**
-         * 保持原始宽高比缩放应用程序内容，缩放后应用程序内容的较宽方向填满播放器视口，另一个方向的两侧可能会不够宽而留有黑边。<br/>
-         * 在此模式下，舞台尺寸(Stage.stageWidth,Stage.stageHeight)始终等于初始化时外部传入的应用程序内容尺寸。
-         * @language zh_CN
-         */
-        SHOW_ALL = 1,
-        /**
-         * Keep the original aspect ratio scaling application content, after scaling a narrow direction of application content to fill the viewport players on both sides in the other direction may exceed the viewport and the player is cut.<br/>
-         * In this mode, the stage size (Stage.stageWidth, Stage.stageHeight) is always equal to the initialization incoming external application content size.
-         * @language en_US
-         */
-        /**
-         * 保持原始宽高比缩放应用程序内容，缩放后应用程序内容的较窄方向填满播放器视口，另一个方向的两侧可能会超出播放器视口而被裁切。<br/>
-         * 在此模式下，舞台尺寸(Stage.stageWidth,Stage.stageHeight)始终等于初始化时外部传入的应用程序内容尺寸。
-         * @language zh_CN
-         */
-        NO_BORDER = 2,
-        /**
-         * Do not keep the original aspect ratio scaling application content, after scaling application content just fill the player viewport.<br/>
-         * In this mode, the stage size (Stage.stageWidth, Stage.stageHeight) is always equal to the initialization incoming external application content size.
-         * @language en_US
-         */
-        /**
-         * 不保持原始宽高比缩放应用程序内容，缩放后应用程序内容正好填满播放器视口。<br/>
-         * 在此模式下，舞台尺寸(Stage.stageWidth,Stage.stageHeight)始终等于初始化时外部传入的应用程序内容尺寸。
-         * @language zh_CN
-         */
-        EXACT_FIT = 3,
-        /**
-         * 将显示对象的宽度调整至screenWidth，高度按显示对象对象原始比例进行缩放
-         */
-        FIXED_WIDTH = 4,
-        /**
-            将显示对象的高度调整至screenHeight，宽度按显示对象对象原始比例进行缩放
-         */
-        FIXED_HEIGHT = 5,
-        /**
-         * Keep the original aspect ratio scaling application content, after scaling application content in the horizontal and vertical directions to fill the viewport player,a narrow direction may not be wide enough and fill.<br/>
-         * In this mode, the stage height (Stage.stageHeight) and the stage width (Stage.stageWidth) by the current scale with the player viewport size.
-         * @language en_US
-         */
-        /**
-         * 保持原始宽高比缩放应用程序内容，缩放后应用程序内容在水平和垂直方向都填满播放器视口，应用程序内容的较窄方向可能会不够宽而填充。<br/>
-         * 在此模式下，舞台高度(Stage.stageHeight)和舞台宽度(Stage.stageWidth)由当前的缩放比例与播放器视口宽高决定。
-         * @language zh_CN
-         */
-        FIXED_NARROW = 6,
-        /**
-         * Keep the original aspect ratio scaling application content, after scaling application content in the horizontal and vertical directions to fill the viewport player, a wide direction may exceed the viewport and the player is cut.<br/>
-         * In this mode, the stage height (Stage.stageHeight) and the stage width (Stage.stageWidth) by the current scale with the player viewport size.
-         * @language en_US
-         */
-        /**
-         * 保持原始宽高比缩放应用程序内容，缩放后应用程序内容在水平和垂直方向都填满播放器视口，应用程序内容的较宽方向的两侧可能会超出播放器视口而被裁切。<br/>
-         * 在此模式下，舞台高度(Stage.stageHeight)和舞台宽度(Stage.stageWidth)由当前的缩放比例与播放器视口宽高决定。
-         * @language zh_CN
-         */
-        FIXED_WIDE = 7,
-        /** 不保持纵横比缩放显示对象 */
-        FIT_TO_SCREEN = 8,
-        /**不再进行缩放了 */
-        NO_MORE_SCALE = 9,
-    }
-    interface AdapScaleMode {
-        /**ScaleMode */
-        scaleMode: ScaleMode;
-        /**用绝对坐标还是相对坐标 */
-        absolute?: boolean;
-        layoutType?: LayoutType;
-        /**距父容器或者父类的顶边缘的百分比距离 相对布局时用*/
-        top?: number;
-        /**距父容器或者父类的左边缘的百分比距离 相对布局时用*/
-        left?: number;
-        /** 绝对时为绝对坐标*/
-        x?: number;
-        /** 绝对时为绝对坐标*/
-        y?: number;
-        hoffset?: number;
-        voffset?: number;
-    }
-}
-declare module junyou {
     /**
      * ## 背景图容器
      * 1. 当屏幕长或者宽任意一边大于`基准尺寸(basis)`时
@@ -10042,9 +9918,9 @@ declare module junyou {
             x: number;
             y: number;
         }, hoffset?: number, voffset?: number, innerV?: boolean, innerH?: boolean): {
-            x: number;
-            y: number;
-        };
+                x: number;
+                y: number;
+            };
     };
 }
 declare module junyou {

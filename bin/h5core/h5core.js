@@ -4663,69 +4663,124 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
-     * 模型(纸娃娃)渲染器
+     * 单位的域
      */
-    var UnitRender = (function (_super) {
-        __extends(UnitRender, _super);
-        function UnitRender(unit) {
-            var _this = _super.call(this) || this;
-            _this.faceTo = 0;
-            _this.nextRenderTime = 0;
-            _this.renderedTime = 0;
-            _this.unit = unit;
-            _this.reset(junyou.Global.now);
-            return _this;
+    junyou.UnitDomain = {};
+    junyou.UnitDomain.DOMAIN_ALL = 0;
+    junyou.UnitDomain.DOMAIN_ROLE = 1;
+    junyou.UnitDomain.DOMAIN_MONSTER = 2;
+    /**
+     * 单位管理器
+     * @author
+     *
+     */
+    var UnitController = (function () {
+        function UnitController() {
+            this._domains = {};
+            this._domainCounts = {};
+            this._domainAll = {};
+            this._domains[junyou.UnitDomain.DOMAIN_ALL] = this._domainAll;
+            this._domainCounts[junyou.UnitDomain.DOMAIN_ALL] = 0;
         }
-        UnitRender.prototype.reset = function (now) {
-            this.renderedTime = now;
-            this.nextRenderTime = now;
-            this.idx = 0;
+        /**
+         * 注册一个单位
+         * @param unit
+         * @param domains
+         *
+         */
+        UnitController.prototype.registerUnit = function (unit) {
+            var domains = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                domains[_i - 1] = arguments[_i];
+            }
+            var guid = unit.guid;
+            for (var _a = 0, domains_1 = domains; _a < domains_1.length; _a++) {
+                var domain = domains_1[_a];
+                var dom = this._domains[domain];
+                if (!dom) {
+                    dom = {};
+                    this._domains[domain] = dom;
+                    this._domainCounts[domain] = 0;
+                }
+                dom[guid] = unit;
+            }
+            this._domainAll[guid] = unit;
         };
         /**
-         * 处理数据
+         * 移除单位
+         * @param guid
+         * @return
          *
-         * @param {number} now 时间戳
          */
-        UnitRender.prototype.doData = function (now) {
-            var actionInfo = this.actionInfo;
-            if (actionInfo) {
-                this.onData(actionInfo, now);
+        UnitController.prototype.removeUnit = function (guid) {
+            var unit = this._domainAll[guid];
+            if (unit) {
+                var tunit;
+                var _domainCounts = this._domainCounts;
+                var _domains = this._domains;
+                _domainCounts[junyou.UnitDomain.DOMAIN_ALL]--;
+                for (var key in this._domains) {
+                    var domain = _domains[key];
+                    tunit = domain[guid];
+                    if (tunit) {
+                        _domainCounts[key]--;
+                        delete domain[guid];
+                    }
+                }
             }
+            return unit;
         };
-        UnitRender.prototype.render = function (now) {
-            var actionInfo = this.actionInfo;
-            if (actionInfo) {
-                this.onData(actionInfo, now);
-                this.doRender(now);
+        /**
+         * 获取指定域的单位集合
+         * @param domain	指定域
+         * @return
+         *
+         */
+        UnitController.prototype.getDomainUnits = function (domain) {
+            return this._domains[domain];
+        };
+        /**
+         * 获取指定域的单位数量
+         * @param domain
+         * @return
+         *
+         */
+        UnitController.prototype.getDomainUnitCount = function (domain) {
+            return this._domainCounts[domain];
+        };
+        /**
+         * 根据GUID获取JUnit
+         * @param guid
+         * @return
+         *
+         */
+        UnitController.prototype.getUnit = function (guid) {
+            return this._domainAll[guid];
+        };
+        /**
+         * 清理对象
+         * @param exceptGuids	需要保留的单位的GUID列表
+         *
+         */
+        UnitController.prototype.clear = function (exceptGuids) {
+            var gcList = junyou.Temp.SharedArray1;
+            gcList.length = 0;
+            var i = 0;
+            for (var guid in this._domainAll) {
+                if (!exceptGuids || !~exceptGuids.indexOf(guid)) {
+                    gcList[i++] = guid;
+                }
             }
-        };
-        UnitRender.prototype.onData = function (actionInfo, now) {
-            _super.prototype.onData.call(this, actionInfo, now);
-            this.unit.lastFrame = this.willRenderFrame;
-        };
-        UnitRender.prototype.clearRes = function () {
-            //清空显示
-            for (var _i = 0, _a = this.model.$children; _i < _a.length; _i++) {
-                var res = _a[_i];
-                res.bitmapData = undefined;
+            for (var _i = 0, gcList_1 = gcList; _i < gcList_1.length; _i++) {
+                guid = gcList_1[_i];
+                this.removeUnit(guid);
             }
+            gcList.length = 0;
         };
-        UnitRender.prototype.renderFrame = function (frame, now) {
-            this.model.renderFrame(frame, now, this.faceTo, this);
-            this.unit.onRenderFrame(now);
-        };
-        UnitRender.prototype.dispatchEvent = function (event, now) {
-            this.unit.fire(event, now);
-        };
-        UnitRender.prototype.doComplete = function (now) {
-            this.unit.playComplete(now);
-        };
-        UnitRender.prototype.dispose = function () {
-            this.unit = undefined;
-        };
-        return UnitRender;
-    }(junyou.BaseRender));
-    junyou.UnitRender = UnitRender;
+        return UnitController;
+    }());
+    UnitController.instance = new UnitController();
+    junyou.UnitController = UnitController;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -11959,128 +12014,6 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
-     * 单位的域
-     */
-    junyou.UnitDomain = {};
-    junyou.UnitDomain.DOMAIN_ALL = 0;
-    junyou.UnitDomain.DOMAIN_ROLE = 1;
-    junyou.UnitDomain.DOMAIN_MONSTER = 2;
-    /**
-     * 单位管理器
-     * @author
-     *
-     */
-    var UnitController = (function () {
-        function UnitController() {
-            this._domains = {};
-            this._domainCounts = {};
-            this._domainAll = {};
-            this._domains[junyou.UnitDomain.DOMAIN_ALL] = this._domainAll;
-            this._domainCounts[junyou.UnitDomain.DOMAIN_ALL] = 0;
-        }
-        /**
-         * 注册一个单位
-         * @param unit
-         * @param domains
-         *
-         */
-        UnitController.prototype.registerUnit = function (unit) {
-            var domains = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                domains[_i - 1] = arguments[_i];
-            }
-            var guid = unit.guid;
-            for (var _a = 0, domains_1 = domains; _a < domains_1.length; _a++) {
-                var domain = domains_1[_a];
-                var dom = this._domains[domain];
-                if (!dom) {
-                    dom = {};
-                    this._domains[domain] = dom;
-                    this._domainCounts[domain] = 0;
-                }
-                dom[guid] = unit;
-            }
-            this._domainAll[guid] = unit;
-        };
-        /**
-         * 移除单位
-         * @param guid
-         * @return
-         *
-         */
-        UnitController.prototype.removeUnit = function (guid) {
-            var unit = this._domainAll[guid];
-            if (unit) {
-                var tunit;
-                var _domainCounts = this._domainCounts;
-                var _domains = this._domains;
-                _domainCounts[junyou.UnitDomain.DOMAIN_ALL]--;
-                for (var key in this._domains) {
-                    var domain = _domains[key];
-                    tunit = domain[guid];
-                    if (tunit) {
-                        _domainCounts[key]--;
-                        delete domain[guid];
-                    }
-                }
-            }
-            return unit;
-        };
-        /**
-         * 获取指定域的单位集合
-         * @param domain	指定域
-         * @return
-         *
-         */
-        UnitController.prototype.getDomainUnits = function (domain) {
-            return this._domains[domain];
-        };
-        /**
-         * 获取指定域的单位数量
-         * @param domain
-         * @return
-         *
-         */
-        UnitController.prototype.getDomainUnitCount = function (domain) {
-            return this._domainCounts[domain];
-        };
-        /**
-         * 根据GUID获取JUnit
-         * @param guid
-         * @return
-         *
-         */
-        UnitController.prototype.getUnit = function (guid) {
-            return this._domainAll[guid];
-        };
-        /**
-         * 清理对象
-         * @param exceptGuids	需要保留的单位的GUID列表
-         *
-         */
-        UnitController.prototype.clear = function (exceptGuids) {
-            var gcList = junyou.Temp.SharedArray1;
-            gcList.length = 0;
-            var i = 0;
-            for (var guid in this._domainAll) {
-                if (!exceptGuids || !~exceptGuids.indexOf(guid)) {
-                    gcList[i++] = guid;
-                }
-            }
-            for (var _i = 0, gcList_1 = gcList; _i < gcList_1.length; _i++) {
-                guid = gcList_1[_i];
-                this.removeUnit(guid);
-            }
-            gcList.length = 0;
-        };
-        return UnitController;
-    }());
-    UnitController.instance = new UnitController();
-    junyou.UnitController = UnitController;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
      *
      * 调整ClassFactory
      * @export
@@ -12109,6 +12042,73 @@ var junyou;
         return ClassFactory;
     }());
     junyou.ClassFactory = ClassFactory;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 模型(纸娃娃)渲染器
+     */
+    var UnitRender = (function (_super) {
+        __extends(UnitRender, _super);
+        function UnitRender(unit) {
+            var _this = _super.call(this) || this;
+            _this.faceTo = 0;
+            _this.nextRenderTime = 0;
+            _this.renderedTime = 0;
+            _this.unit = unit;
+            _this.reset(junyou.Global.now);
+            return _this;
+        }
+        UnitRender.prototype.reset = function (now) {
+            this.renderedTime = now;
+            this.nextRenderTime = now;
+            this.idx = 0;
+        };
+        /**
+         * 处理数据
+         *
+         * @param {number} now 时间戳
+         */
+        UnitRender.prototype.doData = function (now) {
+            var actionInfo = this.actionInfo;
+            if (actionInfo) {
+                this.onData(actionInfo, now);
+            }
+        };
+        UnitRender.prototype.render = function (now) {
+            var actionInfo = this.actionInfo;
+            if (actionInfo) {
+                this.onData(actionInfo, now);
+                this.doRender(now);
+            }
+        };
+        UnitRender.prototype.onData = function (actionInfo, now) {
+            _super.prototype.onData.call(this, actionInfo, now);
+            this.unit.lastFrame = this.willRenderFrame;
+        };
+        UnitRender.prototype.clearRes = function () {
+            //清空显示
+            for (var _i = 0, _a = this.model.$children; _i < _a.length; _i++) {
+                var res = _a[_i];
+                res.bitmapData = undefined;
+            }
+        };
+        UnitRender.prototype.renderFrame = function (frame, now) {
+            this.model.renderFrame(frame, now, this.faceTo, this);
+            this.unit.onRenderFrame(now);
+        };
+        UnitRender.prototype.dispatchEvent = function (event, now) {
+            this.unit.fire(event, now);
+        };
+        UnitRender.prototype.doComplete = function (now) {
+            this.unit.playComplete(now);
+        };
+        UnitRender.prototype.dispose = function () {
+            this.unit = undefined;
+        };
+        return UnitRender;
+    }(junyou.BaseRender));
+    junyou.UnitRender = UnitRender;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -18589,255 +18589,6 @@ var junyou;
     }(junyou.BaseCreator));
     TextFieldCreator.DefaultFonts = "";
     junyou.TextFieldCreator = TextFieldCreator;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    var AdapterLayOut = (function () {
-        function AdapterLayOut() {
-            this.disList = [];
-            var stage = egret.sys.$TempStage;
-            this.stage = stage;
-            stage.on(egret.Event.RESIZE, this.onStageResize, this);
-            this.minSize = new egret.Rectangle(0, 0, 400, 240);
-            this.maxSize = new egret.Rectangle(0, 0, 1152, 648);
-            this.currentSize = new egret.Rectangle(0, 0, stage.width, stage.height);
-        }
-        AdapterLayOut.prototype.setMinSize = function (width, height) {
-            var min = this.minSize;
-            var max = this.maxSize;
-            min.width = width;
-            min.height = height;
-            if (max.width < width) {
-                max.width = width;
-            }
-            if (max.height < height) {
-                max.height = height;
-            }
-            this.refreshCurrentSize();
-        };
-        AdapterLayOut.prototype.setMaxSize = function (width, height) {
-            var min = this.minSize;
-            var max = this.maxSize;
-            max.width = width;
-            max.height = height;
-            if (min.width > width) {
-                min.width = width;
-            }
-            if (min.height > height) {
-                min.height = height;
-            }
-            this.refreshCurrentSize();
-        };
-        AdapterLayOut.prototype.refreshCurrentSize = function () {
-            var min = this.minSize;
-            var max = this.maxSize;
-            var cur = this.currentSize;
-            cur.width = Math.min(max.width, Math.max(min.width, cur.width));
-            cur.height = Math.min(max.height, Math.max(min.height, cur.height));
-        };
-        /**为某显示对象添加自动布局策略
-         * @param disobj 显示对象
-         * @param normalMode 当游戏界面在minsize maxsize大小范围内的布局方式
-         * @param minMode 当游戏界面小于minsize时的策略，如果传空，默认noscale
-         * @param maxMode 当游戏界面大于maxsize时的策略，如果传空，当超出尺寸时，就是UI的效果图，默认按fla中的坐标还原,
-         */
-        AdapterLayOut.prototype.addLayout = function (disobj, normalMode, minMode, maxMode) {
-            var list = this.disList;
-            var len = list.length;
-            var bin = { normalMode: normalMode, minMode: minMode, maxMode: maxMode, disHeight: disobj.height, disWidth: disobj.width, disobj: disobj, ox: disobj.x, oy: disobj.y };
-            list.pushOnce(bin);
-            if (len != list.length) {
-                this.listChanged = true;
-            }
-            var stage = disobj.stage;
-            if (!stage) {
-                disobj.on(egret.Event.ADDED_TO_STAGE, this.ondisAddtoStage, this);
-            }
-            if (this.listChanged) {
-                this.stage.on(egret.Event.ENTER_FRAME, this.onListChanged, this);
-            }
-        };
-        AdapterLayOut.prototype.onListChanged = function () {
-            this.stage.off(egret.Event.ENTER_FRAME, this.onListChanged, this);
-            this.listChanged = false;
-            this.onStageResize();
-        };
-        AdapterLayOut.prototype.onStageResize = function () {
-            var cur = this.currentSize;
-            cur.width = this.stage.stageWidth;
-            cur.height = this.stage.stageHeight;
-            this.refreshCurrentSize();
-            var bins = this.disList;
-            var len = bins.length;
-            for (var i = 0; i < len; i++) {
-                this.reLayOut(bins[i]);
-            }
-        };
-        AdapterLayOut.prototype.reLayOut = function (bin) {
-            var disobj = bin.disobj, disHeight = bin.disHeight, disWidth = bin.disWidth, normalMode = bin.normalMode, minMode = bin.minMode, maxMode = bin.maxMode;
-            var stage = this.stage;
-            var cur = this.currentSize;
-            var min = this.minSize;
-            var max = this.maxSize;
-            var contentWidth = stage.stageWidth;
-            var contentHeight = stage.stageHeight;
-            var minWidth = min.width;
-            var minHeight = min.height;
-            var maxWidth = max.width;
-            var maxHeight = max.height;
-            var currentMode;
-            var scaleMode = 0 /* NO_SCALE */;
-            var screenWidth;
-            var screenHeight;
-            if (contentWidth >= minWidth && contentWidth < maxWidth && contentHeight >= minHeight && contentWidth < maxWidth) {
-                //正常尺寸内
-                currentMode = normalMode;
-                screenWidth = maxWidth;
-                screenHeight = maxHeight;
-            }
-            else if (contentHeight >= maxHeight || contentWidth >= maxWidth) {
-                //最大尺寸外
-                currentMode = maxMode;
-                if (!maxMode) {
-                    scaleMode = 9 /* NO_MORE_SCALE */;
-                }
-                screenWidth = maxWidth;
-                screenHeight = maxHeight;
-            }
-            else if (contentHeight < minHeight || contentWidth < minWidth) {
-                //最小尺寸内
-                currentMode = minMode;
-                if (!minMode) {
-                    scaleMode = 9 /* NO_MORE_SCALE */;
-                }
-                screenWidth = minWidth;
-                screenHeight = minHeight;
-            }
-            if (currentMode) {
-                var top_1 = currentMode.top, left = currentMode.left, absolute = currentMode.absolute, x = currentMode.x, y = currentMode.y, scaleMode_1 = currentMode.scaleMode, layoutType = currentMode.layoutType;
-                var scalex = 1;
-                var scaley = 1;
-                if (scaleMode_1 != 9 /* NO_MORE_SCALE */) {
-                    var _a = this.calculateStageSize(scaleMode_1, contentWidth, contentHeight, screenWidth, screenHeight, maxWidth, maxHeight), dw = _a[0], dh = _a[1];
-                    scalex = dw / contentWidth;
-                    scaley = dh / contentHeight;
-                    disobj.scaleX = scalex;
-                    disobj.scaleY = scaley;
-                }
-                if (absolute) {
-                    if (x !== undefined) {
-                        disobj.x = x;
-                    }
-                    if (y !== undefined) {
-                        disobj.y = y;
-                    }
-                }
-                else {
-                    if (!top_1 && !left) {
-                        if (layoutType !== undefined) {
-                            junyou.Layout.getLayoutPos(disWidth * scalex, disHeight * scaley, cur.width, cur.height, layoutType, disobj);
-                        }
-                    }
-                    else {
-                        junyou.Layout.layoutPercent(disobj, top_1, left, cur);
-                    }
-                }
-            }
-        };
-        AdapterLayOut.prototype.ondisAddtoStage = function (e) {
-            var dis = e.target;
-            var bins = this.disList;
-            for (var i = 0; i < bins.length; i++) {
-                var bin = bins[i];
-                if (bin.disobj === dis) {
-                    this.reLayOut(bin);
-                    break;
-                }
-            }
-        };
-        /**默认保持原始dis的宽高比 */
-        AdapterLayOut.prototype.calculateStageSize = function (scaleMode, disWidth, disHeight, screenWidth, screenHeight, contentWidth, contentHeight) {
-            var displayWidth = disWidth;
-            var displayHeight = disHeight;
-            var scaleX = (disWidth / screenWidth) || 0;
-            var scaleY = (disHeight / screenHeight) || 0;
-            switch (scaleMode) {
-                case 3 /* EXACT_FIT */:
-                    displayWidth = screenWidth;
-                    displayHeight = screenHeight;
-                    break;
-                case 5 /* FIXED_HEIGHT */:
-                    //将显示对象的高度调整至screenHeight，宽度按显示对象对象原始比例进行缩放
-                    displayHeight = screenHeight;
-                    displayWidth = Math.round(disWidth * (screenHeight / disHeight));
-                    break;
-                case 4 /* FIXED_WIDTH */:
-                    //将显示对象的宽度调整至screenWidth，高度按显示对象对象原始比例进行缩放
-                    displayWidth = screenWidth;
-                    displayHeight = Math.round(disHeight * (screenWidth / disWidth));
-                    break;
-                case 2 /* NO_BORDER */:
-                    //
-                    if (scaleX > scaleY) {
-                        displayHeight = Math.round(screenHeight * scaleX);
-                        displayWidth = Math.round(disWidth * (displayHeight / disHeight));
-                    }
-                    else {
-                        displayWidth = Math.round(screenWidth * scaleY);
-                        displayHeight = Math.round(disHeight * (displayWidth / disWidth));
-                    }
-                    break;
-                case 1 /* SHOW_ALL */:
-                    if (scaleX > scaleY) {
-                        displayHeight = Math.round(disHeight * scaleY);
-                        displayWidth = Math.round(disWidth * (displayHeight / disHeight));
-                    }
-                    else {
-                        displayWidth = Math.round(disWidth * scaleX);
-                        displayHeight = Math.round(disHeight * (displayWidth / disWidth));
-                    }
-                    break;
-                case 6 /* FIXED_NARROW */:
-                    if (scaleX > scaleY) {
-                        displayWidth = Math.round(screenWidth / scaleY);
-                        displayHeight = Math.round(disHeight * (displayWidth / disWidth));
-                    }
-                    else {
-                        displayHeight = Math.round(screenHeight / scaleX);
-                        displayWidth = Math.round(disWidth * (displayHeight / disHeight));
-                    }
-                    break;
-                case 7 /* FIXED_WIDE */:
-                    if (scaleX > scaleY) {
-                        displayHeight = Math.round(screenHeight / scaleX);
-                        displayWidth = Math.round(disWidth * (displayHeight / disHeight));
-                    }
-                    else {
-                        displayWidth = Math.round(screenWidth / scaleY);
-                        displayHeight = Math.round(disHeight * (displayWidth / disWidth));
-                    }
-                    break;
-                case 8 /* FIT_TO_SCREEN */:
-                    displayWidth = Math.round(disWidth * screenWidth / contentWidth);
-                    displayHeight = Math.round(disHeight * screenHeight / contentHeight);
-                    break;
-                default:
-                    displayWidth = disWidth;
-                    displayHeight = disHeight;
-                    break;
-            }
-            //宽高不是2的整数倍会导致图片绘制出现问题
-            if (displayWidth & 1) {
-                displayWidth += 1;
-            }
-            if (displayHeight & 1) {
-                displayHeight += 1;
-            }
-            return [displayWidth, displayHeight];
-        };
-        return AdapterLayOut;
-    }());
-    junyou.AdapterLayOut = AdapterLayOut;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
