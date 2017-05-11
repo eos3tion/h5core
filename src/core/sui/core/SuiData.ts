@@ -116,10 +116,7 @@ module junyou {
             //增加一个skin前缀
             let uri = "skin/" + ConfigUtils.getSkinPath(key, file);
             let tmp = ResourceManager.get(uri, () => {
-                let url = ConfigUtils.getSkinFile(key, file);
-                if (Global.webp) {//支持webp
-                    url += Ext.WEBP;
-                }
+                let url = ConfigUtils.getSkinFile(key, file) + Global.webp;
                 let tmp = new SuiBmd(uri, url);
                 tmp.textures = textures;
                 return tmp;

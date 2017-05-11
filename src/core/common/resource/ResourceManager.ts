@@ -15,10 +15,6 @@ module junyou {
     export const ResourceManager = (function () {
 
         const _resources: { [index: string]: IResource } = {};
-
-        // const _checkers: ResourceChecker[] = [];
-
-        const webp = Global.webp ? Ext.WEBP : "";
         return {
             get<T extends IResource>(resid: string, noResHandler: { (...args): T }, thisObj?: any, ...args) {
                 let res = getResource(resid) as T;
@@ -51,7 +47,7 @@ module junyou {
                 if (!res) {
                     res = new TextureResource();
                     res.resID = resID;
-                    res.url = ConfigUtils.getResUrl(resID + webp);
+                    res.url = ConfigUtils.getResUrl(resID + Global.webp);
                     resources[resID] = res;
                 }
                 return res;

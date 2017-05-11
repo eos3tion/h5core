@@ -1,5 +1,4 @@
 module junyou {
-    const webp = Global.webp ? Ext.WEBP : "";
     /**
      * 拆分的资源
      * @author 3tion
@@ -40,7 +39,7 @@ module junyou {
 
         constructor(uri: string) {
             this.resID = uri;
-            this.url = ConfigUtils.getResUrl(uri + webp);
+            this.url = ConfigUtils.getResUrl(uri + Global.webp);
             this.textures = [];
         }
 

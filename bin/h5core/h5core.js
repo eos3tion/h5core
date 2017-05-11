@@ -5794,8 +5794,6 @@ var junyou;
      */
     junyou.ResourceManager = (function () {
         var _resources = {};
-        // const _checkers: ResourceChecker[] = [];
-        var webp = junyou.Global.webp ? junyou.Ext.WEBP : "";
         return {
             get: function (resid, noResHandler, thisObj) {
                 var args = [];
@@ -5831,7 +5829,7 @@ var junyou;
                 if (!res) {
                     res = new junyou.TextureResource();
                     res.resID = resID;
-                    res.url = junyou.ConfigUtils.getResUrl(resID + webp);
+                    res.url = junyou.ConfigUtils.getResUrl(resID + junyou.Global.webp);
                     resources[resID] = res;
                 }
                 return res;
@@ -5992,10 +5990,11 @@ var junyou;
      */
     junyou.Global = (function () {
         try {
-            var _webp = document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') == 0;
+            var supportWebp = document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') == 0;
         }
         catch (err) {
         }
+        var _webp = supportWebp ? junyou.Ext.WEBP : "";
         var _isNative = egret.Capabilities.supportVersion != "Unknown";
         /**
          *  当前这一帧的时间
@@ -8805,7 +8804,6 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    var webp = junyou.Global.webp ? junyou.Ext.WEBP : "";
     /**
      * 拆分的资源
      * @author 3tion
@@ -8817,7 +8815,7 @@ var junyou;
              */
             this.state = 0 /* UNREQUEST */;
             this.resID = uri;
-            this.url = junyou.ConfigUtils.getResUrl(uri + webp);
+            this.url = junyou.ConfigUtils.getResUrl(uri + junyou.Global.webp);
             this.textures = [];
         }
         Object.defineProperty(SplitUnitResource.prototype, "isStatic", {
@@ -14769,10 +14767,7 @@ var junyou;
             //增加一个skin前缀
             var uri = "skin/" + junyou.ConfigUtils.getSkinPath(key, file);
             var tmp = junyou.ResourceManager.get(uri, function () {
-                var url = junyou.ConfigUtils.getSkinFile(key, file);
-                if (junyou.Global.webp) {
-                    url += junyou.Ext.WEBP;
-                }
+                var url = junyou.ConfigUtils.getSkinFile(key, file) + junyou.Global.webp;
                 var tmp = new junyou.SuiBmd(uri, url);
                 tmp.textures = textures;
                 return tmp;

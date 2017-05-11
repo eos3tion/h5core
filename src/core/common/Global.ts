@@ -5,10 +5,13 @@ module junyou {
 	 *
 	 */
 	export const Global = (function () {
+
 		try {
-			var _webp = document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') == 0;
+			var supportWebp = document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') == 0;
 		} catch (err) {
 		}
+
+		const _webp = supportWebp ? Ext.WEBP : "";
 
 		var _isNative = egret.Capabilities.supportVersion != "Unknown";
 
