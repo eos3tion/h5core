@@ -13066,7 +13066,8 @@ var junyou;
             var list = this._renderList;
             var idx = list.indexOf(item);
             if (idx == -1) {
-                list.push(item);
+                idx = list.length;
+                list[idx] = item;
                 item.on(-1001 /* ITEM_TOUCH_TAP */, this.touchItemrender, this);
             }
             item.index = index == undefined ? idx : index;
