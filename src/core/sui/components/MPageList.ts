@@ -38,13 +38,13 @@ module junyou {
             let list = this._renderList;
             let idx = list.indexOf(item);
             if (idx == -1) {
-                list.push(item);
+                idx = list.length;
+                list[idx] = item;
                 item.on(EventConst.ITEM_TOUCH_TAP, this.touchItemrender, this);
             }
             item.index = index == undefined ? idx : index;
             this._viewCount = list.length;
         }
-
         public recycle() {
             this._dataLen = 0;
             this._data = undefined;
