@@ -270,9 +270,9 @@ module junyou {
 	 *
 	 */
     export abstract class NetService {
-         /**
-    	 * 请求地址
-    	 */
+        /**
+        * 请求地址
+        */
         protected _actionUrl: string;
 
 
@@ -425,7 +425,7 @@ module junyou {
             this._reconCount = 0;
             this._nextAutoTime = Global.now + this._autoTimeDelay;
         }
-   
+
     	/**
     	 * 基础类型消息
     	 */
@@ -536,18 +536,24 @@ module junyou {
             let dat = data.data;
             let type = data.msgType;
             bytes.writeShort(cmd);
-            if (DEBUG) {
-                var outdata = undefined;
-            }
             if (dat == undefined) {
                 bytes.writeUnsignedShort(0);
+                if (DEBUG) {
+                    var outdata = undefined;
+                }
             }
             else {
                 if (type in BytesLen) {
                     bytes.writeUnsignedShort(BytesLen[type]);
                 }
+                if (DEBUG) {
+                    outdata = dat;
+                }
                 switch (type) {
                     case NSType.Null:
+                        if (DEBUG) {
+                            outdata = undefined;
+                        }
                         break;
                     case NSType.Boolean:
                         bytes.writeBoolean(dat);
@@ -582,7 +588,6 @@ module junyou {
                             outdata = {};
                             PBMessageUtils.writeTo(dat, <string>data.msgType, tempBytes, outdata);
                         } else {
-
                             PBMessageUtils.writeTo(dat, <string>data.msgType, tempBytes);
                         }
                         bytes.writeUnsignedShort(tempBytes.length);
@@ -591,7 +596,7 @@ module junyou {
                 }
             }
             if (DEBUG) {
-                this.$writeNSLog(Global.now, "send", cmd, data);
+                this.$writeNSLog(Global.now, "send", cmd, outdata);
             }
         }
 

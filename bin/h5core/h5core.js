@@ -4081,18 +4081,24 @@ var junyou;
             var dat = data.data;
             var type = data.msgType;
             bytes.writeShort(cmd);
-            if (DEBUG) {
-                var outdata = undefined;
-            }
             if (dat == undefined) {
                 bytes.writeUnsignedShort(0);
+                if (DEBUG) {
+                    var outdata = undefined;
+                }
             }
             else {
                 if (type in BytesLen) {
                     bytes.writeUnsignedShort(BytesLen[type]);
                 }
+                if (DEBUG) {
+                    outdata = dat;
+                }
                 switch (type) {
                     case 0 /* Null */:
+                        if (DEBUG) {
+                            outdata = undefined;
+                        }
                         break;
                     case 1 /* Boolean */:
                         bytes.writeBoolean(dat);
@@ -4136,7 +4142,7 @@ var junyou;
                 }
             }
             if (DEBUG) {
-                this.$writeNSLog(junyou.Global.now, "send", cmd, data);
+                this.$writeNSLog(junyou.Global.now, "send", cmd, outdata);
             }
         };
         /**
