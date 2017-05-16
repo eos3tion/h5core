@@ -380,12 +380,12 @@ module junyou {
          * 
          * @param {string} uri          皮肤标识
          * @param {string} artword      美术字
-         * @param {string} font         指定的文字
+         * @param {Key} font         指定的文字
          * @returns
          * 
          * @memberOf SuiResManager
          */
-        public getArtWordTexture(uri: string, artword: string, font: string) {
+        public getArtWordTexture(uri: string, artword: string, font: Key) {
             let fonts = this.getArtWord(uri, artword);
             if (fonts) {
                 return fonts.getTexture(font);

@@ -15,12 +15,12 @@ module junyou {
         /**
          * 获取纹理数据
          * 
-         * @param {string} key
+         * @param {Key} key
          * @returns
          * 
          * @memberOf ArtWord
          */
-        public getTexture(key: string) {
+        public getTexture(key: Key) {
             return this._txs[key];
         }
         private _suiData: SuiData;
