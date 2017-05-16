@@ -130,6 +130,9 @@ module junyou {
         if (+f.e == 0) {
             f.e = undefined;
         }
+        if (f.t == -1) {//-1做特殊用途，让其变为正无穷
+            f.t = Infinity;
+        }
         return f;
     }
 
