@@ -8585,6 +8585,9 @@ var junyou;
         if (+f.e == 0) {
             f.e = undefined;
         }
+        if (f.t == -1) {
+            f.t = Infinity;
+        }
         return f;
     }
     junyou.getFrameInfo = getFrameInfo;
