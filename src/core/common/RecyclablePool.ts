@@ -18,7 +18,8 @@ module junyou {
 
         /**
          * 回收对象的唯一自增标识  
-         * 从回收池取出后，会变化
+         * 从回收池取出后，会变化  
+         * 此属性只有在`DEBUG`时有效
          */
         _insid?: number;
     }
@@ -32,7 +33,7 @@ module junyou {
 
         private _pool: T[];
         private _max: number;
-        private _TCreator: { new (): T };
+        private _TCreator: { new (): T } | { (): T };
 
         public getInstance(): T {
             var ins: T;
@@ -40,7 +41,7 @@ module junyou {
             if (pool.length) {
                 ins = pool.pop();
             } else {
-                ins = new this._TCreator();
+                ins = new (this._TCreator as any)();
             }
             if (typeof ins.onSpawn === "function") {
                 ins.onSpawn();
@@ -58,19 +59,32 @@ module junyou {
                 if (typeof t["onRecycle"] === "function") {
                     t.onRecycle();
                 }
-
                 if (pool.length < this._max) {
                     pool.push(t);
                 }
             }
         }
 
-        public constructor(TCreator: { new (): T }, max = 100) {
+        public constructor(TCreator: { new (): T } | { (): T }, max = 100) {
             this._pool = [];
             this._max = max;
             this._TCreator = TCreator;
         }
     }
+
+    export interface RecyclablePool<T extends IRecyclable> {
+        /**
+         * getInstance的简写别名
+         * 
+         * @returns {T} 
+         * 
+         * @memberof RecyclablePool
+         */
+        ins(): T
+    }
+    let rpt = RecyclablePool.prototype;
+
+    rpt.ins = rpt.getInstance;
 
     export declare type Recyclable<T extends IRecyclable> = T & { recycle(): void };
 
