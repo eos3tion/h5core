@@ -356,7 +356,7 @@ module junyou {
 
             if (DEBUG) {
                 this.$writeNSLog = (time, type, cmd, data) => {
-                    data = JSON.parse(JSON.stringify(data));
+                    data = data == undefined ? undefined : JSON.parse(JSON.stringify(data));
                     let log = { time, type, cmd, data };
                     const nsLogs = $gm.nsLogs;
                     //清理多余的日志
