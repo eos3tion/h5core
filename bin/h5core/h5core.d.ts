@@ -2632,7 +2632,7 @@ declare module junyou {
          * @memberOf PBStructDict
          */
         $$inted?: any;
-        /**消息名称*/[index: string]: PBStruct;
+        /**消息名称*/ [index: string]: PBStruct;
     }
     /**
      *
@@ -3420,9 +3420,9 @@ declare module junyou {
         x: number;
         y: number;
     }): {
-            x: number;
-            y: number;
-        };
+        x: number;
+        y: number;
+    };
     /**
      * 检查类矩形 a 和 b 是否相交
      * @export
@@ -4273,6 +4273,7 @@ declare module junyou {
         /**
          * 回收对象的唯一自增标识
          * 从回收池取出后，会变化
+         * 此属性只有在`DEBUG`时有效
          */
         _insid?: number;
     }
@@ -4292,7 +4293,19 @@ declare module junyou {
         recycle(t: T): void;
         constructor(TCreator: {
             new (): T;
+        } | {
+            (): T;
         }, max?: number);
+    }
+    interface RecyclablePool<T extends IRecyclable> {
+        /**
+         * getInstance的简写别名
+         *
+         * @returns {T}
+         *
+         * @memberof RecyclablePool
+         */
+        ins(): T;
     }
     type Recyclable<T extends IRecyclable> = T & {
         recycle(): void;
@@ -8297,9 +8310,9 @@ declare module junyou {
             x: number;
             y: number;
         }, hoffset?: number, voffset?: number, innerV?: boolean, innerH?: boolean): {
-                x: number;
-                y: number;
-            };
+            x: number;
+            y: number;
+        };
     };
 }
 declare module junyou {

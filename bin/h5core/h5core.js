@@ -8724,6 +8724,8 @@ var junyou;
         return RecyclablePool;
     }());
     junyou.RecyclablePool = RecyclablePool;
+    var rpt = RecyclablePool.prototype;
+    rpt.ins = rpt.getInstance;
     if (DEBUG) {
         var _recid = 0;
     }
