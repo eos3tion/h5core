@@ -3940,7 +3940,7 @@ var junyou;
             this._receiveMSG = {};
             if (DEBUG) {
                 this.$writeNSLog = function (time, type, cmd, data) {
-                    data = JSON.parse(JSON.stringify(data));
+                    data = data == undefined ? undefined : JSON.parse(JSON.stringify(data));
                     var log = { time: time, type: type, cmd: cmd, data: data };
                     var nsLogs = $gm.nsLogs;
                     //清理多余的日志
