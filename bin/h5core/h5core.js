@@ -2593,12 +2593,11 @@ var junyou;
         /**
          * 绑定TOUCH_TAP的回调
          *
-         * @param {Function} handler
-         * @param {*} thisObject
+         * @template T
+         * @param {{ (this: T, e?: egret.Event): any }} handler
+         * @param {T} [thisObject]
          * @param {number} [priority]
          * @param {boolean} [useCapture]
-         *
-         * @memberOf Button
          */
         Button.prototype.bindTouch = function (handler, thisObject, priority, useCapture) {
             this.on(TouchEvent.TOUCH_TAP, handler, thisObject, useCapture, priority);

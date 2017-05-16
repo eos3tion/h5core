@@ -1534,16 +1534,15 @@ declare module junyou {
         /**
          * 绑定TOUCH_TAP的回调
          *
-         * @param {Function} handler
-         * @param {*} thisObject
+         * @template T
+         * @param {{ (this: T, e?: egret.Event): any }} handler
+         * @param {T} [thisObject]
          * @param {number} [priority]
          * @param {boolean} [useCapture]
-         *
-         * @memberOf Button
          */
         bindTouch<T>(handler: {
             (this: T, e?: egret.Event): any;
-        }, thisObject: T, priority?: number, useCapture?: boolean): void;
+        }, thisObject?: T, priority?: number, useCapture?: boolean): void;
         /**
          * 解除TOUCH_TAP的回调的绑定
          *
