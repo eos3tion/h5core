@@ -156,6 +156,14 @@ interface $gmType {
     printReceive(...cmds: number[]);
 
     /**
+     * 调用printSend和printReceive的一个简写
+     * 
+     * 
+     * @memberof $gmType
+     */
+    print();
+
+    /**
      * 获取网络传输数据日志的过滤器
      * @returns {$NSFilter}
      * 
@@ -197,6 +205,10 @@ if (DEBUG) {
             }
         }
         return nsFilter;
+    }
+    $gm.print = function () {
+        $gm.printSend();
+        $gm.printReceive();
     }
     $gm.printSend = function (filter?: any, ...args) {
         if (arguments.length == 0 && $gm.printSendFilter) {
@@ -344,6 +356,7 @@ module junyou {
 
             if (DEBUG) {
                 this.$writeNSLog = (time, type, cmd, data) => {
+                    data = JSON.parse(JSON.stringify(data));
                     let log = { time, type, cmd, data };
                     const nsLogs = $gm.nsLogs;
                     //清理多余的日志
@@ -353,7 +366,7 @@ module junyou {
                     nsLogs.push(log);
                     let nsFilter = type == "send" ? $gm.printSendFilter : $gm.printReceiveFilter;
                     if ($gm.__nsLogCheck(log, nsFilter)) {
-                        console.log(type, time, cmd, JSON.stringify(data));
+                        console.log(type, time, cmd, data);
                     }
                 }
             }

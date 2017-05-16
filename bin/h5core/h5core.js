@@ -3823,6 +3823,10 @@ if (DEBUG) {
         }
         return nsFilter;
     };
+    $gm.print = function () {
+        $gm.printSend();
+        $gm.printReceive();
+    };
     $gm.printSend = function (filter) {
         var args = [];
         for (var _i = 1; _i < arguments.length; _i++) {
@@ -3936,6 +3940,7 @@ var junyou;
             this._receiveMSG = {};
             if (DEBUG) {
                 this.$writeNSLog = function (time, type, cmd, data) {
+                    data = JSON.parse(JSON.stringify(data));
                     var log = { time: time, type: type, cmd: cmd, data: data };
                     var nsLogs = $gm.nsLogs;
                     //清理多余的日志
@@ -3945,7 +3950,7 @@ var junyou;
                     nsLogs.push(log);
                     var nsFilter = type == "send" ? $gm.printSendFilter : $gm.printReceiveFilter;
                     if ($gm.__nsLogCheck(log, nsFilter)) {
-                        console.log(type, time, cmd, JSON.stringify(data));
+                        console.log(type, time, cmd, data);
                     }
                 };
             }
