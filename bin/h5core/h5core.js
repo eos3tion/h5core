@@ -448,13 +448,14 @@ var junyou;
                 var ele = void 0;
                 var baseData = data[1];
                 var type = data[0];
+                var rect = new egret.Rectangle(baseData[1], baseData[2], baseData[3], baseData[4]);
                 if (type == 14 /* Rectangle */) {
-                    var baseData_1 = data[1];
-                    ele = new egret.Rectangle(baseData_1[1], baseData_1[2], baseData_1[3], baseData_1[4]);
+                    ele = rect;
                 }
                 else {
                     if (type == 2 /* Container */) {
                         ele = new egret.Sprite();
+                        ele.suiRawRect = rect;
                         this._createComponents(suiData, ele, data[2]);
                     }
                     else {
