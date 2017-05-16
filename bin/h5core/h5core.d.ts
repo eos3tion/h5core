@@ -125,12 +125,12 @@ declare module junyou {
          *
          * @param {string} uri          皮肤标识
          * @param {string} artword      美术字
-         * @param {string} font         指定的文字
+         * @param {Key} font         指定的文字
          * @returns
          *
          * @memberOf SuiResManager
          */
-        getArtWordTexture(uri: string, artword: string, font: string): Texture;
+        getArtWordTexture(uri: string, artword: string, font: Key): Texture;
         /**
          *  创建位图对象
          * @param uri       皮肤标识
@@ -2015,6 +2015,13 @@ interface $gmType {
      * @memberOf $gmType
      */
     printReceive(...cmds: number[]): any;
+    /**
+     * 调用printSend和printReceive的一个简写
+     *
+     *
+     * @memberof $gmType
+     */
+    print(): any;
     /**
      * 获取网络传输数据日志的过滤器
      * @returns {$NSFilter}
@@ -7276,12 +7283,12 @@ declare module junyou {
         /**
          * 获取纹理数据
          *
-         * @param {string} key
+         * @param {Key} key
          * @returns
          *
          * @memberOf ArtWord
          */
-        getTexture(key: string): egret.Texture;
+        getTexture(key: Key): egret.Texture;
         private _suiData;
         /**
          * 字库名称

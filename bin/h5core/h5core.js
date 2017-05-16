@@ -336,7 +336,7 @@ var junyou;
          *
          * @param {string} uri          皮肤标识
          * @param {string} artword      美术字
-         * @param {string} font         指定的文字
+         * @param {Key} font         指定的文字
          * @returns
          *
          * @memberOf SuiResManager
@@ -14610,7 +14610,7 @@ var junyou;
         /**
          * 获取纹理数据
          *
-         * @param {string} key
+         * @param {Key} key
          * @returns
          *
          * @memberOf ArtWord
