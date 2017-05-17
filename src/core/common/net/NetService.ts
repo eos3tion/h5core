@@ -71,9 +71,9 @@ interface $gmType {
      * 输出日志内容
      * @memberOf $gmType
      */
-    showNSLog()
-    showNSLog(filter: { ($gmNSLog: $NSLog, ...args): boolean }, ...args);
-    showNSLog(isWhite: boolean, ...cmds: number[]);
+    showNSLog(): $NSLog[];
+    showNSLog(filter: { ($gmNSLog: $NSLog, ...args): boolean }, ...args): $NSLog[];
+    showNSLog(isWhite: boolean, ...cmds: number[]): $NSLog[];
     /**
      * 使用黑名单模式，进行输出
      * 
@@ -81,7 +81,7 @@ interface $gmType {
      * 
      * @memberOf $gmType
      */
-    showNSLog(...cmds: number[]);
+    showNSLog(...cmds: number[]): $NSLog[];
 
     /**
      * 最大网络日志数量
@@ -164,6 +164,25 @@ interface $gmType {
     print();
 
     /**
+     * 模拟服务端发送数据
+     * 
+     * @param {number} cmd 
+     * @param {*} [data] 
+     * 
+     * @memberof $gmType
+     */
+    route(cmd: number, data?: any);
+
+    /**
+     * 使用日志数据进行模拟调试
+     * 
+     * @param {$NSLog[]} logs 
+     * 
+     * @memberof $gmType
+     */
+    batchRoute(logs: $NSLog[]);
+
+    /**
      * 获取网络传输数据日志的过滤器
      * @returns {$NSFilter}
      * 
@@ -233,6 +252,7 @@ if (DEBUG) {
             }
         });
         console.table(output);
+        return output;
     }
     $gm.__nsLogCheck = (log, nsFilter) => {
         const { cmd } = log;
@@ -252,6 +272,21 @@ if (DEBUG) {
     }
     $gm.maxNSLogCount = 1000;
     $gm.nsLogs = [];
+    $gm.route = (cmd, data) => {
+        junyou.NetService.getInstance().route(cmd, data);
+    }
+    $gm.batchRoute = logs => {
+        //过滤send
+        logs = logs.filter(log => {
+            return log.type != "send";
+        })
+        if (logs.length) {
+            let time = logs[0].time | 0;
+            logs.forEach(log => {
+                setTimeout($gm.route, (log.time | 0) - time, log.cmd, log.data);
+            })
+        }
+    }
 }
 
 module junyou {
