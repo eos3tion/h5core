@@ -3863,6 +3863,7 @@ if (DEBUG) {
             }
         });
         console.table(output);
+        return output;
     };
     $gm.__nsLogCheck = function (log, nsFilter) {
         var cmd = log.cmd;
@@ -3884,6 +3885,21 @@ if (DEBUG) {
     };
     $gm.maxNSLogCount = 1000;
     $gm.nsLogs = [];
+    $gm.route = function (cmd, data) {
+        junyou.NetService.getInstance().route(cmd, data);
+    };
+    $gm.batchRoute = function (logs) {
+        //过滤send
+        logs = logs.filter(function (log) {
+            return log.type != "send";
+        });
+        if (logs.length) {
+            var time_1 = logs[0].time | 0;
+            logs.forEach(function (log) {
+                setTimeout($gm.route, (log.time | 0) - time_1, log.cmd, log.data);
+            });
+        }
+    };
 }
 var junyou;
 (function (junyou) {
@@ -10813,7 +10829,7 @@ var junyou;
      * @static
      * @param {Key} type
      * @param {Function} listener
-     * @param {*} thisObject
+     * @param {*} [thisObject]
      */
     function off(type, listener, thisObject) {
         junyou.facade.off(type, listener, thisObject, false);
