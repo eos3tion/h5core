@@ -4977,11 +4977,6 @@ var junyou;
     //      * |                     Payload Data continued ...                |  
     //      * +---------------------------------------------------------------+  
     //      * ```
-    //      * 
-    //      * 安全起见，使用 1460 - 8 = 1452(Bytes)  
-    //      * 允许发送的单帧最大字节数  
-    //      */
-    //     OneFrameMaxBytes = 1452
     // }
     // 上面操作是多余的，参看netty的源码
     // https://github.com/netty/netty/tree/4.1/codec/src/main/java/io/netty/handler/codec
@@ -5124,13 +5119,6 @@ var junyou;
             //清空被动数据
             pcmdList.length = 0;
             ws.send(sendBuffer.buffer);
-            // let buffer = sendBuffer.buffer;
-            // const ws = this._ws;
-            // for (let i = 0, len = buffer.byteLength; i < len;) {
-            //     let end = i + Const.OneFrameMaxBytes;
-            //     ws.send(buffer.slice(i, end));
-            //     i = end;
-            // }
         };
         return WSNetService;
     }(junyou.NetService));
@@ -11476,6 +11464,11 @@ var junyou;
          */
         ModuleManager.prototype.isModuleShow = function (module) {
             var cfg = this.getCfg(module);
+            if (DEBUG) {
+                if (!cfg) {
+                    junyou.ThrowError("\u6CA1\u6709\u627E\u5230\u5BF9\u5E94\u7684\u529F\u80FD\u914D\u7F6E[" + module + "]");
+                }
+            }
             var flag = cfg && cfg.close != 2 /* Closed */;
             if (flag && this._checkers) {
                 var checker = this._checkers[cfg.showtype];
@@ -11492,6 +11485,11 @@ var junyou;
          */
         ModuleManager.prototype.isModuleOpened = function (module, showtip) {
             var cfg = this.getCfg(module);
+            if (DEBUG) {
+                if (!cfg) {
+                    junyou.ThrowError("\u6CA1\u6709\u627E\u5230\u5BF9\u5E94\u7684\u529F\u80FD\u914D\u7F6E[" + module + "]");
+                }
+            }
             if (RELEASE || junyou.ClientCheck.isClientCheck) {
                 var flag = cfg && !cfg.close && cfg.serverOpen;
                 if (flag) {
