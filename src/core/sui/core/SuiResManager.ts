@@ -500,13 +500,12 @@ module junyou {
                 let ele;
                 let baseData = data[1];
                 let type = data[0];
-                let rect = new egret.Rectangle(baseData[1], baseData[2], baseData[3], baseData[4]);
                 if (type == ExportType.Rectangle) {
-                    ele = rect;
+                    ele = new egret.Rectangle(baseData[1], baseData[2], baseData[3], baseData[4]);
                 } else {
                     if (type == ExportType.Container) {
                         ele = new egret.Sprite();
-                        ele.suiRawRect = rect;
+                        SuiResManager.initBaseData(ele, baseData);
                         this._createComponents(suiData, ele, data[2]);
                     } else {
                         ele = this.getElement(suiData, data);
