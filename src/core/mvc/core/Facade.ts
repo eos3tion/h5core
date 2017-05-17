@@ -589,7 +589,7 @@ module junyou {
      * @static
      * @param {Key} type
      * @param {Function} listener
-     * @param {*} thisObject
+     * @param {*} [thisObject]
      */
     export function off(type: Key, listener: Function, thisObject?: any) {
         facade.off(type, listener, thisObject, false);
