@@ -164,6 +164,16 @@ interface $gmType {
     print();
 
     /**
+     * 模拟服务端发送数据
+     * 
+     * @param {number} cmd 
+     * @param {*} [data] 
+     * 
+     * @memberof $gmType
+     */
+    route(cmd: number, data?: any);
+
+    /**
      * 获取网络传输数据日志的过滤器
      * @returns {$NSFilter}
      * 
@@ -252,6 +262,9 @@ if (DEBUG) {
     }
     $gm.maxNSLogCount = 1000;
     $gm.nsLogs = [];
+    $gm.route = (cmd, data) => {
+        junyou.NetService.getInstance().route(cmd, data);
+    }
 }
 
 module junyou {
