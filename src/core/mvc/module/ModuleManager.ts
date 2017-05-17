@@ -232,6 +232,11 @@ module junyou {
          */
         public isModuleShow(module: string | number | IModuleCfg): boolean {
             let cfg: IModuleCfg = this.getCfg(module);
+            if (DEBUG) {
+                if (!cfg) {
+                    ThrowError(`没有找到对应的功能配置[${module}]`);
+                }
+            }
             let flag = cfg && cfg.close != ModuleCloseState.Closed;
             if (flag && this._checkers) {
                 var checker: IModuleChecker = this._checkers[cfg.showtype] as IModuleChecker;
@@ -249,6 +254,11 @@ module junyou {
          */
         public isModuleOpened(module: string | number | IModuleCfg, showtip: boolean): boolean {
             let cfg: IModuleCfg = this.getCfg(module);
+            if (DEBUG) {
+                if (!cfg) {
+                    ThrowError(`没有找到对应的功能配置[${module}]`);
+                }
+            }
             if (RELEASE || ClientCheck.isClientCheck) { //屏蔽客户端检测只针对open，不针对show
                 var flag = cfg && !cfg.close && cfg.serverOpen;
                 if (flag) {
