@@ -2638,7 +2638,7 @@ declare module junyou {
          * @memberOf PBStructDict
          */
         $$inted?: any;
-        /**消息名称*/ [index: string]: PBStruct;
+        /**消息名称*/[index: string]: PBStruct;
     }
     /**
      *
@@ -3426,9 +3426,9 @@ declare module junyou {
         x: number;
         y: number;
     }): {
-        x: number;
-        y: number;
-    };
+            x: number;
+            y: number;
+        };
     /**
      * 检查类矩形 a 和 b 是否相交
      * @export
@@ -4300,8 +4300,8 @@ declare module junyou {
         constructor(TCreator: {
             new (): T;
         } | {
-            (): T;
-        }, max?: number);
+                (): T;
+            }, max?: number);
     }
     interface RecyclablePool<T extends IRecyclable> {
         /**
@@ -5507,9 +5507,9 @@ declare module junyou {
      * @static
      * @param {Key} type
      * @param {Function} listener
-     * @param {*} thisObject
+     * @param {*} [thisObject]
      */
-    function off(type: Key, listener: Function, thisObject: any): void;
+    function off(type: Key, listener: Function, thisObject?: any): void;
     function hasListen(type: Key): any;
     const enum ToggleState {
         HIDE = -1,
@@ -8316,9 +8316,9 @@ declare module junyou {
             x: number;
             y: number;
         }, hoffset?: number, voffset?: number, innerV?: boolean, innerH?: boolean): {
-            x: number;
-            y: number;
-        };
+                x: number;
+                y: number;
+            };
     };
 }
 declare module junyou {
