@@ -45,7 +45,6 @@ module junyou {
             item.index = index == undefined ? idx : index;
             this._viewCount = list.length;
         }
-
         public recycle() {
             this._dataLen = 0;
             this._data = undefined;
