@@ -1,13 +1,19 @@
 module junyou {
     /**
-     * description
-     * @author pb
+     * 状态机
+     * @author 3tion
      */
     export class StateListenerMachine implements IStateListener {
 
-        private _currentState: number;
-        private states: { [index: number]: IStateSwitcher[] };
-        private aways: IStateListener[];
+        /**
+         * 当前状态
+         * 
+         * @protected
+         * @type {Key}
+         */
+        protected _current: Key;
+        protected states: { [index: string]: IStateSwitcher[] };
+        protected aways: IStateListener[];
 
         constructor() {
             this.states = {};
@@ -35,9 +41,8 @@ module junyou {
             if (!value) {
                 ThrowError("addToStateList没有设置正确!");
             }
-            let type: string;
-            for (type in args) {
-                this.addToState(+type, value);
+            for (let type in args) {
+                this.addToState(type, value);
             }
         }
 
@@ -66,16 +71,11 @@ module junyou {
 		 *
 		 */
         public removeFromState(state: number, value: IStateSwitcher): boolean {
-            let list: IStateSwitcher[] = this.states[state];
+            let list = this.states[state];
             if (!list) {
                 return false;
             }
-            let index: number = list.indexOf(value);
-            if (index == -1) {
-                return false;
-            }
-            list.splice(index, 1);
-            return true;
+            return list.remove(value);
         }
 
 
@@ -85,20 +85,19 @@ module junyou {
 		 * @param list
 		 *
 		 */
-        public addToState(state: number, value: IStateSwitcher) {
+        public addToState(state: Key, value: IStateSwitcher) {
             if (!value) {
                 ThrowError("addToState没有设置正确!");
             }
-            let list: IStateSwitcher[] = this.states[state];
-            if (!list) {
-                list = this.states[state] = [];
-            }
-            if (list.indexOf(value) != -1) {
-                return;
-            }
+            let list= this.states[state];
+            if (list) {
+                if (~list.indexOf(value)) return;
+            }  else{
+                this.states[state] = list = [];
+            }            
             list.push(value);
-            if (this._currentState == state) {
-                value.awakeBy(this._currentState);
+            if (this._current == state) {
+                value.awakeBy(this._current);
             }
         }
 
@@ -107,9 +106,9 @@ module junyou {
 		 *
 		 */
         public clear() {
-            this.states = undefined;
-            this.aways = undefined;
-            this._currentState = undefined;
+            this.states={};
+            this.aways.length=0;
+            this._current = undefined;
         }
 
 		/**
@@ -117,18 +116,18 @@ module junyou {
 		 * @param value
 		 *
 		 */
-        public setState(value: number) {
-            let old = this._currentState;
+        public setState(value: Key) {
+            let old = this._current;
             if (old == value) {
                 return;
             }
-            this._currentState = value;
-            let oldList: IStateSwitcher[] = this.states[old];
-            let newList: IStateSwitcher[] = this.states[value];
-            let item: IStateSwitcher;
+            this._current = value;
+            let oldList = this.states[old];
+            let newList = this.states[value];
             //旧的关闭
             if (oldList) {
-                for (item of oldList) {
+                for (let i=0;i<oldList.length;i++) {
+                    let item=oldList[i];
                     if (!newList || !~newList.indexOf(item)) {
                         item.sleepBy(value);
                     }
@@ -136,28 +135,29 @@ module junyou {
             }
             //新的开启
             if (newList) {
-                for (item of newList) {
+                for (let i=0;i<newList.length;i++) {
+                    let item=newList[i];
                     item.awakeBy(value);
                 }
             }
             let aways = this.aways;
             if (aways) {
-                for (let listener of aways) {
-                    listener.setState(value);
+               for (let i=0;i<aways.length;i++) {
+                    aways[i].setState(value);
                 }
             }
         }
 
-		/**
-		 * 检查Switcher 
-		 * @param switcher
-		 * @param type
-		 * @return 
-		 * 
-		 */
-        public isInState(switcher: IStateSwitcher, type?: number): boolean {
-            type == void 0 && (type = this._currentState);
-            let list: IStateSwitcher[] = this.states[type];
+        /**
+         * 检查状态实现(switcher)是否添加到某个状态中
+         * 
+         * @param {IStateSwitcher} switcher    某个状态实现
+         * @param {Key} [type] 状态
+         * @returns {boolean} 
+         */
+        public isInState(switcher: IStateSwitcher, type?: Key): boolean {
+            type == void 0 && (type = this._current);
+            let list = this.states[type];
             if (list) {
                 return list.indexOf(switcher) > -1;
             }

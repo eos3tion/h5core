@@ -1,16 +1,16 @@
 module junyou {
     /**
-     * description
-     * @author pb
+     * 状态限制器
+     * @author 3tion
      */
     export interface ILimit {
-        setState(type: number)
+        setState(type: Key)
 		/**
 		 * 检查内容是否被禁止了; 
 		 * @param type
 		 * @return 
 		 * 
 		 */
-        check(value: number): boolean;
+        check(value: Key): boolean;
     }
 }

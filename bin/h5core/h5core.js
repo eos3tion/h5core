@@ -4281,8 +4281,8 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
-     * description
-     * @author pb
+     * 限制列队
+     * @author 3tion
      */
     var LimitQueue = (function () {
         function LimitQueue() {
@@ -4290,20 +4290,21 @@ var junyou;
         }
         Object.defineProperty(LimitQueue.prototype, "listener", {
             get: function () {
-                return this._listenerMachine;
+                return this._listener;
             },
             set: function (value) {
-                this._listenerMachine = value;
+                this._listener = value;
             },
             enumerable: true,
             configurable: true
         });
         LimitQueue.prototype.addLimiter = function (item) {
-            if (this._queue.indexOf(item) != -1) {
+            var queue = this._queue;
+            if (queue.indexOf(item) != -1) {
                 return false;
             }
-            item.setState(this._currentState);
-            this._queue.push(item);
+            item.setState(this._current);
+            queue.push(item);
             return true;
         };
         /**
@@ -4312,27 +4313,22 @@ var junyou;
          *
          */
         LimitQueue.prototype.setState = function (value) {
-            this._currentState = value;
+            this._current = value;
             var queue = this._queue;
             if (queue) {
-                var item = void 0;
-                for (var _i = 0, queue_1 = queue; _i < queue_1.length; _i++) {
-                    item = queue_1[_i];
+                for (var i = 0; i < queue.length; i++) {
+                    var item = queue[i];
                     item.setState(value);
                 }
             }
+            var lm = this._listener;
             //查看是否有侦听状态变化的对像;
-            if (this._listenerMachine) {
-                this._listenerMachine.setState(value);
+            if (lm) {
+                lm.setState(value);
             }
         };
         LimitQueue.prototype.removeLimiter = function (item) {
-            var index = this._queue.indexOf(item);
-            if (index == -1) {
-                return false;
-            }
-            this._queue.splice(index, 1);
-            return true;
+            return this._queue.remove(item);
         };
         LimitQueue.prototype.clear = function () {
             this._queue.length = 0;
@@ -4346,9 +4342,8 @@ var junyou;
         LimitQueue.prototype.check = function (type) {
             var queue = this._queue;
             if (queue) {
-                var limit = void 0;
-                for (var _i = 0, queue_2 = queue; _i < queue_2.length; _i++) {
-                    limit = queue_2[_i];
+                for (var i = 0; i < queue.length; i++) {
+                    var limit = queue[i];
                     if (limit && limit.check(type)) {
                         return true;
                     }
@@ -6166,8 +6161,8 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
-     * description
-     * @author pb
+     * 状态机
+     * @author 3tion
      */
     var StateListenerMachine = (function () {
         function StateListenerMachine() {
@@ -6197,9 +6192,8 @@ var junyou;
             if (!value) {
                 junyou.ThrowError("addToStateList没有设置正确!");
             }
-            var type;
-            for (type in args) {
-                this.addToState(+type, value);
+            for (var type in args) {
+                this.addToState(type, value);
             }
         };
         /**
@@ -6230,12 +6224,7 @@ var junyou;
             if (!list) {
                 return false;
             }
-            var index = list.indexOf(value);
-            if (index == -1) {
-                return false;
-            }
-            list.splice(index, 1);
-            return true;
+            return list.remove(value);
         };
         /**
          * 单个状态中加入一个侦听;
@@ -6248,15 +6237,16 @@ var junyou;
                 junyou.ThrowError("addToState没有设置正确!");
             }
             var list = this.states[state];
-            if (!list) {
-                list = this.states[state] = [];
+            if (list) {
+                if (~list.indexOf(value))
+                    return;
             }
-            if (list.indexOf(value) != -1) {
-                return;
+            else {
+                this.states[state] = list = [];
             }
             list.push(value);
-            if (this._currentState == state) {
-                value.awakeBy(this._currentState);
+            if (this._current == state) {
+                value.awakeBy(this._current);
             }
         };
         /**
@@ -6264,9 +6254,9 @@ var junyou;
          *
          */
         StateListenerMachine.prototype.clear = function () {
-            this.states = undefined;
-            this.aways = undefined;
-            this._currentState = undefined;
+            this.states = {};
+            this.aways.length = 0;
+            this._current = undefined;
         };
         /**
          * 设置当前的状态
@@ -6274,18 +6264,17 @@ var junyou;
          *
          */
         StateListenerMachine.prototype.setState = function (value) {
-            var old = this._currentState;
+            var old = this._current;
             if (old == value) {
                 return;
             }
-            this._currentState = value;
+            this._current = value;
             var oldList = this.states[old];
             var newList = this.states[value];
-            var item;
             //旧的关闭
             if (oldList) {
-                for (var _i = 0, oldList_1 = oldList; _i < oldList_1.length; _i++) {
-                    item = oldList_1[_i];
+                for (var i = 0; i < oldList.length; i++) {
+                    var item = oldList[i];
                     if (!newList || !~newList.indexOf(item)) {
                         item.sleepBy(value);
                     }
@@ -6293,28 +6282,27 @@ var junyou;
             }
             //新的开启
             if (newList) {
-                for (var _a = 0, newList_1 = newList; _a < newList_1.length; _a++) {
-                    item = newList_1[_a];
+                for (var i = 0; i < newList.length; i++) {
+                    var item = newList[i];
                     item.awakeBy(value);
                 }
             }
             var aways = this.aways;
             if (aways) {
-                for (var _b = 0, aways_1 = aways; _b < aways_1.length; _b++) {
-                    var listener = aways_1[_b];
-                    listener.setState(value);
+                for (var i = 0; i < aways.length; i++) {
+                    aways[i].setState(value);
                 }
             }
         };
         /**
-         * 检查Switcher
-         * @param switcher
-         * @param type
-         * @return
+         * 检查状态实现(switcher)是否添加到某个状态中
          *
+         * @param {IStateSwitcher} switcher    某个状态实现
+         * @param {Key} [type] 状态
+         * @returns {boolean}
          */
         StateListenerMachine.prototype.isInState = function (switcher, type) {
-            type == void 0 && (type = this._currentState);
+            type == void 0 && (type = this._current);
             var list = this.states[type];
             if (list) {
                 return list.indexOf(switcher) > -1;

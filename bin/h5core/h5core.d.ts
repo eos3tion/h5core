@@ -2234,13 +2234,13 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     * description
-     * @author pb
+     * 限制列队
+     * @author 3tion
      */
     class LimitQueue implements ILimit {
         protected _queue: ILimit[];
-        protected _currentState: number;
-        protected _listenerMachine: IStateListener;
+        protected _current: Key;
+        protected _listener: IStateListener;
         constructor();
         listener: IStateListener;
         addLimiter(item: ILimit): boolean;
@@ -2249,7 +2249,7 @@ declare module junyou {
          * @param value
          *
          */
-        setState(value: number): void;
+        setState(value: Key): void;
         removeLimiter(item: ILimit): boolean;
         clear(): void;
         /**
@@ -2794,47 +2794,51 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     * description
-     * @author pb
+     * 状态限制器
+     * @author 3tion
      */
     interface ILimit {
-        setState(type: number): any;
+        setState(type: Key): any;
         /**
          * 检查内容是否被禁止了;
          * @param type
          * @return
          *
          */
-        check(value: number): boolean;
+        check(value: Key): boolean;
     }
 }
 declare module junyou {
     /**
-     * description
-     * @author pb
+     * 状态机监听器
+     * @author 3tion
      */
     interface IStateListener {
-        setState(type: number): any;
+        setState(type: Key): any;
     }
 }
 declare module junyou {
     /**
-     * description
-     * @author pb
+     * 某个状态
+     * @author 3tion
      */
     interface IStateSwitcher {
         /**
          * 被一个状态禁止了
-         * @param type
          *
+         * @param {Key} [type]
+         *
+         * @memberof IStateSwitcher
          */
-        sleepBy(type: number): any;
+        sleepBy(type?: Key): any;
         /**
          * 被一个状态开启了
-         * @param type
          *
+         * @param {Key} [type]
+         *
+         * @memberof IStateSwitcher
          */
-        awakeBy(type: number): any;
+        awakeBy(type?: Key): any;
     }
 }
 declare module junyou {
@@ -2860,13 +2864,21 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     * description
-     * @author pb
+     * 状态机
+     * @author 3tion
      */
     class StateListenerMachine implements IStateListener {
-        private _currentState;
-        private states;
-        private aways;
+        /**
+         * 当前状态
+         *
+         * @protected
+         * @type {Key}
+         */
+        protected _current: Key;
+        protected states: {
+            [index: string]: IStateSwitcher[];
+        };
+        protected aways: IStateListener[];
         constructor();
         add(value: IStateListener): void;
         remove(value: IStateListener): void;
@@ -2897,7 +2909,7 @@ declare module junyou {
          * @param list
          *
          */
-        addToState(state: number, value: IStateSwitcher): void;
+        addToState(state: Key, value: IStateSwitcher): void;
         /**
          *  清理状态机;
          *
@@ -2908,15 +2920,15 @@ declare module junyou {
          * @param value
          *
          */
-        setState(value: number): void;
+        setState(value: Key): void;
         /**
-         * 检查Switcher
-         * @param switcher
-         * @param type
-         * @return
+         * 检查状态实现(switcher)是否添加到某个状态中
          *
+         * @param {IStateSwitcher} switcher    某个状态实现
+         * @param {Key} [type] 状态
+         * @returns {boolean}
          */
-        isInState(switcher: IStateSwitcher, type?: number): boolean;
+        isInState(switcher: IStateSwitcher, type?: Key): boolean;
     }
 }
 declare module junyou {
