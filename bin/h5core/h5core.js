@@ -1058,21 +1058,20 @@ var junyou;
     }
     junyou.removeDisplay = removeDisplay;
     /**
+     *
      * 添加到容器中
-     * x，y如果不赋值，则居中
-     * @static
+     * @export
      * @param {egret.DisplayObject} dis 可视对象
      * @param {egret.DisplayObjectContainer} container 容器
-     * @param {number} [x] 在容器中的坐标X
-     * @param {number} [y] 在容器中的坐标Y
+     * @param {LayoutType} [layout=LayoutType.MIDDLE_CENTER]
+     * @param {number} [hoffset=0]
+     * @param {number} [voffset=0]
      */
-    function addTo(dis, container, x, y) {
-        if (x === void 0) {
-            dis.x = container.width - dis.width >> 1;
-        }
-        if (y === void 0) {
-            dis.y = container.height - dis.height >> 1;
-        }
+    function addTo(dis, container, layout, hoffset, voffset) {
+        if (layout === void 0) { layout = 10 /* MIDDLE_CENTER */; }
+        if (hoffset === void 0) { hoffset = 0; }
+        if (voffset === void 0) { voffset = 0; }
+        junyou.Layout.layout(dis, layout, hoffset, voffset, true, true, container);
         container.addChild(dis);
     }
     junyou.addTo = addTo;
@@ -16645,7 +16644,14 @@ var junyou;
             g.endFill();
         };
         SimToolTip.prototype.show = function (container, x, y) {
-            junyou.addTo(this, container, x, y);
+            if (x != undefined && y != undefined) {
+                container.addChild(this);
+                this.x = x;
+                this.y = y;
+            }
+            else {
+                junyou.addTo(this, container);
+            }
         };
         SimToolTip.prototype.hide = function () {
             junyou.removeDisplay(this);

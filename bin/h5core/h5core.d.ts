@@ -628,15 +628,16 @@ declare module junyou {
      */
     function removeDisplay(display: egret.DisplayObject): void;
     /**
+     *
      * 添加到容器中
-     * x，y如果不赋值，则居中
-     * @static
+     * @export
      * @param {egret.DisplayObject} dis 可视对象
      * @param {egret.DisplayObjectContainer} container 容器
-     * @param {number} [x] 在容器中的坐标X
-     * @param {number} [y] 在容器中的坐标Y
+     * @param {LayoutType} [layout=LayoutType.MIDDLE_CENTER]
+     * @param {number} [hoffset=0]
+     * @param {number} [voffset=0]
      */
-    function addTo(dis: egret.DisplayObject, container: egret.DisplayObjectContainer, x?: number, y?: number): void;
+    function addTo(dis: egret.DisplayObject, container: egret.DisplayObjectContainer, layout?: LayoutType, hoffset?: number, voffset?: number): void;
 }
 interface Console {
     table(...args: any[]): any;

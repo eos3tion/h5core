@@ -56,7 +56,13 @@ module junyou {
 
 
         show(container: egret.DisplayObjectContainer, x?: number, y?: number) {
-            addTo(this, container, x, y);
+            if (x != undefined && y != undefined) {
+                container.addChild(this);
+                this.x = x;
+                this.y = y;
+            } else {
+                addTo(this, container);
+            }
         }
 
         hide() {

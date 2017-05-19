@@ -625,21 +625,17 @@ module junyou {
     }
 
     /**
+     * 
      * 添加到容器中
-     * x，y如果不赋值，则居中
-     * @static
+     * @export
      * @param {egret.DisplayObject} dis 可视对象
      * @param {egret.DisplayObjectContainer} container 容器
-     * @param {number} [x] 在容器中的坐标X
-     * @param {number} [y] 在容器中的坐标Y
+     * @param {LayoutType} [layout=LayoutType.MIDDLE_CENTER] 
+     * @param {number} [hoffset=0] 
+     * @param {number} [voffset=0] 
      */
-    export function addTo(dis: egret.DisplayObject, container: egret.DisplayObjectContainer, x?: number, y?: number) {
-        if (x === void 0) { // x未赋值，居中
-            dis.x = container.width - dis.width >> 1;
-        }
-        if (y === void 0) {
-            dis.y = container.height - dis.height >> 1;
-        }
+    export function addTo(dis: egret.DisplayObject, container: egret.DisplayObjectContainer, layout: LayoutType = LayoutType.MIDDLE_CENTER, hoffset = 0, voffset = 0) {
+        Layout.layout(dis, layout, hoffset, voffset, true, true, container);
         container.addChild(dis);
     }
 }
