@@ -1553,7 +1553,7 @@ declare module junyou {
          *
          * @memberOf Button
          */
-        looseTouch(handler: Function, thisObject: any, useCapture?: boolean): void;
+        looseTouch(handler: Function, thisObject?: any, useCapture?: boolean): void;
         addChild(child: egret.DisplayObject): egret.DisplayObject;
         dispose(): void;
     }
@@ -6868,7 +6868,7 @@ declare module junyou {
          *
          * @memberOf Button
          */
-        looseTouch(handler: Function, thisObject: any, useCapture?: boolean): void;
+        looseTouch(handler: Function, thisObject?: any, useCapture?: boolean): void;
         /**
          * 作为依赖者的Helper
          */

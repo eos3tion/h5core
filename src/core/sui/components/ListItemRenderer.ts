@@ -362,7 +362,7 @@ module junyou {
          * 
          * @memberOf Button
          */
-        public looseTouch(handler: Function, thisObject: any, useCapture?: boolean) {
+        public looseTouch(handler: Function, thisObject?: any, useCapture?: boolean) {
             this.off(TE.TOUCH_TAP, handler, thisObject, useCapture);
         }
 
