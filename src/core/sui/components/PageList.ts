@@ -691,7 +691,7 @@ module junyou {
                     let render = list[i];
                     let v = render.view;
                     if (v) {
-                        this.addChildAt(v,0);
+                        this.addChild(v);
                     }
                 }
                 this._showStart = 0;
@@ -770,7 +770,7 @@ module junyou {
                 }
                 for (let i = 0, tlen = tmp.length; i < tlen; i++) {
                     let v = tmp[i];
-                    this.addChildAt(v,0);
+                    this.addChild(v);
                 }
                 this._showStart = fIdx;
                 this._showEnd = lIdx;
@@ -784,7 +784,7 @@ module junyou {
                 }
                 for (let i = tmp.length - 1; i >= 0; i--) {
                     let v = tmp[i];
-                    this.addChildAt(v,0);
+                    this.addChild(v);
                 }
                 this._showStart = lIdx;
                 this._showEnd = fIdx;
