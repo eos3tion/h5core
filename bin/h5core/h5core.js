@@ -2480,7 +2480,7 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    var TouchEvent = egret.TouchEvent;
+    var TE = egret.TouchEvent;
     /**
      * 按钮
      * 在fla中 按钮只是需要1帧
@@ -2598,7 +2598,7 @@ var junyou;
          * @param {boolean} [useCapture]
          */
         Button.prototype.bindTouch = function (handler, thisObject, priority, useCapture) {
-            this.on(TouchEvent.TOUCH_TAP, handler, thisObject, useCapture, priority);
+            this.on(TE.TOUCH_TAP, handler, thisObject, useCapture, priority);
         };
         /**
          * 解除TOUCH_TAP的回调的绑定
@@ -2610,7 +2610,7 @@ var junyou;
          * @memberOf Button
          */
         Button.prototype.looseTouch = function (handler, thisObject, useCapture) {
-            this.off(TouchEvent.TOUCH_TAP, handler, thisObject, useCapture);
+            this.off(TE.TOUCH_TAP, handler, thisObject, useCapture);
         };
         Button.prototype.addChild = function (child) {
             var children = this._children;
@@ -12774,6 +12774,7 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
+    var TE = egret.TouchEvent;
     var ListItemRenderer = (function (_super) {
         __extends(ListItemRenderer, _super);
         function ListItemRenderer() {
@@ -12997,15 +12998,40 @@ var junyou;
         };
         ListItemRenderer.prototype.removeSkinListener = function (skin) {
             if (skin) {
-                skin.off(egret.TouchEvent.TOUCH_TAP, this.onTouchTap, this);
+                skin.off(TE.TOUCH_TAP, this.onTouchTap, this);
                 junyou.ViewController.prototype.removeSkinListener.call(this, skin);
             }
         };
         ListItemRenderer.prototype.addSkinListener = function (skin) {
             if (skin) {
-                skin.on(egret.TouchEvent.TOUCH_TAP, this.onTouchTap, this);
+                skin.on(TE.TOUCH_TAP, this.onTouchTap, this);
                 junyou.ViewController.prototype.addSkinListener.call(this, skin);
             }
+        };
+        /**
+         * 绑定TOUCH_TAP的回调
+         *
+         * @template T
+         * @param {{ (this: T, e?: egret.Event): any }} handler
+         * @param {T} [thisObject]
+         * @param {number} [priority]
+         * @param {boolean} [useCapture]
+         */
+        ListItemRenderer.prototype.bindTouch = function (handler, thisObject, priority, useCapture) {
+            this.skin.touchEnabled = true;
+            this.on(TE.TOUCH_TAP, handler, thisObject, useCapture, priority);
+        };
+        /**
+         * 解除TOUCH_TAP的回调的绑定
+         *
+         * @param {Function} handler
+         * @param {*} thisObject
+         * @param {boolean} [useCapture]
+         *
+         * @memberOf Button
+         */
+        ListItemRenderer.prototype.looseTouch = function (handler, thisObject, useCapture) {
+            this.off(TE.TOUCH_TAP, handler, thisObject, useCapture);
         };
         Object.defineProperty(ListItemRenderer.prototype, "isReady", {
             get: function () {

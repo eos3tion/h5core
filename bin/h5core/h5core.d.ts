@@ -6848,6 +6848,28 @@ declare module junyou {
         removeSkinListener(skin: egret.DisplayObject): void;
         addSkinListener(skin: egret.DisplayObject): void;
         /**
+         * 绑定TOUCH_TAP的回调
+         *
+         * @template T
+         * @param {{ (this: T, e?: egret.Event): any }} handler
+         * @param {T} [thisObject]
+         * @param {number} [priority]
+         * @param {boolean} [useCapture]
+         */
+        bindTouch(handler: {
+            (this: T, e?: egret.Event): any;
+        }, thisObject?: T, priority?: number, useCapture?: boolean): void;
+        /**
+         * 解除TOUCH_TAP的回调的绑定
+         *
+         * @param {Function} handler
+         * @param {*} thisObject
+         * @param {boolean} [useCapture]
+         *
+         * @memberOf Button
+         */
+        looseTouch(handler: Function, thisObject: any, useCapture?: boolean): void;
+        /**
          * 作为依赖者的Helper
          */
         protected _dependerHelper: DependerHelper;
@@ -6914,9 +6936,9 @@ declare module junyou {
      *
      */
     var DataLocator: {
-        regParser: (key: "ani", parser: ConfigDataParser) => void;
+        regParser: (key: keyof CfgData, parser: ConfigDataParser) => void;
         parsePakedDatas(): void;
-        regCommonParser(key: "ani", CfgCreator: 0 | (new () => Cfg), idkey?: string): void;
+        regCommonParser(key: keyof CfgData, CfgCreator: 0 | (new () => Cfg), idkey?: string): void;
     };
     /**
      * 配置数据解析函数
