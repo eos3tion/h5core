@@ -127,6 +127,7 @@ module junyou {
 
         private onTouchTap() {
             this.dispatch(EventConst.ITEM_TOUCH_TAP);
+            this.dispatchEventWith(TE.TOUCH_TAP);
         }
 
         protected $setData(value: T) {

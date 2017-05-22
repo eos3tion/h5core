@@ -12814,6 +12814,7 @@ var junyou;
         };
         ListItemRenderer.prototype.onTouchTap = function () {
             this.dispatch(-1001 /* ITEM_TOUCH_TAP */);
+            this.dispatchEventWith(TE.TOUCH_TAP);
         };
         ListItemRenderer.prototype.$setData = function (value) {
             this._data = value;
