@@ -16,6 +16,8 @@ module junyou {
         public textures: { [index: string]: egret.Texture }
 
         protected _value: string | number;
+
+        private artwidth:number;
         public constructor() {
             super();
         }
@@ -60,6 +62,7 @@ module junyou {
                 bmp.texture = tx;
                 ox += tx.textureWidth;
             }
+            this.artwidth = ox;
             for (i = numChildren - 1; i >= len; i--) {
                 this.$doRemoveChild(i);
             }
@@ -74,6 +77,10 @@ module junyou {
 
         public get value(): string | number {
             return this._value;
+        }
+
+        $getWidth(){
+            return this.artwidth;
         }
 
         private checkAlign() {
