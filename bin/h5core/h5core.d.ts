@@ -6495,11 +6495,13 @@ declare module junyou {
             [index: string]: egret.Texture;
         };
         protected _value: string | number;
+        private artwidth;
         constructor();
         refreshBMD(): void;
         align: number;
         protected setValue(val: string | number): void;
         value: string | number;
+        $getWidth(): number;
         private checkAlign();
         dispose(): void;
     }
@@ -6912,9 +6914,9 @@ declare module junyou {
      *
      */
     var DataLocator: {
-        regParser: (key: keyof CfgData, parser: ConfigDataParser) => void;
+        regParser: (key: "ani", parser: ConfigDataParser) => void;
         parsePakedDatas(): void;
-        regCommonParser(key: keyof CfgData, CfgCreator: 0 | (new () => Cfg), idkey?: string): void;
+        regCommonParser(key: "ani", CfgCreator: 0 | (new () => Cfg), idkey?: string): void;
     };
     /**
      * 配置数据解析函数

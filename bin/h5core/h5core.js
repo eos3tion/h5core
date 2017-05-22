@@ -3202,7 +3202,7 @@ var junyou;
                     var render = list[i];
                     var v = render.view;
                     if (v) {
-                        this.addChildAt(v, 0);
+                        this.addChild(v);
                     }
                 }
                 this._showStart = 0;
@@ -3281,7 +3281,7 @@ var junyou;
                 }
                 for (var i = 0, tlen = tmp.length; i < tlen; i++) {
                     var v = tmp[i];
-                    this.addChildAt(v, 0);
+                    this.addChild(v);
                 }
                 this._showStart = fIdx;
                 this._showEnd = lIdx;
@@ -3296,7 +3296,7 @@ var junyou;
                 }
                 for (var i = tmp.length - 1; i >= 0; i--) {
                     var v = tmp[i];
-                    this.addChildAt(v, 0);
+                    this.addChild(v);
                 }
                 this._showStart = lIdx;
                 this._showEnd = fIdx;
@@ -12328,6 +12328,7 @@ var junyou;
                 bmp.texture = tx;
                 ox += tx.textureWidth;
             }
+            this.artwidth = ox;
             for (i = numChildren - 1; i >= len; i--) {
                 this.$doRemoveChild(i);
             }
@@ -12343,6 +12344,9 @@ var junyou;
             enumerable: true,
             configurable: true
         });
+        ArtText.prototype.$getWidth = function () {
+            return this.artwidth;
+        };
         ArtText.prototype.checkAlign = function () {
             if (!this._align)
                 return;
