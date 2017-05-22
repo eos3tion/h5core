@@ -1,5 +1,5 @@
 module junyou {
-	import TouchEvent = egret.TouchEvent;
+	import TE = egret.TouchEvent;
 	/**
 	 * 按钮
 	 * 在fla中 按钮只是需要1帧
@@ -152,7 +152,7 @@ module junyou {
 		 * @param {boolean} [useCapture] 
 		 */
 		public bindTouch<T>(handler: { (this: T, e?: egret.Event): any }, thisObject?: T, priority?: number, useCapture?: boolean) {
-			this.on(TouchEvent.TOUCH_TAP, handler, thisObject, useCapture, priority);
+			this.on(TE.TOUCH_TAP, handler, thisObject, useCapture, priority);
 		}
 
 		/**
@@ -165,7 +165,7 @@ module junyou {
 		 * @memberOf Button
 		 */
 		public looseTouch(handler: Function, thisObject: any, useCapture?: boolean) {
-			this.off(TouchEvent.TOUCH_TAP, handler, thisObject, useCapture);
+			this.off(TE.TOUCH_TAP, handler, thisObject, useCapture);
 		}
 
 		public addChild(child: egret.DisplayObject) {

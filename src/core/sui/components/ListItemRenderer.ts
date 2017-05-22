@@ -1,4 +1,5 @@
 module junyou {
+    import TE = egret.TouchEvent;
     export interface ListItemRender<T> extends egret.EventDispatcher {
 
         handleView(): void;
@@ -326,16 +327,43 @@ module junyou {
 
         removeSkinListener(skin: egret.DisplayObject) {
             if (skin) {
-                skin.off(egret.TouchEvent.TOUCH_TAP, this.onTouchTap, this);
+                skin.off(TE.TOUCH_TAP, this.onTouchTap, this);
                 ViewController.prototype.removeSkinListener.call(this, skin);
             }
         }
 
         addSkinListener(skin: egret.DisplayObject) {
             if (skin) {
-                skin.on(egret.TouchEvent.TOUCH_TAP, this.onTouchTap, this);
+                skin.on(TE.TOUCH_TAP, this.onTouchTap, this);
                 ViewController.prototype.addSkinListener.call(this, skin);
             }
+        }
+
+		/**
+		 * 绑定TOUCH_TAP的回调
+		 * 
+		 * @template T 
+		 * @param {{ (this: T, e?: egret.Event): any }} handler 
+		 * @param {T} [thisObject] 
+		 * @param {number} [priority] 
+		 * @param {boolean} [useCapture] 
+		 */
+        bindTouch(handler: { (this: T, e?: egret.Event): any }, thisObject?: T, priority?: number, useCapture?: boolean) {
+            this.skin.touchEnabled = true;
+            this.on(TE.TOUCH_TAP, handler, thisObject, useCapture, priority);
+        }
+
+        /**
+         * 解除TOUCH_TAP的回调的绑定
+         * 
+         * @param {Function} handler
+         * @param {*} thisObject
+         * @param {boolean} [useCapture]
+         * 
+         * @memberOf Button
+         */
+        public looseTouch(handler: Function, thisObject: any, useCapture?: boolean) {
+            this.off(TE.TOUCH_TAP, handler, thisObject, useCapture);
         }
 
         /**
