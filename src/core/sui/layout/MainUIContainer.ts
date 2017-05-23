@@ -1,15 +1,16 @@
 declare var $useDPR: boolean;
 var dpr = 1;
 if ((window as any).$useDPR) {
-    var web = (egret as any).web;
     dpr = window.devicePixelRatio || 1;
     var origin = egret.sys.DefaultScreenAdapter.prototype.calculateStageSize;
     egret.sys.screenAdapter = {
         calculateStageSize(scaleMode: string, screenWidth: number, screenHeight: number, contentWidth: number, contentHeight: number) {
             let result = origin(scaleMode, screenWidth, screenHeight, contentWidth, contentHeight);
-            result.stageHeight *= dpr;
-            result.stageWidth *= dpr;
-            return result;
+            if (scaleMode == egret.StageScaleMode.NO_SCALE) {
+                result.stageHeight *= dpr;
+                result.stageWidth *= dpr;
+                return result;
+            }
         }
     }
 }
