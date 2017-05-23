@@ -46,6 +46,9 @@ module junyou {
             if (typeof ins.onSpawn === "function") {
                 ins.onSpawn();
             }
+            if (DEBUG) {
+                ins._insid = _recid++;
+            }
             return ins;
         }
 
@@ -80,11 +83,11 @@ module junyou {
          * 
          * @memberof RecyclablePool
          */
-        ins(): T
+        get(): T
     }
     let rpt = RecyclablePool.prototype;
 
-    rpt.ins = rpt.getInstance;
+    rpt.get = rpt.getInstance;
 
     export declare type Recyclable<T extends IRecyclable> = T & { recycle(): void };
 
@@ -114,10 +117,6 @@ module junyou {
                 };
             }
         }
-        let ins = pool.getInstance() as Recyclable<T>;
-        if (DEBUG) {
-            ins._insid = _recid++;
-        }
-        return ins;
+        return pool.getInstance() as Recyclable<T>;
     }
 }

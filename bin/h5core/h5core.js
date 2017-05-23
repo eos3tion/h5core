@@ -8702,6 +8702,9 @@ var junyou;
             if (typeof ins.onSpawn === "function") {
                 ins.onSpawn();
             }
+            if (DEBUG) {
+                ins._insid = _recid++;
+            }
             return ins;
         };
         /**
@@ -8723,7 +8726,7 @@ var junyou;
     }());
     junyou.RecyclablePool = RecyclablePool;
     var rpt = RecyclablePool.prototype;
-    rpt.ins = rpt.getInstance;
+    rpt.get = rpt.getInstance;
     if (DEBUG) {
         var _recid = 0;
     }
@@ -8749,11 +8752,7 @@ var junyou;
                 };
             }
         }
-        var ins = pool.getInstance();
-        if (DEBUG) {
-            ins._insid = _recid++;
-        }
-        return ins;
+        return pool.getInstance();
     }
     junyou.recyclable = recyclable;
 })(junyou || (junyou = {}));
