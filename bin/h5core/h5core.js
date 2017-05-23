@@ -8480,6 +8480,7 @@ var junyou;
                 this._aniInfo.loose(this);
                 this._aniInfo = undefined;
             }
+            this.idx = 0;
             this._guid = NaN;
         };
         AniRender.prototype.onSpawn = function () {
@@ -16345,15 +16346,16 @@ var junyou;
 })(junyou || (junyou = {}));
 var dpr = 1;
 if (window.$useDPR) {
-    var web = egret.web;
     dpr = window.devicePixelRatio || 1;
     var origin = egret.sys.DefaultScreenAdapter.prototype.calculateStageSize;
     egret.sys.screenAdapter = {
         calculateStageSize: function (scaleMode, screenWidth, screenHeight, contentWidth, contentHeight) {
             var result = origin(scaleMode, screenWidth, screenHeight, contentWidth, contentHeight);
-            result.stageHeight *= dpr;
-            result.stageWidth *= dpr;
-            return result;
+            if (scaleMode == egret.StageScaleMode.NO_SCALE) {
+                result.stageHeight *= dpr;
+                result.stageWidth *= dpr;
+                return result;
+            }
         }
     };
 }

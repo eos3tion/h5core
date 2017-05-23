@@ -133,6 +133,7 @@ module junyou {
                 this._aniInfo.loose(this);
                 this._aniInfo = undefined;
             }
+            this.idx = 0;
             this._guid = NaN;
         }
 
