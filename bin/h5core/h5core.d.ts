@@ -6588,7 +6588,7 @@ declare module junyou {
 declare module junyou {
     import TE = egret.TouchEvent;
     /**
-     * description
+     * 单选按钮组
      * @author pb
      */
     class Group extends egret.EventDispatcher {
@@ -7652,6 +7652,17 @@ declare module junyou {
      * @returns
      */
     function d_fire(eventType: string | number, selfDispatch?: boolean): (target: any, value: any) => void;
+    /**
+     * 使用微软vs code中使用的代码
+     * 用于一些 lazy 的调用
+     * https://github.com/Microsoft/vscode/blob/master/src/vs/base/common/decorators.ts
+     *
+     * @export
+     * @param {*} target
+     * @param {string} key
+     * @param {*} descriptor
+     */
+    function d_memoize(target: any, key: string, descriptor: any): void;
     /**
      * @language en_US
      * The Watcher class defines utility method that you can use with bindable properties.

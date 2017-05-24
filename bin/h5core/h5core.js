@@ -12503,7 +12503,7 @@ var junyou;
 (function (junyou) {
     var TE = egret.TouchEvent;
     /**
-     * description
+     * 单选按钮组
      * @author pb
      */
     var Group = (function (_super) {
@@ -12521,12 +12521,7 @@ var junyou;
         Group.prototype.addItem = function (item) {
             if (item) {
                 this._list.pushOnce(item);
-                if (junyou.is(item, junyou.ListItemRenderer)) {
-                    item.on(-1001 /* ITEM_TOUCH_TAP */, this.touchHandler, this);
-                }
-                else {
-                    item.on(TE.TOUCH_TAP, this.touchHandler, this);
-                }
+                item.on(TE.TOUCH_TAP, this.touchHandler, this);
             }
         };
         Group.prototype.touchHandler = function (e) {
@@ -12551,15 +12546,13 @@ var junyou;
          * @param {...IGroupItem[]} itemArr
          */
         Group.prototype.addItems = function () {
-            var _this = this;
             var itemArr = [];
             for (var _i = 0; _i < arguments.length; _i++) {
                 itemArr[_i] = arguments[_i];
             }
-            if (itemArr) {
-                itemArr.forEach(function (item) {
-                    _this.addItem(item);
-                });
+            for (var i = 0; i < itemArr.length; i++) {
+                var item = itemArr[i];
+                this.addItem(item);
             }
         };
         Object.defineProperty(Group.prototype, "selectedItem", {
@@ -14912,6 +14905,48 @@ var junyou;
         };
     }
     junyou.d_fire = d_fire;
+    /**
+     * 使用微软vs code中使用的代码
+     * 用于一些 lazy 的调用
+     * https://github.com/Microsoft/vscode/blob/master/src/vs/base/common/decorators.ts
+     *
+     * @export
+     * @param {*} target
+     * @param {string} key
+     * @param {*} descriptor
+     */
+    function d_memoize(target, key, descriptor) {
+        var fnKey = null;
+        var fn = null;
+        if (typeof descriptor.value === 'function') {
+            fnKey = 'value';
+            fn = descriptor.value;
+        }
+        else if (typeof descriptor.get === 'function') {
+            fnKey = 'get';
+            fn = descriptor.get;
+        }
+        if (!fn) {
+            throw new Error('not supported');
+        }
+        var memoizeKey = "$memoize$" + key;
+        descriptor[fnKey] = function () {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            if (!this.hasOwnProperty(memoizeKey)) {
+                Object.defineProperty(this, memoizeKey, {
+                    configurable: false,
+                    enumerable: false,
+                    writable: false,
+                    value: fn.apply(this, args)
+                });
+            }
+            return this[memoizeKey];
+        };
+    }
+    junyou.d_memoize = d_memoize;
     /**
      * @private
      */
