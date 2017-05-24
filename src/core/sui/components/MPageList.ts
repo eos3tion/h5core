@@ -17,7 +17,7 @@ module junyou {
             let dataLen = data && data.length || 0;
             if (this._data) {
                 //如果新赋值的数据长度比以前的短，就自动清理掉多出来的item
-                let olen = this._dataLen;
+                let olen = Math.max(this._dataLen, this._viewCount);
                 while (olen > dataLen) {
                     let render = this.getItemRenderAt(olen - 1);
                     if (render) {
