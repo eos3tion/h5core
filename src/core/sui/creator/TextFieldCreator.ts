@@ -27,6 +27,9 @@ module junyou {
             //            data[8] = [filter.color,filter.blurX];
             if (Array.isArray(strokeDat)) {
                 strokeColor = strokeDat[0];
+                if (typeof strokeColor == "string") {
+                    strokeColor = ColorUtil.getColorValue(strokeColor);
+                }
                 stroke = strokeDat[1];
             }
             this._createT = () => {
