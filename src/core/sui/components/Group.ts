@@ -1,7 +1,7 @@
 module junyou {
     import TE = egret.TouchEvent;
     /**
-     * description
+     * 单选按钮组
      * @author pb
      */
     export class Group extends egret.EventDispatcher {
@@ -23,12 +23,7 @@ module junyou {
         public addItem(item: IGroupItem) {
             if (item) {
                 this._list.pushOnce(item);
-                if (is(item, ListItemRenderer)) {
-                    item.on(EventConst.ITEM_TOUCH_TAP,this.touchHandler,this);
-                } else {
-
-                    item.on(TE.TOUCH_TAP, this.touchHandler, this);
-                }
+                item.on(TE.TOUCH_TAP, this.touchHandler, this);
             }
         }
 
@@ -57,10 +52,9 @@ module junyou {
          * @param {...IGroupItem[]} itemArr
          */
         public addItems(...itemArr: IGroupItem[]) {
-            if (itemArr) {
-                itemArr.forEach(item => {
-                    this.addItem(item);
-                });
+            for (let i = 0; i < itemArr.length; i++) {
+                let item = itemArr[i];
+                this.addItem(item);
             }
         }
 
@@ -107,7 +101,7 @@ module junyou {
             }
         }
 
-        public get selectedIndex(): number {
+        public get selectedIndex() {
             return this._selectedIndex;
         }
     }
