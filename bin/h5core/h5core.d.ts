@@ -2120,7 +2120,7 @@ declare module junyou {
          */
         abstract setUrl(actionUrl: string): any;
         constructor();
-        protected netChange(): void;
+        protected netChange: () => void;
         /**
          * 基础连接时间
          *

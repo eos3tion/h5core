@@ -412,7 +412,7 @@ module junyou {
             on(EventConst.Awake, this.onawake, this);
         }
 
-        protected netChange() {
+        protected netChange = () => {
             if (navigator.onLine) {
                 dispatch(EventConst.Online);
                 this.showReconnect();

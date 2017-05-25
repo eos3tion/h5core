@@ -1770,12 +1770,13 @@ var junyou;
                             }
                         }
                         else {
-                            this.idx = idx = 0;
+                            this.idx = 0;
                             if (this.isComplete(actionInfo)) {
                                 this.doComplete(now);
                                 return;
                             }
                             else {
+                                idx = 0;
                                 frame = frames_1[0];
                                 break;
                             }
@@ -3922,6 +3923,16 @@ var junyou;
      */
     var NetService = (function () {
         function NetService() {
+            var _this = this;
+            this.netChange = function () {
+                if (navigator.onLine) {
+                    junyou.dispatch(-192 /* Online */);
+                    _this.showReconnect();
+                }
+                else {
+                    junyou.dispatch(-191 /* Offline */);
+                }
+            };
             /**
              * 基础连接时间
              *
@@ -3979,15 +3990,6 @@ var junyou;
         }
         NetService.getInstance = function () {
             return this._instance;
-        };
-        NetService.prototype.netChange = function () {
-            if (navigator.onLine) {
-                junyou.dispatch(-192 /* Online */);
-                this.showReconnect();
-            }
-            else {
-                junyou.dispatch(-191 /* Offline */);
-            }
         };
         NetService.prototype.showReconnect = function () {
             this._reconCount += 1;
