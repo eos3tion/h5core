@@ -1,5 +1,5 @@
 module junyou {
-    const enum ByteArraySize {
+    export const enum ByteArraySize {
         SIZE_OF_UINT32 = 4,
         SIZE_OF_FIX64 = 8,
         SIZE_OF_INT64 = 8,
