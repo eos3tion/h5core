@@ -125,10 +125,11 @@ module junyou {
                             }
                         } else {
                             this.idx = 0;
-                            if (!actionInfo.isCircle) {
+                            if (this.isComplete(actionInfo)) {
                                 this.doComplete(now);
                                 return;
                             } else {
+                                idx = 0;
                                 frame = frames[0];
                                 break;
                             }
@@ -145,12 +146,16 @@ module junyou {
                 this.willRenderFrame = frame;
                 if (idx > flen) {
                     this.idx = 0;
-                    if (!actionInfo.isCircle) {
+                    if (this.isComplete(actionInfo)) {
                         this.doComplete(now);
                         return;
                     }
                 }
             }
+        }
+
+        isComplete(info: ActionInfo) {
+            return !info.isCircle
         }
 
         /**
