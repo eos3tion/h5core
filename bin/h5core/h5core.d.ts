@@ -1047,6 +1047,7 @@ declare module junyou {
          *  处理数据帧
          */
         onData(actionInfo: ActionInfo, now: number): void;
+        isComplete(info: ActionInfo): boolean;
         /**
          * 渲染帧时调用
          *
@@ -3076,6 +3077,13 @@ declare module junyou {
     }
 }
 declare module junyou {
+    const enum ByteArraySize {
+        SIZE_OF_UINT32 = 4,
+        SIZE_OF_FIX64 = 8,
+        SIZE_OF_INT64 = 8,
+        SIZE_OF_FIX32 = 4,
+        SIZE_OF_SFIX32 = 4,
+    }
     /**
      * 方便后续调整
      * 加入ProtoBuf的varint支持
@@ -3774,6 +3782,14 @@ declare module junyou {
          * 窗口失去激活
          */
         DEACTIVATE = -1994,
+        /**
+         * ani 一次播放完成
+         */
+        AniComplete = -1993,
+        /**
+         * ani 回收前触发
+         */
+        AniBeforeRecycle = -1992,
     }
 }
 declare module junyou {
@@ -4069,6 +4085,21 @@ declare module junyou {
          * 默认为全部回收
          */
         recyclePolicy: AniRecyclePolicy;
+        /**
+         * 循环播放次数
+         *
+         * @type {number}
+         */
+        loop?: number;
+        /**
+         * 事件处理的回调函数
+         *
+         * @type {{ (event: Key, render: AniRender, now?: number, ...args) }}
+         * @memberof AniOption
+         */
+        handler?: CallbackInfo<{
+            (event: Key, render: AniRender, now?: number, ...args);
+        }>;
         protected _guid: number;
         /**
          * 特效标识
@@ -4088,7 +4119,14 @@ declare module junyou {
          */
         doData(now: number): void;
         renderFrame(frame: FrameInfo, now: number): void;
+        /**
+         * 派发事件
+         * @param event     事件名
+         * @param now       当前时间
+         */
+        protected dispatchEvent(event: string, now: number): void;
         doComplete(now: number): void;
+        isComplete(info: ActionInfo): boolean;
         callback(): void;
         /**
          * 播放
@@ -4105,10 +4143,10 @@ declare module junyou {
          *
          * @static
          * @param {string} uri    动画地址
-         * @param {number} [guid] 外部设置动画的guid
+         * @param {AniOption} [option] 动画的参数
          * @returns (description)
          */
-        static getAni(uri: string, guid?: number): Recyclable<AniRender>;
+        static getAni(uri: string, option?: AniOption): Recyclable<AniRender>;
         /**
          * 获取正在运行的AniRender
          * @param guid  唯一标识
@@ -4119,6 +4157,69 @@ declare module junyou {
          * @param {number} guid AniRender的唯一标识
          */
         static recycle(guid: number): void;
+    }
+    interface AniOption {
+        guid?: number;
+        /**
+         * 坐标集合
+         * 如果同时配置此值和x，优先取此值作为坐标X
+         * 如果同时配置此值和y，优先取此值作为坐标Y
+         * @type {Point}
+         * @memberof AniOption
+         */
+        pos?: Point;
+        /**
+         * 坐标X
+         *
+         * @type {number}
+         * @memberof AniOption
+         */
+        x?: number;
+        /**
+         * 坐标Y
+         *
+         * @type {number}
+         * @memberof AniOption
+         */
+        y?: number;
+        /**
+         * 容器，如果配置此值，则自动将视图加入到容器中
+         *
+         * @type {egret.DisplayObjectContainer}
+         * @memberof AniOption
+         */
+        parent?: egret.DisplayObjectContainer;
+        /**
+         * 有parent此值才有意义
+         * 当有此值时，使用 addChildAt添加
+         * @type {number}
+         * @memberof AniOption
+         */
+        childIdx?: number;
+        /**
+         * 是否初始停止播放
+         *
+         * @type {boolean}
+         * @memberof AniOption
+         */
+        stop?: boolean;
+        /**
+         * 循环播放次数
+         * 如果设置此值，不按原始数据的 isCircle进行播放
+         *
+         * @type {number}
+         * @memberof AniOption
+         */
+        loop?: number;
+        /**
+         *  事件处理的回调函数
+         *
+         * @type {CallbackInfo<{ (event: Key, render: AniRender, now?: number, ...args) }>}
+         * @memberof AniOption
+         */
+        handler?: CallbackInfo<{
+            (event: Key, render: AniRender, now?: number, ...args);
+        }>;
     }
 }
 declare module junyou {

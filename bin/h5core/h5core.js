@@ -1770,8 +1770,8 @@ var junyou;
                             }
                         }
                         else {
-                            this.idx = 0;
-                            if (!actionInfo.isCircle) {
+                            this.idx = idx = 0;
+                            if (this.isComplete(actionInfo)) {
                                 this.doComplete(now);
                                 return;
                             }
@@ -1791,12 +1791,15 @@ var junyou;
                 this.willRenderFrame = frame;
                 if (idx > flen) {
                     this.idx = 0;
-                    if (!actionInfo.isCircle) {
+                    if (this.isComplete(actionInfo)) {
                         this.doComplete(now);
                         return;
                     }
                 }
             }
+        };
+        BaseRender.prototype.isComplete = function (info) {
+            return !info.isCircle;
         };
         /**
          * 渲染帧时调用
@@ -5272,6 +5275,8 @@ var junyou;
                 var body = encode[idx];
                 if (!body) {
                     junyou.ThrowError("\u8BFB\u53D6\u6D88\u606F\u7C7B\u578B\u4E3A\uFF1A" + msgType + "\uFF0C\u7D22\u5F15" + idx + "\u65F6\u6570\u636E\u51FA\u73B0\u9519\u8BEF\uFF0C\u627E\u4E0D\u5230\u5BF9\u5E94\u7684\u6570\u636E\u7ED3\u6784\u914D\u7F6E");
+                    // 使用默认读取
+                    readValue(tag, bytes);
                     continue;
                 }
                 var name_7 = body[0];
@@ -8424,7 +8429,22 @@ var junyou;
             this.f = frame.f;
             this.display.draw(this, now);
         };
+        /**
+         * 派发事件
+         * @param event     事件名
+         * @param now       当前时间
+         */
+        AniRender.prototype.dispatchEvent = function (event, now) {
+            var handler = this.handler;
+            if (handler) {
+                handler.call(event, this, now);
+            }
+        };
         AniRender.prototype.doComplete = function (now) {
+            var handler = this.handler;
+            if (handler) {
+                handler.call(-1993 /* AniComplete */, this, now);
+            }
             this.state = 2 /* Completed */;
             var policy = this.recyclePolicy;
             if ((policy & 2 /* RecycleRender */) == 2 /* RecycleRender */) {
@@ -8442,6 +8462,15 @@ var junyou;
                     }
                 }
             }
+        };
+        AniRender.prototype.isComplete = function (info) {
+            var loop = this.loop;
+            if (loop != undefined) {
+                loop--;
+                this.loop = loop;
+                return loop < 1;
+            }
+            return !info.isCircle;
         };
         AniRender.prototype.callback = function () {
             if (this._aniInfo) {
@@ -8465,6 +8494,12 @@ var junyou;
             }
         };
         AniRender.prototype.onRecycle = function () {
+            var handler = this.handler;
+            if (handler) {
+                handler.call(-1992 /* AniBeforeRecycle */, this);
+                handler.recycle();
+                this.handler = undefined;
+            }
             delete AniRender._renderByGuid[this._guid];
             this.state = 3 /* Recycled */;
             var display = this.display;
@@ -8482,6 +8517,7 @@ var junyou;
             }
             this.idx = 0;
             this._guid = NaN;
+            this.loop = undefined;
         };
         AniRender.prototype.onSpawn = function () {
             this.f = 0;
@@ -8505,10 +8541,10 @@ var junyou;
          *
          * @static
          * @param {string} uri    动画地址
-         * @param {number} [guid] 外部设置动画的guid
+         * @param {AniOption} [option] 动画的参数
          * @returns (description)
          */
-        AniRender.getAni = function (uri, guid) {
+        AniRender.getAni = function (uri, option) {
             var aniDict = $DD.ani;
             var aniInfo = aniDict[uri];
             if (!aniInfo) {
@@ -8518,9 +8554,41 @@ var junyou;
             }
             var display = junyou.recyclable(junyou.ResourceBitmap);
             var ani = junyou.recyclable(AniRender);
-            guid = guid === void 0 ? this.guid++ : guid;
+            var guid, stop;
+            if (option) {
+                guid = option.guid;
+                var pos = option.pos;
+                var x = option.x, y = option.y;
+                if (pos) {
+                    x = pos.x;
+                    y = pos.y;
+                }
+                if (x != undefined) {
+                    display.x = x;
+                }
+                if (y != undefined) {
+                    display.y = y;
+                }
+                stop = option.stop;
+                var parent_1 = option.parent;
+                if (parent_1) {
+                    var idx = option.childIdx;
+                    if (idx == undefined) {
+                        parent_1.addChild(display);
+                    }
+                    else {
+                        parent_1.addChildAt(display, idx);
+                    }
+                }
+                ani.loop = option.loop;
+                ani.handler = option.handler;
+            }
+            !guid && (guid = this.guid++);
             this._renderByGuid[guid] = ani;
             ani.init(aniInfo, display, guid);
+            if (!stop) {
+                ani.play();
+            }
             return ani;
         };
         /**
@@ -11798,15 +11866,15 @@ var junyou;
                 b.mid = mid;
             }
             if (lid && lid != mid) {
-                var parent_1 = this._badges[lid];
-                if (!parent_1) {
-                    this._badges[lid] = parent_1 = {};
-                    parent_1.mid = lid;
+                var parent_2 = this._badges[lid];
+                if (!parent_2) {
+                    this._badges[lid] = parent_2 = {};
+                    parent_2.mid = lid;
                 }
-                b.parent = parent_1;
-                var sons = parent_1.sons;
+                b.parent = parent_2;
+                var sons = parent_2.sons;
                 if (!sons) {
-                    parent_1.sons = sons = [];
+                    parent_2.sons = sons = [];
                 }
                 sons.push(b);
             }
@@ -11842,9 +11910,9 @@ var junyou;
                 //将顶部入口也置为false;
                 if (badge.show) {
                     badge.show = false;
-                    var parent_2 = badge.parent;
-                    while (parent_2) {
-                        var sons = parent_2.sons;
+                    var parent_3 = badge.parent;
+                    while (parent_3) {
+                        var sons = parent_3.sons;
                         if (sons) {
                             var allsonHide = true;
                             for (var i = 0; i < sons.length; i++) {
@@ -11855,11 +11923,11 @@ var junyou;
                                 }
                             }
                             if (allsonHide) {
-                                parent_2.show = false;
-                                parent_2 = parent_2.parent;
+                                parent_3.show = false;
+                                parent_3 = parent_3.parent;
                             }
                             else {
-                                parent_2 = undefined;
+                                parent_3 = undefined;
                             }
                         }
                     }
@@ -11897,10 +11965,10 @@ var junyou;
                             else {
                                 b.show = true;
                             }
-                            var parent_3 = b.parent;
-                            while (parent_3) {
-                                changed.pushOnce(parent_3);
-                                parent_3 = parent_3.parent;
+                            var parent_4 = b.parent;
+                            while (parent_4) {
+                                changed.pushOnce(parent_4);
+                                parent_4 = parent_4.parent;
                             }
                         }
                     }
@@ -11925,10 +11993,10 @@ var junyou;
             for (var i = 0; i < changed.length; i++) {
                 var badge = changed[i];
                 if (badge.show) {
-                    var parent_4 = badge.parent;
-                    while (parent_4) {
-                        parent_4.show = badge.show;
-                        parent_4 = parent_4.parent;
+                    var parent_5 = badge.parent;
+                    while (parent_5) {
+                        parent_5.show = badge.show;
+                        parent_5 = parent_5.parent;
                     }
                 }
                 else {
@@ -12399,9 +12467,9 @@ var junyou;
                 function getPath(p) {
                     var parentKey = p.parent;
                     if (parentKey) {
-                        var parent_5 = paths[parentKey];
-                        if (parent_5) {
-                            return getPath(parent_5) + p.path;
+                        var parent_6 = paths[parentKey];
+                        if (parent_6) {
+                            return getPath(parent_6) + p.path;
                         }
                         else if (DEBUG) {
                             junyou.ThrowError("\u8DEF\u5F84[" + p.path + "]\u914D\u7F6E\u4E86\u7236\u7EA7(parent)\uFF0C\u4F46\u662F\u627E\u4E0D\u5230\u5BF9\u5E94\u7684\u7236\u7EA7");
