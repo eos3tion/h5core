@@ -228,13 +228,15 @@ module junyou {
                 let body = encode[idx];
                 if (!body) {
                     ThrowError(`读取消息类型为：${msgType}，索引${idx}时数据出现错误，找不到对应的数据结构配置`);
+                    // 使用默认读取
+                    readValue(tag, bytes);
                     continue;
                 }
                 let name = body[0];
                 let label = body[1];
                 let type = body[2];
                 let subMsgType = body[3];
-                let value: Object;
+                let value;
                 if (label != 3 || (tag & 0b111) != 7) {//自定义  tag & 0b111 == 7 为 数组中 undefined的情况
                     switch (type) {
                         case PBType.Double:
