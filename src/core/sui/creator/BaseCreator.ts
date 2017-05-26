@@ -67,50 +67,6 @@ module junyou {
          */
         public createElement(data: ComponentData) {
             return singleton(SuiResManager).getElement(this._suiData, data);
-            // const suiData = this._suiData;
-            // let type = data[0];
-            // if (type == ExportType.Text) {
-            //     let tc = new TextFieldCreator();
-            //     tc.setBaseData(data[1])
-            //     tc.parseSelfData(data[2]);
-            //     return tc.getInstance();
-            // } if (type == ExportType.Image) {
-            //     let bg = new BitmapCreator(suiData);
-            //     bg.parseData(data, suiData);
-            //     return bg.getInstance();
-            // }
-            // else {
-            //     let lib: any = data[3];
-            //     if (lib == undefined) lib = 0;
-            //     let libKey: string;
-            //     switch (lib) {
-            //         case 0:
-            //             libKey = suiData.key;
-            //             break;
-            //         case 1:
-            //             libKey = "lib";
-            //             break;
-            //         default:
-            //             libKey = lib;
-            //             break;
-            //     }
-            //     let source = suiData.sourceComponentData;
-            //     if (source) {
-            //         let sourceData = source[type];
-            //         if (sourceData) {//有引用类型数据
-            //             let names = sourceData[0];//名字列表
-            //             if (names) {//有引用名 
-            //                 let idx = data[2];
-            //                 let name = names[idx];
-            //                 if (name) {
-            //                     return singleton(SuiResManager).createDisplayObject(libKey, name, data[1]);
-            //                 }
-            //             }
-            //         }
-            //     }
-
-            //     return singleton(SuiResManager).createDisplayByElementData(libKey, data);
-            // }
         }
 
         public setBaseData(data: BaseData) {
@@ -125,7 +81,7 @@ module junyou {
         /**
          * 获取实例
          */
-        public getInstance(): T {
+        public get(): T {
             var t = this._createT();
             t.suiRawRect = this.size;
             if (t instanceof Component) {

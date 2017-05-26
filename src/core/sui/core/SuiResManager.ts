@@ -302,7 +302,7 @@ module junyou {
                 let creator = suiData.lib[className];
                 if (creator) {
                     creator.setBaseData(baseData);
-                    return creator.getInstance();
+                    return creator.get();
                 } else if (DEBUG) {
                     ThrowError(`没有在[${suiData.key}]找到对应组件[${className}]`);
                 }
@@ -330,7 +330,7 @@ module junyou {
                 if (cRef) {
                     let creator = new cRef();
                     creator.parseData(data, suiData);
-                    return creator.getInstance();
+                    return creator.get();
                 } else if (DEBUG) {
                     ThrowError(`createElement时，没有找到对应组件，索引：[${+data[0]}]`);
                 }
@@ -351,7 +351,7 @@ module junyou {
                 let bc = bcs[index];
                 if (bc) {
                     bc.setBaseData(baseData);
-                    return bc.getInstance();
+                    return bc.get();
                 }
             }
         }
@@ -412,7 +412,7 @@ module junyou {
             let tfCreator = this._sharedTFCreator;
             tfCreator.parseSelfData(data);
             tfCreator.setBaseData(baseData);
-            return tfCreator.getInstance();
+            return tfCreator.get();
         }
 
         /**
@@ -530,11 +530,11 @@ module junyou {
                     let tc = new TextFieldCreator();
                     tc.setBaseData(bd)
                     tc.parseSelfData(sd);
-                    return tc.getInstance();
+                    return tc.get();
                 case ExportType.Image:
                     let bg = new BitmapCreator(suiData);
                     bg.parseData(data, suiData);
-                    return bg.getInstance();
+                    return bg.get();
                 case ExportType.Sprite:
                     let sp = new egret.Sprite();
                     SuiResManager.initBaseData(sp, bd);

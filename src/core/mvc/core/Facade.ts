@@ -298,7 +298,7 @@ module junyou {
                     this._getHost(bin);
 
                 } else {
-                    script.callbacks.push(CallbackInfo.getInstance(this._getHost, this, bin));
+                    script.callbacks.push(CallbackInfo.get(this._getHost, this, bin));
                     script.load();
                 }
             } else {//主脚本中的模块

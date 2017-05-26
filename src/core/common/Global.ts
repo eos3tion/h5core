@@ -105,7 +105,7 @@ module junyou {
 		}
 
 		function nextTick(callback: Function, thisObj?: any, ...args) {
-			_nextTicks.push(CallbackInfo.getInstance(callback, thisObj, ...args));
+			_nextTicks.push(CallbackInfo.get(callback, thisObj, ...args));
 		}
 
 		/**

@@ -31,23 +31,23 @@ module junyou {
 
             var bcArr: BitmapCreator<egret.Bitmap>[] = [];
             var dat: any[];
-            let bc;
+            let bc: BitmapCreator<egret.Bitmap>;
             for (var i = 1; i < 5; i++) {
                 dat = sData[i];
                 if (dat) {
                     bc = new BitmapCreator(suiData);
-                    bc.parseData(dat, suiData);
+                    bc.parseData(dat as any, suiData);
                     bcArr[i - 1] = bc;
                 }
             }
 
             if (tc)
-                iconBtn.txtLabel = tc.getInstance();
+                iconBtn.txtLabel = tc.get();
             let bmps = [];
             for (let i = 0; i < 4; i++) {
                 if (bcArr[i]) {
                     bc = bcArr[i];
-                    bmps[i] = bc.getInstance();
+                    bmps[i] = bc.get();
                 }
             }
             if (!bmps[1])

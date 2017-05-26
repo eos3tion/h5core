@@ -43,7 +43,7 @@ module junyou{
                 
                 if(type == 0){
                     this.bitmapCreator.parseSelfData(index);
-                    let bmp:egret.Bitmap = <egret.Bitmap>this.bitmapCreator.getInstance();
+                    let bmp:egret.Bitmap = <egret.Bitmap>this.bitmapCreator.get();
                     slider.setThumb(bmp);
     
                 }

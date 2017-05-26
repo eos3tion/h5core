@@ -273,7 +273,7 @@ if (DEBUG) {
     $gm.maxNSLogCount = 1000;
     $gm.nsLogs = [];
     $gm.route = (cmd, data) => {
-        junyou.NetService.getInstance().route(cmd, data);
+        junyou.NetService.get().route(cmd, data);
     }
     $gm.batchRoute = logs => {
         //过滤send
@@ -323,10 +323,10 @@ module junyou {
         protected _actionUrl: string;
 
 
-        protected static _instance: NetService;
+        protected static _ins: NetService;
 
-        public static getInstance(): NetService {
-            return this._instance;
+        public static get(): NetService {
+            return this._ins;
         }
         /**
              * 用于调试模式下写日志

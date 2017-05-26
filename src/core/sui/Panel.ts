@@ -139,7 +139,7 @@ module junyou {
 
         public suiDataComplete(suiData: SuiData): void {
             if (this.preloadImage) {
-                suiData.loadBmd(CallbackInfo.getInstance(this.loadNext, this));
+                suiData.loadBmd(CallbackInfo.get(this.loadNext, this));
             } else {
                 this.loadNext();
             }

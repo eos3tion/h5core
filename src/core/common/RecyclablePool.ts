@@ -35,7 +35,7 @@ module junyou {
         private _max: number;
         private _TCreator: { new (): T } | { (): T };
 
-        public getInstance(): T {
+        public get(): T {
             var ins: T;
             var pool = this._pool;
             if (pool.length) {
@@ -82,12 +82,13 @@ module junyou {
          * @returns {T} 
          * 
          * @memberof RecyclablePool
+         * @deprecated  请使用`RecyclablePool.get`以减少字符串消耗
          */
-        get(): T
+        getInstance(): T
     }
     let rpt = RecyclablePool.prototype;
 
-    rpt.get = rpt.getInstance;
+    rpt.getInstance = rpt.get;
 
     export declare type Recyclable<T extends IRecyclable> = T & { recycle(): void };
 
@@ -117,6 +118,6 @@ module junyou {
                 };
             }
         }
-        return pool.getInstance() as Recyclable<T>;
+        return pool.get() as Recyclable<T>;
     }
 }

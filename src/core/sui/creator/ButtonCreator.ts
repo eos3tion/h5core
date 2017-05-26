@@ -31,12 +31,12 @@ module junyou {
             this._createT = () => {
                 var btn = new Button();
                 if (tc) {
-                    btn.txtLabel = tc.getInstance();
+                    btn.txtLabel = tc.get();
                 }
                 var bmps = [];
                 for (var i = 0; i < 4; i++) {
                     if (bcs[i]) {
-                        bmps[i] = bcs[i].getInstance();
+                        bmps[i] = bcs[i].get();
                     }
                 }
                 if (!bmps[1]) { //启用 选中帧 没有图片

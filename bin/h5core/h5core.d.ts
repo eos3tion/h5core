@@ -909,7 +909,7 @@ declare module junyou {
         /**
          * 获取实例
          */
-        getInstance(): T;
+        get(): T;
     }
 }
 declare module junyou {
@@ -2072,8 +2072,8 @@ declare module junyou {
         * 请求地址
         */
         protected _actionUrl: string;
-        protected static _instance: NetService;
-        static getInstance(): NetService;
+        protected static _ins: NetService;
+        static get(): NetService;
         /**
              * 用于调试模式下写日志
              *
@@ -4423,7 +4423,7 @@ declare module junyou {
         private _pool;
         private _max;
         private _TCreator;
-        getInstance(): T;
+        get(): T;
         /**
          * 回收
          */
@@ -4441,8 +4441,9 @@ declare module junyou {
          * @returns {T}
          *
          * @memberof RecyclablePool
+         * @deprecated  请使用`RecyclablePool.get`以减少字符串消耗
          */
-        get(): T;
+        getInstance(): T;
     }
     type Recyclable<T extends IRecyclable> = T & {
         recycle(): void;
@@ -5260,7 +5261,12 @@ declare module junyou {
         /**
          * 获取CallbackInfo的实例
          */
-        static getInstance<T extends Function>(callback: T, thisObj?: any, ...args: any[]): CallbackInfo<T>;
+        static get<T extends Function>(callback: T, thisObj?: any, ...args: any[]): CallbackInfo<T>;
+        /**
+         * 获取CallbackInfo的实例
+         * @deprecated  请使用`CallbackInfo.get`以减少字符串消耗
+         */
+        static getInstance: typeof CallbackInfo.get;
         /**
          * 加入到数组
          * 检查是否有this和handle相同的callback，如果有，就用新的参数替换旧参数

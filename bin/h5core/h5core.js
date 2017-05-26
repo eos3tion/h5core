@@ -261,7 +261,7 @@ var junyou;
                 var creator = suiData.lib[className];
                 if (creator) {
                     creator.setBaseData(baseData);
-                    return creator.getInstance();
+                    return creator.get();
                 }
                 else if (DEBUG) {
                     junyou.ThrowError("\u6CA1\u6709\u5728[" + suiData.key + "]\u627E\u5230\u5BF9\u5E94\u7EC4\u4EF6[" + className + "]");
@@ -289,7 +289,7 @@ var junyou;
                 if (cRef) {
                     var creator = new cRef();
                     creator.parseData(data, suiData);
-                    return creator.getInstance();
+                    return creator.get();
                 }
                 else if (DEBUG) {
                     junyou.ThrowError("createElement\u65F6\uFF0C\u6CA1\u6709\u627E\u5230\u5BF9\u5E94\u7EC4\u4EF6\uFF0C\u7D22\u5F15\uFF1A[" + +data[0] + "]");
@@ -309,7 +309,7 @@ var junyou;
                 var bc = bcs[index];
                 if (bc) {
                     bc.setBaseData(baseData);
-                    return bc.getInstance();
+                    return bc.get();
                 }
             }
         };
@@ -365,7 +365,7 @@ var junyou;
             var tfCreator = this._sharedTFCreator;
             tfCreator.parseSelfData(data);
             tfCreator.setBaseData(baseData);
-            return tfCreator.getInstance();
+            return tfCreator.get();
         };
         /**
         *  创建文本框
@@ -480,11 +480,11 @@ var junyou;
                     var tc = new junyou.TextFieldCreator();
                     tc.setBaseData(bd);
                     tc.parseSelfData(sd);
-                    return tc.getInstance();
+                    return tc.get();
                 case 0 /* Image */:
                     var bg = new junyou.BitmapCreator(suiData);
                     bg.parseData(data, suiData);
-                    return bg.getInstance();
+                    return bg.get();
                 case 16 /* Sprite */:
                     var sp = new egret.Sprite();
                     SuiResManager.initBaseData(sp, bd);
@@ -1441,49 +1441,6 @@ var junyou;
          */
         BaseCreator.prototype.createElement = function (data) {
             return junyou.singleton(junyou.SuiResManager).getElement(this._suiData, data);
-            // const suiData = this._suiData;
-            // let type = data[0];
-            // if (type == ExportType.Text) {
-            //     let tc = new TextFieldCreator();
-            //     tc.setBaseData(data[1])
-            //     tc.parseSelfData(data[2]);
-            //     return tc.getInstance();
-            // } if (type == ExportType.Image) {
-            //     let bg = new BitmapCreator(suiData);
-            //     bg.parseData(data, suiData);
-            //     return bg.getInstance();
-            // }
-            // else {
-            //     let lib: any = data[3];
-            //     if (lib == undefined) lib = 0;
-            //     let libKey: string;
-            //     switch (lib) {
-            //         case 0:
-            //             libKey = suiData.key;
-            //             break;
-            //         case 1:
-            //             libKey = "lib";
-            //             break;
-            //         default:
-            //             libKey = lib;
-            //             break;
-            //     }
-            //     let source = suiData.sourceComponentData;
-            //     if (source) {
-            //         let sourceData = source[type];
-            //         if (sourceData) {//有引用类型数据
-            //             let names = sourceData[0];//名字列表
-            //             if (names) {//有引用名 
-            //                 let idx = data[2];
-            //                 let name = names[idx];
-            //                 if (name) {
-            //                     return singleton(SuiResManager).createDisplayObject(libKey, name, data[1]);
-            //                 }
-            //             }
-            //         }
-            //     }
-            //     return singleton(SuiResManager).createDisplayByElementData(libKey, data);
-            // }
         };
         BaseCreator.prototype.setBaseData = function (data) {
             this._baseData = data;
@@ -1493,7 +1450,7 @@ var junyou;
         /**
          * 获取实例
          */
-        BaseCreator.prototype.getInstance = function () {
+        BaseCreator.prototype.get = function () {
             var t = this._createT();
             t.suiRawRect = this.size;
             if (t instanceof junyou.Component) {
@@ -3889,7 +3846,7 @@ if (DEBUG) {
     $gm.maxNSLogCount = 1000;
     $gm.nsLogs = [];
     $gm.route = function (cmd, data) {
-        junyou.NetService.getInstance().route(cmd, data);
+        junyou.NetService.get().route(cmd, data);
     };
     $gm.batchRoute = function (logs) {
         //过滤send
@@ -3988,8 +3945,8 @@ var junyou;
             }
             junyou.on(-190 /* Awake */, this.onawake, this);
         }
-        NetService.getInstance = function () {
-            return this._instance;
+        NetService.get = function () {
+            return this._ins;
         };
         NetService.prototype.showReconnect = function () {
             this._reconCount += 1;
@@ -4552,7 +4509,7 @@ var junyou;
              */
             _this._error = 0;
             //覆盖instance
-            junyou.NetService._instance = _this;
+            junyou.NetService._ins = _this;
             _this._unsendRequest = [];
             _this._sendingList = [];
             _this._loader = junyou.getXHR();
@@ -5075,7 +5032,7 @@ var junyou;
                 _this.decodeBytes(readBuffer);
             };
             //覆盖instance
-            junyou.NetService._instance = _this;
+            junyou.NetService._ins = _this;
             return _this;
         }
         /**
@@ -6096,7 +6053,7 @@ var junyou;
             for (var _i = 2; _i < arguments.length; _i++) {
                 args[_i - 2] = arguments[_i];
             }
-            _nextTicks.push(junyou.CallbackInfo.getInstance.apply(junyou.CallbackInfo, [callback, thisObj].concat(args)));
+            _nextTicks.push(junyou.CallbackInfo.get.apply(junyou.CallbackInfo, [callback, thisObj].concat(args)));
         }
         /**
          * 延迟执行
@@ -7831,7 +7788,7 @@ var junyou;
                 var list = [];
                 timer.list = list;
                 _timeobj[time] = timer;
-                list.push(junyou.CallbackInfo.getInstance.apply(junyou.CallbackInfo, [callback, thisObj].concat(args)));
+                list.push(junyou.CallbackInfo.get.apply(junyou.CallbackInfo, [callback, thisObj].concat(args)));
             }
             else {
                 junyou.CallbackInfo.addToList.apply(junyou.CallbackInfo, [timer.list, callback, thisObj].concat(args));
@@ -8760,7 +8717,7 @@ var junyou;
             this._max = max;
             this._TCreator = TCreator;
         }
-        RecyclablePool.prototype.getInstance = function () {
+        RecyclablePool.prototype.get = function () {
             var ins;
             var pool = this._pool;
             if (pool.length) {
@@ -8796,7 +8753,7 @@ var junyou;
     }());
     junyou.RecyclablePool = RecyclablePool;
     var rpt = RecyclablePool.prototype;
-    rpt.get = rpt.getInstance;
+    rpt.getInstance = rpt.get;
     if (DEBUG) {
         var _recid = 0;
     }
@@ -8822,7 +8779,7 @@ var junyou;
                 };
             }
         }
-        return pool.getInstance();
+        return pool.get();
     }
     junyou.recyclable = recyclable;
 })(junyou || (junyou = {}));
@@ -10269,7 +10226,7 @@ var junyou;
         /**
          * 获取CallbackInfo的实例
          */
-        CallbackInfo.getInstance = function (callback, thisObj) {
+        CallbackInfo.get = function (callback, thisObj) {
             var args = [];
             for (var _i = 2; _i < arguments.length; _i++) {
                 args[_i - 2] = arguments[_i];
@@ -10305,6 +10262,11 @@ var junyou;
         };
         return CallbackInfo;
     }());
+    /**
+     * 获取CallbackInfo的实例
+     * @deprecated  请使用`CallbackInfo.get`以减少字符串消耗
+     */
+    CallbackInfo.getInstance = CallbackInfo.get;
     junyou.CallbackInfo = CallbackInfo;
 })(junyou || (junyou = {}));
 var junyou;
@@ -10619,7 +10581,7 @@ var junyou;
                     this._getHost(bin);
                 }
                 else {
-                    script.callbacks.push(junyou.CallbackInfo.getInstance(this._getHost, this, bin));
+                    script.callbacks.push(junyou.CallbackInfo.get(this._getHost, this, bin));
                     script.load();
                 }
             }
@@ -11046,7 +11008,7 @@ var junyou;
             return _super.call(this, name) || this;
         }
         Service.prototype.onRegister = function () {
-            this._ns = junyou.NetService.getInstance();
+            this._ns = junyou.NetService.get();
         };
         Service.prototype._startSync = function () {
             // Service默认为同步，如果需要收到服务端数据的，重写此方法
@@ -12189,7 +12151,7 @@ var junyou;
         };
         Panel.prototype.suiDataComplete = function (suiData) {
             if (this.preloadImage) {
-                suiData.loadBmd(junyou.CallbackInfo.getInstance(this.loadNext, this));
+                suiData.loadBmd(junyou.CallbackInfo.get(this.loadNext, this));
             }
             else {
                 this.loadNext();
@@ -15841,12 +15803,12 @@ var junyou;
             this._createT = function () {
                 var btn = new junyou.Button();
                 if (tc) {
-                    btn.txtLabel = tc.getInstance();
+                    btn.txtLabel = tc.get();
                 }
                 var bmps = [];
                 for (var i = 0; i < 4; i++) {
                     if (bcs[i]) {
-                        bmps[i] = bcs[i].getInstance();
+                        bmps[i] = bcs[i].get();
                     }
                 }
                 if (!bmps[1]) {
@@ -15910,12 +15872,12 @@ var junyou;
                 }
             }
             if (tc)
-                iconBtn.txtLabel = tc.getInstance();
+                iconBtn.txtLabel = tc.get();
             var bmps = [];
             for (var i_1 = 0; i_1 < 4; i_1++) {
                 if (bcArr[i_1]) {
                     bc = bcArr[i_1];
-                    bmps[i_1] = bc.getInstance();
+                    bmps[i_1] = bc.get();
                 }
             }
             if (!bmps[1])
@@ -15940,22 +15902,29 @@ var junyou;
         }
         NumericStepperCreator.prototype.parseSelfData = function (data) {
             this.uiData = data;
-            this.txtCreator = new junyou.TextFieldCreator();
-            this.txtCreator.setBaseData(data[0][1]);
-            this.txtCreator.parseSelfData(data[0][2]);
-            this.scale9Creator = new junyou.ScaleBitmapCreator();
-            this.scale9Creator.bindSuiData(this._suiData);
-            this.scale9Creator.parseSelfData(this._suiData.sourceComponentData[5][1][data[1][2]]);
-            this.scale9Creator.setBaseData(data[1][1]);
-            this.btnCreator = [];
+            var txtCreator = new junyou.TextFieldCreator();
+            this.txtCreator = txtCreator;
+            var data0 = data[0], data1 = data[1];
+            txtCreator.setBaseData(data0[1]);
+            txtCreator.parseSelfData(data0[2]);
+            var scale9Creator = new junyou.ScaleBitmapCreator();
+            this.scale9Creator = scale9Creator;
+            var _suiData = this._suiData;
+            var sourceComponentData = _suiData.sourceComponentData;
+            scale9Creator.bindSuiData(_suiData);
+            scale9Creator.parseSelfData(sourceComponentData[5][1][data1[2]]);
+            scale9Creator.setBaseData(data1[1]);
+            var btnCreator = [];
+            this.btnCreator = btnCreator;
+            var sourceComponentData31 = sourceComponentData[3][1];
             for (var i = 2; i < data.length; i++) {
                 var dat = data[i];
                 if (dat) {
                     var bc = new junyou.ButtonCreator();
-                    bc.bindSuiData(this._suiData);
-                    bc.parseSelfData(this._suiData.sourceComponentData[3][1][data[i][2]]);
+                    bc.bindSuiData(_suiData);
+                    bc.parseSelfData(sourceComponentData31[dat[2]]);
                     bc.setBaseData(dat[1]);
-                    this.btnCreator.push(bc);
+                    btnCreator.push(bc);
                 }
             }
             this._createT = this.createNumericStepper;
@@ -15963,22 +15932,22 @@ var junyou;
         };
         NumericStepperCreator.prototype.createNumericStepper = function () {
             var numstep = new junyou.NumericStepper();
-            numstep.txt = this.txtCreator.getInstance();
-            numstep.txtbg = this.scale9Creator.getInstance();
-            var len = this.btnCreator.length;
+            numstep.txt = this.txtCreator.get();
+            numstep.txtbg = this.scale9Creator.get();
+            var btnCreator = this.btnCreator;
+            var len = btnCreator.length;
             if (len >= 3) {
                 //4个按钮
-                numstep.minBtn = this.btnCreator[0].getInstance();
-                numstep.subBtn = this.btnCreator[1].getInstance();
-                numstep.addBtn = this.btnCreator[2].getInstance();
-                numstep.maxBtn = this.btnCreator[3].getInstance();
+                numstep.minBtn = btnCreator[0].get();
+                numstep.subBtn = btnCreator[1].get();
+                numstep.addBtn = btnCreator[2].get();
+                numstep.maxBtn = btnCreator[3].get();
             }
             else {
                 //2个按钮
-                numstep.subBtn = this.btnCreator[0].getInstance();
-                numstep.addBtn = this.btnCreator[1].getInstance();
+                numstep.subBtn = btnCreator[0].get();
+                numstep.addBtn = btnCreator[1].get();
             }
-            numstep.addSubComponents();
             numstep.addSubComponents();
             return numstep;
         };
@@ -16159,7 +16128,7 @@ var junyou;
                 index = tmpData[2];
                 if (type == 0) {
                     this.bitmapCreator.parseSelfData(index);
-                    var bmp = this.bitmapCreator.getInstance();
+                    var bmp = this.bitmapCreator.get();
                     slider.setThumb(bmp);
                 }
                 else if (type == 5) {

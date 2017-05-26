@@ -85,7 +85,7 @@ module junyou {
         constructor() {
             super();
             //覆盖instance
-            NetService._instance = this;
+            NetService._ins = this;
         }
 
         /**
