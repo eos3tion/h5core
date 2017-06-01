@@ -3726,12 +3726,9 @@ declare module junyou {
      * @author 3tion
      *
      */
-    class ClientCheck {
-        /**
-         * 是否做客户端检查
-         */
-        static isClientCheck: boolean;
-    }
+    var ClientCheck: {
+        isClientCheck: boolean;
+    };
 }
 declare module junyou {
     /**
@@ -7043,9 +7040,9 @@ declare module junyou {
      *
      */
     var DataLocator: {
-        regParser: (key: keyof CfgData, parser: ConfigDataParser) => void;
+        regParser: (key: "ani", parser: ConfigDataParser) => void;
         parsePakedDatas(): void;
-        regCommonParser(key: keyof CfgData, CfgCreator: 0 | (new () => Cfg), idkey?: string): void;
+        regCommonParser(key: "ani", CfgCreator: 0 | (new () => Cfg), idkey?: string): void;
     };
     /**
      * 配置数据解析函数

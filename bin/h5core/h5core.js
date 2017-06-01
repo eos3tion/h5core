@@ -1111,7 +1111,7 @@ if (typeof window["Map"] == "undefined" || !window["Map"]) {
             return;
         };
         PolyfillMap.prototype.has = function (key) {
-            return !~this._keys.indexOf(key);
+            return ~this._keys.indexOf(key);
         };
         PolyfillMap.prototype.delete = function (key) {
             var keys = this._keys;
@@ -6017,7 +6017,7 @@ var junyou;
             var ticker = egret.sys.$ticker;
             var update = ticker.render;
             var delta = 0 | 1000 / ticker.$frameRate;
-            var tmp = [];
+            var temp = [];
             _callLater = new junyou.CallLater();
             _tweenManager || (_tweenManager = new junyou.TweenManager());
             ticker.render = function () {
@@ -6034,6 +6034,7 @@ var junyou;
                 }
                 //执行顺序  nextTick  callLater TimerUtil  tween  最后是白鹭的更新
                 var len = _nextTicks.length;
+                var tmp = temp;
                 for (var i = 0; i < len; i++) {
                     tmp[i] = _nextTicks[i];
                 }
@@ -7970,16 +7971,12 @@ var junyou;
      * @author 3tion
      *
      */
-    var ClientCheck = (function () {
-        function ClientCheck() {
-        }
-        return ClientCheck;
-    }());
-    /**
-     * 是否做客户端检查
-     */
-    ClientCheck.isClientCheck = true;
-    junyou.ClientCheck = ClientCheck;
+    junyou.ClientCheck = {
+        /**
+         * 是否做客户端检查
+         */
+        isClientCheck: true
+    };
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {

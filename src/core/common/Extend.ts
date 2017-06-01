@@ -699,7 +699,7 @@ if (typeof window["Map"] == "undefined" || !window["Map"]) {
         }
 
         public has(key: K): boolean {
-            return !~this._keys.indexOf(key);
+            return ~this._keys.indexOf(key) as any;
         }
 
         public delete(key: K): boolean {
