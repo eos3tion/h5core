@@ -3109,7 +3109,7 @@ var junyou;
             var index = this._renderList.indexOf(item);
             if (index != -1) {
                 this._renderList.splice(index, 1);
-                this._data.splice(index, 1);
+                this._data.remove(item.data);
                 this._remoreRender(item);
             }
         };
