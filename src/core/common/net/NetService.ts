@@ -392,7 +392,7 @@ module junyou {
             if (DEBUG) {
                 this.$writeNSLog = (time, type, cmd, data) => {
                     data = data == undefined ? undefined : JSON.parse(JSON.stringify(data));
-                    let log = { time, type, cmd, data };
+                    let log = doFreeze({ time, type, cmd, data });
                     const nsLogs = $gm.nsLogs;
                     //清理多余的日志
                     while (nsLogs.length > $gm.maxNSLogCount) {
@@ -402,6 +402,22 @@ module junyou {
                     let nsFilter = type == "send" ? $gm.printSendFilter : $gm.printReceiveFilter;
                     if ($gm.__nsLogCheck(log, nsFilter)) {
                         console.log(type, time, cmd, data);
+                    }
+                    function doFreeze(obj) {
+                        if (typeof obj == "object" && obj) {
+                            let pool = [obj] as Object[];
+                            while (pool.length) {
+                                let tmp = pool.pop();
+                                Object.freeze(tmp);
+                                for (let key in tmp) {
+                                    let x = tmp[key];
+                                    if (typeof x == "object" && x) {
+                                        pool.push(x);
+                                    }
+                                }
+                            }
+                        }
+                        return obj;
                     }
                 }
             }

@@ -582,12 +582,12 @@ interface Array<T> {
      * 排序 支持多重排序
      * 降序, 升序
      * @param {(keyof T)[]} kArr              参数属性列表
-     * @param {(boolean[] | number[])} [dArr] 是否降序，默认升序
+     * @param {(boolean[] | ArraySort[])} [dArr] 是否降序，默认升序
      * @returns {this}
      *
      * @memberOf Array
      */
-    multiSort(kArr: (keyof T)[], dArr?: boolean[] | number[]): this;
+    multiSort(kArr: (keyof T)[], dArr?: boolean[] | ArraySort[]): this;
     /**
      * 默认排序
      *
@@ -596,8 +596,8 @@ interface Array<T> {
      *
      * @memberOf Array
      */
-    doSort(key?: keyof T, descend?: boolean): this;
-    doSort(descend?: boolean, key?: keyof T): this;
+    doSort(key?: keyof T, descend?: boolean | ArraySort): this;
+    doSort(descend?: boolean | ArraySort, key?: keyof T): this;
     /**
      * 将数组克隆到to
      * to的数组长度会和当前数组一致
@@ -2657,7 +2657,7 @@ declare module junyou {
          * @memberOf PBStructDict
          */
         $$inted?: any;
-        /**消息名称*/[index: string]: PBStruct;
+        /**消息名称*/ [index: string]: PBStruct;
     }
     /**
      *
@@ -3464,9 +3464,9 @@ declare module junyou {
         x: number;
         y: number;
     }): {
-            x: number;
-            y: number;
-        };
+        x: number;
+        y: number;
+    };
     /**
      * 检查类矩形 a 和 b 是否相交
      * @export
@@ -4428,8 +4428,8 @@ declare module junyou {
         constructor(TCreator: {
             new (): T;
         } | {
-                (): T;
-            }, max?: number);
+            (): T;
+        }, max?: number);
     }
     interface RecyclablePool<T extends IRecyclable> {
         /**
@@ -8485,9 +8485,9 @@ declare module junyou {
             x: number;
             y: number;
         }, hoffset?: number, voffset?: number, innerV?: boolean, innerH?: boolean): {
-                x: number;
-                y: number;
-            };
+            x: number;
+            y: number;
+        };
     };
 }
 declare module junyou {

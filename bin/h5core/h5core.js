@@ -972,21 +972,25 @@ Object.defineProperties(Array.prototype, {
     doSort: {
         value: function () {
             var key, descend;
-            for (var i = 0, len = arguments.length; i < len; i++) {
+            var len = arguments.length;
+            if (DEBUG && len > 2) {
+                junyou.ThrowError("doSort\u53C2\u6570\u4E0D\u80FD\u8D85\u8FC72");
+            }
+            for (var i = 0; i < len; i++) {
                 var arg = arguments[i];
                 var t = typeof arg;
-                if (t === "boolean") {
-                    descend = arg;
-                }
-                else if (t === "string") {
+                if (t === "string") {
                     key = arg;
+                }
+                else {
+                    descend = !!arg;
                 }
             }
             if (key) {
-                return this.sort(function (a, b) { return !descend ? a[key] - b[key] : b[key] - a[key]; });
+                return this.sort(function (a, b) { return descend ? b[key] - a[key] : a[key] - b[key]; });
             }
             else {
-                return this.sort(function (a, b) { return !descend ? a - b : b - a; });
+                return this.sort(function (a, b) { return descend ? b - a : a - b; });
             }
         },
         writable: true
@@ -3926,7 +3930,7 @@ var junyou;
             if (DEBUG) {
                 this.$writeNSLog = function (time, type, cmd, data) {
                     data = data == undefined ? undefined : JSON.parse(JSON.stringify(data));
-                    var log = { time: time, type: type, cmd: cmd, data: data };
+                    var log = doFreeze({ time: time, type: type, cmd: cmd, data: data });
                     var nsLogs = $gm.nsLogs;
                     //清理多余的日志
                     while (nsLogs.length > $gm.maxNSLogCount) {
@@ -3936,6 +3940,22 @@ var junyou;
                     var nsFilter = type == "send" ? $gm.printSendFilter : $gm.printReceiveFilter;
                     if ($gm.__nsLogCheck(log, nsFilter)) {
                         console.log(type, time, cmd, data);
+                    }
+                    function doFreeze(obj) {
+                        if (typeof obj == "object" && obj) {
+                            var pool = [obj];
+                            while (pool.length) {
+                                var tmp = pool.pop();
+                                Object.freeze(tmp);
+                                for (var key in tmp) {
+                                    var x = tmp[key];
+                                    if (typeof x == "object" && x) {
+                                        pool.push(x);
+                                    }
+                                }
+                            }
+                        }
+                        return obj;
                     }
                 };
             }
