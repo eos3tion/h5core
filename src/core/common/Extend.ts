@@ -462,12 +462,12 @@ interface Array<T> {
      * 排序 支持多重排序
      * 降序, 升序
      * @param {(keyof T)[]} kArr              参数属性列表
-     * @param {(boolean[] | number[])} [dArr] 是否降序，默认升序
+     * @param {(boolean[] | ArraySort[])} [dArr] 是否降序，默认升序
      * @returns {this}
      * 
      * @memberOf Array
      */
-    multiSort(kArr: (keyof T)[], dArr?: boolean[] | number[]): this;
+    multiSort(kArr: (keyof T)[], dArr?: boolean[] | ArraySort[]): this;
 
     /**
      * 默认排序
@@ -477,8 +477,8 @@ interface Array<T> {
      * 
      * @memberOf Array
      */
-    doSort(key?: keyof T, descend?: boolean): this;
-    doSort(descend?: boolean, key?: keyof T): this;
+    doSort(key?: keyof T, descend?: boolean | ArraySort): this;
+    doSort(descend?: boolean | ArraySort, key?: keyof T): this;
 
     /**
      * 将数组克隆到to  
@@ -543,19 +543,23 @@ Object.defineProperties(Array.prototype, {
     doSort: {
         value: function () {
             let key: string, descend: boolean;
-            for (let i = 0, len = arguments.length; i < len; i++) {
+            let len = arguments.length;
+            if (DEBUG && len > 2) {
+                junyou.ThrowError(`doSort参数不能超过2`);
+            }
+            for (let i = 0; i < len; i++) {
                 let arg = arguments[i];
                 let t = typeof arg;
-                if (t === "boolean") {
-                    descend = arg;
-                } else if (t === "string") {
+                if (t === "string") {
                     key = arg;
+                } else {
+                    descend = !!arg;
                 }
             }
             if (key) {
-                return this.sort((a: any, b: any) => !descend ? a[key] - b[key] : b[key] - a[key]);
+                return this.sort((a: any, b: any) => descend ? b[key] - a[key] : a[key] - b[key]);
             } else {
-                return this.sort((a: any, b: any) => !descend ? a - b : b - a);
+                return this.sort((a: any, b: any) => descend ? b - a : a - b);
             }
         },
         writable: true
@@ -593,11 +597,9 @@ Object.defineProperties(Array.prototype, {
                     }
                     if (av < bv) {
                         return mode ? 1 : -1;
-                    }
-                    else if (av > bv) {
+                    } else if (av > bv) {
                         return mode ? -1 : 1;
-                    }
-                    else {
+                    } else {
                         continue;
                     }
                 }
