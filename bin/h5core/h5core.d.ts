@@ -1740,7 +1740,7 @@ declare module junyou {
         deleteItemByIndex(value: any[]): void;
         deleteItemByData<K extends keyof T>(key: K, value: T[K]): void;
         removeItem(item: R): void;
-        private _remoreRender(item);
+        protected _remoreRender(item: R): void;
         private refreshByRemoveItem();
         getAllItems(): R[];
         dispose(): void;
@@ -7040,9 +7040,9 @@ declare module junyou {
      *
      */
     var DataLocator: {
-        regParser: (key: keyof CfgData, parser: ConfigDataParser) => void;
+        regParser: (key: "ani", parser: ConfigDataParser) => void;
         parsePakedDatas(): void;
-        regCommonParser(key: keyof CfgData, CfgCreator: 0 | (new () => Cfg), idkey?: string): void;
+        regCommonParser(key: "ani", CfgCreator: 0 | (new () => Cfg), idkey?: string): void;
     };
     /**
      * 配置数据解析函数
