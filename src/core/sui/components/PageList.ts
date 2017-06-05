@@ -619,7 +619,7 @@ module junyou {
             }
         }
 
-        private _remoreRender(item: R) {
+        protected _remoreRender(item: R) {
             removeDisplay(item.view);
             item.dispose();
             if (!this.renderChange) {
