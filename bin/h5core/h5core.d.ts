@@ -6599,10 +6599,12 @@ declare module junyou {
             [index: string]: egret.Texture;
         };
         protected _value: string | number;
+        protected _hgap: number;
         private artwidth;
         constructor();
         refreshBMD(): void;
         align: number;
+        hgap: number;
         protected setValue(val: string | number): void;
         value: string | number;
         $getWidth(): number;

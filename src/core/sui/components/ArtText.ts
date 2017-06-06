@@ -17,7 +17,9 @@ module junyou {
 
         protected _value: string | number;
 
-        private artwidth:number;
+        protected _hgap: number = 0;
+
+        private artwidth: number;
         public constructor() {
             super();
         }
@@ -33,6 +35,10 @@ module junyou {
                 this._align = value;
                 this.checkAlign();
             }
+        }
+
+        public set hgap(value: number) {
+            this._hgap = value;
         }
 
         protected setValue(val: string | number) {
@@ -60,9 +66,9 @@ module junyou {
                 bmp.y = 0;
                 bmp.texture = null;
                 bmp.texture = tx;
-                ox += tx.textureWidth;
+                ox += tx.textureWidth + this._hgap * (i + 1);
             }
-            this.artwidth = ox;
+            this.artwidth = bmp.x + bmp.width;
             for (i = numChildren - 1; i >= len; i--) {
                 this.$doRemoveChild(i);
             }
@@ -79,7 +85,7 @@ module junyou {
             return this._value;
         }
 
-        $getWidth(){
+        $getWidth() {
             return this.artwidth;
         }
 

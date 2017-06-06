@@ -12329,6 +12329,7 @@ var junyou;
            * 上一次元件的宽度
            */
             _this._lastWidth = 0;
+            _this._hgap = 0;
             return _this;
         }
         ArtText.prototype.refreshBMD = function () {
@@ -12343,6 +12344,13 @@ var junyou;
                     this._align = value;
                     this.checkAlign();
                 }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(ArtText.prototype, "hgap", {
+            set: function (value) {
+                this._hgap = value;
             },
             enumerable: true,
             configurable: true
@@ -12375,9 +12383,9 @@ var junyou;
                 bmp.y = 0;
                 bmp.texture = null;
                 bmp.texture = tx;
-                ox += tx.textureWidth;
+                ox += tx.textureWidth + this._hgap * (i + 1);
             }
-            this.artwidth = ox;
+            this.artwidth = bmp.x + bmp.width;
             for (i = numChildren - 1; i >= len; i--) {
                 this.$doRemoveChild(i);
             }
