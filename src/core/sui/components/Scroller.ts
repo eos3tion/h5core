@@ -144,13 +144,13 @@ module junyou {
             let scrollRect = content.scrollRect;
             let pos: number
             if (this._scrollType == ScrollDirection.Vertical) {
-                if (content.height < scrollRect.height) {
+                if (content.measuredHeight < scrollRect.height) {
                     return;
                 }
                 pos = e.stageY;
 
             } else {
-                if (content.width < scrollRect.width) {
+                if (content.measuredWidth < scrollRect.width) {
                     return;
                 }
                 pos = e.stageX;
@@ -411,10 +411,10 @@ module junyou {
             }
             let contentSize: number;
             if (this._scrollType == ScrollDirection.Vertical) {
-                contentSize = content.height;
+                contentSize = content.measuredHeight;
             }
             else {
-                contentSize = content.width;
+                contentSize = content.measuredWidth;
             }
             let scrollbar = this._scrollbar;
             let bgSize = scrollbar.bgSize;
@@ -441,11 +441,11 @@ module junyou {
             let contentSize: number, scrollSize: number;
             let rect = content.scrollRect;
             if (this._scrollType == ScrollDirection.Vertical) {
-                contentSize = content.height;
+                contentSize = content.measuredHeight;
                 scrollSize = rect.height;
             }
             else {
-                contentSize = content.width;
+                contentSize = content.measuredWidth;
                 scrollSize = rect.width;
             }
             return contentSize - scrollSize;

@@ -3428,13 +3428,13 @@ var junyou;
             var scrollRect = content.scrollRect;
             var pos;
             if (this._scrollType == 0 /* Vertical */) {
-                if (content.height < scrollRect.height) {
+                if (content.measuredHeight < scrollRect.height) {
                     return;
                 }
                 pos = e.stageY;
             }
             else {
-                if (content.width < scrollRect.width) {
+                if (content.measuredWidth < scrollRect.width) {
                     return;
                 }
                 pos = e.stageX;
@@ -3687,10 +3687,10 @@ var junyou;
             }
             var contentSize;
             if (this._scrollType == 0 /* Vertical */) {
-                contentSize = content.height;
+                contentSize = content.measuredHeight;
             }
             else {
-                contentSize = content.width;
+                contentSize = content.measuredWidth;
             }
             var scrollbar = this._scrollbar;
             var bgSize = scrollbar.bgSize;
@@ -3717,11 +3717,11 @@ var junyou;
                 var contentSize, scrollSize;
                 var rect = content.scrollRect;
                 if (this._scrollType == 0 /* Vertical */) {
-                    contentSize = content.height;
+                    contentSize = content.measuredHeight;
                     scrollSize = rect.height;
                 }
                 else {
-                    contentSize = content.width;
+                    contentSize = content.measuredWidth;
                     scrollSize = rect.width;
                 }
                 return contentSize - scrollSize;
