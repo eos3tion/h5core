@@ -6,14 +6,9 @@ module junyou {
      */
     export class Group extends egret.EventDispatcher {
 
-        protected _list: IGroupItem[];
+        protected _list: IGroupItem[] = [];
         protected _selectedItem: IGroupItem;
         protected _selectedIndex = -1;
-
-        constructor() {
-            super();
-            this._list = [];
-        }
 
         /**
          * 添加单个组件
@@ -28,9 +23,7 @@ module junyou {
         }
 
         protected touchHandler(e: TE) {
-            let item = e.target;
-            let idx = this._list.indexOf(item);
-            this.selectedIndex = idx;
+            this.$setSelectedItem(e.target);
         }
 
         /**
@@ -40,6 +33,9 @@ module junyou {
          */
         public removeItem(item: IGroupItem) {
             if (item) {
+                if (this._selectedItem == item) {
+                    this.$setSelectedItem();
+                }
                 this._list.remove(item);
                 item.off(TE.TOUCH_TAP, this.touchHandler, this);
             }
@@ -62,24 +58,28 @@ module junyou {
          * 设置选中组件
          */
         public set selectedItem(item: IGroupItem) {
+            this.$setSelectedItem(item);
+        }
+
+        protected $setSelectedItem(item?: IGroupItem) {
             let _selectedItem = this._selectedItem;
             if (_selectedItem != item) {
                 if (_selectedItem) {
                     _selectedItem.selected = false;
                 }
+                let idx = -1;
                 if (item) {
-                    if (~this._list.indexOf(item)) {
-                        this._selectedItem = item;
+                    idx = this._list.indexOf(item);
+                    if (~idx) {
                         item.selected = true;
-                    }
-                    else {
+                    } else {
+                        item = undefined;
                         ThrowError("Group 设置的组件未添加到该组");
                     }
                 }
-                else {
-                    this._selectedItem = undefined;
-                }
-                this.dispatch(EventConst.GROUP_CHANGE);
+                this._selectedItem = item;
+                this._selectedIndex = idx;
+                return this.dispatch(EventConst.GROUP_CHANGE);
             }
         }
 
@@ -91,13 +91,13 @@ module junyou {
          * 设置选中索引
          */
         public set selectedIndex(idx: number) {
-            this._selectedIndex = idx;
-            if (idx >= 0) {
-                let item = this._list[idx];
-                this.selectedItem = item;
-            }
-            else {
-                this.selectedItem = undefined;
+            this.$setSelectedIndex(idx);
+        }
+
+        protected $setSelectedIndex(idx: number) {
+            if (this._selectedIndex != idx) {
+                let item = idx >= 0 ? this._list[idx] : undefined;
+                this.$setSelectedItem(item);
             }
         }
 

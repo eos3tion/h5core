@@ -35,7 +35,10 @@ module junyou {
          */
         GROUP_CHANGE = -1020,
 
-
+        /**
+         * 尝试多选选中时，已经达到最大数量
+         */
+        GROUP_FULL = -1021,
         /*===============================NumbericStepper/Slider====================================*/
         VALUE_CHANGE = -1040,
 

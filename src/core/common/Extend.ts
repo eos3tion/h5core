@@ -446,8 +446,11 @@ interface Array<T> {
      * 如果数组中没有要放入的对象，则将对象放入数组
      * 
      * @param {T} t 要放入的对象
+     * @returns {number} 放入的对象，在数组中的索引
+     * 
+     * @memberof Array
      */
-    pushOnce(t: T);
+    pushOnce(t: T): number;
 
     /**
     * 
@@ -522,15 +525,18 @@ Object.defineProperties(Array.prototype, {
         writable: true
     },
     pushOnce: {
-        value: function (t) {
-            if (!~this.indexOf(t)) {
-                this.push(t);
+        value: function <T>(this: T[], t: T) {
+            let idx = this.indexOf(t);
+            if (!~idx) {
+                idx = this.length;
+                this[idx] = t;
             }
+            return idx;
         },
         writable: true
     },
     remove: {
-        value: function (t) {
+        value: function <T>(this: T[], t: T) {
             let idx = this.indexOf(t);
             if (~idx) {
                 this.splice(idx, 1);
