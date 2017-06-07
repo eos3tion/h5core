@@ -12567,6 +12567,7 @@ var junyou;
         __extends(Group, _super);
         function Group() {
             var _this = _super.call(this) || this;
+            _this._selectedIndex = -1;
             _this._list = [];
             return _this;
         }
@@ -12663,6 +12664,18 @@ var junyou;
             enumerable: true,
             configurable: true
         });
+        Group.prototype.clear = function () {
+            var list = this._list;
+            for (var i = 0; i < list.length; i++) {
+                var item = list[i];
+                item.off(TE.TOUCH_TAP, this.touchHandler, this);
+            }
+            list.length = 0;
+            this._selectedIndex = -1;
+        };
+        Group.prototype.onRecycle = function () {
+            this.clear();
+        };
         return Group;
     }(egret.EventDispatcher));
     junyou.Group = Group;

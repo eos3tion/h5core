@@ -6729,6 +6729,8 @@ declare module junyou {
          * 设置选中索引
          */
         selectedIndex: number;
+        clear(): void;
+        onRecycle(): void;
     }
 }
 declare module junyou {

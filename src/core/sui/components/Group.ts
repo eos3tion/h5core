@@ -8,7 +8,7 @@ module junyou {
 
         protected _list: IGroupItem[];
         protected _selectedItem: IGroupItem;
-        protected _selectedIndex: number;
+        protected _selectedIndex = -1;
 
         constructor() {
             super();
@@ -103,6 +103,20 @@ module junyou {
 
         public get selectedIndex() {
             return this._selectedIndex;
+        }
+
+        public clear() {
+            const list = this._list;
+            for (let i = 0; i < list.length; i++) {
+                let item = list[i];
+                item.off(TE.TOUCH_TAP, this.touchHandler, this);
+            }
+            list.length = 0;
+            this._selectedIndex = -1;
+        }
+
+        public onRecycle() {
+            this.clear();
         }
     }
 }
