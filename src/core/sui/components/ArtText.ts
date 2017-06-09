@@ -66,7 +66,7 @@ module junyou {
                 bmp.y = 0;
                 bmp.texture = null;
                 bmp.texture = tx;
-                ox += tx.textureWidth + this._hgap * (i + 1);
+                ox += tx.textureWidth + this._hgap;
             }
             this.artwidth = bmp.x + bmp.width;
             for (i = numChildren - 1; i >= len; i--) {
