@@ -1587,7 +1587,14 @@ var junyou;
          * 共享数组3
          */
         SharedArray3: [],
+        /**
+         * 白鹭的点
+         */
         EgretPoint: new egret.Point(),
+        /**
+         * 白鹭的矩形
+         */
+        EgretRectangle: new egret.Rectangle(),
         /**
          * 共享点1
          */
@@ -3538,6 +3545,26 @@ var junyou;
                 this._useScrollBar = false;
             }
             this.scrollToHead();
+        };
+        /**
+         * 对content绘制鼠标触发区域
+         * 将会对content的graphics先进行清理
+         * 然后基于content的bounds进行绘制
+         *
+         */
+        Scroller.prototype.drawTouchArea = function (content) {
+            content = content || this._content;
+            if (content) {
+                var g = content.graphics;
+                if (g) {
+                    g.clear();
+                    g.beginFill(0, 0);
+                    var rect = junyou.Temp.EgretRectangle;
+                    content.getBounds(rect);
+                    g.drawRect(rect.x, rect.y, rect.width, rect.height);
+                    g.endFill();
+                }
+            }
         };
         Scroller.prototype.bindObj2 = function (content, scrollRect, scrollbar) {
             content.x = scrollRect.x;
@@ -14505,86 +14532,6 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    var _$TDOpt = { int: { x: 1, y: 1 } };
-    var TE = egret.TouchEvent;
-    var E = egret.Event;
-    /**
-     * TouchDown显示对象放大效果
-     * description
-     * @author pb
-     */
-    var TouchDown = (function (_super) {
-        __extends(TouchDown, _super);
-        function TouchDown() {
-            return _super.call(this) || this;
-        }
-        /**
-         * 绑定组件
-         *
-         * @param {TouchDownItem} item
-         */
-        TouchDown.bindItem = function (item) {
-            if (item) {
-                item.on(TE.TOUCH_BEGIN, this.touchBegin, this);
-            }
-        };
-        /**
-         * 解绑组件
-         *
-         * @param {TouchDownItem} item
-         */
-        TouchDown.looseItem = function (item) {
-            if (item) {
-                item.off(TE.TOUCH_BEGIN, this.touchBegin, this);
-                this.clearEndListener(item);
-            }
-        };
-        TouchDown.clearEndListener = function (item) {
-            item.off(TE.TOUCH_END, this.touchEnd, this);
-            item.off(TE.TOUCH_CANCEL, this.touchEnd, this);
-            item.off(TE.TOUCH_RELEASE_OUTSIDE, this.touchEnd, this);
-            item.off(E.REMOVED_FROM_STAGE, this.touchEnd, this);
-        };
-        TouchDown.touchBegin = function (e) {
-            var target = e.target;
-            target.on(TE.TOUCH_END, this.touchEnd, this);
-            target.on(TE.TOUCH_CANCEL, this.touchEnd, this);
-            target.on(TE.TOUCH_RELEASE_OUTSIDE, this.touchEnd, this);
-            target.on(E.REMOVED_FROM_STAGE, this.touchEnd, this);
-            var raw = target.$_tdi;
-            if (!raw) {
-                target.$_tdi = raw = {};
-                raw.x = target.x;
-                raw.y = target.y;
-            }
-            else if (raw.tween) {
-                junyou.Global.removeTween(raw.tween);
-            }
-            var tween = junyou.Global.getTween(target, _$TDOpt);
-            raw.tween = tween;
-            var tx = raw.x - target.width * 0.05 /* Multi */;
-            var ty = raw.y - target.height * 0.05 /* Multi */;
-            tween.to({ scaleX: 1.1 /* Scale */, scaleY: 1.1 /* Scale */, x: tx, y: ty }, 100, junyou.Ease.quadOut);
-        };
-        TouchDown.touchEnd = function (e) {
-            var target = e.target;
-            this.clearEndListener(target);
-            var raw = target.$_tdi;
-            if (raw) {
-                var tween = junyou.Global.getTween(target, _$TDOpt, null, true);
-                raw.tween = tween;
-                tween.to({ scaleX: 1, scaleY: 1, x: raw.x, y: raw.y }, 100, junyou.Ease.quadOut).call(this.endComplete, this, target);
-            }
-        };
-        TouchDown.endComplete = function (target) {
-            delete target.$_tdi;
-        };
-        return TouchDown;
-    }(egret.EventDispatcher));
-    junyou.TouchDown = TouchDown;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
     /**
      * 图片字字库
      * Key为图片文字文件名（不带扩展名）
@@ -15749,9 +15696,10 @@ var junyou;
                 if (!bmps[1]) {
                     bmps[1] = bmps[0];
                 }
+                var useDisableFilter;
                 if (!bmps[2]) {
                     bmps[2] = bmps[0];
-                    btn.useDisableFilter(true);
+                    useDisableFilter = true;
                 }
                 if (!bmps[3]) {
                     bmps[3] = bmps[2];
@@ -15759,10 +15707,13 @@ var junyou;
                 btn.bitmaps = bmps;
                 if (data[5]) {
                     btn.floor = _this.createElement(data[5]);
+                    useDisableFilter = true;
                 }
                 if (data[6]) {
                     btn.ceil = _this.createElement(data[6]);
+                    useDisableFilter = true;
                 }
+                btn.useDisableFilter(useDisableFilter);
                 return btn;
             };
         };
@@ -17049,6 +17000,86 @@ var junyou;
     ToolTipManager.touchTime = 500;
     ToolTipManager._map = new Map();
     junyou.ToolTipManager = ToolTipManager;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * TouchDown显示对象放大效果
+     * description
+     * @author pb
+     */
+    junyou.TouchDown = (function () {
+        var _$TDOpt = { int: { x: 1, y: 1 } };
+        var TE = egret.TouchEvent;
+        var E = egret.Event.REMOVED_FROM_STAGE;
+        var TEB = TE.TOUCH_BEGIN;
+        var TEE = TE.TOUCH_END;
+        var TEO = TE.TOUCH_RELEASE_OUTSIDE;
+        var TEC = TE.TOUCH_CANCEL;
+        return {
+            /**
+             * 绑定组件
+             *
+             * @param {TouchDownItem} item
+             */
+            bindItem: function (item) {
+                if (item) {
+                    item.on(TEB, touchBegin);
+                }
+            },
+            /**
+             * 解绑组件
+             *
+             * @param {TouchDownItem} item
+             */
+            looseItem: function (item) {
+                if (item) {
+                    item.off(TEB, touchBegin);
+                    clearEndListener(item);
+                }
+            }
+        };
+        function clearEndListener(item) {
+            item.off(TEE, touchEnd);
+            item.off(TEC, touchEnd);
+            item.off(TEO, touchEnd);
+            item.off(E, touchEnd);
+        }
+        function touchBegin(e) {
+            var target = e.target;
+            target.on(TEE, touchEnd);
+            target.on(TEC, touchEnd);
+            target.on(TEO, touchEnd);
+            target.on(E, touchEnd);
+            var raw = target.$_tdi;
+            if (!raw) {
+                target.$_tdi = raw = {};
+                raw.x = target.x;
+                raw.y = target.y;
+            }
+            else if (raw.tween) {
+                junyou.Global.removeTween(raw.tween);
+            }
+            var tween = junyou.Global.getTween(target, _$TDOpt);
+            raw.tween = tween;
+            var tx = raw.x - target.width * 0.05 /* Multi */;
+            var ty = raw.y - target.height * 0.05 /* Multi */;
+            tween.to({ scaleX: 1.1 /* Scale */, scaleY: 1.1 /* Scale */, x: tx, y: ty }, 100, junyou.Ease.quadOut);
+        }
+        function touchEnd(e) {
+            var target = e.target;
+            clearEndListener(target);
+            var raw = target.$_tdi;
+            if (raw) {
+                var tween = junyou.Global.getTween(target, _$TDOpt, null, true);
+                raw.tween = tween;
+                tween.to({ scaleX: 1, scaleY: 1, x: raw.x, y: raw.y }, 100, junyou.Ease.quadOut).call(endComplete, null, target);
+            }
+        }
+        function endComplete(target) {
+            delete target.$_tdi;
+        }
+    })();
 })(junyou || (junyou = {}));
 /**
  * 参考createjs和白鹭的tween

@@ -975,6 +975,7 @@ declare module junyou {
         SharedArray2: any[];
         SharedArray3: any[];
         EgretPoint: egret.Point;
+        EgretRectangle: egret.Rectangle;
         SharedPoint1: {
             x: number;
             y: number;
@@ -1846,6 +1847,13 @@ declare module junyou {
          * @ scrollbar (可选，如果不想显示滚动条可不传)
          */
         bindObj(content: egret.DisplayObject, scrollRect: egret.Rectangle, scrollbar?: ScrollBar): void;
+        /**
+         * 对content绘制鼠标触发区域
+         * 将会对content的graphics先进行清理
+         * 然后基于content的bounds进行绘制
+         *
+         */
+        drawTouchArea(content?: egret.Shape): void;
         bindObj2(content: egret.DisplayObject, scrollRect: egret.Rectangle, scrollbar?: ScrollBar): void;
         protected contentSizeChange(): void;
         protected onTargetTouchBegin(e: TE): void;
@@ -2673,7 +2681,7 @@ declare module junyou {
          * @memberOf PBStructDict
          */
         $$inted?: any;
-        /**消息名称*/ [index: string]: PBStruct;
+        /**消息名称*/[index: string]: PBStruct;
     }
     /**
      *
@@ -3480,9 +3488,9 @@ declare module junyou {
         x: number;
         y: number;
     }): {
-        x: number;
-        y: number;
-    };
+            x: number;
+            y: number;
+        };
     /**
      * 检查类矩形 a 和 b 是否相交
      * @export
@@ -4444,8 +4452,8 @@ declare module junyou {
         constructor(TCreator: {
             new (): T;
         } | {
-            (): T;
-        }, max?: number);
+                (): T;
+            }, max?: number);
     }
     interface RecyclablePool<T extends IRecyclable> {
         /**
@@ -6723,9 +6731,9 @@ declare module junyou {
      *
      */
     var DataLocator: {
-        regParser: (key: "ani", parser: ConfigDataParser) => void;
+        regParser: (key: keyof CfgData, parser: ConfigDataParser) => void;
         parsePakedDatas(): void;
-        regCommonParser(key: "ani", CfgCreator: 0 | (new () => Cfg), idkey?: string): void;
+        regCommonParser(key: keyof CfgData, CfgCreator: 0 | (new () => Cfg), idkey?: string): void;
     };
     /**
      * 配置数据解析函数
@@ -7392,60 +7400,6 @@ declare module junyou {
         dispose(): void;
         readonly width: number;
         readonly height: number;
-    }
-}
-declare module junyou {
-    const enum TouchDownConst {
-        /**
-         * TouchDown时放大比例
-         */
-        Scale = 1.1,
-        /**
-         * 居中后的乘数
-         * (Scale-1)*0.5
-         */
-        Multi = 0.05,
-    }
-    /**
-     * TouchDown显示对象放大效果
-     * description
-     * @author pb
-     */
-    class TouchDown extends egret.EventDispatcher {
-        constructor();
-        /**
-         * 绑定组件
-         *
-         * @param {TouchDownItem} item
-         */
-        static bindItem(item: TouchDownItem): void;
-        /**
-         * 解绑组件
-         *
-         * @param {TouchDownItem} item
-         */
-        static looseItem(item: TouchDownItem): void;
-        private static clearEndListener(item);
-        private static touchBegin(e);
-        private static touchEnd(e);
-        private static endComplete(target);
-    }
-}
-declare module junyou {
-    /**
-     * 可做TouchDown放大的对象接口
-     * description
-     * @author pb
-     */
-    interface TouchDownItem extends egret.EventDispatcher {
-        x: number;
-        y: number;
-        $_tdi?: TouchDownRaw;
-    }
-    interface TouchDownRaw {
-        x: number;
-        y: number;
-        tween: Tween;
     }
 }
 declare module junyou {
@@ -8486,9 +8440,9 @@ declare module junyou {
             x: number;
             y: number;
         }, hoffset?: number, voffset?: number, innerV?: boolean, innerH?: boolean): {
-            x: number;
-            y: number;
-        };
+                x: number;
+                y: number;
+            };
     };
 }
 interface ExternalParam {
@@ -8955,6 +8909,45 @@ declare module junyou {
          * @param {egret.DisplayObject} dis 可视对象
          */
         static remove(dis: egret.DisplayObject): void;
+    }
+}
+declare module junyou {
+    const enum TouchDownConst {
+        /**
+         * TouchDown时放大比例
+         */
+        Scale = 1.1,
+        /**
+         * 居中后的乘数
+         * (Scale-1)*0.5
+         */
+        Multi = 0.05,
+    }
+    /**
+     * TouchDown显示对象放大效果
+     * description
+     * @author pb
+     */
+    const TouchDown: {
+        bindItem(item: TouchDownItem): void;
+        looseItem(item: TouchDownItem): void;
+    };
+}
+declare module junyou {
+    /**
+     * 可做TouchDown放大的对象接口
+     * description
+     * @author pb
+     */
+    interface TouchDownItem extends egret.EventDispatcher {
+        x: number;
+        y: number;
+        $_tdi?: TouchDownRaw;
+    }
+    interface TouchDownRaw {
+        x: number;
+        y: number;
+        tween: Tween;
     }
 }
 /**
