@@ -122,6 +122,27 @@ module junyou {
             this.scrollToHead();
         }
 
+        /**
+         * 对content绘制鼠标触发区域  
+         * 将会对content的graphics先进行清理  
+         * 然后基于content的bounds进行绘制
+         * 
+         */
+        public drawTouchArea(content?: egret.Shape) {
+            content = content || this._content as egret.Shape;
+            if (content) {
+                let g = content.graphics;
+                if (g) {
+                    g.clear();
+                    g.beginFill(0, 0);
+                    let rect = Temp.EgretRectangle;
+                    content.getBounds(rect);
+                    g.drawRect(rect.x, rect.y, rect.width, rect.height);
+                    g.endFill();
+                }
+            }
+        }
+
         public bindObj2(content: egret.DisplayObject, scrollRect: egret.Rectangle, scrollbar?: ScrollBar) {
             content.x = scrollRect.x;
             content.y = scrollRect.y;
