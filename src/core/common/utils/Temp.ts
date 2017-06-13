@@ -17,8 +17,15 @@ module junyou {
          * 共享数组3
          */
         SharedArray3: [],
+        /**
+         * 白鹭的点
+         */
+        EgretPoint: new egret.Point(),
+        /**
+         * 白鹭的矩形
+         */
+        EgretRectangle: new egret.Rectangle(),
 
-        EgretPoint:new egret.Point(),
 
         /**
          * 共享点1
