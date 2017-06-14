@@ -913,3 +913,15 @@ module egret {
         }
     })();
 }
+interface Storage {
+    getItem(key: number): string | null;
+    /**
+     * 
+     * 
+     * @param {number | string} key 
+     * @param {*} data 如果数据非string类型，会做toString()处理
+     * 
+     * @memberof Storage
+     */
+    setItem(key: number | string, data: any): void;
+}
