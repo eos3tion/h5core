@@ -760,6 +760,18 @@ declare module egret {
         hasListen(type: string | number): any;
     }
 }
+interface Storage {
+    getItem(key: number): string | null;
+    /**
+     *
+     *
+     * @param {number | string} key
+     * @param {*} data 如果数据非string类型，会做toString()处理
+     *
+     * @memberof Storage
+     */
+    setItem(key: number | string, data: any): void;
+}
 declare module junyou {
     /**
      * 用于处理接收flash软件制作的UI，导出的数据，仿照eui
