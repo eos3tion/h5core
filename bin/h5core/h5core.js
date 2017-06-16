@@ -15666,7 +15666,6 @@ var junyou;
         ButtonCreator.prototype.parseSelfData = function (data) {
             var _this = this;
             var suiData = this._suiData;
-            // var manager = singleton(SuiResManager);
             var tc;
             if (data[0]) {
                 tc = new junyou.TextFieldCreator();
@@ -15677,9 +15676,7 @@ var junyou;
             for (var i = 1; i < 5; i++) {
                 var dat = data[i];
                 if (dat) {
-                    var bc = new junyou.BitmapCreator(suiData);
-                    bc.parseData(dat, suiData);
-                    bcs[i - 1] = bc;
+                    bcs[i - 1] = dat;
                 }
             }
             this._createT = function () {
@@ -15688,9 +15685,10 @@ var junyou;
                     btn.txtLabel = tc.get();
                 }
                 var bmps = [];
+                var sm = junyou.singleton(junyou.SuiResManager);
                 for (var i = 0; i < 4; i++) {
                     if (bcs[i]) {
-                        bmps[i] = bcs[i].get();
+                        bmps[i] = sm.getElement(suiData, bcs[i]);
                     }
                 }
                 if (!bmps[1]) {
