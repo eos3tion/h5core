@@ -32,10 +32,9 @@ module junyou {
                     btn.txtLabel = tc.get();
                 }
                 var bmps = [];
-                let sm = singleton(SuiResManager);
                 for (var i = 0; i < 4; i++) {
                     if (bcs[i]) {
-                        bmps[i] = sm.getElement(suiData, bcs[i]);
+                        bmps[i] = this.createElement(bcs[i]);
                     }
                 }
                 if (!bmps[1]) { //启用 选中帧 没有图片

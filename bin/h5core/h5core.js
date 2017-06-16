@@ -15685,10 +15685,9 @@ var junyou;
                     btn.txtLabel = tc.get();
                 }
                 var bmps = [];
-                var sm = junyou.singleton(junyou.SuiResManager);
                 for (var i = 0; i < 4; i++) {
                     if (bcs[i]) {
-                        bmps[i] = sm.getElement(suiData, bcs[i]);
+                        bmps[i] = _this.createElement(bcs[i]);
                     }
                 }
                 if (!bmps[1]) {
