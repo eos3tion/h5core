@@ -8508,8 +8508,6 @@ interface ExternalParam {
      */
     other?: any;
 }
-declare var $useDPR: boolean;
-declare var dpr: number;
 declare module junyou {
     /**
      * ## 主体UI的容器

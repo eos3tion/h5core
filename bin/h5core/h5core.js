@@ -16301,9 +16301,8 @@ var junyou;
         }
     };
 })(junyou || (junyou = {}));
-var dpr = 1;
-if (window.$useDPR) {
-    dpr = window.devicePixelRatio || 1;
+(function () {
+    var dpr = window.devicePixelRatio || 1;
     var origin = egret.sys.DefaultScreenAdapter.prototype.calculateStageSize;
     egret.sys.screenAdapter = {
         calculateStageSize: function (scaleMode, screenWidth, screenHeight, contentWidth, contentHeight) {
@@ -16315,7 +16314,7 @@ if (window.$useDPR) {
             }
         }
     };
-}
+})();
 var junyou;
 (function (junyou) {
     /**
