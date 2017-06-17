@@ -1,19 +1,16 @@
-declare var $useDPR: boolean;
-var dpr = 1;
-if ((window as any).$useDPR) {
-    dpr = window.devicePixelRatio || 1;
-    var origin = egret.sys.DefaultScreenAdapter.prototype.calculateStageSize;
-    egret.sys.screenAdapter = {
-        calculateStageSize(scaleMode: string, screenWidth: number, screenHeight: number, contentWidth: number, contentHeight: number) {
-            let result = origin(scaleMode, screenWidth, screenHeight, contentWidth, contentHeight);
-            if (scaleMode == egret.StageScaleMode.NO_SCALE) {
-                result.stageHeight *= dpr;
-                result.stageWidth *= dpr;
-                return result;
-            }
+var dpr = window.devicePixelRatio || 1;
+var origin = egret.sys.DefaultScreenAdapter.prototype.calculateStageSize;
+egret.sys.screenAdapter = {
+    calculateStageSize(scaleMode: string, screenWidth: number, screenHeight: number, contentWidth: number, contentHeight: number) {
+        let result = origin(scaleMode, screenWidth, screenHeight, contentWidth, contentHeight);
+        if (scaleMode == egret.StageScaleMode.NO_SCALE) {
+            result.stageHeight *= dpr;
+            result.stageWidth *= dpr;
+            return result;
         }
     }
 }
+
 module junyou {
     /**
      * ## 主体UI的容器  
