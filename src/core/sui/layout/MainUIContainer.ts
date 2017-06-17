@@ -1,5 +1,7 @@
-(function () {
-    var dpr = window.devicePixelRatio || 1;
+var $useDPR = true;
+var dpr = 1;
+if ((window as any).$useDPR) {
+    dpr = window.devicePixelRatio || 1;
     var origin = egret.sys.DefaultScreenAdapter.prototype.calculateStageSize;
     egret.sys.screenAdapter = {
         calculateStageSize(scaleMode: string, screenWidth: number, screenHeight: number, contentWidth: number, contentHeight: number) {
@@ -11,8 +13,7 @@
             }
         }
     }
-})()
-
+}
 module junyou {
     /**
      * ## 主体UI的容器  
