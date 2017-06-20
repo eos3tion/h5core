@@ -122,6 +122,9 @@ module junyou {
          * @param {boolean} [async=false] 是否异步初始化，默认直接初始化
          */
         public registerInlineProxy(ref: { new (): Proxy }, proxyName?: Key, async?: boolean) {
+            if (!ref) {
+                return ThrowError("registerInlineProxy时,没有ref")
+            }
             let className = egret.getQualifiedClassName(ref);
             if (!proxyName) {
                 proxyName = Facade.getNameOfInline(ref, className);
@@ -147,6 +150,9 @@ module junyou {
          * @param {string} [mediatorName]   注册的模块名字
          */
         public registerInlineMediator(ref: { new (): Mediator }, mediatorName?: Key) {
+            if (!ref) {
+                return ThrowError(`registerInlineMediator时,没有ref`)
+            }
             let className = egret.getQualifiedClassName(ref);
             if (!mediatorName) {
                 mediatorName = Facade.getNameOfInline(ref, className);
