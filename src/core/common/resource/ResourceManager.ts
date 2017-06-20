@@ -29,13 +29,13 @@ module junyou {
             // },
 
             /**
-             * 
              * 获取纹理资源
-             * @static
-             * @param {string} resID        资源标识
-             * @returns {TextureResource}
+             * 
+             * @param {string} resID 资源id
+             * @param {boolean} [noWebp] 是否不加webp后缀
+             * @returns {TextureResource} 
              */
-            getTextureRes(resID: string): TextureResource {
+            getTextureRes(resID: string, noWebp?: boolean): TextureResource {
                 let resources = _resources;
                 let res = <TextureResource>resources[resID];
                 if (res) {
@@ -47,7 +47,7 @@ module junyou {
                 if (!res) {
                     res = new TextureResource();
                     res.resID = resID;
-                    res.url = ConfigUtils.getResUrl(resID + Global.webp);
+                    res.url = ConfigUtils.getResUrl(resID + (!noWebp ? Global.webp : ""));
                     resources[resID] = res;
                 }
                 return res;
