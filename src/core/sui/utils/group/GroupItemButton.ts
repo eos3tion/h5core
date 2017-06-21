@@ -52,6 +52,8 @@ module junyou {
         function onTE(e: egret.TouchEvent) {
             let txt = e.currentTarget;
             let btn = txt[ButtonKey] as Button;
+            //改变按钮选中状态
+            btn.selected = !btn.selected;
             btn.dispatchEvent(e);
         }
     })
