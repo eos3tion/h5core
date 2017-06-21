@@ -22,6 +22,7 @@ module junyou {
                 } else if (DEBUG) {
                     ThrowError(`重复绑定了文本框和按钮`)
                 }
+                txt.touchEnabled = true;
                 txt.on(TE, onTE);
                 let old = btn[TextFieldKey] as egret.TextField;
                 if (old) {
@@ -52,8 +53,6 @@ module junyou {
         function onTE(e: egret.TouchEvent) {
             let txt = e.currentTarget;
             let btn = txt[ButtonKey] as Button;
-            //改变按钮选中状态
-            btn.selected = !btn.selected;
             btn.dispatchEvent(e);
         }
     })()

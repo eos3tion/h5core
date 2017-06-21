@@ -16996,6 +16996,7 @@ var junyou;
                 else if (DEBUG) {
                     junyou.ThrowError("\u91CD\u590D\u7ED1\u5B9A\u4E86\u6587\u672C\u6846\u548C\u6309\u94AE");
                 }
+                txt.touchEnabled = true;
                 txt.on(TE, onTE);
                 var old = btn[TextFieldKey];
                 if (old) {
@@ -17025,8 +17026,6 @@ var junyou;
         function onTE(e) {
             var txt = e.currentTarget;
             var btn = txt[ButtonKey];
-            //改变按钮选中状态
-            btn.selected = !btn.selected;
             btn.dispatchEvent(e);
         }
     })();
