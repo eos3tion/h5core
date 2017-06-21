@@ -17029,7 +17029,7 @@ var junyou;
             btn.selected = !btn.selected;
             btn.dispatchEvent(e);
         }
-    });
+    })();
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {

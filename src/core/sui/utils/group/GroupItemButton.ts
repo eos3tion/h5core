@@ -56,5 +56,5 @@ module junyou {
             btn.selected = !btn.selected;
             btn.dispatchEvent(e);
         }
-    })
+    })()
 }

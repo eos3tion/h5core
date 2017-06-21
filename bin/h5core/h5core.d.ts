@@ -8933,7 +8933,7 @@ declare module junyou {
      *
      * @export
      */
-    var GroupItemButton: () => {
+    var GroupItemButton: {
         bind(btn: Button, txt: egret.TextField): void;
         loose(btn: Button): void;
     };
