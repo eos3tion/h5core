@@ -512,12 +512,21 @@ module junyou {
      * 
      * @memberOf FHost
      */
-    export function proxyCall(proxyName: Key, callback: { (proxy: Proxy, ...args: any[]) }, thisObj?: any, ...args) {
-        facade.getProxy(proxyName, callback, thisObj, ...args);
+    export function proxyCall(proxyName: Key, callback: { (proxy: Proxy, ...args: any[]) }, thisObj?: any, ...args)
+    export function proxyCall() {
+        let f = facade;
+        f.getProxy.apply(f, arguments);
     }
-
-    export function proxyExec(...args) {
-        facade.executeProxy.apply(facade, args);
+    /**
+     * 执行Proxy的方法
+     * @param name     proxy名字
+     * @param handlerName   函数名字
+     * @param args          参数列表
+     */
+    export function proxyExec(proxyName: Key, handlerName: string, ...args)
+    export function proxyExec() {
+        let f = facade;
+        f.executeProxy.apply(f, arguments);
     }
 
     /**
@@ -531,12 +540,25 @@ module junyou {
      * 
      * @memberOf FHost
      */
-    export function mediatorCall(mediatorName: Key, callback: { (mediator: Mediator, ...args: any[]) }, thisObj?: any, ...args) {
-        facade.getMediator(mediatorName, callback, thisObj, ...args);
+    export function mediatorCall(mediatorName: Key, callback: { (mediator: Mediator, ...args: any[]) }, thisObj?: any, ...args)
+    export function mediatorCall() {
+        let f = facade;
+        f.getMediator.apply(f, arguments);
     }
-
-    export function mediatorExec(...args) {
-        facade.executeMediator.apply(facade, args);
+    /**
+     * 
+     * 执行某个模块的方法
+     * @param {string} moduleID     模块id
+     * @param {boolean} showTip     是否显示Tip，如果无法执行，是否弹出提示
+     * @param {string} handlerName  执行的函数名
+     * @param {boolean} [show]      执行时，是否将模块显示到舞台
+     * @param {any[]} args            函数的参数列表
+     * @returns
+     */
+    export function mediatorExec(moduleID: Key, showTip: boolean, handlerName: string, show?: boolean, ...args)
+    export function mediatorExec() {
+        let f = facade;
+        f.executeMediator.apply(f, arguments);
     }
 
     /**
