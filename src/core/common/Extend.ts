@@ -924,4 +924,6 @@ interface Storage {
      * @memberof Storage
      */
     setItem(key: number | string, data: any): void;
+
+    removeItem(key: number | string): void;
 }
