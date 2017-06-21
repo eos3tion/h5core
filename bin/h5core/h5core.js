@@ -10728,58 +10728,24 @@ var junyou;
      */
     Facade.Script = "modules/{0}.js";
     junyou.Facade = Facade;
-    /**
-     * 等其他Proxy加载好后回调
-     *
-     * @protected
-     * @param {(Key)} proxyName
-     * @param {{ (proxy: Proxy, args?: any[]) }} callback
-     * @param {*} thisObj
-     * @param {any} args
-     *
-     * @memberOf FHost
-     */
-    function proxyCall(proxyName, callback, thisObj) {
-        var args = [];
-        for (var _i = 3; _i < arguments.length; _i++) {
-            args[_i - 3] = arguments[_i];
-        }
-        junyou.facade.getProxy.apply(junyou.facade, [proxyName, callback, thisObj].concat(args));
+    function proxyCall() {
+        var f = junyou.facade;
+        f.getProxy.apply(f, arguments);
     }
     junyou.proxyCall = proxyCall;
     function proxyExec() {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
-        junyou.facade.executeProxy.apply(junyou.facade, args);
+        var f = junyou.facade;
+        f.executeProxy.apply(f, arguments);
     }
     junyou.proxyExec = proxyExec;
-    /**
-     * 等其他Mediator加载好后回调
-     *
-     * @protected
-     * @param {(Key)} mediatorName
-     * @param {{ (mediator: Mediator, args?: any[]) }} callback
-     * @param {*} thisObj
-     * @param {any} args
-     *
-     * @memberOf FHost
-     */
-    function mediatorCall(mediatorName, callback, thisObj) {
-        var args = [];
-        for (var _i = 3; _i < arguments.length; _i++) {
-            args[_i - 3] = arguments[_i];
-        }
-        junyou.facade.getMediator.apply(junyou.facade, [mediatorName, callback, thisObj].concat(args));
+    function mediatorCall() {
+        var f = junyou.facade;
+        f.getMediator.apply(f, arguments);
     }
     junyou.mediatorCall = mediatorCall;
     function mediatorExec() {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
-        junyou.facade.executeMediator.apply(junyou.facade, args);
+        var f = junyou.facade;
+        f.executeMediator.apply(f, arguments);
     }
     junyou.mediatorExec = mediatorExec;
     /**
@@ -17059,6 +17025,8 @@ var junyou;
         function onTE(e) {
             var txt = e.currentTarget;
             var btn = txt[ButtonKey];
+            //改变按钮选中状态
+            btn.selected = !btn.selected;
             btn.dispatchEvent(e);
         }
     });

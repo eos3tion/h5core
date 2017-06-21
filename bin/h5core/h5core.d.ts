@@ -771,6 +771,7 @@ interface Storage {
      * @memberof Storage
      */
     setItem(key: number | string, data: any): void;
+    removeItem(key: number | string): void;
 }
 declare module junyou {
     /**
@@ -2693,7 +2694,7 @@ declare module junyou {
          * @memberOf PBStructDict
          */
         $$inted?: any;
-        /**消息名称*/[index: string]: PBStruct;
+        /**消息名称*/ [index: string]: PBStruct;
     }
     /**
      *
@@ -3500,9 +3501,9 @@ declare module junyou {
         x: number;
         y: number;
     }): {
-            x: number;
-            y: number;
-        };
+        x: number;
+        y: number;
+    };
     /**
      * 检查类矩形 a 和 b 是否相交
      * @export
@@ -4464,8 +4465,8 @@ declare module junyou {
         constructor(TCreator: {
             new (): T;
         } | {
-                (): T;
-            }, max?: number);
+            (): T;
+        }, max?: number);
     }
     interface RecyclablePool<T extends IRecyclable> {
         /**
@@ -5573,8 +5574,14 @@ declare module junyou {
      */
     function proxyCall(proxyName: Key, callback: {
         (proxy: Proxy, ...args: any[]);
-    }, thisObj?: any, ...args: any[]): void;
-    function proxyExec(...args: any[]): void;
+    }, thisObj?: any, ...args: any[]): any;
+    /**
+     * 执行Proxy的方法
+     * @param name     proxy名字
+     * @param handlerName   函数名字
+     * @param args          参数列表
+     */
+    function proxyExec(proxyName: Key, handlerName: string, ...args: any[]): any;
     /**
      * 等其他Mediator加载好后回调
      *
@@ -5588,8 +5595,18 @@ declare module junyou {
      */
     function mediatorCall(mediatorName: Key, callback: {
         (mediator: Mediator, ...args: any[]);
-    }, thisObj?: any, ...args: any[]): void;
-    function mediatorExec(...args: any[]): void;
+    }, thisObj?: any, ...args: any[]): any;
+    /**
+     *
+     * 执行某个模块的方法
+     * @param {string} moduleID     模块id
+     * @param {boolean} showTip     是否显示Tip，如果无法执行，是否弹出提示
+     * @param {string} handlerName  执行的函数名
+     * @param {boolean} [show]      执行时，是否将模块显示到舞台
+     * @param {any[]} args            函数的参数列表
+     * @returns
+     */
+    function mediatorExec(moduleID: Key, showTip: boolean, handlerName: string, show?: boolean, ...args: any[]): any;
     /**
      * 全局抛事件
      *
@@ -8382,9 +8399,9 @@ declare module junyou {
             x: number;
             y: number;
         }, hoffset?: number, voffset?: number, innerV?: boolean, innerH?: boolean): {
-                x: number;
-                y: number;
-            };
+            x: number;
+            y: number;
+        };
     };
 }
 declare module junyou {
