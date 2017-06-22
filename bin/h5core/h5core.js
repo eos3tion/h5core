@@ -12379,6 +12379,13 @@ var junyou;
          */
         var _hash;
         /**
+         * 注册的皮肤路径
+         * key      {string}   皮肤的key
+         * value    {Path}    皮肤实际路径地址
+         */
+        var _regedSkinPath = {};
+        var getPrefix;
+        /**
          * 设置配置数据
          *
          * @static
@@ -12394,6 +12401,26 @@ var junyou;
                     var p = paths[key];
                     p.tPath = getPath(p);
                 }
+                //检查前缀
+                getPrefix = (function (prefixes) {
+                    var len = 0;
+                    if (prefixes) {
+                        len = prefixes.length;
+                    }
+                    switch (len) {
+                        case 0:
+                            return function (uri) { return ""; };
+                        case 1: {
+                            var prefix_1 = prefixes[0];
+                            return function (uri) { return prefix_1; };
+                        }
+                        default:
+                            return function (uri) {
+                                var idx = uri.hash() % prefixes.length;
+                                return prefixes[idx] || "";
+                            };
+                    }
+                })(_data.prefixes);
                 function getPath(p) {
                     var parentKey = p.parent;
                     if (parentKey) {
@@ -12444,7 +12471,29 @@ var junyou;
              * 获取皮肤文件地址
              */
             getSkinFile: function (key, fileName) {
-                return getUrlWithPath(getSkinPath(key, fileName), _data.paths.skin);
+                return getUrlWithPath(getSkinPath(key, fileName), _regedSkinPath[key] || _data.paths.skin);
+            },
+            /**
+             * 设置皮肤路径
+             * 如 `lib` 原本应该放在当前项目  resource/skin/ 目录下
+             * 现在要将`lib`的指向改到  a/ 目录下
+             * 则使用下列代码
+             * ```typescript
+             * ConfigUtils.regSkinPath("lib","a/");
+             * ```
+             * 如果要将`lib`的指向改到 http://www.xxx.com/a/下
+             * 则使用下列代码
+             * ```typescript
+             * ConfigUtils.regSkinPath("lib","http://www.xxx.com/a/",true);
+             * ```
+             * 如果域名不同，`自行做好跨域策略CROS`
+             *
+             * @param {string} key
+             * @param {string} path
+             * @param {boolean} [iPrefix] 是否忽略皮肤前缀
+             */
+            regSkinPath: function (key, path, iPrefix) {
+                _regedSkinPath[key] = { tPath: path, path: path, iPrefix: iPrefix };
             },
             /**
              * 获取路径
@@ -12483,17 +12532,6 @@ var junyou;
             uri = path.tPath + uri;
             var prefix = path.iPrefix ? "" : getPrefix(uri);
             return prefix + uri;
-        }
-        /**
-         * 根据资源标识获取网址前缀
-         */
-        function getPrefix(uri) {
-            var prefixes = _data.prefixes;
-            if (prefixes) {
-                var idx = uri.hash() % prefixes.length;
-                return prefixes[idx] || "";
-            }
-            return "";
         }
     })();
 })(junyou || (junyou = {}));

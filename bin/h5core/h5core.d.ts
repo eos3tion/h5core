@@ -6703,6 +6703,7 @@ declare module junyou {
         getParam(key: string): any;
         getSkinPath: (key: string, fileName: string) => string;
         getSkinFile(key: string, fileName: string): string;
+        regSkinPath(key: string, path: string, iPrefix?: boolean): void;
         getUrl(uri: string, pathKey: string): string;
     };
 }
