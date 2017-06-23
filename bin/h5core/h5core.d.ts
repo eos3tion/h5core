@@ -3315,11 +3315,12 @@ declare module junyou {
          * 项目中，所有时间都需要基于UTC偏移处理
          *
          * @static
-         * @param {number} utcTime (description)
-         * @param {string} format (description)
-         * @returns (description)
+         * @param {number} time			要格式化的时间，默认为UTC时间
+         * @param {string} format 		  格式字符串 yyyy-MM-dd HH:mm:ss
+         * @param {boolean} [isRaw] 	是否为原始未使用utc偏移处理的时间，默认 false
+         * @returns
          */
-        static getFormatTime(utcTime: number, format: string): string;
+        static getFormatTime(time: number, format: string, isRaw?: boolean): string;
         /**
          * 获取指定时间的当天结束(23:59:59'999)UTC强制偏移时间戳
          *

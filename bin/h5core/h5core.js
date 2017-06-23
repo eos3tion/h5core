@@ -6946,13 +6946,17 @@ var junyou;
          * 项目中，所有时间都需要基于UTC偏移处理
          *
          * @static
-         * @param {number} utcTime (description)
-         * @param {string} format (description)
-         * @returns (description)
+         * @param {number} time			要格式化的时间，默认为UTC时间
+         * @param {string} format 		  格式字符串 yyyy-MM-dd HH:mm:ss
+         * @param {boolean} [isRaw] 	是否为原始未使用utc偏移处理的时间，默认 false
+         * @returns
          */
-        DateUtils.getFormatTime = function (utcTime, format) {
+        DateUtils.getFormatTime = function (time, format, isRaw) {
             var d = DateUtils.sharedDate;
-            d.setTime(utcTime);
+            if (isRaw) {
+                time = DateUtils.getUTCTime(time);
+            }
+            d.setTime(time);
             return d.format(format);
         };
         /**
