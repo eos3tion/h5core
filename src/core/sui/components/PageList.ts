@@ -73,7 +73,7 @@ module junyou {
 
         private renderChange: boolean = false;
 
-        protected _dataLen: number;
+        protected _dataLen = 0;
 
         public get dataLen() {
             return this._dataLen;

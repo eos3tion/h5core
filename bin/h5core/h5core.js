@@ -2685,6 +2685,7 @@ var junyou;
             // private startIndex: number;
             // private endIndex: number;
             _this.renderChange = false;
+            _this._dataLen = 0;
             _this._renderFactory = renderfactory;
             _this._columncount = columnCount;
             _this._hgap = ~~hgap;
