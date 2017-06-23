@@ -3301,6 +3301,13 @@ declare module junyou {
          */
         static readonly serverTime: number;
         /**
+         * 获取当前时间戳，用于和服务端的时间戳进行比较
+         *
+         * @readonly
+         * @static
+         */
+        static readonly rawServerTime: number;
+        /**
          * 通过UTC偏移过的当前时间戳的Date对象
          */
         static readonly serverDate: Date;

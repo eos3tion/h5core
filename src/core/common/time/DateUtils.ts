@@ -121,6 +121,16 @@ module junyou {
 		}
 
 		/**
+		 * 获取当前时间戳，用于和服务端的时间戳进行比较
+		 * 
+		 * @readonly
+		 * @static
+		 */
+		public static get rawServerTime() {
+			return this.serverTime - DateUtils._utcOffset;
+		}
+
+		/**
 		 * 通过UTC偏移过的当前时间戳的Date对象
 		 */
 		public static get serverDate() {
