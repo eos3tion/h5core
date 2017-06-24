@@ -3569,7 +3569,7 @@ declare module junyou {
      * @author 3tion
      */
     const HTMLUtil: {
-        createColorHtml(value: string, color: string | number): string;
+        createColorHtml(value: string | number, color: string | number): string;
         clearHtml(value: string): string;
         escapeHTML(content: string): string;
         unescapeHTML(content: string): string;

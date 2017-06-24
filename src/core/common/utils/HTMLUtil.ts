@@ -10,11 +10,11 @@ module junyou {
             /**
              * 字符着色
              * 
-             * @param {string} value                内容
+             * @param {string | number} value                内容
              * @param {(string | number)} color     颜色
              * @returns 
              */
-            createColorHtml(value: string, color: string | number) {
+            createColorHtml(value: string | number, color: string | number) {
                 let c: string;
                 if (typeof color == "number") {
                     c = ColorUtil.getColorString(color);
