@@ -6854,188 +6854,196 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
+     * 时间处理函数
      * DateUtils
      */
-    var DateUtils = (function () {
-        function DateUtils() {
-        }
+    junyou.DateUtils = (function () {
+        var _sharedDate = new Date();
         /**
-         * CountDownFormat
+         * 基于UTC的时间偏移
          *
+         * @private
          * @static
-         * @param {number} format
-         * @returns {*}
-         *
-         * @memberOf DateUtils
+         * @type {number}
          */
-        DateUtils.getCDFormat = function (format) {
-            if (format == 0 /* D_H_M_S */) {
-                return { d: junyou.LangUtil.getMsg("$_ndays"), h: junyou.LangUtil.getMsg("$_nhours"), m: junyou.LangUtil.getMsg("$_nminutes"), s: junyou.LangUtil.getMsg("$_nsecends") };
-            }
-            else if (format == 1 /* H_M_S */) {
-                return { h: junyou.LangUtil.getMsg("$_nhours"), m: junyou.LangUtil.getMsg("$_nminutes"), s: junyou.LangUtil.getMsg("$_nsecends") };
-            }
-            else if (format == 2 /* H_M */) {
-                return { h: junyou.LangUtil.getMsg("$_nhours"), m: junyou.LangUtil.getMsg("$_nminutes") };
-            }
-            else if (format == 3 /* M_S */) {
-                return { m: junyou.LangUtil.getMsg("$_nminutes"), s: junyou.LangUtil.getMsg("$_nsecends") };
-            }
-            else if (format == 4 /* S */) {
-                return { s: junyou.LangUtil.getMsg("$_nsecends") };
-            }
-        };
+        var _utcOffset = _sharedDate.getTimezoneOffset() * 60000 /* ONE_MINUTE */; //默认使用当前时区，防止一些报错
         /**
-         * 初始化服务器时间
+         * 服务器UTC偏移后的基准时间
          *
+         * @private
          * @static
-         * @param {number} time 服务器时间戳
-         * @param {number} timezoneOffset 服务器基于UTC的时区偏移
+         * @type {number}
          */
-        DateUtils.initServerTime = function (time, timezoneOffset) {
-            DateUtils._utcOffset = -timezoneOffset * 60000 /* ONE_MINUTE */;
-            this.setServerTime(time);
-        };
-        /**
-         * 设置服务器时间
-         * 用于同步服务器时间
-         * @static
-         * @param {number} time
-         */
-        DateUtils.setServerTime = function (time) {
-            DateUtils._serverUTCTime = time - Date.now() + DateUtils._utcOffset;
-        };
-        Object.defineProperty(DateUtils, "serverTime", {
+        var _serverUTCTime = -_utcOffset; //默认使用本地时间
+        var _defaultCountFormats;
+        return {
+            get sharedDate() {
+                return _sharedDate;
+            },
+            /**
+             * CountDownFormat
+             * 获取默认的`倒计时`格式
+                $_ndays	{0}天
+                $_nhours	{0}小时
+                $_nminutes	{0}分钟
+                $_nsecends	{0}秒
+    
+             * @static
+             * @param {CountDownFormat} format
+             * @returns {CountDownFormatOption}
+             *
+             * @memberOf DateUtils
+             */
+            getDefaultCDFOption: function (format) {
+                if (!_defaultCountFormats) {
+                    _defaultCountFormats = (_a = {},
+                        _a[0 /* D_H_M_S */] = { d: junyou.LangUtil.getMsg("$_ndays"), h: junyou.LangUtil.getMsg("$_nhours"), m: junyou.LangUtil.getMsg("$_nminutes"), s: junyou.LangUtil.getMsg("$_nsecends") },
+                        _a[1 /* H_M_S */] = { h: junyou.LangUtil.getMsg("$_nhours"), m: junyou.LangUtil.getMsg("$_nminutes"), s: junyou.LangUtil.getMsg("$_nsecends") },
+                        _a[2 /* H_M */] = { h: junyou.LangUtil.getMsg("$_nhours"), m: junyou.LangUtil.getMsg("$_nminutes") },
+                        _a[3 /* M_S */] = { m: junyou.LangUtil.getMsg("$_nminutes"), s: junyou.LangUtil.getMsg("$_nsecends") },
+                        _a[4 /* S */] = { s: junyou.LangUtil.getMsg("$_nsecends") },
+                        _a);
+                    junyou.DateUtils.getDefaultCDFOption = getDefaultCDFOption;
+                }
+                return getDefaultCDFOption(format);
+                var _a;
+            },
+            /**
+             * 初始化服务器时间
+             *
+             * @static
+             * @param {number} time 服务器时间戳
+             * @param {number} timezoneOffset 服务器基于UTC的时区偏移  单位：分钟
+             */
+            initServerTime: function (time, timezoneOffset) {
+                _utcOffset = -timezoneOffset * 60000 /* ONE_MINUTE */;
+                this.setServerTime(time);
+            },
+            /**
+             * 设置服务器时间
+             * 用于同步服务器时间
+             * @static
+             * @param {number} time
+             */
+            setServerTime: function (time) {
+                _serverUTCTime = time - Date.now() + _utcOffset;
+            },
             /**
              * 通过UTC偏移过的当前时间戳
              *
              * @static
              */
-            get: function () {
-                return DateUtils._serverUTCTime + Date.now();
+            get serverTime() {
+                return _serverUTCTime + Date.now();
             },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(DateUtils, "rawServerTime", {
             /**
              * 获取当前时间戳，用于和服务端的时间戳进行比较
              *
              * @readonly
              * @static
              */
-            get: function () {
-                return this.serverTime - DateUtils._utcOffset;
+            get rawServerTime() {
+                return this.serverTime - _utcOffset;
             },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(DateUtils, "serverDate", {
             /**
              * 通过UTC偏移过的当前时间戳的Date对象
              */
-            get: function () {
-                var date = DateUtils.sharedDate;
-                date.setTime(DateUtils.serverTime);
-                return date;
+            get serverDate() {
+                _sharedDate.setTime(this.serverTime);
+                return _sharedDate;
             },
-            enumerable: true,
-            configurable: true
-        });
-        /**
-         * 项目中，所有时间都需要基于UTC偏移处理
-         *
-         * @static
-         * @param {number} time			要格式化的时间，默认为UTC时间
-         * @param {string} format 		  格式字符串 yyyy-MM-dd HH:mm:ss
-         * @param {boolean} [isRaw] 	是否为原始未使用utc偏移处理的时间，默认 false
-         * @returns
-         */
-        DateUtils.getFormatTime = function (time, format, isRaw) {
-            var d = DateUtils.sharedDate;
-            if (isRaw) {
-                time = DateUtils.getUTCTime(time);
+            /**
+             * 项目中，所有时间都需要基于UTC偏移处理
+             *
+             * @static
+             * @param {number} time			要格式化的时间，默认为UTC时间
+             * @param {string} format 		  格式字符串 yyyy-MM-dd HH:mm:ss
+             * @param {boolean} [isRaw] 	是否为原始未使用utc偏移处理的时间，默认 false
+             * @returns
+             */
+            getFormatTime: function (time, format, isRaw) {
+                if (isRaw) {
+                    time = this.getUTCTime(time);
+                }
+                _sharedDate.setTime(time);
+                return _sharedDate.format(format);
+            },
+            /**
+             * 获取指定时间的当天结束(23:59:59'999)UTC强制偏移时间戳
+             *
+             * @static
+             * @param {number} [utcTime] 指定的utc偏移后的时间，不设置时间，则取当前服务器时间
+             * @returns {number} 指定时间的当天结束(23:59:59'999)UTC强制偏移时间戳
+             */
+            getDayEnd: function (utcTime) {
+                if (utcTime === undefined)
+                    utcTime = this.serverTime;
+                _sharedDate.setTime(utcTime);
+                return _sharedDate.setUTCHours(23, 59, 59, 999);
+            },
+            /**
+             * 获取指定时间的当天开始的UTC(0:0:0'0)强制偏移时间戳
+             *
+             * @static
+             * @param {number} [utcTime] 指定的utc偏移后的时间，不设置时间，则取当前服务器时间
+             * @returns {Date} 指定时间的当天开始的UTC(0:0:0'0)强制偏移时间戳
+             */
+            getDayStart: function (utcTime) {
+                if (utcTime === undefined)
+                    utcTime = this.serverTime;
+                _sharedDate.setTime(utcTime);
+                return _sharedDate.setUTCHours(0, 0, 0, 0);
+            },
+            /**
+             * 将服务器有偏移量的时间戳，转换成显示时间相同的UTC时间戳，用于做显示
+             *
+             * @static
+             * @param {number} time 正常的时间戳
+             * @returns {number} UTC偏移后的时间戳
+             */
+            getUTCTime: function (time) {
+                return time + _utcOffset;
+            },
+            /**
+             * 显示倒计时
+             *
+             * @static
+             * @param {number} leftTime 剩余时间
+             * @param {CountDownFormatOption} format 倒计时修饰符，
+             * format 示例：{d:"{0}天",h:"{0}小时",m:"{0}分",s:"{0}秒"}
+             */
+            getCountdown: function (leftTime, format) {
+                var out = "";
+                var tmp = format.d;
+                if (tmp) {
+                    var day = leftTime / 86400000 /* ONE_DAY */ >> 0;
+                    leftTime = leftTime - day * 86400000 /* ONE_DAY */;
+                    out += tmp.substitute(day);
+                }
+                tmp = format.h;
+                if (tmp) {
+                    var hour = leftTime / 3600000 /* ONE_HOUR */ >> 0;
+                    leftTime = leftTime - hour * 3600000 /* ONE_HOUR */;
+                    out += tmp.substitute(hour);
+                }
+                tmp = format.m;
+                if (tmp) {
+                    var minute = leftTime / 60000 /* ONE_MINUTE */ >> 0;
+                    leftTime = leftTime - minute * 60000 /* ONE_MINUTE */;
+                    out += tmp.substitute(minute);
+                }
+                tmp = format.s;
+                if (tmp) {
+                    var second = leftTime / 1000 /* ONE_SECOND */ >> 0;
+                    out += tmp.substitute(second);
+                }
+                return out;
             }
-            d.setTime(time);
-            return d.format(format);
         };
-        /**
-         * 获取指定时间的当天结束(23:59:59'999)UTC强制偏移时间戳
-         *
-         * @static
-         * @param {number} [utcTime] 指定的utc偏移后的时间，不设置时间，则取当前服务器时间
-         * @returns {number} 指定时间的当天结束(23:59:59'999)UTC强制偏移时间戳
-         */
-        DateUtils.getDayEnd = function (utcTime) {
-            if (utcTime === void 0)
-                utcTime = DateUtils.serverTime;
-            var d = DateUtils.sharedDate;
-            d.setTime(utcTime);
-            return d.setUTCHours(23, 59, 59, 999);
-        };
-        /**
-         * 获取指定时间的当天开始的UTC(0:0:0'0)强制偏移时间戳
-         *
-         * @static
-         * @param {number} [utcTime] 指定的utc偏移后的时间，不设置时间，则取当前服务器时间
-         * @returns {Date} 指定时间的当天开始的UTC(0:0:0'0)强制偏移时间戳
-         */
-        DateUtils.getDayStart = function (utcTime) {
-            if (utcTime === void 0)
-                utcTime = DateUtils.serverTime;
-            var d = DateUtils.sharedDate;
-            d.setTime(utcTime);
-            return d.setUTCHours(0, 0, 0, 0);
-        };
-        /**
-         * 将服务器有偏移量的时间戳，转换成显示时间相同的UTC时间戳，用于做显示
-         *
-         * @static
-         * @param {number} time 正常的时间戳
-         * @returns {number} UTC偏移后的时间戳
-         */
-        DateUtils.getUTCTime = function (time) {
-            return time + DateUtils._utcOffset;
-        };
-        /**
-         * 显示倒计时
-         *
-         * @static
-         * @param {number} leftTime 剩余时间
-         * @param {{ d?: string, h?: string, m?: string, s?: string }} format 倒计时修饰符，
-         * format 示例：{d:"{0}天",h:"{0}小时",m:"{0}分",s:"{0}秒"}
-         */
-        DateUtils.getCountdown = function (leftTime, format) {
-            var out = "";
-            var tmp = format.d;
-            if (tmp) {
-                var day = leftTime / 86400000 /* ONE_DAY */ >> 0;
-                leftTime = leftTime - day * 86400000 /* ONE_DAY */;
-                out += tmp.substitute(day);
-            }
-            tmp = format.h;
-            if (tmp) {
-                var hour = leftTime / 3600000 /* ONE_HOUR */ >> 0;
-                leftTime = leftTime - hour * 3600000 /* ONE_HOUR */;
-                out += tmp.substitute(hour);
-            }
-            tmp = format.m;
-            if (tmp) {
-                var minute = leftTime / 60000 /* ONE_MINUTE */ >> 0;
-                leftTime = leftTime - minute * 60000 /* ONE_MINUTE */;
-                out += tmp.substitute(minute);
-            }
-            tmp = format.s;
-            if (tmp) {
-                var second = leftTime / 1000 /* ONE_SECOND */ >> 0;
-                out += tmp.substitute(second);
-            }
-            return out;
-        };
-        return DateUtils;
-    }());
-    DateUtils.sharedDate = new Date();
-    junyou.DateUtils = DateUtils;
+        function getDefaultCDFOption(format) {
+            return _defaultCountFormats[format];
+        }
+    })();
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -7341,39 +7349,38 @@ var junyou;
     /**
      * 用于处理语言/文字显示
      */
-    var LangUtil = (function () {
-        function LangUtil() {
-        }
-        /**
-         * 获取显示的信息
-         *
-         * @static
-         * @param {(number | string)} code code码
-         * @param args 其他参数  替换字符串中{0}{1}{2}{a} {b}这样的数据，用obj对应key替换，或者是数组中对应key的数据替换
-         * @returns 显示信息
-         */
-        LangUtil.getMsg = function (code) {
-            var args = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                args[_i - 1] = arguments[_i];
+    junyou.LangUtil = (function () {
+        var _msgDict = {};
+        return {
+            /**
+             * 获取显示的信息
+             *
+             * @static
+             * @param {Key} code code码
+             * @param {any} args 其他参数  替换字符串中{0}{1}{2}{a} {b}这样的数据，用obj对应key替换，或者是数组中对应key的数据替换
+             * @returns 显示信息
+             */
+            getMsg: function (code) {
+                var args = [];
+                for (var _i = 1; _i < arguments.length; _i++) {
+                    args[_i - 1] = arguments[_i];
+                }
+                if (code in _msgDict) {
+                    return _msgDict[code].substitute(args);
+                }
+                return typeof code === "string" ? code.substitute.apply(code, args) : code + "";
+            },
+            /**
+             *
+             * 注册语言字典
+             * @static
+             * @param { { [index: string]: string }} data
+             */
+            regMsgDict: function (data) {
+                _msgDict = data;
             }
-            if (code in this._msgDict) {
-                return this._msgDict[code].substitute(args);
-            }
-            return typeof code === "string" ? code.substitute.apply(code, args) : code + "";
         };
-        /**
-         *
-         * 注册语言字典
-         * @static
-         * @param {*} data
-         */
-        LangUtil.regMsgDict = function (data) {
-            LangUtil._msgDict = data;
-        };
-        return LangUtil;
-    }());
-    junyou.LangUtil = LangUtil;
+    })();
 })(junyou || (junyou = {}));
 var $nl_nc;
 var junyou;

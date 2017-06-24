@@ -2694,7 +2694,7 @@ declare module junyou {
          * @memberOf PBStructDict
          */
         $$inted?: any;
-        /**消息名称*/ [index: string]: PBStruct;
+        /**消息名称*/[index: string]: PBStruct;
     }
     /**
      *
@@ -3241,17 +3241,65 @@ declare const enum Time {
     ONE_DAY = 86400000,
 }
 declare const enum CountDownFormat {
+    /**
+     * { d: LangUtil.getMsg("$_ndays"), h: LangUtil.getMsg("$_nhours"), m: LangUtil.getMsg("$_nminutes"), s: LangUtil.getMsg("$_nsecends") }
+     */
     D_H_M_S = 0,
+    /**
+     * { h: LangUtil.getMsg("$_nhours"), m: LangUtil.getMsg("$_nminutes"), s: LangUtil.getMsg("$_nsecends") }
+     */
     H_M_S = 1,
+    /**
+     *  { h: LangUtil.getMsg("$_nhours"), m: LangUtil.getMsg("$_nminutes") }
+     */
     H_M = 2,
+    /**
+     * { m: LangUtil.getMsg("$_nminutes"), s: LangUtil.getMsg("$_nsecends") }
+     */
     M_S = 3,
+    /**
+     * { s: LangUtil.getMsg("$_nsecends") }
+     */
     S = 4,
 }
 declare module junyou {
     /**
-     * DateUtils
+     * 倒计时的格式选项
+     *
+     * @export
+     * @interface CountDownFormatOption
      */
-    class DateUtils {
+    interface CountDownFormatOption {
+        /**
+         *
+         * 剩余天数的修饰字符串
+         * 如： `{0}天`
+         * @type {string}@memberof CountDownFormatOption
+         */
+        d?: string;
+        /**
+         * 剩余小时的修饰字符串
+         * 如：`{0}小时`
+         *
+         * @type {string}@memberof CountDownFormatOption
+         */
+        h?: string;
+        /**
+         * 剩余分钟的修饰字符串
+         * 如：`{0}分钟`
+         *
+         * @type {string}@memberof CountDownFormatOption
+         */
+        m?: string;
+        /**
+         * 剩余秒数的修饰字符串
+         * 如：`{0}秒`
+         *
+         * @type {string}@memberof CountDownFormatOption
+         */
+        s?: string;
+    }
+    interface DateUtilsInterface {
         /**
          * CountDownFormat
          *
@@ -3261,24 +3309,7 @@ declare module junyou {
          *
          * @memberOf DateUtils
          */
-        static getCDFormat(format: number): any;
-        static readonly sharedDate: Date;
-        /**
-         * 基于UTC的时间偏移
-         *
-         * @private
-         * @static
-         * @type {number}
-         */
-        private static _utcOffset;
-        /**
-         * 服务器UTC偏移后的基准时间
-         *
-         * @private
-         * @static
-         * @type {number}
-         */
-        private static _serverUTCTime;
+        getDefaultCDFOption(format: number): any;
         /**
          * 初始化服务器时间
          *
@@ -3286,31 +3317,31 @@ declare module junyou {
          * @param {number} time 服务器时间戳
          * @param {number} timezoneOffset 服务器基于UTC的时区偏移
          */
-        static initServerTime(time: number, timezoneOffset: number): void;
+        initServerTime(time: number, timezoneOffset: number): void;
         /**
          * 设置服务器时间
          * 用于同步服务器时间
          * @static
          * @param {number} time
          */
-        static setServerTime(time: number): void;
+        setServerTime(time: number): void;
         /**
          * 通过UTC偏移过的当前时间戳
          *
          * @static
          */
-        static readonly serverTime: number;
+        readonly serverTime: number;
         /**
          * 获取当前时间戳，用于和服务端的时间戳进行比较
          *
          * @readonly
          * @static
          */
-        static readonly rawServerTime: number;
+        readonly rawServerTime: number;
         /**
          * 通过UTC偏移过的当前时间戳的Date对象
          */
-        static readonly serverDate: Date;
+        readonly serverDate: Date;
         /**
          * 项目中，所有时间都需要基于UTC偏移处理
          *
@@ -3320,7 +3351,7 @@ declare module junyou {
          * @param {boolean} [isRaw] 	是否为原始未使用utc偏移处理的时间，默认 false
          * @returns
          */
-        static getFormatTime(time: number, format: string, isRaw?: boolean): string;
+        getFormatTime(time: number, format: string, isRaw?: boolean): string;
         /**
          * 获取指定时间的当天结束(23:59:59'999)UTC强制偏移时间戳
          *
@@ -3328,7 +3359,7 @@ declare module junyou {
          * @param {number} [utcTime] 指定的utc偏移后的时间，不设置时间，则取当前服务器时间
          * @returns {number} 指定时间的当天结束(23:59:59'999)UTC强制偏移时间戳
          */
-        static getDayEnd(utcTime?: number): number;
+        getDayEnd(utcTime?: number): number;
         /**
          * 获取指定时间的当天开始的UTC(0:0:0'0)强制偏移时间戳
          *
@@ -3336,7 +3367,7 @@ declare module junyou {
          * @param {number} [utcTime] 指定的utc偏移后的时间，不设置时间，则取当前服务器时间
          * @returns {Date} 指定时间的当天开始的UTC(0:0:0'0)强制偏移时间戳
          */
-        static getDayStart(utcTime?: number): number;
+        getDayStart(utcTime?: number): number;
         /**
          * 将服务器有偏移量的时间戳，转换成显示时间相同的UTC时间戳，用于做显示
          *
@@ -3344,7 +3375,7 @@ declare module junyou {
          * @param {number} time 正常的时间戳
          * @returns {number} UTC偏移后的时间戳
          */
-        static getUTCTime(time: number): number;
+        getUTCTime(time: number): number;
         /**
          * 显示倒计时
          *
@@ -3353,13 +3384,13 @@ declare module junyou {
          * @param {{ d?: string, h?: string, m?: string, s?: string }} format 倒计时修饰符，
          * format 示例：{d:"{0}天",h:"{0}小时",m:"{0}分",s:"{0}秒"}
          */
-        static getCountdown(leftTime: number, format: {
-            d?: string;
-            h?: string;
-            m?: string;
-            s?: string;
-        }): string;
+        getCountdown(leftTime: number, format: CountDownFormatOption): string;
     }
+    /**
+     * 时间处理函数
+     * DateUtils
+     */
+    const DateUtils: DateUtilsInterface;
 }
 declare module junyou {
     /**
@@ -3509,9 +3540,9 @@ declare module junyou {
         x: number;
         y: number;
     }): {
-        x: number;
-        y: number;
-    };
+            x: number;
+            y: number;
+        };
     /**
      * 检查类矩形 a 和 b 是否相交
      * @export
@@ -3545,28 +3576,30 @@ declare module junyou {
     };
 }
 declare module junyou {
-    /**
-     * 用于处理语言/文字显示
-     */
-    class LangUtil {
-        private static _msgDict;
+    interface LangUtilInterface {
         /**
          * 获取显示的信息
          *
          * @static
          * @param {(number | string)} code code码
-         * @param args 其他参数  替换字符串中{0}{1}{2}{a} {b}这样的数据，用obj对应key替换，或者是数组中对应key的数据替换
+         * @param {any} args 其他参数  替换字符串中{0}{1}{2}{a} {b}这样的数据，用obj对应key替换，或者是数组中对应key的数据替换
          * @returns 显示信息
          */
-        static getMsg(code: number | string, ...args: any[]): string;
+        getMsg(code: number | string, ...args: any[]): any;
         /**
          *
          * 注册语言字典
-         * @static
-         * @param {*} data
+         * @param {{ [index: string]: string }} data
+         * @memberof LangUtilInterface
          */
-        static regMsgDict(data: any): void;
+        regMsgDict(data: {
+            [index: string]: string;
+        }): any;
     }
+    /**
+     * 用于处理语言/文字显示
+     */
+    const LangUtil: LangUtilInterface;
 }
 declare var $nl_nc: any;
 declare const enum Sex {
@@ -4473,8 +4506,8 @@ declare module junyou {
         constructor(TCreator: {
             new (): T;
         } | {
-            (): T;
-        }, max?: number);
+                (): T;
+            }, max?: number);
     }
     interface RecyclablePool<T extends IRecyclable> {
         /**
@@ -7309,7 +7342,7 @@ declare module junyou {
          * 获取类型2的数量处理方法
          * @static
          */
-        static getCountString: (count: number) => string;
+        static getCountString: (count: number) => any;
         data: any;
         /**
          * 设置数据，只允许子类调用
@@ -8408,9 +8441,9 @@ declare module junyou {
             x: number;
             y: number;
         }, hoffset?: number, voffset?: number, innerV?: boolean, innerH?: boolean): {
-            x: number;
-            y: number;
-        };
+                x: number;
+                y: number;
+            };
     };
 }
 declare module junyou {
