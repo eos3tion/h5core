@@ -6,7 +6,7 @@ module junyou {
 
         public suiData: SuiData;
 
-        private _align: number;
+        private _align: LayoutType;
 
         /**
        * 上一次元件的宽度
@@ -30,7 +30,7 @@ module junyou {
             }
         }
 
-        public set align(value: number) {
+        public set align(value: LayoutType) {
             if (this._align != value) {
                 this._align = value;
                 this.checkAlign();
@@ -41,9 +41,9 @@ module junyou {
             this._hgap = value;
         }
 
-        protected setValue(val: string | number) {
+        protected $setValue(val: string | number) {
             if (this._value == val) return;
-            if (!val) return;
+            if (val == undefined) val = "";
             this._value = val;
             let tempval = val + "";
             let len = tempval.length;
@@ -53,6 +53,7 @@ module junyou {
             let numChildren = this.numChildren;
             let bmp: egret.Bitmap;
             let ox = 0;
+            let hgap = this._hgap || 0;
             for (var i = 0; i < len; i++) {
                 key = tempval.charAt(i);
                 if (i < numChildren) {
@@ -66,9 +67,9 @@ module junyou {
                 bmp.y = 0;
                 bmp.texture = null;
                 bmp.texture = tx;
-                ox += tx.textureWidth + this._hgap;
+                ox += tx.textureWidth + hgap;
             }
-            this.artwidth = bmp.x + bmp.width;
+            this.artwidth = ox - hgap;
             for (i = numChildren - 1; i >= len; i--) {
                 this.$doRemoveChild(i);
             }
@@ -76,7 +77,7 @@ module junyou {
         }
 
         public set value(val: string | number) {
-            this.setValue(val);
+            this.$setValue(val);
         }
 
 
@@ -90,9 +91,10 @@ module junyou {
         }
 
         private checkAlign() {
-            if (!this._align) return;
+            let align = this._align;
+            if (!align) return;
             if (this._lastWidth != this.width) {
-                Layout.layout(this, this._align);
+                Layout.layout(this, align);
             }
             this._lastWidth = this.width;
         }
