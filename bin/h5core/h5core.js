@@ -7294,7 +7294,7 @@ var junyou;
             /**
              * 字符着色
              *
-             * @param {string} value                内容
+             * @param {string | number} value                内容
              * @param {(string | number)} color     颜色
              * @returns
              */
@@ -12554,6 +12554,9 @@ var junyou;
          * @returns
          */
         function getUrlWithPath(uri, path) {
+            if (/^((http|https):)?\/\//.test(uri)) {
+                return uri;
+            }
             uri = path.tPath + uri;
             var prefix = path.iPrefix ? "" : getPrefix(uri);
             return prefix + uri;
