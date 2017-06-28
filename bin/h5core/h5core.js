@@ -12413,6 +12413,7 @@ var junyou;
            */
             _this._lastWidth = 0;
             _this._hgap = 0;
+            _this.artwidth = 0;
             return _this;
         }
         ArtText.prototype.refreshBMD = function () {
