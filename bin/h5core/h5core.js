@@ -7474,6 +7474,118 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
+    junyou.RPC = (function () {
+        var seed = 0;
+        var callbacks = {};
+        var Timeout = "RPCTimeout";
+        var count = 0;
+        var start;
+        var willDel = [];
+        return {
+            Timeout: Timeout,
+            /**
+             * 执行回调
+             *
+             * @param {number} id 执行回调的id
+             * @param {*} [data] 成功返回的数据
+             * @param {(Error | string)} [err] 错误
+             */
+            callback: function (id, data, err) {
+                var callback = callbacks[id];
+                if (!callback) {
+                    return;
+                }
+                deleteCallback(id);
+                var success = callback.success, error = callback.error;
+                if (err) {
+                    if (typeof err === "string") {
+                        err = new Error(err);
+                    }
+                    if (error) {
+                        error.call(err);
+                        error.recycle();
+                    }
+                    if (success) {
+                        success.recycle();
+                    }
+                }
+                else {
+                    if (error) {
+                        error.recycle();
+                    }
+                    if (success) {
+                        success.call(data);
+                        success.execute();
+                    }
+                }
+            },
+            /**
+             * 注册回调函数
+             *
+             * @param {Recyclable<CallbackInfo<{ (data?: any, ...args) }>>} success     成功的函数回调
+             * @param {Recyclable<CallbackInfo<{ (error?: Error, ...args) }>>} [error]    发生错误的函数回调
+             * @param {number} [timeout=2000] 超时时间，默认2000，实际超时时间会大于此时间，超时后，如果有错误回调，会执行错误回调，`Error(RPC.Timeout)`
+             * @returns
+             */
+            registerCallback: function (success, error, timeout) {
+                if (timeout === void 0) { timeout = 2000; }
+                var id = seed++;
+                callbacks[id] = { id: id, expired: junyou.Global.now + timeout, success: success, error: error };
+                count++;
+                if (!start) {
+                    junyou.TimerUtil.addCallback(1000 /* ONE_SECOND */, check);
+                    start = true;
+                }
+                return id;
+            },
+            /**
+             * 根据id移除回调函数
+             *
+             * @param {number} id
+             */
+            removeCallback: function (id) {
+                var callback = callbacks[id];
+                deleteCallback(id);
+                if (callback) {
+                    var success = callback.success, error = callback.error;
+                    if (success) {
+                        success.recycle();
+                    }
+                    if (error) {
+                        error.recycle();
+                    }
+                }
+            }
+        };
+        function deleteCallback(id) {
+            if (id in callbacks) {
+                delete callbacks[id];
+                count--;
+                if (count == 0) {
+                    junyou.TimerUtil.removeCallback(1000 /* ONE_SECOND */, check);
+                    start = false;
+                }
+            }
+        }
+        function check() {
+            var del = willDel;
+            var i = 0;
+            var now = junyou.Global.now;
+            for (var id in callbacks) {
+                var callback = callbacks[id];
+                if (now > callback.expired) {
+                    del[i++] = id;
+                }
+            }
+            for (var j = 0; j < i; j++) {
+                var id = del[j];
+                deleteCallback(id);
+            }
+        }
+    })();
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
     /**
      * 请求限制
      * @author 3tion
@@ -8552,6 +8664,11 @@ var junyou;
                 }
                 ani.loop = option.loop;
                 ani.handler = option.handler;
+                var recyclePolicy = option.recyclePolicy;
+                if (recyclePolicy == undefined) {
+                    recyclePolicy = 3 /* RecycleAll */;
+                }
+                ani.recyclePolicy = recyclePolicy;
             }
             !guid && (guid = this.guid++);
             this._renderByGuid[guid] = ani;
@@ -12321,11 +12438,11 @@ var junyou;
             enumerable: true,
             configurable: true
         });
-        ArtText.prototype.setValue = function (val) {
+        ArtText.prototype.$setValue = function (val) {
             if (this._value == val)
                 return;
-            if (!val)
-                return;
+            if (val == undefined)
+                val = "";
             this._value = val;
             var tempval = val + "";
             var len = tempval.length;
@@ -12335,6 +12452,7 @@ var junyou;
             var numChildren = this.numChildren;
             var bmp;
             var ox = 0;
+            var hgap = this._hgap || 0;
             for (var i = 0; i < len; i++) {
                 key = tempval.charAt(i);
                 if (i < numChildren) {
@@ -12349,9 +12467,9 @@ var junyou;
                 bmp.y = 0;
                 bmp.texture = null;
                 bmp.texture = tx;
-                ox += tx.textureWidth + this._hgap;
+                ox += tx.textureWidth + hgap;
             }
-            this.artwidth = bmp.x + bmp.width;
+            this.artwidth = ox - hgap;
             for (i = numChildren - 1; i >= len; i--) {
                 this.$doRemoveChild(i);
             }
@@ -12362,7 +12480,7 @@ var junyou;
                 return this._value;
             },
             set: function (val) {
-                this.setValue(val);
+                this.$setValue(val);
             },
             enumerable: true,
             configurable: true
@@ -12371,10 +12489,11 @@ var junyou;
             return this.artwidth;
         };
         ArtText.prototype.checkAlign = function () {
-            if (!this._align)
+            var align = this._align;
+            if (!align)
                 return;
             if (this._lastWidth != this.width) {
-                junyou.Layout.layout(this, this._align);
+                junyou.Layout.layout(this, align);
             }
             this._lastWidth = this.width;
         };

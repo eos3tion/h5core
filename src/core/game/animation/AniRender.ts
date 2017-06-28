@@ -252,6 +252,11 @@ module junyou {
                 }
                 ani.loop = option.loop;
                 ani.handler = option.handler
+                let recyclePolicy = option.recyclePolicy;
+                if (recyclePolicy == undefined) {
+                    recyclePolicy = AniRecyclePolicy.RecycleAll;
+                }
+                ani.recyclePolicy = recyclePolicy;
             }
             !guid && (guid = this.guid++);
             this._renderByGuid[guid] = ani;
@@ -349,5 +354,13 @@ module junyou {
          * @memberof AniOption
          */
         handler?: CallbackInfo<{ (event: Key, render: AniRender, now?: number, ...args) }>;
+
+        /**
+         * ani回收策略
+         * 
+         * @type {AniRecyclePolicy}
+         * @memberof AniOption
+         */
+        recyclePolicy?: AniRecyclePolicy;
     }
 }

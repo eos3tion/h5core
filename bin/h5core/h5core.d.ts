@@ -783,7 +783,18 @@ declare module junyou {
      *
      */
     class Component extends egret.Sprite {
+        /**
+         * 组件原始的大小，从`flash`导出的矩形大小
+         *
+         * @type {egret.Rectangle}@memberof Component
+         */
         suiRawRect?: egret.Rectangle;
+        /**
+         * 附加的数据
+         *
+         * @type {*}@memberof Component
+         */
+        data?: any;
         protected _guid: string;
         protected _creator: BaseCreator<egret.DisplayObject>;
         /**
@@ -3641,6 +3652,73 @@ declare module junyou {
     }
 }
 declare module junyou {
+    interface RPCCallback {
+        /**
+         * 成功的回调函数
+         *
+         * @type {Recyclable<CallbackInfo<(data?: any, ...args)>>}
+         * @memberof RPCCallback
+         */
+        success: Recyclable<CallbackInfo<{
+            (data?: any, ...args);
+        }>>;
+        /**
+         * 失败的回调函数
+         *
+         * @type {Recyclable<CallbackInfo<{ (error?: Error, ...args) }>>}
+         * @memberof RPCCallback
+         */
+        error: Recyclable<CallbackInfo<{
+            (error?: Error, ...args);
+        }>>;
+        /**
+         * RPC的超时时间
+         *
+         * @type {number}
+         * @memberof RPCCallback
+         */
+        expired: number;
+        id: number;
+    }
+    interface RPCInterface {
+        /**
+         * 超时的错误常量 `RPCTimeout`
+         *
+         * @type {string}
+         * @memberof RPCInterface
+         */
+        readonly Timeout: string;
+        /**
+         * 执行回调
+         *
+         * @param {number} id 执行回调的id
+         * @param {*} [data] 成功返回的数据
+         * @param {(Error | string)} [err] 错误
+         */
+        callback(id: number, data?: any, err?: Error | string): any;
+        /**
+         * 注册回调函数
+         *
+         * @param {Recyclable<CallbackInfo<{ (data?: any, ...args) }>>} success     成功的函数回调
+         * @param {Recyclable<CallbackInfo<{ (error?: Error, ...args) }>>} [error]    发生错误的函数回调
+         * @param {number} [timeout=2000] 超时时间，默认2000，实际超时时间会大于此时间，超时后，如果有错误回调，会执行错误回调，`Error(RPC.Timeout)`
+         * @returns
+         */
+        registerCallback(success: Recyclable<CallbackInfo<{
+            (data?: any, ...args);
+        }>>, error?: Recyclable<CallbackInfo<{
+            (error?: Error, ...args);
+        }>>, timeout?: number): any;
+        /**
+         * 根据id移除回调函数
+         *
+         * @param {number} id
+         */
+        removeCallback(id: number): any;
+    }
+    const RPC: RPCInterface;
+}
+declare module junyou {
     interface RequestLimit {
         /**
          * @private
@@ -4295,6 +4373,13 @@ declare module junyou {
         handler?: CallbackInfo<{
             (event: Key, render: AniRender, now?: number, ...args);
         }>;
+        /**
+         * ani回收策略
+         *
+         * @type {AniRecyclePolicy}
+         * @memberof AniOption
+         */
+        recyclePolicy?: AniRecyclePolicy;
     }
 }
 declare module junyou {
@@ -6659,9 +6744,9 @@ declare module junyou {
         private artwidth;
         constructor();
         refreshBMD(): void;
-        align: number;
+        align: LayoutType;
         hgap: number;
-        protected setValue(val: string | number): void;
+        protected $setValue(val: string | number): void;
         value: string | number;
         $getWidth(): number;
         private checkAlign();
