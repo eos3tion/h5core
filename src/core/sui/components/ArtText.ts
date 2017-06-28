@@ -17,9 +17,9 @@ module junyou {
 
         protected _value: string | number;
 
-        protected _hgap: number = 0;
+        protected _hgap = 0;
 
-        private artwidth: number;
+        private artwidth = 0;
         public constructor() {
             super();
         }
