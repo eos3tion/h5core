@@ -7493,21 +7493,21 @@ var junyou;
              * @param {*} [thisObj]
              * @param {any} any
              */
-            registerCallbackFunc: function (callback, timeout, thisObj) {
+            registerCallbackFunc: function (callback, withError, timeout, thisObj) {
                 if (timeout === void 0) { timeout = 2000 /* DefaultTimeout */; }
                 var args = [];
-                for (var _i = 3; _i < arguments.length; _i++) {
-                    args[_i - 3] = arguments[_i];
+                for (var _i = 4; _i < arguments.length; _i++) {
+                    args[_i - 4] = arguments[_i];
                 }
                 var success = junyou.CallbackInfo.get.apply(junyou.CallbackInfo, [callback, thisObj].concat(args));
-                var error = junyou.CallbackInfo.get.apply(junyou.CallbackInfo, [callback, thisObj].concat(args));
+                var error = junyou.CallbackInfo.get.apply(junyou.CallbackInfo, [withError ? callback : noErrorCallback(callback, thisObj), thisObj].concat(args));
                 return registerCallback(success, error, timeout);
             },
             /**
-             * 根据id移除回调函数
-             *
-             * @param {number} id
-             */
+            * 根据id移除回调函数
+            *
+            * @param {number} id
+            */
             removeCallback: function (id) {
                 var callback = callbacks[id];
                 deleteCallback(id);
@@ -7522,6 +7522,15 @@ var junyou;
                 }
             }
         };
+        function noErrorCallback(callback, thisObj) {
+            return function (err) {
+                var args = [];
+                for (var _i = 1; _i < arguments.length; _i++) {
+                    args[_i - 1] = arguments[_i];
+                }
+                callback.apply(thisObj, args);
+            };
+        }
         /**
          * 注册回调函数
          *

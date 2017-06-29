@@ -62,15 +62,18 @@ module junyou {
         /**
          * 注册回调函数
          * 成功则data为返回的数据  
-         * 失败则data为Error   
+         * 失败时  
+         * `withError`为`true` data为Error   
+         * `withError`不填或者`false` data为undefined
          * @param {{ (data?: any, ...args) }} callback 回调函数，成功或者失败均会使用此回调
+         * @param {boolean} [withError] 返回回调失败时，是否使用Error，默认失败，data为`undefined`
          * @param {number} [timeout=2000] 回调函数的超时时间，默认为2000
          * @param {*} [thisObj] 
          * @param {any} any 
          * @returns {number} 
          * @memberof RPCInterface
          */
-        registerCallbackFunc(callback: { (data?: any, ...args) }, timeout?: number, thisObj?: any, ...any): number
+        registerCallbackFunc(callback: { (data?: any, ...args) }, withError?: boolean, timeout?: number, thisObj?: any, ...any): number
         /**
          * 根据id移除回调函数
          * 
@@ -99,16 +102,16 @@ module junyou {
              * @param {*} [thisObj] 
              * @param {any} any 
              */
-            registerCallbackFunc(callback: { (data?: any, ...args) }, timeout: number = RPCConst.DefaultTimeout, thisObj?: any, ...args) {
+            registerCallbackFunc(callback: { (data?: any, ...args) }, withError?: boolean, timeout: number = RPCConst.DefaultTimeout, thisObj?: any, ...args) {
                 let success = CallbackInfo.get(callback, thisObj, ...args);
-                let error = CallbackInfo.get(callback, thisObj, ...args);
+                let error = CallbackInfo.get(withError ? callback : noErrorCallback(callback, thisObj), thisObj, ...args);
                 return registerCallback(success, error, timeout);
             },
             /**
-             * 根据id移除回调函数
-             * 
-             * @param {number} id 
-             */
+            * 根据id移除回调函数
+            * 
+            * @param {number} id 
+            */
             removeCallback(id: number) {
                 let callback = callbacks[id];
                 deleteCallback(id);
@@ -121,6 +124,11 @@ module junyou {
                         error.recycle();
                     }
                 }
+            }
+        }
+        function noErrorCallback(callback: Function, thisObj?: any) {
+            return (err?: Error, ...args) => {
+                callback.apply(thisObj, args);
             }
         }
         /**

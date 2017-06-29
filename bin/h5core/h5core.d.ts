@@ -3718,8 +3718,11 @@ declare module junyou {
         /**
          * 注册回调函数
          * 成功则data为返回的数据
-         * 失败则data为Error
+         * 失败时
+         * `withError`为`true` data为Error
+         * `withError`不填或者`false` data为undefined
          * @param {{ (data?: any, ...args) }} callback 回调函数，成功或者失败均会使用此回调
+         * @param {boolean} [withError] 返回回调失败时，是否使用Error，默认失败，data为`undefined`
          * @param {number} [timeout=2000] 回调函数的超时时间，默认为2000
          * @param {*} [thisObj]
          * @param {any} any
@@ -3728,7 +3731,7 @@ declare module junyou {
          */
         registerCallbackFunc(callback: {
             (data?: any, ...args);
-        }, timeout?: number, thisObj?: any, ...any: any[]): number;
+        }, withError?: boolean, timeout?: number, thisObj?: any, ...any: any[]): number;
         /**
          * 根据id移除回调函数
          *
