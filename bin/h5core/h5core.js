@@ -7484,24 +7484,24 @@ var junyou;
         return {
             Timeout: Timeout,
             callback: callback,
+            registerCallback: registerCallback,
             /**
-             * 注册回调函数
-             *
-             * @param {Recyclable<CallbackInfo<{ (data?: any, ...args) }>>} success     成功的函数回调
-             * @param {Recyclable<CallbackInfo<{ (error?: Error, ...args) }>>} [error]    发生错误的函数回调
-             * @param {number} [timeout=2000] 超时时间，默认2000，实际超时时间会大于此时间，超时后，如果有错误回调，会执行错误回调，`Error(RPC.Timeout)`
-             * @returns
+             * 注册回调函数，成功和失败，均使用该方法
+             * 成功则data为返回的数据
+             * 失败则data为Error
+             * @param {{ (data?: any, ...args) }} callback
+             * @param {*} [thisObj]
+             * @param {any} any
              */
-            registerCallback: function (success, error, timeout) {
-                if (timeout === void 0) { timeout = 2000; }
-                var id = seed++;
-                callbacks[id] = { id: id, expired: junyou.Global.now + timeout, success: success, error: error };
-                count++;
-                if (!start) {
-                    junyou.TimerUtil.addCallback(1000 /* ONE_SECOND */, check);
-                    start = true;
+            registerCallbackFunc: function (callback, timeout, thisObj) {
+                if (timeout === void 0) { timeout = 2000 /* DefaultTimeout */; }
+                var args = [];
+                for (var _i = 3; _i < arguments.length; _i++) {
+                    args[_i - 3] = arguments[_i];
                 }
-                return id;
+                var success = junyou.CallbackInfo.get.apply(junyou.CallbackInfo, [callback, thisObj].concat(args));
+                var error = junyou.CallbackInfo.get.apply(junyou.CallbackInfo, [callback, thisObj].concat(args));
+                return registerCallback(success, error, timeout);
             },
             /**
              * 根据id移除回调函数
@@ -7522,6 +7522,25 @@ var junyou;
                 }
             }
         };
+        /**
+         * 注册回调函数
+         *
+         * @param {Recyclable<CallbackInfo<{ (data?: any, ...args) }>>} success     成功的函数回调
+         * @param {Recyclable<CallbackInfo<{ (error?: Error, ...args) }>>} [error]    发生错误的函数回调
+         * @param {number} [timeout=2000] 超时时间，默认2000，实际超时时间会大于此时间，超时后，如果有错误回调，会执行错误回调，`Error(RPC.Timeout)`
+         * @returns
+         */
+        function registerCallback(success, error, timeout) {
+            if (timeout === void 0) { timeout = 2000 /* DefaultTimeout */; }
+            var id = seed++;
+            callbacks[id] = { id: id, expired: junyou.Global.now + timeout, success: success, error: error };
+            count++;
+            if (!start) {
+                junyou.TimerUtil.addCallback(1000 /* ONE_SECOND */, check);
+                start = true;
+            }
+            return id;
+        }
         function deleteCallback(id) {
             if (id in callbacks) {
                 delete callbacks[id];

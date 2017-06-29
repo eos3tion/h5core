@@ -26,6 +26,13 @@ module junyou {
         id: number;
     }
 
+    export const enum RPCConst {
+        /**
+         * 默认超时时间
+         */
+        DefaultTimeout = 2000,
+    }
+
     export interface RPCInterface {
         /**
          * 超时的错误常量 `RPCTimeout`
@@ -48,9 +55,22 @@ module junyou {
          * @param {Recyclable<CallbackInfo<{ (data?: any, ...args) }>>} success     成功的函数回调
          * @param {Recyclable<CallbackInfo<{ (error?: Error, ...args) }>>} [error]    发生错误的函数回调
          * @param {number} [timeout=2000] 超时时间，默认2000，实际超时时间会大于此时间，超时后，如果有错误回调，会执行错误回调，`Error(RPC.Timeout)`
-         * @returns 
+         * @returns 回调函数的id
          */
-        registerCallback(success: Recyclable<CallbackInfo<{ (data?: any, ...args) }>>, error?: Recyclable<CallbackInfo<{ (error?: Error, ...args) }>>, timeout?: number)
+        registerCallback(success: Recyclable<CallbackInfo<{ (data?: any, ...args) }>>, error?: Recyclable<CallbackInfo<{ (error?: Error, ...args) }>>, timeout?: number): number
+
+        /**
+         * 注册回调函数
+         * 成功则data为返回的数据  
+         * 失败则data为Error   
+         * @param {{ (data?: any, ...args) }} callback 回调函数，成功或者失败均会使用此回调
+         * @param {number} [timeout=2000] 回调函数的超时时间，默认为2000
+         * @param {*} [thisObj] 
+         * @param {any} any 
+         * @returns {number} 
+         * @memberof RPCInterface
+         */
+        registerCallbackFunc(callback: { (data?: any, ...args) }, timeout?: number, thisObj?: any, ...any): number
         /**
          * 根据id移除回调函数
          * 
@@ -59,7 +79,7 @@ module junyou {
         removeCallback(id: number)
     }
 
-    export const RPC: RPCInterface = (function() {
+    export const RPC: RPCInterface = (function () {
         let seed = 0;
         let callbacks = {} as { [index: number]: RPCCallback };
         const Timeout = "RPCTimeout";
@@ -69,23 +89,20 @@ module junyou {
         return {
             Timeout,
             callback,
+
+            registerCallback,
             /**
-             * 注册回调函数
-             * 
-             * @param {Recyclable<CallbackInfo<{ (data?: any, ...args) }>>} success     成功的函数回调
-             * @param {Recyclable<CallbackInfo<{ (error?: Error, ...args) }>>} [error]    发生错误的函数回调
-             * @param {number} [timeout=2000] 超时时间，默认2000，实际超时时间会大于此时间，超时后，如果有错误回调，会执行错误回调，`Error(RPC.Timeout)`
-             * @returns 
+             * 注册回调函数，成功和失败，均使用该方法  
+             * 成功则data为返回的数据  
+             * 失败则data为Error  
+             * @param {{ (data?: any, ...args) }} callback 
+             * @param {*} [thisObj] 
+             * @param {any} any 
              */
-            registerCallback(success: Recyclable<CallbackInfo<{ (data?: any, ...args) }>>, error?: Recyclable<CallbackInfo<{ (error?: Error, ...args) }>>, timeout = 2000) {
-                let id = seed++;
-                callbacks[id] = { id, expired: Global.now + timeout, success, error };
-                count++;
-                if (!start) {
-                    TimerUtil.addCallback(Time.ONE_SECOND, check);
-                    start = true;
-                }
-                return id;
+            registerCallbackFunc(callback: { (data?: any, ...args) }, timeout: number = RPCConst.DefaultTimeout, thisObj?: any, ...args) {
+                let success = CallbackInfo.get(callback, thisObj, ...args);
+                let error = CallbackInfo.get(callback, thisObj, ...args);
+                return registerCallback(success, error, timeout);
             },
             /**
              * 根据id移除回调函数
@@ -105,6 +122,24 @@ module junyou {
                     }
                 }
             }
+        }
+        /**
+         * 注册回调函数
+         * 
+         * @param {Recyclable<CallbackInfo<{ (data?: any, ...args) }>>} success     成功的函数回调
+         * @param {Recyclable<CallbackInfo<{ (error?: Error, ...args) }>>} [error]    发生错误的函数回调
+         * @param {number} [timeout=2000] 超时时间，默认2000，实际超时时间会大于此时间，超时后，如果有错误回调，会执行错误回调，`Error(RPC.Timeout)`
+         * @returns 
+         */
+        function registerCallback(success: Recyclable<CallbackInfo<{ (data?: any, ...args) }>>, error?: Recyclable<CallbackInfo<{ (error?: Error, ...args) }>>, timeout: number = RPCConst.DefaultTimeout) {
+            let id = seed++;
+            callbacks[id] = { id, expired: Global.now + timeout, success, error };
+            count++;
+            if (!start) {
+                TimerUtil.addCallback(Time.ONE_SECOND, check);
+                start = true;
+            }
+            return id;
         }
         function deleteCallback(id: number) {
             if (id in callbacks) {
