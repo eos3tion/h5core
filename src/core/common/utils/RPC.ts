@@ -27,7 +27,6 @@ module junyou {
     }
 
     export interface RPCInterface {
-
         /**
          * 超时的错误常量 `RPCTimeout`
          * 
@@ -60,7 +59,7 @@ module junyou {
         removeCallback(id: number)
     }
 
-    export const RPC: RPCInterface = (function () {
+    export const RPC: RPCInterface = (function() {
         let seed = 0;
         let callbacks = {} as { [index: number]: RPCCallback };
         const Timeout = "RPCTimeout";
@@ -69,41 +68,7 @@ module junyou {
         let willDel = [];
         return {
             Timeout,
-            /**
-             * 执行回调
-             * 
-             * @param {number} id 执行回调的id
-             * @param {*} [data] 成功返回的数据
-             * @param {(Error | string)} [err] 错误
-             */
-            callback(id: number, data?: any, err?: Error | string) {
-                let callback = callbacks[id];
-                if (!callback) {
-                    return
-                }
-                deleteCallback(id);
-                let { success, error } = callback;
-                if (err) {
-                    if (typeof err === "string") {
-                        err = new Error(err);
-                    }
-                    if (error) {
-                        error.call(err);
-                        error.recycle();
-                    }
-                    if (success) {
-                        success.recycle();
-                    }
-                } else {
-                    if (error) {
-                        error.recycle();
-                    }
-                    if (success) {
-                        success.call(data);
-                        success.execute();
-                    }
-                }
-            },
+            callback,
             /**
              * 注册回调函数
              * 
@@ -151,6 +116,41 @@ module junyou {
                 }
             }
         }
+        /**
+           * 执行回调
+           * 
+           * @param {number} id 执行回调的id
+           * @param {*} [data] 成功返回的数据
+           * @param {(Error | string)} [err] 错误
+           */
+        function callback(id: number, data?: any, err?: Error | string) {
+            let callback = callbacks[id];
+            if (!callback) {
+                return
+            }
+            deleteCallback(id);
+            let { success, error } = callback;
+            if (err) {
+                if (typeof err === "string") {
+                    err = new Error(err);
+                }
+                if (error) {
+                    error.call(err);
+                    error.recycle();
+                }
+                if (success) {
+                    success.recycle();
+                }
+            } else {
+                if (error) {
+                    error.recycle();
+                }
+                if (success) {
+                    success.call(data);
+                    success.execute();
+                }
+            }
+        }
         function check() {
             let del = willDel;
             let i = 0;
@@ -163,7 +163,7 @@ module junyou {
             }
             for (let j = 0; j < i; j++) {
                 let id = del[j];
-                deleteCallback(id);
+                callback(id, null, Timeout);
             }
         }
     })()

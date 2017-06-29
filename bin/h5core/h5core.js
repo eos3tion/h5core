@@ -7483,42 +7483,7 @@ var junyou;
         var willDel = [];
         return {
             Timeout: Timeout,
-            /**
-             * 执行回调
-             *
-             * @param {number} id 执行回调的id
-             * @param {*} [data] 成功返回的数据
-             * @param {(Error | string)} [err] 错误
-             */
-            callback: function (id, data, err) {
-                var callback = callbacks[id];
-                if (!callback) {
-                    return;
-                }
-                deleteCallback(id);
-                var success = callback.success, error = callback.error;
-                if (err) {
-                    if (typeof err === "string") {
-                        err = new Error(err);
-                    }
-                    if (error) {
-                        error.call(err);
-                        error.recycle();
-                    }
-                    if (success) {
-                        success.recycle();
-                    }
-                }
-                else {
-                    if (error) {
-                        error.recycle();
-                    }
-                    if (success) {
-                        success.call(data);
-                        success.execute();
-                    }
-                }
-            },
+            callback: callback,
             /**
              * 注册回调函数
              *
@@ -7567,19 +7532,55 @@ var junyou;
                 }
             }
         }
+        /**
+           * 执行回调
+           *
+           * @param {number} id 执行回调的id
+           * @param {*} [data] 成功返回的数据
+           * @param {(Error | string)} [err] 错误
+           */
+        function callback(id, data, err) {
+            var callback = callbacks[id];
+            if (!callback) {
+                return;
+            }
+            deleteCallback(id);
+            var success = callback.success, error = callback.error;
+            if (err) {
+                if (typeof err === "string") {
+                    err = new Error(err);
+                }
+                if (error) {
+                    error.call(err);
+                    error.recycle();
+                }
+                if (success) {
+                    success.recycle();
+                }
+            }
+            else {
+                if (error) {
+                    error.recycle();
+                }
+                if (success) {
+                    success.call(data);
+                    success.execute();
+                }
+            }
+        }
         function check() {
             var del = willDel;
             var i = 0;
             var now = junyou.Global.now;
             for (var id in callbacks) {
-                var callback = callbacks[id];
-                if (now > callback.expired) {
+                var callback_1 = callbacks[id];
+                if (now > callback_1.expired) {
                     del[i++] = id;
                 }
             }
             for (var j = 0; j < i; j++) {
                 var id = del[j];
-                deleteCallback(id);
+                callback(id, null, Timeout);
             }
         }
     })();
