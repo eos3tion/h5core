@@ -425,13 +425,26 @@ module junyou {
                 oldPos = rect.y;
                 endPos = v.y;
                 max = this._h - v.height;
+
             } else {
                 oldPos = rect.x;
                 endPos = v.x;
                 max = this._w - v.width;
             }
+
+
             if (endPos > max) {
                 endPos = max;
+            }
+            if (rect) {
+                if (this._scrollType == ScrollDirection.Vertical) {
+                    endPos = endPos - rect.height;
+                } else {
+                    endPos = endPos - rect.width;
+                }
+                if (endPos < 0) {
+                    endPos = 0;
+                }
             }
 
             let scroller = this.scroller;

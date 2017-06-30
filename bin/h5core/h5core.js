@@ -3000,6 +3000,17 @@ var junyou;
             if (endPos > max) {
                 endPos = max;
             }
+            if (rect) {
+                if (this._scrollType == 0 /* Vertical */) {
+                    endPos = endPos - rect.height;
+                }
+                else {
+                    endPos = endPos - rect.width;
+                }
+                if (endPos < 0) {
+                    endPos = 0;
+                }
+            }
             var scroller = this.scroller;
             if (scroller) {
                 scroller.stopTouchTween();
@@ -12454,7 +12465,6 @@ var junyou;
            * 上一次元件的宽度
            */
             _this._lastWidth = 0;
-            _this._hgap = 0;
             _this.artwidth = 0;
             return _this;
         }
@@ -12474,13 +12484,6 @@ var junyou;
             enumerable: true,
             configurable: true
         });
-        Object.defineProperty(ArtText.prototype, "hgap", {
-            set: function (value) {
-                this._hgap = value;
-            },
-            enumerable: true,
-            configurable: true
-        });
         ArtText.prototype.$setValue = function (val) {
             if (this._value == val)
                 return;
@@ -12495,7 +12498,7 @@ var junyou;
             var numChildren = this.numChildren;
             var bmp;
             var ox = 0;
-            var hgap = this._hgap || 0;
+            var hgap = this.hgap || 0;
             for (var i = 0; i < len; i++) {
                 key = tempval.charAt(i);
                 if (i < numChildren) {

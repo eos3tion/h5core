@@ -17,7 +17,11 @@ module junyou {
 
         protected _value: string | number;
 
-        protected _hgap = 0;
+        /**
+         * 水平间距
+         * 
+         */
+        hgap: number;
 
         private artwidth = 0;
         public constructor() {
@@ -37,10 +41,6 @@ module junyou {
             }
         }
 
-        public set hgap(value: number) {
-            this._hgap = value;
-        }
-
         protected $setValue(val: string | number) {
             if (this._value == val) return;
             if (val == undefined) val = "";
@@ -53,7 +53,7 @@ module junyou {
             let numChildren = this.numChildren;
             let bmp: egret.Bitmap;
             let ox = 0;
-            let hgap = this._hgap || 0;
+            let hgap = this.hgap || 0;
             for (var i = 0; i < len; i++) {
                 key = tempval.charAt(i);
                 if (i < numChildren) {
