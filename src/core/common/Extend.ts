@@ -616,7 +616,7 @@ Object.defineProperties(Array.prototype, {
     }
 });
 module junyou {
-    export function is(instance: any, ref: { new (): any }): boolean {
+    export function is(instance: any, ref: { new(): any }): boolean {
         return egret.is(instance, egret.getQualifiedClassName(ref));
     }
 
@@ -843,6 +843,16 @@ module egret {
         */
         hasListen(type: string | number);
     }
+
+    export interface Graphics {
+        /**
+         * 使用  junyou.Rect 作为参数 进行绘制矩形
+         * 
+         * @param { junyou.Rect} rect 
+         * @memberof Graphics
+         */
+        drawRectangle(rect: junyou.Rect);
+    }
     (function () {
         let bpt = Bitmap.prototype;
         bpt.refreshBMD = function () {
@@ -910,6 +920,10 @@ module egret {
             values[2/**captureEventsMap */] = {};
             DisplayObject.$enterFrameCallBackList.remove(this);
             DisplayObject.$renderCallBackList.remove(this);
+        }
+
+        Graphics.prototype.drawRectangle = function (this: Graphics, rect: junyou.Rect) {
+            this.drawRect(rect.x, rect.y, rect.width, rect.height);
         }
     })();
 }

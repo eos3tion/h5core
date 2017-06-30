@@ -1224,6 +1224,9 @@ var egret;
             egret.DisplayObject.$enterFrameCallBackList.remove(this);
             egret.DisplayObject.$renderCallBackList.remove(this);
         };
+        egret.Graphics.prototype.drawRectangle = function (rect) {
+            this.drawRect(rect.x, rect.y, rect.width, rect.height);
+        };
     })();
 })(egret || (egret = {}));
 var junyou;
@@ -4316,8 +4319,9 @@ var junyou;
             //调试时,显示接收的数据
             if (DEBUG) {
                 var now = junyou.Global.now;
-                for (var _i = 0, tmpList_1 = tmpList; _i < tmpList_1.length; _i++) {
-                    var ndata = tmpList_1[_i];
+                //分发数据
+                for (var i = 0; i < idx; i++) {
+                    var ndata = tmpList[i];
                     this.$writeNSLog(now, "receive", ndata.cmd, ndata.data);
                 }
             }
@@ -6762,6 +6766,10 @@ var junyou;
         return ByteArray;
     }(egret.ByteArray));
     junyou.ByteArray = ByteArray;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    ;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
