@@ -282,7 +282,7 @@ module junyou {
             let list = this._renderList;
             let render = list[index];
             if (!render) {
-                render = this._renderFactory.newInstance();
+                render = this._renderFactory.get();
                 list[index] = render;
                 render.on(EventConst.Resize, this.childSizeChange, this);
                 render.on(EventConst.ITEM_TOUCH_TAP, this.touchItemrender, this);

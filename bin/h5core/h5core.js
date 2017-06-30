@@ -2845,7 +2845,7 @@ var junyou;
             var list = this._renderList;
             var render = list[index];
             if (!render) {
-                render = this._renderFactory.newInstance();
+                render = this._renderFactory.get();
                 list[index] = render;
                 render.on(-1999 /* Resize */, this.childSizeChange, this);
                 render.on(-1001 /* ITEM_TOUCH_TAP */, this.touchItemrender, this);
@@ -8834,7 +8834,12 @@ var junyou;
             this._creator = creator;
             this._props = props;
         }
-        ClassFactory.prototype.newInstance = function () {
+        /**
+         * 获取实例
+         *
+         * @returns
+         */
+        ClassFactory.prototype.get = function () {
             var ins = new this._creator();
             var p = this._props;
             for (var key in p) {
