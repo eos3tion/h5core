@@ -749,7 +749,9 @@ module junyou {
             //调试时,显示接收的数据
             if (DEBUG) {
                 var now = Global.now;
-                for (let ndata of tmpList) {
+                //分发数据
+                for (let i = 0; i < idx; i++) {
+                    let ndata = tmpList[i];
                     this.$writeNSLog(now, "receive", ndata.cmd, ndata.data);
                 }
             }
