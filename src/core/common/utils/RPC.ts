@@ -190,7 +190,7 @@ module junyou {
                 }
                 if (success) {
                     success.call(data);
-                    success.execute();
+                    success.recycle();
                 }
             }
         }
