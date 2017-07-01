@@ -284,7 +284,7 @@ Object.defineProperties(String.prototype, {
                     });
                 }
             }
-            return this;
+            return this.toString();//防止生成String对象，ios反射String对象会当成一个NSDictionary处理
         },
         writable: true
     },
@@ -616,7 +616,7 @@ Object.defineProperties(Array.prototype, {
     }
 });
 module junyou {
-    export function is(instance: any, ref: { new(): any }): boolean {
+    export function is(instance: any, ref: { new (): any }): boolean {
         return egret.is(instance, egret.getQualifiedClassName(ref));
     }
 

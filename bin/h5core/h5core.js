@@ -832,7 +832,7 @@ Object.defineProperties(String.prototype, {
                     });
                 }
             }
-            return this;
+            return this.toString(); //防止生成String对象，ios反射String对象会当成一个NSDictionary处理
         },
         writable: true
     },
