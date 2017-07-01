@@ -109,6 +109,16 @@ module junyou {
         BOTTOM_RIGHT = BOTTOM | RIGHT
     }
 
+    export const enum LayoutTypeVertical {
+        TOP = LayoutType.TOP,
+        MIDDLE = LayoutType.MIDDLE,
+        BOTTOM = LayoutType.BOTTOM
+    }
+    export const enum LayoutTypeHorizon {
+        LEFT = LayoutType.LEFT,
+        CENTER = LayoutType.CENTER,
+        RIGHT = LayoutType.RIGHT
+    }
     export interface LayoutDisplay { x: number, y: number, width: number, height: number, parent?: LayoutDisplayParent }
     export interface LayoutDisplayParent extends Size { };
 	/**

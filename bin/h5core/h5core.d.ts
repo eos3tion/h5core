@@ -2714,7 +2714,7 @@ declare module junyou {
          * @memberOf PBStructDict
          */
         $$inted?: any;
-        /**消息名称*/ [index: string]: PBStruct;
+        /**消息名称*/[index: string]: PBStruct;
     }
     /**
      *
@@ -3590,9 +3590,9 @@ declare module junyou {
         x: number;
         y: number;
     }): {
-        x: number;
-        y: number;
-    };
+            x: number;
+            y: number;
+        };
     /**
      * 检查类矩形 a 和 b 是否相交
      * @export
@@ -4658,8 +4658,8 @@ declare module junyou {
         constructor(TCreator: {
             new (): T;
         } | {
-            (): T;
-        }, max?: number);
+                (): T;
+            }, max?: number);
     }
     interface RecyclablePool<T extends IRecyclable> {
         /**
@@ -6798,11 +6798,13 @@ declare module junyou {
      */
     class ArtText extends Component {
         suiData: SuiData;
-        private _align;
         /**
-       * 上一次元件的宽度
-       */
-        private _lastWidth;
+         * 垂直对齐方式
+         *
+         * @private
+         * @type {LayoutTypeVertical}
+         */
+        private _align;
         textures: {
             [index: string]: egret.Texture;
         };
@@ -6813,13 +6815,19 @@ declare module junyou {
          */
         hgap: number;
         private artwidth;
+        private _maxHeight;
         constructor();
         refreshBMD(): void;
-        align: LayoutType;
+        /**
+         * 设置垂直对齐规则
+         *
+         * @param {LayoutTypeVertical} value
+         */
+        setVerticalAlign(value: LayoutTypeVertical): void;
         protected $setValue(val: string | number): void;
         value: string | number;
         $getWidth(): number;
-        private checkAlign();
+        protected checkAlign(): void;
         dispose(): void;
     }
 }
@@ -7203,7 +7211,7 @@ declare module junyou {
     var DataLocator: {
         regParser: (key: keyof CfgData, parser: ConfigDataParser) => void;
         parsePakedDatas(): void;
-        regCommonParser(key:keyof CfgData, CfgCreator: 0 | (new () => Cfg), idkey?: string): void;
+        regCommonParser(key: keyof CfgData, CfgCreator: 0 | (new () => Cfg), idkey?: string): void;
     };
     /**
      * 配置数据解析函数
@@ -8574,6 +8582,16 @@ declare module junyou {
          */
         BOTTOM_RIGHT = 15,
     }
+    const enum LayoutTypeVertical {
+        TOP = 4,
+        MIDDLE = 8,
+        BOTTOM = 12,
+    }
+    const enum LayoutTypeHorizon {
+        LEFT = 1,
+        CENTER = 2,
+        RIGHT = 3,
+    }
     interface LayoutDisplay {
         x: number;
         y: number;
@@ -8596,9 +8614,9 @@ declare module junyou {
             x: number;
             y: number;
         }, hoffset?: number, voffset?: number, innerV?: boolean, innerH?: boolean): {
-            x: number;
-            y: number;
-        };
+                x: number;
+                y: number;
+            };
     };
 }
 declare module junyou {

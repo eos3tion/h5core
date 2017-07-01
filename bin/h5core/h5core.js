@@ -12462,10 +12462,14 @@ var junyou;
         function ArtText() {
             var _this = _super.call(this) || this;
             /**
-           * 上一次元件的宽度
-           */
-            _this._lastWidth = 0;
+             * 垂直对齐方式
+             *
+             * @private
+             * @type {LayoutTypeVertical}
+             */
+            _this._align = 4 /* TOP */;
             _this.artwidth = 0;
+            _this._maxHeight = 0;
             return _this;
         }
         ArtText.prototype.refreshBMD = function () {
@@ -12474,16 +12478,16 @@ var junyou;
                 bmp.refreshBMD();
             }
         };
-        Object.defineProperty(ArtText.prototype, "align", {
-            set: function (value) {
-                if (this._align != value) {
-                    this._align = value;
-                    this.checkAlign();
-                }
-            },
-            enumerable: true,
-            configurable: true
-        });
+        /**
+         * 设置垂直对齐规则
+         *
+         * @param {LayoutTypeVertical} value
+         */
+        ArtText.prototype.setVerticalAlign = function (value) {
+            if (this._align != value) {
+                this._align = value;
+            }
+        };
         ArtText.prototype.$setValue = function (val) {
             if (this._value == val)
                 return;
@@ -12499,6 +12503,7 @@ var junyou;
             var bmp;
             var ox = 0;
             var hgap = this.hgap || 0;
+            var _maxHeight = 0;
             for (var i = 0; i < len; i++) {
                 key = tempval.charAt(i);
                 if (i < numChildren) {
@@ -12509,8 +12514,16 @@ var junyou;
                     this.addChild(bmp);
                 }
                 var tx = txs[key];
+                if (!tx) {
+                    if (DEBUG) {
+                        junyou.ThrowError("\u4F20\u5165\u4E86\u7EB9\u7406\u4E2D\u6CA1\u6709\u7684\u6570\u636E[" + key + "]");
+                    }
+                    continue;
+                }
+                if (tx.textureHeight > _maxHeight) {
+                    _maxHeight = tx.textureHeight;
+                }
                 bmp.x = ox;
-                bmp.y = 0;
                 bmp.texture = null;
                 bmp.texture = tx;
                 ox += tx.textureWidth + hgap;
@@ -12519,6 +12532,7 @@ var junyou;
             for (i = numChildren - 1; i >= len; i--) {
                 this.$doRemoveChild(i);
             }
+            this._maxHeight = _maxHeight;
             this.checkAlign();
         };
         Object.defineProperty(ArtText.prototype, "value", {
@@ -12535,13 +12549,25 @@ var junyou;
             return this.artwidth;
         };
         ArtText.prototype.checkAlign = function () {
-            var align = this._align;
-            if (!align)
-                return;
-            if (this._lastWidth != this.width) {
-                junyou.Layout.layout(this, align);
+            var children = this.$children;
+            var _maxHeight = this._maxHeight;
+            switch (this._align) {
+                case 4 /* TOP */:
+                    children.forEach(function (bmp) {
+                        bmp.y = 0;
+                    });
+                    break;
+                case 12 /* BOTTOM */:
+                    children.forEach(function (bmp) {
+                        bmp.y = _maxHeight - bmp.height;
+                    });
+                    break;
+                case 8 /* MIDDLE */:
+                    children.forEach(function (bmp) {
+                        bmp.y = _maxHeight - bmp.height >> 1;
+                    });
+                    break;
             }
-            this._lastWidth = this.width;
         };
         ArtText.prototype.dispose = function () {
             _super.prototype.dispose.call(this);

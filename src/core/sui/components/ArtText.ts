@@ -6,12 +6,13 @@ module junyou {
 
         public suiData: SuiData;
 
-        private _align: LayoutType;
-
         /**
-       * 上一次元件的宽度
-       */
-        private _lastWidth: number = 0;
+         * 垂直对齐方式
+         * 
+         * @private
+         * @type {LayoutTypeVertical}
+         */
+        private _align: LayoutTypeVertical = LayoutTypeVertical.TOP;
 
         public textures: { [index: string]: egret.Texture }
 
@@ -24,6 +25,9 @@ module junyou {
         hgap: number;
 
         private artwidth = 0;
+
+        private _maxHeight = 0;
+
         public constructor() {
             super();
         }
@@ -34,10 +38,14 @@ module junyou {
             }
         }
 
-        public set align(value: LayoutType) {
+        /**
+         * 设置垂直对齐规则
+         * 
+         * @param {LayoutTypeVertical} value 
+         */
+        public setVerticalAlign(value: LayoutTypeVertical) {
             if (this._align != value) {
                 this._align = value;
-                this.checkAlign();
             }
         }
 
@@ -54,6 +62,7 @@ module junyou {
             let bmp: egret.Bitmap;
             let ox = 0;
             let hgap = this.hgap || 0;
+            let _maxHeight = 0;
             for (var i = 0; i < len; i++) {
                 key = tempval.charAt(i);
                 if (i < numChildren) {
@@ -63,8 +72,16 @@ module junyou {
                     this.addChild(bmp);
                 }
                 let tx = txs[key];
+                if (!tx) {
+                    if (DEBUG) {
+                        ThrowError(`传入了纹理中没有的数据[${key}]`);
+                    }
+                    continue;
+                }
+                if (tx.textureHeight > _maxHeight) {
+                    _maxHeight = tx.textureHeight;
+                }
                 bmp.x = ox;
-                bmp.y = 0;
                 bmp.texture = null;
                 bmp.texture = tx;
                 ox += tx.textureWidth + hgap;
@@ -73,6 +90,7 @@ module junyou {
             for (i = numChildren - 1; i >= len; i--) {
                 this.$doRemoveChild(i);
             }
+            this._maxHeight = _maxHeight;
             this.checkAlign();
         }
 
@@ -89,16 +107,27 @@ module junyou {
         $getWidth() {
             return this.artwidth;
         }
-
-        private checkAlign() {
-            let align = this._align;
-            if (!align) return;
-            if (this._lastWidth != this.width) {
-                Layout.layout(this, align);
+        protected checkAlign() {
+            let children = this.$children;
+            let _maxHeight = this._maxHeight;
+            switch (this._align) {
+                case LayoutTypeVertical.TOP:
+                    children.forEach(bmp => {
+                        bmp.y = 0;
+                    })
+                    break;
+                case LayoutTypeVertical.BOTTOM:
+                    children.forEach(bmp => {
+                        bmp.y = _maxHeight - bmp.height;
+                    })
+                    break;
+                case LayoutTypeVertical.MIDDLE:
+                    children.forEach(bmp => {
+                        bmp.y = _maxHeight - bmp.height >> 1;
+                    })
+                    break;
             }
-            this._lastWidth = this.width;
         }
-
         public dispose() {
             super.dispose();
             removeDisplay(this);
