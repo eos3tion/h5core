@@ -13858,7 +13858,19 @@ var junyou;
         };
         /*更新进度条显示*/
         ProgressBar.prototype.updateBarDisplay = function () {
-            this._bar.width = this._value * this._barWidth / this._maxValue;
+            var bar = this._bar;
+            var v = this._value * this._barWidth / this._maxValue;
+            if (this.useMask) {
+                var rect = bar.scrollRect;
+                if (!rect) {
+                    rect = new egret.Rectangle(0, 0, 0, bar.height);
+                }
+                rect.width = v;
+                bar.scrollRect = rect;
+            }
+            else {
+                bar.width = v;
+            }
         };
         /*更新显示*/
         ProgressBar.prototype.updateDisplayList = function () {

@@ -7308,6 +7308,12 @@ declare module junyou {
         private _value;
         private _maxValue;
         private _barWidth;
+        /**
+         *
+         * 进度条的bar是否按遮罩的方式控制
+         * @type {boolean}
+         */
+        useMask: boolean;
         constructor();
         private initComponent();
         /**自定义文本显示方法*/
