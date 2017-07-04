@@ -6872,6 +6872,28 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
+    junyou.Location = {
+        /**
+         * 根据两个经纬度获取距离
+         *
+         * @param {Location} l1
+         * @param {Location} l2
+         * @returns
+         */
+        getDist: function (l1, l2) {
+            var radlat1 = l1.latitude * Math.DEG_TO_RAD;
+            var radlat2 = l2.latitude * Math.DEG_TO_RAD;
+            var a = radlat1 - radlat2;
+            var b = (l1.longitude - l2.longitude) * Math.DEG_TO_RAD;
+            var s = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin(a / 2), 2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.pow(Math.sin(b / 2), 2)));
+            s = s * 6378137;
+            s = s / 1000;
+            return s;
+        }
+    };
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
     /**
      * 时间处理函数
      * DateUtils
