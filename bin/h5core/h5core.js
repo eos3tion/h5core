@@ -6881,10 +6881,11 @@ var junyou;
          * @returns
          */
         getDist: function (l1, l2) {
-            var radlat1 = l1.latitude * Math.DEG_TO_RAD;
-            var radlat2 = l2.latitude * Math.DEG_TO_RAD;
+            var dtr = Math.DEG_TO_RAD;
+            var radlat1 = l1.latitude * dtr;
+            var radlat2 = l2.latitude * dtr;
             var a = radlat1 - radlat2;
-            var b = (l1.longitude - l2.longitude) * Math.DEG_TO_RAD;
+            var b = (l1.longitude - l2.longitude) * dtr;
             var s = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin(a / 2), 2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.pow(Math.sin(b / 2), 2)));
             s = s * 6378137;
             s = s / 1000;

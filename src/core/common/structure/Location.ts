@@ -21,10 +21,11 @@ module junyou {
          * @returns 
          */
         getDist(l1: Location, l2: Location) {
-            let radlat1 = l1.latitude * Math.DEG_TO_RAD;
-            let radlat2 = l2.latitude * Math.DEG_TO_RAD;
+            const dtr = Math.DEG_TO_RAD;
+            let radlat1 = l1.latitude * dtr;
+            let radlat2 = l2.latitude * dtr;
             let a = radlat1 - radlat2;
-            let b = (l1.longitude - l2.longitude) * Math.DEG_TO_RAD;
+            let b = (l1.longitude - l2.longitude) * dtr;
             let s = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin(a / 2), 2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.pow(Math.sin(b / 2), 2)));
             s = s * 6378137;
             s = s / 1000;
