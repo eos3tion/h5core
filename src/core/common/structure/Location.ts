@@ -26,10 +26,7 @@ module junyou {
             let radlat2 = l2.latitude * dtr;
             let a = radlat1 - radlat2;
             let b = (l1.longitude - l2.longitude) * dtr;
-            let s = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin(a / 2), 2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.pow(Math.sin(b / 2), 2)));
-            s = s * 6378137;
-            s = s / 1000;
-            return s;
+            return Math.asin(Math.sqrt(Math.pow(Math.sin(a / 2), 2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.pow(Math.sin(b / 2), 2))) * 12756.274;// 12756.274= 2 * 6378137 / 1000;
         }
     }
 }
