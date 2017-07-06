@@ -217,11 +217,26 @@ interface Number {
      * @return 补0之后的字符串
      */
     zeroize(length: number): string;
+
+    /**
+     * 数值介于，`min` `max`直接，包含min，max  
+     * 即：[min,max]
+     * 
+     * @param {number} min 
+     * @param {number} max 
+     * @returns {boolean} 
+     * @memberof Number
+     */
+    between(min: number, max: number): boolean;
 }
 
 Object.defineProperties(Number.prototype, {
     zeroize: {
-        value: function (length) { return zeroize(this, length) },
+        value: function (this: number, length: number) { return zeroize(this, length) },
+        writable: true
+    },
+    between: {
+        value: function (this: number, min: number, max: number) { return min <= this && max >= this },
         writable: true
     }
 });

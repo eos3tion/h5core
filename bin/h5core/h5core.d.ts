@@ -476,6 +476,16 @@ interface Number {
      * @return 补0之后的字符串
      */
     zeroize(length: number): string;
+    /**
+     * 数值介于，`min` `max`直接，包含min，max
+     * 即：[min,max]
+     *
+     * @param {number} min
+     * @param {number} max
+     * @returns {boolean}
+     * @memberof Number
+     */
+    between(min: number, max: number): boolean;
 }
 /****************************************扩展String****************************************/
 interface String {
@@ -2432,16 +2442,54 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     * 依赖其他数据的<br/>
-     * 依赖其他数据的东西，自身一定是异步的
-     * @author 3tion
+     * mvc使用的事件区段
+     * -999~ -200
      *
+     * @export
+     * @enum {number}
      */
-    interface IDepender extends IAsync {
+    const enum EventConst {
         /**
-         * 方便检查是否实现了IDepender
+         * 通知角标变更
          */
-        addDepend(async: IAsync): any;
+        Notification = -999,
+        /**
+         * 模块检查器初始化完毕
+         */
+        MODULE_CHECKER_INITED = -998,
+        /**
+         * 尝试调用某个功能<br/>
+         * data 为功能ID
+         */
+        MODULE_TRY_TOGGLE = -997,
+        /**
+        * 有功能，服务端要求临时关闭<br/>
+        * data 为功能ID
+        */
+        MODULE_SERVER_CLOSE = -996,
+        /**
+        * 有临时关闭的功能，服务端要求再打开<br/>
+        * data 为功能ID
+        */
+        MODULE_SERVER_OPEN = -995,
+        /**
+         * 模块显示状态发生改变发生改变<br/>
+         * data 为剩余未显示的按钮数量
+         */
+        MODULE_SHOW_CHANGED = -994,
+        /**
+         * 有模块需要检查是否会造成显示变化
+         */
+        MODULE_NEED_CHECK_SHOW = -993,
+        /**
+         * 有模块不符合显示的条件
+         * data 为功能ID
+         */
+        MODULE_NOT_SHOW = -992,
+        /**
+         * 有模块显示了
+         */
+        MODULE_SHOW = -991,
     }
 }
 declare module junyou {
@@ -2676,7 +2724,7 @@ declare module junyou {
          * @memberOf PBStructDict
          */
         $$inted?: any;
-        /**消息名称*/[index: string]: PBStruct;
+        /**消息名称*/ [index: string]: PBStruct;
     }
     /**
      *
@@ -3569,9 +3617,9 @@ declare module junyou {
         x: number;
         y: number;
     }): {
-            x: number;
-            y: number;
-        };
+        x: number;
+        y: number;
+    };
     /**
      * 检查类矩形 a 和 b 是否相交
      * @export
@@ -4637,8 +4685,8 @@ declare module junyou {
         constructor(TCreator: {
             new (): T;
         } | {
-                (): T;
-            }, max?: number);
+            (): T;
+        }, max?: number);
     }
     interface RecyclablePool<T extends IRecyclable> {
         /**
@@ -5430,6 +5478,20 @@ declare module junyou {
 }
 declare module junyou {
     /**
+     * 依赖其他数据的<br/>
+     * 依赖其他数据的东西，自身一定是异步的
+     * @author 3tion
+     *
+     */
+    interface IDepender extends IAsync {
+        /**
+         * 方便检查是否实现了IDepender
+         */
+        addDepend(async: IAsync): any;
+    }
+}
+declare module junyou {
+    /**
      * 回调信息，用于存储回调数据
      * @author 3tion
      *
@@ -5482,58 +5544,6 @@ declare module junyou {
          * @param thisObj
          */
         static addToList<T extends Function>(list: CallbackInfo<T>[], handle: T, thisObj?: any, ...args: any[]): CallbackInfo<T>;
-    }
-}
-declare module junyou {
-    /**
-     * mvc使用的事件区段
-     * -999~ -200
-     *
-     * @export
-     * @enum {number}
-     */
-    const enum EventConst {
-        /**
-         * 通知角标变更
-         */
-        Notification = -999,
-        /**
-         * 模块检查器初始化完毕
-         */
-        MODULE_CHECKER_INITED = -998,
-        /**
-         * 尝试调用某个功能<br/>
-         * data 为功能ID
-         */
-        MODULE_TRY_TOGGLE = -997,
-        /**
-        * 有功能，服务端要求临时关闭<br/>
-        * data 为功能ID
-        */
-        MODULE_SERVER_CLOSE = -996,
-        /**
-        * 有临时关闭的功能，服务端要求再打开<br/>
-        * data 为功能ID
-        */
-        MODULE_SERVER_OPEN = -995,
-        /**
-         * 模块显示状态发生改变发生改变<br/>
-         * data 为剩余未显示的按钮数量
-         */
-        MODULE_SHOW_CHANGED = -994,
-        /**
-         * 有模块需要检查是否会造成显示变化
-         */
-        MODULE_NEED_CHECK_SHOW = -993,
-        /**
-         * 有模块不符合显示的条件
-         * data 为功能ID
-         */
-        MODULE_NOT_SHOW = -992,
-        /**
-         * 有模块显示了
-         */
-        MODULE_SHOW = -991,
     }
 }
 declare module junyou {
@@ -6930,6 +6940,109 @@ declare module junyou {
 }
 declare module junyou {
     /**
+     * 翻页的4个区域
+     * ```
+     *    TopLeft      │    TopRight
+     *              ───┼───
+     *   BottomLeft  │    BottomRight
+     *
+     * ```
+     * @export
+     * @enum {number}
+     */
+    const enum FlipCorner {
+        TopLeft = 1,
+        TopRight = 2,
+        BottomLeft = 4,
+        BottomRight = 8,
+    }
+    import TE = egret.TouchEvent;
+    /**
+     * 用于做翻页效果
+     *
+     * @export
+     * @class Flip
+     */
+    class Flip extends egret.Sprite {
+        protected frontBmp: egret.Bitmap;
+        protected backBmp: egret.Bitmap;
+        protected frontCon: egret.Sprite;
+        protected backCon: egret.Sprite;
+        protected frontMask: egret.Shape;
+        protected backMask: egret.Shape;
+        protected barea: number;
+        protected farea: number;
+        protected size: Size;
+        /**
+         * 左下的点
+         *
+         * @protected
+         * @type {Point}
+         */
+        protected bl: Point;
+        /**
+         * 右下的点
+         *
+         * @protected
+         * @type {Point}
+         */
+        protected br: Point;
+        /**
+         * 右上的点
+         *
+         * @protected
+         * @type {Point}
+         */
+        protected tr: Point;
+        /**
+         * 当前正在拖拽的角
+         *
+         * @protected
+         * @type {FlipCorner}
+         */
+        protected cCorner: FlipCorner;
+        /**
+         * 正在拖拽的角的原始坐标X
+         *
+         * @protected
+         * @type {number}
+         */
+        protected oX: number;
+        /**
+         * 正在拖拽的角的原始坐标Y
+         *
+         * @protected
+         * @type {number}
+         */
+        protected oY: number;
+        /**
+         * 可拖拽的角
+         *
+         * @protected
+         * @type {number}
+         */
+        protected sCorner: number;
+        protected backPoints: Point[];
+        protected frontPoints: Point[];
+        /**
+         * 设置页面前后的纹理
+         *
+         * @param {(egret.Texture | egret.DisplayObject)} front 正面纹理
+         * @param {(egret.Texture | egret.DisplayObject)} back 反面纹理
+         * @param {any} [supportedCorner=FlipCorner.TopLeft | FlipCorner.BottomLeft] 支持拖拽的角
+         * @param {Size} [size] 页面大小
+         */
+        init(front: egret.Texture | egret.DisplayObject, back?: egret.Texture | egret.DisplayObject, supportedCorner?: number, size?: Size): void;
+        protected touchBegin(e: TE): void;
+        protected touchMove(e: TE): void;
+        protected touchEnd(e: TE): void;
+        protected clearEvents(): void;
+        protected reset(): void;
+        private draw(x, y);
+    }
+}
+declare module junyou {
+    /**
      * 图标按鈕
      * @pb
      *
@@ -7696,6 +7809,11 @@ declare module junyou {
         PAGE_CHANGE = -1050,
         SCROLL_POSITION_CHANGE = -1051,
         ITEM_SELECTED = -1052,
+        /**
+         * 翻页操作结束
+         * event.data 背面面积/正面面积
+         */
+        FlipEnd = -1060,
     }
 }
 declare module junyou {
@@ -8637,9 +8755,9 @@ declare module junyou {
             x: number;
             y: number;
         }, hoffset?: number, voffset?: number, innerV?: boolean, innerH?: boolean): {
-                x: number;
-                y: number;
-            };
+            x: number;
+            y: number;
+        };
     };
 }
 declare module junyou {

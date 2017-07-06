@@ -797,6 +797,10 @@ Object.defineProperties(Number.prototype, {
     zeroize: {
         value: function (length) { return zeroize(this, length); },
         writable: true
+    },
+    between: {
+        value: function (min, max) { return min <= this && max >= this; },
+        writable: true
     }
 });
 Object.defineProperties(String.prototype, {
@@ -12773,6 +12777,314 @@ var junyou;
             return prefix + uri;
         }
     })();
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    var TE = egret.TouchEvent;
+    /**
+     * 左上的点
+     */
+    var tl = { x: 0, y: 0 };
+    /**
+     * 用于做翻页效果
+     *
+     * @export
+     * @class Flip
+     */
+    var Flip = (function (_super) {
+        __extends(Flip, _super);
+        function Flip() {
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this.frontBmp = new egret.Bitmap();
+            _this.backBmp = new egret.Bitmap();
+            _this.frontCon = new egret.Sprite();
+            _this.backCon = new egret.Sprite();
+            _this.frontMask = new egret.Shape();
+            _this.backMask = new egret.Shape();
+            _this.backPoints = [];
+            _this.frontPoints = [];
+            return _this;
+        }
+        /**
+         * 设置页面前后的纹理
+         *
+         * @param {(egret.Texture | egret.DisplayObject)} front 正面纹理
+         * @param {(egret.Texture | egret.DisplayObject)} back 反面纹理
+         * @param {any} [supportedCorner=FlipCorner.TopLeft | FlipCorner.BottomLeft] 支持拖拽的角
+         * @param {Size} [size] 页面大小
+         */
+        Flip.prototype.init = function (front, back, supportedCorner, size) {
+            if (supportedCorner === void 0) { supportedCorner = 1 /* TopLeft */ | 4 /* BottomLeft */; }
+            var ftex = getTexture(front);
+            var btex = back && back != front ? getTexture(back) : ftex;
+            function getTexture(tester) {
+                if (tester instanceof egret.DisplayObject) {
+                    var tex = new egret.RenderTexture();
+                    tex.drawToTexture(tester);
+                    return tex;
+                }
+                else {
+                    return tester;
+                }
+            }
+            var _a = this, frontCon = _a.frontCon, backCon = _a.backCon, frontBmp = _a.frontBmp, backBmp = _a.backBmp, frontMask = _a.frontMask, backMask = _a.backMask;
+            this.sCorner = supportedCorner;
+            this.touchEnabled = true;
+            frontCon.addChild(frontBmp);
+            junyou.removeDisplay(frontMask);
+            frontBmp.texture = ftex;
+            frontBmp.mask = null;
+            backBmp.texture = btex;
+            backCon.addChild(backBmp);
+            backBmp.mask = backMask;
+            backBmp.scaleX = -1;
+            backMask.scaleX = -1;
+            junyou.removeDisplay(backMask);
+            this.addChild(frontCon);
+            if (!size) {
+                size = { width: frontBmp.width, height: frontBmp.height };
+            }
+            var width = size.width, height = size.height;
+            this.bl = { x: 0, y: height };
+            this.tr = { x: width, y: 0 };
+            this.br = { x: width, y: height };
+            this.size = size;
+            this.on(TE.TOUCH_BEGIN, this.touchBegin, this);
+        };
+        Flip.prototype.touchBegin = function (e) {
+            //检查鼠标点是在上半区还是下半区
+            var _a = this.size, width = _a.width, height = _a.height;
+            var localX = e.localX, localY = e.localY;
+            var isTop = localY < height >> 1;
+            var isLeft = localX < width >> 1;
+            var corner = isTop ? (isLeft ? 1 /* TopLeft */ : 2 /* TopRight */) : (isLeft ? 4 /* BottomLeft */ : 8 /* BottomRight */);
+            this.farea = 0;
+            this.barea = 0;
+            if (corner == (corner & this.sCorner)) {
+                this.cCorner = corner;
+                this.oX = isLeft ? 0 : width;
+                this.oY = isTop ? 0 : height;
+                var stage = this.stage;
+                stage.on(TE.TOUCH_MOVE, this.touchMove, this);
+                stage.on(TE.TOUCH_END, this.touchEnd, this);
+                stage.on(TE.TOUCH_RELEASE_OUTSIDE, this.touchEnd, this);
+                this.draw(localX, localY);
+            }
+        };
+        Flip.prototype.touchMove = function (e) {
+            this.draw(e.localX, e.localY);
+        };
+        Flip.prototype.touchEnd = function (e) {
+            // let { width, height } = this.size;
+            // let { isLeft, isTop } = this.getCorner(e.localX, e.localY, width, height);
+            // let cCorner = this.cCorner;
+            // let ok = isLeft && (cCorner == FlipCorner.BottomRight || cCorner == FlipCorner.TopRight)//拖动右边的角，拖到左边，则认为翻页成功
+            //     || !isLeft && (cCorner == FlipCorner.BottomLeft || cCorner == FlipCorner.TopLeft)//拖动左边的角，拖到右边，则认为翻页成功
+            //     || isTop && (cCorner == FlipCorner.BottomLeft || cCorner == FlipCorner.BottomRight)//拖动下边的角，拖到上边，则认为翻页成功
+            //     || !isTop && (cCorner == FlipCorner.TopLeft || cCorner == FlipCorner.TopRight);//拖动上边的角，拖到下边，则认为翻页成功
+            var farea = this.farea;
+            this.dispatchEventWith(-1060 /* FlipEnd */, false, farea == 0 ? 1 : this.barea / farea);
+            this.reset();
+            this.clearEvents();
+        };
+        Flip.prototype.clearEvents = function () {
+            var stage = egret.sys.$TempStage;
+            stage.off(TE.TOUCH_MOVE, this.touchMove, this);
+            stage.off(TE.TOUCH_END, this.touchEnd, this);
+            stage.off(TE.TOUCH_RELEASE_OUTSIDE, this.touchEnd, this);
+        };
+        Flip.prototype.reset = function () {
+            var _a = this, frontBmp = _a.frontBmp, backCon = _a.backCon, frontMask = _a.frontMask;
+            frontBmp.mask = null;
+            junyou.removeDisplay(frontMask);
+            junyou.removeDisplay(backCon);
+        };
+        Flip.prototype.draw = function (x, y) {
+            //计算折边
+            //折边为  当前所在点 与原始点的连线的垂直中线
+            var _a = this, oX = _a.oX, oY = _a.oY, size = _a.size;
+            var width = size.width, height = size.height;
+            var dx = x - oX;
+            var dy = y - oY;
+            if (dx == 0 || dy == 0) {
+                this.reset();
+                return;
+            }
+            var _b = this, cCorner = _b.cCorner, backMask = _b.backMask, frontCon = _b.frontCon, backBmp = _b.backBmp, frontBmp = _b.frontBmp, backCon = _b.backCon, frontMask = _b.frontMask, backPoints = _b.backPoints, frontPoints = _b.frontPoints;
+            var cX = oX + dx * 0.5;
+            var cY = oY + dy * 0.5;
+            var tan = dy / dx;
+            var leftY = cY + cX / tan;
+            var rightY = leftY - width / tan;
+            var topX = cX + cY * tan;
+            var bottomX = topX - height * tan;
+            var p;
+            var _c = this, bl = _c.bl, br = _c.br, tr = _c.tr;
+            var bi = 0;
+            var fi = 0;
+            //计算面积用         
+            switch (cCorner) {
+                case 1 /* TopLeft */: {
+                    if (topX.between(0, width)) {
+                        p = { x: topX, y: 0 };
+                        backPoints[bi++] = p;
+                    }
+                    else {
+                        p = { x: width, y: rightY };
+                        backPoints[bi++] = p;
+                        backPoints[bi++] = tr;
+                    }
+                    frontPoints[fi++] = p;
+                    backPoints[bi++] = tl;
+                    if (leftY.between(0, height)) {
+                        p = { x: 0, y: leftY };
+                        backPoints[bi++] = p;
+                        frontPoints[fi++] = p;
+                        frontPoints[fi++] = bl;
+                    }
+                    else {
+                        backPoints[bi++] = bl;
+                        //检查下边线
+                        p = { x: bottomX, y: height };
+                        backPoints[bi++] = p;
+                        frontPoints[fi++] = p;
+                    }
+                    frontPoints[fi++] = br;
+                    frontPoints[fi++] = tr;
+                    break;
+                }
+                case 4 /* BottomLeft */:
+                    {
+                        if (leftY.between(0, height)) {
+                            p = { x: 0, y: leftY };
+                            backPoints[bi++] = p;
+                        }
+                        else {
+                            p = { x: topX, y: 0 };
+                            backPoints[bi++] = p;
+                            backPoints[bi++] = tl;
+                        }
+                        frontPoints[fi++] = p;
+                        backPoints[bi++] = bl;
+                        if (bottomX.between(0, width)) {
+                            p = { x: bottomX, y: height };
+                            backPoints[bi++] = p;
+                            frontPoints[fi++] = p;
+                            frontPoints[fi++] = br;
+                        }
+                        else {
+                            backPoints[bi++] = br;
+                            p = { x: width, y: rightY };
+                            backPoints[bi++] = p;
+                            frontPoints[fi++] = p;
+                        }
+                        frontPoints[fi++] = tr;
+                        frontPoints[fi++] = tl;
+                        break;
+                    }
+                case 8 /* BottomRight */:
+                    {
+                        if (bottomX.between(0, width)) {
+                            p = { x: bottomX, y: height };
+                            backPoints[bi++] = p;
+                        }
+                        else {
+                            p = { x: 0, y: leftY };
+                            backPoints[bi++] = p;
+                            backPoints[bi++] = bl;
+                        }
+                        frontPoints[fi++] = p;
+                        backPoints[bi++] = br;
+                        if (rightY.between(0, width)) {
+                            p = { x: width, y: rightY };
+                            backPoints[bi++] = p;
+                            frontPoints[fi++] = p;
+                            frontPoints[fi++] = tr;
+                        }
+                        else {
+                            backPoints[bi++] = tr;
+                            p = { x: topX, y: 0 };
+                            backPoints[bi++] = p;
+                            frontPoints[fi++] = p;
+                        }
+                        frontPoints[fi++] = tl;
+                        frontPoints[fi++] = bl;
+                        break;
+                    }
+                case 2 /* TopRight */:
+                    {
+                        if (rightY.between(0, height)) {
+                            p = { x: width, y: rightY };
+                            backPoints[bi++] = p;
+                        }
+                        else {
+                            p = { x: bottomX, y: height };
+                            backPoints[bi++] = p;
+                            backPoints[bi++] = br;
+                        }
+                        frontPoints[fi++] = p;
+                        backPoints[bi++] = tr;
+                        if (topX.between(0, width)) {
+                            p = { x: topX, y: 0 };
+                            backPoints[bi++] = p;
+                            frontPoints[fi++] = p;
+                            frontPoints[fi++] = tl;
+                        }
+                        else {
+                            backPoints[bi++] = tl;
+                            p = { x: 0, y: leftY };
+                            backPoints[bi++] = p;
+                            frontPoints[fi++] = p;
+                        }
+                        frontPoints[fi++] = bl;
+                        frontPoints[fi++] = br;
+                        break;
+                    }
+            }
+            //绘制遮罩
+            this.farea = calculateAndDraw(frontPoints, frontMask, fi);
+            this.barea = calculateAndDraw(backPoints, backMask, bi);
+            frontBmp.mask = frontMask;
+            frontCon.addChild(frontMask);
+            backCon.addChild(backMask);
+            backCon.anchorOffsetX = -topX;
+            backCon.x = topX;
+            backCon.rotation = (Math.PI - 2 * Math.atan2(dx, dy)) * Math.RAD_TO_DEG;
+            this.addChild(backCon);
+            /**
+             * 绘制遮罩并计算面积
+             *
+             * @param {Point[]} points
+             * @param {egret.Shape} mask
+             * @param {number} length
+             * @returns
+             */
+            function calculateAndDraw(points, mask, length) {
+                //面积计算公式
+                // S=（（X2-X1）*  (Y2+Y1)+（X2-X2）*  (Y3+Y2)+（X4-X3）*  (Y4+Y3)+……+（Xn-Xn-1）*  (Yn+Yn-1)+（X1-Xn）*  (Y1+Yn)）/2
+                var g = mask.graphics;
+                //points的length一定为3或者4，所以不做检测
+                g.clear();
+                var p0 = points[0];
+                g.beginFill(0);
+                g.moveTo(p0.x, p0.y);
+                var s = 0;
+                var last = p0;
+                for (var i = 1; i < length; i++) {
+                    var p_1 = points[i];
+                    g.lineTo(p_1.x, p_1.y);
+                    s += (p_1.x - last.x) * (p_1.y + last.y);
+                    last = p_1;
+                }
+                s += (p0.x - last.x) * (p0.y + last.y);
+                g.lineTo(p0.x, p0.y);
+                g.endFill();
+                return s * 0.5;
+            }
+        };
+        return Flip;
+    }(egret.Sprite));
+    junyou.Flip = Flip;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
