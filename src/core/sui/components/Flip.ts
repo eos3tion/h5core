@@ -33,9 +33,9 @@ module junyou {
     export class Flip extends egret.Sprite {
 
 
-        protected frontBmp = new egret.Bitmap();
+        protected frontDis: egret.DisplayObject;
 
-        protected backBmp = new egret.Bitmap();
+        protected backDis: egret.DisplayObject;
 
         protected frontCon = new egret.Sprite();
 
@@ -109,12 +109,12 @@ module junyou {
         protected frontPoints = [] as Point[];
 
         /**
-         * 设置页面前后的纹理
+         * 设置纹理
          * 
-         * @param {(egret.Texture | egret.DisplayObject)} front 正面纹理
-         * @param {(egret.Texture | egret.DisplayObject)} back 反面纹理
-         * @param {any} [supportedCorner=FlipCorner.TopLeft | FlipCorner.BottomLeft] 支持拖拽的角
-         * @param {Size} [size] 页面大小
+         * @param {(egret.Texture | egret.DisplayObject)} front 
+         * @param {(egret.Texture | egret.DisplayObject)} [back] 
+         * @param {any} [supportedCorner=FlipCorner.TopLeft | FlipCorner.BottomLeft] 
+         * @param {Size} [size] 
          */
         init(front: egret.Texture | egret.DisplayObject, back?: egret.Texture | egret.DisplayObject, supportedCorner = FlipCorner.TopLeft | FlipCorner.BottomLeft, size?: Size) {
             let ftex = getTexture(front);
@@ -128,22 +128,38 @@ module junyou {
                     return tester;
                 }
             }
-            let { frontCon, backCon, frontBmp, backBmp, frontMask, backMask } = this;
+            let frontDis = new egret.Bitmap();
+            let backDis = new egret.Bitmap();
+            frontDis.texture = ftex;
+            backDis.texture = btex;
+            this.init2(frontDis, backDis, supportedCorner, size);
+        }
+
+        /**
+         * 设置页面前后的可视对象
+         * 
+         * @param {(egret.DisplayObject)} front 正面纹理
+         * @param {(egret.DisplayObject)} back 反面纹理
+         * @param {any} [supportedCorner=FlipCorner.TopLeft | FlipCorner.BottomLeft] 支持拖拽的角
+         * @param {Size} [size] 页面大小
+         */
+        init2(front: egret.DisplayObject, back: egret.DisplayObject, supportedCorner = FlipCorner.TopLeft | FlipCorner.BottomLeft, size?: Size) {
+            let { frontCon, backCon, frontMask, backMask } = this;
+            this.frontDis = front;
+            this.backDis = back;
             this.sCorner = supportedCorner;
             this.touchEnabled = true;
-            frontCon.addChild(frontBmp);
+            frontCon.addChild(front);
             removeDisplay(frontMask);
-            frontBmp.texture = ftex;
-            frontBmp.mask = null;
-            backBmp.texture = btex;
-            backCon.addChild(backBmp);
-            backBmp.mask = backMask;
-            backBmp.scaleX = -1;
+            front.mask = null;
+            backCon.addChild(back);
+            back.mask = backMask;
+            back.scaleX = -1;
             backMask.scaleX = -1;
             removeDisplay(backMask);
             this.addChild(frontCon);
             if (!size) {
-                size = { width: frontBmp.width, height: frontBmp.height };
+                size = { width: front.width, height: front.height };
             }
             let { width, height } = size;
             this.bl = { x: 0, y: height };
@@ -201,8 +217,8 @@ module junyou {
         }
 
         protected reset() {
-            let { frontBmp, backCon, frontMask } = this;
-            frontBmp.mask = null;
+            let { frontDis, backCon, frontMask } = this;
+            frontDis.mask = null;
             removeDisplay(frontMask);
             removeDisplay(backCon);
         }
@@ -218,7 +234,7 @@ module junyou {
                 this.reset();
                 return;
             }
-            let { cCorner, backMask, frontCon, backBmp, frontBmp, backCon, frontMask, backPoints, frontPoints } = this;
+            let { cCorner, backMask, frontCon, backDis, frontDis, backCon, frontMask, backPoints, frontPoints } = this;
             let cX = oX + dx * 0.5;
             let cY = oY + dy * 0.5;
             let tan = dy / dx;
@@ -348,7 +364,7 @@ module junyou {
             //绘制遮罩
             this.farea = calculateAndDraw(frontPoints, frontMask, fi);
             this.barea = calculateAndDraw(backPoints, backMask, bi);
-            frontBmp.mask = frontMask;
+            frontDis.mask = frontMask;
             frontCon.addChild(frontMask);
             backCon.addChild(backMask);
             backCon.anchorOffsetX = -topX;

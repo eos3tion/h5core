@@ -2724,7 +2724,7 @@ declare module junyou {
          * @memberOf PBStructDict
          */
         $$inted?: any;
-        /**消息名称*/ [index: string]: PBStruct;
+        /**消息名称*/[index: string]: PBStruct;
     }
     /**
      *
@@ -3617,9 +3617,9 @@ declare module junyou {
         x: number;
         y: number;
     }): {
-        x: number;
-        y: number;
-    };
+            x: number;
+            y: number;
+        };
     /**
      * 检查类矩形 a 和 b 是否相交
      * @export
@@ -4685,8 +4685,8 @@ declare module junyou {
         constructor(TCreator: {
             new (): T;
         } | {
-            (): T;
-        }, max?: number);
+                (): T;
+            }, max?: number);
     }
     interface RecyclablePool<T extends IRecyclable> {
         /**
@@ -6965,8 +6965,8 @@ declare module junyou {
      * @class Flip
      */
     class Flip extends egret.Sprite {
-        protected frontBmp: egret.Bitmap;
-        protected backBmp: egret.Bitmap;
+        protected frontDis: egret.DisplayObject;
+        protected backDis: egret.DisplayObject;
         protected frontCon: egret.Sprite;
         protected backCon: egret.Sprite;
         protected frontMask: egret.Shape;
@@ -7026,14 +7026,23 @@ declare module junyou {
         protected backPoints: Point[];
         protected frontPoints: Point[];
         /**
-         * 设置页面前后的纹理
+         * 设置纹理
          *
-         * @param {(egret.Texture | egret.DisplayObject)} front 正面纹理
-         * @param {(egret.Texture | egret.DisplayObject)} back 反面纹理
+         * @param {(egret.Texture | egret.DisplayObject)} front
+         * @param {(egret.Texture | egret.DisplayObject)} [back]
+         * @param {any} [supportedCorner=FlipCorner.TopLeft | FlipCorner.BottomLeft]
+         * @param {Size} [size]
+         */
+        init(front: egret.Texture | egret.DisplayObject, back?: egret.Texture | egret.DisplayObject, supportedCorner?: number, size?: Size): void;
+        /**
+         * 设置页面前后的可视对象
+         *
+         * @param {(egret.DisplayObject)} front 正面纹理
+         * @param {(egret.DisplayObject)} back 反面纹理
          * @param {any} [supportedCorner=FlipCorner.TopLeft | FlipCorner.BottomLeft] 支持拖拽的角
          * @param {Size} [size] 页面大小
          */
-        init(front: egret.Texture | egret.DisplayObject, back?: egret.Texture | egret.DisplayObject, supportedCorner?: number, size?: Size): void;
+        init2(front: egret.DisplayObject, back: egret.DisplayObject, supportedCorner?: number, size?: Size): void;
         protected touchBegin(e: TE): void;
         protected touchMove(e: TE): void;
         protected touchEnd(e: TE): void;
@@ -8756,9 +8765,9 @@ declare module junyou {
             x: number;
             y: number;
         }, hoffset?: number, voffset?: number, innerV?: boolean, innerH?: boolean): {
-            x: number;
-            y: number;
-        };
+                x: number;
+                y: number;
+            };
         tipLayout(dis: LayoutDisplay, point: Point, result?: {
             x: number;
             y: number;
@@ -8767,9 +8776,9 @@ declare module junyou {
             x: number;
             y: number;
         }, padx?: number, pady?: number, parent?: LayoutDisplayParent): {
-            x: number;
-            y: number;
-        };
+                x: number;
+                y: number;
+            };
     };
 }
 declare module junyou {

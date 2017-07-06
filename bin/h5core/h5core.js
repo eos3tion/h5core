@@ -12796,8 +12796,6 @@ var junyou;
         __extends(Flip, _super);
         function Flip() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
-            _this.frontBmp = new egret.Bitmap();
-            _this.backBmp = new egret.Bitmap();
             _this.frontCon = new egret.Sprite();
             _this.backCon = new egret.Sprite();
             _this.frontMask = new egret.Shape();
@@ -12807,12 +12805,12 @@ var junyou;
             return _this;
         }
         /**
-         * 设置页面前后的纹理
+         * 设置纹理
          *
-         * @param {(egret.Texture | egret.DisplayObject)} front 正面纹理
-         * @param {(egret.Texture | egret.DisplayObject)} back 反面纹理
-         * @param {any} [supportedCorner=FlipCorner.TopLeft | FlipCorner.BottomLeft] 支持拖拽的角
-         * @param {Size} [size] 页面大小
+         * @param {(egret.Texture | egret.DisplayObject)} front
+         * @param {(egret.Texture | egret.DisplayObject)} [back]
+         * @param {any} [supportedCorner=FlipCorner.TopLeft | FlipCorner.BottomLeft]
+         * @param {Size} [size]
          */
         Flip.prototype.init = function (front, back, supportedCorner, size) {
             if (supportedCorner === void 0) { supportedCorner = 1 /* TopLeft */ | 4 /* BottomLeft */; }
@@ -12828,22 +12826,38 @@ var junyou;
                     return tester;
                 }
             }
-            var _a = this, frontCon = _a.frontCon, backCon = _a.backCon, frontBmp = _a.frontBmp, backBmp = _a.backBmp, frontMask = _a.frontMask, backMask = _a.backMask;
+            var frontDis = new egret.Bitmap();
+            var backDis = new egret.Bitmap();
+            frontDis.texture = ftex;
+            backDis.texture = btex;
+            this.init2(frontDis, backDis, supportedCorner, size);
+        };
+        /**
+         * 设置页面前后的可视对象
+         *
+         * @param {(egret.DisplayObject)} front 正面纹理
+         * @param {(egret.DisplayObject)} back 反面纹理
+         * @param {any} [supportedCorner=FlipCorner.TopLeft | FlipCorner.BottomLeft] 支持拖拽的角
+         * @param {Size} [size] 页面大小
+         */
+        Flip.prototype.init2 = function (front, back, supportedCorner, size) {
+            if (supportedCorner === void 0) { supportedCorner = 1 /* TopLeft */ | 4 /* BottomLeft */; }
+            var _a = this, frontCon = _a.frontCon, backCon = _a.backCon, frontMask = _a.frontMask, backMask = _a.backMask;
+            this.frontDis = front;
+            this.backDis = back;
             this.sCorner = supportedCorner;
             this.touchEnabled = true;
-            frontCon.addChild(frontBmp);
+            frontCon.addChild(front);
             junyou.removeDisplay(frontMask);
-            frontBmp.texture = ftex;
-            frontBmp.mask = null;
-            backBmp.texture = btex;
-            backCon.addChild(backBmp);
-            backBmp.mask = backMask;
-            backBmp.scaleX = -1;
+            front.mask = null;
+            backCon.addChild(back);
+            back.mask = backMask;
+            back.scaleX = -1;
             backMask.scaleX = -1;
             junyou.removeDisplay(backMask);
             this.addChild(frontCon);
             if (!size) {
-                size = { width: frontBmp.width, height: frontBmp.height };
+                size = { width: front.width, height: front.height };
             }
             var width = size.width, height = size.height;
             this.bl = { x: 0, y: height };
@@ -12895,8 +12909,8 @@ var junyou;
             stage.off(TE.TOUCH_RELEASE_OUTSIDE, this.touchEnd, this);
         };
         Flip.prototype.reset = function () {
-            var _a = this, frontBmp = _a.frontBmp, backCon = _a.backCon, frontMask = _a.frontMask;
-            frontBmp.mask = null;
+            var _a = this, frontDis = _a.frontDis, backCon = _a.backCon, frontMask = _a.frontMask;
+            frontDis.mask = null;
             junyou.removeDisplay(frontMask);
             junyou.removeDisplay(backCon);
         };
@@ -12911,7 +12925,7 @@ var junyou;
                 this.reset();
                 return;
             }
-            var _b = this, cCorner = _b.cCorner, backMask = _b.backMask, frontCon = _b.frontCon, backBmp = _b.backBmp, frontBmp = _b.frontBmp, backCon = _b.backCon, frontMask = _b.frontMask, backPoints = _b.backPoints, frontPoints = _b.frontPoints;
+            var _b = this, cCorner = _b.cCorner, backMask = _b.backMask, frontCon = _b.frontCon, backDis = _b.backDis, frontDis = _b.frontDis, backCon = _b.backCon, frontMask = _b.frontMask, backPoints = _b.backPoints, frontPoints = _b.frontPoints;
             var cX = oX + dx * 0.5;
             var cY = oY + dy * 0.5;
             var tan = dy / dx;
@@ -13045,7 +13059,7 @@ var junyou;
             //绘制遮罩
             this.farea = calculateAndDraw(frontPoints, frontMask, fi);
             this.barea = calculateAndDraw(backPoints, backMask, bi);
-            frontBmp.mask = frontMask;
+            frontDis.mask = frontMask;
             frontCon.addChild(frontMask);
             backCon.addChild(backMask);
             backCon.anchorOffsetX = -topX;
