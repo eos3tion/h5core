@@ -173,9 +173,9 @@ module junyou {
         protected touchBegin(e: TE) {
             //检查鼠标点是在上半区还是下半区
             let { width, height } = this.size;
-            let { localX, localY } = e;
-            let isTop = localY < height >> 1;
-            let isLeft = localX < width >> 1;
+            let { x, y } = this.getLocal(e);
+            let isTop = x < height >> 1;
+            let isLeft = y < width >> 1;
             let corner = isTop ? (isLeft ? FlipCorner.TopLeft : FlipCorner.TopRight) : (isLeft ? FlipCorner.BottomLeft : FlipCorner.BottomRight);
             this.farea = 0;
             this.barea = 0;
@@ -187,12 +187,20 @@ module junyou {
                 stage.on(TE.TOUCH_MOVE, this.touchMove, this);
                 stage.on(TE.TOUCH_END, this.touchEnd, this);
                 stage.on(TE.TOUCH_RELEASE_OUTSIDE, this.touchEnd, this);
-                this.draw(localX, localY);
+                this.draw(x, y);
             }
         }
 
         protected touchMove(e: TE) {
-            this.draw(e.localX, e.localY);
+            let { x, y } = this.getLocal(e);
+            this.draw(x, y);
+        }
+
+        protected getLocal(e: TE) {
+            let { stageX, stageY } = e;
+            let pt = Temp.EgretPoint;
+            this.globalToLocal(stageX, stageY, pt);
+            return pt;
         }
 
         protected touchEnd(e: TE) {
@@ -217,7 +225,7 @@ module junyou {
             stage.off(TE.TOUCH_RELEASE_OUTSIDE, this.touchEnd, this);
         }
 
-        protected reset() {
+        reset() {
             let { frontDis, backCon, frontMask } = this;
             frontDis.mask = null;
             removeDisplay(frontMask);

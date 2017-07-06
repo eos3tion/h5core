@@ -7045,9 +7045,10 @@ declare module junyou {
         init2(front: egret.DisplayObject, back: egret.DisplayObject, supportedCorner?: number, size?: Size): void;
         protected touchBegin(e: TE): void;
         protected touchMove(e: TE): void;
+        protected getLocal(e: TE): egret.Point;
         protected touchEnd(e: TE): void;
         protected clearEvents(): void;
-        protected reset(): void;
+        reset(): void;
         private draw(x, y);
     }
 }

@@ -12870,9 +12870,9 @@ var junyou;
         Flip.prototype.touchBegin = function (e) {
             //检查鼠标点是在上半区还是下半区
             var _a = this.size, width = _a.width, height = _a.height;
-            var localX = e.localX, localY = e.localY;
-            var isTop = localY < height >> 1;
-            var isLeft = localX < width >> 1;
+            var _b = this.getLocal(e), x = _b.x, y = _b.y;
+            var isTop = x < height >> 1;
+            var isLeft = y < width >> 1;
             var corner = isTop ? (isLeft ? 1 /* TopLeft */ : 2 /* TopRight */) : (isLeft ? 4 /* BottomLeft */ : 8 /* BottomRight */);
             this.farea = 0;
             this.barea = 0;
@@ -12884,11 +12884,18 @@ var junyou;
                 stage.on(TE.TOUCH_MOVE, this.touchMove, this);
                 stage.on(TE.TOUCH_END, this.touchEnd, this);
                 stage.on(TE.TOUCH_RELEASE_OUTSIDE, this.touchEnd, this);
-                this.draw(localX, localY);
+                this.draw(x, y);
             }
         };
         Flip.prototype.touchMove = function (e) {
-            this.draw(e.localX, e.localY);
+            var _a = this.getLocal(e), x = _a.x, y = _a.y;
+            this.draw(x, y);
+        };
+        Flip.prototype.getLocal = function (e) {
+            var stageX = e.stageX, stageY = e.stageY;
+            var pt = junyou.Temp.EgretPoint;
+            this.globalToLocal(stageX, stageY, pt);
+            return pt;
         };
         Flip.prototype.touchEnd = function (e) {
             // let { width, height } = this.size;
