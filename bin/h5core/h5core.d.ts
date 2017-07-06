@@ -6960,6 +6960,7 @@ declare module junyou {
     /**
      * 用于做翻页效果
      *
+     * @author 3tion
      * @export
      * @class Flip
      */
@@ -8755,6 +8756,17 @@ declare module junyou {
             x: number;
             y: number;
         }, hoffset?: number, voffset?: number, innerV?: boolean, innerH?: boolean): {
+            x: number;
+            y: number;
+        };
+        tipLayout(dis: LayoutDisplay, point: Point, result?: {
+            x: number;
+            y: number;
+        }, padx?: number, pady?: number, parent?: LayoutDisplayParent): void;
+        getTipLayoutPos(dis: LayoutDisplay, point: Point, result?: {
+            x: number;
+            y: number;
+        }, padx?: number, pady?: number, parent?: LayoutDisplayParent): {
             x: number;
             y: number;
         };

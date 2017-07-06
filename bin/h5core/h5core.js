@@ -12788,6 +12788,7 @@ var junyou;
     /**
      * 用于做翻页效果
      *
+     * @author 3tion
      * @export
      * @class Flip
      */
@@ -16792,7 +16793,63 @@ var junyou;
             result.x = Math.round(x + hoffset);
             result.y = Math.round(y + voffset);
             return result;
-        }
+        },
+        /**
+         * 基于鼠标位置的tip的布局方式
+         *
+         * @param {LayoutDisplay} dis 要被布局的可视对象
+         * @param {Point} point 传入的点
+         * @param {{ x: number, y: number }} [result]
+         * @param {number} [padx=0] 间隔x
+         * @param {number} [pady=0] 间隔y
+         * @param {LayoutDisplayParent} [parent] 容器的大小
+         */
+        tipLayout: function (dis, point, result, padx, pady, parent) {
+            if (padx === void 0) { padx = 0; }
+            if (pady === void 0) { pady = 0; }
+            junyou.Layout.getTipLayoutPos(dis, point, dis, padx, pady, parent);
+        },
+        /**
+         * 获取基于鼠标位置的tip的布局方式布局的坐标
+         *
+         * @param {LayoutDisplay} dis 要被布局的可视对象
+         * @param {Point} point 传入的点
+         * @param {{ x: number, y: number }} [result]
+         * @param {number} [padx=0] 间隔x
+         * @param {number} [pady=0] 间隔y
+         * @param {LayoutDisplayParent} [parent] 容器的大小
+         * @returns {Point} 计算后的坐标
+         */
+        getTipLayoutPos: function (dis, point, result, padx, pady, parent) {
+            if (padx === void 0) { padx = 0; }
+            if (pady === void 0) { pady = 0; }
+            var _a = junyou.Layout.getParentSize(dis, parent), parentWidth = _a[0], parentHeight = _a[1];
+            result = result || {};
+            var w = dis.width;
+            var h = dis.height;
+            var mx = point.x;
+            var my = point.y;
+            var x = mx + padx;
+            var y = my + pady;
+            if (w + x + padx > parentWidth) {
+                x = parentWidth - w - padx;
+                if (x < mx) {
+                    x = mx - w - padx;
+                }
+                if (x < 0) {
+                    x = padx;
+                }
+            }
+            if (h + my + pady > parentHeight) {
+                y = parentHeight - h - pady;
+                if (y < 0) {
+                    y = pady;
+                }
+            }
+            result.x = Math.round(x);
+            result.y = Math.round(y);
+            return result;
+        },
     };
 })(junyou || (junyou = {}));
 var $useDPR = true;

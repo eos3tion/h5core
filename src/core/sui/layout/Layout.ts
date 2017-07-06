@@ -223,6 +223,58 @@ module junyou {
             result.x = Math.round(x + hoffset);
             result.y = Math.round(y + voffset);
             return result;
-        }
+        },
+        /**
+         * 基于鼠标位置的tip的布局方式
+         * 
+         * @param {LayoutDisplay} dis 要被布局的可视对象
+         * @param {Point} point 传入的点
+         * @param {{ x: number, y: number }} [result] 
+         * @param {number} [padx=0] 间隔x
+         * @param {number} [pady=0] 间隔y
+         * @param {LayoutDisplayParent} [parent] 容器的大小
+         */
+        tipLayout(dis: LayoutDisplay, point: Point, result?: { x: number, y: number }, padx = 0, pady = 0, parent?: LayoutDisplayParent) {
+            Layout.getTipLayoutPos(dis, point, dis, padx, pady, parent);
+        },
+        /**
+         * 获取基于鼠标位置的tip的布局方式布局的坐标
+         * 
+         * @param {LayoutDisplay} dis 要被布局的可视对象
+         * @param {Point} point 传入的点
+         * @param {{ x: number, y: number }} [result] 
+         * @param {number} [padx=0] 间隔x
+         * @param {number} [pady=0] 间隔y
+         * @param {LayoutDisplayParent} [parent] 容器的大小
+         * @returns {Point} 计算后的坐标
+         */
+        getTipLayoutPos(dis: LayoutDisplay, point: Point, result?: { x: number, y: number }, padx = 0, pady = 0, parent?: LayoutDisplayParent) {
+            let [parentWidth, parentHeight] = Layout.getParentSize(dis, parent);
+            result = result || {} as { x: number, y: number };
+            let w = dis.width;
+            let h = dis.height;
+            let mx = point.x;
+            let my = point.y;
+            let x = mx + padx;
+            let y = my + pady;
+            if (w + x + padx > parentWidth) {
+                x = parentWidth - w - padx;
+                if (x < mx) {
+                    x = mx - w - padx;
+                }
+                if (x < 0) {
+                    x = padx;
+                }
+            }
+            if (h + my + pady > parentHeight) {
+                y = parentHeight - h - pady;
+                if (y < 0) {
+                    y = pady;
+                }
+            }
+            result.x = Math.round(x);
+            result.y = Math.round(y);
+            return result;
+        },
     }
 }
