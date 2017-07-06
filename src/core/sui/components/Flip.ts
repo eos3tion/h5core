@@ -145,6 +145,7 @@ module junyou {
          */
         init2(front: egret.DisplayObject, back: egret.DisplayObject, supportedCorner = FlipCorner.TopLeft | FlipCorner.BottomLeft, size?: Size) {
             let { frontCon, backCon, frontMask, backMask } = this;
+            front.x = front.y = back.x = back.y = 0;
             this.frontDis = front;
             this.backDis = back;
             this.sCorner = supportedCorner;

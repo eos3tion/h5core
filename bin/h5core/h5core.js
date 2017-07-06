@@ -12843,6 +12843,7 @@ var junyou;
         Flip.prototype.init2 = function (front, back, supportedCorner, size) {
             if (supportedCorner === void 0) { supportedCorner = 1 /* TopLeft */ | 4 /* BottomLeft */; }
             var _a = this, frontCon = _a.frontCon, backCon = _a.backCon, frontMask = _a.frontMask, backMask = _a.backMask;
+            front.x = front.y = back.x = back.y = 0;
             this.frontDis = front;
             this.backDis = back;
             this.sCorner = supportedCorner;
