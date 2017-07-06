@@ -128,7 +128,7 @@ module junyou {
         }
         function noErrorCallback(callback: Function, thisObj?: any) {
             return (err?: Error, ...args) => {
-                callback.apply(thisObj, args);
+                callback.call(thisObj, undefined, ...args);
             }
         }
         /**
