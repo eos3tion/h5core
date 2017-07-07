@@ -7617,12 +7617,13 @@ var junyou;
             }
             deleteCallback(id);
             var success = callback.success, error = callback.error;
+            var result;
             if (err) {
                 if (typeof err === "string") {
                     err = new Error(err);
                 }
                 if (error) {
-                    error.call(err);
+                    result = error.call(err);
                     error.recycle();
                 }
                 if (success) {
@@ -7634,10 +7635,11 @@ var junyou;
                     error.recycle();
                 }
                 if (success) {
-                    success.call(data);
+                    result = success.call(data);
                     success.recycle();
                 }
             }
+            return result;
         }
         function check() {
             var del = willDel;
@@ -10388,9 +10390,10 @@ var junyou;
         CallbackInfo.prototype.execute = function (doRecycle) {
             if (doRecycle === void 0) { doRecycle = true; }
             var callback = this.callback;
+            var result;
             if (callback != undefined) {
                 try {
-                    callback.apply(this.thisObj, this.args);
+                    result = callback.apply(this.thisObj, this.args);
                 }
                 catch (e) {
                     if (DEBUG) {
@@ -10407,6 +10410,7 @@ var junyou;
             if (doRecycle) {
                 this.recycle();
             }
+            return result;
         };
         /**
          * 用于执行其他参数
@@ -10421,7 +10425,7 @@ var junyou;
             if (this.args) {
                 args = args.concat(this.args);
             }
-            this.callback.apply(this.thisObj, args);
+            return this.callback.apply(this.thisObj, args);
         };
         CallbackInfo.prototype.onRecycle = function () {
             this.callback = undefined;

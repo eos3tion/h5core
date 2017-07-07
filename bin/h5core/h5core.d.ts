@@ -5515,13 +5515,13 @@ declare module junyou {
          * 回调函数，将以args作为参数，callback作为函数执行
          * @param {boolean} [doRecycle=true] 是否回收CallbackInfo，默认为true
          */
-        execute(doRecycle?: boolean): void;
+        execute(doRecycle?: boolean): any;
         /**
          * 用于执行其他参数
          * 初始的参数会按顺序放在末位
          * @param args (description)
          */
-        call(...args: any[]): void;
+        call(...args: any[]): any;
         onRecycle(): void;
         recycle: {
             ();

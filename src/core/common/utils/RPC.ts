@@ -173,12 +173,13 @@ module junyou {
             }
             deleteCallback(id);
             let { success, error } = callback;
+            let result;
             if (err) {
                 if (typeof err === "string") {
                     err = new Error(err);
                 }
                 if (error) {
-                    error.call(err);
+                    result = error.call(err);
                     error.recycle();
                 }
                 if (success) {
@@ -189,10 +190,11 @@ module junyou {
                     error.recycle();
                 }
                 if (success) {
-                    success.call(data);
+                    result = success.call(data);
                     success.recycle();
                 }
             }
+            return result;
         }
         function check() {
             let del = willDel;

@@ -58,9 +58,10 @@ module junyou {
          */
         public execute(doRecycle: boolean = true) {
             let callback = this.callback;
+            let result;
             if (callback != undefined) {
                 try {
-                    callback.apply(this.thisObj, this.args);
+                    result = callback.apply(this.thisObj, this.args);
                 } catch (e) {
                     if (DEBUG) {
                         let debug = <DebugInfo>this["_debug"];
@@ -75,6 +76,7 @@ module junyou {
             if (doRecycle) {
                 this.recycle();
             }
+            return result;
         }
 
         /**
@@ -86,7 +88,7 @@ module junyou {
             if (this.args) {
                 args = args.concat(this.args);
             }
-            this.callback.apply(this.thisObj, args);
+            return this.callback.apply(this.thisObj, args);
         }
 
         public onRecycle() {
