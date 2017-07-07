@@ -11125,6 +11125,13 @@ var junyou;
                 }
             }
         };
+        /**
+         * 关闭Mediator控制的面板
+         *
+         */
+        Mediator.prototype.hide = function () {
+            junyou.toggle(this._name, -1 /* HIDE */);
+        };
         return Mediator;
     }(junyou.ViewController));
     junyou.Mediator = Mediator;

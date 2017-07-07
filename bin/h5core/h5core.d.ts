@@ -5945,6 +5945,11 @@ declare module junyou {
          * @returns
          */
         protected dependerReadyCheck(): void;
+        /**
+         * 关闭Mediator控制的面板
+         *
+         */
+        hide(): void;
     }
 }
 declare module junyou {
