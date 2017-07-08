@@ -5949,7 +5949,7 @@ declare module junyou {
          * 关闭Mediator控制的面板
          *
          */
-        hide(): void;
+        hide(...arg: any[]): any;
     }
 }
 declare module junyou {
