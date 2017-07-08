@@ -83,7 +83,7 @@ module junyou {
     }
 
     export const RPC: RPCInterface = (function () {
-        let seed = 0;
+        let seed = 1;
         let callbacks = {} as { [index: number]: RPCCallback };
         const Timeout = "RPCTimeout";
         let count = 0;

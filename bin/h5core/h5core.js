@@ -7518,7 +7518,7 @@ var junyou;
 var junyou;
 (function (junyou) {
     junyou.RPC = (function () {
-        var seed = 0;
+        var seed = 1;
         var callbacks = {};
         var Timeout = "RPCTimeout";
         var count = 0;
@@ -11129,10 +11129,6 @@ var junyou;
                 }
             }
         };
-        /**
-         * 关闭Mediator控制的面板
-         *
-         */
         Mediator.prototype.hide = function () {
             junyou.toggle(this._name, -1 /* HIDE */);
         };
