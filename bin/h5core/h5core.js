@@ -12878,8 +12878,8 @@ var junyou;
             //检查鼠标点是在上半区还是下半区
             var _a = this.size, width = _a.width, height = _a.height;
             var _b = this.getLocal(e), x = _b.x, y = _b.y;
-            var isTop = x < height >> 1;
-            var isLeft = y < width >> 1;
+            var isTop = y < height >> 1;
+            var isLeft = x < width >> 1;
             var corner = isTop ? (isLeft ? 1 /* TopLeft */ : 2 /* TopRight */) : (isLeft ? 4 /* BottomLeft */ : 8 /* BottomRight */);
             this.farea = 0;
             this.barea = 0;

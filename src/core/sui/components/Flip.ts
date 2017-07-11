@@ -174,8 +174,8 @@ module junyou {
             //检查鼠标点是在上半区还是下半区
             let { width, height } = this.size;
             let { x, y } = this.getLocal(e);
-            let isTop = x < height >> 1;
-            let isLeft = y < width >> 1;
+            let isTop = y < height >> 1;
+            let isLeft = x < width >> 1;
             let corner = isTop ? (isLeft ? FlipCorner.TopLeft : FlipCorner.TopRight) : (isLeft ? FlipCorner.BottomLeft : FlipCorner.BottomRight);
             this.farea = 0;
             this.barea = 0;
