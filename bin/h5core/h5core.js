@@ -12343,7 +12343,7 @@ var junyou;
         };
         Panel.prototype.suiDataFailed = function (suiData) {
             //暂时用alert
-            alert(this._className + "加载失败");
+            // alert(this._className + "加载失败");
         };
         /**
          * 绑定皮肤
