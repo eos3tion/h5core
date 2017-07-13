@@ -6939,12 +6939,13 @@ var junyou;
              */
             getDefaultCDFOption: function (format) {
                 if (!_defaultCountFormats) {
+                    var LangUtil_1 = junyou.LangUtil;
                     _defaultCountFormats = (_a = {},
-                        _a[0 /* D_H_M_S */] = { d: junyou.LangUtil.getMsg("$_ndays"), h: junyou.LangUtil.getMsg("$_nhours"), m: junyou.LangUtil.getMsg("$_nminutes"), s: junyou.LangUtil.getMsg("$_nsecends") },
-                        _a[1 /* H_M_S */] = { h: junyou.LangUtil.getMsg("$_nhours"), m: junyou.LangUtil.getMsg("$_nminutes"), s: junyou.LangUtil.getMsg("$_nsecends") },
-                        _a[2 /* H_M */] = { h: junyou.LangUtil.getMsg("$_nhours"), m: junyou.LangUtil.getMsg("$_nminutes") },
-                        _a[3 /* M_S */] = { m: junyou.LangUtil.getMsg("$_nminutes"), s: junyou.LangUtil.getMsg("$_nsecends") },
-                        _a[4 /* S */] = { s: junyou.LangUtil.getMsg("$_nsecends") },
+                        _a[0 /* D_H_M_S */] = { d: LangUtil_1.getMsg("$_ndays"), h: LangUtil_1.getMsg("$_nhours"), m: LangUtil_1.getMsg("$_nminutes"), s: LangUtil_1.getMsg("$_nsecends") },
+                        _a[1 /* H_M_S */] = { h: LangUtil_1.getMsg("$_nhours"), m: LangUtil_1.getMsg("$_nminutes"), s: LangUtil_1.getMsg("$_nsecends") },
+                        _a[2 /* H_M */] = { h: LangUtil_1.getMsg("$_nhours"), m: LangUtil_1.getMsg("$_nminutes") },
+                        _a[3 /* M_S */] = { m: LangUtil_1.getMsg("$_nminutes"), s: LangUtil_1.getMsg("$_nsecends") },
+                        _a[4 /* S */] = { s: LangUtil_1.getMsg("$_nsecends") },
                         _a);
                     junyou.DateUtils.getDefaultCDFOption = getDefaultCDFOption;
                 }
@@ -8124,6 +8125,31 @@ var junyou;
             }
         }
     })();
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 处理链接地址
+     * 如果是http:// 或者  https:// 获取//开头的地址，直接返回
+     * 否则拼接当前地址的 href
+     * @export
+     * @param {string} link
+     * @param {string} [origin]
+     * @returns
+     */
+    function solveLink(link, origin) {
+        origin = origin || location.href;
+        if (!/^((http|https):)?\/\//.test(link)) {
+            if (window.URL) {
+                link = new URL(link, origin).href;
+            }
+            else {
+                link = origin + "/" + link;
+            }
+        }
+        return link;
+    }
+    junyou.solveLink = solveLink;
 })(junyou || (junyou = {}));
 /**
  * 脏字内容
