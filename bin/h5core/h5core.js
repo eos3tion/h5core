@@ -7264,6 +7264,83 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
+    junyou.DataUrlUtils = function () {
+        var _texture;
+        return {
+            /**
+             * 根据dataUrl获取 base64字符串
+             *
+             * @param {string} dataUrl
+             * @returns
+             */
+            getBase64: getBase64,
+            /**
+             * 根据dataUrl获取Uint8Array
+             *
+             * @param {string} dataUrl
+             * @returns
+             */
+            getBytes: getBytes,
+            /**
+             * 获取白鹭可视对象的dataUrl
+             *
+             * @param {egret.DisplayObject} dis
+             * @param {string} type
+             * @param {egret.Rectangle} [rect]
+             * @param {any} [encodeOptions]
+             * @returns
+             */
+            getDisplayDataURL: getDisplayDataURL,
+            /**
+             * 获取可视对象的Base64字符串
+             *
+             * @param {egret.DisplayObject} dis
+             * @param {string} type
+             * @param {egret.Rectangle} [rect]
+             * @param {any} [encodeOptions]
+             * @returns
+             */
+            getDisplayBase64: function (dis, type, rect, encodeOptions) {
+                return getBase64(getDisplayDataURL(dis, type, rect, encodeOptions));
+            },
+            /**
+             * 获取可视对象的Uint8字节流
+             *
+             * @param {egret.DisplayObject} dis
+             * @param {string} type
+             * @param {egret.Rectangle} [rect]
+             * @param {any} [encodeOptions]
+             * @returns
+             */
+            getDisplayBytes: function (dis, type, rect, encodeOptions) {
+                return getBytes(getDisplayDataURL(dis, type, rect, encodeOptions));
+            }
+        };
+        function getDisplayDataURL(dis, type, rect, encodeOptions) {
+            if (!_texture) {
+                _texture = new egret.RenderTexture;
+            }
+            rect = rect || dis.getBounds();
+            _texture.drawToTexture(dis, rect);
+            return _texture.toDataURL(type, rect, encodeOptions);
+        }
+        function getBase64(dataUrl) {
+            return dataUrl.substr(dataUrl.indexOf(",") + 1);
+        }
+        function getBytes(dataUrl) {
+            var b64 = this.getBase64(dataUrl);
+            var binaryString = window.atob(b64);
+            var len = binaryString.length;
+            var bytes = new Uint8Array(len);
+            for (var i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes;
+        }
+    }();
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
     /**
      * 滤镜辅助
      *
@@ -7287,8 +7364,9 @@ var junyou;
      * 获取多个点的几何中心点
      *
      * @export
-     * @param {{ x: number, y: number }[]} points 点集
-     * @returns 点集的几何中心点
+     * @param {Point[]} points 点集
+     * @param {Point} result 结果
+     * @returns {Point} 点集的几何中心点
      * @author gushuai
      */
     function getCenter(points, result) {
@@ -7309,9 +7387,9 @@ var junyou;
     /**
      * 检查类矩形 a 和 b 是否相交
      * @export
-     * @param {{ x: number, y: number, width: number, height: number }} a   类矩形a
-     * @param {{ x: number, y: number, width: number, height: number }} b   类矩形b
-     * @return true     表示两个类似矩形的物体相交
+     * @param {Rect} a   类矩形a
+     * @param {Rect} b   类矩形b
+     * @returns {boolean} true     表示两个类似矩形的物体相交
      *         false    表示两个类似矩形的物体不相交
      */
     function intersects(a, b) {
@@ -7323,6 +7401,26 @@ var junyou;
             && Math.max(a.y, b.y) <= Math.min(abottom, bbottom);
     }
     junyou.intersects = intersects;
+    /**
+     * 获取点集围成的区域的面积
+     * S=（（X2-X1）*  (Y2+Y1)+（X2-X2）*  (Y3+Y2)+（X4-X3）*  (Y4+Y3)+……+（Xn-Xn-1）*  (Yn+Yn-1)+（X1-Xn）*  (Y1+Yn)）/2
+     * @export
+     * @param {Point[]} points 点集
+     * @returns {number}
+     */
+    function getArea(points) {
+        var p0 = points[0];
+        var s = 0;
+        var last = p0;
+        for (var i = 1; i < length; i++) {
+            var p = points[i];
+            s += (p.x - last.x) * (p.y + last.y);
+            last = p;
+        }
+        s += (p0.x - last.x) * (p0.y + last.y);
+        return s * .5;
+    }
+    junyou.getArea = getArea;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {

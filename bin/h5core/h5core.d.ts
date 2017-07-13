@@ -2442,54 +2442,16 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     * mvc使用的事件区段
-     * -999~ -200
+     * 依赖其他数据的<br/>
+     * 依赖其他数据的东西，自身一定是异步的
+     * @author 3tion
      *
-     * @export
-     * @enum {number}
      */
-    const enum EventConst {
+    interface IDepender extends IAsync {
         /**
-         * 通知角标变更
+         * 方便检查是否实现了IDepender
          */
-        Notification = -999,
-        /**
-         * 模块检查器初始化完毕
-         */
-        MODULE_CHECKER_INITED = -998,
-        /**
-         * 尝试调用某个功能<br/>
-         * data 为功能ID
-         */
-        MODULE_TRY_TOGGLE = -997,
-        /**
-        * 有功能，服务端要求临时关闭<br/>
-        * data 为功能ID
-        */
-        MODULE_SERVER_CLOSE = -996,
-        /**
-        * 有临时关闭的功能，服务端要求再打开<br/>
-        * data 为功能ID
-        */
-        MODULE_SERVER_OPEN = -995,
-        /**
-         * 模块显示状态发生改变发生改变<br/>
-         * data 为剩余未显示的按钮数量
-         */
-        MODULE_SHOW_CHANGED = -994,
-        /**
-         * 有模块需要检查是否会造成显示变化
-         */
-        MODULE_NEED_CHECK_SHOW = -993,
-        /**
-         * 有模块不符合显示的条件
-         * data 为功能ID
-         */
-        MODULE_NOT_SHOW = -992,
-        /**
-         * 有模块显示了
-         */
-        MODULE_SHOW = -991,
+        addDepend(async: IAsync): any;
     }
 }
 declare module junyou {
@@ -2724,7 +2686,7 @@ declare module junyou {
          * @memberOf PBStructDict
          */
         $$inted?: any;
-        /**消息名称*/[index: string]: PBStruct;
+        /**消息名称*/ [index: string]: PBStruct;
     }
     /**
      *
@@ -3589,6 +3551,15 @@ declare module junyou {
     };
 }
 declare module junyou {
+    const DataUrlUtils: {
+        getBase64: (dataUrl: string) => string;
+        getBytes: (dataUrl: string) => Uint8Array;
+        getDisplayDataURL: (dis: egret.DisplayObject, type: string, rect?: egret.Rectangle, encodeOptions?: any) => string;
+        getDisplayBase64(dis: egret.DisplayObject, type: string, rect?: egret.Rectangle, encodeOptions?: any): string;
+        getDisplayBytes(dis: egret.DisplayObject, type: string, rect?: egret.Rectangle, encodeOptions?: any): Uint8Array;
+    };
+}
+declare module junyou {
     /**
      * 滤镜辅助
      *
@@ -3606,39 +3577,29 @@ declare module junyou {
      * 获取多个点的几何中心点
      *
      * @export
-     * @param {{ x: number, y: number }[]} points 点集
-     * @returns 点集的几何中心点
+     * @param {Point[]} points 点集
+     * @param {Point} result 结果
+     * @returns {Point} 点集的几何中心点
      * @author gushuai
      */
-    function getCenter(points: {
-        x: number;
-        y: number;
-    }[], result?: {
-        x: number;
-        y: number;
-    }): {
-            x: number;
-            y: number;
-        };
+    function getCenter(points: Point[], result?: Point): Point;
     /**
      * 检查类矩形 a 和 b 是否相交
      * @export
-     * @param {{ x: number, y: number, width: number, height: number }} a   类矩形a
-     * @param {{ x: number, y: number, width: number, height: number }} b   类矩形b
-     * @return true     表示两个类似矩形的物体相交
+     * @param {Rect} a   类矩形a
+     * @param {Rect} b   类矩形b
+     * @returns {boolean} true     表示两个类似矩形的物体相交
      *         false    表示两个类似矩形的物体不相交
      */
-    function intersects(a: {
-        x: number;
-        y: number;
-        width: number;
-        height: number;
-    }, b: {
-        x: number;
-        y: number;
-        width: number;
-        height: number;
-    }): boolean;
+    function intersects(a: Rect, b: Rect): boolean;
+    /**
+     * 获取点集围成的区域的面积
+     * S=（（X2-X1）*  (Y2+Y1)+（X2-X2）*  (Y3+Y2)+（X4-X3）*  (Y4+Y3)+……+（Xn-Xn-1）*  (Yn+Yn-1)+（X1-Xn）*  (Y1+Yn)）/2
+     * @export
+     * @param {Point[]} points 点集
+     * @returns {number}
+     */
+    function getArea(points: Point[]): number;
 }
 declare module junyou {
     /**
@@ -4685,8 +4646,8 @@ declare module junyou {
         constructor(TCreator: {
             new (): T;
         } | {
-                (): T;
-            }, max?: number);
+            (): T;
+        }, max?: number);
     }
     interface RecyclablePool<T extends IRecyclable> {
         /**
@@ -5478,20 +5439,6 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     * 依赖其他数据的<br/>
-     * 依赖其他数据的东西，自身一定是异步的
-     * @author 3tion
-     *
-     */
-    interface IDepender extends IAsync {
-        /**
-         * 方便检查是否实现了IDepender
-         */
-        addDepend(async: IAsync): any;
-    }
-}
-declare module junyou {
-    /**
      * 回调信息，用于存储回调数据
      * @author 3tion
      *
@@ -5544,6 +5491,58 @@ declare module junyou {
          * @param thisObj
          */
         static addToList<T extends Function>(list: CallbackInfo<T>[], handle: T, thisObj?: any, ...args: any[]): CallbackInfo<T>;
+    }
+}
+declare module junyou {
+    /**
+     * mvc使用的事件区段
+     * -999~ -200
+     *
+     * @export
+     * @enum {number}
+     */
+    const enum EventConst {
+        /**
+         * 通知角标变更
+         */
+        Notification = -999,
+        /**
+         * 模块检查器初始化完毕
+         */
+        MODULE_CHECKER_INITED = -998,
+        /**
+         * 尝试调用某个功能<br/>
+         * data 为功能ID
+         */
+        MODULE_TRY_TOGGLE = -997,
+        /**
+        * 有功能，服务端要求临时关闭<br/>
+        * data 为功能ID
+        */
+        MODULE_SERVER_CLOSE = -996,
+        /**
+        * 有临时关闭的功能，服务端要求再打开<br/>
+        * data 为功能ID
+        */
+        MODULE_SERVER_OPEN = -995,
+        /**
+         * 模块显示状态发生改变发生改变<br/>
+         * data 为剩余未显示的按钮数量
+         */
+        MODULE_SHOW_CHANGED = -994,
+        /**
+         * 有模块需要检查是否会造成显示变化
+         */
+        MODULE_NEED_CHECK_SHOW = -993,
+        /**
+         * 有模块不符合显示的条件
+         * data 为功能ID
+         */
+        MODULE_NOT_SHOW = -992,
+        /**
+         * 有模块显示了
+         */
+        MODULE_SHOW = -991,
     }
 }
 declare module junyou {
@@ -8771,9 +8770,9 @@ declare module junyou {
             x: number;
             y: number;
         }, hoffset?: number, voffset?: number, innerV?: boolean, innerH?: boolean): {
-                x: number;
-                y: number;
-            };
+            x: number;
+            y: number;
+        };
         tipLayout(dis: LayoutDisplay, point: Point, result?: {
             x: number;
             y: number;
@@ -8782,9 +8781,9 @@ declare module junyou {
             x: number;
             y: number;
         }, padx?: number, pady?: number, parent?: LayoutDisplayParent): {
-                x: number;
-                y: number;
-            };
+            x: number;
+            y: number;
+        };
     };
 }
 declare module junyou {
