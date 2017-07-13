@@ -29,14 +29,14 @@ module junyou {
 	 * @author 3tion
 	 *
 	 */
-    export class RecyclablePool<T extends IRecyclable> {
+    export class RecyclablePool<T> {
 
         private _pool: T[];
         private _max: number;
-        private _TCreator: { new (): T } | { (): T };
+        private _TCreator: { new(): T } | { (): T };
 
         public get(): T {
-            var ins: T;
+            var ins: T & IRecyclable;
             var pool = this._pool;
             if (pool.length) {
                 ins = pool.pop();
@@ -59,8 +59,8 @@ module junyou {
             let pool = this._pool;
             let idx = pool.indexOf(t);
             if (!~idx) {//不在池中才进行回收
-                if (typeof t["onRecycle"] === "function") {
-                    t.onRecycle();
+                if (typeof (t as IRecyclable).onRecycle === "function") {
+                    (t as IRecyclable).onRecycle();
                 }
                 if (pool.length < this._max) {
                     pool.push(t);
@@ -68,14 +68,14 @@ module junyou {
             }
         }
 
-        public constructor(TCreator: { new (): T } | { (): T }, max = 100) {
+        public constructor(TCreator: { new(): T } | { (): T }, max = 100) {
             this._pool = [];
             this._max = max;
             this._TCreator = TCreator;
         }
     }
 
-    export interface RecyclablePool<T extends IRecyclable> {
+    export interface RecyclablePool<T> {
         /**
          * getInstance的简写别名
          * 
@@ -90,7 +90,7 @@ module junyou {
 
     rpt.getInstance = rpt.get;
 
-    export declare type Recyclable<T extends IRecyclable> = T & { recycle(): void };
+    export declare type Recyclable<T> = T & { recycle(): void };
 
     if (DEBUG) {
         var _recid = 0;
@@ -104,7 +104,7 @@ module junyou {
      * @param {{ new (): T; _pool?: RecyclablePool<T> }} clazz
      * @returns {(T & { recycle() })}
      */
-    export function recyclable<T extends IRecyclable>(clazz: { new (): T; _pool?: RecyclablePool<T> }): Recyclable<T> {
+    export function recyclable<T>(clazz: { new(): T; _pool?: RecyclablePool<T> }): Recyclable<T> {
         let pool = clazz._pool;
         if (!pool) {
             pool = new RecyclablePool(clazz);

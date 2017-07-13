@@ -9072,7 +9072,7 @@ var junyou;
             var pool = this._pool;
             var idx = pool.indexOf(t);
             if (!~idx) {
-                if (typeof t["onRecycle"] === "function") {
+                if (typeof t.onRecycle === "function") {
                     t.onRecycle();
                 }
                 if (pool.length < this._max) {
