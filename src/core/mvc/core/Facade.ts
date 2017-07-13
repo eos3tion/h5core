@@ -21,7 +21,7 @@ module junyou {
          * 
          * @memberOf Facade
          */
-        public static getNameOfInline(inlineRef: { new (): any }, className?: string): string {
+        public static getNameOfInline(inlineRef: { new(): any }, className?: string): string {
             className = className || egret.getQualifiedClassName(inlineRef);
             let name: string;
             if ("NAME" in inlineRef) {//如果有 public static NAME 取这个作为名字
@@ -121,9 +121,12 @@ module junyou {
          * @param {string} [proxyName] 模块名称
          * @param {boolean} [async=false] 是否异步初始化，默认直接初始化
          */
-        public registerInlineProxy(ref: { new (): Proxy }, proxyName?: Key, async?: boolean) {
+        public registerInlineProxy(ref: { new(): Proxy }, proxyName?: Key, async?: boolean) {
             if (!ref) {
-                return ThrowError("registerInlineProxy时,没有ref")
+                if (DEBUG) {
+                    ThrowError("registerInlineProxy时,没有ref")
+                }
+                return
             }
             let className = egret.getQualifiedClassName(ref);
             if (!proxyName) {
@@ -149,9 +152,12 @@ module junyou {
          * @param {{ new (): Mediator }} ref Mediator创建器
          * @param {string} [mediatorName]   注册的模块名字
          */
-        public registerInlineMediator(ref: { new (): Mediator }, mediatorName?: Key) {
+        public registerInlineMediator(ref: { new(): Mediator }, mediatorName?: Key) {
             if (!ref) {
-                return ThrowError(`registerInlineMediator时,没有ref`)
+                if (DEBUG) {
+                    ThrowError(`registerInlineMediator时,没有ref`)
+                }
+                return
             }
             let className = egret.getQualifiedClassName(ref);
             if (!mediatorName) {
@@ -228,10 +234,11 @@ module junyou {
          */
         public getProxy(proxyName: Key, callback: { (proxy: Proxy, ...args: any[]) }, thisObj: any, ...args) {
             let dele = this._proxys[proxyName];
-            if (DEBUG) {
-                if (!dele) {
+            if (!dele) {
+                if (DEBUG) {
                     ThrowError("没有注册proxy的关系");
                 }
+                return
             }
             let bin = <ScriptSolveBin>{};
             bin.dele = dele;
@@ -267,10 +274,11 @@ module junyou {
          */
         public getMediator(moduleID: Key, callback: { (mediator: Mediator, ...args: any[]) }, thisObj: any, ...args) {
             let dele = this._mediators[moduleID];
-            if (DEBUG) {
-                if (!dele) {
+            if (!dele) {
+                if (DEBUG) {
                     ThrowError("没有注册Mediator的关系");
                 }
+                return
             }
             let bin = <ScriptSolveBin>{};
             bin.dele = dele;
