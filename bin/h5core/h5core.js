@@ -10742,7 +10742,10 @@ var junyou;
          */
         Facade.prototype.registerInlineProxy = function (ref, proxyName, async) {
             if (!ref) {
-                return junyou.ThrowError("registerInlineProxy时,没有ref");
+                if (DEBUG) {
+                    junyou.ThrowError("registerInlineProxy时,没有ref");
+                }
+                return;
             }
             var className = egret.getQualifiedClassName(ref);
             if (!proxyName) {
@@ -10769,7 +10772,10 @@ var junyou;
          */
         Facade.prototype.registerInlineMediator = function (ref, mediatorName) {
             if (!ref) {
-                return junyou.ThrowError("registerInlineMediator\u65F6,\u6CA1\u6709ref");
+                if (DEBUG) {
+                    junyou.ThrowError("registerInlineMediator\u65F6,\u6CA1\u6709ref");
+                }
+                return;
             }
             var className = egret.getQualifiedClassName(ref);
             if (!mediatorName) {
@@ -10844,10 +10850,11 @@ var junyou;
                 args[_i - 3] = arguments[_i];
             }
             var dele = this._proxys[proxyName];
-            if (DEBUG) {
-                if (!dele) {
+            if (!dele) {
+                if (DEBUG) {
                     junyou.ThrowError("没有注册proxy的关系");
                 }
+                return;
             }
             var bin = {};
             bin.dele = dele;
@@ -10885,10 +10892,11 @@ var junyou;
                 args[_i - 3] = arguments[_i];
             }
             var dele = this._mediators[moduleID];
-            if (DEBUG) {
-                if (!dele) {
+            if (!dele) {
+                if (DEBUG) {
                     junyou.ThrowError("没有注册Mediator的关系");
                 }
+                return;
             }
             var bin = {};
             bin.dele = dele;
