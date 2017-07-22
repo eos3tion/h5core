@@ -6,6 +6,7 @@ module junyou {
 	 *
 	 */
     export class AniRender extends BaseRender implements IRecyclable {
+        _render: any;
 
         /**
          * 0 初始化，未运行
@@ -34,6 +35,17 @@ module junyou {
          */
         handler?: CallbackInfo<{ (event: Key, render: AniRender, now?: number, ...args) }>;
 
+        /**
+         * 是否等待纹理数据加载完成，才播放
+         * 
+         * @type {boolean}
+         * @memberof AniRender
+         */
+        waitTexture?: boolean;
+
+        resOK: boolean;
+
+        plTime: number;
         protected _guid: number;
 
         /**
@@ -139,7 +151,7 @@ module junyou {
                 let display = this.display;
                 display.res = this._aniInfo.getResource();
                 if (this.state == AniPlayState.Playing) {
-                    display.on(Event.ENTER_FRAME, this.render, this);
+                    this.checkPlay();
                 }
             }
         }
@@ -148,12 +160,48 @@ module junyou {
          * 播放
          */
         public play(now?: number) {
-            now = now === void 0 ? Global.now : now;
+            let globalNow = Global.now;
+            now = now === void 0 ? globalNow : now;
+            this.plTime = globalNow;
             this.renderedTime = now;
             this.nextRenderTime = now;
             this.state = AniPlayState.Playing;
-            if (this.display.res) {
-                this.display.on(Event.ENTER_FRAME, this.render, this);
+            this.resOK = false;
+            this.checkPlay();
+        }
+
+        private checkPlay() {
+            let display = this.display;
+            let res = display.res;
+            if (res) {//资源已经ok
+                let old = this._render;
+                let render;
+                if (this.waitTexture) {
+                    let { a, d } = this;
+                    if (res.isResOK(a, d)) {
+                        if (!this.resOK) {
+                            this.resOK = true;
+                            //重新计算时间
+                            let deltaTime = Global.now - this.plTime;
+                            this.renderedTime = this.nextRenderTime = this.renderedTime + deltaTime;
+                        }
+                        render = this.render;
+                    } else {
+                        render = this.checkPlay;
+                        res.loadRes(a, d);
+                    }
+                } else {
+                    render = this.render;
+                }
+                if (old != render) {
+                    if (old) {
+                        display.off(Event.ENTER_FRAME, old, this);
+                    }
+                    if (render) {
+                        display.on(Event.ENTER_FRAME, render, this);
+                    }
+                }
+                this._render = render;
             }
         }
 
@@ -181,6 +229,9 @@ module junyou {
             }
             this.idx = 0;
             this._guid = NaN;
+            if (this.waitTexture) {
+                this.waitTexture = false;
+            }
             this.loop = undefined;
         }
 
@@ -257,6 +308,7 @@ module junyou {
                     recyclePolicy = AniRecyclePolicy.RecycleAll;
                 }
                 ani.recyclePolicy = recyclePolicy;
+                ani.waitTexture = !!option.waitTexture;
             }
             !guid && (guid = this.guid++);
             this._renderByGuid[guid] = ani;
@@ -362,5 +414,13 @@ module junyou {
          * @memberof AniOption
          */
         recyclePolicy?: AniRecyclePolicy;
+
+        /**
+         * 
+         * 是否等待纹理加载完，才播放
+         * @type {boolean}
+         * @memberof AniOption
+         */
+        waitTexture?: boolean;
     }
 }
