@@ -15,7 +15,7 @@ interface Window {
     XMLHttpRequest?: XMLHttpRequest;
 }
 
-// interface ActiveXObject {
-//     new (key: "MSXML2.XMLHTTP"): XMLHttpRequest
-// }
-// declare const ActiveXObject: ActiveXObject;
+interface ActiveXObject {
+    new (key: "MSXML2.XMLHTTP"): XMLHttpRequest
+}
+declare const ActiveXObject: ActiveXObject;
