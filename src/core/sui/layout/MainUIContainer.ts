@@ -9,8 +9,8 @@ if ((window as any).$useDPR) {
             if (scaleMode == egret.StageScaleMode.NO_SCALE) {
                 result.stageHeight *= dpr;
                 result.stageWidth *= dpr;
-                return result;
             }
+            return result;
         }
     }
 }
