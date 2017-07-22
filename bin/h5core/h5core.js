@@ -266,7 +266,7 @@ var junyou;
                     creator.setBaseData(baseData);
                     return creator.get();
                 }
-                else if (true) {
+                else if (DEBUG) {
                     junyou.ThrowError("\u6CA1\u6709\u5728[" + suiData.key + "]\u627E\u5230\u5BF9\u5E94\u7EC4\u4EF6[" + className + "]");
                 }
             }
@@ -294,7 +294,7 @@ var junyou;
                     creator.parseData(data, suiData);
                     return creator.get();
                 }
-                else if (true) {
+                else if (DEBUG) {
                     junyou.ThrowError("createElement\u65F6\uFF0C\u6CA1\u6709\u627E\u5230\u5BF9\u5E94\u7EC4\u4EF6\uFF0C\u7D22\u5F15\uFF1A[" + +data[0] + "]");
                 }
             }
@@ -469,7 +469,7 @@ var junyou;
                     if (ele) {
                         view.addChild(ele);
                     }
-                    else if (true) {
+                    else if (DEBUG) {
                         junyou.ThrowError("\u6CA1\u6709\u6B63\u786E\u521B\u5EFA\u539F\u4EF6\uFF0C\u7C7B\u578B\uFF1A" + type + "\uFF0C\u6570\u636E\uFF1A" + JSON.stringify(data));
                     }
                 }
@@ -727,7 +727,7 @@ Object.defineProperties(String.prototype, {
 });
 String.zeroize = zeroize;
 String.regSubHandler = function (key, handler) {
-    if (true) {
+    if (DEBUG) {
         if (handler.length != 1) {
             junyou.ThrowError("String.regSubHandler\u6CE8\u518C\u7684\u51FD\u6570\uFF0C\u53C2\u6570\u6570\u91CF\u5FC5\u987B\u4E3A\u4E00\u4E2A\uFF0C\u5806\u6808\uFF1A\n" + new Error().stack + "\n\u51FD\u6570\u5185\u5BB9\uFF1A" + handler.toString());
         }
@@ -846,7 +846,7 @@ Object.defineProperties(Array.prototype, {
         value: function () {
             var key, descend;
             var len = arguments.length;
-            if (true && len > 2) {
+            if (DEBUG && len > 2) {
                 junyou.ThrowError("doSort\u53C2\u6570\u4E0D\u80FD\u8D85\u8FC72");
             }
             for (var i = 0; i < len; i++) {
@@ -881,7 +881,7 @@ Object.defineProperties(Array.prototype, {
                     var typea = typeof av;
                     var typeb = typeof bv;
                     if (typea == "object" || typeb == "object") {
-                        if (true) {
+                        if (DEBUG) {
                             junyou.ThrowError("multiSort \u6BD4\u8F83\u7684\u7C7B\u578B\u4E0D\u5E94\u4E3Aobject," + typea + "    " + typeb);
                         }
                         return 0;
@@ -894,7 +894,7 @@ Object.defineProperties(Array.prototype, {
                             av = def[typea];
                         }
                         else {
-                            if (true) {
+                            if (DEBUG) {
                                 junyou.ThrowError("multiSort \u6BD4\u8F83\u7684\u7C7B\u578B\u4E0D\u4E00\u81F4," + typea + "    " + typeb);
                             }
                             return 0;
@@ -1629,7 +1629,7 @@ var junyou;
          * 用于替换的方法,接收任意长度的数据，返回null
          */
         willReplacedFunction: function () {
-            if (true) {
+            if (DEBUG) {
                 junyou.ThrowError("\u9700\u8981\u88AB\u66FF\u6362\u7684\u65B9\u6CD5\uFF0C\u6CA1\u6709\u88AB\u66FF\u6362\uFF0C\u5806\u6808\u4FE1\u606F\uFF1A" + new Error().stack);
             }
         },
@@ -1719,7 +1719,7 @@ var junyou;
                 if (delta > 2000) {
                     nextRenderTime = now;
                     renderedTime = now;
-                    if (true) {
+                    if (DEBUG) {
                         console.log("Render\u4E0A\u6B21\u6267\u884C\u65F6\u95F4\u548C\u5F53\u524D\u65F6\u95F4\u5DEE\u503C\u8FC7\u957F[" + delta + "]\uFF0C\u53EF\u4EE5\u6267\u884C[" + delta / actionInfo.totalTime + "\u6B21\u603B\u5E8F\u5217]");
                     }
                     if (BaseRender.dispatchSlowRender) {
@@ -2916,7 +2916,7 @@ var junyou;
                 return;
             var v = render.view;
             if (!v) {
-                if (true) {
+                if (DEBUG) {
                     junyou.ThrowError("render[" + egret.getQualifiedClassName(render) + "]\u6CA1\u6709renderView");
                 }
                 return;
@@ -3881,7 +3881,7 @@ var junyou;
     }
     junyou.getMixin = getMixin;
 })(junyou || (junyou = {}));
-if (true) {
+if (DEBUG) {
     var $gm = $gm || {};
     $gm.__getNSFilter = function () {
         var args = [];
@@ -4051,7 +4051,7 @@ var junyou;
             this._sendBuffer = new junyou.ByteArray();
             this._tempBytes = new junyou.ByteArray();
             this._receiveMSG = {};
-            if (true) {
+            if (DEBUG) {
                 this.$writeNSLog = function (time, type, cmd, data) {
                     data = data == undefined ? undefined : JSON.parse(JSON.stringify(data));
                     var log = doFreeze({ time: time, type: type, cmd: cmd, data: data });
@@ -4143,7 +4143,7 @@ var junyou;
         };
         NetService.prototype._register = function (cmd, handler, priotity, once) {
             if (cmd > 32767 || cmd < -32768) {
-                if (true) {
+                if (DEBUG) {
                     junyou.ThrowError("\u534F\u8BAE\u53F7\u7684\u8303\u56F4\u5FC5\u987B\u662F-32768~32767\u4E4B\u95F4\uFF0C\u5F53\u524Dcmd:" + cmd);
                 }
                 return false;
@@ -4208,7 +4208,7 @@ var junyou;
             bytes.writeShort(cmd);
             if (dat == undefined) {
                 bytes.writeUnsignedShort(0);
-                if (true) {
+                if (DEBUG) {
                     var outdata = undefined;
                 }
             }
@@ -4216,12 +4216,12 @@ var junyou;
                 if (type in BytesLen) {
                     bytes.writeUnsignedShort(BytesLen[type]);
                 }
-                if (true) {
+                if (DEBUG) {
                     outdata = dat;
                 }
                 switch (type) {
                     case 0 /* Null */:
-                        if (true) {
+                        if (DEBUG) {
                             outdata = undefined;
                         }
                         break;
@@ -4247,14 +4247,14 @@ var junyou;
                         var b = dat;
                         bytes.writeUnsignedShort(b.length);
                         bytes.writeBytes(b);
-                        if (true) {
+                        if (DEBUG) {
                             outdata = Uint8Array.from(b.bytes);
                         }
                         break;
                     default:
                         var tempBytes = this._tempBytes;
                         tempBytes.clear();
-                        if (true) {
+                        if (DEBUG) {
                             outdata = {};
                             junyou.PBMessageUtils.writeTo(dat, data.msgType, tempBytes, outdata);
                         }
@@ -4266,7 +4266,7 @@ var junyou;
                         break;
                 }
             }
-            if (true) {
+            if (DEBUG) {
                 this.$writeNSLog(junyou.Global.now, "send", cmd, outdata);
             }
         };
@@ -4353,7 +4353,7 @@ var junyou;
                 bytes.position = endPos;
             }
             //调试时,显示接收的数据
-            if (true) {
+            if (DEBUG) {
                 var now = junyou.Global.now;
                 //分发数据
                 for (var i = 0; i < idx; i++) {
@@ -4740,7 +4740,7 @@ var junyou;
         req.on(egret.Event.COMPLETE, callBack(2 /* COMPLETE */));
         req.on(egret.IOErrorEvent.IO_ERROR, callBack(-1 /* FAILED */));
         var _requestState = 0 /* UNREQUEST */;
-        if (true) {
+        if (DEBUG) {
             var _url;
         }
         return function (url, always) {
@@ -4756,7 +4756,7 @@ var junyou;
             _requestState = 1 /* REQUESTING */;
             req.open(url, "GET");
             req.send();
-            if (true) {
+            if (DEBUG) {
                 _url = url;
                 console.log(_url, "send");
             }
@@ -4764,7 +4764,7 @@ var junyou;
         function callBack(state) {
             return function () {
                 _requestState = state;
-                if (true) {
+                if (DEBUG) {
                     console.log(_url, "callBack:", state);
                 }
                 if (_unSendList.length > 0) {
@@ -4855,7 +4855,7 @@ var junyou;
             var _this = _super.call(this) || this;
             _this.onOpen = function () {
                 _this._ws.onopen = null;
-                if (true) {
+                if (DEBUG) {
                     console.log("webSocket连接成功");
                 }
                 junyou.dispatch(-197 /* Connected */);
@@ -4866,7 +4866,7 @@ var junyou;
              * @protected
              */
             _this.onError = function (ev) {
-                if (true) {
+                if (DEBUG) {
                     junyou.ThrowError("socket发生错误", ev.error);
                 }
                 junyou.dispatch(-196 /* ConnectFailed */);
@@ -4877,7 +4877,7 @@ var junyou;
              * @protected
              */
             _this.onClose = function (ev) {
-                if (true) {
+                if (DEBUG) {
                     console.log("socket断开连接");
                 }
                 junyou.dispatch(-195 /* Disconnect */);
@@ -5005,7 +5005,7 @@ var junyou;
             if (typeof ins.onSpawn === "function") {
                 ins.onSpawn();
             }
-            if (true) {
+            if (DEBUG) {
                 ins._insid = _recid++;
             }
             return ins;
@@ -5031,7 +5031,7 @@ var junyou;
     __reflect(RecyclablePool.prototype, "junyou.RecyclablePool");
     var rpt = RecyclablePool.prototype;
     rpt.getInstance = rpt.get;
-    if (true) {
+    if (DEBUG) {
         var _recid = 0;
     }
     /**
@@ -5216,7 +5216,7 @@ var junyou;
                             url = rawData;
                         }
                         else {
-                            if (true) {
+                            if (DEBUG) {
                                 junyou.ThrowError("出现ImageAnalyzer本地缓存不支持的情况");
                             }
                         }
@@ -6885,7 +6885,7 @@ var junyou;
                 return +("0x" + c.substring(1));
             }
             else {
-                if (true) {
+                if (DEBUG) {
                     junyou.ThrowError("\u4F7F\u7528\u7684\u989C\u8272" + c + "\u6709\u8BEF");
                 }
                 return 0;
@@ -7220,7 +7220,7 @@ var junyou;
             var name = "";
             var SC = C[sex];
             if (!SC) {
-                if (true) {
+                if (DEBUG) {
                     junyou.ThrowError("性别必须为1或者2");
                 }
                 return;
@@ -7945,7 +7945,7 @@ var junyou;
      * @param {string | Error}  msg 描述
      **/
     junyou.ThrowError = (function () {
-        if (false) {
+        if (RELEASE) {
             /**
              * 内存中存储的错误数据信息
              *
@@ -7976,15 +7976,15 @@ var junyou;
                 err = new Error();
             }
             msg += "\n[stack]:\n" + err.stack;
-            if (true) {
+            if (DEBUG) {
                 msg = getMsg(msg);
             }
-            else if (false) {
+            else if (RELEASE) {
                 msg = pushMsg(msg);
             }
             console.log(msg, "color:red");
         };
-        if (false) {
+        if (RELEASE) {
             ThrowError.MaxCount = 50;
             ThrowError.errorMsg = errorMsg;
         }
@@ -8492,7 +8492,7 @@ var junyou;
      */
     var CallbackInfo = (function () {
         function CallbackInfo() {
-            if (true) {
+            if (DEBUG) {
                 var data = { enumerable: true, configurable: true };
                 data.get = function () {
                     return this._cb;
@@ -8533,14 +8533,14 @@ var junyou;
                     result = callback.apply(this.thisObj, this.args);
                 }
                 catch (e) {
-                    if (true) {
+                    if (DEBUG) {
                         var debug = this["_debug"];
                         junyou.ThrowError("CallbackInfo\u6267\u884C\u62A5\u9519\uFF0C\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n}==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + e.stack);
                         console.log.apply(console, ["参数列表"].concat(this.args));
                     }
                 }
             }
-            else if (true) {
+            else if (DEBUG) {
                 var debug = this["_debug"];
                 junyou.ThrowError("\u5BF9\u5DF2\u56DE\u6536\u7684CallbackInfo\u6267\u884C\u4E86\u56DE\u8C03\uFF0C\u6700\u540E\u4E00\u6B21\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + new Error().stack);
             }
@@ -8796,7 +8796,7 @@ var junyou;
          * @platform Web,Native
          */
         Watcher.watch = function (host, chain, handler, thisObject) {
-            if (true) {
+            if (DEBUG) {
                 if (!chain) {
                     egret.$error(1003, "chain");
                 }
@@ -9327,7 +9327,7 @@ var junyou;
      * @platform Web,Native
      */
     function registerBindable(instance, property) {
-        if (true) {
+        if (DEBUG) {
             if (!instance) {
                 egret.$error(1003, "instance");
             }
@@ -10840,7 +10840,7 @@ var junyou;
     junyou.GDataParseUtils = {
         convertZuobiaoList: function (data, outVector) {
             if (data) {
-                if (true) {
+                if (DEBUG) {
                     var error = false;
                 }
                 for (var _i = 0, _a = data.split("|"); _i < _a.length; _i++) {
@@ -10849,18 +10849,18 @@ var junyou;
                     if (zuobiaoList.length == 2) {
                         var x = zuobiaoList[0];
                         var y = zuobiaoList[1];
-                        if (true) {
+                        if (DEBUG) {
                             if (+x != x || +y != y) {
                                 error = true;
                             }
                         }
                         outVector.push(new Point(+x, +y));
                     }
-                    else if (true) {
+                    else if (DEBUG) {
                         error = true;
                     }
                 }
-                if (true) {
+                if (DEBUG) {
                     if (error) {
                         junyou.ThrowError("格式不符合 x坐标(整数类型):y坐标(整数类型)|x坐标(整数类型):y坐标(整数类型)|x坐标(整数类型):y坐标(整数类型)");
                     }
@@ -10911,7 +10911,7 @@ var junyou;
             if (valuePrefix === void 0) { valuePrefix = "provalue"; }
             if (delOriginKey === void 0) { delOriginKey = true; }
             var xReg = new RegExp("^" + keyPrefix + "(\\d+)$");
-            if (true) {
+            if (DEBUG) {
                 var repeatedErr = "";
             }
             var keyCount = 0;
@@ -10920,7 +10920,7 @@ var junyou;
                 if (obj) {
                     var idx = +(obj[1]) || 0;
                     var valueKey = valuePrefix + idx;
-                    if (true) {
+                    if (DEBUG) {
                         if (key in xattr) {
                             repeatedErr += key + " ";
                         }
@@ -10936,7 +10936,7 @@ var junyou;
                     }
                 }
             }
-            if (true) {
+            if (DEBUG) {
                 if (repeatedErr) {
                     junyou.ThrowError("有重复的属性值:" + repeatedErr);
                 }
@@ -11140,7 +11140,7 @@ var junyou;
         __extends(Facade, _super);
         function Facade() {
             var _this = this;
-            if (true) {
+            if (DEBUG) {
                 if (junyou.facade) {
                     junyou.ThrowError("Facade重复赋值");
                 }
@@ -11228,7 +11228,7 @@ var junyou;
          */
         Facade.prototype.registerInlineProxy = function (ref, proxyName, async) {
             if (!ref) {
-                if (true) {
+                if (DEBUG) {
                     junyou.ThrowError("registerInlineProxy时,没有ref");
                 }
                 return;
@@ -11244,7 +11244,7 @@ var junyou;
                 dele.host = host;
                 junyou.facade.inject(host);
                 host.onRegister();
-                if (true) {
+                if (DEBUG) {
                     var name_6 = Facade.getNameOfInline(ref, className);
                     $gm[name_6] = host;
                 }
@@ -11258,7 +11258,7 @@ var junyou;
          */
         Facade.prototype.registerInlineMediator = function (ref, mediatorName) {
             if (!ref) {
-                if (true) {
+                if (DEBUG) {
                     junyou.ThrowError("registerInlineMediator\u65F6,\u6CA1\u6709ref");
                 }
                 return;
@@ -11277,7 +11277,7 @@ var junyou;
          */
         Facade.prototype.registerProxyConfig = function (className, proxyName, url, scriptid) {
             var dele;
-            if (true) {
+            if (DEBUG) {
                 dele = this._proxys[proxyName];
                 if (dele) {
                     junyou.ThrowError("模块定义重复:" + name);
@@ -11298,7 +11298,7 @@ var junyou;
          */
         Facade.prototype.registerMediatorConfig = function (className, moduleID, url, scriptid) {
             var dele;
-            if (true) {
+            if (DEBUG) {
                 dele = this._mediators[moduleID];
                 if (dele) {
                     junyou.ThrowError("模块定义重复:" + name);
@@ -11337,7 +11337,7 @@ var junyou;
             }
             var dele = this._proxys[proxyName];
             if (!dele) {
-                if (true) {
+                if (DEBUG) {
                     junyou.ThrowError("没有注册proxy的关系");
                 }
                 return;
@@ -11379,7 +11379,7 @@ var junyou;
             }
             var dele = this._mediators[moduleID];
             if (!dele) {
-                if (true) {
+                if (DEBUG) {
                     junyou.ThrowError("没有注册Mediator的关系");
                 }
                 return;
@@ -11504,7 +11504,7 @@ var junyou;
             if (typeof mediator[handlerName] === "function") {
                 mediator[handlerName].apply(mediator, args);
             }
-            else if (true) {
+            else if (DEBUG) {
                 junyou.ThrowError("无法在Mediator：" + mediator.name + "中找到方法[" + handlerName + "]");
             }
         };
@@ -11538,7 +11538,7 @@ var junyou;
             if (typeof proxy[handlerName] === "function") {
                 proxy[handlerName].apply(proxy, args);
             }
-            else if (true) {
+            else if (DEBUG) {
                 junyou.ThrowError("无法在Proxy：" + proxy.name + "中找到方法[" + handlerName + "]");
             }
         };
@@ -12238,7 +12238,7 @@ var junyou;
                 var _checks = this._checkers;
                 var _allById = this._allById;
                 if (_checks) {
-                    if (true) {
+                    if (DEBUG) {
                         var errString = "";
                         var limitWarn = "";
                         var unsolve = "";
@@ -12249,7 +12249,7 @@ var junyou;
                         var showtype = cfg.showtype;
                         if (showtype) {
                             checker = _checks[showtype];
-                            if (true) {
+                            if (DEBUG) {
                                 if (!checker) {
                                     unsolve += cfg.id + "的显示限制 ";
                                 }
@@ -12258,7 +12258,7 @@ var junyou;
                         var limittype = cfg.limittype;
                         if (limittype) {
                             checker = _checks[limittype];
-                            if (true) {
+                            if (DEBUG) {
                                 if (!checker) {
                                     unsolve += cfg.id + "的使用限制 ";
                                 }
@@ -12267,10 +12267,10 @@ var junyou;
                         if (showtype == limittype) {
                             if (showtype) {
                                 if (checker) {
-                                    if (false) {
+                                    if (RELEASE) {
                                         checker.adjustLimitDatas(cfg.showlimits, cfg.limits);
                                     }
-                                    if (true) {
+                                    if (DEBUG) {
                                         if (checker.adjustLimitDatas(cfg.showlimits, cfg.limits)) {
                                             errString += cfg.id + " ";
                                         }
@@ -12279,7 +12279,7 @@ var junyou;
                             }
                         }
                         else {
-                            if (true) {
+                            if (DEBUG) {
                                 limitWarn += cfg.id + " ";
                             }
                         }
@@ -12295,7 +12295,7 @@ var junyou;
                             }
                         }
                     }
-                    if (true) {
+                    if (DEBUG) {
                         if (limitWarn) {
                             junyou.ThrowError("id为：" + limitWarn + "的功能配置，showtype和limittype不一致，请确认是否要这样，这种配置将无法通过程序的方式确认当可以使用功能的时候，是否一定看得见功能入口");
                         }
@@ -12316,7 +12316,7 @@ var junyou;
          */
         ModuleManager.prototype.isModuleShow = function (module) {
             var cfg = this.getCfg(module);
-            if (true) {
+            if (DEBUG) {
                 if (!cfg) {
                     junyou.ThrowError("\u6CA1\u6709\u627E\u5230\u5BF9\u5E94\u7684\u529F\u80FD\u914D\u7F6E[" + module + "]");
                 }
@@ -12337,12 +12337,12 @@ var junyou;
          */
         ModuleManager.prototype.isModuleOpened = function (module, showtip) {
             var cfg = this.getCfg(module);
-            if (true) {
+            if (DEBUG) {
                 if (!cfg) {
                     junyou.ThrowError("\u6CA1\u6709\u627E\u5230\u5BF9\u5E94\u7684\u529F\u80FD\u914D\u7F6E[" + module + "]");
                 }
             }
-            if (false || junyou.ClientCheck.isClientCheck) {
+            if (RELEASE || junyou.ClientCheck.isClientCheck) {
                 var flag = cfg && !cfg.close && cfg.serverOpen;
                 if (flag) {
                     if (this._checkers) {
@@ -12958,7 +12958,7 @@ var junyou;
                 }
                 var tx = txs[key];
                 if (!tx) {
-                    if (true) {
+                    if (DEBUG) {
                         junyou.ThrowError("\u4F20\u5165\u4E86\u7EB9\u7406\u4E2D\u6CA1\u6709\u7684\u6570\u636E[" + key + "]");
                     }
                     continue;
@@ -13088,7 +13088,7 @@ var junyou;
                         if (parent_6) {
                             return getPath(parent_6) + p.path;
                         }
-                        else if (true) {
+                        else if (DEBUG) {
                             junyou.ThrowError("\u8DEF\u5F84[" + p.path + "]\u914D\u7F6E\u4E86\u7236\u7EA7(parent)\uFF0C\u4F46\u662F\u627E\u4E0D\u5230\u5BF9\u5E94\u7684\u7236\u7EA7");
                         }
                     }
@@ -14430,7 +14430,7 @@ var junyou;
                 value = 0;
             }
             if (maxValue < 0) {
-                if (true) {
+                if (DEBUG) {
                     junyou.ThrowError("进度条最大宽度不应小等于0");
                 }
                 maxValue = 0.00001;
@@ -16504,7 +16504,7 @@ var junyou;
                     bin.handler(data);
                 }
                 catch (e) {
-                    if (true) {
+                    if (DEBUG) {
                         junyou.ThrowError("\u6267\u884C\u7F51\u7EDC\u56DE\u8C03\u65B9\u6CD5\u51FA\u9519" + JSON.stringify(data) + "\uFF0C\n\u9519\u8BEF\uFF1A" + e.message + "\uFF0C\u5806\u6808\uFF1A\n" + e.stack);
                     }
                 }
@@ -16888,7 +16888,7 @@ var junyou;
                         }
                     }
                     catch (e) {
-                        if (true) {
+                        if (DEBUG) {
                             junyou.ThrowError("\u89E3\u6790\u914D\u7F6E:" + key + "\u51FA\u9519\uFF0C\u5806\u6808\uFF1A" + e.stack);
                         }
                     }
@@ -16960,7 +16960,7 @@ var junyou;
         function commonParserForEach(t, idx, key, dict, idKey) {
             if (idKey in t) {
                 var id = t[idKey];
-                if (true) {
+                if (DEBUG) {
                     if (typeof id === "object") {
                         junyou.ThrowError("\u914D\u7F6E" + key + "\u7684\u6570\u636E\u6709\u8BEF\uFF0C\u552F\u4E00\u6807\u8BC6" + idKey + "\u4E0D\u80FD\u4E3A\u5BF9\u8C61");
                     }
@@ -16971,7 +16971,7 @@ var junyou;
                 dict[id] = t;
             }
             else {
-                if (true) {
+                if (DEBUG) {
                     junyou.ThrowError("\u914D\u7F6E" + key + "\u89E3\u6790\u6709\u8BEF\uFF0C\u65E0\u6CD5\u627E\u5230\u6307\u5B9A\u7684\u552F\u4E00\u6807\u793A\uFF1A" + idKey + "\uFF0C\u6570\u636E\u7D22\u5F15\uFF1A" + idx);
                 }
             }
@@ -17381,7 +17381,7 @@ var junyou;
             if (!tooltip) {
                 tooltip = ToolTipManager.defaultTip;
                 if (!tooltip) {
-                    if (true) {
+                    if (DEBUG) {
                         junyou.ThrowError("没有注册ToolTip的皮肤，并且没有默认的ToolTip");
                     }
                     return false;
@@ -17712,7 +17712,7 @@ var junyou;
                             break;
                         case 10 /* Group */:
                             value = undefined;
-                            if (true) {
+                            if (DEBUG) {
                                 junyou.ThrowError("\u8BFB\u53D6\u6D88\u606F\u7C7B\u578B\u4E3A\uFF1A" + msgType + "\uFF0C\u7D22\u5F15" + idx + "\u65F6\u6570\u636E\u51FA\u73B0\u5DF2\u5F03\u7528\u7684GROUP\u5206\u7EC4\u7C7B\u578B");
                             }
                             break;
@@ -17824,7 +17824,7 @@ var junyou;
                 var wireType = wireTypeMap[type];
                 var tag = (num << 3) | wireType;
                 if (label == 3 /* repeated */) {
-                    if (true) {
+                    if (DEBUG) {
                         var arr = [];
                         debugOutData[name_10] = arr;
                     }
@@ -17832,7 +17832,7 @@ var junyou;
                         var element = value[key];
                         // 针对repeated中无法处理空的占位数组做处理，Protobuf 2 中不支持undefined进行占位  由于 wireType 只使用 0 1 2 3 4 5
                         // 现在使用 7 作为  undefined 占位使用
-                        if (true) {
+                        if (DEBUG) {
                             arr.push(writeElementTo(element, type, element == undefined ? ((num << 3) | 7) : tag, bytes, subMsgType));
                         }
                         else {
@@ -17841,7 +17841,7 @@ var junyou;
                     }
                 }
                 else {
-                    if (true) {
+                    if (DEBUG) {
                         debugOutData[name_10] = writeElementTo(value, type, tag, bytes, subMsgType);
                     }
                     else {
@@ -17852,7 +17852,7 @@ var junyou;
             return bytes;
         }
         function writeElementTo(value, type, tag, bytes, subMsgType) {
-            if (true) {
+            if (DEBUG) {
                 var out = value;
             }
             bytes.writeVarint(tag);
@@ -17895,7 +17895,7 @@ var junyou;
                 case 12 /* Bytes */:
                 case 11 /* Message */:
                     if (type == 11 /* Message */) {
-                        if (true) {
+                        if (DEBUG) {
                             out = {};
                             temp = writeTo(value, subMsgType, null, out);
                         }
@@ -17905,7 +17905,7 @@ var junyou;
                     }
                     else if (type == 12 /* Bytes */) {
                         temp = value;
-                        if (true) {
+                        if (DEBUG) {
                             out = Uint8Array.from(temp.bytes);
                         }
                     }
@@ -17920,7 +17920,7 @@ var junyou;
                     }
                     break;
             }
-            if (true) {
+            if (DEBUG) {
                 return out;
             }
             function checkUInt32(value, type) {
@@ -17970,7 +17970,7 @@ var junyou;
                 if (!txt[ButtonKey]) {
                     txt[ButtonKey] = btn;
                 }
-                else if (true) {
+                else if (DEBUG) {
                     junyou.ThrowError("\u91CD\u590D\u7ED1\u5B9A\u4E86\u6587\u672C\u6846\u548C\u6309\u94AE");
                 }
                 txt.touchEnabled = true;
