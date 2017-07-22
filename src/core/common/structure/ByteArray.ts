@@ -181,8 +181,8 @@ module junyou {
         public readVarint(): number {
             var result = 0
             for (var i = 0; ; i += 7) {
-                var b = this.readUnsignedByte();
                 if (i < 32) {
+                    let b = this.readUnsignedByte();
                     if (b >= 0x80) {
                         result |= ((b & 0x7f) << i);
                     }
@@ -190,10 +190,8 @@ module junyou {
                         result |= (b << i);
                         break
                     }
-                }
-                else {
-                    while (this.readUnsignedByte() >= 0x80) {
-                    }
+                } else {
+                    while (this.readUnsignedByte() >= 0x80) { }
                     break
                 }
             }

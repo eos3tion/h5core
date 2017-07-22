@@ -6342,8 +6342,8 @@ var junyou;
         ByteArray.prototype.readVarint = function () {
             var result = 0;
             for (var i = 0;; i += 7) {
-                var b = this.readUnsignedByte();
                 if (i < 32) {
+                    var b = this.readUnsignedByte();
                     if (b >= 0x80) {
                         result |= ((b & 0x7f) << i);
                     }
@@ -6353,8 +6353,7 @@ var junyou;
                     }
                 }
                 else {
-                    while (this.readUnsignedByte() >= 0x80) {
-                    }
+                    while (this.readUnsignedByte() >= 0x80) { }
                     break;
                 }
             }
