@@ -37,7 +37,7 @@ module junyou {
     	/**
     	 * 创建器
     	 */
-        protected _creators: { [index: string]: { new (): BaseCreator<egret.DisplayObject> } };
+        protected _creators: { [index: string]: { new(): BaseCreator<egret.DisplayObject> } };
 
 
     	/**
@@ -53,7 +53,7 @@ module junyou {
         }
 
         protected initInlineCreators() {
-            let creators: { [index: string]: { new (): BaseCreator<egret.DisplayObject> } } = {};
+            let creators: { [index: string]: { new(): BaseCreator<egret.DisplayObject> } } = {};
             this._creators = creators;
             this._sharedTFCreator = new TextFieldCreator();
             creators[ExportType.Button] = ButtonCreator;
@@ -428,7 +428,7 @@ module junyou {
             if (data[0]) {
                 dis.name = data[0];
             }
-            let [, x, y, w, h, rot] = data;
+            let [, x, y, w, h, rot, alpha] = data;
             dis.suiRawRect = new egret.Rectangle(x, y, w, h);
             if (Array.isArray(rot)) {//matrix
                 let [a, b, c, d] = rot;
@@ -443,6 +443,9 @@ module junyou {
                 if (rot) {
                     dis.rotation = rot;
                 }
+            }
+            if (alpha != undefined) {
+                dis.alpha = alpha;
             }
         }
 
@@ -694,6 +697,14 @@ module junyou {
          * @memberOf BaseData
          */
         5: number | Array<number>;
+
+        /**
+         * alpha
+         * 
+         * @type {number}
+         * @memberof BaseData
+         */
+        6?: number;
     }
 
     export interface PanelData extends Array<any> {
