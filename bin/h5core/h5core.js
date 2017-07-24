@@ -8312,6 +8312,7 @@ var junyou;
             this.nextRenderTime = now;
             this.state = 1 /* Playing */;
             this.resOK = false;
+            this._render = undefined;
             this.checkPlay();
         };
         AniRender.prototype.checkPlay = function () {
@@ -8378,6 +8379,7 @@ var junyou;
                 this.waitTexture = false;
             }
             this.loop = undefined;
+            this._render = undefined;
         };
         AniRender.prototype.onSpawn = function () {
             this.f = 0;

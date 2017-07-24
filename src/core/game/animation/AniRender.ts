@@ -167,6 +167,7 @@ module junyou {
             this.nextRenderTime = now;
             this.state = AniPlayState.Playing;
             this.resOK = false;
+            this._render = undefined;
             this.checkPlay();
         }
 
@@ -233,6 +234,7 @@ module junyou {
                 this.waitTexture = false;
             }
             this.loop = undefined;
+            this._render = undefined;
         }
 
         public onSpawn() {
