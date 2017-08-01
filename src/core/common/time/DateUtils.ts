@@ -140,7 +140,7 @@ module junyou {
          * @static
          * @param {number} time			要格式化的时间，默认为UTC时间
          * @param {string} format 		  格式字符串 yyyy-MM-dd HH:mm:ss
-         * @param {boolean} [isRaw] 	是否为原始未使用utc偏移处理的时间，默认 false
+         * @param {boolean} [isRaw=true] 	是否为原始未使用utc偏移处理的时间，默认 true
          * @returns
          */
 		getFormatTime(time: number, format: string, isRaw?: boolean): string;
@@ -296,10 +296,10 @@ module junyou {
 			 * @static
 			 * @param {number} time			要格式化的时间，默认为UTC时间 
 			 * @param {string} format 		  格式字符串 yyyy-MM-dd HH:mm:ss
-			 * @param {boolean} [isRaw] 	是否为原始未使用utc偏移处理的时间，默认 false
+			 * @param {boolean} [isRaw=true] 	是否为原始未使用utc偏移处理的时间，默认 true
 			 * @returns 
 			 */
-			getFormatTime(time: number, format: string, isRaw?: boolean) {
+			getFormatTime(time: number, format: string, isRaw = true) {
 				if (isRaw) {
 					time = this.getUTCTime(time);
 				}

@@ -1,6 +1,3 @@
-var __reflect = (this && this.__reflect) || function (p, c, t) {
-    p.__class__ = c, t ? t.push(c) : t = [c], p.__types__ = p.__types__ ? t.concat(p.__types__) : t;
-};
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -542,7 +539,147 @@ var junyou;
         return SuiResManager;
     }());
     junyou.SuiResManager = SuiResManager;
-    __reflect(SuiResManager.prototype, "junyou.SuiResManager");
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * Mediator和Proxy的基类
+     * @author 3tion
+     *
+     */
+    var FHost = (function () {
+        function FHost(name) {
+            this._name = name;
+            this.checkInject();
+        }
+        Object.defineProperty(FHost.prototype, "name", {
+            /**
+             * 唯一标识
+             */
+            get: function () {
+                return this._name;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         * 检查依赖注入的数据
+         *
+         * @protected
+         *
+         * @memberOf FHost
+         */
+        FHost.prototype.checkInject = function () {
+            //此注入是对原型进行的注入，无法直接删除，也不要直接做清理
+            var idp = this._injectProxys;
+            if (idp) {
+                var proxyName = void 0;
+                //检查Proxy
+                for (var key in idp) {
+                    var ref = idp[key];
+                    if (typeof ref === "object") {
+                        proxyName = junyou.Facade.getNameOfInline(ref);
+                    }
+                    else {
+                        proxyName = ref;
+                    }
+                    junyou.proxyCall(proxyName, this.getProxyCallback, this, key);
+                }
+            }
+        };
+        FHost.prototype.addReadyExecute = function (handle, thisObj) {
+            var args = [];
+            for (var _i = 2; _i < arguments.length; _i++) {
+                args[_i - 2] = arguments[_i];
+            }
+            var _asyncHelper = this._asyncHelper;
+            if (!_asyncHelper) {
+                this._asyncHelper = _asyncHelper = new junyou.AsyncHelper();
+                _asyncHelper._ready = this.isReady;
+            }
+            _asyncHelper.addReadyExecute.apply(_asyncHelper, [handle, thisObj].concat(args));
+        };
+        Object.defineProperty(FHost.prototype, "isReady", {
+            get: function () {
+                return false;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        FHost.prototype.startSync = function () {
+        };
+        /**
+         * 添加依赖项
+         */
+        FHost.prototype.addDepend = function (async) {
+            if (!this._dependerHelper) {
+                this._dependerHelper = new junyou.DependerHelper(this, this.dependerReadyCheck);
+            }
+            this._dependerHelper.addDepend(async);
+        };
+        /**
+         *
+         * 获取模块回调
+         * @protected
+         * @param {Proxy} proxy 数据模块
+         * @param {any[]} args  回调参数
+         */
+        FHost.prototype.getProxyCallback = function (proxy, property) {
+            this[property] = proxy;
+            this.addDepend(proxy);
+        };
+        /**
+         * 依赖项，加载完成后的检查
+         */
+        FHost.prototype.dependerReadyCheck = function () {
+        };
+        /**
+         * 模块在Facade注册时执行
+         */
+        FHost.prototype.onRegister = function () {
+        };
+        /**
+         * 模块从Facade注销时
+         */
+        FHost.prototype.onRemove = function () {
+        };
+        /**
+         * 全部加载好以后要处理的事情<br/>
+         * 包括依赖项加载完毕
+         */
+        FHost.prototype.afterAllReady = function () {
+            // to be override
+        };
+        return FHost;
+    }());
+    junyou.FHost = FHost;
+    /**
+     *
+     * 附加依赖的Proxy
+     * @export
+     * @param {({ new (): IAsync } | string)} ref 如果注册的是Class，必须是Inline方式注册的Proxy
+     * @returns
+     */
+    function __dependProxy(ref) {
+        return function (target, key) {
+            var _injectProxys = target._injectProxys;
+            if (!_injectProxys) {
+                target._injectProxys = _injectProxys = {};
+            }
+            _injectProxys[key] = ref;
+        };
+    }
+    junyou.__dependProxy = __dependProxy;
+})(junyou || (junyou = {}));
+(function (junyou) {
+    /**
+     *
+     * 附加依赖的Proxy
+     * @export
+     * @param {({ new (): IAsync } | string)} ref
+     * @returns
+     */
+    junyou.d_dependProxy = junyou.__dependProxy;
 })(junyou || (junyou = {}));
 /**
  * 对数字进行补0操作
@@ -1102,148 +1239,6 @@ var egret;
 var junyou;
 (function (junyou) {
     /**
-     * Mediator和Proxy的基类
-     * @author 3tion
-     *
-     */
-    var FHost = (function () {
-        function FHost(name) {
-            this._name = name;
-            this.checkInject();
-        }
-        Object.defineProperty(FHost.prototype, "name", {
-            /**
-             * 唯一标识
-             */
-            get: function () {
-                return this._name;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        /**
-         * 检查依赖注入的数据
-         *
-         * @protected
-         *
-         * @memberOf FHost
-         */
-        FHost.prototype.checkInject = function () {
-            //此注入是对原型进行的注入，无法直接删除，也不要直接做清理
-            var idp = this._injectProxys;
-            if (idp) {
-                var proxyName = void 0;
-                //检查Proxy
-                for (var key in idp) {
-                    var ref = idp[key];
-                    if (typeof ref === "object") {
-                        proxyName = junyou.Facade.getNameOfInline(ref);
-                    }
-                    else {
-                        proxyName = ref;
-                    }
-                    junyou.proxyCall(proxyName, this.getProxyCallback, this, key);
-                }
-            }
-        };
-        FHost.prototype.addReadyExecute = function (handle, thisObj) {
-            var args = [];
-            for (var _i = 2; _i < arguments.length; _i++) {
-                args[_i - 2] = arguments[_i];
-            }
-            var _asyncHelper = this._asyncHelper;
-            if (!_asyncHelper) {
-                this._asyncHelper = _asyncHelper = new junyou.AsyncHelper();
-                _asyncHelper._ready = this.isReady;
-            }
-            _asyncHelper.addReadyExecute.apply(_asyncHelper, [handle, thisObj].concat(args));
-        };
-        Object.defineProperty(FHost.prototype, "isReady", {
-            get: function () {
-                return false;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        FHost.prototype.startSync = function () {
-        };
-        /**
-         * 添加依赖项
-         */
-        FHost.prototype.addDepend = function (async) {
-            if (!this._dependerHelper) {
-                this._dependerHelper = new junyou.DependerHelper(this, this.dependerReadyCheck);
-            }
-            this._dependerHelper.addDepend(async);
-        };
-        /**
-         *
-         * 获取模块回调
-         * @protected
-         * @param {Proxy} proxy 数据模块
-         * @param {any[]} args  回调参数
-         */
-        FHost.prototype.getProxyCallback = function (proxy, property) {
-            this[property] = proxy;
-            this.addDepend(proxy);
-        };
-        /**
-         * 依赖项，加载完成后的检查
-         */
-        FHost.prototype.dependerReadyCheck = function () {
-        };
-        /**
-         * 模块在Facade注册时执行
-         */
-        FHost.prototype.onRegister = function () {
-        };
-        /**
-         * 模块从Facade注销时
-         */
-        FHost.prototype.onRemove = function () {
-        };
-        /**
-         * 全部加载好以后要处理的事情<br/>
-         * 包括依赖项加载完毕
-         */
-        FHost.prototype.afterAllReady = function () {
-            // to be override
-        };
-        return FHost;
-    }());
-    junyou.FHost = FHost;
-    __reflect(FHost.prototype, "junyou.FHost", ["junyou.IDepender", "junyou.IAsync"]);
-    /**
-     *
-     * 附加依赖的Proxy
-     * @export
-     * @param {({ new (): IAsync } | string)} ref 如果注册的是Class，必须是Inline方式注册的Proxy
-     * @returns
-     */
-    function __dependProxy(ref) {
-        return function (target, key) {
-            var _injectProxys = target._injectProxys;
-            if (!_injectProxys) {
-                target._injectProxys = _injectProxys = {};
-            }
-            _injectProxys[key] = ref;
-        };
-    }
-    junyou.__dependProxy = __dependProxy;
-})(junyou || (junyou = {}));
-(function (junyou) {
-    /**
-     *
-     * 附加依赖的Proxy
-     * @export
-     * @param {({ new (): IAsync } | string)} ref
-     * @returns
-     */
-    junyou.d_dependProxy = junyou.__dependProxy;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
      * 用于处理接收flash软件制作的UI，导出的数据，仿照eui
      * 不过简化eui的一些layout的支持
      * 按目前情况看，不太会制作复杂排版的ui，父容器不做统一的测量和重新布局
@@ -1407,7 +1402,6 @@ var junyou;
         return Component;
     }(egret.Sprite));
     junyou.Component = Component;
-    __reflect(Component.prototype, "junyou.Component");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -1487,7 +1481,6 @@ var junyou;
         return BaseCreator;
     }());
     junyou.BaseCreator = BaseCreator;
-    __reflect(BaseCreator.prototype, "junyou.BaseCreator");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -1583,7 +1576,6 @@ var junyou;
         return Proxy;
     }(junyou.FHost));
     junyou.Proxy = Proxy;
-    __reflect(Proxy.prototype, "junyou.Proxy");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -1836,7 +1828,6 @@ var junyou;
      */
     BaseRender.globalPlaySpeed = 1;
     junyou.BaseRender = BaseRender;
-    __reflect(BaseRender.prototype, "junyou.BaseRender", ["junyou.IDrawInfo"]);
 })(junyou || (junyou = {}));
 /**
  * 资源打包信息
@@ -1966,7 +1957,6 @@ var junyou;
         return PstInfo;
     }());
     junyou.PstInfo = PstInfo;
-    __reflect(PstInfo.prototype, "junyou.PstInfo");
     /**
      * 资源打包分隔信息
      */
@@ -1989,7 +1979,6 @@ var junyou;
         return SplitInfo;
     }());
     junyou.SplitInfo = SplitInfo;
-    __reflect(SplitInfo.prototype, "junyou.SplitInfo");
     junyou.PstUtils = {
         /**
          * 得到 A(动作)D(方向)的标识
@@ -2085,7 +2074,6 @@ var junyou;
         return OneADSInfo;
     }(SplitInfo));
     junyou.OneADSInfo = OneADSInfo;
-    __reflect(OneADSInfo.prototype, "junyou.OneADSInfo");
     // /**
     //  * 基于动作打包的分隔数据
     //  * @deprecated 已弃用
@@ -2211,7 +2199,6 @@ var junyou;
         return BaseShake;
     }());
     junyou.BaseShake = BaseShake;
-    __reflect(BaseShake.prototype, "junyou.BaseShake", ["junyou.Shake"]);
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -2340,7 +2327,94 @@ var junyou;
         return Group;
     }(egret.EventDispatcher));
     junyou.Group = Group;
-    __reflect(Group.prototype, "junyou.Group");
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 扩展一个实例，如果A类型实例本身并没有B类型的方法，则直接对实例的属性进行赋值，否则将不会赋值
+     *
+     * @export
+     * @template A
+     * @template B
+     * @param {A} instance                  要扩展的实例
+     * @param {{ prototype: B }} clazzB     需要扩展的对象方法
+     * @param {boolean} override            是否强制覆盖原有方法
+     * @returns {(A & B)}
+     */
+    function expandInstance(instance, clazzB) {
+        var keys = [];
+        for (var _i = 2; _i < arguments.length; _i++) {
+            keys[_i - 2] = arguments[_i];
+        }
+        var bpt = clazzB.prototype;
+        for (var _a = 0, _b = Object.getOwnPropertyNames(bpt); _a < _b.length; _a++) {
+            var name_4 = _b[_a];
+            if (!keys || ~keys.indexOf(name_4)) {
+                var define = bpt.getPropertyDescriptor(name_4);
+                if (define) {
+                    Object.defineProperty(instance, name_4, define);
+                }
+                else {
+                    instance[name_4] = bpt[name_4];
+                }
+            }
+        }
+        return instance;
+    }
+    junyou.expandInstance = expandInstance;
+    /**
+     * 将类型A扩展类型B的指定属性，并返回引用
+     *
+     * @export
+     * @template A
+     * @template B
+     * @template K
+     * @template B
+     * @param {{ prototype: A }} clazzA     要被扩展的类型
+     * @param {{ prototype: B }} clazzB     扩展的模板
+     * @param {...K[]} keys      如果没有参数，则将B的全部属性复制给类型A
+     * @returns {(A & Record<K, B>)}
+     */
+    function expand(clazzA, clazzB) {
+        var keys = [];
+        for (var _i = 2; _i < arguments.length; _i++) {
+            keys[_i - 2] = arguments[_i];
+        }
+        var pt = clazzA.prototype;
+        var bpt = clazzB.prototype;
+        for (var _a = 0, _b = Object.getOwnPropertyNames(bpt); _a < _b.length; _a++) {
+            var name_5 = _b[_a];
+            if (!keys || ~keys.indexOf(name_5)) {
+                if (!(name_5 in pt)) {
+                    pt[name_5] = bpt[name_5];
+                }
+            }
+        }
+        return clazzA;
+    }
+    junyou.expand = expand;
+    /**
+     * 获取一个复合类型
+     *
+     * @export
+     * @template A
+     * @template B
+     * @param {{ prototype: A }} clazzA     类型A
+     * @param {{ prototype: B }} clazzB     类型B
+     * @returns
+     */
+    function getMixin(clazzA, clazzB) {
+        var merged = function () { };
+        if (typeof Object["assign"] != undefined) {
+            Object["assign"](merged.prototype, clazzA.prototype, clazzB.prototype);
+        }
+        else {
+            merged = expand(merged, clazzA);
+            merged = expand(merged, clazzB);
+        }
+        return merged;
+    }
+    junyou.getMixin = getMixin;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -2406,7 +2480,6 @@ var junyou;
         return ViewController;
     }(junyou.FHost));
     junyou.ViewController = ViewController;
-    __reflect(ViewController.prototype, "junyou.ViewController");
     /**
      * 使用注入的方法
      * 添加关注
@@ -2594,7 +2667,6 @@ var junyou;
         return Button;
     }(junyou.Component));
     junyou.Button = Button;
-    __reflect(Button.prototype, "junyou.Button", ["junyou.IGroupItem", "egret.EventDispatcher"]);
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -3317,7 +3389,6 @@ var junyou;
         return PageList;
     }(egret.Sprite));
     junyou.PageList = PageList;
-    __reflect(PageList.prototype, "junyou.PageList");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -3791,95 +3862,6 @@ var junyou;
         return Scroller;
     }(egret.EventDispatcher));
     junyou.Scroller = Scroller;
-    __reflect(Scroller.prototype, "junyou.Scroller");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * 扩展一个实例，如果A类型实例本身并没有B类型的方法，则直接对实例的属性进行赋值，否则将不会赋值
-     *
-     * @export
-     * @template A
-     * @template B
-     * @param {A} instance                  要扩展的实例
-     * @param {{ prototype: B }} clazzB     需要扩展的对象方法
-     * @param {boolean} override            是否强制覆盖原有方法
-     * @returns {(A & B)}
-     */
-    function expandInstance(instance, clazzB) {
-        var keys = [];
-        for (var _i = 2; _i < arguments.length; _i++) {
-            keys[_i - 2] = arguments[_i];
-        }
-        var bpt = clazzB.prototype;
-        for (var _a = 0, _b = Object.getOwnPropertyNames(bpt); _a < _b.length; _a++) {
-            var name_4 = _b[_a];
-            if (!keys || ~keys.indexOf(name_4)) {
-                var define = bpt.getPropertyDescriptor(name_4);
-                if (define) {
-                    Object.defineProperty(instance, name_4, define);
-                }
-                else {
-                    instance[name_4] = bpt[name_4];
-                }
-            }
-        }
-        return instance;
-    }
-    junyou.expandInstance = expandInstance;
-    /**
-     * 将类型A扩展类型B的指定属性，并返回引用
-     *
-     * @export
-     * @template A
-     * @template B
-     * @template K
-     * @template B
-     * @param {{ prototype: A }} clazzA     要被扩展的类型
-     * @param {{ prototype: B }} clazzB     扩展的模板
-     * @param {...K[]} keys      如果没有参数，则将B的全部属性复制给类型A
-     * @returns {(A & Record<K, B>)}
-     */
-    function expand(clazzA, clazzB) {
-        var keys = [];
-        for (var _i = 2; _i < arguments.length; _i++) {
-            keys[_i - 2] = arguments[_i];
-        }
-        var pt = clazzA.prototype;
-        var bpt = clazzB.prototype;
-        for (var _a = 0, _b = Object.getOwnPropertyNames(bpt); _a < _b.length; _a++) {
-            var name_5 = _b[_a];
-            if (!keys || ~keys.indexOf(name_5)) {
-                if (!(name_5 in pt)) {
-                    pt[name_5] = bpt[name_5];
-                }
-            }
-        }
-        return clazzA;
-    }
-    junyou.expand = expand;
-    /**
-     * 获取一个复合类型
-     *
-     * @export
-     * @template A
-     * @template B
-     * @param {{ prototype: A }} clazzA     类型A
-     * @param {{ prototype: B }} clazzB     类型B
-     * @returns
-     */
-    function getMixin(clazzA, clazzB) {
-        var merged = function () { };
-        if (typeof Object["assign"] != undefined) {
-            Object["assign"](merged.prototype, clazzA.prototype, clazzB.prototype);
-        }
-        else {
-            merged = expand(merged, clazzA);
-            merged = expand(merged, clazzB);
-        }
-        return merged;
-    }
-    junyou.getMixin = getMixin;
 })(junyou || (junyou = {}));
 if (DEBUG) {
     var $gm = $gm || {};
@@ -4383,7 +4365,6 @@ var junyou;
         return NetService;
     }());
     junyou.NetService = NetService;
-    __reflect(NetService.prototype, "junyou.NetService");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -4461,7 +4442,6 @@ var junyou;
         return LimitQueue;
     }());
     junyou.LimitQueue = LimitQueue;
-    __reflect(LimitQueue.prototype, "junyou.LimitQueue", ["junyou.ILimit"]);
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -4513,7 +4493,6 @@ var junyou;
         return BitmapCreator;
     }(junyou.BaseCreator));
     junyou.BitmapCreator = BitmapCreator;
-    __reflect(BitmapCreator.prototype, "junyou.BitmapCreator");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -4631,7 +4610,6 @@ var junyou;
     }());
     LayoutContainer.MIN = Object.freeze({ width: 0, height: 0 });
     junyou.LayoutContainer = LayoutContainer;
-    __reflect(LayoutContainer.prototype, "junyou.LayoutContainer");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -4706,23 +4684,174 @@ var junyou;
         return MenuBaseRender;
     }());
     junyou.MenuBaseRender = MenuBaseRender;
-    __reflect(MenuBaseRender.prototype, "junyou.MenuBaseRender");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    var inter1 = "addReadyExecute";
-    var inter2 = "startSync";
-    function isIAsync(instance) {
-        /*不验证数据，因为现在做的是get asyncHelper(),不默认创建AsyncHelper，调用的时候才创建，这样会导致多一次调用*/
-        if (!(inter1 in instance || typeof instance[inter2] !== "function") /*|| !(instance[inter1] instanceof AsyncHelper)*/) {
-            return false;
+    /**
+     * 用于发送的网络数据<br/>
+     * @author 3tion
+     */
+    var NetSendData = (function () {
+        function NetSendData() {
         }
-        if (!(inter2 in instance) || typeof instance[inter2] !== "function" || instance[inter2].length != 0) {
-            return false;
+        NetSendData.prototype.onRecycle = function () {
+            this.data = undefined;
+            this.msgType = undefined;
+        };
+        return NetSendData;
+    }());
+    junyou.NetSendData = NetSendData;
+    /**
+     * 网络数据，类似AS3项目中Stream<br/>
+     * @author 3tion
+     *
+     */
+    var NetData = (function (_super) {
+        __extends(NetData, _super);
+        function NetData() {
+            return _super !== null && _super.apply(this, arguments) || this;
         }
-        return true;
-    }
-    junyou.isIAsync = isIAsync;
+        return NetData;
+    }(NetSendData));
+    junyou.NetData = NetData;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     *
+     * @author 3tion
+     *
+     */
+    var NetRouter = (function () {
+        function NetRouter() {
+            this.dispatchList = [];
+            this._listenerMaps = {};
+        }
+        /**
+         * 注册一cmd侦听;
+         * @param cmd      协议号
+         * @param handler   处理器
+         * @param priority  越大越优先
+         * @param once      是否只执行一次
+         * @return boolean true 做为新的兼听添加进去，false 原来就有处理器
+         *
+         */
+        NetRouter.prototype.register = function (cmd, handler, priority, once) {
+            if (priority === void 0) { priority = 0; }
+            if (once === void 0) { once = false; }
+            var listenerMaps = this._listenerMaps;
+            var netBin = { handler: handler, priority: priority, once: once };
+            var list = listenerMaps[cmd];
+            if (!list) {
+                list = [];
+                listenerMaps[cmd] = list;
+                //以前单条是没有存储优先级信息的，会导致，如果先加入的大的，后加入小的，可能会出现问题
+                list.push(netBin);
+            }
+            else {
+                var i = void 0;
+                var len = list.length;
+                //=====同样的CODE 同样的Function 不会被注册多次=====
+                for (i = 0; i < len; i++) {
+                    var temp = list[i];
+                    if (temp.handler == handler) {
+                        if (temp.priority == priority) {
+                            return false;
+                        }
+                        //新的同指令，同处理器的函数会被新的once,priority属性覆盖
+                        list.splice(i, 1);
+                        len--;
+                        break;
+                    }
+                }
+                for (i = 0; i < len; i++) {
+                    if (priority > list[i].priority) {
+                        list.splice(i, 0, netBin);
+                        return true;
+                    }
+                }
+                list[len] = netBin;
+            }
+            return true;
+        };
+        /**
+         * 删除兼听处理器
+         * @param cmd      协议号
+         * @param handler   处理器
+         * @return boolean true 删除成功  <br/>
+         *                 false 没有这个兼听
+         */
+        NetRouter.prototype.remove = function (cmd, handler) {
+            var listenerMaps = this._listenerMaps;
+            var list = listenerMaps[cmd];
+            if (!list) {
+                return false;
+            }
+            var len = list.length;
+            for (var i = 0; i < len; i++) {
+                if (list[i].handler == handler) {
+                    list.splice(i, 1);
+                    //如果没有项了就清理;
+                    if (len == 1) {
+                        delete listenerMaps[cmd];
+                    }
+                    return true;
+                }
+            }
+            return false;
+        };
+        /**
+        * 调用列表
+        */
+        NetRouter.prototype.dispatch = function (data) {
+            egret.callLater(this._dispatch, this, data);
+        };
+        NetRouter.prototype._dispatch = function (data) {
+            var cmd = data.cmd;
+            var list = this._listenerMaps[cmd];
+            if (!list) {
+                return;
+            }
+            var dispatchList = this.dispatchList;
+            var idx = 0, len = list.length;
+            for (; idx < len; idx++) {
+                dispatchList[idx] = list[idx];
+            }
+            for (var i = 0; i < idx; i++) {
+                var bin = dispatchList[i];
+                try {
+                    bin.handler(data);
+                }
+                catch (e) {
+                    if (DEBUG) {
+                        junyou.ThrowError("\u6267\u884C\u7F51\u7EDC\u56DE\u8C03\u65B9\u6CD5\u51FA\u9519" + JSON.stringify(data) + "\uFF0C\n\u9519\u8BEF\uFF1A" + e.message + "\uFF0C\u5806\u6808\uFF1A\n" + e.stack);
+                    }
+                }
+                if (bin.once) {
+                    this.remove(cmd, bin.handler);
+                }
+                if (data.stopPropagation) {
+                    break;
+                }
+            }
+            data.recycle();
+        };
+        return NetRouter;
+    }());
+    junyou.NetRouter = NetRouter;
+    ;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 扩展名常量
+     * @author 3tion
+     */
+    junyou.Ext = {
+        JPG: ".jpg",
+        PNG: ".png",
+        WEBP: ".webp"
+    };
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -4977,88 +5106,426 @@ var junyou;
         return WSNetService;
     }(junyou.NetService));
     junyou.WSNetService = WSNetService;
-    __reflect(WSNetService.prototype, "junyou.WSNetService");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
     /**
-     * 回收池
-     * @author 3tion
-     *
-     */
-    var RecyclablePool = (function () {
-        function RecyclablePool(TCreator, max) {
-            if (max === void 0) { max = 100; }
-            this._pool = [];
-            this._max = max;
-            this._TCreator = TCreator;
-        }
-        RecyclablePool.prototype.get = function () {
-            var ins;
-            var pool = this._pool;
-            if (pool.length) {
-                ins = pool.pop();
-            }
-            else {
-                ins = new this._TCreator();
-            }
-            if (typeof ins.onSpawn === "function") {
-                ins.onSpawn();
-            }
-            if (DEBUG) {
-                ins._insid = _recid++;
-            }
-            return ins;
-        };
-        /**
-         * 回收
-         */
-        RecyclablePool.prototype.recycle = function (t) {
-            var pool = this._pool;
-            var idx = pool.indexOf(t);
-            if (!~idx) {
-                if (typeof t.onRecycle === "function") {
-                    t.onRecycle();
-                }
-                if (pool.length < this._max) {
-                    pool.push(t);
-                }
-            }
-        };
-        return RecyclablePool;
-    }());
-    junyou.RecyclablePool = RecyclablePool;
-    __reflect(RecyclablePool.prototype, "junyou.RecyclablePool");
-    var rpt = RecyclablePool.prototype;
-    rpt.getInstance = rpt.get;
-    if (DEBUG) {
-        var _recid = 0;
-    }
-    /**
-     * 获取一个recyclable的对象
+     * 获取XMLHttpRequest对象
      *
      * @export
-     * @template T
-     * @param {{ new (): T; _pool?: RecyclablePool<T> }} clazz
-     * @returns {(T & { recycle() })}
+     * @returns
      */
-    function recyclable(clazz) {
-        var pool = clazz._pool;
-        if (!pool) {
-            pool = new RecyclablePool(clazz);
-            Object.defineProperty(clazz, "_pool", {
-                value: pool
-            });
-            var pt = clazz.prototype;
-            if (pt.recycle == undefined) {
-                pt.recycle = function () {
-                    pool.recycle(this);
-                };
+    function getXHR() {
+        junyou.getXHR = window.XMLHttpRequest ? function () { return new XMLHttpRequest; } : function () { return new ActiveXObject("MSXML2.XMLHTTP"); };
+        return junyou.getXHR();
+    }
+    junyou.getXHR = getXHR;
+})(junyou || (junyou = {}));
+// interface ActiveXObject {
+//     new (key: "MSXML2.XMLHTTP"): XMLHttpRequest
+// }
+// declare const ActiveXObject: ActiveXObject; 
+var junyou;
+(function (junyou) {
+    /**
+     *
+     * @author 3tion
+     * javascript 只会使用到 varint32->number string boolean
+     *
+     */
+    junyou.PBMessageUtils = (function () {
+        var structDict = junyou.Temp.EmptyObject;
+        /**
+         * protobuf wiretype的字典
+         * key  {number}    ProtoBuf的类型
+         * Value {number}   WireType
+         *
+         * @private
+         * @static
+         * @type {{ [index: number]: number }}
+         */
+        var wireTypeMap = [
+            ,
+            /* PBType.Double */ 1,
+            /* PBType.Float */ 5,
+            /* PBType.Int64 */ 0,
+            /* PBType.UInt64 */ 0,
+            /* PBType.Int32 */ 0,
+            /* PBType.Fixed64 */ 1,
+            /* PBType.Fixed32 */ 5,
+            /* PBType.Bool */ 0,
+            /* PBType.String */ 2,
+            ,
+            /* PBType.Message */ 2,
+            /* PBType.Bytes */ 2,
+            /* PBType.Uint32 */ 0,
+            /* PBType.Enum */ 0,
+            /* PBType.SFixed32 */ 5,
+            /* PBType.SFixed64 */ 1,
+            /* PBType.SInt32 */ 0,
+            /* PBType.SInt64 */ 0
+        ];
+        return {
+            /**
+             * 设置ProtoBuf的消息定义字典
+             *
+             * @static
+             * @param {PBStructDict} dict
+             *
+             * @memberOf PBMessageUtils
+             */
+            setPBDict: function (dict) {
+                //对默认值做预处理，减少后期遍历次数
+                if (dict) {
+                    structDict = dict;
+                    if (!dict.$$inted) {
+                        for (var name_6 in dict) {
+                            var encode = dict[name_6];
+                            //检查处理默认值
+                            for (var idx in encode) {
+                                var body = encode[idx];
+                                //0 key
+                                //1 required optional repeated
+                                //2 数据类型
+                                //3 Message
+                                //4 默认值
+                                if (4 in body) {
+                                    var def = encode.def;
+                                    if (!def) {
+                                        //不使用encode.def=def=[]; 是为了防止def被遍历
+                                        Object.defineProperty(encode, "def", {
+                                            value: {}
+                                        });
+                                        def = encode.def;
+                                    }
+                                    var key = body[0];
+                                    //消息中没有对应key的数据，先赋值成默认值，等待后续处理
+                                    def[key] = body[4];
+                                }
+                            }
+                            if (!encode.def) {
+                                Object.defineProperty(encode, "def", {
+                                    value: Object.prototype
+                                });
+                            }
+                        }
+                        dict.$$inted = 1;
+                    }
+                }
+            },
+            readFrom: readFrom,
+            writeTo: writeTo
+        };
+        /**
+         * 读取消息
+         *
+         * @param {(string | PBStruct)} msgType
+         * @param {ByteArray} bytes
+         * @param {number} [len]
+         * @returns {Object}
+         */
+        function readFrom(msgType, bytes, len) {
+            if (len === undefined)
+                len = -1;
+            var afterLen = 0;
+            if (len > -1) {
+                afterLen = bytes.bytesAvailable - len;
+            }
+            var encode = typeof msgType === "string" ? structDict[msgType] : msgType;
+            if (!encode) {
+                junyou.ThrowError("\u975E\u6CD5\u7684\u901A\u4FE1\u7C7B\u578B[" + msgType + "]");
+                return;
+            }
+            //检查处理默认值
+            var msg = Object.create(encode.def);
+            while (bytes.bytesAvailable > afterLen) {
+                var tag = bytes.readVarint();
+                if (tag == 0)
+                    continue;
+                var idx = tag >>> 3;
+                var body = encode[idx];
+                if (!body) {
+                    junyou.ThrowError("\u8BFB\u53D6\u6D88\u606F\u7C7B\u578B\u4E3A\uFF1A" + msgType + "\uFF0C\u7D22\u5F15" + idx + "\u65F6\u6570\u636E\u51FA\u73B0\u9519\u8BEF\uFF0C\u627E\u4E0D\u5230\u5BF9\u5E94\u7684\u6570\u636E\u7ED3\u6784\u914D\u7F6E");
+                    // 使用默认读取
+                    readValue(tag, bytes);
+                    continue;
+                }
+                var name_7 = body[0];
+                var label = body[1];
+                var type = body[2];
+                var subMsgType = body[3];
+                var value = void 0;
+                if (label != 3 || (tag & 7) != 7) {
+                    switch (type) {
+                        case 1 /* Double */:
+                            value = bytes.readDouble();
+                            break;
+                        case 2 /* Float */:
+                            value = bytes.readFloat();
+                            break;
+                        case 3 /* Int64 */:
+                        case 4 /* UInt64 */:
+                        case 18 /* SInt64 */:
+                            value = bytes.readVarint64(); //理论上项目不使用
+                            break;
+                        case 5 /* Int32 */: //int32 未使用ProtoBuf的标准解析方式，标准方式处理负数会使用10字节
+                        case 17 /* SInt32 */:
+                            value = decodeZigzag32(bytes.readVarint());
+                            break;
+                        case 13 /* Uint32 */:
+                        case 14 /* Enum */:
+                            value = bytes.readVarint();
+                            break;
+                        case 6 /* Fixed64 */:
+                        case 16 /* SFixed64 */:
+                            value = bytes.readFix64(); //理论上项目不使用
+                            break;
+                        case 7 /* Fixed32 */:
+                            value = bytes.readFix32();
+                            break;
+                        case 8 /* Bool */:
+                            value = bytes.readBoolean();
+                            break;
+                        case 9 /* String */:
+                            value = readString(bytes);
+                            break;
+                        case 10 /* Group */:
+                            value = undefined;
+                            if (DEBUG) {
+                                junyou.ThrowError("\u8BFB\u53D6\u6D88\u606F\u7C7B\u578B\u4E3A\uFF1A" + msgType + "\uFF0C\u7D22\u5F15" + idx + "\u65F6\u6570\u636E\u51FA\u73B0\u5DF2\u5F03\u7528\u7684GROUP\u5206\u7EC4\u7C7B\u578B");
+                            }
+                            break;
+                        case 11 /* Message */:
+                            value = readMessage(bytes, subMsgType);
+                            break;
+                        case 12 /* Bytes */:
+                            value = readBytes(bytes);
+                            break;
+                        case 15 /* SFixed32 */:
+                            value = bytes.readSFix32();
+                            break;
+                        default:
+                            value = readValue(tag, bytes);
+                    }
+                }
+                if (label == 3) {
+                    var arr = msg[name_7];
+                    if (!arr)
+                        msg[name_7] = arr = [];
+                    arr.push(value);
+                }
+                else {
+                    msg[name_7] = value;
+                }
+            }
+            return msg;
+        }
+        function readValue(tag, bytes) {
+            var wireType = tag & 7;
+            var value;
+            switch (wireType) {
+                case 0:
+                    value = bytes.readVarint();
+                    break;
+                case 2:
+                    value = readString(bytes);
+                    break;
+                case 5:
+                    value = bytes.readInt();
+                    break;
+                case 1:
+                    value = bytes.readDouble();
+                    break;
+                default:
+                    junyou.ThrowError("protobuf的wireType未知");
+            }
+            return value;
+        }
+        function readString(bytes) {
+            var blen = bytes.readVarint();
+            if (blen > 0) {
+                return bytes.readUTFBytes(blen);
+            }
+            return "";
+        }
+        /**
+         *
+         * 读取消息
+         * @private
+         * @static
+         * @param {number} tag          标签
+         * @param {ByteArray} bytes     被处理的字节数组
+         * @param {string} subMsgType   类型标识
+         * @returns {Object}
+         */
+        function readMessage(bytes, msgType) {
+            var blen = bytes.readVarint();
+            return readFrom(msgType, bytes, blen);
+        }
+        function readBytes(bytes) {
+            var blen = bytes.readVarint();
+            return bytes.readByteArray(blen);
+        }
+        /**
+         * 写入消息
+         *
+         * @param {Object} msg
+         * @param {(string | PBStruct)} msgType
+         * @param {ByteArray} [bytes]
+         * @returns {ByteArray}
+         */
+        function writeTo(msg, msgType, bytes, debugOutData) {
+            if (msg == undefined) {
+                return;
+            }
+            var messageEncode = typeof msgType === "string" ? structDict[msgType] : msgType;
+            if (!messageEncode) {
+                junyou.ThrowError("\u975E\u6CD5\u7684\u901A\u4FE1\u7C7B\u578B[" + msgType + "]\uFF0C\u5806\u6808\u4FE1\u606F:" + new Error());
+                return;
+            }
+            if (!bytes) {
+                bytes = new junyou.ByteArray;
+            }
+            for (var numberStr in messageEncode) {
+                var num = +numberStr;
+                var body = messageEncode[num];
+                var label = body[1];
+                var name_8 = body[0];
+                if (label == 1 /* optional */ && !(name_8 in msg)) {
+                    continue;
+                }
+                var value = msg[name_8];
+                if (value == undefined || value === body[4] /* 默认值 */) {
+                    continue;
+                }
+                var type = body[2];
+                var subMsgType = body[3];
+                var wireType = wireTypeMap[type];
+                var tag = (num << 3) | wireType;
+                if (label == 3 /* repeated */) {
+                    if (DEBUG) {
+                        var arr = [];
+                        debugOutData[name_8] = arr;
+                    }
+                    for (var key in value) {
+                        var element = value[key];
+                        // 针对repeated中无法处理空的占位数组做处理，Protobuf 2 中不支持undefined进行占位  由于 wireType 只使用 0 1 2 3 4 5
+                        // 现在使用 7 作为  undefined 占位使用
+                        if (DEBUG) {
+                            arr.push(writeElementTo(element, type, element == undefined ? ((num << 3) | 7) : tag, bytes, subMsgType));
+                        }
+                        else {
+                            writeElementTo(element, type, element == undefined ? ((num << 3) | 7) : tag, bytes, subMsgType);
+                        }
+                    }
+                }
+                else {
+                    if (DEBUG) {
+                        debugOutData[name_8] = writeElementTo(value, type, tag, bytes, subMsgType);
+                    }
+                    else {
+                        writeElementTo(value, type, tag, bytes, subMsgType);
+                    }
+                }
+            }
+            return bytes;
+        }
+        function writeElementTo(value, type, tag, bytes, subMsgType) {
+            if (DEBUG) {
+                var out = value;
+            }
+            bytes.writeVarint(tag);
+            switch (type) {
+                case 7 /* Fixed32 */:
+                    bytes.writeFix32(checkUInt32(value, type));
+                    break;
+                case 15 /* SFixed32 */:
+                    bytes.writeSFix32(checkInt32(value, type));
+                    break;
+                case 2 /* Float */:
+                    bytes.writeFloat(value);
+                    break;
+                case 1 /* Double */:
+                    bytes.writeDouble(value);
+                    break;
+                case 6 /* Fixed64 */: //理论上项目不使用
+                case 16 /* SFixed64 */:
+                    bytes.writeFix64(value);
+                    break;
+                case 5 /* Int32 */: //int32处理负数，没有按规定的 10字节数据进行处理，直接使用SINT32处理
+                //  Signed Integers
+                // As you saw in the previous section, all the protocol buffer types associated with wire type 0 are encoded as varints. However, there is an important difference between the signed int types (sint32 and sint64) and the "standard" int types (int32 and int64) when it comes to encoding negative numbers. If you use int32 or int64 as the type for a negative number, the resulting varint is always ten bytes long – it is, effectively, treated like a very large unsigned integer. If you use one of the signed types, the resulting varint uses ZigZag encoding, which is much more efficient.
+                case 17 /* SInt32 */:
+                    bytes.writeVarint(zigzag32(checkInt32(value, type)));
+                    break;
+                case 14 /* Enum */:
+                case 13 /* Uint32 */:
+                    bytes.writeVarint(checkUInt32(value, type));
+                    break;
+                case 3 /* Int64 */:
+                case 18 /* SInt64 */:
+                case 4 /* UInt64 */:
+                    bytes.writeVarint64(value);
+                    break;
+                case 8 /* Bool */:
+                    bytes.writeVarint(value ? 1 : 0);
+                    break;
+                case 9 /* String */:
+                case 12 /* Bytes */:
+                case 11 /* Message */:
+                    if (type == 11 /* Message */) {
+                        if (DEBUG) {
+                            out = {};
+                            temp = writeTo(value, subMsgType, null, out);
+                        }
+                        else {
+                            var temp = writeTo(value, subMsgType);
+                        }
+                    }
+                    else if (type == 12 /* Bytes */) {
+                        temp = value;
+                        if (DEBUG) {
+                            out = Uint8Array.from(temp.bytes);
+                        }
+                    }
+                    else {
+                        temp = new junyou.ByteArray;
+                        temp.writeUTFBytes(value);
+                    }
+                    length = temp ? temp.length : 0;
+                    bytes.writeVarint(length);
+                    if (length > 0) {
+                        bytes.writeBytes(temp, 0, length);
+                    }
+                    break;
+            }
+            if (DEBUG) {
+                return out;
+            }
+            function checkUInt32(value, type) {
+                value = +value || 0;
+                if (value > 4294967295 || value < 0) {
+                    junyou.ThrowError("PBMessageUtils\u5199\u5165\u6570\u636E\u65F6\u5019\uFF0C\u4F7F\u7528\u7684\u7C7B\u578B\uFF1A" + type + "\uFF0C\u503C\u4E3A\uFF1A" + value + "\uFF0C\u4F46\u8D85\u51FA\u6574\u578B\u8303\u56F4\u3002");
+                    value >>> 0;
+                }
+                return value;
+            }
+            function checkInt32(value, type) {
+                value = +value || 0;
+                if (value > 2147483647 || value < -2147483648) {
+                    junyou.ThrowError("PBMessageUtils\u5199\u5165\u6570\u636E\u65F6\u5019\uFF0C\u4F7F\u7528\u7684\u7C7B\u578B\uFF1A" + type + "\uFF0C\u503C\u4E3A\uFF1A" + value + "\uFF0C\u4F46\u8D85\u51FA\u6574\u578B\u8303\u56F4\u3002");
+                    value >> 0;
+                }
+                return value;
             }
         }
-        return pool.get();
-    }
-    junyou.recyclable = recyclable;
+        function zigzag32(n) {
+            return (n << 1) ^ (n >> 31);
+        }
+        function decodeZigzag32(n) {
+            return n >> 1 ^ (((n & 1) << 31) >> 31);
+        }
+    })();
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -5497,202 +5964,175 @@ var junyou;
         return TextureResource;
     }());
     junyou.TextureResource = TextureResource;
-    __reflect(TextureResource.prototype, "junyou.TextureResource", ["junyou.IResource"]);
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
     /**
-     *
-     * @author 君游项目解析工具
+     * 动画的全局对象
+     * @author
      *
      */
-    junyou.DataParseUtil = {
+    junyou.Global = (function () {
+        try {
+            var supportWebp = document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') == 0;
+        }
+        catch (err) {
+        }
+        var _webp = supportWebp ? junyou.Ext.WEBP : "";
+        var _isNative = egret.Capabilities.supportVersion != "Unknown";
         /**
-        * 将配置from中 type		data1	data2	data3	data4...这些配置，解析存储到<br/>
-        * 配置VO为：
-        * <pre>
-        * class Cfg
-        * {
-        * 		public var type:int;
-        * 		public var datas:Array;
-        * }
-        * </pre>
-        * 上面示例中<br/>
-        * typeKey 为 type<br/>
-        * dataKey 为 data<br/>
-        * checkStart 为 1<br/>
-        * checkEnd 为 4<br/>
-        * toDatasKey 为 data<br/>
-        * to的type  datas数组中<br/>
-        * @param to					要写入的配置
-        * @param from				配置的数据源
-        * @param checkStart		      数据源起始值	data<b><font color="#ff0000">1</font></b>
-        * @param checkEnd		      数据源结束值	data<b><font color="#ff0000">4</font></b>
-        * @param dataKey			数据源数值的前缀	<b><font color="#ff0000">data</font></b>
-        * @param typeKey			数据源/配置的 类型 上例为 <b><font color="#ff0000">type</font></b>
-        * @param toDatasKey		      配置的数值存储的数据的数组属性名，上例为 <b><font color="#ff0000">datas</font></b>
-        *
-        */
-        parseDatas: function (to, from, checkStart, checkEnd, dataKey, typeKey, toDatasKey) {
-            var arr;
-            for (var i = checkStart; i <= checkEnd; i++) {
-                var key = dataKey + i;
-                if (key in from) {
-                    if (!arr) {
-                        arr = [];
-                    }
-                    arr[i] = from[key];
-                }
-            }
-            if (!arr) {
-                if (typeKey in from) {
-                    arr = [];
-                    to[typeKey] = from[typeKey];
-                }
-            }
-            if (arr) {
-                to[toDatasKey] = arr;
-            }
-        },
-        /**
-        * 将配置from中 type		data1	data2	data3	data4...这些配置，解析存储到<br/>
-        * 配置VO为：
-        * <pre>
-        * class Cfg
-        * {
-        * 		public var type:int;
-        * 		public var datas:Array;
-        * }
-        * </pre>
-        * 上面示例中<br/>
-        * typeKey 为 type<br/>
-        * dataKey 为 data<br/>
-        * checkStart 为 1<br/>
-        * checkEnd 为 4<br/>
-        * toDatasKey 为 data<br/>
-        * to的type  datas数组中<br/>
-        * @static
-        * @param {*} to                要写入的配置
-        * @param {any[]} valueList     配置的数据源的值列表
-        * @param {string[]} keyList    配置数据的属性key列表
-        * @param {number} checkStart   数据源起始值	data<b><font color="#ff0000">1</font></b>
-        * @param {number} checkEnd     数据源结束值	data<b><font color="#ff0000">4</font></b>
-        * @param {string} dataKey      数据源数值的前缀	<b><font color="#ff0000">data</font></b>
-        * @param {string} typeKey      数据源/配置的 类型 上例为 <b><font color="#ff0000">type</font></b>
-        * @param {string} toDatasKey   配置的数值存储的数据的数组属性名，上例为 <b><font color="#ff0000">datas</font></b>
-        */
-        parseDatas2: function (to, valueList, keyList, checkStart, checkEnd, dataKey, typeKey, toDatasKey) {
-            var arr;
-            for (var i = checkStart; i <= checkEnd; i++) {
-                var key = dataKey + i;
-                var idx = keyList.indexOf(key);
-                if (~idx) {
-                    if (!arr) {
-                        arr = [];
-                    }
-                    arr[i] = valueList[idx];
-                }
-            }
-            if (!arr) {
-                // 数据中有列表值
-                var idx = keyList.indexOf(typeKey);
-                if (~idx) {
-                    arr = [];
-                    to[typeKey] = valueList[idx];
-                }
-            }
-            if (arr) {
-                to[toDatasKey] = arr;
-            }
-        },
-        /**
-         * 从数据集中获取key-value的数据
-         * @param valueList 数据集合
-         * @param keyList   属性列表
+         *  当前这一帧的时间
          */
-        getData: function (valueList, keyList, o) {
-            o = o || {};
-            for (var i = 0, len = keyList.length; i < len; i++) {
-                var key = keyList[i];
-                var v = valueList[i];
-                if (v != undefined) {
-                    o[key] = valueList[i];
-                }
-            }
-            return o;
-        },
+        var now = 0;
         /**
-         * 获取key-value的数据列表
-         * @param dataList  数据集合
-         * @param keyList   属性列表
+         * 按照帧，应该走的时间
+         * 每帧根据帧率加固定时间
+         * 用于处理逐帧同步用
          */
-        getDataList: function (dataList, keyList) {
-            var list = [];
-            if (dataList) {
-                for (var i = 0, len = dataList.length; i < len; i++) {
-                    var valueList = dataList[i];
-                    list.push(this.getData(valueList, keyList));
-                }
+        var frameNow = 0;
+        var _callLater;
+        var _tweenManager;
+        var _nextTicks = [];
+        return {
+            initTick: initTick, nextTick: nextTick, callLater: callLater, clearCallLater: clearCallLater, getTween: getTween, removeTween: removeTween, removeTweens: removeTweens,
+            get isNative() {
+                return _isNative;
+            },
+            get tweenManager() {
+                return _tweenManager || (_tweenManager = new junyou.TweenManager());
+            },
+            /**
+             *  当前这一帧的时间
+             */
+            get now() {
+                return now;
+            },
+            /**
+             * 按照帧，应该走的时间
+             * 每帧根据帧率加固定时间
+             * 用于处理逐帧同步用
+             */
+            get frameNow() {
+                return frameNow;
+            },
+            /**
+             * 是否支持webp
+             */
+            get webp() {
+                return _webp;
             }
-            return list;
-        },
+        };
         /**
-         * 处理数据
-         * @param dataList  数据集合
-         * @param keyList   属性列表
-         * @param forEach
-         * @param thisObj
-         * @param args
+         * 注入白鹭的全局Ticker
          */
-        parseDataList: function (dataList, keyList, forEach, thisObj) {
+        function initTick() {
+            var ticker = egret.sys.$ticker;
+            var update = ticker.render;
+            var delta = 0 | 1000 / ticker.$frameRate;
+            var temp = [];
+            _callLater = new junyou.CallLater();
+            _tweenManager || (_tweenManager = new junyou.TweenManager());
+            ticker.render = function () {
+                var _now = Date.now();
+                var dis = _now - now;
+                now = _now;
+                if (dis > 2000) {
+                    //有2秒钟大概就是进入过休眠了
+                    junyou.dispatch(-190 /* Awake */);
+                    frameNow = _now;
+                }
+                else {
+                    frameNow += delta;
+                }
+                //执行顺序  nextTick  callLater TimerUtil  tween  最后是白鹭的更新
+                var len = _nextTicks.length;
+                var tmp = temp;
+                for (var i = 0; i < len; i++) {
+                    tmp[i] = _nextTicks[i];
+                }
+                _nextTicks.length = 0;
+                //先复制再操作是为了防止回调过程中，有新增的nextTick
+                for (var i = 0; i < len; i++) {
+                    tmp[i].execute();
+                }
+                _callLater.tick(_now);
+                junyou.TimerUtil.tick(_now);
+                _tweenManager.tick(dis);
+                update.call(ticker);
+            };
+        }
+        function nextTick(callback, thisObj) {
             var args = [];
-            for (var _i = 4; _i < arguments.length; _i++) {
-                args[_i - 4] = arguments[_i];
+            for (var _i = 2; _i < arguments.length; _i++) {
+                args[_i - 2] = arguments[_i];
             }
-            if (dataList) {
-                for (var i = 0, len = dataList.length; i < len; i++) {
-                    var valueList = dataList[i];
-                    var to = this.getData(valueList, keyList);
-                    forEach.call(thisObj, to, args, i);
-                }
-            }
-        },
+            _nextTicks.push(junyou.CallbackInfo.get.apply(junyou.CallbackInfo, [callback, thisObj].concat(args)));
+        }
         /**
-         * 从数组中获取数据，主要针对配置
-         * @param to            目标数据
-         * @param valueList     值列表
-         * @param keyList       属性列表
+         * 延迟执行
+         *
+         * @static
+         * @param {Function} callback (description)
+         * @param {number} [time] 延迟执行的时间
+         * @param {*} [thisObj] (description)
+         * @param args (description)
          */
-        copyData: function (to, valueList, keyList) {
-            for (var i = 0, len = keyList.length; i < len; i++) {
-                var key = keyList[i];
-                to[key] = valueList[i];
-            }
-        },
-        /**
-         * 设置数据集，将数据赋值，不会对creator类型中，没有setter的数据赋值
-         * @param creator   构造器
-         * @param dataList  数据集合
-         * @param keyList   属性列表
-         * @param forEach
-         * @param thisObj
-         * @param args
-         */
-        copyDataList: function (creator, dataList, keyList, forEach, thisObj) {
+        function callLater(callback, time, thisObj) {
             var args = [];
-            for (var _i = 5; _i < arguments.length; _i++) {
-                args[_i - 5] = arguments[_i];
+            for (var _i = 3; _i < arguments.length; _i++) {
+                args[_i - 3] = arguments[_i];
             }
-            if (dataList) {
-                for (var i = 0, len = dataList.length; i < len; i++) {
-                    var valueList = dataList[i];
-                    var to = new creator();
-                    this.copyData(to, valueList, keyList);
-                    forEach.call(thisObj, to, args, i);
-                }
-            }
-        },
-    };
+            return _callLater.callLater.apply(_callLater, [callback, now, time, thisObj].concat(args));
+        }
+        /**
+         * 清理延迟
+         *
+         * @static
+         * @param {Function} callback (description)
+         * @param {*} [thisObj] (description)
+         * @returns (description)
+         */
+        function clearCallLater(callback, thisObj) {
+            return _callLater.clearCallLater(callback, thisObj);
+        }
+        /**
+         * 获取Tween
+         *
+         * @static
+         * @param {*} target 要对那个对象做Tween处理
+         * @param {TweenOption} props Tween的附加属性 (如： `{loop:true, paused:true}`).
+         * All properties default to `false`. Supported props are:
+         * <UL>
+         *    <LI> loop: sets the loop property on this tween.</LI>
+         *    <LI> useTicks: uses ticks for all durations instead of milliseconds.</LI>
+         *    <LI> ignoreGlobalPause: sets the {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}} property on
+         *    this tween.</LI>
+         *    <LI> override: if true, `createjs. this.removeTweens(target)` will be called to remove any other tweens with
+         *    the same target.
+         *    <LI> paused: indicates whether to start the tween paused.</LI>
+         *    <LI> position: indicates the initial position for this tween.</LI>
+         *    <LI> onChange: specifies a listener for the {{#crossLink "Tween/change:event"}}{{/crossLink}} event.</LI>
+         * </UL>
+         * @param {*} pluginData 插件数据
+         * @param {boolean} override 是否覆盖
+         * @returns {Tween} tween的实例
+         */
+        function getTween(target, props, pluginData, override) {
+            return _tweenManager.get(target, props, pluginData, override);
+        }
+        /**
+         * 移除指定的Tween
+         *
+         * @param {Tween} tween
+         * @returns
+         */
+        function removeTween(tween) {
+            return _tweenManager.removeTween(tween);
+        }
+        function removeTweens(target) {
+            return _tweenManager.removeTweens(target);
+        }
+    })();
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -5848,7 +6288,6 @@ var junyou;
         return StateListenerMachine;
     }());
     junyou.StateListenerMachine = StateListenerMachine;
-    __reflect(StateListenerMachine.prototype, "junyou.StateListenerMachine", ["junyou.IStateListener"]);
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -5935,7 +6374,6 @@ var junyou;
      */
     UILimiter.historys = [];
     junyou.UILimiter = UILimiter;
-    __reflect(UILimiter.prototype, "junyou.UILimiter");
     function addToStates(value) {
         var ids = [];
         for (var _i = 1; _i < arguments.length; _i++) {
@@ -5949,66 +6387,6 @@ var junyou;
         UILimiter.listener.addToState(id, value);
     }
     junyou.addToState = addToState;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * 单例工具
-     * @param clazz 要做单例的类型
-     */
-    function singleton(clazz) {
-        var instance = clazz._instance;
-        if (!instance) {
-            instance = new clazz;
-            Object.defineProperty(clazz, "_instance", {
-                value: instance
-            });
-        }
-        return instance;
-    }
-    junyou.singleton = singleton;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * 用于像统计接口发送步骤信息
-     * @author pb
-     */
-    junyou.Stats = (function () {
-        var _actionUrl, _ip, _sign, _pid, _uid, _sid;
-        return {
-            setUrl: function (url) {
-                if (url.charAt(url.length - 1) != "?") {
-                    url += "?";
-                }
-                _actionUrl = url;
-                return this;
-            },
-            setParams: function (params) {
-                _ip = getData(params.ip);
-                _pid = getData(params.pid);
-                _uid = getData(params.uid);
-                _sid = getData(params.sid);
-                return this;
-            },
-            setSign: function (sign) {
-                _sign = getData(sign);
-                return this;
-            },
-            postData: function (step) {
-                junyou.sendToUrl(_actionUrl + this.getParamUrl(step));
-            },
-            getParamUrl: function (step) {
-                return "step=" + getData(step) + "&ip=" + _ip
-                    + "&sign=" + _sign + "&pid=" + _pid
-                    + "&sid=" + _sid + "&uid=" + _uid
-                    + "&client_time=" + junyou.Global.now;
-            }
-        };
-        function getData(value) {
-            return value === undefined ? "" : encodeURIComponent(value);
-        }
-    })();
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -6172,7 +6550,6 @@ var junyou;
         return ArraySet;
     }());
     junyou.ArraySet = ArraySet;
-    __reflect(ArraySet.prototype, "junyou.ArraySet");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -6406,7 +6783,6 @@ var junyou;
         return ByteArray;
     }(egret.ByteArray));
     junyou.ByteArray = ByteArray;
-    __reflect(ByteArray.prototype, "junyou.ByteArray");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -6479,7 +6855,6 @@ var junyou;
         return Int64;
     }());
     junyou.Int64 = Int64;
-    __reflect(Int64.prototype, "junyou.Int64");
     /**
      * 2的16次方
      */
@@ -6629,10 +7004,11 @@ var junyou;
              * @static
              * @param {number} time			要格式化的时间，默认为UTC时间
              * @param {string} format 		  格式字符串 yyyy-MM-dd HH:mm:ss
-             * @param {boolean} [isRaw] 	是否为原始未使用utc偏移处理的时间，默认 false
+             * @param {boolean} [isRaw=true] 	是否为原始未使用utc偏移处理的时间，默认 true
              * @returns
              */
             getFormatTime: function (time, format, isRaw) {
+                if (isRaw === void 0) { isRaw = true; }
                 if (isRaw) {
                     time = this.getUTCTime(time);
                 }
@@ -6791,7 +7167,6 @@ var junyou;
         return TimeVO;
     }());
     junyou.TimeVO = TimeVO;
-    __reflect(TimeVO.prototype, "junyou.TimeVO");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -6857,7 +7232,6 @@ var junyou;
         return CallLater;
     }());
     junyou.CallLater = CallLater;
-    __reflect(CallLater.prototype, "junyou.CallLater");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -7242,48 +7616,6 @@ var junyou;
         return NameUtils;
     }());
     junyou.NameUtils = NameUtils;
-    __reflect(NameUtils.prototype, "junyou.NameUtils");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * 请求限制
-     * @author 3tion
-     *
-     */
-    junyou.RequestLimit = {
-        _dic: {},
-        /**
-         * @param o 锁定的对像(可以是任何类型,它会被当做一个key)
-         * @param time 锁定对像 毫秒数
-         * @return 是否已解锁 true为没有被限制,false 被限制了
-         *
-         */
-        check: function (o, time) {
-            if (time === void 0) { time = 500; }
-            var dic = this._dic;
-            var t = dic[o];
-            var now = junyou.Global.now;
-            if (!t) {
-                dic[o] = time + now;
-                return true;
-            }
-            var i = t - now;
-            if (i > 0) {
-                return false;
-            }
-            dic[o] = time + now;
-            return true;
-        },
-        /**
-         * 删除
-         * @param o
-         *
-         */
-        remove: function (o) {
-            delete this._dic[o];
-        }
-    };
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -7427,6 +7759,47 @@ var junyou;
             }
         }
     })();
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 请求限制
+     * @author 3tion
+     *
+     */
+    junyou.RequestLimit = {
+        _dic: {},
+        /**
+         * @param o 锁定的对像(可以是任何类型,它会被当做一个key)
+         * @param time 锁定对像 毫秒数
+         * @return 是否已解锁 true为没有被限制,false 被限制了
+         *
+         */
+        check: function (o, time) {
+            if (time === void 0) { time = 500; }
+            var dic = this._dic;
+            var t = dic[o];
+            var now = junyou.Global.now;
+            if (!t) {
+                dic[o] = time + now;
+                return true;
+            }
+            var i = t - now;
+            if (i > 0) {
+                return false;
+            }
+            dic[o] = time + now;
+            return true;
+        },
+        /**
+         * 删除
+         * @param o
+         *
+         */
+        remove: function (o) {
+            delete this._dic[o];
+        }
+    };
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -7917,7 +8290,6 @@ var junyou;
         return result;
     };
     junyou.WordFilter = WordFilter;
-    __reflect(WordFilter.prototype, "junyou.WordFilter");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -7998,17 +8370,192 @@ var junyou;
         }
     })();
 })(junyou || (junyou = {}));
+/**
+ * 游戏的常量的接口定义
+ * 子项目自身实现接口
+ * @author 3tion
+ */
+var junyou;
+(function (junyou) {
+})(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
     /**
-     * 扩展名常量
+     * 2d游戏的引擎管理游戏层级关系<br/>
      * @author 3tion
+     *
      */
-    junyou.Ext = {
-        JPG: ".jpg",
-        PNG: ".png",
-        WEBP: ".webp"
-    };
+    var GameEngine = (function (_super) {
+        __extends(GameEngine, _super);
+        function GameEngine(stage) {
+            var _this = _super.call(this) || this;
+            _this._layers = [];
+            /**
+             * 排序层
+             */
+            _this._sortedLayers = [];
+            _this._stage = stage;
+            _this.init();
+            return _this;
+        }
+        GameEngine.init = function (stage, ref) {
+            ref = ref || GameEngine;
+            GameEngine.instance = new ref(stage);
+        };
+        GameEngine.addLayerConfig = function (id, parentid, ref) {
+            if (parentid === void 0) { parentid = 0; }
+            var lc = {};
+            lc.id = id;
+            lc.parentid = parentid;
+            lc.ref = ref || junyou.GameLayer;
+            GameEngine.layerConfigs[id] = lc;
+        };
+        /**
+          * 单位坐标发生变化时调用
+          */
+        GameEngine.invalidateSort = function () {
+            GameEngine.instance.invalidateSort();
+        };
+        /**
+         * 单位坐标发生变化时调用
+         */
+        GameEngine.prototype.invalidateSort = function () {
+            this._sortDirty = true;
+        };
+        Object.defineProperty(GameEngine.prototype, "viewRect", {
+            get: function () {
+                return this._viewRect;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         * 获取或创建容器
+         */
+        GameEngine.prototype.getLayer = function (id) {
+            var layers = this._layers;
+            var layer = layers[id];
+            if (!layer) {
+                var cfg = GameEngine.layerConfigs[id];
+                if (!cfg) {
+                    return;
+                }
+                var ref = cfg.ref;
+                layer = new ref(id);
+                this.addLayer(layer, cfg);
+                layers[id] = layer;
+                if (layer instanceof junyou.SortedLayer) {
+                    this._sortedLayers.push(layer);
+                }
+            }
+            return layer;
+        };
+        /**
+         * 将指定
+         *
+         * @param {GameLayerID} layerID
+         *
+         * @memberOf GameEngine
+         */
+        GameEngine.prototype.sleepLayer = function (layerID) {
+            var layer = this._layers[layerID];
+            junyou.removeDisplay(layer);
+        };
+        GameEngine.prototype.awakeLayer = function (layerID) {
+            var layer = this._layers[layerID];
+            var cfg = GameEngine.layerConfigs[layerID];
+            if (layer && cfg) {
+                this.addLayer(layer, cfg);
+            }
+        };
+        GameEngine.prototype.addLayer = function (layer, cfg) {
+            if (cfg && cfg.parentid) {
+                var parent = this.getLayer(cfg.parentid);
+                this.addLayerToContainer(layer, parent);
+            }
+            else {
+                this.addLayerToContainer(layer, this._stage);
+            }
+        };
+        GameEngine.prototype.addLayerToContainer = function (layer, container) {
+            var children = container.$children;
+            var id = layer.id;
+            var i = 0;
+            for (var len = children.length; i < len; i++) {
+                var child = children[i];
+                if (child instanceof junyou.GameLayer) {
+                    var childLayer = child;
+                    if (childLayer.id > id) {
+                        break;
+                    }
+                }
+            }
+            container.addChildAt(layer, i);
+        };
+        GameEngine.prototype.init = function () {
+        };
+        return GameEngine;
+    }(egret.EventDispatcher));
+    GameEngine.layerConfigs = {};
+    junyou.GameEngine = GameEngine;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+    * GameLayer
+    * 用于后期扩展
+    */
+    var GameLayer = (function (_super) {
+        __extends(GameLayer, _super);
+        function GameLayer(id) {
+            var _this = _super.call(this) || this;
+            _this.id = id;
+            return _this;
+        }
+        return GameLayer;
+    }(egret.Sprite));
+    junyou.GameLayer = GameLayer;
+    /**
+     * 需要对子对象排序的层
+     */
+    var SortedLayer = (function (_super) {
+        __extends(SortedLayer, _super);
+        function SortedLayer() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        SortedLayer.prototype.$doAddChild = function (child, index, notifyListeners) {
+            if (notifyListeners === void 0) { notifyListeners = true; }
+            if ("depth" in child) {
+                junyou.GameEngine.invalidateSort();
+                return _super.prototype.$doAddChild.call(this, child, index, notifyListeners);
+            }
+            else {
+                throw new Error("Only IDepth can be added to this LayerID(" + this.id + ")");
+            }
+        };
+        /**
+         * 进行排序
+         */
+        SortedLayer.prototype.sort = function () {
+            //对子集排序
+            this.$children.doSort("depth");
+        };
+        return SortedLayer;
+    }(GameLayer));
+    junyou.SortedLayer = SortedLayer;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    var DSprite = (function (_super) {
+        __extends(DSprite, _super);
+        function DSprite() {
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this.depth = 0;
+            return _this;
+        }
+        return DSprite;
+    }(egret.Sprite));
+    junyou.DSprite = DSprite;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -8096,90 +8643,6 @@ var junyou;
         return AniInfo;
     }(junyou.PstInfo));
     junyou.AniInfo = AniInfo;
-    __reflect(AniInfo.prototype, "junyou.AniInfo");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * 获取帧数据
-     * 为数组的顺序："a", "f", "t", "e", "d"
-     * @param {*} data 如果无法获取对应属性的数据，会使用默认值代替  a: 0, d: -1, f: 0, t: 100
-     * @returns
-     */
-    function getFrameInfo(data) {
-        var def = { a: 0, d: -1, f: 0, t: 100 };
-        var keys = ["a", "f", "t", "e", "d"];
-        if (!Array.isArray(data)) {
-            if (typeof data === "object") {
-                for (var i = 0; i < 5; i++) {
-                    var key = keys[i];
-                    if (data[key] == undefined) {
-                        data[key] = def[key];
-                    }
-                }
-                return data;
-            }
-            else {
-                return def;
-            }
-        }
-        var f = junyou.DataParseUtil.getData(data, keys, def);
-        if (+f.e == 0) {
-            f.e = undefined;
-        }
-        if (f.t == -1) {
-            f.t = Infinity;
-        }
-        return f;
-    }
-    junyou.getFrameInfo = getFrameInfo;
-    /**
-     * 获取动作数据
-     *
-     * @param {any} data
-     * @param {number} key
-     * @returns
-     */
-    function getActionInfo(data, key) {
-        var aInfo = {};
-        aInfo.key = key;
-        var d = data[0]; //放数组0号位的原因是历史遗留，之前AS3项目的结构有这个数组，做h5项目的时候忘记修改
-        var totalTime = 0;
-        var j = 0;
-        d.forEach(function (item) {
-            var f = getFrameInfo(item);
-            totalTime += f.t;
-            d[j++] = f; // 防止有些错误的空数据
-        });
-        aInfo.frames = d;
-        aInfo.totalTime = totalTime;
-        aInfo.isCircle = !!data[1];
-        return aInfo;
-    }
-    junyou.getActionInfo = getActionInfo;
-    /**
-     * 获取自定义动作
-     * 如果无法获取对应属性的数据，会使用默认值代替
-     * a: 0, d: -1, f: 0, t: 100
-     * @static
-     * @param {any[]} actions 动作序列  如果无法获取对应属性的数据，会使用默认值代替  a: 0, d: -1, f: 0, t: 100
-     * @param {number} [key] 动作标识，需要使用整数
-     * @return {CustomAction}   自定义动作
-     */
-    junyou.getCustomAction = (function () {
-        var _key = -0.5; // 使用0.5 防止和手动加的key重复
-        return function (actions, key) {
-            key = key || _key--;
-            var frames = [];
-            var totalTime = 0;
-            for (var i = 0; i < actions.length; i++) {
-                var frame = getFrameInfo(actions[i]);
-                frames[i++] = frame;
-                totalTime += frame.t;
-            }
-            return { key: key, frames: frames, totalTime: totalTime };
-        };
-    })();
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -8482,140 +8945,126 @@ var junyou;
     AniRender._renderByGuid = {};
     AniRender.guid = 1;
     junyou.AniRender = AniRender;
-    __reflect(AniRender.prototype, "junyou.AniRender", ["junyou.IRecyclable"]);
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
     /**
-     * 回调信息，用于存储回调数据
-     * @author 3tion
-     *
+     * 获取帧数据
+     * 为数组的顺序："a", "f", "t", "e", "d"
+     * @param {*} data 如果无法获取对应属性的数据，会使用默认值代替  a: 0, d: -1, f: 0, t: 100
+     * @returns
      */
-    var CallbackInfo = (function () {
-        function CallbackInfo() {
-            if (DEBUG) {
-                var data = { enumerable: true, configurable: true };
-                data.get = function () {
-                    return this._cb;
-                };
-                data.set = function (value) {
-                    if (this._cb != value) {
-                        this._cb = value;
-                        if (value != undefined) {
-                            this._debug = { handle: value.toString(), stack: new Error().stack };
-                        }
+    function getFrameInfo(data) {
+        var def = { a: 0, d: -1, f: 0, t: 100 };
+        var keys = ["a", "f", "t", "e", "d"];
+        if (!Array.isArray(data)) {
+            if (typeof data === "object") {
+                for (var i = 0; i < 5; i++) {
+                    var key = keys[i];
+                    if (data[key] == undefined) {
+                        data[key] = def[key];
                     }
-                };
-                Object.defineProperty(this, "callback", data);
+                }
+                return data;
+            }
+            else {
+                return def;
             }
         }
-        CallbackInfo.prototype.init = function (callback, thisObj, args) {
-            this.callback = callback;
-            this.args = args;
-            this.thisObj = thisObj;
-        };
-        /**
-         * 检查回调是否一致，只检查参数和this对象,不检查参数
-         */
-        CallbackInfo.prototype.checkHandle = function (callback, thisObj) {
-            return this.callback === callback && this.thisObj == thisObj /* 允许null==undefined */;
-        };
-        /**
-         * 执行回调
-         * 回调函数，将以args作为参数，callback作为函数执行
-         * @param {boolean} [doRecycle=true] 是否回收CallbackInfo，默认为true
-         */
-        CallbackInfo.prototype.execute = function (doRecycle) {
-            if (doRecycle === void 0) { doRecycle = true; }
-            var callback = this.callback;
-            var result;
-            if (callback != undefined) {
-                try {
-                    result = callback.apply(this.thisObj, this.args);
-                }
-                catch (e) {
-                    if (DEBUG) {
-                        var debug = this["_debug"];
-                        junyou.ThrowError("CallbackInfo\u6267\u884C\u62A5\u9519\uFF0C\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n}==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + e.stack);
-                        console.log.apply(console, ["参数列表"].concat(this.args));
-                    }
-                }
-            }
-            else if (DEBUG) {
-                var debug = this["_debug"];
-                junyou.ThrowError("\u5BF9\u5DF2\u56DE\u6536\u7684CallbackInfo\u6267\u884C\u4E86\u56DE\u8C03\uFF0C\u6700\u540E\u4E00\u6B21\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + new Error().stack);
-            }
-            if (doRecycle) {
-                this.recycle();
-            }
-            return result;
-        };
-        /**
-         * 用于执行其他参数
-         * 初始的参数会按顺序放在末位
-         * @param args (description)
-         */
-        CallbackInfo.prototype.call = function () {
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
-            }
-            if (this.args) {
-                args = args.concat(this.args);
-            }
-            return this.callback.apply(this.thisObj, args);
-        };
-        CallbackInfo.prototype.onRecycle = function () {
-            this.callback = undefined;
-            this.args = undefined;
-            this.thisObj = undefined;
-        };
-        /**
-         * 获取CallbackInfo的实例
-         */
-        CallbackInfo.get = function (callback, thisObj) {
-            var args = [];
-            for (var _i = 2; _i < arguments.length; _i++) {
-                args[_i - 2] = arguments[_i];
-            }
-            var info = junyou.recyclable(CallbackInfo);
-            info.init(callback, thisObj, args);
-            return info;
-        };
-        /**
-         * 加入到数组
-         * 检查是否有this和handle相同的callback，如果有，就用新的参数替换旧参数
-         * @param list
-         * @param handle
-         * @param args
-         * @param thisObj
-         */
-        CallbackInfo.addToList = function (list, handle, thisObj) {
-            var args = [];
-            for (var _i = 3; _i < arguments.length; _i++) {
-                args[_i - 3] = arguments[_i];
-            }
-            //检查是否有this和handle相同的callback
-            for (var _a = 0, list_2 = list; _a < list_2.length; _a++) {
-                var callback = list_2[_a];
-                if (callback.checkHandle(handle, thisObj)) {
-                    callback.args = args;
-                    return callback;
-                }
-            }
-            callback = this.getInstance.apply(this, [handle, thisObj].concat(args));
-            list.push(callback);
-            return callback;
-        };
-        return CallbackInfo;
-    }());
+        var f = junyou.DataParseUtil.getData(data, keys, def);
+        if (+f.e == 0) {
+            f.e = undefined;
+        }
+        if (f.t == -1) {
+            f.t = Infinity;
+        }
+        return f;
+    }
+    junyou.getFrameInfo = getFrameInfo;
     /**
-     * 获取CallbackInfo的实例
-     * @deprecated  请使用`CallbackInfo.get`以减少字符串消耗
+     * 获取动作数据
+     *
+     * @param {any} data
+     * @param {number} key
+     * @returns
      */
-    CallbackInfo.getInstance = CallbackInfo.get;
-    junyou.CallbackInfo = CallbackInfo;
-    __reflect(CallbackInfo.prototype, "junyou.CallbackInfo", ["junyou.IRecyclable"]);
+    function getActionInfo(data, key) {
+        var aInfo = {};
+        aInfo.key = key;
+        var d = data[0]; //放数组0号位的原因是历史遗留，之前AS3项目的结构有这个数组，做h5项目的时候忘记修改
+        var totalTime = 0;
+        var j = 0;
+        d.forEach(function (item) {
+            var f = getFrameInfo(item);
+            totalTime += f.t;
+            d[j++] = f; // 防止有些错误的空数据
+        });
+        aInfo.frames = d;
+        aInfo.totalTime = totalTime;
+        aInfo.isCircle = !!data[1];
+        return aInfo;
+    }
+    junyou.getActionInfo = getActionInfo;
+    /**
+     * 获取自定义动作
+     * 如果无法获取对应属性的数据，会使用默认值代替
+     * a: 0, d: -1, f: 0, t: 100
+     * @static
+     * @param {any[]} actions 动作序列  如果无法获取对应属性的数据，会使用默认值代替  a: 0, d: -1, f: 0, t: 100
+     * @param {number} [key] 动作标识，需要使用整数
+     * @return {CustomAction}   自定义动作
+     */
+    junyou.getCustomAction = (function () {
+        var _key = -0.5; // 使用0.5 防止和手动加的key重复
+        return function (actions, key) {
+            key = key || _key--;
+            var frames = [];
+            var totalTime = 0;
+            for (var i = 0; i < actions.length; i++) {
+                var frame = getFrameInfo(actions[i]);
+                frames[i++] = frame;
+                totalTime += frame.t;
+            }
+            return { key: key, frames: frames, totalTime: totalTime };
+        };
+    })();
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     *
+     * 调整ClassFactory
+     * @export
+     * @class ClassFactory
+     * @template T
+     */
+    var ClassFactory = (function () {
+        /**
+         * Creates an instance of ClassFactory.
+         *
+         * @param {{ new (): T }} creator
+         * @param {{ [index: string]: any }} [props]    属性模板
+         */
+        function ClassFactory(creator, props) {
+            this._creator = creator;
+            this._props = props;
+        }
+        /**
+         * 获取实例
+         *
+         * @returns
+         */
+        ClassFactory.prototype.get = function () {
+            var ins = new this._creator();
+            var p = this._props;
+            for (var key in p) {
+                ins[key] = p[key];
+            }
+            return ins;
+        };
+        return ClassFactory;
+    }());
+    junyou.ClassFactory = ClassFactory;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -8630,724 +9079,86 @@ var junyou;
         return JTexture;
     }(egret.Texture));
     junyou.JTexture = JTexture;
-    __reflect(JTexture.prototype, "junyou.JTexture");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
     /**
-     * 绑定属性名，当属性值发生改变时，可自动对外抛eventType事件
+     * 回收池
+     * @author 3tion
      *
-     * @export
-     * @param {(string | number)} eventType     事件类型
-     * @param {boolean} [selfDispatch]          默认false，使用Facade抛事件，event.data为实例本身
-     *                                          如果为true，需要为EventDispatcher的实现，会使用自身抛事件
-     * @returns
      */
-    function d_fire(eventType, selfDispatch) {
-        return function (target, value) {
-            new Watcher(value, function () {
-                if (selfDispatch) {
-                    if (typeof this.dispatch === "function") {
-                        this.dispatch(eventType);
-                    }
-                }
-                else {
-                    junyou.dispatch(eventType, this);
-                }
-            }).reset(target);
-            //此处的target为prototype
-            //事件回调时候，this为实例
-        };
-    }
-    junyou.d_fire = d_fire;
-    /**
-     * 使用微软vs code中使用的代码
-     * 用于一些 lazy 的调用
-     * https://github.com/Microsoft/vscode/blob/master/src/vs/base/common/decorators.ts
-     *
-     * @export
-     * @param {*} target
-     * @param {string} key
-     * @param {*} descriptor
-     */
-    function d_memoize(target, key, descriptor) {
-        var fnKey = null;
-        var fn = null;
-        if (typeof descriptor.value === 'function') {
-            fnKey = 'value';
-            fn = descriptor.value;
+    var RecyclablePool = (function () {
+        function RecyclablePool(TCreator, max) {
+            if (max === void 0) { max = 100; }
+            this._pool = [];
+            this._max = max;
+            this._TCreator = TCreator;
         }
-        else if (typeof descriptor.get === 'function') {
-            fnKey = 'get';
-            fn = descriptor.get;
-        }
-        if (!fn) {
-            throw new Error('not supported');
-        }
-        var memoizeKey = "$memoize$" + key;
-        descriptor[fnKey] = function () {
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
+        RecyclablePool.prototype.get = function () {
+            var ins;
+            var pool = this._pool;
+            if (pool.length) {
+                ins = pool.pop();
             }
-            if (!this.hasOwnProperty(memoizeKey)) {
-                Object.defineProperty(this, memoizeKey, {
-                    configurable: false,
-                    enumerable: false,
-                    writable: false,
-                    value: fn.apply(this, args)
-                });
+            else {
+                ins = new this._TCreator();
             }
-            return this[memoizeKey];
-        };
-    }
-    junyou.d_memoize = d_memoize;
-    /**
-     * @private
-     */
-    var _$l = "__listeners__";
-    /**
-     * @private
-     */
-    var _$b = "__bindables__";
-    /**
-     * @private
-     */
-    var _$c = 0;
-    function notifyListener(host, property) {
-        var list = host[_$l];
-        var length = list.length;
-        for (var i = 0; i < length; i += 2) {
-            var listener = list[i];
-            var target = list[i + 1];
-            listener.call(target, property, host);
-        }
-    }
-    /**
-     * @language en_US
-     * The Watcher class defines utility method that you can use with bindable properties.
-     * These methods let you define an event handler that is executed whenever a bindable property is updated.
-     *
-     * @version Egret 2.4
-     * @version eui 1.0
-     * @platform Web,Native
-     * @includeExample extension/eui/binding/WatcherExample.ts
-     */
-    /**
-     * @language zh_CN
-     * Watcher 类能够监视可绑定属性的改变，您可以定义一个事件处理函数作为 Watcher 的回调方法，在每次可绑定属性的值改变时都执行此函数。
-     *
-     * @version Egret 2.4
-     * @version eui 1.0
-     * @platform Web,Native
-     * @includeExample extension/eui/binding/WatcherExample.ts
-     */
-    var Watcher = (function () {
-        /**
-         * Creates an instance of Watcher.
-         *
-         * @param {string} property                 监听的属性
-         * @param {(value: any) => void} handler    回调函数
-         * @param {*} [thisObject]                  回调函数的this对象，如果不设置this，则当监听对象属性变化时，将以监听的对象作为this参数，进行回调
-         * @param {Watcher} [next]
-         */
-        function Watcher(property, handler, thisObject, next) {
-            /**
-             * @private
-             */
-            this.isExecuting = false;
-            this.property = property;
-            this.handler = handler;
-            this.next = next;
-            this.thisObject = thisObject;
-        }
-        /**
-         * @language en_US
-         * Creates and starts a Watcher instance.
-         * The Watcher can only watch the property of a Object which host is instance of egret.IEventDispatcher.
-         * @param host The object that hosts the property or property chain to be watched.
-         * You can use the use the <code>reset()</code> method to change the value of the <code>host</code> argument
-         * after creating the Watcher instance.
-         * The <code>host</code> maintains a list of <code>handlers</code> to invoke when <code>prop</code> changes.
-         * @param chain A value specifying the property or chain to be watched.
-         * For example, to watch the property <code>host.a.b.c</code>,
-         * call the method as: <code>watch(host, ["a","b","c"], ...)</code>.
-         * @param handler  An event handler function called when the value of the watched property
-         * (or any property in a watched chain) is modified.
-         * @param thisObject <code>this</code> object of which binding with handler
-         * @returns he ChangeWatcher instance, if at least one property name has been specified to
-         * the <code>chain</code> argument; null otherwise.
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        /**
-         * @language zh_CN
-         * 创建并启动 Watcher 实例。注意：Watcher 只能监视 host 为 egret.IEventDispatcher 对象的属性改变。若属性链中某个属性所对应的实例不是 egret.IEventDispatcher，
-         * 则属性链中在它之后的属性改变将无法检测到。
-         * @param host 用于承载要监视的属性或属性链的对象。
-         * 创建Watcher实例后，您可以利用<code>reset()</code>方法更改<code>host</code>参数的值。
-         * 当<code>prop</code>改变的时候，会使得host对应的一系列<code>handlers</code>被触发。
-         * @param chain 用于指定要监视的属性链的值。例如，要监视属性 host.a.b.c，需按以下形式调用此方法：watch¬(host, ["a","b","c"], ...)。
-         * @param handler 在监视的目标属性链中任何属性的值发生改变时调用的事件处理函数。
-         * @param thisObject handler 方法绑定的this对象
-         * @returns 如果已为 chain 参数至少指定了一个属性名称，则返回 Watcher 实例；否则返回 null。
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        Watcher.watch = function (host, chain, handler, thisObject) {
+            if (typeof ins.onSpawn === "function") {
+                ins.onSpawn();
+            }
             if (DEBUG) {
-                if (!chain) {
-                    egret.$error(1003, "chain");
+                ins._insid = _recid++;
+            }
+            return ins;
+        };
+        /**
+         * 回收
+         */
+        RecyclablePool.prototype.recycle = function (t) {
+            var pool = this._pool;
+            var idx = pool.indexOf(t);
+            if (!~idx) {
+                if (typeof t.onRecycle === "function") {
+                    t.onRecycle();
                 }
-            }
-            if (chain.length > 0) {
-                var property = chain.shift();
-                var next = Watcher.watch(null, chain, handler, thisObject);
-                var watcher = new Watcher(property, handler, thisObject, next);
-                watcher.reset(host);
-                return watcher;
-            }
-            else {
-                return;
-            }
-        };
-        /**
-         * @private
-         * 检查属性是否可以绑定。若还未绑定，尝试添加绑定事件。若是只读或只写属性，返回false。
-         */
-        Watcher.checkBindable = function (host, property) {
-            var list = host[_$b];
-            if (list && list.indexOf(property) != -1) {
-                return true;
-            }
-            var isEventDispatcher = egret.is(host, "egret.IEventDispatcher");
-            if (!isEventDispatcher && !host[_$l]) {
-                host[_$l] = [];
-            }
-            var data = host.getPropertyDescriptor(property);
-            if (data && data.set && data.get) {
-                var orgSet_1 = data.set;
-                data.set = function (value) {
-                    if (this[property] != value) {
-                        orgSet_1.call(this, value);
-                        if (isEventDispatcher) {
-                            junyou.PropertyEvent.dispatchPropertyEvent(this, -2000 /* PROPERTY_CHANGE */, property);
-                        }
-                        else {
-                            notifyListener(this, property);
-                        }
-                    }
-                };
-            }
-            else if (!data || (!data.get && !data.set)) {
-                _$c++;
-                var newProp_1 = "_" + _$c + property;
-                host[newProp_1] = data ? data.value : null;
-                data = { enumerable: true, configurable: true };
-                data.get = function () {
-                    return this[newProp_1];
-                };
-                data.set = function (value) {
-                    if (this[newProp_1] != value) {
-                        this[newProp_1] = value;
-                        if (isEventDispatcher) {
-                            junyou.PropertyEvent.dispatchPropertyEvent(this, -2000 /* PROPERTY_CHANGE */, property);
-                        }
-                        else {
-                            notifyListener(this, property);
-                        }
-                    }
-                };
-            }
-            else {
-                return false;
-            }
-            Object.defineProperty(host, property, data);
-            junyou.registerBindable(host, property);
-        };
-        /**
-         * @language en_US
-         * Detaches this Watcher instance, and its handler function, from the current host.
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        /**
-         * @language zh_CN
-         * 从当前宿主中断开此 Watcher 实例及其处理函数。
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        Watcher.prototype.unwatch = function () {
-            this.reset(null);
-            this.handler = null;
-            if (this.next) {
-                this.next.handler = null;
-            }
-        };
-        /**
-         * @language en_US
-         * Retrieves the current value of the watched property or property chain, or null if the host object is null.
-         * @example
-         * <pre>
-         * watch(obj, ["a","b","c"], ...).getValue() === obj.a.b.c
-         * </pre>
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        /**
-         * @language zh_CN
-         * 检索观察的属性或属性链的当前值，当宿主对象为空时此值为空。
-         * @example
-         * <pre>
-         * watch(obj, ["a","b","c"], ...).getValue() === obj.a.b.c
-         * </pre>
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        Watcher.prototype.getValue = function () {
-            if (this.next) {
-                return this.next.getValue();
-            }
-            return this.getHostPropertyValue();
-        };
-        /**
-         * @language en_US
-         * Sets the handler function.s
-         * @param handler The handler function. This argument must not be null.
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        /**
-         * @language zh_CN
-         * 设置处理函数。
-         * @param handler 处理函数，此参数必须为非空。
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        Watcher.prototype.setHandler = function (handler, thisObject) {
-            this.handler = handler;
-            this.thisObject = thisObject;
-            if (this.next) {
-                this.next.setHandler(handler, thisObject);
-            }
-        };
-        /**
-         * @language en_US
-         * Resets this ChangeWatcher instance to use a new host object.
-         * You can call this method to reuse a watcher instance on a different host.
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        /**
-         * @language zh_CN
-         * 重置此 Watcher 实例使用新的宿主对象。
-         * 您可以通过该方法实现一个Watcher实例用于不同的宿主。
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        Watcher.prototype.reset = function (newHost) {
-            var oldHost = this.host;
-            if (oldHost) {
-                if (oldHost instanceof egret.EventDispatcher) {
-                    oldHost.off(-2000 /* PROPERTY_CHANGE */, this.wrapHandler, this);
-                }
-                else {
-                    var list = oldHost[_$l];
-                    var index = list.indexOf(this);
-                    list.splice(index - 1, 2);
-                }
-            }
-            this.host = newHost;
-            if (newHost) {
-                Watcher.checkBindable(newHost, this.property);
-                if (newHost instanceof egret.EventDispatcher) {
-                    newHost.on(-2000 /* PROPERTY_CHANGE */, this.wrapHandler, this, false, 100);
-                }
-                else {
-                    var list = newHost[_$l];
-                    list.push(this.onPropertyChange);
-                    list.push(this);
-                }
-            }
-            if (this.next) {
-                this.next.reset(this.getHostPropertyValue());
-            }
-            return this;
-        };
-        /**
-         * @private
-         *
-         * @returns
-         */
-        Watcher.prototype.getHostPropertyValue = function () {
-            return this.host ? this.host[this.property] : null;
-        };
-        /**
-         * @private
-         */
-        Watcher.prototype.wrapHandler = function (event) {
-            this.onPropertyChange(event.property, event.currentTarget);
-        };
-        /**
-         * @private
-         */
-        Watcher.prototype.onPropertyChange = function (property, dispatcher) {
-            if (property == this.property && !this.isExecuting) {
-                try {
-                    this.isExecuting = true;
-                    if (this.next)
-                        this.next.reset(this.getHostPropertyValue());
-                    if (this.thisObject) {
-                        this.handler.call(this.thisObject, this.getValue());
-                    }
-                    else {
-                        this.handler.call(dispatcher, this.getValue());
-                    }
-                }
-                finally {
-                    this.isExecuting = false;
+                if (pool.length < this._max) {
+                    pool.push(t);
                 }
             }
         };
-        return Watcher;
+        return RecyclablePool;
     }());
-    junyou.Watcher = Watcher;
-    __reflect(Watcher.prototype, "junyou.Watcher");
-})(junyou || (junyou = {}));
-//////////////////////////////////////////////////////////////////////////////////////
-//
-//  Copyright (c) 2014-2015, Egret Technology Inc.
-//  All rights reserved.
-//  Redistribution and use in source and binary forms, with or without
-//  modification, are permitted provided that the following conditions are met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above copyright
-//       notice, this list of conditions and the following disclaimer in the
-//       documentation and/or other materials provided with the distribution.
-//     * Neither the name of the Egret nor the
-//       names of its contributors may be used to endorse or promote products
-//       derived from this software without specific prior written permission.
-//
-//  THIS SOFTWARE IS PROVIDED BY EGRET AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
-//  OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-//  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-//  IN NO EVENT SHALL EGRET AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-//  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-//  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;LOSS OF USE, DATA,
-//  OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-//  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-//  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-//  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-//////////////////////////////////////////////////////////////////////////////////////
-(function (junyou) {
-    /**
-     * @language en_US
-     * The Binding class defines utility methods for performing data binding.
-     * You can use the methods defined in this class to configure data bindings.
-     * @version Egret 2.4
-     * @version eui 1.0
-     * @platform Web,Native
-     * @includeExample extension/eui/binding/BindingExample.ts
-     */
-    /**
-     * @language zh_CN
-     * 绑定工具类，用于执行数据绑定用的方法集。您可以使用此类中定义的方法来配置数据绑定。
-     * @version Egret 2.4
-     * @version eui 1.0
-     * @platform Web,Native
-     * @includeExample extension/eui/binding/BindingExample.ts
-     */
-    var Binding = (function () {
-        function Binding() {
-        }
-        /**
-         * @language en_US
-         * Binds a property, <prop>prop</code> on the <code>target</code> Object, to a bindable property or peoperty chain.
-         * @param host The object that hosts the property or property chain to be watched.
-         * The <code>host</code> maintains a list of <code>targets</code> to update theirs <code>prop</code> when <code>chain</code> changes.
-         * @param chain A value specifying the property or chain to be watched. For example, when watch the property <code>host.a.b.c</code>,
-         * you need call the method like this: <code>indProperty(host, ["a","b","c"], ...)</code>
-         * @param target The Object defining the property to be bound to <code>chain</code>.
-         * @param prop The name of the public property defined in the <code>site</code> Object to be bound.
-         * @returns A ChangeWatcher instance, if at least one property name has been specified
-         * to the <code>chain</code> argument; null otherwise.
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        /**
-         * @language zh_CN
-         * 绑定一个对象的属性值到要监视的对象属性上。
-         * @param host 用于承载要监视的属性或属性链的对象。
-         * 当 <code>host</code>上<code>chain</code>所对应的值发生改变时，<code>target</code>上的<code>prop</code>属性将被自动更新。
-         * @param chain 用于指定要监视的属性链的值。例如，要监视属性 <code>host.a.b.c</code>，需按以下形式调用此方法：<code>bindProperty(host, ["a","b","c"], ...)。</code>
-         * @param target 本次绑定要更新的目标对象。
-         * @param prop 本次绑定要更新的目标属性名称。
-         * @returns 如果已为 chain 参数至少指定了一个属性名称，则返回 Watcher 实例；否则返回 null。
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        Binding.bindProperty = function (host, chain, target, prop) {
-            var watcher = junyou.Watcher.watch(host, chain, null, null);
-            if (watcher) {
-                var assign = function (value) {
-                    target[prop] = value;
-                };
-                watcher.setHandler(assign, null);
-                assign(watcher.getValue());
-            }
-            return watcher;
-        };
-        /**
-         * @language en_US
-         * Binds a callback, <prop>handler</code> on the <code>target</code> Object, to a bindable property or peoperty chain.
-         * Callback method to invoke with an argument of the current value of <code>chain</code> when that value changes.
-         * @param host The object that hosts the property or property chain to be watched.
-         * @param chain A value specifying the property or chain to be watched. For example, when watch the property <code>host.a.b.c</code>,
-         * you need call the method like this: <code>indProperty(host, ["a","b","c"], ...)</code>
-         * @param handler method to invoke with an argument of the current value of <code>chain</code> when that value changes.
-         * @param thisObject <code>this</code> object of binding method
-         * @returns A ChangeWatcher instance, if at least one property name has been  specified to the <code>chain</code> argument; null otherwise.
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        /**
-         * @language zh_CN
-         * 绑定一个回调函数到要监视的对象属性上。当 host上 chain 所对应的值发生改变时，handler 方法将被自动调用。
-         * @param host 用于承载要监视的属性或属性链的对象。
-         * @param chain 用于指定要监视的属性链的值。例如，要监视属性 host.a.b.c，需按以下形式调用此方法：bindSetter(host, ["a","b","c"], ...)。
-         * @param handler 在监视的目标属性链中任何属性的值发生改变时调用的事件处理函数。
-         * @param thisObject handler 方法绑定的this对象
-         * @returns 如果已为 chain 参数至少指定了一个属性名称，则返回 Watcher 实例；否则返回 null。
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        Binding.bindHandler = function (host, chain, handler, thisObject) {
-            var watcher = junyou.Watcher.watch(host, chain, handler, thisObject);
-            if (watcher) {
-                handler.call(thisObject, watcher.getValue());
-            }
-            return watcher;
-        };
-        return Binding;
-    }());
-    junyou.Binding = Binding;
-    __reflect(Binding.prototype, "junyou.Binding");
-})(junyou || (junyou = {}));
-//////////////////////////////////////////////////////////////////////////////////////
-//
-//  Copyright (c) 2014-2015, Egret Technology Inc.
-//  All rights reserved.
-//  Redistribution and use in source and binary forms, with or without
-//  modification, are permitted provided that the following conditions are met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above copyright
-//       notice, this list of conditions and the following disclaimer in the
-//       documentation and/or other materials provided with the distribution.
-//     * Neither the name of the Egret nor the
-//       names of its contributors may be used to endorse or promote products
-//       derived from this software without specific prior written permission.
-//
-//  THIS SOFTWARE IS PROVIDED BY EGRET AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
-//  OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-//  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-//  IN NO EVENT SHALL EGRET AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-//  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-//  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;LOSS OF USE, DATA,
-//  OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-//  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-//  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-//  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-//////////////////////////////////////////////////////////////////////////////////////
-(function (junyou) {
-    /**
-     * @language en_US
-     * The PropertyChangeEvent class represents the event object
-     * passed to the event listener when one of the properties of
-     * an object has changed, and provides information about the change.
-     *
-     * @version Egret 2.4
-     * @version eui 1.0
-     * @platform Web,Native
-     * @includeExample  extension/eui/events/PropertyEventExample.ts
-     */
-    /**
-     * @language zh_CN
-     * 对象的一个属性发生更改时传递到事件侦听器的事件。
-     *
-     * @version Egret 2.4
-     * @version eui 1.0
-     * @platform Web,Native
-     * @includeExample  extension/eui/events/PropertyEventExample.ts
-     */
-    var PropertyEvent = (function (_super) {
-        __extends(PropertyEvent, _super);
-        /**
-         * @language en_US
-         * Constructor.
-         *
-         * @param type The event type; indicates the action that triggered the event.
-         * @param bubbles Specifies whether the event can bubble
-         * up the display list hierarchy.
-         * @param cancelable Specifies whether the behavior
-         * associated with the event can be prevented.
-         * @param property Name of the property that changed.
-         *
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        /**
-         * @language zh_CN
-         * 创建一个属性改变事件。
-         *
-         * @param type 事件类型；指示触发事件的动作。
-         * @param bubbles 指定该事件是否可以在显示列表层次结构得到冒泡处理。
-         * @param cancelable 指定是否可以防止与事件相关联的行为。
-         * @param property 发生改变的属性名称。
-         *
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        function PropertyEvent(type, bubbles, cancelable, property) {
-            var _this = _super.call(this, type, bubbles, cancelable) || this;
-            _this.property = property;
-            return _this;
-        }
-        /**
-         * @language en_US
-         * Dispatch an event with specified EventDispatcher. The dispatched event will be cached in the object pool,
-         * for the next cycle of reuse.
-         *
-         * @param target the target of event dispatcher.
-         * @param eventType The event type; indicates the action that triggered the event.
-         * @param property Name of the property that changed.
-         *
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        /**
-         * @language zh_CN
-         * 使用指定的 EventDispatcher 对象来抛出事件对象。抛出的对象将会缓存在对象池上，供下次循环复用。
-         *
-         * @param target 事件派发目标
-         * @param eventType 事件类型；指示触发事件的动作。
-         * @param property 发生改变的属性名称。
-         *
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        PropertyEvent.dispatchPropertyEvent = function (target, eventType, property) {
-            if (!target.hasListen(eventType)) {
-                return true;
-            }
-            var event = egret.Event.create(PropertyEvent, eventType);
-            event.property = property;
-            var result = target.dispatchEvent(event);
-            egret.Event.release(event);
-            return result;
-        };
-        return PropertyEvent;
-    }(egret.Event));
-    junyou.PropertyEvent = PropertyEvent;
-    __reflect(PropertyEvent.prototype, "junyou.PropertyEvent");
-})(junyou || (junyou = {}));
-//////////////////////////////////////////////////////////////////////////////////////
-//
-//  Copyright (c) 2014-2015, Egret Technology Inc.
-//  All rights reserved.
-//  Redistribution and use in source and binary forms, with or without
-//  modification, are permitted provided that the following conditions are met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above copyright
-//       notice, this list of conditions and the following disclaimer in the
-//       documentation and/or other materials provided with the distribution.
-//     * Neither the name of the Egret nor the
-//       names of its contributors may be used to endorse or promote products
-//       derived from this software without specific prior written permission.
-//
-//  THIS SOFTWARE IS PROVIDED BY EGRET AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
-//  OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-//  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-//  IN NO EVENT SHALL EGRET AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-//  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-//  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;LOSS OF USE, DATA,
-//  OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-//  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-//  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-//  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-//////////////////////////////////////////////////////////////////////////////////////
-(function (junyou) {
-    var key = "__bindables__";
-    /**
-     * @language en_US
-     * Register a property of an instance is can be bound.
-     * This method is ususally invoked by Watcher class.
-     *
-     * @param instance the instance to be registered.
-     * @param property the property of specified instance to be registered.
-     *
-     * @version Egret 2.4
-     * @version eui 1.0
-     * @platform Web,Native
-     */
-    /**
-     * @language zh_CN
-     * 标记实例的一个属性是可绑定的,此方法通常由 Watcher 类调用。
-     *
-     * @param instance 要标记的实例
-     * @param property 可绑定的属性。
-     *
-     * @version Egret 2.4
-     * @version eui 1.0
-     * @platform Web,Native
-     */
-    function registerBindable(instance, property) {
-        if (DEBUG) {
-            if (!instance) {
-                egret.$error(1003, "instance");
-            }
-            if (!property) {
-                egret.$error(1003, "property");
-            }
-        }
-        if (instance.hasOwnProperty(key)) {
-            instance[key].push(property);
-        }
-        else {
-            var list = [property];
-            if (instance[key]) {
-                list = instance[key].concat(list);
-            }
-            instance[key] = list;
-        }
+    junyou.RecyclablePool = RecyclablePool;
+    var rpt = RecyclablePool.prototype;
+    rpt.getInstance = rpt.get;
+    if (DEBUG) {
+        var _recid = 0;
     }
-    junyou.registerBindable = registerBindable;
+    /**
+     * 获取一个recyclable的对象
+     *
+     * @export
+     * @template T
+     * @param {{ new (): T; _pool?: RecyclablePool<T> }} clazz
+     * @returns {(T & { recycle() })}
+     */
+    function recyclable(clazz) {
+        var pool = clazz._pool;
+        if (!pool) {
+            pool = new RecyclablePool(clazz);
+            Object.defineProperty(clazz, "_pool", {
+                value: pool
+            });
+            var pt = clazz.prototype;
+            if (pt.recycle == undefined) {
+                pt.recycle = function () {
+                    pool.recycle(this);
+                };
+            }
+        }
+        return pool.get();
+    }
+    junyou.recyclable = recyclable;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -9400,7 +9211,6 @@ var junyou;
         return ResourceBitmap;
     }(egret.Bitmap));
     junyou.ResourceBitmap = ResourceBitmap;
-    __reflect(ResourceBitmap.prototype, "junyou.ResourceBitmap", ["junyou.IRecyclable", "junyou.IDepth"]);
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -9505,7 +9315,6 @@ var junyou;
         return SplitUnitResource;
     }());
     junyou.SplitUnitResource = SplitUnitResource;
-    __reflect(SplitUnitResource.prototype, "junyou.SplitUnitResource", ["junyou.IResource"]);
 })(junyou || (junyou = {}));
 /**
  * @author 3tion
@@ -9646,7 +9455,6 @@ var junyou;
      */
     UnitResource.DATA_JSON = "d.json";
     junyou.UnitResource = UnitResource;
-    __reflect(UnitResource.prototype, "junyou.UnitResource");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -9767,198 +9575,6 @@ var junyou;
         return Camera;
     }(egret.HashObject));
     junyou.Camera = Camera;
-    __reflect(Camera.prototype, "junyou.Camera");
-})(junyou || (junyou = {}));
-/**
- * 游戏的常量的接口定义
- * 子项目自身实现接口
- * @author 3tion
- */
-var junyou;
-(function (junyou) {
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * 2d游戏的引擎管理游戏层级关系<br/>
-     * @author 3tion
-     *
-     */
-    var GameEngine = (function (_super) {
-        __extends(GameEngine, _super);
-        function GameEngine(stage) {
-            var _this = _super.call(this) || this;
-            _this._layers = [];
-            /**
-             * 排序层
-             */
-            _this._sortedLayers = [];
-            _this._stage = stage;
-            _this.init();
-            return _this;
-        }
-        GameEngine.init = function (stage, ref) {
-            ref = ref || GameEngine;
-            GameEngine.instance = new ref(stage);
-        };
-        GameEngine.addLayerConfig = function (id, parentid, ref) {
-            if (parentid === void 0) { parentid = 0; }
-            var lc = {};
-            lc.id = id;
-            lc.parentid = parentid;
-            lc.ref = ref || junyou.GameLayer;
-            GameEngine.layerConfigs[id] = lc;
-        };
-        /**
-          * 单位坐标发生变化时调用
-          */
-        GameEngine.invalidateSort = function () {
-            GameEngine.instance.invalidateSort();
-        };
-        /**
-         * 单位坐标发生变化时调用
-         */
-        GameEngine.prototype.invalidateSort = function () {
-            this._sortDirty = true;
-        };
-        Object.defineProperty(GameEngine.prototype, "viewRect", {
-            get: function () {
-                return this._viewRect;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        /**
-         * 获取或创建容器
-         */
-        GameEngine.prototype.getLayer = function (id) {
-            var layers = this._layers;
-            var layer = layers[id];
-            if (!layer) {
-                var cfg = GameEngine.layerConfigs[id];
-                if (!cfg) {
-                    return;
-                }
-                var ref = cfg.ref;
-                layer = new ref(id);
-                this.addLayer(layer, cfg);
-                layers[id] = layer;
-                if (layer instanceof junyou.SortedLayer) {
-                    this._sortedLayers.push(layer);
-                }
-            }
-            return layer;
-        };
-        /**
-         * 将指定
-         *
-         * @param {GameLayerID} layerID
-         *
-         * @memberOf GameEngine
-         */
-        GameEngine.prototype.sleepLayer = function (layerID) {
-            var layer = this._layers[layerID];
-            junyou.removeDisplay(layer);
-        };
-        GameEngine.prototype.awakeLayer = function (layerID) {
-            var layer = this._layers[layerID];
-            var cfg = GameEngine.layerConfigs[layerID];
-            if (layer && cfg) {
-                this.addLayer(layer, cfg);
-            }
-        };
-        GameEngine.prototype.addLayer = function (layer, cfg) {
-            if (cfg && cfg.parentid) {
-                var parent = this.getLayer(cfg.parentid);
-                this.addLayerToContainer(layer, parent);
-            }
-            else {
-                this.addLayerToContainer(layer, this._stage);
-            }
-        };
-        GameEngine.prototype.addLayerToContainer = function (layer, container) {
-            var children = container.$children;
-            var id = layer.id;
-            var i = 0;
-            for (var len = children.length; i < len; i++) {
-                var child = children[i];
-                if (child instanceof junyou.GameLayer) {
-                    var childLayer = child;
-                    if (childLayer.id > id) {
-                        break;
-                    }
-                }
-            }
-            container.addChildAt(layer, i);
-        };
-        GameEngine.prototype.init = function () {
-        };
-        return GameEngine;
-    }(egret.EventDispatcher));
-    GameEngine.layerConfigs = {};
-    junyou.GameEngine = GameEngine;
-    __reflect(GameEngine.prototype, "junyou.GameEngine");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-    * GameLayer
-    * 用于后期扩展
-    */
-    var GameLayer = (function (_super) {
-        __extends(GameLayer, _super);
-        function GameLayer(id) {
-            var _this = _super.call(this) || this;
-            _this.id = id;
-            return _this;
-        }
-        return GameLayer;
-    }(egret.Sprite));
-    junyou.GameLayer = GameLayer;
-    __reflect(GameLayer.prototype, "junyou.GameLayer");
-    /**
-     * 需要对子对象排序的层
-     */
-    var SortedLayer = (function (_super) {
-        __extends(SortedLayer, _super);
-        function SortedLayer() {
-            return _super !== null && _super.apply(this, arguments) || this;
-        }
-        SortedLayer.prototype.$doAddChild = function (child, index, notifyListeners) {
-            if (notifyListeners === void 0) { notifyListeners = true; }
-            if ("depth" in child) {
-                junyou.GameEngine.invalidateSort();
-                return _super.prototype.$doAddChild.call(this, child, index, notifyListeners);
-            }
-            else {
-                throw new Error("Only IDepth can be added to this LayerID(" + this.id + ")");
-            }
-        };
-        /**
-         * 进行排序
-         */
-        SortedLayer.prototype.sort = function () {
-            //对子集排序
-            this.$children.doSort("depth");
-        };
-        return SortedLayer;
-    }(GameLayer));
-    junyou.SortedLayer = SortedLayer;
-    __reflect(SortedLayer.prototype, "junyou.SortedLayer");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    var DSprite = (function (_super) {
-        __extends(DSprite, _super);
-        function DSprite() {
-            var _this = _super !== null && _super.apply(this, arguments) || this;
-            _this.depth = 0;
-            return _this;
-        }
-        return DSprite;
-    }(egret.Sprite));
-    junyou.DSprite = DSprite;
-    __reflect(DSprite.prototype, "junyou.DSprite", ["junyou.IDepth"]);
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -10132,7 +9748,6 @@ var junyou;
         return MessageChanel;
     }());
     junyou.MessageChanel = MessageChanel;
-    __reflect(MessageChanel.prototype, "junyou.MessageChanel");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -10288,7 +9903,6 @@ var junyou;
     MessageRender.CHECK_NEXT = "CHECK_NEXT";
     MessageRender.CHECK_END = "CHECK_END";
     junyou.MessageRender = MessageRender;
-    __reflect(MessageRender.prototype, "junyou.MessageRender");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -10322,205 +9936,24 @@ var junyou;
         return MessageRenderStyle;
     }());
     junyou.MessageRenderStyle = MessageRenderStyle;
-    __reflect(MessageRenderStyle.prototype, "junyou.MessageRenderStyle");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
     /**
-     * 基于4个顶点变形的纹理
-     *
-     * @export
-     * @class QuadTransform
+     * 单例工具
+     * @param clazz 要做单例的类型
      */
-    var QuadTransform = (function () {
-        function QuadTransform() {
-            this._tex = new egret.RenderTexture();
-            this._canvas = document.createElement("canvas");
-            this._content = this._canvas.getContext("2d");
+    function singleton(clazz) {
+        var instance = clazz._instance;
+        if (!instance) {
+            instance = new clazz;
+            Object.defineProperty(clazz, "_instance", {
+                value: instance
+            });
         }
-        /**
-         * 绘制白鹭的可视对象，并且进行变形
-         *
-         * @param {egret.DisplayObject} display
-         * @param {{ x: number, y: number }} ptl
-         * @param {{ x: number, y: number }} ptr
-         * @param {{ x: number, y: number }} pbl
-         * @param {{ x: number, y: number }} pbr
-         *
-         * @memberOf QuadTransform
-         */
-        QuadTransform.prototype.drawDisplay = function (display, ptl, ptr, pbl, pbr) {
-            var rawWidth = display.width;
-            var rawHeight = display.height;
-            ptl = ptl || { x: 0, y: 0 };
-            ptr = ptr || { x: rawWidth, y: 0 };
-            pbl = pbl || { x: 0, y: rawHeight };
-            pbr = pbr || { x: rawWidth, y: rawHeight };
-            //获取新的位图大小
-            var ptlx = ptl.x, ptly = ptl.y, ptrx = ptr.x, ptry = ptr.y, pblx = pbl.x, pbly = pbl.y, pbrx = pbr.x, pbry = pbr.y;
-            var minX = Math.min(ptlx, ptrx, pblx, pbrx);
-            var maxX = Math.max(ptlx, ptrx, pblx, pbrx);
-            var minY = Math.min(ptly, ptry, pbly, pbry);
-            var maxY = Math.max(ptly, ptry, pbly, pbry);
-            var width = maxX - minX;
-            var height = maxY - minY;
-            // let bytes = new Uint8ClampedArray(width * height * 4);
-            var canvas = this._canvas;
-            canvas.width = width;
-            canvas.height = height;
-            var content = this._content;
-            var imgData = content.createImageData(width, height);
-            var bytes = imgData.data;
-            //获取原始位图数据
-            var tex = this._tex;
-            tex.drawToTexture(display);
-            var source = tex.getPixels(0, 0, rawWidth, rawHeight);
-            // top left
-            ptl.Rx = ptl.Rx || 0;
-            ptl.Ry = ptl.Ry || 0;
-            //top right
-            ptr.Rx = ptr.Rx || rawWidth;
-            ptr.Ry = ptr.Ry || 0;
-            //bottom right
-            pbr.Rx = pbr.Rx || rawWidth;
-            pbr.Ry = pbr.Ry || rawHeight;
-            //bottom left
-            pbl.Rx = pbl.Rx || 0;
-            pbl.Ry = pbl.Ry || rawHeight;
-            //使用 向辉 寿标《真实感图像的颜色插值及其应用》计算机世界月刊，1992年10月 的方案进行计算
-            var dict = [];
-            var edges = 0;
-            edges += makeEdge(ptl, ptr, dict);
-            edges += makeEdge(ptr, pbr, dict);
-            edges += makeEdge(pbr, pbl, dict);
-            edges += makeEdge(pbl, ptl, dict);
-            if (edges > 0) {
-                var ael = [];
-                var tael = [];
-                for (var y = 0; y < maxY; y++) {
-                    var edges_1 = dict[y];
-                    if (edges_1 && edges_1.length) {
-                        edges_1.appendTo(ael);
-                        ael.doSort("dx");
-                    }
-                    var len = ael.length - 1;
-                    if (len > 0) {
-                        for (var i = 0; i < len; i++) {
-                            var edgeA = ael[i];
-                            var xLeft = edgeA.x;
-                            //let pLeft = { x: xLeft, y };
-                            var lRx = edgeA.Rx;
-                            var lRy = edgeA.Ry;
-                            var edgeB = ael[i + 1];
-                            //得到区段
-                            var xRight = edgeB.x;
-                            var rRx = edgeB.Rx;
-                            var rRy = edgeB.Ry;
-                            var xWidth = xLeft - xRight;
-                            var dRxx = 0, dRyx = 0;
-                            if (xWidth) {
-                                dRxx = (lRx - rRx) / xWidth;
-                                dRyx = (lRy - rRy) / xWidth;
-                            }
-                            for (var x = xLeft; x <= xRight; x++) {
-                                var ix = lRx | 0;
-                                var u = lRx - ix;
-                                var iy = lRy | 0;
-                                var v = lRy - iy;
-                                //得到像素，做双线性插值
-                                var pos00 = (iy * rawWidth + ix) * 4;
-                                var r00 = source[pos00];
-                                var g00 = source[pos00 + 1];
-                                var b00 = source[pos00 + 2];
-                                var a00 = source[pos00 + 3];
-                                var pos10 = pos00 + 4;
-                                var r10 = source[pos10];
-                                var g10 = source[pos10 + 1];
-                                var b10 = source[pos10 + 2];
-                                var a10 = source[pos10 + 3];
-                                var pos01 = ((iy + 1) * rawWidth + ix) * 4;
-                                var r01 = source[pos01];
-                                var g01 = source[pos01 + 1];
-                                var b01 = source[pos01 + 2];
-                                var a01 = source[pos01 + 3];
-                                var pos11 = pos01 + 4;
-                                var r11 = source[pos11];
-                                var g11 = source[pos11 + 1];
-                                var b11 = source[pos11 + 2];
-                                var a11 = source[pos11 + 3];
-                                var u1 = 1 - u;
-                                var v1 = 1 - v;
-                                var pm00 = u1 * v1;
-                                var pm10 = u * v1;
-                                var pm01 = u1 * v;
-                                var pm11 = u * v;
-                                var pos = (y * width + x) * 4;
-                                bytes[pos] = r00 * pm00 + r10 * pm10 + r01 * pm01 + r11 * pm11;
-                                bytes[pos + 1] = g00 * pm00 + g10 * pm10 + g01 * pm01 + g11 * pm11;
-                                bytes[pos + 2] = b00 * pm00 + b10 * pm10 + b01 * pm01 + b11 * pm11;
-                                bytes[pos + 3] = a00 * pm00 + a10 * pm10 + a01 * pm01 + a11 * pm11;
-                                lRx += dRxx;
-                                lRy += dRyx;
-                            }
-                        }
-                        var l = 0;
-                        for (var i = 0; i <= len; i++) {
-                            l = edgeCheckAndInc(ael[i], tael, l, y);
-                        }
-                        tael.length = l;
-                        var tmp = ael;
-                        ael = tael;
-                        tael = tmp;
-                    }
-                }
-            }
-            content.putImageData(imgData, 0, 0);
-            return egret.BitmapData.create("base64", canvas.toDataURL());
-            function edgeCheckAndInc(edge, list, l, y) {
-                if (edge.ymax > y) {
-                    list[l++] = edge;
-                    edge.Rx += edge.dRx;
-                    edge.Ry += edge.dRy;
-                    edge.x = Math.round(edge.x + edge.dx);
-                }
-                return l;
-            }
-            function makeEdge(p0, p1, dict) {
-                var x, Rx, Ry, ymax, ymin;
-                if (p0.y == p1.y) {
-                    return 0;
-                }
-                if (p0.y < p1.y) {
-                    x = p0.x;
-                    Rx = p0.Rx;
-                    Ry = p0.Ry;
-                    ymax = p1.y;
-                    ymin = p0.y;
-                }
-                else {
-                    x = p1.x;
-                    Rx = p1.Rx;
-                    Ry = p1.Ry;
-                    ymax = p0.y;
-                    ymin = p1.y;
-                }
-                var deltaY = p0.y - p1.y;
-                var dx = (p0.x - p1.x) / deltaY;
-                var dRx = (p0.Rx - p1.Rx) / deltaY;
-                var dRy = (p0.Ry - p1.Ry) / deltaY;
-                var edges = dict[ymin];
-                if (!edges) {
-                    dict[ymin] = edges = [];
-                    edges.minY = ymin;
-                }
-                edges.push({ x: x, Rx: Rx, Ry: Ry, ymax: ymax, dx: dx, dRx: dRx, dRy: dRy });
-                return 1;
-            }
-        };
-        return QuadTransform;
-    }());
-    junyou.QuadTransform = QuadTransform;
-    __reflect(QuadTransform.prototype, "junyou.QuadTransform");
+        return instance;
+    }
+    junyou.singleton = singleton;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -10574,7 +10007,6 @@ var junyou;
         return CircleShake;
     }(junyou.BaseShake));
     junyou.CircleShake = CircleShake;
-    __reflect(CircleShake.prototype, "junyou.CircleShake");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -10655,7 +10087,6 @@ var junyou;
         return DirectionShake;
     }(junyou.BaseShake));
     junyou.DirectionShake = DirectionShake;
-    __reflect(DirectionShake.prototype, "junyou.DirectionShake");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -10705,7 +10136,6 @@ var junyou;
         return RotateShake;
     }(junyou.BaseShake));
     junyou.RotateShake = RotateShake;
-    __reflect(RotateShake.prototype, "junyou.RotateShake");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -10826,7 +10256,6 @@ var junyou;
         return ScreenShakeManager;
     }());
     junyou.ScreenShakeManager = ScreenShakeManager;
-    __reflect(ScreenShakeManager.prototype, "junyou.ScreenShakeManager");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -11014,7 +10443,6 @@ var junyou;
         return AsyncHelper;
     }());
     junyou.AsyncHelper = AsyncHelper;
-    __reflect(AsyncHelper.prototype, "junyou.AsyncHelper");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -11091,45 +10519,196 @@ var junyou;
         return DependerHelper;
     }());
     junyou.DependerHelper = DependerHelper;
-    __reflect(DependerHelper.prototype, "junyou.DependerHelper");
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    var inter1 = "addReadyExecute";
+    var inter2 = "startSync";
+    function isIAsync(instance) {
+        /*不验证数据，因为现在做的是get asyncHelper(),不默认创建AsyncHelper，调用的时候才创建，这样会导致多一次调用*/
+        if (!(inter1 in instance || typeof instance[inter2] !== "function") /*|| !(instance[inter1] instanceof AsyncHelper)*/) {
+            return false;
+        }
+        if (!(inter2 in instance) || typeof instance[inter2] !== "function" || instance[inter2].length != 0) {
+            return false;
+        }
+        return true;
+    }
+    junyou.isIAsync = isIAsync;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
     /**
+     * 回调信息，用于存储回调数据
+     * @author 3tion
      *
-     * 调整ClassFactory
-     * @export
-     * @class ClassFactory
-     * @template T
      */
-    var ClassFactory = (function () {
-        /**
-         * Creates an instance of ClassFactory.
-         *
-         * @param {{ new (): T }} creator
-         * @param {{ [index: string]: any }} [props]    属性模板
-         */
-        function ClassFactory(creator, props) {
-            this._creator = creator;
-            this._props = props;
-        }
-        /**
-         * 获取实例
-         *
-         * @returns
-         */
-        ClassFactory.prototype.get = function () {
-            var ins = new this._creator();
-            var p = this._props;
-            for (var key in p) {
-                ins[key] = p[key];
+    var CallbackInfo = (function () {
+        function CallbackInfo() {
+            if (DEBUG) {
+                var data = { enumerable: true, configurable: true };
+                data.get = function () {
+                    return this._cb;
+                };
+                data.set = function (value) {
+                    if (this._cb != value) {
+                        this._cb = value;
+                        if (value != undefined) {
+                            this._debug = { handle: value.toString(), stack: new Error().stack };
+                        }
+                    }
+                };
+                Object.defineProperty(this, "callback", data);
             }
-            return ins;
+        }
+        CallbackInfo.prototype.init = function (callback, thisObj, args) {
+            this.callback = callback;
+            this.args = args;
+            this.thisObj = thisObj;
         };
-        return ClassFactory;
+        /**
+         * 检查回调是否一致，只检查参数和this对象,不检查参数
+         */
+        CallbackInfo.prototype.checkHandle = function (callback, thisObj) {
+            return this.callback === callback && this.thisObj == thisObj /* 允许null==undefined */;
+        };
+        /**
+         * 执行回调
+         * 回调函数，将以args作为参数，callback作为函数执行
+         * @param {boolean} [doRecycle=true] 是否回收CallbackInfo，默认为true
+         */
+        CallbackInfo.prototype.execute = function (doRecycle) {
+            if (doRecycle === void 0) { doRecycle = true; }
+            var callback = this.callback;
+            var result;
+            if (callback != undefined) {
+                try {
+                    result = callback.apply(this.thisObj, this.args);
+                }
+                catch (e) {
+                    if (DEBUG) {
+                        var debug = this["_debug"];
+                        junyou.ThrowError("CallbackInfo\u6267\u884C\u62A5\u9519\uFF0C\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n}==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + e.stack);
+                        console.log.apply(console, ["参数列表"].concat(this.args));
+                    }
+                }
+            }
+            else if (DEBUG) {
+                var debug = this["_debug"];
+                junyou.ThrowError("\u5BF9\u5DF2\u56DE\u6536\u7684CallbackInfo\u6267\u884C\u4E86\u56DE\u8C03\uFF0C\u6700\u540E\u4E00\u6B21\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + new Error().stack);
+            }
+            if (doRecycle) {
+                this.recycle();
+            }
+            return result;
+        };
+        /**
+         * 用于执行其他参数
+         * 初始的参数会按顺序放在末位
+         * @param args (description)
+         */
+        CallbackInfo.prototype.call = function () {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            if (this.args) {
+                args = args.concat(this.args);
+            }
+            return this.callback.apply(this.thisObj, args);
+        };
+        CallbackInfo.prototype.onRecycle = function () {
+            this.callback = undefined;
+            this.args = undefined;
+            this.thisObj = undefined;
+        };
+        /**
+         * 获取CallbackInfo的实例
+         */
+        CallbackInfo.get = function (callback, thisObj) {
+            var args = [];
+            for (var _i = 2; _i < arguments.length; _i++) {
+                args[_i - 2] = arguments[_i];
+            }
+            var info = junyou.recyclable(CallbackInfo);
+            info.init(callback, thisObj, args);
+            return info;
+        };
+        /**
+         * 加入到数组
+         * 检查是否有this和handle相同的callback，如果有，就用新的参数替换旧参数
+         * @param list
+         * @param handle
+         * @param args
+         * @param thisObj
+         */
+        CallbackInfo.addToList = function (list, handle, thisObj) {
+            var args = [];
+            for (var _i = 3; _i < arguments.length; _i++) {
+                args[_i - 3] = arguments[_i];
+            }
+            //检查是否有this和handle相同的callback
+            for (var _a = 0, list_2 = list; _a < list_2.length; _a++) {
+                var callback = list_2[_a];
+                if (callback.checkHandle(handle, thisObj)) {
+                    callback.args = args;
+                    return callback;
+                }
+            }
+            callback = this.getInstance.apply(this, [handle, thisObj].concat(args));
+            list.push(callback);
+            return callback;
+        };
+        return CallbackInfo;
     }());
-    junyou.ClassFactory = ClassFactory;
-    __reflect(ClassFactory.prototype, "junyou.ClassFactory");
+    /**
+     * 获取CallbackInfo的实例
+     * @deprecated  请使用`CallbackInfo.get`以减少字符串消耗
+     */
+    CallbackInfo.getInstance = CallbackInfo.get;
+    junyou.CallbackInfo = CallbackInfo;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 用于像统计接口发送步骤信息
+     * @author pb
+     */
+    junyou.Stats = (function () {
+        var _actionUrl, _ip, _sign, _pid, _uid, _sid;
+        return {
+            setUrl: function (url) {
+                if (url.charAt(url.length - 1) != "?") {
+                    url += "?";
+                }
+                _actionUrl = url;
+                return this;
+            },
+            setParams: function (params) {
+                _ip = getData(params.ip);
+                _pid = getData(params.pid);
+                _uid = getData(params.uid);
+                _sid = getData(params.sid);
+                return this;
+            },
+            setSign: function (sign) {
+                _sign = getData(sign);
+                return this;
+            },
+            postData: function (step) {
+                junyou.sendToUrl(_actionUrl + this.getParamUrl(step));
+            },
+            getParamUrl: function (step) {
+                return "step=" + getData(step) + "&ip=" + _ip
+                    + "&sign=" + _sign + "&pid=" + _pid
+                    + "&sid=" + _sid + "&uid=" + _uid
+                    + "&client_time=" + junyou.Global.now;
+            }
+        };
+        function getData(value) {
+            return value === undefined ? "" : encodeURIComponent(value);
+        }
+    })();
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -11246,8 +10825,8 @@ var junyou;
                 junyou.facade.inject(host);
                 host.onRegister();
                 if (DEBUG) {
-                    var name_6 = Facade.getNameOfInline(ref, className);
-                    $gm[name_6] = host;
+                    var name_9 = Facade.getNameOfInline(ref, className);
+                    $gm[name_9] = host;
                 }
             }
         };
@@ -11570,7 +11149,6 @@ var junyou;
      */
     Facade.Script = "modules/{0}.js";
     junyou.Facade = Facade;
-    __reflect(Facade.prototype, "junyou.Facade");
     function proxyCall() {
         var f = junyou.facade;
         f.getProxy.apply(f, arguments);
@@ -11659,175 +11237,6 @@ var junyou;
         return junyou.facade.hasListen(type);
     }
     junyou.hasListen = hasListen;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * 动画的全局对象
-     * @author
-     *
-     */
-    junyou.Global = (function () {
-        try {
-            var supportWebp = document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') == 0;
-        }
-        catch (err) {
-        }
-        var _webp = supportWebp ? junyou.Ext.WEBP : "";
-        var _isNative = egret.Capabilities.supportVersion != "Unknown";
-        /**
-         *  当前这一帧的时间
-         */
-        var now = 0;
-        /**
-         * 按照帧，应该走的时间
-         * 每帧根据帧率加固定时间
-         * 用于处理逐帧同步用
-         */
-        var frameNow = 0;
-        var _callLater;
-        var _tweenManager;
-        var _nextTicks = [];
-        return {
-            initTick: initTick, nextTick: nextTick, callLater: callLater, clearCallLater: clearCallLater, getTween: getTween, removeTween: removeTween, removeTweens: removeTweens,
-            get isNative() {
-                return _isNative;
-            },
-            get tweenManager() {
-                return _tweenManager || (_tweenManager = new junyou.TweenManager());
-            },
-            /**
-             *  当前这一帧的时间
-             */
-            get now() {
-                return now;
-            },
-            /**
-             * 按照帧，应该走的时间
-             * 每帧根据帧率加固定时间
-             * 用于处理逐帧同步用
-             */
-            get frameNow() {
-                return frameNow;
-            },
-            /**
-             * 是否支持webp
-             */
-            get webp() {
-                return _webp;
-            }
-        };
-        /**
-         * 注入白鹭的全局Ticker
-         */
-        function initTick() {
-            var ticker = egret.sys.$ticker;
-            var update = ticker.render;
-            var delta = 0 | 1000 / ticker.$frameRate;
-            var temp = [];
-            _callLater = new junyou.CallLater();
-            _tweenManager || (_tweenManager = new junyou.TweenManager());
-            ticker.render = function () {
-                var _now = Date.now();
-                var dis = _now - now;
-                now = _now;
-                if (dis > 2000) {
-                    //有2秒钟大概就是进入过休眠了
-                    junyou.dispatch(-190 /* Awake */);
-                    frameNow = _now;
-                }
-                else {
-                    frameNow += delta;
-                }
-                //执行顺序  nextTick  callLater TimerUtil  tween  最后是白鹭的更新
-                var len = _nextTicks.length;
-                var tmp = temp;
-                for (var i = 0; i < len; i++) {
-                    tmp[i] = _nextTicks[i];
-                }
-                _nextTicks.length = 0;
-                //先复制再操作是为了防止回调过程中，有新增的nextTick
-                for (var i = 0; i < len; i++) {
-                    tmp[i].execute();
-                }
-                _callLater.tick(_now);
-                junyou.TimerUtil.tick(_now);
-                _tweenManager.tick(dis);
-                update.call(ticker);
-            };
-        }
-        function nextTick(callback, thisObj) {
-            var args = [];
-            for (var _i = 2; _i < arguments.length; _i++) {
-                args[_i - 2] = arguments[_i];
-            }
-            _nextTicks.push(junyou.CallbackInfo.get.apply(junyou.CallbackInfo, [callback, thisObj].concat(args)));
-        }
-        /**
-         * 延迟执行
-         *
-         * @static
-         * @param {Function} callback (description)
-         * @param {number} [time] 延迟执行的时间
-         * @param {*} [thisObj] (description)
-         * @param args (description)
-         */
-        function callLater(callback, time, thisObj) {
-            var args = [];
-            for (var _i = 3; _i < arguments.length; _i++) {
-                args[_i - 3] = arguments[_i];
-            }
-            return _callLater.callLater.apply(_callLater, [callback, now, time, thisObj].concat(args));
-        }
-        /**
-         * 清理延迟
-         *
-         * @static
-         * @param {Function} callback (description)
-         * @param {*} [thisObj] (description)
-         * @returns (description)
-         */
-        function clearCallLater(callback, thisObj) {
-            return _callLater.clearCallLater(callback, thisObj);
-        }
-        /**
-         * 获取Tween
-         *
-         * @static
-         * @param {*} target 要对那个对象做Tween处理
-         * @param {TweenOption} props Tween的附加属性 (如： `{loop:true, paused:true}`).
-         * All properties default to `false`. Supported props are:
-         * <UL>
-         *    <LI> loop: sets the loop property on this tween.</LI>
-         *    <LI> useTicks: uses ticks for all durations instead of milliseconds.</LI>
-         *    <LI> ignoreGlobalPause: sets the {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}} property on
-         *    this tween.</LI>
-         *    <LI> override: if true, `createjs. this.removeTweens(target)` will be called to remove any other tweens with
-         *    the same target.
-         *    <LI> paused: indicates whether to start the tween paused.</LI>
-         *    <LI> position: indicates the initial position for this tween.</LI>
-         *    <LI> onChange: specifies a listener for the {{#crossLink "Tween/change:event"}}{{/crossLink}} event.</LI>
-         * </UL>
-         * @param {*} pluginData 插件数据
-         * @param {boolean} override 是否覆盖
-         * @returns {Tween} tween的实例
-         */
-        function getTween(target, props, pluginData, override) {
-            return _tweenManager.get(target, props, pluginData, override);
-        }
-        /**
-         * 移除指定的Tween
-         *
-         * @param {Tween} tween
-         * @returns
-         */
-        function removeTween(tween) {
-            return _tweenManager.removeTween(tween);
-        }
-        function removeTweens(target) {
-            return _tweenManager.removeTweens(target);
-        }
-    })();
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -11924,7 +11333,6 @@ var junyou;
         return Mediator;
     }(junyou.ViewController));
     junyou.Mediator = Mediator;
-    __reflect(Mediator.prototype, "junyou.Mediator");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -11969,7 +11377,6 @@ var junyou;
         return ModuleScript;
     }());
     junyou.ModuleScript = ModuleScript;
-    __reflect(ModuleScript.prototype, "junyou.ModuleScript");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -12044,7 +11451,6 @@ var junyou;
         return Service;
     }(junyou.Proxy));
     junyou.Service = Service;
-    __reflect(Service.prototype, "junyou.Service");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -12085,41 +11491,199 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
-      * 加载脚本
-      * @param url
-      * @param callback
-      * @param thisObj
-      * @param args
-      */
-    function loadScript(url, callback, thisObj) {
-        var args = [];
-        for (var _i = 3; _i < arguments.length; _i++) {
-            args[_i - 3] = arguments[_i];
+     * 基于4个顶点变形的纹理
+     *
+     * @export
+     * @class QuadTransform
+     */
+    var QuadTransform = (function () {
+        function QuadTransform() {
+            this._tex = new egret.RenderTexture();
+            this._canvas = document.createElement("canvas");
+            this._content = this._canvas.getContext("2d");
         }
-        if (!url) {
-            return;
-        }
-        var script = document.createElement("script");
-        script.type = "text/javascript";
-        //检测客户端类型
-        if (script.readyState) {
-            script.onreadystatechange = function () {
-                if (script.readyState === "loaded" || script.readyState === "complete") {
-                    script.onreadystatechange = null;
-                    callback.apply(thisObj, args);
+        /**
+         * 绘制白鹭的可视对象，并且进行变形
+         *
+         * @param {egret.DisplayObject} display
+         * @param {{ x: number, y: number }} ptl
+         * @param {{ x: number, y: number }} ptr
+         * @param {{ x: number, y: number }} pbl
+         * @param {{ x: number, y: number }} pbr
+         *
+         * @memberOf QuadTransform
+         */
+        QuadTransform.prototype.drawDisplay = function (display, ptl, ptr, pbl, pbr) {
+            var rawWidth = display.width;
+            var rawHeight = display.height;
+            ptl = ptl || { x: 0, y: 0 };
+            ptr = ptr || { x: rawWidth, y: 0 };
+            pbl = pbl || { x: 0, y: rawHeight };
+            pbr = pbr || { x: rawWidth, y: rawHeight };
+            //获取新的位图大小
+            var ptlx = ptl.x, ptly = ptl.y, ptrx = ptr.x, ptry = ptr.y, pblx = pbl.x, pbly = pbl.y, pbrx = pbr.x, pbry = pbr.y;
+            var minX = Math.min(ptlx, ptrx, pblx, pbrx);
+            var maxX = Math.max(ptlx, ptrx, pblx, pbrx);
+            var minY = Math.min(ptly, ptry, pbly, pbry);
+            var maxY = Math.max(ptly, ptry, pbly, pbry);
+            var width = maxX - minX;
+            var height = maxY - minY;
+            // let bytes = new Uint8ClampedArray(width * height * 4);
+            var canvas = this._canvas;
+            canvas.width = width;
+            canvas.height = height;
+            var content = this._content;
+            var imgData = content.createImageData(width, height);
+            var bytes = imgData.data;
+            //获取原始位图数据
+            var tex = this._tex;
+            tex.drawToTexture(display);
+            var source = tex.getPixels(0, 0, rawWidth, rawHeight);
+            // top left
+            ptl.Rx = ptl.Rx || 0;
+            ptl.Ry = ptl.Ry || 0;
+            //top right
+            ptr.Rx = ptr.Rx || rawWidth;
+            ptr.Ry = ptr.Ry || 0;
+            //bottom right
+            pbr.Rx = pbr.Rx || rawWidth;
+            pbr.Ry = pbr.Ry || rawHeight;
+            //bottom left
+            pbl.Rx = pbl.Rx || 0;
+            pbl.Ry = pbl.Ry || rawHeight;
+            //使用 向辉 寿标《真实感图像的颜色插值及其应用》计算机世界月刊，1992年10月 的方案进行计算
+            var dict = [];
+            var edges = 0;
+            edges += makeEdge(ptl, ptr, dict);
+            edges += makeEdge(ptr, pbr, dict);
+            edges += makeEdge(pbr, pbl, dict);
+            edges += makeEdge(pbl, ptl, dict);
+            if (edges > 0) {
+                var ael = [];
+                var tael = [];
+                for (var y = 0; y < maxY; y++) {
+                    var edges_1 = dict[y];
+                    if (edges_1 && edges_1.length) {
+                        edges_1.appendTo(ael);
+                        ael.doSort("dx");
+                    }
+                    var len = ael.length - 1;
+                    if (len > 0) {
+                        for (var i = 0; i < len; i++) {
+                            var edgeA = ael[i];
+                            var xLeft = edgeA.x;
+                            //let pLeft = { x: xLeft, y };
+                            var lRx = edgeA.Rx;
+                            var lRy = edgeA.Ry;
+                            var edgeB = ael[i + 1];
+                            //得到区段
+                            var xRight = edgeB.x;
+                            var rRx = edgeB.Rx;
+                            var rRy = edgeB.Ry;
+                            var xWidth = xLeft - xRight;
+                            var dRxx = 0, dRyx = 0;
+                            if (xWidth) {
+                                dRxx = (lRx - rRx) / xWidth;
+                                dRyx = (lRy - rRy) / xWidth;
+                            }
+                            for (var x = xLeft; x <= xRight; x++) {
+                                var ix = lRx | 0;
+                                var u = lRx - ix;
+                                var iy = lRy | 0;
+                                var v = lRy - iy;
+                                //得到像素，做双线性插值
+                                var pos00 = (iy * rawWidth + ix) * 4;
+                                var r00 = source[pos00];
+                                var g00 = source[pos00 + 1];
+                                var b00 = source[pos00 + 2];
+                                var a00 = source[pos00 + 3];
+                                var pos10 = pos00 + 4;
+                                var r10 = source[pos10];
+                                var g10 = source[pos10 + 1];
+                                var b10 = source[pos10 + 2];
+                                var a10 = source[pos10 + 3];
+                                var pos01 = ((iy + 1) * rawWidth + ix) * 4;
+                                var r01 = source[pos01];
+                                var g01 = source[pos01 + 1];
+                                var b01 = source[pos01 + 2];
+                                var a01 = source[pos01 + 3];
+                                var pos11 = pos01 + 4;
+                                var r11 = source[pos11];
+                                var g11 = source[pos11 + 1];
+                                var b11 = source[pos11 + 2];
+                                var a11 = source[pos11 + 3];
+                                var u1 = 1 - u;
+                                var v1 = 1 - v;
+                                var pm00 = u1 * v1;
+                                var pm10 = u * v1;
+                                var pm01 = u1 * v;
+                                var pm11 = u * v;
+                                var pos = (y * width + x) * 4;
+                                bytes[pos] = r00 * pm00 + r10 * pm10 + r01 * pm01 + r11 * pm11;
+                                bytes[pos + 1] = g00 * pm00 + g10 * pm10 + g01 * pm01 + g11 * pm11;
+                                bytes[pos + 2] = b00 * pm00 + b10 * pm10 + b01 * pm01 + b11 * pm11;
+                                bytes[pos + 3] = a00 * pm00 + a10 * pm10 + a01 * pm01 + a11 * pm11;
+                                lRx += dRxx;
+                                lRy += dRyx;
+                            }
+                        }
+                        var l = 0;
+                        for (var i = 0; i <= len; i++) {
+                            l = edgeCheckAndInc(ael[i], tael, l, y);
+                        }
+                        tael.length = l;
+                        var tmp = ael;
+                        ael = tael;
+                        tael = tmp;
+                    }
                 }
-            };
-        }
-        else {
-            script.onload = function () {
-                callback.apply(thisObj, args);
-            };
-        }
-        script.src = url;
-        // 调整为放到文档最后
-        document.documentElement.appendChild(script);
-    }
-    junyou.loadScript = loadScript;
+            }
+            content.putImageData(imgData, 0, 0);
+            return egret.BitmapData.create("base64", canvas.toDataURL());
+            function edgeCheckAndInc(edge, list, l, y) {
+                if (edge.ymax > y) {
+                    list[l++] = edge;
+                    edge.Rx += edge.dRx;
+                    edge.Ry += edge.dRy;
+                    edge.x = Math.round(edge.x + edge.dx);
+                }
+                return l;
+            }
+            function makeEdge(p0, p1, dict) {
+                var x, Rx, Ry, ymax, ymin;
+                if (p0.y == p1.y) {
+                    return 0;
+                }
+                if (p0.y < p1.y) {
+                    x = p0.x;
+                    Rx = p0.Rx;
+                    Ry = p0.Ry;
+                    ymax = p1.y;
+                    ymin = p0.y;
+                }
+                else {
+                    x = p1.x;
+                    Rx = p1.Rx;
+                    Ry = p1.Ry;
+                    ymax = p0.y;
+                    ymin = p1.y;
+                }
+                var deltaY = p0.y - p1.y;
+                var dx = (p0.x - p1.x) / deltaY;
+                var dRx = (p0.Rx - p1.Rx) / deltaY;
+                var dRy = (p0.Ry - p1.Ry) / deltaY;
+                var edges = dict[ymin];
+                if (!edges) {
+                    dict[ymin] = edges = [];
+                    edges.minY = ymin;
+                }
+                edges.push({ x: x, Rx: Rx, Ry: Ry, ymax: ymax, dx: dx, dRx: dRx, dRy: dRy });
+                return 1;
+            }
+        };
+        return QuadTransform;
+    }());
+    junyou.QuadTransform = QuadTransform;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -12148,7 +11712,6 @@ var junyou;
         return BaseMCfg;
     }());
     junyou.BaseMCfg = BaseMCfg;
-    __reflect(BaseMCfg.prototype, "junyou.BaseMCfg");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -12531,7 +12094,6 @@ var junyou;
         return ModuleManager;
     }());
     junyou.ModuleManager = ModuleManager;
-    __reflect(ModuleManager.prototype, "junyou.ModuleManager");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -12806,7 +12368,6 @@ var junyou;
         return NotificationManager;
     }());
     junyou.NotificationManager = NotificationManager;
-    __reflect(NotificationManager.prototype, "junyou.NotificationManager");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -12894,7 +12455,231 @@ var junyou;
         return BlurScreen;
     }());
     junyou.BlurScreen = BlurScreen;
-    __reflect(BlurScreen.prototype, "junyou.BlurScreen");
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 模块面板
+     * @author 3tion
+     *
+     */
+    var Panel = (function (_super) {
+        __extends(Panel, _super);
+        function Panel() {
+            var _this = _super.call(this) || this;
+            _this.init();
+            return _this;
+        }
+        Object.defineProperty(Panel.prototype, "suiRawRect", {
+            /**
+             *
+             * 面板在fla中的原始坐标
+             * @readonly
+             *
+             * @memberOf Panel
+             */
+            get: function () {
+                return this._baseRect;
+            },
+            /**
+             * 设置原始大小和坐标
+             */
+            set: function (value) {
+                this._baseRect = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Panel.prototype, "isReady", {
+            get: function () {
+                return this._ready;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Panel.prototype.init = function () {
+            //this._key=xxxx
+            //this._className=xxxx
+            //this._otherDepends=[other...];
+        };
+        Panel.prototype.bind = function (key, className) {
+            var otherDepends = [];
+            for (var _i = 2; _i < arguments.length; _i++) {
+                otherDepends[_i - 2] = arguments[_i];
+            }
+            this._key = key;
+            this._className = className;
+            this._otherDepends = otherDepends;
+        };
+        Panel.prototype.startSync = function () {
+            if (this._otherDepends) {
+                this._depends = this._otherDepends.concat();
+            }
+            else {
+                this._depends = [];
+            }
+            this._depends.push(this._key);
+            this.loadNext();
+        };
+        Panel.prototype.loadNext = function () {
+            if (this._depends.length) {
+                var key = this._depends.pop();
+                var suiManager = junyou.singleton(junyou.SuiResManager);
+                suiManager.loadData(key, this);
+            }
+            else {
+                this.skinDataComplete();
+            }
+        };
+        Panel.prototype.suiDataComplete = function (suiData) {
+            if (this.preloadImage) {
+                suiData.loadBmd(junyou.CallbackInfo.get(this.loadNext, this));
+            }
+            else {
+                this.loadNext();
+            }
+        };
+        Panel.prototype.suiDataFailed = function (suiData) {
+            //暂时用alert
+            // alert(this._className + "加载失败");
+        };
+        /**
+         * 绑定皮肤
+         */
+        Panel.prototype.bindComponent = function () {
+            junyou.singleton(junyou.SuiResManager).createComponents(this._key, this._className, this);
+        };
+        /**
+         * 皮肤数据加载完成
+         */
+        Panel.prototype.skinDataComplete = function () {
+            this.bindComponent();
+            if (this["bg"]) {
+                this["bg"].touchEnabled = true;
+            }
+            else {
+                if (this.numChildren) {
+                    var bg = this.getChildAt(0);
+                    bg.touchEnabled = true;
+                }
+            }
+            this._ready = true;
+            if (this._asyncHelper) {
+                this._asyncHelper.readyNow();
+            }
+        };
+        Panel.prototype.addedToStage = function () {
+            if (this._isModal) {
+                this.addModal();
+            }
+        };
+        Object.defineProperty(Panel.prototype, "isModal", {
+            get: function () {
+                return this._isModal;
+            },
+            set: function (value) {
+                this._isModal = value;
+                if (value) {
+                    if (this.stage) {
+                        this.addModal();
+                    }
+                    else {
+                        this.on(egret.Event.ADDED_TO_STAGE, this.addedToStage, this);
+                    }
+                }
+                else {
+                    if (this.stage) {
+                        this.removeModal();
+                    }
+                    else {
+                        this.off(egret.Event.ADDED_TO_STAGE, this.addedToStage, this);
+                    }
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         * 加模态
+         *
+         * @public
+         */
+        Panel.prototype.addModal = function (width, height) {
+            var m = this.modal;
+            if (!m) {
+                this.modal = m = new egret.Shape();
+                m.touchEnabled = true;
+                var g = m.graphics;
+                g.beginFill(Panel.MODAL_COLOR, Panel.MODAL_ALPHA);
+                var stage = egret.sys.$TempStage;
+                width = width || stage.stageWidth;
+                height = height || stage.stageHeight;
+                g.drawRect(0, 0, width, height);
+                g.endFill();
+            }
+            m.on(egret.TouchEvent.TOUCH_TAP, this.hide, this);
+            this.addChildAt(m, 0);
+        };
+        /**
+         * 移除模态
+         *
+         * @public
+         */
+        Panel.prototype.removeModal = function () {
+            if (this.modal) {
+                this.modal.off(egret.TouchEvent.TOUCH_TAP, this.hide, this);
+                junyou.removeDisplay(this.modal);
+            }
+        };
+        /**
+         * 关闭
+         *
+         * @protected
+         */
+        Panel.prototype.hide = function () {
+            junyou.toggle(this.moduleID, -1 /* HIDE */);
+        };
+        Object.defineProperty(Panel.prototype, "isShow", {
+            get: function () {
+                return this.stage != undefined && this.visible == true;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Panel.prototype.show = function () {
+            junyou.toggle(this.moduleID, 1 /* SHOW */);
+        };
+        return Panel;
+    }(egret.Sprite));
+    /**
+     * 模态颜色
+     *
+     * @static
+     * @type {number}
+     */
+    Panel.MODAL_COLOR = 0x0;
+    /**
+     * 模态透明度
+     *
+     * @static
+     * @type {number}
+     */
+    Panel.MODAL_ALPHA = 0.8;
+    junyou.Panel = Panel;
+    junyou.expand(Panel, junyou.FHost, "addReadyExecute");
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    var View = (function (_super) {
+        __extends(View, _super);
+        function View(key, className) {
+            var _this = _super.call(this) || this;
+            junyou.singleton(junyou.SuiResManager).createComponents(key, className, _this);
+            return _this;
+        }
+        return View;
+    }(egret.Sprite));
+    junyou.View = View;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -13020,7 +12805,6 @@ var junyou;
         return ArtText;
     }(junyou.Component));
     junyou.ArtText = ArtText;
-    __reflect(ArtText.prototype, "junyou.ArtText");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -13529,7 +13313,6 @@ var junyou;
         return Flip;
     }(egret.Sprite));
     junyou.Flip = Flip;
-    __reflect(Flip.prototype, "junyou.Flip");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -13616,7 +13399,6 @@ var junyou;
         return IconButton;
     }(junyou.Button));
     junyou.IconButton = IconButton;
-    __reflect(IconButton.prototype, "junyou.IconButton");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -13686,7 +13468,6 @@ var junyou;
         return Image;
     }(egret.Bitmap));
     junyou.Image = Image;
-    __reflect(Image.prototype, "junyou.Image");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -13962,7 +13743,6 @@ var junyou;
         return ListItemRenderer;
     }(egret.EventDispatcher));
     junyou.ListItemRenderer = ListItemRenderer;
-    __reflect(ListItemRenderer.prototype, "junyou.ListItemRenderer", ["junyou.ListItemRender", "egret.EventDispatcher", "junyou.SelectableComponents"]);
     junyou.expand(ListItemRenderer, junyou.ViewController, "addReadyExecute", "addDepend", "stageHandler");
     // export abstract class AListItemRenderer<T, S extends egret.DisplayObject> extends ListItemRenderer<T, S> implements SuiDataCallback {
     //     /**
@@ -14044,7 +13824,6 @@ var junyou;
         return MPageList;
     }(junyou.PageList));
     junyou.MPageList = MPageList;
-    __reflect(MPageList.prototype, "junyou.MPageList");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -14160,33 +13939,220 @@ var junyou;
         return NumericStepper;
     }(junyou.Component));
     junyou.NumericStepper = NumericStepper;
-    __reflect(NumericStepper.prototype, "junyou.NumericStepper");
 })(junyou || (junyou = {}));
+/**
+ * DataLocator的主数据
+ * 原 junyou.DataLocator.data  的全局别名简写
+ */
+var $DD = {};
+/**
+ * DataLocator的附加数据
+ * 原junyou.DataLocator.extra 的全局别名简写
+ */
+var $DE;
 var junyou;
 (function (junyou) {
     /**
-     * 平台数据
+     * 配置加载器<br/>
+     * 用于预加载数据的解析
      * @author 3tion
      *
      */
-    var AuthData = (function () {
-        function AuthData() {
+    junyou.DataLocator = (function () {
+        var parsers = {};
+        /**
+         *
+         * 用于处理顺序
+         * @private
+         * @static
+         */
+        var _plist = [];
+        return {
+            regParser: regParser,
             /**
-             * 认证次数
-             *
-             * @type {number}
-             * @memberOf AuthData
+             * 解析打包的配置
              */
-            this.count = 0;
-        }
-        AuthData.prototype.toURLString = function () {
-            return "pid=" + encodeURIComponent(this.pid) + "&puid=" + encodeURIComponent(this.puid) +
-                "&sid=" + this.sid + "&sign=" + encodeURIComponent(this.sign);
+            parsePakedDatas: function () {
+                var configs = RES.getRes("cfgs");
+                RES.destroyRes("cfgs");
+                // 按顺序解析
+                for (var _i = 0, _plist_1 = _plist; _i < _plist_1.length; _i++) {
+                    var key = _plist_1[_i];
+                    var parser = parsers[key];
+                    var data = parser(configs[key]);
+                    if (data) {
+                        $DD[key] = data;
+                    }
+                }
+                var extraData = {};
+                //处理额外数据
+                for (var key in configs) {
+                    if (key.charAt(0) == "$") {
+                        var raw = configs[key];
+                        key = key.substr(1);
+                        if (raw) {
+                            var i = 0, len = raw.length, data = {};
+                            while (i < len) {
+                                var sub = raw[i++];
+                                var value = raw[i++];
+                                var test = raw[i];
+                                if (typeof test === "number") {
+                                    i++;
+                                    value = getJSONValue(value, test);
+                                }
+                                data[sub] = value;
+                            }
+                            extraData[key] = data;
+                        }
+                    }
+                }
+                $DE = extraData;
+                //清理内存
+                parsers = null;
+                _plist = null;
+                delete junyou.DataLocator;
+            },
+            /**
+             * 注册通过H5ExcelTool导出的数据并且有唯一标识的使用此方法注册
+             * @param {string}              key             数据的标识
+             * @param {{ new (): ICfg }}    CfgCreator      配置的类名
+             * @param {string}              [idkey="id"]    唯一标识
+             */
+            regCommonParser: function (key, CfgCreator, idkey) {
+                if (idkey === void 0) { idkey = "id"; }
+                regParser(key, function (data) {
+                    if (!data)
+                        return;
+                    var dict, forEach;
+                    var headersRaw = data[0];
+                    var hasLocal;
+                    for (var j = 0; j < headersRaw.length; j++) {
+                        var head = headersRaw[j];
+                        if ((head[2] & 2 /* Local */) == 2 /* Local */) {
+                            hasLocal = 1;
+                        }
+                    }
+                    if (idkey == "") {
+                        dict = [];
+                        forEach = arrayParserForEach;
+                    }
+                    else {
+                        dict = {};
+                        forEach = commonParserForEach;
+                    }
+                    try {
+                        var ref = CfgCreator || Object;
+                        for (var i = 1; i < data.length; i++) {
+                            var rowData = data[i];
+                            var ins = new ref();
+                            var local = hasLocal && {};
+                            for (var j = 0; j < headersRaw.length; j++) {
+                                var head = headersRaw[j];
+                                var name_10 = head[0], test = head[1], type = head[2], def = head[3];
+                                var v = getJSONValue(rowData[j], test, def);
+                                if ((type & 2 /* Local */) == 2 /* Local */) {
+                                    local[name_10] = v;
+                                }
+                                else {
+                                    ins[name_10] = v;
+                                }
+                            }
+                            forEach(ins, i - 1, key, dict, idkey);
+                            if (typeof ins.decode === "function") {
+                                ins.decode(local);
+                            }
+                        }
+                    }
+                    catch (e) {
+                        if (DEBUG) {
+                            junyou.ThrowError("\u89E3\u6790\u914D\u7F6E:" + key + "\u51FA\u9519\uFF0C\u5806\u6808\uFF1A" + e.stack);
+                        }
+                    }
+                    return dict;
+                });
+            }
         };
-        return AuthData;
-    }());
-    junyou.AuthData = AuthData;
-    __reflect(AuthData.prototype, "junyou.AuthData");
+        /**
+         * 注册配置解析
+         * @param key       配置的标识
+         * @param parser    解析器
+         */
+        function regParser(key, parser) {
+            parsers[key] = parser;
+            _plist.push(key);
+        }
+        function getJSONValue(value, type, def) {
+            // 特殊类型数据
+            switch (type) {
+                case 0 /* Any */:
+                    if (value == null || value == undefined) {
+                        value = def;
+                    }
+                    break;
+                case 1 /* String */:
+                    if (value === 0 || value == undefined) {
+                        value = def || "";
+                    }
+                    break;
+                case 2 /* Number */:
+                    // 0 == "" // true
+                    if (value === "" || value == undefined) {
+                        value = +def || 0;
+                    }
+                    break;
+                case 3 /* Bool */:
+                    value = !!value;
+                    break;
+                case 4 /* Array */:
+                case 5 /* Array2D */:
+                    if (value === 0) {
+                        value = undefined;
+                    }
+                    if (!value && def) {
+                        value = def;
+                    }
+                    break;
+                case 6 /* Date */:
+                case 8 /* DateTime */:
+                    value = new Date((value || def || 0) * 10000);
+                    break;
+                case 7 /* Time */:
+                    value = new junyou.TimeVO().decodeBit(value || def || 0);
+                    break;
+            }
+            return value;
+        }
+        /**
+         * 用于解析数组
+         *
+         * @memberOf DataLocator
+         */
+        function arrayParserForEach(t, idx, key, dict) {
+            dict.push(t);
+        }
+        /**
+         * 用于解析字典
+         */
+        function commonParserForEach(t, idx, key, dict, idKey) {
+            if (idKey in t) {
+                var id = t[idKey];
+                if (DEBUG) {
+                    if (typeof id === "object") {
+                        junyou.ThrowError("\u914D\u7F6E" + key + "\u7684\u6570\u636E\u6709\u8BEF\uFF0C\u552F\u4E00\u6807\u8BC6" + idKey + "\u4E0D\u80FD\u4E3A\u5BF9\u8C61");
+                    }
+                    if (id in dict) {
+                        junyou.ThrowError("\u914D\u7F6E" + key + "\u7684\u6570\u636E\u6709\u8BEF\uFF0C\u552F\u4E00\u6807\u8BC6" + idKey + "\u6709\u91CD\u590D\u503C\uFF1A" + id);
+                    }
+                }
+                dict[id] = t;
+            }
+            else {
+                if (DEBUG) {
+                    junyou.ThrowError("\u914D\u7F6E" + key + "\u89E3\u6790\u6709\u8BEF\uFF0C\u65E0\u6CD5\u627E\u5230\u6307\u5B9A\u7684\u552F\u4E00\u6807\u793A\uFF1A" + idKey + "\uFF0C\u6570\u636E\u7D22\u5F15\uFF1A" + idx);
+                }
+            }
+        }
+    })();
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -14353,7 +14319,6 @@ var junyou;
         return PageScroller;
     }(junyou.Scroller));
     junyou.PageScroller = PageScroller;
-    __reflect(PageScroller.prototype, "junyou.PageScroller");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -14480,7 +14445,6 @@ var junyou;
         return value + " / " + maxValue;
     };
     junyou.ProgressBar = ProgressBar;
-    __reflect(ProgressBar.prototype, "junyou.ProgressBar");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -14513,7 +14477,6 @@ var junyou;
         return ScaleBitmap;
     }(egret.Bitmap));
     junyou.ScaleBitmap = ScaleBitmap;
-    __reflect(ScaleBitmap.prototype, "junyou.ScaleBitmap");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -14692,7 +14655,201 @@ var junyou;
         return ScrollBar;
     }(junyou.Component));
     junyou.ScrollBar = ScrollBar;
-    __reflect(ScrollBar.prototype, "junyou.ScrollBar");
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     *
+     * @author 君游项目解析工具
+     *
+     */
+    junyou.DataParseUtil = {
+        /**
+        * 将配置from中 type		data1	data2	data3	data4...这些配置，解析存储到<br/>
+        * 配置VO为：
+        * <pre>
+        * class Cfg
+        * {
+        * 		public var type:int;
+        * 		public var datas:Array;
+        * }
+        * </pre>
+        * 上面示例中<br/>
+        * typeKey 为 type<br/>
+        * dataKey 为 data<br/>
+        * checkStart 为 1<br/>
+        * checkEnd 为 4<br/>
+        * toDatasKey 为 data<br/>
+        * to的type  datas数组中<br/>
+        * @param to					要写入的配置
+        * @param from				配置的数据源
+        * @param checkStart		      数据源起始值	data<b><font color="#ff0000">1</font></b>
+        * @param checkEnd		      数据源结束值	data<b><font color="#ff0000">4</font></b>
+        * @param dataKey			数据源数值的前缀	<b><font color="#ff0000">data</font></b>
+        * @param typeKey			数据源/配置的 类型 上例为 <b><font color="#ff0000">type</font></b>
+        * @param toDatasKey		      配置的数值存储的数据的数组属性名，上例为 <b><font color="#ff0000">datas</font></b>
+        *
+        */
+        parseDatas: function (to, from, checkStart, checkEnd, dataKey, typeKey, toDatasKey) {
+            var arr;
+            for (var i = checkStart; i <= checkEnd; i++) {
+                var key = dataKey + i;
+                if (key in from) {
+                    if (!arr) {
+                        arr = [];
+                    }
+                    arr[i] = from[key];
+                }
+            }
+            if (!arr) {
+                if (typeKey in from) {
+                    arr = [];
+                    to[typeKey] = from[typeKey];
+                }
+            }
+            if (arr) {
+                to[toDatasKey] = arr;
+            }
+        },
+        /**
+        * 将配置from中 type		data1	data2	data3	data4...这些配置，解析存储到<br/>
+        * 配置VO为：
+        * <pre>
+        * class Cfg
+        * {
+        * 		public var type:int;
+        * 		public var datas:Array;
+        * }
+        * </pre>
+        * 上面示例中<br/>
+        * typeKey 为 type<br/>
+        * dataKey 为 data<br/>
+        * checkStart 为 1<br/>
+        * checkEnd 为 4<br/>
+        * toDatasKey 为 data<br/>
+        * to的type  datas数组中<br/>
+        * @static
+        * @param {*} to                要写入的配置
+        * @param {any[]} valueList     配置的数据源的值列表
+        * @param {string[]} keyList    配置数据的属性key列表
+        * @param {number} checkStart   数据源起始值	data<b><font color="#ff0000">1</font></b>
+        * @param {number} checkEnd     数据源结束值	data<b><font color="#ff0000">4</font></b>
+        * @param {string} dataKey      数据源数值的前缀	<b><font color="#ff0000">data</font></b>
+        * @param {string} typeKey      数据源/配置的 类型 上例为 <b><font color="#ff0000">type</font></b>
+        * @param {string} toDatasKey   配置的数值存储的数据的数组属性名，上例为 <b><font color="#ff0000">datas</font></b>
+        */
+        parseDatas2: function (to, valueList, keyList, checkStart, checkEnd, dataKey, typeKey, toDatasKey) {
+            var arr;
+            for (var i = checkStart; i <= checkEnd; i++) {
+                var key = dataKey + i;
+                var idx = keyList.indexOf(key);
+                if (~idx) {
+                    if (!arr) {
+                        arr = [];
+                    }
+                    arr[i] = valueList[idx];
+                }
+            }
+            if (!arr) {
+                // 数据中有列表值
+                var idx = keyList.indexOf(typeKey);
+                if (~idx) {
+                    arr = [];
+                    to[typeKey] = valueList[idx];
+                }
+            }
+            if (arr) {
+                to[toDatasKey] = arr;
+            }
+        },
+        /**
+         * 从数据集中获取key-value的数据
+         * @param valueList 数据集合
+         * @param keyList   属性列表
+         */
+        getData: function (valueList, keyList, o) {
+            o = o || {};
+            for (var i = 0, len = keyList.length; i < len; i++) {
+                var key = keyList[i];
+                var v = valueList[i];
+                if (v != undefined) {
+                    o[key] = valueList[i];
+                }
+            }
+            return o;
+        },
+        /**
+         * 获取key-value的数据列表
+         * @param dataList  数据集合
+         * @param keyList   属性列表
+         */
+        getDataList: function (dataList, keyList) {
+            var list = [];
+            if (dataList) {
+                for (var i = 0, len = dataList.length; i < len; i++) {
+                    var valueList = dataList[i];
+                    list.push(this.getData(valueList, keyList));
+                }
+            }
+            return list;
+        },
+        /**
+         * 处理数据
+         * @param dataList  数据集合
+         * @param keyList   属性列表
+         * @param forEach
+         * @param thisObj
+         * @param args
+         */
+        parseDataList: function (dataList, keyList, forEach, thisObj) {
+            var args = [];
+            for (var _i = 4; _i < arguments.length; _i++) {
+                args[_i - 4] = arguments[_i];
+            }
+            if (dataList) {
+                for (var i = 0, len = dataList.length; i < len; i++) {
+                    var valueList = dataList[i];
+                    var to = this.getData(valueList, keyList);
+                    forEach.call(thisObj, to, args, i);
+                }
+            }
+        },
+        /**
+         * 从数组中获取数据，主要针对配置
+         * @param to            目标数据
+         * @param valueList     值列表
+         * @param keyList       属性列表
+         */
+        copyData: function (to, valueList, keyList) {
+            for (var i = 0, len = keyList.length; i < len; i++) {
+                var key = keyList[i];
+                to[key] = valueList[i];
+            }
+        },
+        /**
+         * 设置数据集，将数据赋值，不会对creator类型中，没有setter的数据赋值
+         * @param creator   构造器
+         * @param dataList  数据集合
+         * @param keyList   属性列表
+         * @param forEach
+         * @param thisObj
+         * @param args
+         */
+        copyDataList: function (creator, dataList, keyList, forEach, thisObj) {
+            var args = [];
+            for (var _i = 5; _i < arguments.length; _i++) {
+                args[_i - 5] = arguments[_i];
+            }
+            if (dataList) {
+                for (var i = 0, len = dataList.length; i < len; i++) {
+                    var valueList = dataList[i];
+                    var to = new creator();
+                    this.copyData(to, valueList, keyList);
+                    forEach.call(thisObj, to, args, i);
+                }
+            }
+        },
+    };
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -14900,7 +15057,6 @@ var junyou;
         return Slider;
     }(junyou.Component));
     junyou.Slider = Slider;
-    __reflect(Slider.prototype, "junyou.Slider");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -15095,7 +15251,6 @@ var junyou;
      */
     Slot.getCountString = function (count) { return count < 1 ? "" : count < 10000 ? count + "" : junyou.LangUtil.getMsg("$_wan", Math.floor(count / 10000)); };
     junyou.Slot = Slot;
-    __reflect(Slot.prototype, "junyou.Slot");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -15138,7 +15293,6 @@ var junyou;
         return ArtWord;
     }());
     junyou.ArtWord = ArtWord;
-    __reflect(ArtWord.prototype, "junyou.ArtWord");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -15169,32 +15323,6 @@ var junyou;
         });
     }
     junyou.bindSize = bindSize;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * 给ArtText和ArtWord刷新纹理使用
-     *
-     * @export
-     * @param {SuiData} suiData
-     * @param {{ refreshBMD?: { (): void } }} thisObj
-     */
-    function refreshTexs(suiData, thisObj) {
-        var bmds = suiData.pngbmd;
-        // let bmdState = bmds.bmdState;
-        if (!("refreshBMD" in thisObj)) {
-            thisObj.refreshBMD = function () {
-                //刷新纹理中的数据
-                var txs = this._txs;
-                var bmd = bmds.bmd;
-                for (var key in txs) {
-                    txs[key]._bitmapData = bmd;
-                }
-            };
-        }
-        suiData.checkRefreshBmp(thisObj);
-    }
-    junyou.refreshTexs = refreshTexs;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -15284,7 +15412,6 @@ var junyou;
         return SuiBmd;
     }());
     junyou.SuiBmd = SuiBmd;
-    __reflect(SuiBmd.prototype, "junyou.SuiBmd", ["junyou.IResource"]);
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -15385,21 +15512,746 @@ var junyou;
         return SuiData;
     }());
     junyou.SuiData = SuiData;
-    __reflect(SuiData.prototype, "junyou.SuiData");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
     /**
-     * 获取XMLHttpRequest对象
+     * 绑定属性名，当属性值发生改变时，可自动对外抛eventType事件
      *
      * @export
+     * @param {(string | number)} eventType     事件类型
+     * @param {boolean} [selfDispatch]          默认false，使用Facade抛事件，event.data为实例本身
+     *                                          如果为true，需要为EventDispatcher的实现，会使用自身抛事件
      * @returns
      */
-    function getXHR() {
-        junyou.getXHR = window.XMLHttpRequest ? function () { return new XMLHttpRequest; } : function () { return new ActiveXObject("MSXML2.XMLHTTP"); };
-        return junyou.getXHR();
+    function d_fire(eventType, selfDispatch) {
+        return function (target, value) {
+            new Watcher(value, function () {
+                if (selfDispatch) {
+                    if (typeof this.dispatch === "function") {
+                        this.dispatch(eventType);
+                    }
+                }
+                else {
+                    junyou.dispatch(eventType, this);
+                }
+            }).reset(target);
+            //此处的target为prototype
+            //事件回调时候，this为实例
+        };
     }
-    junyou.getXHR = getXHR;
+    junyou.d_fire = d_fire;
+    /**
+     * 使用微软vs code中使用的代码
+     * 用于一些 lazy 的调用
+     * https://github.com/Microsoft/vscode/blob/master/src/vs/base/common/decorators.ts
+     *
+     * @export
+     * @param {*} target
+     * @param {string} key
+     * @param {*} descriptor
+     */
+    function d_memoize(target, key, descriptor) {
+        var fnKey = null;
+        var fn = null;
+        if (typeof descriptor.value === 'function') {
+            fnKey = 'value';
+            fn = descriptor.value;
+        }
+        else if (typeof descriptor.get === 'function') {
+            fnKey = 'get';
+            fn = descriptor.get;
+        }
+        if (!fn) {
+            throw new Error('not supported');
+        }
+        var memoizeKey = "$memoize$" + key;
+        descriptor[fnKey] = function () {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            if (!this.hasOwnProperty(memoizeKey)) {
+                Object.defineProperty(this, memoizeKey, {
+                    configurable: false,
+                    enumerable: false,
+                    writable: false,
+                    value: fn.apply(this, args)
+                });
+            }
+            return this[memoizeKey];
+        };
+    }
+    junyou.d_memoize = d_memoize;
+    /**
+     * @private
+     */
+    var _$l = "__listeners__";
+    /**
+     * @private
+     */
+    var _$b = "__bindables__";
+    /**
+     * @private
+     */
+    var _$c = 0;
+    function notifyListener(host, property) {
+        var list = host[_$l];
+        var length = list.length;
+        for (var i = 0; i < length; i += 2) {
+            var listener = list[i];
+            var target = list[i + 1];
+            listener.call(target, property, host);
+        }
+    }
+    /**
+     * @language en_US
+     * The Watcher class defines utility method that you can use with bindable properties.
+     * These methods let you define an event handler that is executed whenever a bindable property is updated.
+     *
+     * @version Egret 2.4
+     * @version eui 1.0
+     * @platform Web,Native
+     * @includeExample extension/eui/binding/WatcherExample.ts
+     */
+    /**
+     * @language zh_CN
+     * Watcher 类能够监视可绑定属性的改变，您可以定义一个事件处理函数作为 Watcher 的回调方法，在每次可绑定属性的值改变时都执行此函数。
+     *
+     * @version Egret 2.4
+     * @version eui 1.0
+     * @platform Web,Native
+     * @includeExample extension/eui/binding/WatcherExample.ts
+     */
+    var Watcher = (function () {
+        /**
+         * Creates an instance of Watcher.
+         *
+         * @param {string} property                 监听的属性
+         * @param {(value: any) => void} handler    回调函数
+         * @param {*} [thisObject]                  回调函数的this对象，如果不设置this，则当监听对象属性变化时，将以监听的对象作为this参数，进行回调
+         * @param {Watcher} [next]
+         */
+        function Watcher(property, handler, thisObject, next) {
+            /**
+             * @private
+             */
+            this.isExecuting = false;
+            this.property = property;
+            this.handler = handler;
+            this.next = next;
+            this.thisObject = thisObject;
+        }
+        /**
+         * @language en_US
+         * Creates and starts a Watcher instance.
+         * The Watcher can only watch the property of a Object which host is instance of egret.IEventDispatcher.
+         * @param host The object that hosts the property or property chain to be watched.
+         * You can use the use the <code>reset()</code> method to change the value of the <code>host</code> argument
+         * after creating the Watcher instance.
+         * The <code>host</code> maintains a list of <code>handlers</code> to invoke when <code>prop</code> changes.
+         * @param chain A value specifying the property or chain to be watched.
+         * For example, to watch the property <code>host.a.b.c</code>,
+         * call the method as: <code>watch(host, ["a","b","c"], ...)</code>.
+         * @param handler  An event handler function called when the value of the watched property
+         * (or any property in a watched chain) is modified.
+         * @param thisObject <code>this</code> object of which binding with handler
+         * @returns he ChangeWatcher instance, if at least one property name has been specified to
+         * the <code>chain</code> argument; null otherwise.
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        /**
+         * @language zh_CN
+         * 创建并启动 Watcher 实例。注意：Watcher 只能监视 host 为 egret.IEventDispatcher 对象的属性改变。若属性链中某个属性所对应的实例不是 egret.IEventDispatcher，
+         * 则属性链中在它之后的属性改变将无法检测到。
+         * @param host 用于承载要监视的属性或属性链的对象。
+         * 创建Watcher实例后，您可以利用<code>reset()</code>方法更改<code>host</code>参数的值。
+         * 当<code>prop</code>改变的时候，会使得host对应的一系列<code>handlers</code>被触发。
+         * @param chain 用于指定要监视的属性链的值。例如，要监视属性 host.a.b.c，需按以下形式调用此方法：watch¬(host, ["a","b","c"], ...)。
+         * @param handler 在监视的目标属性链中任何属性的值发生改变时调用的事件处理函数。
+         * @param thisObject handler 方法绑定的this对象
+         * @returns 如果已为 chain 参数至少指定了一个属性名称，则返回 Watcher 实例；否则返回 null。
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        Watcher.watch = function (host, chain, handler, thisObject) {
+            if (DEBUG) {
+                if (!chain) {
+                    egret.$error(1003, "chain");
+                }
+            }
+            if (chain.length > 0) {
+                var property = chain.shift();
+                var next = Watcher.watch(null, chain, handler, thisObject);
+                var watcher = new Watcher(property, handler, thisObject, next);
+                watcher.reset(host);
+                return watcher;
+            }
+            else {
+                return;
+            }
+        };
+        /**
+         * @private
+         * 检查属性是否可以绑定。若还未绑定，尝试添加绑定事件。若是只读或只写属性，返回false。
+         */
+        Watcher.checkBindable = function (host, property) {
+            var list = host[_$b];
+            if (list && list.indexOf(property) != -1) {
+                return true;
+            }
+            var isEventDispatcher = egret.is(host, "egret.IEventDispatcher");
+            if (!isEventDispatcher && !host[_$l]) {
+                host[_$l] = [];
+            }
+            var data = host.getPropertyDescriptor(property);
+            if (data && data.set && data.get) {
+                var orgSet_1 = data.set;
+                data.set = function (value) {
+                    if (this[property] != value) {
+                        orgSet_1.call(this, value);
+                        if (isEventDispatcher) {
+                            junyou.PropertyEvent.dispatchPropertyEvent(this, -2000 /* PROPERTY_CHANGE */, property);
+                        }
+                        else {
+                            notifyListener(this, property);
+                        }
+                    }
+                };
+            }
+            else if (!data || (!data.get && !data.set)) {
+                _$c++;
+                var newProp_1 = "_" + _$c + property;
+                host[newProp_1] = data ? data.value : null;
+                data = { enumerable: true, configurable: true };
+                data.get = function () {
+                    return this[newProp_1];
+                };
+                data.set = function (value) {
+                    if (this[newProp_1] != value) {
+                        this[newProp_1] = value;
+                        if (isEventDispatcher) {
+                            junyou.PropertyEvent.dispatchPropertyEvent(this, -2000 /* PROPERTY_CHANGE */, property);
+                        }
+                        else {
+                            notifyListener(this, property);
+                        }
+                    }
+                };
+            }
+            else {
+                return false;
+            }
+            Object.defineProperty(host, property, data);
+            junyou.registerBindable(host, property);
+        };
+        /**
+         * @language en_US
+         * Detaches this Watcher instance, and its handler function, from the current host.
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        /**
+         * @language zh_CN
+         * 从当前宿主中断开此 Watcher 实例及其处理函数。
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        Watcher.prototype.unwatch = function () {
+            this.reset(null);
+            this.handler = null;
+            if (this.next) {
+                this.next.handler = null;
+            }
+        };
+        /**
+         * @language en_US
+         * Retrieves the current value of the watched property or property chain, or null if the host object is null.
+         * @example
+         * <pre>
+         * watch(obj, ["a","b","c"], ...).getValue() === obj.a.b.c
+         * </pre>
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        /**
+         * @language zh_CN
+         * 检索观察的属性或属性链的当前值，当宿主对象为空时此值为空。
+         * @example
+         * <pre>
+         * watch(obj, ["a","b","c"], ...).getValue() === obj.a.b.c
+         * </pre>
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        Watcher.prototype.getValue = function () {
+            if (this.next) {
+                return this.next.getValue();
+            }
+            return this.getHostPropertyValue();
+        };
+        /**
+         * @language en_US
+         * Sets the handler function.s
+         * @param handler The handler function. This argument must not be null.
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        /**
+         * @language zh_CN
+         * 设置处理函数。
+         * @param handler 处理函数，此参数必须为非空。
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        Watcher.prototype.setHandler = function (handler, thisObject) {
+            this.handler = handler;
+            this.thisObject = thisObject;
+            if (this.next) {
+                this.next.setHandler(handler, thisObject);
+            }
+        };
+        /**
+         * @language en_US
+         * Resets this ChangeWatcher instance to use a new host object.
+         * You can call this method to reuse a watcher instance on a different host.
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        /**
+         * @language zh_CN
+         * 重置此 Watcher 实例使用新的宿主对象。
+         * 您可以通过该方法实现一个Watcher实例用于不同的宿主。
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        Watcher.prototype.reset = function (newHost) {
+            var oldHost = this.host;
+            if (oldHost) {
+                if (oldHost instanceof egret.EventDispatcher) {
+                    oldHost.off(-2000 /* PROPERTY_CHANGE */, this.wrapHandler, this);
+                }
+                else {
+                    var list = oldHost[_$l];
+                    var index = list.indexOf(this);
+                    list.splice(index - 1, 2);
+                }
+            }
+            this.host = newHost;
+            if (newHost) {
+                Watcher.checkBindable(newHost, this.property);
+                if (newHost instanceof egret.EventDispatcher) {
+                    newHost.on(-2000 /* PROPERTY_CHANGE */, this.wrapHandler, this, false, 100);
+                }
+                else {
+                    var list = newHost[_$l];
+                    list.push(this.onPropertyChange);
+                    list.push(this);
+                }
+            }
+            if (this.next) {
+                this.next.reset(this.getHostPropertyValue());
+            }
+            return this;
+        };
+        /**
+         * @private
+         *
+         * @returns
+         */
+        Watcher.prototype.getHostPropertyValue = function () {
+            return this.host ? this.host[this.property] : null;
+        };
+        /**
+         * @private
+         */
+        Watcher.prototype.wrapHandler = function (event) {
+            this.onPropertyChange(event.property, event.currentTarget);
+        };
+        /**
+         * @private
+         */
+        Watcher.prototype.onPropertyChange = function (property, dispatcher) {
+            if (property == this.property && !this.isExecuting) {
+                try {
+                    this.isExecuting = true;
+                    if (this.next)
+                        this.next.reset(this.getHostPropertyValue());
+                    if (this.thisObject) {
+                        this.handler.call(this.thisObject, this.getValue());
+                    }
+                    else {
+                        this.handler.call(dispatcher, this.getValue());
+                    }
+                }
+                finally {
+                    this.isExecuting = false;
+                }
+            }
+        };
+        return Watcher;
+    }());
+    junyou.Watcher = Watcher;
+})(junyou || (junyou = {}));
+//////////////////////////////////////////////////////////////////////////////////////
+//
+//  Copyright (c) 2014-2015, Egret Technology Inc.
+//  All rights reserved.
+//  Redistribution and use in source and binary forms, with or without
+//  modification, are permitted provided that the following conditions are met:
+//
+//     * Redistributions of source code must retain the above copyright
+//       notice, this list of conditions and the following disclaimer.
+//     * Redistributions in binary form must reproduce the above copyright
+//       notice, this list of conditions and the following disclaimer in the
+//       documentation and/or other materials provided with the distribution.
+//     * Neither the name of the Egret nor the
+//       names of its contributors may be used to endorse or promote products
+//       derived from this software without specific prior written permission.
+//
+//  THIS SOFTWARE IS PROVIDED BY EGRET AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
+//  OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+//  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+//  IN NO EVENT SHALL EGRET AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+//  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+//  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;LOSS OF USE, DATA,
+//  OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+//  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+//  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+//  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//
+//////////////////////////////////////////////////////////////////////////////////////
+(function (junyou) {
+    /**
+     * @language en_US
+     * The Binding class defines utility methods for performing data binding.
+     * You can use the methods defined in this class to configure data bindings.
+     * @version Egret 2.4
+     * @version eui 1.0
+     * @platform Web,Native
+     * @includeExample extension/eui/binding/BindingExample.ts
+     */
+    /**
+     * @language zh_CN
+     * 绑定工具类，用于执行数据绑定用的方法集。您可以使用此类中定义的方法来配置数据绑定。
+     * @version Egret 2.4
+     * @version eui 1.0
+     * @platform Web,Native
+     * @includeExample extension/eui/binding/BindingExample.ts
+     */
+    var Binding = (function () {
+        function Binding() {
+        }
+        /**
+         * @language en_US
+         * Binds a property, <prop>prop</code> on the <code>target</code> Object, to a bindable property or peoperty chain.
+         * @param host The object that hosts the property or property chain to be watched.
+         * The <code>host</code> maintains a list of <code>targets</code> to update theirs <code>prop</code> when <code>chain</code> changes.
+         * @param chain A value specifying the property or chain to be watched. For example, when watch the property <code>host.a.b.c</code>,
+         * you need call the method like this: <code>indProperty(host, ["a","b","c"], ...)</code>
+         * @param target The Object defining the property to be bound to <code>chain</code>.
+         * @param prop The name of the public property defined in the <code>site</code> Object to be bound.
+         * @returns A ChangeWatcher instance, if at least one property name has been specified
+         * to the <code>chain</code> argument; null otherwise.
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        /**
+         * @language zh_CN
+         * 绑定一个对象的属性值到要监视的对象属性上。
+         * @param host 用于承载要监视的属性或属性链的对象。
+         * 当 <code>host</code>上<code>chain</code>所对应的值发生改变时，<code>target</code>上的<code>prop</code>属性将被自动更新。
+         * @param chain 用于指定要监视的属性链的值。例如，要监视属性 <code>host.a.b.c</code>，需按以下形式调用此方法：<code>bindProperty(host, ["a","b","c"], ...)。</code>
+         * @param target 本次绑定要更新的目标对象。
+         * @param prop 本次绑定要更新的目标属性名称。
+         * @returns 如果已为 chain 参数至少指定了一个属性名称，则返回 Watcher 实例；否则返回 null。
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        Binding.bindProperty = function (host, chain, target, prop) {
+            var watcher = junyou.Watcher.watch(host, chain, null, null);
+            if (watcher) {
+                var assign = function (value) {
+                    target[prop] = value;
+                };
+                watcher.setHandler(assign, null);
+                assign(watcher.getValue());
+            }
+            return watcher;
+        };
+        /**
+         * @language en_US
+         * Binds a callback, <prop>handler</code> on the <code>target</code> Object, to a bindable property or peoperty chain.
+         * Callback method to invoke with an argument of the current value of <code>chain</code> when that value changes.
+         * @param host The object that hosts the property or property chain to be watched.
+         * @param chain A value specifying the property or chain to be watched. For example, when watch the property <code>host.a.b.c</code>,
+         * you need call the method like this: <code>indProperty(host, ["a","b","c"], ...)</code>
+         * @param handler method to invoke with an argument of the current value of <code>chain</code> when that value changes.
+         * @param thisObject <code>this</code> object of binding method
+         * @returns A ChangeWatcher instance, if at least one property name has been  specified to the <code>chain</code> argument; null otherwise.
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        /**
+         * @language zh_CN
+         * 绑定一个回调函数到要监视的对象属性上。当 host上 chain 所对应的值发生改变时，handler 方法将被自动调用。
+         * @param host 用于承载要监视的属性或属性链的对象。
+         * @param chain 用于指定要监视的属性链的值。例如，要监视属性 host.a.b.c，需按以下形式调用此方法：bindSetter(host, ["a","b","c"], ...)。
+         * @param handler 在监视的目标属性链中任何属性的值发生改变时调用的事件处理函数。
+         * @param thisObject handler 方法绑定的this对象
+         * @returns 如果已为 chain 参数至少指定了一个属性名称，则返回 Watcher 实例；否则返回 null。
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        Binding.bindHandler = function (host, chain, handler, thisObject) {
+            var watcher = junyou.Watcher.watch(host, chain, handler, thisObject);
+            if (watcher) {
+                handler.call(thisObject, watcher.getValue());
+            }
+            return watcher;
+        };
+        return Binding;
+    }());
+    junyou.Binding = Binding;
+})(junyou || (junyou = {}));
+//////////////////////////////////////////////////////////////////////////////////////
+//
+//  Copyright (c) 2014-2015, Egret Technology Inc.
+//  All rights reserved.
+//  Redistribution and use in source and binary forms, with or without
+//  modification, are permitted provided that the following conditions are met:
+//
+//     * Redistributions of source code must retain the above copyright
+//       notice, this list of conditions and the following disclaimer.
+//     * Redistributions in binary form must reproduce the above copyright
+//       notice, this list of conditions and the following disclaimer in the
+//       documentation and/or other materials provided with the distribution.
+//     * Neither the name of the Egret nor the
+//       names of its contributors may be used to endorse or promote products
+//       derived from this software without specific prior written permission.
+//
+//  THIS SOFTWARE IS PROVIDED BY EGRET AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
+//  OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+//  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+//  IN NO EVENT SHALL EGRET AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+//  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+//  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;LOSS OF USE, DATA,
+//  OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+//  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+//  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+//  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//
+//////////////////////////////////////////////////////////////////////////////////////
+(function (junyou) {
+    /**
+     * @language en_US
+     * The PropertyChangeEvent class represents the event object
+     * passed to the event listener when one of the properties of
+     * an object has changed, and provides information about the change.
+     *
+     * @version Egret 2.4
+     * @version eui 1.0
+     * @platform Web,Native
+     * @includeExample  extension/eui/events/PropertyEventExample.ts
+     */
+    /**
+     * @language zh_CN
+     * 对象的一个属性发生更改时传递到事件侦听器的事件。
+     *
+     * @version Egret 2.4
+     * @version eui 1.0
+     * @platform Web,Native
+     * @includeExample  extension/eui/events/PropertyEventExample.ts
+     */
+    var PropertyEvent = (function (_super) {
+        __extends(PropertyEvent, _super);
+        /**
+         * @language en_US
+         * Constructor.
+         *
+         * @param type The event type; indicates the action that triggered the event.
+         * @param bubbles Specifies whether the event can bubble
+         * up the display list hierarchy.
+         * @param cancelable Specifies whether the behavior
+         * associated with the event can be prevented.
+         * @param property Name of the property that changed.
+         *
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        /**
+         * @language zh_CN
+         * 创建一个属性改变事件。
+         *
+         * @param type 事件类型；指示触发事件的动作。
+         * @param bubbles 指定该事件是否可以在显示列表层次结构得到冒泡处理。
+         * @param cancelable 指定是否可以防止与事件相关联的行为。
+         * @param property 发生改变的属性名称。
+         *
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        function PropertyEvent(type, bubbles, cancelable, property) {
+            var _this = _super.call(this, type, bubbles, cancelable) || this;
+            _this.property = property;
+            return _this;
+        }
+        /**
+         * @language en_US
+         * Dispatch an event with specified EventDispatcher. The dispatched event will be cached in the object pool,
+         * for the next cycle of reuse.
+         *
+         * @param target the target of event dispatcher.
+         * @param eventType The event type; indicates the action that triggered the event.
+         * @param property Name of the property that changed.
+         *
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        /**
+         * @language zh_CN
+         * 使用指定的 EventDispatcher 对象来抛出事件对象。抛出的对象将会缓存在对象池上，供下次循环复用。
+         *
+         * @param target 事件派发目标
+         * @param eventType 事件类型；指示触发事件的动作。
+         * @param property 发生改变的属性名称。
+         *
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        PropertyEvent.dispatchPropertyEvent = function (target, eventType, property) {
+            if (!target.hasListen(eventType)) {
+                return true;
+            }
+            var event = egret.Event.create(PropertyEvent, eventType);
+            event.property = property;
+            var result = target.dispatchEvent(event);
+            egret.Event.release(event);
+            return result;
+        };
+        return PropertyEvent;
+    }(egret.Event));
+    junyou.PropertyEvent = PropertyEvent;
+})(junyou || (junyou = {}));
+//////////////////////////////////////////////////////////////////////////////////////
+//
+//  Copyright (c) 2014-2015, Egret Technology Inc.
+//  All rights reserved.
+//  Redistribution and use in source and binary forms, with or without
+//  modification, are permitted provided that the following conditions are met:
+//
+//     * Redistributions of source code must retain the above copyright
+//       notice, this list of conditions and the following disclaimer.
+//     * Redistributions in binary form must reproduce the above copyright
+//       notice, this list of conditions and the following disclaimer in the
+//       documentation and/or other materials provided with the distribution.
+//     * Neither the name of the Egret nor the
+//       names of its contributors may be used to endorse or promote products
+//       derived from this software without specific prior written permission.
+//
+//  THIS SOFTWARE IS PROVIDED BY EGRET AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
+//  OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+//  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+//  IN NO EVENT SHALL EGRET AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+//  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+//  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;LOSS OF USE, DATA,
+//  OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+//  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+//  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+//  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//
+//////////////////////////////////////////////////////////////////////////////////////
+(function (junyou) {
+    var key = "__bindables__";
+    /**
+     * @language en_US
+     * Register a property of an instance is can be bound.
+     * This method is ususally invoked by Watcher class.
+     *
+     * @param instance the instance to be registered.
+     * @param property the property of specified instance to be registered.
+     *
+     * @version Egret 2.4
+     * @version eui 1.0
+     * @platform Web,Native
+     */
+    /**
+     * @language zh_CN
+     * 标记实例的一个属性是可绑定的,此方法通常由 Watcher 类调用。
+     *
+     * @param instance 要标记的实例
+     * @param property 可绑定的属性。
+     *
+     * @version Egret 2.4
+     * @version eui 1.0
+     * @platform Web,Native
+     */
+    function registerBindable(instance, property) {
+        if (DEBUG) {
+            if (!instance) {
+                egret.$error(1003, "instance");
+            }
+            if (!property) {
+                egret.$error(1003, "property");
+            }
+        }
+        if (instance.hasOwnProperty(key)) {
+            instance[key].push(property);
+        }
+        else {
+            var list = [property];
+            if (instance[key]) {
+                list = instance[key].concat(list);
+            }
+            instance[key] = list;
+        }
+    }
+    junyou.registerBindable = registerBindable;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 给ArtText和ArtWord刷新纹理使用
+     *
+     * @export
+     * @param {SuiData} suiData
+     * @param {{ refreshBMD?: { (): void } }} thisObj
+     */
+    function refreshTexs(suiData, thisObj) {
+        var bmds = suiData.pngbmd;
+        // let bmdState = bmds.bmdState;
+        if (!("refreshBMD" in thisObj)) {
+            thisObj.refreshBMD = function () {
+                //刷新纹理中的数据
+                var txs = this._txs;
+                var bmd = bmds.bmd;
+                for (var key in txs) {
+                    txs[key]._bitmapData = bmd;
+                }
+            };
+        }
+        suiData.checkRefreshBmp(thisObj);
+    }
+    junyou.refreshTexs = refreshTexs;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -15456,7 +16308,1364 @@ var junyou;
         return ArtTextCreator;
     }(junyou.BaseCreator));
     junyou.ArtTextCreator = ArtTextCreator;
-    __reflect(ArtTextCreator.prototype, "junyou.ArtTextCreator");
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+      * 加载脚本
+      * @param url
+      * @param callback
+      * @param thisObj
+      * @param args
+      */
+    function loadScript(url, callback, thisObj) {
+        var args = [];
+        for (var _i = 3; _i < arguments.length; _i++) {
+            args[_i - 3] = arguments[_i];
+        }
+        if (!url) {
+            return;
+        }
+        var script = document.createElement("script");
+        script.type = "text/javascript";
+        //检测客户端类型
+        if (script.readyState) {
+            script.onreadystatechange = function () {
+                if (script.readyState === "loaded" || script.readyState === "complete") {
+                    script.onreadystatechange = null;
+                    callback.apply(thisObj, args);
+                }
+            };
+        }
+        else {
+            script.onload = function () {
+                callback.apply(thisObj, args);
+            };
+        }
+        script.src = url;
+        // 调整为放到文档最后
+        document.documentElement.appendChild(script);
+    }
+    junyou.loadScript = loadScript;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 平台数据
+     * @author 3tion
+     *
+     */
+    var AuthData = (function () {
+        function AuthData() {
+            /**
+             * 认证次数
+             *
+             * @type {number}
+             * @memberOf AuthData
+             */
+            this.count = 0;
+        }
+        AuthData.prototype.toURLString = function () {
+            return "pid=" + encodeURIComponent(this.pid) + "&puid=" + encodeURIComponent(this.puid) +
+                "&sid=" + this.sid + "&sign=" + encodeURIComponent(this.sign);
+        };
+        return AuthData;
+    }());
+    junyou.AuthData = AuthData;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 按钮创建器
+     * @author 3tion
+     *
+     */
+    var ButtonCreator = (function (_super) {
+        __extends(ButtonCreator, _super);
+        function ButtonCreator() {
+            return _super.call(this) || this;
+        }
+        ButtonCreator.prototype.parseSelfData = function (data) {
+            var _this = this;
+            var suiData = this._suiData;
+            var tc;
+            if (data[0]) {
+                tc = new junyou.TextFieldCreator();
+                tc.setBaseData(data[0][1]);
+                tc.parseSelfData(data[0][2]);
+            }
+            var bcs = [];
+            for (var i = 1; i < 5; i++) {
+                var dat = data[i];
+                if (dat) {
+                    bcs[i - 1] = dat;
+                }
+            }
+            this._createT = function () {
+                var btn = new junyou.Button();
+                if (tc) {
+                    btn.txtLabel = tc.get();
+                }
+                var bmps = [];
+                for (var i = 0; i < 4; i++) {
+                    if (bcs[i]) {
+                        bmps[i] = _this.createElement(bcs[i]);
+                    }
+                }
+                if (!bmps[1]) {
+                    bmps[1] = bmps[0];
+                }
+                var useDisableFilter;
+                if (!bmps[2]) {
+                    bmps[2] = bmps[0];
+                    useDisableFilter = true;
+                }
+                if (!bmps[3]) {
+                    bmps[3] = bmps[2];
+                }
+                btn.bitmaps = bmps;
+                if (data[5]) {
+                    btn.floor = _this.createElement(data[5]);
+                    useDisableFilter = true;
+                }
+                if (data[6]) {
+                    btn.ceil = _this.createElement(data[6]);
+                    useDisableFilter = true;
+                }
+                btn.useDisableFilter(useDisableFilter);
+                return btn;
+            };
+        };
+        return ButtonCreator;
+    }(junyou.BaseCreator));
+    junyou.ButtonCreator = ButtonCreator;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 图标按鈕創建
+     * @author pb
+     */
+    var IconButtonCreator = (function (_super) {
+        __extends(IconButtonCreator, _super);
+        function IconButtonCreator() {
+            return _super.call(this) || this;
+        }
+        IconButtonCreator.prototype.parseSelfData = function (data) {
+            this._sData = data;
+            this._createT = this.createIconButton;
+        };
+        IconButtonCreator.prototype.createIconButton = function () {
+            var iconBtn = new junyou.IconButton();
+            var sData = this._sData;
+            var suiData = this._suiData;
+            var tc;
+            if (sData[0]) {
+                var tc = new junyou.TextFieldCreator();
+                tc.bindSuiData(suiData);
+                tc.parseSelfData(sData[0]);
+            }
+            var bcArr = [];
+            var dat;
+            var bc;
+            for (var i = 1; i < 5; i++) {
+                dat = sData[i];
+                if (dat) {
+                    bc = new junyou.BitmapCreator(suiData);
+                    bc.parseData(dat, suiData);
+                    bcArr[i - 1] = bc;
+                }
+            }
+            if (tc)
+                iconBtn.txtLabel = tc.get();
+            var bmps = [];
+            for (var i_1 = 0; i_1 < 4; i_1++) {
+                if (bcArr[i_1]) {
+                    bc = bcArr[i_1];
+                    bmps[i_1] = bc.get();
+                }
+            }
+            if (!bmps[1])
+                bmps[1] = bmps[0];
+            if (!bmps[3])
+                bmps[3] = bmps[2];
+            iconBtn.bitmaps = bmps;
+            var image = new junyou.Image();
+            iconBtn.icon = image;
+            return iconBtn;
+        };
+        return IconButtonCreator;
+    }(junyou.BaseCreator));
+    junyou.IconButtonCreator = IconButtonCreator;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    var NumericStepperCreator = (function (_super) {
+        __extends(NumericStepperCreator, _super);
+        function NumericStepperCreator() {
+            return _super.call(this) || this;
+        }
+        NumericStepperCreator.prototype.parseSelfData = function (data) {
+            this.uiData = data;
+            var txtCreator = new junyou.TextFieldCreator();
+            this.txtCreator = txtCreator;
+            var data0 = data[0], data1 = data[1];
+            txtCreator.setBaseData(data0[1]);
+            txtCreator.parseSelfData(data0[2]);
+            var scale9Creator = new junyou.ScaleBitmapCreator();
+            this.scale9Creator = scale9Creator;
+            var _suiData = this._suiData;
+            var sourceComponentData = _suiData.sourceComponentData;
+            scale9Creator.bindSuiData(_suiData);
+            scale9Creator.parseSelfData(sourceComponentData[5][1][data1[2]]);
+            scale9Creator.setBaseData(data1[1]);
+            var btnCreator = [];
+            this.btnCreator = btnCreator;
+            var sourceComponentData31 = sourceComponentData[3][1];
+            for (var i = 2; i < data.length; i++) {
+                var dat = data[i];
+                if (dat) {
+                    var bc = new junyou.ButtonCreator();
+                    bc.bindSuiData(_suiData);
+                    bc.parseSelfData(sourceComponentData31[dat[2]]);
+                    bc.setBaseData(dat[1]);
+                    btnCreator.push(bc);
+                }
+            }
+            this._createT = this.createNumericStepper;
+            this.suiManager = junyou.singleton(junyou.SuiResManager);
+        };
+        NumericStepperCreator.prototype.createNumericStepper = function () {
+            var numstep = new junyou.NumericStepper();
+            numstep.txt = this.txtCreator.get();
+            numstep.txtbg = this.scale9Creator.get();
+            var btnCreator = this.btnCreator;
+            var len = btnCreator.length;
+            if (len >= 3) {
+                //4个按钮
+                numstep.minBtn = btnCreator[0].get();
+                numstep.subBtn = btnCreator[1].get();
+                numstep.addBtn = btnCreator[2].get();
+                numstep.maxBtn = btnCreator[3].get();
+            }
+            else {
+                //2个按钮
+                numstep.subBtn = btnCreator[0].get();
+                numstep.addBtn = btnCreator[1].get();
+            }
+            numstep.addSubComponents();
+            return numstep;
+        };
+        return NumericStepperCreator;
+    }(junyou.BaseCreator));
+    junyou.NumericStepperCreator = NumericStepperCreator;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 进度条创建
+     * @pb
+     *
+     */
+    var ProgressBarCreator = (function (_super) {
+        __extends(ProgressBarCreator, _super);
+        function ProgressBarCreator() {
+            return _super.call(this) || this;
+        }
+        ProgressBarCreator.prototype.parseSelfData = function (data) {
+            this._sData = data;
+            this._suiManager = junyou.singleton(junyou.SuiResManager);
+            this._txtCreator = new junyou.TextFieldCreator();
+            this._createT = this.createProgressBar;
+        };
+        ProgressBarCreator.prototype.createProgressBar = function () {
+            var progressBar = new junyou.ProgressBar();
+            var sData = this._sData;
+            var len = sData.length;
+            var item;
+            for (var i = 0; i < len; i++) {
+                item = sData[i];
+                if (item) {
+                    var dis = this.createElement(item);
+                    if (i == 0) {
+                        progressBar.tf = dis;
+                    }
+                    else if (i == 1) {
+                        progressBar.bar = dis;
+                    }
+                    else if (i == 2) {
+                        progressBar.bg = dis;
+                    }
+                }
+            }
+            return progressBar;
+        };
+        return ProgressBarCreator;
+    }(junyou.BaseCreator));
+    junyou.ProgressBarCreator = ProgressBarCreator;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    var ScaleBitmapCreator = (function (_super) {
+        __extends(ScaleBitmapCreator, _super);
+        function ScaleBitmapCreator() {
+            return _super.call(this) || this;
+        }
+        ScaleBitmapCreator.prototype.parseSelfData = function (data) {
+            var _this = this;
+            var mdata = data[0];
+            var textureIndex = mdata[2];
+            if (textureIndex < 0) {
+                this.isjpg = true;
+            }
+            var rectData = data[1];
+            var flag = data[0] != 0;
+            var rectData2 = mdata[1];
+            var width = rectData2[3];
+            var height = rectData2[4];
+            if (rectData) {
+                var rect = new egret.Rectangle(rectData[0], rectData[1], rectData[2], rectData[3]);
+            }
+            this._createT = function () {
+                var suiData = _this._suiData;
+                var bitmap = new junyou.ScaleBitmap();
+                // let inx = textureIndex;
+                // let img = suiData.pngtexs;
+                // if(!this.ispng){
+                //     inx = -1-textureIndex;
+                //     img = suiData.jpgtexs;
+                // }
+                bitmap.scale9Grid = rect;
+                if (flag) {
+                    bitmap.texture = suiData.getTexture(textureIndex); //img[inx];//suiData.imgs[textureIndex];
+                    bitmap.width = width;
+                    bitmap.height = height;
+                    _this.bindEvent(bitmap);
+                }
+                return bitmap;
+            };
+        };
+        return ScaleBitmapCreator;
+    }(junyou.BitmapCreator));
+    junyou.ScaleBitmapCreator = ScaleBitmapCreator;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    var ScrollBarCreator = (function (_super) {
+        __extends(ScrollBarCreator, _super);
+        function ScrollBarCreator() {
+            return _super.call(this) || this;
+        }
+        ScrollBarCreator.prototype.parseSelfData = function (data) {
+            this.uiData = data;
+            this.suiManager = junyou.singleton(junyou.SuiResManager);
+            this._createT = this.createScrollBar;
+        };
+        ScrollBarCreator.prototype.createScrollBar = function () {
+            var scrollBar = new junyou.ScrollBar();
+            var comData = this.uiData;
+            // let len = comData.length;
+            var tmpData;
+            var sourceData = this._suiData.sourceComponentData;
+            var index;
+            var sourceArr;
+            var name;
+            tmpData = comData[0];
+            index = tmpData[2];
+            sourceArr = sourceData[5];
+            name = sourceArr[0][index];
+            var sc = this.suiManager.createDisplayObject(this._suiData.key, name, tmpData[1]);
+            scrollBar.setBar(sc);
+            tmpData = comData[1];
+            index = tmpData[2];
+            sourceArr = sourceData[5];
+            name = sourceArr[0][index];
+            sc = this.suiManager.createDisplayObject(this._suiData.key, name, tmpData[1]);
+            scrollBar.setBg(sc);
+            return scrollBar;
+        };
+        return ScrollBarCreator;
+    }(junyou.BaseCreator));
+    junyou.ScrollBarCreator = ScrollBarCreator;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    var ShareBitmapCreator = (function (_super) {
+        __extends(ShareBitmapCreator, _super);
+        function ShareBitmapCreator() {
+            return _super.call(this) || this;
+        }
+        ShareBitmapCreator.prototype.parseSelfData = function (data) {
+            _super.prototype.parseSelfData.call(this, data[0][2]);
+        };
+        return ShareBitmapCreator;
+    }(junyou.BitmapCreator));
+    junyou.ShareBitmapCreator = ShareBitmapCreator;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    var SliderCreator = (function (_super) {
+        __extends(SliderCreator, _super);
+        function SliderCreator() {
+            return _super.call(this) || this;
+        }
+        SliderCreator.prototype.parseSelfData = function (data) {
+            this.uiData = data;
+            this.txtCreator = new junyou.TextFieldCreator();
+            this.scale9Creator = new junyou.ScaleBitmapCreator();
+            this.bitmapCreator = new junyou.BitmapCreator(this._suiData);
+            this.suiManager = junyou.singleton(junyou.SuiResManager);
+            this._createT = this.createSlider;
+        };
+        SliderCreator.prototype.createSlider = function () {
+            var slider = new junyou.Slider();
+            var comData = this.uiData;
+            var len = comData.length;
+            var tmpData;
+            var type;
+            var sourceData = this._suiData.sourceComponentData;
+            var index;
+            var sourceArr;
+            var name;
+            for (var i = 0; i < len; i++) {
+                tmpData = comData[i];
+                type = tmpData[0];
+                index = tmpData[2];
+                if (type == 0) {
+                    this.bitmapCreator.parseSelfData(index);
+                    var bmp = this.bitmapCreator.get();
+                    slider.setThumb(bmp);
+                }
+                else if (type == 5) {
+                    sourceArr = sourceData[type];
+                    name = sourceArr[0][index];
+                    var sc = this.suiManager.createDisplayObject(this._suiData.key, name, tmpData[1]);
+                    slider.setBg(sc);
+                }
+            }
+            return slider;
+        };
+        return SliderCreator;
+    }(junyou.BaseCreator));
+    junyou.SliderCreator = SliderCreator;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 格位创建器
+     *
+     * @export
+     * @class SlotCreator
+     * @extends {BaseCreator<Slot>}
+     * @author pb
+     */
+    var SlotCreator = (function (_super) {
+        __extends(SlotCreator, _super);
+        function SlotCreator() {
+            return _super.call(this) || this;
+        }
+        SlotCreator.prototype.parseSelfData = function (data) {
+            var _this = this;
+            var scaleData = data[0];
+            var rect = scaleData ? new egret.Rectangle(scaleData[0], scaleData[1], scaleData[2], scaleData[3]) : undefined;
+            this._createT = function () {
+                var slot = new junyou.Slot();
+                slot.rect = rect;
+                var item = data[1];
+                if (item) {
+                    var dis = _this.createElement(item);
+                    slot.countTxt = dis;
+                }
+                item = data[2];
+                if (item) {
+                    var dis = _this.createElement(item);
+                    if (item.length > 1) {
+                        slot.bg = dis;
+                    }
+                    else {
+                        slot.bg = dis;
+                    }
+                }
+                slot.invalidateDisplay();
+                return slot;
+            };
+        };
+        return SlotCreator;
+    }(junyou.BaseCreator));
+    junyou.SlotCreator = SlotCreator;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 文本框创建器
+     * @author
+     *
+     */
+    var TextFieldCreator = (function (_super) {
+        __extends(TextFieldCreator, _super);
+        function TextFieldCreator() {
+            return _super.call(this) || this;
+        }
+        TextFieldCreator.prototype.parseSelfData = function (data) {
+            //静态文本框按动态文本框处理
+            var textType = ["dynamic", "dynamic", "input"][+data[0]];
+            var face = data[1] || TextFieldCreator.DefaultFonts;
+            var align = ["left", "center", "right", "justify"][+data[2]];
+            var color = junyou.ColorUtil.getColorValue(data[3]);
+            var size = data[4] || 12; //默认12px字
+            var spacing = +data[5];
+            var bold = !!data[6];
+            var italic = !!data[7];
+            var stroke = 0;
+            var strokeColor = 0;
+            var strokeDat = data[8];
+            //            // blurX 作为描边宽度
+            //            data[8] = [filter.color,filter.blurX];
+            if (Array.isArray(strokeDat)) {
+                strokeColor = strokeDat[0];
+                if (typeof strokeColor == "string") {
+                    strokeColor = junyou.ColorUtil.getColorValue(strokeColor);
+                }
+                stroke = strokeDat[1];
+            }
+            this._createT = function () {
+                var tf = new egret.TextField();
+                tf.type = textType;
+                tf.fontFamily = face;
+                tf.textAlign = align;
+                tf.textColor = color;
+                tf.size = size;
+                tf.lineSpacing = spacing;
+                tf.bold = bold;
+                tf.italic = italic;
+                tf.stroke = stroke;
+                tf.strokeColor = strokeColor;
+                return tf;
+            };
+        };
+        return TextFieldCreator;
+    }(junyou.BaseCreator));
+    TextFieldCreator.DefaultFonts = "";
+    junyou.TextFieldCreator = TextFieldCreator;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * ## 背景图容器
+     * 1. 当屏幕长或者宽任意一边大于`基准尺寸(basis)`时
+     *      * 首先根据基准尺寸的宽边得到缩放比
+     *      * 然后将容器按此缩放比进行缩放
+     *      * 根据容器内UI的布局配置，基于当前屏幕大小进行重新布局
+     * 2. 如果屏幕的长或者宽都小于或者等于`基准尺寸(basis)`时
+     *      * 直接根据容器内UI的布局配置，基于当前屏幕大小进行重新布局
+     *
+     * @export
+     * @class MainUIContainer
+     * @extends {egret.Sprite}
+     */
+    var BGContainer = (function (_super) {
+        __extends(BGContainer, _super);
+        function BGContainer(basis, host, layout) {
+            if (layout === void 0) { layout = 6 /* TOP_CENTER */; }
+            var _this = _super.call(this, basis, host) || this;
+            _this._layout = layout;
+            return _this;
+        }
+        BGContainer.prototype.onResize = function () {
+            var host = this._host;
+            var stage = host.stage || egret.sys.$TempStage;
+            var basis = this._basis;
+            var sw = stage.stageWidth, sh = stage.stageHeight, bw = basis.width, bh = basis.height;
+            var dw = sw, dh = sh, lw = sw, lh = sh;
+            var scale = 1;
+            if (sw > bw || sh > bh) {
+                var result = this.getFixedNarrow(sw, sh, bw, bh, true);
+                dh = result.dh;
+                dw = result.dw;
+                lw = result.lw;
+                lh = result.lh;
+                scale = result.scale;
+            }
+            else {
+                dw = bw;
+                dh = bh;
+            }
+            this._lw = lw;
+            this._lh = lh;
+            host.scaleY = host.scaleX = scale;
+            var pt = junyou.Temp.SharedPoint1;
+            junyou.Layout.getLayoutPos(dw, dh, sw, sh, this._layout, pt);
+            host.x = pt.x;
+            host.y = pt.y;
+            this.layoutAll();
+        };
+        return BGContainer;
+    }(junyou.LayoutContainer));
+    junyou.BGContainer = BGContainer;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    ;
+    /**
+     *
+     * @author 3tion
+     *
+     */
+    junyou.Layout = {
+        getParentSize: function (dis, parent) {
+            if (!parent) {
+                parent = dis.parent;
+            }
+            if (!parent) {
+                parent = egret.sys.$TempStage;
+            }
+            if (parent instanceof egret.Stage) {
+                var parentWidth = parent.stageWidth;
+                var parentHeight = parent.stageHeight;
+            }
+            else {
+                parentWidth = parent.width;
+                parentHeight = parent.height;
+            }
+            return [parentWidth, parentHeight];
+        },
+        /**
+         * 对DisplayObject，基于父级进行排布
+         *
+         * @static
+         * @param {LayoutDisplay} dis 要布局的可视对象
+         * @param {LayoutType} layout 布局方式
+         * @param {number} hoffset 在原布局基础上，水平方向的再偏移量（内部运算是"+",向左传负）
+         * @param {number} voffset 在原布局基础上，垂直方向的再偏移量（内部运算是"+",向上传负）
+         * @param {boolean} [innerV=true] 垂直方向上基于父级内部
+         * @param {boolean} [innerH=true] 水平方向上基于父级内部
+         * @param {LayoutDisplayParent} [parent] 父级容器，默认取可视对象的父级
+         */
+        layout: function (dis, layout, hoffset, voffset, innerV, innerH, parent) {
+            if (hoffset === void 0) { hoffset = 0; }
+            if (voffset === void 0) { voffset = 0; }
+            if (innerV === void 0) { innerV = true; }
+            if (innerH === void 0) { innerH = true; }
+            var _a = junyou.Layout.getParentSize(dis, parent), parentWidth = _a[0], parentHeight = _a[1];
+            junyou.Layout.getLayoutPos(dis.width, dis.height, parentWidth, parentHeight, layout, dis, hoffset, voffset, innerV, innerH);
+        },
+        /**
+         *
+         *
+         * @param {LayoutDisplay} dis  要布局的可视对象
+         * @param {number} [top=0]    百分比数值 `0.2` dis的顶距游戏边界顶部 20%
+         * @param {number} [left=0]    百分比数值 `0.2` dis的左边缘距游戏左边缘 20%
+         * @param {LayoutDisplayParent} [parent] 父级容器，默认取可视对象的父级
+         * @returns
+         */
+        layoutPercent: function (dis, top, left, parent) {
+            if (top === void 0) { top = 0; }
+            if (left === void 0) { left = 0; }
+            var _a = junyou.Layout.getParentSize(dis, parent), parentWidth = _a[0], parentHeight = _a[1];
+            dis.x = Math.round((parentWidth - dis.width) * left);
+            dis.y = Math.round((parentHeight - dis.height) * top);
+            return dis;
+        },
+        getLayoutPos: function (disWidth, disHeight, parentWidth, parentHeight, layout, result, hoffset, voffset, innerV, innerH) {
+            if (hoffset === void 0) { hoffset = 0; }
+            if (voffset === void 0) { voffset = 0; }
+            if (innerV === void 0) { innerV = true; }
+            if (innerH === void 0) { innerH = true; }
+            result = result || {};
+            var vertical = layout & 12 /* VERTICAL_MASK */;
+            var horizon = layout & 3 /* HORIZON_MASK */;
+            var y = 0, x = 0;
+            switch (vertical) {
+                case 4 /* TOP */:
+                    if (innerV) {
+                        y = 0;
+                    }
+                    else {
+                        y = -disHeight;
+                    }
+                    break;
+                case 8 /* MIDDLE */:
+                    y = parentHeight - disHeight >> 1;
+                    break;
+                case 12 /* BOTTOM */:
+                    if (innerV) {
+                        y = parentHeight - disHeight;
+                    }
+                    else {
+                        y = parentHeight;
+                    }
+                    break;
+            }
+            switch (horizon) {
+                case 1 /* LEFT */:
+                    if (innerH) {
+                        x = 0;
+                    }
+                    else {
+                        x = -disWidth;
+                    }
+                    break;
+                case 2 /* CENTER */:
+                    x = parentWidth - disWidth >> 1;
+                    break;
+                case 3 /* RIGHT */:
+                    if (innerH) {
+                        x = parentWidth - disWidth;
+                    }
+                    else {
+                        x = parentWidth;
+                    }
+                    break;
+            }
+            result.x = Math.round(x + hoffset);
+            result.y = Math.round(y + voffset);
+            return result;
+        },
+        /**
+         * 基于鼠标位置的tip的布局方式
+         *
+         * @param {LayoutDisplay} dis 要被布局的可视对象
+         * @param {Point} point 传入的点
+         * @param {{ x: number, y: number }} [result]
+         * @param {number} [padx=0] 间隔x
+         * @param {number} [pady=0] 间隔y
+         * @param {LayoutDisplayParent} [parent] 容器的大小
+         */
+        tipLayout: function (dis, point, result, padx, pady, parent) {
+            if (padx === void 0) { padx = 0; }
+            if (pady === void 0) { pady = 0; }
+            junyou.Layout.getTipLayoutPos(dis, point, dis, padx, pady, parent);
+        },
+        /**
+         * 获取基于鼠标位置的tip的布局方式布局的坐标
+         *
+         * @param {LayoutDisplay} dis 要被布局的可视对象
+         * @param {Point} point 传入的点
+         * @param {{ x: number, y: number }} [result]
+         * @param {number} [padx=0] 间隔x
+         * @param {number} [pady=0] 间隔y
+         * @param {LayoutDisplayParent} [parent] 容器的大小
+         * @returns {Point} 计算后的坐标
+         */
+        getTipLayoutPos: function (dis, point, result, padx, pady, parent) {
+            if (padx === void 0) { padx = 0; }
+            if (pady === void 0) { pady = 0; }
+            var _a = junyou.Layout.getParentSize(dis, parent), parentWidth = _a[0], parentHeight = _a[1];
+            result = result || {};
+            var w = dis.width;
+            var h = dis.height;
+            var mx = point.x;
+            var my = point.y;
+            var x = mx + padx;
+            var y = my + pady;
+            if (w + x + padx > parentWidth) {
+                x = parentWidth - w - padx;
+                if (x < mx) {
+                    x = mx - w - padx;
+                }
+                if (x < 0) {
+                    x = padx;
+                }
+            }
+            if (h + my + pady > parentHeight) {
+                y = parentHeight - h - pady;
+                if (y < 0) {
+                    y = pady;
+                }
+            }
+            result.x = Math.round(x);
+            result.y = Math.round(y);
+            return result;
+        },
+    };
+})(junyou || (junyou = {}));
+var $useDPR = true;
+var dpr = 1;
+if (window.$useDPR) {
+    dpr = window.devicePixelRatio || 1;
+    var origin = egret.sys.DefaultScreenAdapter.prototype.calculateStageSize;
+    egret.sys.screenAdapter = {
+        calculateStageSize: function (scaleMode, screenWidth, screenHeight, contentWidth, contentHeight) {
+            var result = origin(scaleMode, screenWidth, screenHeight, contentWidth, contentHeight);
+            if (scaleMode == egret.StageScaleMode.NO_SCALE) {
+                result.stageHeight *= dpr;
+                result.stageWidth *= dpr;
+            }
+            return result;
+        }
+    };
+}
+var junyou;
+(function (junyou) {
+    /**
+     * ## 主体UI的容器
+     * 1. 当屏幕长或者宽任意一边小于`基准尺寸(basis)`时
+     *      * 首先根据基准尺寸的窄边得到缩放比
+     *      * 然后将容器按此缩放比进行缩放
+     *      * 根据容器内UI的布局配置，基于当前屏幕大小进行重新布局
+     * 2. 如果屏幕的长或者宽都大于或者等于`基准尺寸(basis)`时
+     *      * 容器内UI不做缩放
+     *      * 直接根据容器内UI的布局配置，基于当前屏幕大小进行重新布局
+     *
+     * @export
+     * @class MainUIContainer
+     * @extends {egret.Sprite}
+     */
+    var MainUIContainer = (function (_super) {
+        __extends(MainUIContainer, _super);
+        function MainUIContainer() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        MainUIContainer.prototype.onResize = function () {
+            var host = this._host;
+            var stage = host.stage || egret.sys.$TempStage;
+            var basis = this._basis;
+            var sw = stage.stageWidth, sh = stage.stageHeight, bw = basis.width, bh = basis.height;
+            var dw = sw, dh = sh, lw = sw, lh = sh;
+            var scale = 1;
+            if (dpr != 1 || sw < bw * dpr || sh < bh * dpr) {
+                var result = this.getFixedNarrow(sw, sh, bw, bh);
+                dh = result.dh;
+                dw = result.dw;
+                lw = result.lw;
+                lh = result.lh;
+                scale = result.scale;
+            }
+            this._lw = lw;
+            this._lh = lh;
+            host.x = 0;
+            host.y = 0;
+            host.scaleY = host.scaleX = scale;
+            this.layoutAll();
+        };
+        MainUIContainer.prototype.add = function (d, type, offsetRect) {
+            var raw = d.suiRawRect;
+            var result = junyou.Layout.getLayoutPos(raw.width, raw.height, offsetRect.width, offsetRect.height, type);
+            var dx = raw.x - offsetRect.x;
+            var dy = raw.y - offsetRect.y;
+            var oh = dx - result.x;
+            var ov = dy - result.y;
+            this.addLayout(d, type, raw, oh, ov);
+        };
+        return MainUIContainer;
+    }(junyou.LayoutContainer));
+    junyou.MainUIContainer = MainUIContainer;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 按钮形式的菜单
+     * @author gushuai
+     * (description)
+     *
+     * @export
+     * @class SkillItemMenuRender
+     * @extends {MenuBaseRender<MenuBaseVO>}
+     */
+    var ButtonMenuRender = (function (_super) {
+        __extends(ButtonMenuRender, _super);
+        function ButtonMenuRender(key, className) {
+            if (key === void 0) { key = "lib"; }
+            if (className === void 0) { className = "ui.btn.MenuBtn"; }
+            var _this = _super.call(this) || this;
+            var btn = junyou.singleton(junyou.SuiResManager).createDisplayObject(key, className);
+            _this.skin = btn;
+            _this.btn = btn;
+            return _this;
+        }
+        ButtonMenuRender.prototype.$setData = function (val) {
+            _super.prototype.$setData.call(this, val);
+            this.btn.label = val.label;
+        };
+        return ButtonMenuRender;
+    }(junyou.MenuBaseRender));
+    junyou.ButtonMenuRender = ButtonMenuRender;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * @author gushuai
+     * (description)
+     *
+     * @export
+     * @class Menu
+     * @extends {egret.Sprite}
+     */
+    var Menu = (function (_super) {
+        __extends(Menu, _super);
+        function Menu(style, maxRendercount) {
+            var _this = _super.call(this) || this;
+            _this.style = style;
+            _this.uiManager = junyou.singleton(junyou.SuiResManager);
+            _this.maxRenderCount = maxRendercount;
+            _this.bindComponent();
+            return _this;
+        }
+        /**
+         * (description)
+         *
+         * @static
+         * @ param {egret.DisplayObject} target (Menu所在的父容器)
+         * @ param {Menu} menu (menu实例)
+         * @ param {Function} callBack (menu的displayMenuDatas具体实现函数（回调参数，第1位是绑定的target 第2位是Menu）)
+         */
+        Menu.bind = function (target, menu, menuinit) {
+            var dic = Menu.dic;
+            if (!dic) {
+                Menu.dic = dic = new Map();
+            }
+            if (!dic.has(target)) {
+                dic.set(target, menu);
+            }
+            menu.menuinitFunc = menuinit;
+            target.on(-1000 /* CHOOSE_STATE_CHANGE */, Menu.onShowOrHideMenu, this);
+        };
+        Menu.unBind = function (target) {
+            var dic = Menu.dic;
+            if (!dic)
+                return;
+            if (dic.has(target)) {
+                var dis = dic.get(target);
+                dis.menuinitFunc = undefined;
+                junyou.removeDisplay(dis);
+                dic.delete(target);
+            }
+            target.off(-1000 /* CHOOSE_STATE_CHANGE */, Menu.onShowOrHideMenu, this);
+        };
+        Menu.onShowOrHideMenu = function (e) {
+            var target = e.target;
+            var b = target.selected;
+            var dis = Menu.dic.get(target);
+            var v = target.view;
+            if (b) {
+                if (v instanceof egret.DisplayObjectContainer) {
+                    v.addChild(dis);
+                    var init = dis.menuinitFunc;
+                    if (init) {
+                        init.call(target, target, dis);
+                    }
+                }
+                this.currentShow = target;
+            }
+            else {
+                junyou.removeDisplay(dis);
+                this.currentShow = undefined;
+            }
+            target.dispatch(-1999 /* Resize */);
+        };
+        Menu.prototype.bindComponent = function () {
+            var manager = this.uiManager;
+            var uri = this.style.uikey;
+            var rec = this.style.possize;
+            var rendercls = this.style.renderClass;
+            var bguri = this.style.scalebg;
+            var bg = manager.createDisplayObject(uri, bguri);
+            this.addChild(bg);
+            bg.width = rec.width;
+            bg.height = rec.height;
+            this.renders = [];
+            for (var i = 0; i < this.maxRenderCount; i++) {
+                var render = new rendercls();
+                this.renders[i] = render;
+                this.addChild(render.view);
+            }
+        };
+        /**
+         * 显示菜单操作项
+         */
+        Menu.prototype.displayMenuDatas = function (vos) {
+            var len = vos.length;
+            var blen = this.renders.length;
+            var style = this.style;
+            var tmp = [];
+            for (var i = 0; i < len; i++) {
+                var render = this.renders[i];
+                render.data = vos[i];
+                this.addChild(render.view);
+                tmp[i] = render;
+            }
+            if (len < blen) {
+                for (var i = len; i < blen; i++) {
+                    junyou.removeDisplay(this.renders[i].view);
+                }
+            }
+            var rec = style.possize;
+            var gap;
+            var tmpSize = tmp[0].getSize();
+            if (!style.align) {
+                gap = (rec.width - rec.x * 2 - len * tmpSize.width) / (len - 1);
+                for (var i = 0; i < len; i++) {
+                    var render = tmp[i];
+                    tmpSize = render.getSize();
+                    var v = render.view;
+                    v.x = ~~(rec.x + (gap + tmpSize.width) * i);
+                    v.y = ~~rec.y;
+                }
+            }
+            else {
+                gap = (rec.height - rec.y * 2 - len * tmpSize.height) / (len - 1);
+                for (var i = 0; i < len; i++) {
+                    var render = tmp[i];
+                    tmpSize = render.getSize();
+                    var v = render.view;
+                    v.x = ~~rec.x;
+                    v.y = ~~(rec.y + (gap + tmpSize.height) * i);
+                }
+            }
+        };
+        return Menu;
+    }(egret.Sprite));
+    junyou.Menu = Menu;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 错误提示
+     * @author pb
+     */
+    var ErrorTips = (function () {
+        function ErrorTips(parent) {
+            this._parent = parent;
+        }
+        ErrorTips.prototype.show = function (msg, color, duration, delay) {
+            if (color === void 0) { color = 0xffffff; }
+            if (duration === void 0) { duration = 1000; }
+            if (delay === void 0) { delay = 1000; }
+            var txt = new egret.TextField();
+            txt.textAlign = egret.HorizontalAlign.CENTER;
+            if (/<[^>]+>/.test(msg)) {
+                txt.setHtmlText(msg);
+            }
+            else {
+                txt.text = msg;
+            }
+            txt.alpha = 1;
+            junyou.Layout.layout(txt, 10 /* MIDDLE_CENTER */);
+            txt.textColor = color;
+            this._parent.addChild(txt);
+            var tween = junyou.Global.getTween(txt);
+            tween.to({ y: txt.y - 100 }, duration).to({ alpha: 0 }, delay).call(this.txtComplete, this, [tween, txt]);
+        };
+        ErrorTips.prototype.txtComplete = function (arg) {
+            var tween = arg[0];
+            var txt = arg[1];
+            if (tween) {
+                tween.paused = true;
+                tween.onRecycle();
+            }
+            if (txt)
+                junyou.removeDisplay(txt);
+        };
+        return ErrorTips;
+    }());
+    junyou.ErrorTips = ErrorTips;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 简易的ToolTip
+     * 只处理字符串类型的描述
+     * @author 3tion
+     */
+    var SimToolTip = (function (_super) {
+        __extends(SimToolTip, _super);
+        function SimToolTip(maxWidth, maxHeight, corner, autoSize) {
+            if (maxWidth === void 0) { maxWidth = 480; }
+            if (maxHeight === void 0) { maxHeight = 800; }
+            if (corner === void 0) { corner = 5; }
+            var _this = _super.call(this) || this;
+            _this._autoSize = autoSize;
+            _this._corner = corner;
+            _this.init(maxWidth, maxHeight, corner);
+            return _this;
+        }
+        SimToolTip.prototype.init = function (maxWidth, maxHeight, corner) {
+            var tf;
+            this.tf = tf = new egret.TextField();
+            var c2 = corner * 2;
+            tf.width = maxWidth - c2;
+            tf.height = maxHeight - c2;
+            tf.size = 12;
+            tf.x = corner;
+            tf.y = corner;
+            this.addChild(tf);
+            this.drawRect(0, 0, maxWidth, maxHeight);
+        };
+        SimToolTip.prototype.setTipData = function (msg) {
+            var tf = this.tf;
+            if (msg != tf.text) {
+                tf.text = msg;
+                var bgW = void 0, bgH = void 0;
+                if (this._autoSize) {
+                    var c2 = this._corner * 2;
+                    bgW = tf.textWidth + 2 * c2;
+                    bgH = tf.textHeight + 2 * c2;
+                    this.drawRect(0, 0, bgW, bgH);
+                }
+            }
+        };
+        SimToolTip.prototype.drawRect = function (x, y, width, height) {
+            var g = this.graphics;
+            g.clear();
+            g.lineStyle(1, 0xcccccc);
+            g.beginFill(0, 0.7);
+            g.drawRoundRect(x, y, width, height, this._corner);
+            g.endFill();
+        };
+        SimToolTip.prototype.show = function (container, x, y) {
+            if (x != undefined && y != undefined) {
+                container.addChild(this);
+                this.x = x;
+                this.y = y;
+            }
+            else {
+                junyou.addTo(this, container);
+            }
+        };
+        SimToolTip.prototype.hide = function () {
+            junyou.removeDisplay(this);
+        };
+        return SimToolTip;
+    }(egret.Sprite));
+    junyou.SimToolTip = SimToolTip;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    var TE = egret.TouchEvent;
+    /**
+     * ToolTip的数据
+     * @author 3tion
+     */
+    var ToolTipData = (function () {
+        function ToolTipData() {
+        }
+        ToolTipData.prototype.register = function (dis, msg, tooltip, container) {
+            this.data = msg;
+            this.con = container;
+            if (this.tooltip != tooltip) {
+                this.tooltip = tooltip;
+            }
+            if (this.target != dis) {
+                this.clearDisListener(this.target);
+                junyou.Global.clearCallLater(this.showTip, this);
+                dis.on(TE.TOUCH_BEGIN, this.checkTouch, this);
+            }
+        };
+        ToolTipData.prototype.clearDisListener = function (dis) {
+            dis.off(TE.TOUCH_BEGIN, this.checkTouch, this);
+            dis.off(TE.TOUCH_END, this.touchEnd, this);
+        };
+        ToolTipData.prototype.onRecycle = function () {
+            if (this.target) {
+                this.clearDisListener(this.target);
+                this.target = undefined;
+            }
+            junyou.Global.clearCallLater(this.showTip, this);
+            this.data = undefined;
+            this.tooltip = undefined;
+        };
+        ToolTipData.prototype.checkTouch = function (e) {
+            this.target.on(TE.TOUCH_END, this.touchEnd, this);
+            junyou.Global.callLater(this.showTip, junyou.ToolTipManager.touchTime, this);
+        };
+        ToolTipData.prototype.showTip = function () {
+            this.target.off(TE.TOUCH_END, this.touchEnd, this);
+            this.tooltip.show(this.con);
+        };
+        ToolTipData.prototype.touchEnd = function (e) {
+            this.target.off(TE.TOUCH_END, this.touchEnd, this);
+            junyou.Global.clearCallLater(this.showTip, this);
+        };
+        return ToolTipData;
+    }());
+    junyou.ToolTipData = ToolTipData;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 默认的Tip
+     * 手指按下控件以后，弹出Tip进行显示
+     * @author 3tion
+     *
+     */
+    var ToolTipManager = (function () {
+        function ToolTipManager() {
+        }
+        /**
+         * 注册可视对象，消息和皮肤的绑定
+         *
+         * @static
+         * @param {egret.DisplayObject} dis 添加Tip的目标
+         * @param {*} msg 要显示的内容
+         * @param {IToolTip} [tooltip] Tip的皮肤，如果不填，则使用默认皮肤
+         * @return {boolean} true 注册成功  false注册失败
+         */
+        ToolTipManager.register = function (dis, msg, tooltip, container) {
+            if (!tooltip) {
+                tooltip = ToolTipManager.defaultTip;
+                if (!tooltip) {
+                    if (DEBUG) {
+                        junyou.ThrowError("没有注册ToolTip的皮肤，并且没有默认的ToolTip");
+                    }
+                    return false;
+                }
+            }
+            var map = ToolTipManager._map;
+            var data = map.get(dis);
+            if (!data) {
+                data = junyou.recyclable(junyou.ToolTipData);
+                map.set(dis, data);
+            }
+            if (!container) {
+                container = junyou.GameEngine.instance.getLayer(9000 /* Tip */);
+            }
+            data.register(dis, msg, tooltip, container);
+            return true;
+        };
+        /**
+         * 显示Tip，如果msg有内容，刷新Tip上的内容
+         *
+         * @static
+         * @param {egret.DisplayObject} dis
+         * @param {*} [msg]
+         */
+        ToolTipManager.show = function (dis, msg, container) {
+            var data = ToolTipManager._map.get(dis);
+            if (msg) {
+                data.data = msg;
+            }
+            var tooltip = data.tooltip;
+            if (!tooltip) {
+                tooltip = ToolTipManager.defaultTip;
+            }
+            if (tooltip) {
+                tooltip.setTipData(data.data);
+                if (!container) {
+                    container = data.con;
+                }
+                tooltip.show(container);
+                this._currentSkin = tooltip;
+            }
+        };
+        /**
+         * 刷新当前Tip绑定的内容，*`不改变显示状态`*
+         * 如果要刷新并显示，请使用 ToolTipManager.show
+         *
+         * @static
+         * @param {egret.DisplayObject} dis (description)
+         * @param {*} msg (description)
+         */
+        ToolTipManager.refresh = function (dis, msg) {
+            var data = ToolTipManager._map.get(dis);
+            data.data = msg;
+            var tooltip = data.tooltip;
+            if (!tooltip) {
+                tooltip = ToolTipManager.defaultTip;
+            }
+            if (tooltip) {
+                tooltip.setTipData(data.data);
+            }
+        };
+        /**
+         * 移除视图和ToolTip的绑定
+         *
+         * @static
+         * @param {egret.DisplayObject} dis 可视对象
+         */
+        ToolTipManager.remove = function (dis) {
+            var data = ToolTipManager._map.get(dis);
+            data.recycle();
+        };
+        return ToolTipManager;
+    }());
+    /**
+     * 按住多少毫秒后显示Tip
+     *
+     * @static
+     * @type {number}
+     */
+    ToolTipManager.touchTime = 500;
+    ToolTipManager._map = new Map();
+    junyou.ToolTipManager = ToolTipManager;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 多选分组
+     *
+     * @export
+     * @class CheckBoxGroup
+     * @extends {Group}
+     * @author 3tion
+     */
+    var CheckBoxGroup = (function (_super) {
+        __extends(CheckBoxGroup, _super);
+        function CheckBoxGroup(maxSelected) {
+            var _this = _super.call(this) || this;
+            /**
+             * 选中的选项
+             *
+             * @protected
+             * @type {IGroupItem[]}
+             */
+            _this._selected = [];
+            _this.maxSelected = maxSelected;
+            return _this;
+        }
+        CheckBoxGroup.prototype.removeItem = function (item) {
+            if (item) {
+                this._list.remove(item);
+                this._selected.remove(item);
+                item.off(egret.TouchEvent.TOUCH_TAP, this.touchHandler, this);
+            }
+        };
+        CheckBoxGroup.prototype.$setSelectedItem = function (item) {
+            // 检查是否勾选
+            var selected = this._selected;
+            var changed, idx = -1;
+            if (item.selected) {
+                item.selected = false;
+                selected.remove(item);
+                idx = selected.length - 1;
+                changed = true;
+            }
+            else {
+                //未选中，检查当前选中的按钮是否达到最大数量
+                var maxSelected = this.maxSelected || Infinity;
+                if (selected.length < maxSelected) {
+                    item.selected = true;
+                    idx = selected.pushOnce(item);
+                    changed = true;
+                }
+                else {
+                    return this.dispatch(-1021 /* GROUP_FULL */);
+                }
+            }
+            if (changed) {
+                this._selectedIndex = idx;
+                this._selectedItem = !~idx ? selected[idx] : undefined;
+                return this.dispatch(-1020 /* GROUP_CHANGE */);
+            }
+        };
+        Object.defineProperty(CheckBoxGroup.prototype, "selected", {
+            /**
+             * 获取选中的选项
+             *
+             * @readonly
+             */
+            get: function () {
+                return this._selected;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        CheckBoxGroup.prototype.clear = function () {
+            _super.prototype.clear.call(this);
+            this._selected.length = 0;
+        };
+        return CheckBoxGroup;
+    }(junyou.Group));
+    junyou.CheckBoxGroup = CheckBoxGroup;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -15646,2308 +17855,6 @@ var junyou;
         return HttpNetService;
     }(junyou.NetService));
     junyou.HttpNetService = HttpNetService;
-    __reflect(HttpNetService.prototype, "junyou.HttpNetService");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * 用于发送的网络数据<br/>
-     * @author 3tion
-     */
-    var NetSendData = (function () {
-        function NetSendData() {
-        }
-        NetSendData.prototype.onRecycle = function () {
-            this.data = undefined;
-            this.msgType = undefined;
-        };
-        return NetSendData;
-    }());
-    junyou.NetSendData = NetSendData;
-    __reflect(NetSendData.prototype, "junyou.NetSendData", ["junyou.IRecyclable"]);
-    /**
-     * 网络数据，类似AS3项目中Stream<br/>
-     * @author 3tion
-     *
-     */
-    var NetData = (function (_super) {
-        __extends(NetData, _super);
-        function NetData() {
-            return _super !== null && _super.apply(this, arguments) || this;
-        }
-        return NetData;
-    }(NetSendData));
-    junyou.NetData = NetData;
-    __reflect(NetData.prototype, "junyou.NetData");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * 按钮创建器
-     * @author 3tion
-     *
-     */
-    var ButtonCreator = (function (_super) {
-        __extends(ButtonCreator, _super);
-        function ButtonCreator() {
-            return _super.call(this) || this;
-        }
-        ButtonCreator.prototype.parseSelfData = function (data) {
-            var _this = this;
-            var suiData = this._suiData;
-            var tc;
-            if (data[0]) {
-                tc = new junyou.TextFieldCreator();
-                tc.setBaseData(data[0][1]);
-                tc.parseSelfData(data[0][2]);
-            }
-            var bcs = [];
-            for (var i = 1; i < 5; i++) {
-                var dat = data[i];
-                if (dat) {
-                    bcs[i - 1] = dat;
-                }
-            }
-            this._createT = function () {
-                var btn = new junyou.Button();
-                if (tc) {
-                    btn.txtLabel = tc.get();
-                }
-                var bmps = [];
-                for (var i = 0; i < 4; i++) {
-                    if (bcs[i]) {
-                        bmps[i] = _this.createElement(bcs[i]);
-                    }
-                }
-                if (!bmps[1]) {
-                    bmps[1] = bmps[0];
-                }
-                var useDisableFilter;
-                if (!bmps[2]) {
-                    bmps[2] = bmps[0];
-                    useDisableFilter = true;
-                }
-                if (!bmps[3]) {
-                    bmps[3] = bmps[2];
-                }
-                btn.bitmaps = bmps;
-                if (data[5]) {
-                    btn.floor = _this.createElement(data[5]);
-                    useDisableFilter = true;
-                }
-                if (data[6]) {
-                    btn.ceil = _this.createElement(data[6]);
-                    useDisableFilter = true;
-                }
-                btn.useDisableFilter(useDisableFilter);
-                return btn;
-            };
-        };
-        return ButtonCreator;
-    }(junyou.BaseCreator));
-    junyou.ButtonCreator = ButtonCreator;
-    __reflect(ButtonCreator.prototype, "junyou.ButtonCreator");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * 图标按鈕創建
-     * @author pb
-     */
-    var IconButtonCreator = (function (_super) {
-        __extends(IconButtonCreator, _super);
-        function IconButtonCreator() {
-            return _super.call(this) || this;
-        }
-        IconButtonCreator.prototype.parseSelfData = function (data) {
-            this._sData = data;
-            this._createT = this.createIconButton;
-        };
-        IconButtonCreator.prototype.createIconButton = function () {
-            var iconBtn = new junyou.IconButton();
-            var sData = this._sData;
-            var suiData = this._suiData;
-            var tc;
-            if (sData[0]) {
-                var tc = new junyou.TextFieldCreator();
-                tc.bindSuiData(suiData);
-                tc.parseSelfData(sData[0]);
-            }
-            var bcArr = [];
-            var dat;
-            var bc;
-            for (var i = 1; i < 5; i++) {
-                dat = sData[i];
-                if (dat) {
-                    bc = new junyou.BitmapCreator(suiData);
-                    bc.parseData(dat, suiData);
-                    bcArr[i - 1] = bc;
-                }
-            }
-            if (tc)
-                iconBtn.txtLabel = tc.get();
-            var bmps = [];
-            for (var i_1 = 0; i_1 < 4; i_1++) {
-                if (bcArr[i_1]) {
-                    bc = bcArr[i_1];
-                    bmps[i_1] = bc.get();
-                }
-            }
-            if (!bmps[1])
-                bmps[1] = bmps[0];
-            if (!bmps[3])
-                bmps[3] = bmps[2];
-            iconBtn.bitmaps = bmps;
-            var image = new junyou.Image();
-            iconBtn.icon = image;
-            return iconBtn;
-        };
-        return IconButtonCreator;
-    }(junyou.BaseCreator));
-    junyou.IconButtonCreator = IconButtonCreator;
-    __reflect(IconButtonCreator.prototype, "junyou.IconButtonCreator");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    var NumericStepperCreator = (function (_super) {
-        __extends(NumericStepperCreator, _super);
-        function NumericStepperCreator() {
-            return _super.call(this) || this;
-        }
-        NumericStepperCreator.prototype.parseSelfData = function (data) {
-            this.uiData = data;
-            var txtCreator = new junyou.TextFieldCreator();
-            this.txtCreator = txtCreator;
-            var data0 = data[0], data1 = data[1];
-            txtCreator.setBaseData(data0[1]);
-            txtCreator.parseSelfData(data0[2]);
-            var scale9Creator = new junyou.ScaleBitmapCreator();
-            this.scale9Creator = scale9Creator;
-            var _suiData = this._suiData;
-            var sourceComponentData = _suiData.sourceComponentData;
-            scale9Creator.bindSuiData(_suiData);
-            scale9Creator.parseSelfData(sourceComponentData[5][1][data1[2]]);
-            scale9Creator.setBaseData(data1[1]);
-            var btnCreator = [];
-            this.btnCreator = btnCreator;
-            var sourceComponentData31 = sourceComponentData[3][1];
-            for (var i = 2; i < data.length; i++) {
-                var dat = data[i];
-                if (dat) {
-                    var bc = new junyou.ButtonCreator();
-                    bc.bindSuiData(_suiData);
-                    bc.parseSelfData(sourceComponentData31[dat[2]]);
-                    bc.setBaseData(dat[1]);
-                    btnCreator.push(bc);
-                }
-            }
-            this._createT = this.createNumericStepper;
-            this.suiManager = junyou.singleton(junyou.SuiResManager);
-        };
-        NumericStepperCreator.prototype.createNumericStepper = function () {
-            var numstep = new junyou.NumericStepper();
-            numstep.txt = this.txtCreator.get();
-            numstep.txtbg = this.scale9Creator.get();
-            var btnCreator = this.btnCreator;
-            var len = btnCreator.length;
-            if (len >= 3) {
-                //4个按钮
-                numstep.minBtn = btnCreator[0].get();
-                numstep.subBtn = btnCreator[1].get();
-                numstep.addBtn = btnCreator[2].get();
-                numstep.maxBtn = btnCreator[3].get();
-            }
-            else {
-                //2个按钮
-                numstep.subBtn = btnCreator[0].get();
-                numstep.addBtn = btnCreator[1].get();
-            }
-            numstep.addSubComponents();
-            return numstep;
-        };
-        return NumericStepperCreator;
-    }(junyou.BaseCreator));
-    junyou.NumericStepperCreator = NumericStepperCreator;
-    __reflect(NumericStepperCreator.prototype, "junyou.NumericStepperCreator");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * 进度条创建
-     * @pb
-     *
-     */
-    var ProgressBarCreator = (function (_super) {
-        __extends(ProgressBarCreator, _super);
-        function ProgressBarCreator() {
-            return _super.call(this) || this;
-        }
-        ProgressBarCreator.prototype.parseSelfData = function (data) {
-            this._sData = data;
-            this._suiManager = junyou.singleton(junyou.SuiResManager);
-            this._txtCreator = new junyou.TextFieldCreator();
-            this._createT = this.createProgressBar;
-        };
-        ProgressBarCreator.prototype.createProgressBar = function () {
-            var progressBar = new junyou.ProgressBar();
-            var sData = this._sData;
-            var len = sData.length;
-            var item;
-            for (var i = 0; i < len; i++) {
-                item = sData[i];
-                if (item) {
-                    var dis = this.createElement(item);
-                    if (i == 0) {
-                        progressBar.tf = dis;
-                    }
-                    else if (i == 1) {
-                        progressBar.bar = dis;
-                    }
-                    else if (i == 2) {
-                        progressBar.bg = dis;
-                    }
-                }
-            }
-            return progressBar;
-        };
-        return ProgressBarCreator;
-    }(junyou.BaseCreator));
-    junyou.ProgressBarCreator = ProgressBarCreator;
-    __reflect(ProgressBarCreator.prototype, "junyou.ProgressBarCreator");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    var ScaleBitmapCreator = (function (_super) {
-        __extends(ScaleBitmapCreator, _super);
-        function ScaleBitmapCreator() {
-            return _super.call(this) || this;
-        }
-        ScaleBitmapCreator.prototype.parseSelfData = function (data) {
-            var _this = this;
-            var mdata = data[0];
-            var textureIndex = mdata[2];
-            if (textureIndex < 0) {
-                this.isjpg = true;
-            }
-            var rectData = data[1];
-            var flag = data[0] != 0;
-            var rectData2 = mdata[1];
-            var width = rectData2[3];
-            var height = rectData2[4];
-            if (rectData) {
-                var rect = new egret.Rectangle(rectData[0], rectData[1], rectData[2], rectData[3]);
-            }
-            this._createT = function () {
-                var suiData = _this._suiData;
-                var bitmap = new junyou.ScaleBitmap();
-                // let inx = textureIndex;
-                // let img = suiData.pngtexs;
-                // if(!this.ispng){
-                //     inx = -1-textureIndex;
-                //     img = suiData.jpgtexs;
-                // }
-                bitmap.scale9Grid = rect;
-                if (flag) {
-                    bitmap.texture = suiData.getTexture(textureIndex); //img[inx];//suiData.imgs[textureIndex];
-                    bitmap.width = width;
-                    bitmap.height = height;
-                    _this.bindEvent(bitmap);
-                }
-                return bitmap;
-            };
-        };
-        return ScaleBitmapCreator;
-    }(junyou.BitmapCreator));
-    junyou.ScaleBitmapCreator = ScaleBitmapCreator;
-    __reflect(ScaleBitmapCreator.prototype, "junyou.ScaleBitmapCreator");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    var ScrollBarCreator = (function (_super) {
-        __extends(ScrollBarCreator, _super);
-        function ScrollBarCreator() {
-            return _super.call(this) || this;
-        }
-        ScrollBarCreator.prototype.parseSelfData = function (data) {
-            this.uiData = data;
-            this.suiManager = junyou.singleton(junyou.SuiResManager);
-            this._createT = this.createScrollBar;
-        };
-        ScrollBarCreator.prototype.createScrollBar = function () {
-            var scrollBar = new junyou.ScrollBar();
-            var comData = this.uiData;
-            // let len = comData.length;
-            var tmpData;
-            var sourceData = this._suiData.sourceComponentData;
-            var index;
-            var sourceArr;
-            var name;
-            tmpData = comData[0];
-            index = tmpData[2];
-            sourceArr = sourceData[5];
-            name = sourceArr[0][index];
-            var sc = this.suiManager.createDisplayObject(this._suiData.key, name, tmpData[1]);
-            scrollBar.setBar(sc);
-            tmpData = comData[1];
-            index = tmpData[2];
-            sourceArr = sourceData[5];
-            name = sourceArr[0][index];
-            sc = this.suiManager.createDisplayObject(this._suiData.key, name, tmpData[1]);
-            scrollBar.setBg(sc);
-            return scrollBar;
-        };
-        return ScrollBarCreator;
-    }(junyou.BaseCreator));
-    junyou.ScrollBarCreator = ScrollBarCreator;
-    __reflect(ScrollBarCreator.prototype, "junyou.ScrollBarCreator");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    var ShareBitmapCreator = (function (_super) {
-        __extends(ShareBitmapCreator, _super);
-        function ShareBitmapCreator() {
-            return _super.call(this) || this;
-        }
-        ShareBitmapCreator.prototype.parseSelfData = function (data) {
-            _super.prototype.parseSelfData.call(this, data[0][2]);
-        };
-        return ShareBitmapCreator;
-    }(junyou.BitmapCreator));
-    junyou.ShareBitmapCreator = ShareBitmapCreator;
-    __reflect(ShareBitmapCreator.prototype, "junyou.ShareBitmapCreator");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    var SliderCreator = (function (_super) {
-        __extends(SliderCreator, _super);
-        function SliderCreator() {
-            return _super.call(this) || this;
-        }
-        SliderCreator.prototype.parseSelfData = function (data) {
-            this.uiData = data;
-            this.txtCreator = new junyou.TextFieldCreator();
-            this.scale9Creator = new junyou.ScaleBitmapCreator();
-            this.bitmapCreator = new junyou.BitmapCreator(this._suiData);
-            this.suiManager = junyou.singleton(junyou.SuiResManager);
-            this._createT = this.createSlider;
-        };
-        SliderCreator.prototype.createSlider = function () {
-            var slider = new junyou.Slider();
-            var comData = this.uiData;
-            var len = comData.length;
-            var tmpData;
-            var type;
-            var sourceData = this._suiData.sourceComponentData;
-            var index;
-            var sourceArr;
-            var name;
-            for (var i = 0; i < len; i++) {
-                tmpData = comData[i];
-                type = tmpData[0];
-                index = tmpData[2];
-                if (type == 0) {
-                    this.bitmapCreator.parseSelfData(index);
-                    var bmp = this.bitmapCreator.get();
-                    slider.setThumb(bmp);
-                }
-                else if (type == 5) {
-                    sourceArr = sourceData[type];
-                    name = sourceArr[0][index];
-                    var sc = this.suiManager.createDisplayObject(this._suiData.key, name, tmpData[1]);
-                    slider.setBg(sc);
-                }
-            }
-            return slider;
-        };
-        return SliderCreator;
-    }(junyou.BaseCreator));
-    junyou.SliderCreator = SliderCreator;
-    __reflect(SliderCreator.prototype, "junyou.SliderCreator");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * 格位创建器
-     *
-     * @export
-     * @class SlotCreator
-     * @extends {BaseCreator<Slot>}
-     * @author pb
-     */
-    var SlotCreator = (function (_super) {
-        __extends(SlotCreator, _super);
-        function SlotCreator() {
-            return _super.call(this) || this;
-        }
-        SlotCreator.prototype.parseSelfData = function (data) {
-            var _this = this;
-            var scaleData = data[0];
-            var rect = scaleData ? new egret.Rectangle(scaleData[0], scaleData[1], scaleData[2], scaleData[3]) : undefined;
-            this._createT = function () {
-                var slot = new junyou.Slot();
-                slot.rect = rect;
-                var item = data[1];
-                if (item) {
-                    var dis = _this.createElement(item);
-                    slot.countTxt = dis;
-                }
-                item = data[2];
-                if (item) {
-                    var dis = _this.createElement(item);
-                    if (item.length > 1) {
-                        slot.bg = dis;
-                    }
-                    else {
-                        slot.bg = dis;
-                    }
-                }
-                slot.invalidateDisplay();
-                return slot;
-            };
-        };
-        return SlotCreator;
-    }(junyou.BaseCreator));
-    junyou.SlotCreator = SlotCreator;
-    __reflect(SlotCreator.prototype, "junyou.SlotCreator");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * 文本框创建器
-     * @author
-     *
-     */
-    var TextFieldCreator = (function (_super) {
-        __extends(TextFieldCreator, _super);
-        function TextFieldCreator() {
-            return _super.call(this) || this;
-        }
-        TextFieldCreator.prototype.parseSelfData = function (data) {
-            //静态文本框按动态文本框处理
-            var textType = ["dynamic", "dynamic", "input"][+data[0]];
-            var face = data[1] || TextFieldCreator.DefaultFonts;
-            var align = ["left", "center", "right", "justify"][+data[2]];
-            var color = junyou.ColorUtil.getColorValue(data[3]);
-            var size = data[4] || 12; //默认12px字
-            var spacing = +data[5];
-            var bold = !!data[6];
-            var italic = !!data[7];
-            var stroke = 0;
-            var strokeColor = 0;
-            var strokeDat = data[8];
-            //            // blurX 作为描边宽度
-            //            data[8] = [filter.color,filter.blurX];
-            if (Array.isArray(strokeDat)) {
-                strokeColor = strokeDat[0];
-                if (typeof strokeColor == "string") {
-                    strokeColor = junyou.ColorUtil.getColorValue(strokeColor);
-                }
-                stroke = strokeDat[1];
-            }
-            this._createT = function () {
-                var tf = new egret.TextField();
-                tf.type = textType;
-                tf.fontFamily = face;
-                tf.textAlign = align;
-                tf.textColor = color;
-                tf.size = size;
-                tf.lineSpacing = spacing;
-                tf.bold = bold;
-                tf.italic = italic;
-                tf.stroke = stroke;
-                tf.strokeColor = strokeColor;
-                return tf;
-            };
-        };
-        return TextFieldCreator;
-    }(junyou.BaseCreator));
-    TextFieldCreator.DefaultFonts = "";
-    junyou.TextFieldCreator = TextFieldCreator;
-    __reflect(TextFieldCreator.prototype, "junyou.TextFieldCreator");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * ## 背景图容器
-     * 1. 当屏幕长或者宽任意一边大于`基准尺寸(basis)`时
-     *      * 首先根据基准尺寸的宽边得到缩放比
-     *      * 然后将容器按此缩放比进行缩放
-     *      * 根据容器内UI的布局配置，基于当前屏幕大小进行重新布局
-     * 2. 如果屏幕的长或者宽都小于或者等于`基准尺寸(basis)`时
-     *      * 直接根据容器内UI的布局配置，基于当前屏幕大小进行重新布局
-     *
-     * @export
-     * @class MainUIContainer
-     * @extends {egret.Sprite}
-     */
-    var BGContainer = (function (_super) {
-        __extends(BGContainer, _super);
-        function BGContainer(basis, host, layout) {
-            if (layout === void 0) { layout = 6 /* TOP_CENTER */; }
-            var _this = _super.call(this, basis, host) || this;
-            _this._layout = layout;
-            return _this;
-        }
-        BGContainer.prototype.onResize = function () {
-            var host = this._host;
-            var stage = host.stage || egret.sys.$TempStage;
-            var basis = this._basis;
-            var sw = stage.stageWidth, sh = stage.stageHeight, bw = basis.width, bh = basis.height;
-            var dw = sw, dh = sh, lw = sw, lh = sh;
-            var scale = 1;
-            if (sw > bw || sh > bh) {
-                var result = this.getFixedNarrow(sw, sh, bw, bh, true);
-                dh = result.dh;
-                dw = result.dw;
-                lw = result.lw;
-                lh = result.lh;
-                scale = result.scale;
-            }
-            else {
-                dw = bw;
-                dh = bh;
-            }
-            this._lw = lw;
-            this._lh = lh;
-            host.scaleY = host.scaleX = scale;
-            var pt = junyou.Temp.SharedPoint1;
-            junyou.Layout.getLayoutPos(dw, dh, sw, sh, this._layout, pt);
-            host.x = pt.x;
-            host.y = pt.y;
-            this.layoutAll();
-        };
-        return BGContainer;
-    }(junyou.LayoutContainer));
-    junyou.BGContainer = BGContainer;
-    __reflect(BGContainer.prototype, "junyou.BGContainer");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    ;
-    /**
-     *
-     * @author 3tion
-     *
-     */
-    junyou.Layout = {
-        getParentSize: function (dis, parent) {
-            if (!parent) {
-                parent = dis.parent;
-            }
-            if (!parent) {
-                parent = egret.sys.$TempStage;
-            }
-            if (parent instanceof egret.Stage) {
-                var parentWidth = parent.stageWidth;
-                var parentHeight = parent.stageHeight;
-            }
-            else {
-                parentWidth = parent.width;
-                parentHeight = parent.height;
-            }
-            return [parentWidth, parentHeight];
-        },
-        /**
-         * 对DisplayObject，基于父级进行排布
-         *
-         * @static
-         * @param {LayoutDisplay} dis 要布局的可视对象
-         * @param {LayoutType} layout 布局方式
-         * @param {number} hoffset 在原布局基础上，水平方向的再偏移量（内部运算是"+",向左传负）
-         * @param {number} voffset 在原布局基础上，垂直方向的再偏移量（内部运算是"+",向上传负）
-         * @param {boolean} [innerV=true] 垂直方向上基于父级内部
-         * @param {boolean} [innerH=true] 水平方向上基于父级内部
-         * @param {LayoutDisplayParent} [parent] 父级容器，默认取可视对象的父级
-         */
-        layout: function (dis, layout, hoffset, voffset, innerV, innerH, parent) {
-            if (hoffset === void 0) { hoffset = 0; }
-            if (voffset === void 0) { voffset = 0; }
-            if (innerV === void 0) { innerV = true; }
-            if (innerH === void 0) { innerH = true; }
-            var _a = junyou.Layout.getParentSize(dis, parent), parentWidth = _a[0], parentHeight = _a[1];
-            junyou.Layout.getLayoutPos(dis.width, dis.height, parentWidth, parentHeight, layout, dis, hoffset, voffset, innerV, innerH);
-        },
-        /**
-         *
-         *
-         * @param {LayoutDisplay} dis  要布局的可视对象
-         * @param {number} [top=0]    百分比数值 `0.2` dis的顶距游戏边界顶部 20%
-         * @param {number} [left=0]    百分比数值 `0.2` dis的左边缘距游戏左边缘 20%
-         * @param {LayoutDisplayParent} [parent] 父级容器，默认取可视对象的父级
-         * @returns
-         */
-        layoutPercent: function (dis, top, left, parent) {
-            if (top === void 0) { top = 0; }
-            if (left === void 0) { left = 0; }
-            var _a = junyou.Layout.getParentSize(dis, parent), parentWidth = _a[0], parentHeight = _a[1];
-            dis.x = Math.round((parentWidth - dis.width) * left);
-            dis.y = Math.round((parentHeight - dis.height) * top);
-            return dis;
-        },
-        getLayoutPos: function (disWidth, disHeight, parentWidth, parentHeight, layout, result, hoffset, voffset, innerV, innerH) {
-            if (hoffset === void 0) { hoffset = 0; }
-            if (voffset === void 0) { voffset = 0; }
-            if (innerV === void 0) { innerV = true; }
-            if (innerH === void 0) { innerH = true; }
-            result = result || {};
-            var vertical = layout & 12 /* VERTICAL_MASK */;
-            var horizon = layout & 3 /* HORIZON_MASK */;
-            var y = 0, x = 0;
-            switch (vertical) {
-                case 4 /* TOP */:
-                    if (innerV) {
-                        y = 0;
-                    }
-                    else {
-                        y = -disHeight;
-                    }
-                    break;
-                case 8 /* MIDDLE */:
-                    y = parentHeight - disHeight >> 1;
-                    break;
-                case 12 /* BOTTOM */:
-                    if (innerV) {
-                        y = parentHeight - disHeight;
-                    }
-                    else {
-                        y = parentHeight;
-                    }
-                    break;
-            }
-            switch (horizon) {
-                case 1 /* LEFT */:
-                    if (innerH) {
-                        x = 0;
-                    }
-                    else {
-                        x = -disWidth;
-                    }
-                    break;
-                case 2 /* CENTER */:
-                    x = parentWidth - disWidth >> 1;
-                    break;
-                case 3 /* RIGHT */:
-                    if (innerH) {
-                        x = parentWidth - disWidth;
-                    }
-                    else {
-                        x = parentWidth;
-                    }
-                    break;
-            }
-            result.x = Math.round(x + hoffset);
-            result.y = Math.round(y + voffset);
-            return result;
-        },
-        /**
-         * 基于鼠标位置的tip的布局方式
-         *
-         * @param {LayoutDisplay} dis 要被布局的可视对象
-         * @param {Point} point 传入的点
-         * @param {{ x: number, y: number }} [result]
-         * @param {number} [padx=0] 间隔x
-         * @param {number} [pady=0] 间隔y
-         * @param {LayoutDisplayParent} [parent] 容器的大小
-         */
-        tipLayout: function (dis, point, result, padx, pady, parent) {
-            if (padx === void 0) { padx = 0; }
-            if (pady === void 0) { pady = 0; }
-            junyou.Layout.getTipLayoutPos(dis, point, dis, padx, pady, parent);
-        },
-        /**
-         * 获取基于鼠标位置的tip的布局方式布局的坐标
-         *
-         * @param {LayoutDisplay} dis 要被布局的可视对象
-         * @param {Point} point 传入的点
-         * @param {{ x: number, y: number }} [result]
-         * @param {number} [padx=0] 间隔x
-         * @param {number} [pady=0] 间隔y
-         * @param {LayoutDisplayParent} [parent] 容器的大小
-         * @returns {Point} 计算后的坐标
-         */
-        getTipLayoutPos: function (dis, point, result, padx, pady, parent) {
-            if (padx === void 0) { padx = 0; }
-            if (pady === void 0) { pady = 0; }
-            var _a = junyou.Layout.getParentSize(dis, parent), parentWidth = _a[0], parentHeight = _a[1];
-            result = result || {};
-            var w = dis.width;
-            var h = dis.height;
-            var mx = point.x;
-            var my = point.y;
-            var x = mx + padx;
-            var y = my + pady;
-            if (w + x + padx > parentWidth) {
-                x = parentWidth - w - padx;
-                if (x < mx) {
-                    x = mx - w - padx;
-                }
-                if (x < 0) {
-                    x = padx;
-                }
-            }
-            if (h + my + pady > parentHeight) {
-                y = parentHeight - h - pady;
-                if (y < 0) {
-                    y = pady;
-                }
-            }
-            result.x = Math.round(x);
-            result.y = Math.round(y);
-            return result;
-        },
-    };
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     *
-     * @author 3tion
-     *
-     */
-    var NetRouter = (function () {
-        function NetRouter() {
-            this.dispatchList = [];
-            this._listenerMaps = {};
-        }
-        /**
-         * 注册一cmd侦听;
-         * @param cmd      协议号
-         * @param handler   处理器
-         * @param priority  越大越优先
-         * @param once      是否只执行一次
-         * @return boolean true 做为新的兼听添加进去，false 原来就有处理器
-         *
-         */
-        NetRouter.prototype.register = function (cmd, handler, priority, once) {
-            if (priority === void 0) { priority = 0; }
-            if (once === void 0) { once = false; }
-            var listenerMaps = this._listenerMaps;
-            var netBin = { handler: handler, priority: priority, once: once };
-            var list = listenerMaps[cmd];
-            if (!list) {
-                list = [];
-                listenerMaps[cmd] = list;
-                //以前单条是没有存储优先级信息的，会导致，如果先加入的大的，后加入小的，可能会出现问题
-                list.push(netBin);
-            }
-            else {
-                var i = void 0;
-                var len = list.length;
-                //=====同样的CODE 同样的Function 不会被注册多次=====
-                for (i = 0; i < len; i++) {
-                    var temp = list[i];
-                    if (temp.handler == handler) {
-                        if (temp.priority == priority) {
-                            return false;
-                        }
-                        //新的同指令，同处理器的函数会被新的once,priority属性覆盖
-                        list.splice(i, 1);
-                        len--;
-                        break;
-                    }
-                }
-                for (i = 0; i < len; i++) {
-                    if (priority > list[i].priority) {
-                        list.splice(i, 0, netBin);
-                        return true;
-                    }
-                }
-                list[len] = netBin;
-            }
-            return true;
-        };
-        /**
-         * 删除兼听处理器
-         * @param cmd      协议号
-         * @param handler   处理器
-         * @return boolean true 删除成功  <br/>
-         *                 false 没有这个兼听
-         */
-        NetRouter.prototype.remove = function (cmd, handler) {
-            var listenerMaps = this._listenerMaps;
-            var list = listenerMaps[cmd];
-            if (!list) {
-                return false;
-            }
-            var len = list.length;
-            for (var i = 0; i < len; i++) {
-                if (list[i].handler == handler) {
-                    list.splice(i, 1);
-                    //如果没有项了就清理;
-                    if (len == 1) {
-                        delete listenerMaps[cmd];
-                    }
-                    return true;
-                }
-            }
-            return false;
-        };
-        /**
-        * 调用列表
-        */
-        NetRouter.prototype.dispatch = function (data) {
-            egret.callLater(this._dispatch, this, data);
-        };
-        NetRouter.prototype._dispatch = function (data) {
-            var cmd = data.cmd;
-            var list = this._listenerMaps[cmd];
-            if (!list) {
-                return;
-            }
-            var dispatchList = this.dispatchList;
-            var idx = 0, len = list.length;
-            for (; idx < len; idx++) {
-                dispatchList[idx] = list[idx];
-            }
-            for (var i = 0; i < idx; i++) {
-                var bin = dispatchList[i];
-                try {
-                    bin.handler(data);
-                }
-                catch (e) {
-                    if (DEBUG) {
-                        junyou.ThrowError("\u6267\u884C\u7F51\u7EDC\u56DE\u8C03\u65B9\u6CD5\u51FA\u9519" + JSON.stringify(data) + "\uFF0C\n\u9519\u8BEF\uFF1A" + e.message + "\uFF0C\u5806\u6808\uFF1A\n" + e.stack);
-                    }
-                }
-                if (bin.once) {
-                    this.remove(cmd, bin.handler);
-                }
-                if (data.stopPropagation) {
-                    break;
-                }
-            }
-            data.recycle();
-        };
-        return NetRouter;
-    }());
-    junyou.NetRouter = NetRouter;
-    __reflect(NetRouter.prototype, "junyou.NetRouter");
-    ;
-})(junyou || (junyou = {}));
-var $useDPR = true;
-var dpr = 1;
-if (window.$useDPR) {
-    dpr = window.devicePixelRatio || 1;
-    var origin = egret.sys.DefaultScreenAdapter.prototype.calculateStageSize;
-    egret.sys.screenAdapter = {
-        calculateStageSize: function (scaleMode, screenWidth, screenHeight, contentWidth, contentHeight) {
-            var result = origin(scaleMode, screenWidth, screenHeight, contentWidth, contentHeight);
-            if (scaleMode == egret.StageScaleMode.NO_SCALE) {
-                result.stageHeight *= dpr;
-                result.stageWidth *= dpr;
-            }
-            return result;
-        }
-    };
-}
-var junyou;
-(function (junyou) {
-    /**
-     * ## 主体UI的容器
-     * 1. 当屏幕长或者宽任意一边小于`基准尺寸(basis)`时
-     *      * 首先根据基准尺寸的窄边得到缩放比
-     *      * 然后将容器按此缩放比进行缩放
-     *      * 根据容器内UI的布局配置，基于当前屏幕大小进行重新布局
-     * 2. 如果屏幕的长或者宽都大于或者等于`基准尺寸(basis)`时
-     *      * 容器内UI不做缩放
-     *      * 直接根据容器内UI的布局配置，基于当前屏幕大小进行重新布局
-     *
-     * @export
-     * @class MainUIContainer
-     * @extends {egret.Sprite}
-     */
-    var MainUIContainer = (function (_super) {
-        __extends(MainUIContainer, _super);
-        function MainUIContainer() {
-            return _super !== null && _super.apply(this, arguments) || this;
-        }
-        MainUIContainer.prototype.onResize = function () {
-            var host = this._host;
-            var stage = host.stage || egret.sys.$TempStage;
-            var basis = this._basis;
-            var sw = stage.stageWidth, sh = stage.stageHeight, bw = basis.width, bh = basis.height;
-            var dw = sw, dh = sh, lw = sw, lh = sh;
-            var scale = 1;
-            if (dpr != 1 || sw < bw * dpr || sh < bh * dpr) {
-                var result = this.getFixedNarrow(sw, sh, bw, bh);
-                dh = result.dh;
-                dw = result.dw;
-                lw = result.lw;
-                lh = result.lh;
-                scale = result.scale;
-            }
-            this._lw = lw;
-            this._lh = lh;
-            host.x = 0;
-            host.y = 0;
-            host.scaleY = host.scaleX = scale;
-            this.layoutAll();
-        };
-        MainUIContainer.prototype.add = function (d, type, offsetRect) {
-            var raw = d.suiRawRect;
-            var result = junyou.Layout.getLayoutPos(raw.width, raw.height, offsetRect.width, offsetRect.height, type);
-            var dx = raw.x - offsetRect.x;
-            var dy = raw.y - offsetRect.y;
-            var oh = dx - result.x;
-            var ov = dy - result.y;
-            this.addLayout(d, type, raw, oh, ov);
-        };
-        return MainUIContainer;
-    }(junyou.LayoutContainer));
-    junyou.MainUIContainer = MainUIContainer;
-    __reflect(MainUIContainer.prototype, "junyou.MainUIContainer");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * 按钮形式的菜单
-     * @author gushuai
-     * (description)
-     *
-     * @export
-     * @class SkillItemMenuRender
-     * @extends {MenuBaseRender<MenuBaseVO>}
-     */
-    var ButtonMenuRender = (function (_super) {
-        __extends(ButtonMenuRender, _super);
-        function ButtonMenuRender(key, className) {
-            if (key === void 0) { key = "lib"; }
-            if (className === void 0) { className = "ui.btn.MenuBtn"; }
-            var _this = _super.call(this) || this;
-            var btn = junyou.singleton(junyou.SuiResManager).createDisplayObject(key, className);
-            _this.skin = btn;
-            _this.btn = btn;
-            return _this;
-        }
-        ButtonMenuRender.prototype.$setData = function (val) {
-            _super.prototype.$setData.call(this, val);
-            this.btn.label = val.label;
-        };
-        return ButtonMenuRender;
-    }(junyou.MenuBaseRender));
-    junyou.ButtonMenuRender = ButtonMenuRender;
-    __reflect(ButtonMenuRender.prototype, "junyou.ButtonMenuRender");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * @author gushuai
-     * (description)
-     *
-     * @export
-     * @class Menu
-     * @extends {egret.Sprite}
-     */
-    var Menu = (function (_super) {
-        __extends(Menu, _super);
-        function Menu(style, maxRendercount) {
-            var _this = _super.call(this) || this;
-            _this.style = style;
-            _this.uiManager = junyou.singleton(junyou.SuiResManager);
-            _this.maxRenderCount = maxRendercount;
-            _this.bindComponent();
-            return _this;
-        }
-        /**
-         * (description)
-         *
-         * @static
-         * @ param {egret.DisplayObject} target (Menu所在的父容器)
-         * @ param {Menu} menu (menu实例)
-         * @ param {Function} callBack (menu的displayMenuDatas具体实现函数（回调参数，第1位是绑定的target 第2位是Menu）)
-         */
-        Menu.bind = function (target, menu, menuinit) {
-            var dic = Menu.dic;
-            if (!dic) {
-                Menu.dic = dic = new Map();
-            }
-            if (!dic.has(target)) {
-                dic.set(target, menu);
-            }
-            menu.menuinitFunc = menuinit;
-            target.on(-1000 /* CHOOSE_STATE_CHANGE */, Menu.onShowOrHideMenu, this);
-        };
-        Menu.unBind = function (target) {
-            var dic = Menu.dic;
-            if (!dic)
-                return;
-            if (dic.has(target)) {
-                var dis = dic.get(target);
-                dis.menuinitFunc = undefined;
-                junyou.removeDisplay(dis);
-                dic.delete(target);
-            }
-            target.off(-1000 /* CHOOSE_STATE_CHANGE */, Menu.onShowOrHideMenu, this);
-        };
-        Menu.onShowOrHideMenu = function (e) {
-            var target = e.target;
-            var b = target.selected;
-            var dis = Menu.dic.get(target);
-            var v = target.view;
-            if (b) {
-                if (v instanceof egret.DisplayObjectContainer) {
-                    v.addChild(dis);
-                    var init = dis.menuinitFunc;
-                    if (init) {
-                        init.call(target, target, dis);
-                    }
-                }
-                this.currentShow = target;
-            }
-            else {
-                junyou.removeDisplay(dis);
-                this.currentShow = undefined;
-            }
-            target.dispatch(-1999 /* Resize */);
-        };
-        Menu.prototype.bindComponent = function () {
-            var manager = this.uiManager;
-            var uri = this.style.uikey;
-            var rec = this.style.possize;
-            var rendercls = this.style.renderClass;
-            var bguri = this.style.scalebg;
-            var bg = manager.createDisplayObject(uri, bguri);
-            this.addChild(bg);
-            bg.width = rec.width;
-            bg.height = rec.height;
-            this.renders = [];
-            for (var i = 0; i < this.maxRenderCount; i++) {
-                var render = new rendercls();
-                this.renders[i] = render;
-                this.addChild(render.view);
-            }
-        };
-        /**
-         * 显示菜单操作项
-         */
-        Menu.prototype.displayMenuDatas = function (vos) {
-            var len = vos.length;
-            var blen = this.renders.length;
-            var style = this.style;
-            var tmp = [];
-            for (var i = 0; i < len; i++) {
-                var render = this.renders[i];
-                render.data = vos[i];
-                this.addChild(render.view);
-                tmp[i] = render;
-            }
-            if (len < blen) {
-                for (var i = len; i < blen; i++) {
-                    junyou.removeDisplay(this.renders[i].view);
-                }
-            }
-            var rec = style.possize;
-            var gap;
-            var tmpSize = tmp[0].getSize();
-            if (!style.align) {
-                gap = (rec.width - rec.x * 2 - len * tmpSize.width) / (len - 1);
-                for (var i = 0; i < len; i++) {
-                    var render = tmp[i];
-                    tmpSize = render.getSize();
-                    var v = render.view;
-                    v.x = ~~(rec.x + (gap + tmpSize.width) * i);
-                    v.y = ~~rec.y;
-                }
-            }
-            else {
-                gap = (rec.height - rec.y * 2 - len * tmpSize.height) / (len - 1);
-                for (var i = 0; i < len; i++) {
-                    var render = tmp[i];
-                    tmpSize = render.getSize();
-                    var v = render.view;
-                    v.x = ~~rec.x;
-                    v.y = ~~(rec.y + (gap + tmpSize.height) * i);
-                }
-            }
-        };
-        return Menu;
-    }(egret.Sprite));
-    junyou.Menu = Menu;
-    __reflect(Menu.prototype, "junyou.Menu");
-})(junyou || (junyou = {}));
-/**
- * DataLocator的主数据
- * 原 junyou.DataLocator.data  的全局别名简写
- */
-var $DD = {};
-/**
- * DataLocator的附加数据
- * 原junyou.DataLocator.extra 的全局别名简写
- */
-var $DE;
-var junyou;
-(function (junyou) {
-    /**
-     * 配置加载器<br/>
-     * 用于预加载数据的解析
-     * @author 3tion
-     *
-     */
-    junyou.DataLocator = (function () {
-        var parsers = {};
-        /**
-         *
-         * 用于处理顺序
-         * @private
-         * @static
-         */
-        var _plist = [];
-        return {
-            regParser: regParser,
-            /**
-             * 解析打包的配置
-             */
-            parsePakedDatas: function () {
-                var configs = RES.getRes("cfgs");
-                RES.destroyRes("cfgs");
-                // 按顺序解析
-                for (var _i = 0, _plist_1 = _plist; _i < _plist_1.length; _i++) {
-                    var key = _plist_1[_i];
-                    var parser = parsers[key];
-                    var data = parser(configs[key]);
-                    if (data) {
-                        $DD[key] = data;
-                    }
-                }
-                var extraData = {};
-                //处理额外数据
-                for (var key in configs) {
-                    if (key.charAt(0) == "$") {
-                        var raw = configs[key];
-                        key = key.substr(1);
-                        if (raw) {
-                            var i = 0, len = raw.length, data = {};
-                            while (i < len) {
-                                var sub = raw[i++];
-                                var value = raw[i++];
-                                var test = raw[i];
-                                if (typeof test === "number") {
-                                    i++;
-                                    value = getJSONValue(value, test);
-                                }
-                                data[sub] = value;
-                            }
-                            extraData[key] = data;
-                        }
-                    }
-                }
-                $DE = extraData;
-                //清理内存
-                parsers = null;
-                _plist = null;
-                delete junyou.DataLocator;
-            },
-            /**
-             * 注册通过H5ExcelTool导出的数据并且有唯一标识的使用此方法注册
-             * @param {string}              key             数据的标识
-             * @param {{ new (): ICfg }}    CfgCreator      配置的类名
-             * @param {string}              [idkey="id"]    唯一标识
-             */
-            regCommonParser: function (key, CfgCreator, idkey) {
-                if (idkey === void 0) { idkey = "id"; }
-                regParser(key, function (data) {
-                    if (!data)
-                        return;
-                    var dict, forEach;
-                    var headersRaw = data[0];
-                    var hasLocal;
-                    for (var j = 0; j < headersRaw.length; j++) {
-                        var head = headersRaw[j];
-                        if ((head[2] & 2 /* Local */) == 2 /* Local */) {
-                            hasLocal = 1;
-                        }
-                    }
-                    if (idkey == "") {
-                        dict = [];
-                        forEach = arrayParserForEach;
-                    }
-                    else {
-                        dict = {};
-                        forEach = commonParserForEach;
-                    }
-                    try {
-                        var ref = CfgCreator || Object;
-                        for (var i = 1; i < data.length; i++) {
-                            var rowData = data[i];
-                            var ins = new ref();
-                            var local = hasLocal && {};
-                            for (var j = 0; j < headersRaw.length; j++) {
-                                var head = headersRaw[j];
-                                var name_7 = head[0], test = head[1], type = head[2], def = head[3];
-                                var v = getJSONValue(rowData[j], test, def);
-                                if ((type & 2 /* Local */) == 2 /* Local */) {
-                                    local[name_7] = v;
-                                }
-                                else {
-                                    ins[name_7] = v;
-                                }
-                            }
-                            forEach(ins, i - 1, key, dict, idkey);
-                            if (typeof ins.decode === "function") {
-                                ins.decode(local);
-                            }
-                        }
-                    }
-                    catch (e) {
-                        if (DEBUG) {
-                            junyou.ThrowError("\u89E3\u6790\u914D\u7F6E:" + key + "\u51FA\u9519\uFF0C\u5806\u6808\uFF1A" + e.stack);
-                        }
-                    }
-                    return dict;
-                });
-            }
-        };
-        /**
-         * 注册配置解析
-         * @param key       配置的标识
-         * @param parser    解析器
-         */
-        function regParser(key, parser) {
-            parsers[key] = parser;
-            _plist.push(key);
-        }
-        function getJSONValue(value, type, def) {
-            // 特殊类型数据
-            switch (type) {
-                case 0 /* Any */:
-                    if (value == null || value == undefined) {
-                        value = def;
-                    }
-                    break;
-                case 1 /* String */:
-                    if (value === 0 || value == undefined) {
-                        value = def || "";
-                    }
-                    break;
-                case 2 /* Number */:
-                    // 0 == "" // true
-                    if (value === "" || value == undefined) {
-                        value = +def || 0;
-                    }
-                    break;
-                case 3 /* Bool */:
-                    value = !!value;
-                    break;
-                case 4 /* Array */:
-                case 5 /* Array2D */:
-                    if (value === 0) {
-                        value = undefined;
-                    }
-                    if (!value && def) {
-                        value = def;
-                    }
-                    break;
-                case 6 /* Date */:
-                case 8 /* DateTime */:
-                    value = new Date((value || def || 0) * 10000);
-                    break;
-                case 7 /* Time */:
-                    value = new junyou.TimeVO().decodeBit(value || def || 0);
-                    break;
-            }
-            return value;
-        }
-        /**
-         * 用于解析数组
-         *
-         * @memberOf DataLocator
-         */
-        function arrayParserForEach(t, idx, key, dict) {
-            dict.push(t);
-        }
-        /**
-         * 用于解析字典
-         */
-        function commonParserForEach(t, idx, key, dict, idKey) {
-            if (idKey in t) {
-                var id = t[idKey];
-                if (DEBUG) {
-                    if (typeof id === "object") {
-                        junyou.ThrowError("\u914D\u7F6E" + key + "\u7684\u6570\u636E\u6709\u8BEF\uFF0C\u552F\u4E00\u6807\u8BC6" + idKey + "\u4E0D\u80FD\u4E3A\u5BF9\u8C61");
-                    }
-                    if (id in dict) {
-                        junyou.ThrowError("\u914D\u7F6E" + key + "\u7684\u6570\u636E\u6709\u8BEF\uFF0C\u552F\u4E00\u6807\u8BC6" + idKey + "\u6709\u91CD\u590D\u503C\uFF1A" + id);
-                    }
-                }
-                dict[id] = t;
-            }
-            else {
-                if (DEBUG) {
-                    junyou.ThrowError("\u914D\u7F6E" + key + "\u89E3\u6790\u6709\u8BEF\uFF0C\u65E0\u6CD5\u627E\u5230\u6307\u5B9A\u7684\u552F\u4E00\u6807\u793A\uFF1A" + idKey + "\uFF0C\u6570\u636E\u7D22\u5F15\uFF1A" + idx);
-                }
-            }
-        }
-    })();
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * 模块面板
-     * @author 3tion
-     *
-     */
-    var Panel = (function (_super) {
-        __extends(Panel, _super);
-        function Panel() {
-            var _this = _super.call(this) || this;
-            _this.init();
-            return _this;
-        }
-        Object.defineProperty(Panel.prototype, "suiRawRect", {
-            /**
-             *
-             * 面板在fla中的原始坐标
-             * @readonly
-             *
-             * @memberOf Panel
-             */
-            get: function () {
-                return this._baseRect;
-            },
-            /**
-             * 设置原始大小和坐标
-             */
-            set: function (value) {
-                this._baseRect = value;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Panel.prototype, "isReady", {
-            get: function () {
-                return this._ready;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Panel.prototype.init = function () {
-            //this._key=xxxx
-            //this._className=xxxx
-            //this._otherDepends=[other...];
-        };
-        Panel.prototype.bind = function (key, className) {
-            var otherDepends = [];
-            for (var _i = 2; _i < arguments.length; _i++) {
-                otherDepends[_i - 2] = arguments[_i];
-            }
-            this._key = key;
-            this._className = className;
-            this._otherDepends = otherDepends;
-        };
-        Panel.prototype.startSync = function () {
-            if (this._otherDepends) {
-                this._depends = this._otherDepends.concat();
-            }
-            else {
-                this._depends = [];
-            }
-            this._depends.push(this._key);
-            this.loadNext();
-        };
-        Panel.prototype.loadNext = function () {
-            if (this._depends.length) {
-                var key = this._depends.pop();
-                var suiManager = junyou.singleton(junyou.SuiResManager);
-                suiManager.loadData(key, this);
-            }
-            else {
-                this.skinDataComplete();
-            }
-        };
-        Panel.prototype.suiDataComplete = function (suiData) {
-            if (this.preloadImage) {
-                suiData.loadBmd(junyou.CallbackInfo.get(this.loadNext, this));
-            }
-            else {
-                this.loadNext();
-            }
-        };
-        Panel.prototype.suiDataFailed = function (suiData) {
-            //暂时用alert
-            // alert(this._className + "加载失败");
-        };
-        /**
-         * 绑定皮肤
-         */
-        Panel.prototype.bindComponent = function () {
-            junyou.singleton(junyou.SuiResManager).createComponents(this._key, this._className, this);
-        };
-        /**
-         * 皮肤数据加载完成
-         */
-        Panel.prototype.skinDataComplete = function () {
-            this.bindComponent();
-            if (this["bg"]) {
-                this["bg"].touchEnabled = true;
-            }
-            else {
-                if (this.numChildren) {
-                    var bg = this.getChildAt(0);
-                    bg.touchEnabled = true;
-                }
-            }
-            this._ready = true;
-            if (this._asyncHelper) {
-                this._asyncHelper.readyNow();
-            }
-        };
-        Panel.prototype.addedToStage = function () {
-            if (this._isModal) {
-                this.addModal();
-            }
-        };
-        Object.defineProperty(Panel.prototype, "isModal", {
-            get: function () {
-                return this._isModal;
-            },
-            set: function (value) {
-                this._isModal = value;
-                if (value) {
-                    if (this.stage) {
-                        this.addModal();
-                    }
-                    else {
-                        this.on(egret.Event.ADDED_TO_STAGE, this.addedToStage, this);
-                    }
-                }
-                else {
-                    if (this.stage) {
-                        this.removeModal();
-                    }
-                    else {
-                        this.off(egret.Event.ADDED_TO_STAGE, this.addedToStage, this);
-                    }
-                }
-            },
-            enumerable: true,
-            configurable: true
-        });
-        /**
-         * 加模态
-         *
-         * @public
-         */
-        Panel.prototype.addModal = function (width, height) {
-            var m = this.modal;
-            if (!m) {
-                this.modal = m = new egret.Shape();
-                m.touchEnabled = true;
-                var g = m.graphics;
-                g.beginFill(Panel.MODAL_COLOR, Panel.MODAL_ALPHA);
-                var stage = egret.sys.$TempStage;
-                width = width || stage.stageWidth;
-                height = height || stage.stageHeight;
-                g.drawRect(0, 0, width, height);
-                g.endFill();
-            }
-            m.on(egret.TouchEvent.TOUCH_TAP, this.hide, this);
-            this.addChildAt(m, 0);
-        };
-        /**
-         * 移除模态
-         *
-         * @public
-         */
-        Panel.prototype.removeModal = function () {
-            if (this.modal) {
-                this.modal.off(egret.TouchEvent.TOUCH_TAP, this.hide, this);
-                junyou.removeDisplay(this.modal);
-            }
-        };
-        /**
-         * 关闭
-         *
-         * @protected
-         */
-        Panel.prototype.hide = function () {
-            junyou.toggle(this.moduleID, -1 /* HIDE */);
-        };
-        Object.defineProperty(Panel.prototype, "isShow", {
-            get: function () {
-                return this.stage != undefined && this.visible == true;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Panel.prototype.show = function () {
-            junyou.toggle(this.moduleID, 1 /* SHOW */);
-        };
-        return Panel;
-    }(egret.Sprite));
-    /**
-     * 模态颜色
-     *
-     * @static
-     * @type {number}
-     */
-    Panel.MODAL_COLOR = 0x0;
-    /**
-     * 模态透明度
-     *
-     * @static
-     * @type {number}
-     */
-    Panel.MODAL_ALPHA = 0.8;
-    junyou.Panel = Panel;
-    __reflect(Panel.prototype, "junyou.Panel", ["junyou.SuiDataCallback", "junyou.IAsyncPanel", "egret.DisplayObject", "junyou.IAsync", "junyou.IModulePanel"]);
-    junyou.expand(Panel, junyou.FHost, "addReadyExecute");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * 错误提示
-     * @author pb
-     */
-    var ErrorTips = (function () {
-        function ErrorTips(parent) {
-            this._parent = parent;
-        }
-        ErrorTips.prototype.show = function (msg, color, duration, delay) {
-            if (color === void 0) { color = 0xffffff; }
-            if (duration === void 0) { duration = 1000; }
-            if (delay === void 0) { delay = 1000; }
-            var txt = new egret.TextField();
-            txt.textAlign = egret.HorizontalAlign.CENTER;
-            if (/<[^>]+>/.test(msg)) {
-                txt.setHtmlText(msg);
-            }
-            else {
-                txt.text = msg;
-            }
-            txt.alpha = 1;
-            junyou.Layout.layout(txt, 10 /* MIDDLE_CENTER */);
-            txt.textColor = color;
-            this._parent.addChild(txt);
-            var tween = junyou.Global.getTween(txt);
-            tween.to({ y: txt.y - 100 }, duration).to({ alpha: 0 }, delay).call(this.txtComplete, this, [tween, txt]);
-        };
-        ErrorTips.prototype.txtComplete = function (arg) {
-            var tween = arg[0];
-            var txt = arg[1];
-            if (tween) {
-                tween.paused = true;
-                tween.onRecycle();
-            }
-            if (txt)
-                junyou.removeDisplay(txt);
-        };
-        return ErrorTips;
-    }());
-    junyou.ErrorTips = ErrorTips;
-    __reflect(ErrorTips.prototype, "junyou.ErrorTips");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * 简易的ToolTip
-     * 只处理字符串类型的描述
-     * @author 3tion
-     */
-    var SimToolTip = (function (_super) {
-        __extends(SimToolTip, _super);
-        function SimToolTip(maxWidth, maxHeight, corner, autoSize) {
-            if (maxWidth === void 0) { maxWidth = 480; }
-            if (maxHeight === void 0) { maxHeight = 800; }
-            if (corner === void 0) { corner = 5; }
-            var _this = _super.call(this) || this;
-            _this._autoSize = autoSize;
-            _this._corner = corner;
-            _this.init(maxWidth, maxHeight, corner);
-            return _this;
-        }
-        SimToolTip.prototype.init = function (maxWidth, maxHeight, corner) {
-            var tf;
-            this.tf = tf = new egret.TextField();
-            var c2 = corner * 2;
-            tf.width = maxWidth - c2;
-            tf.height = maxHeight - c2;
-            tf.size = 12;
-            tf.x = corner;
-            tf.y = corner;
-            this.addChild(tf);
-            this.drawRect(0, 0, maxWidth, maxHeight);
-        };
-        SimToolTip.prototype.setTipData = function (msg) {
-            var tf = this.tf;
-            if (msg != tf.text) {
-                tf.text = msg;
-                var bgW = void 0, bgH = void 0;
-                if (this._autoSize) {
-                    var c2 = this._corner * 2;
-                    bgW = tf.textWidth + 2 * c2;
-                    bgH = tf.textHeight + 2 * c2;
-                    this.drawRect(0, 0, bgW, bgH);
-                }
-            }
-        };
-        SimToolTip.prototype.drawRect = function (x, y, width, height) {
-            var g = this.graphics;
-            g.clear();
-            g.lineStyle(1, 0xcccccc);
-            g.beginFill(0, 0.7);
-            g.drawRoundRect(x, y, width, height, this._corner);
-            g.endFill();
-        };
-        SimToolTip.prototype.show = function (container, x, y) {
-            if (x != undefined && y != undefined) {
-                container.addChild(this);
-                this.x = x;
-                this.y = y;
-            }
-            else {
-                junyou.addTo(this, container);
-            }
-        };
-        SimToolTip.prototype.hide = function () {
-            junyou.removeDisplay(this);
-        };
-        return SimToolTip;
-    }(egret.Sprite));
-    junyou.SimToolTip = SimToolTip;
-    __reflect(SimToolTip.prototype, "junyou.SimToolTip", ["junyou.IToolTip"]);
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    var TE = egret.TouchEvent;
-    /**
-     * ToolTip的数据
-     * @author 3tion
-     */
-    var ToolTipData = (function () {
-        function ToolTipData() {
-        }
-        ToolTipData.prototype.register = function (dis, msg, tooltip, container) {
-            this.data = msg;
-            this.con = container;
-            if (this.tooltip != tooltip) {
-                this.tooltip = tooltip;
-            }
-            if (this.target != dis) {
-                this.clearDisListener(this.target);
-                junyou.Global.clearCallLater(this.showTip, this);
-                dis.on(TE.TOUCH_BEGIN, this.checkTouch, this);
-            }
-        };
-        ToolTipData.prototype.clearDisListener = function (dis) {
-            dis.off(TE.TOUCH_BEGIN, this.checkTouch, this);
-            dis.off(TE.TOUCH_END, this.touchEnd, this);
-        };
-        ToolTipData.prototype.onRecycle = function () {
-            if (this.target) {
-                this.clearDisListener(this.target);
-                this.target = undefined;
-            }
-            junyou.Global.clearCallLater(this.showTip, this);
-            this.data = undefined;
-            this.tooltip = undefined;
-        };
-        ToolTipData.prototype.checkTouch = function (e) {
-            this.target.on(TE.TOUCH_END, this.touchEnd, this);
-            junyou.Global.callLater(this.showTip, junyou.ToolTipManager.touchTime, this);
-        };
-        ToolTipData.prototype.showTip = function () {
-            this.target.off(TE.TOUCH_END, this.touchEnd, this);
-            this.tooltip.show(this.con);
-        };
-        ToolTipData.prototype.touchEnd = function (e) {
-            this.target.off(TE.TOUCH_END, this.touchEnd, this);
-            junyou.Global.clearCallLater(this.showTip, this);
-        };
-        return ToolTipData;
-    }());
-    junyou.ToolTipData = ToolTipData;
-    __reflect(ToolTipData.prototype, "junyou.ToolTipData", ["junyou.IRecyclable"]);
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * 默认的Tip
-     * 手指按下控件以后，弹出Tip进行显示
-     * @author 3tion
-     *
-     */
-    var ToolTipManager = (function () {
-        function ToolTipManager() {
-        }
-        /**
-         * 注册可视对象，消息和皮肤的绑定
-         *
-         * @static
-         * @param {egret.DisplayObject} dis 添加Tip的目标
-         * @param {*} msg 要显示的内容
-         * @param {IToolTip} [tooltip] Tip的皮肤，如果不填，则使用默认皮肤
-         * @return {boolean} true 注册成功  false注册失败
-         */
-        ToolTipManager.register = function (dis, msg, tooltip, container) {
-            if (!tooltip) {
-                tooltip = ToolTipManager.defaultTip;
-                if (!tooltip) {
-                    if (DEBUG) {
-                        junyou.ThrowError("没有注册ToolTip的皮肤，并且没有默认的ToolTip");
-                    }
-                    return false;
-                }
-            }
-            var map = ToolTipManager._map;
-            var data = map.get(dis);
-            if (!data) {
-                data = junyou.recyclable(junyou.ToolTipData);
-                map.set(dis, data);
-            }
-            if (!container) {
-                container = junyou.GameEngine.instance.getLayer(9000 /* Tip */);
-            }
-            data.register(dis, msg, tooltip, container);
-            return true;
-        };
-        /**
-         * 显示Tip，如果msg有内容，刷新Tip上的内容
-         *
-         * @static
-         * @param {egret.DisplayObject} dis
-         * @param {*} [msg]
-         */
-        ToolTipManager.show = function (dis, msg, container) {
-            var data = ToolTipManager._map.get(dis);
-            if (msg) {
-                data.data = msg;
-            }
-            var tooltip = data.tooltip;
-            if (!tooltip) {
-                tooltip = ToolTipManager.defaultTip;
-            }
-            if (tooltip) {
-                tooltip.setTipData(data.data);
-                if (!container) {
-                    container = data.con;
-                }
-                tooltip.show(container);
-                this._currentSkin = tooltip;
-            }
-        };
-        /**
-         * 刷新当前Tip绑定的内容，*`不改变显示状态`*
-         * 如果要刷新并显示，请使用 ToolTipManager.show
-         *
-         * @static
-         * @param {egret.DisplayObject} dis (description)
-         * @param {*} msg (description)
-         */
-        ToolTipManager.refresh = function (dis, msg) {
-            var data = ToolTipManager._map.get(dis);
-            data.data = msg;
-            var tooltip = data.tooltip;
-            if (!tooltip) {
-                tooltip = ToolTipManager.defaultTip;
-            }
-            if (tooltip) {
-                tooltip.setTipData(data.data);
-            }
-        };
-        /**
-         * 移除视图和ToolTip的绑定
-         *
-         * @static
-         * @param {egret.DisplayObject} dis 可视对象
-         */
-        ToolTipManager.remove = function (dis) {
-            var data = ToolTipManager._map.get(dis);
-            data.recycle();
-        };
-        return ToolTipManager;
-    }());
-    /**
-     * 按住多少毫秒后显示Tip
-     *
-     * @static
-     * @type {number}
-     */
-    ToolTipManager.touchTime = 500;
-    ToolTipManager._map = new Map();
-    junyou.ToolTipManager = ToolTipManager;
-    __reflect(ToolTipManager.prototype, "junyou.ToolTipManager");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * 多选分组
-     *
-     * @export
-     * @class CheckBoxGroup
-     * @extends {Group}
-     * @author 3tion
-     */
-    var CheckBoxGroup = (function (_super) {
-        __extends(CheckBoxGroup, _super);
-        function CheckBoxGroup(maxSelected) {
-            var _this = _super.call(this) || this;
-            /**
-             * 选中的选项
-             *
-             * @protected
-             * @type {IGroupItem[]}
-             */
-            _this._selected = [];
-            _this.maxSelected = maxSelected;
-            return _this;
-        }
-        CheckBoxGroup.prototype.removeItem = function (item) {
-            if (item) {
-                this._list.remove(item);
-                this._selected.remove(item);
-                item.off(egret.TouchEvent.TOUCH_TAP, this.touchHandler, this);
-            }
-        };
-        CheckBoxGroup.prototype.$setSelectedItem = function (item) {
-            // 检查是否勾选
-            var selected = this._selected;
-            var changed, idx = -1;
-            if (item.selected) {
-                item.selected = false;
-                selected.remove(item);
-                idx = selected.length - 1;
-                changed = true;
-            }
-            else {
-                //未选中，检查当前选中的按钮是否达到最大数量
-                var maxSelected = this.maxSelected || Infinity;
-                if (selected.length < maxSelected) {
-                    item.selected = true;
-                    idx = selected.pushOnce(item);
-                    changed = true;
-                }
-                else {
-                    return this.dispatch(-1021 /* GROUP_FULL */);
-                }
-            }
-            if (changed) {
-                this._selectedIndex = idx;
-                this._selectedItem = !~idx ? selected[idx] : undefined;
-                return this.dispatch(-1020 /* GROUP_CHANGE */);
-            }
-        };
-        Object.defineProperty(CheckBoxGroup.prototype, "selected", {
-            /**
-             * 获取选中的选项
-             *
-             * @readonly
-             */
-            get: function () {
-                return this._selected;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        CheckBoxGroup.prototype.clear = function () {
-            _super.prototype.clear.call(this);
-            this._selected.length = 0;
-        };
-        return CheckBoxGroup;
-    }(junyou.Group));
-    junyou.CheckBoxGroup = CheckBoxGroup;
-    __reflect(CheckBoxGroup.prototype, "junyou.CheckBoxGroup");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     *
-     * @author 3tion
-     * javascript 只会使用到 varint32->number string boolean
-     *
-     */
-    junyou.PBMessageUtils = (function () {
-        var structDict = junyou.Temp.EmptyObject;
-        /**
-         * protobuf wiretype的字典
-         * key  {number}    ProtoBuf的类型
-         * Value {number}   WireType
-         *
-         * @private
-         * @static
-         * @type {{ [index: number]: number }}
-         */
-        var wireTypeMap = [
-            ,
-            /* PBType.Double */ 1,
-            /* PBType.Float */ 5,
-            /* PBType.Int64 */ 0,
-            /* PBType.UInt64 */ 0,
-            /* PBType.Int32 */ 0,
-            /* PBType.Fixed64 */ 1,
-            /* PBType.Fixed32 */ 5,
-            /* PBType.Bool */ 0,
-            /* PBType.String */ 2,
-            ,
-            /* PBType.Message */ 2,
-            /* PBType.Bytes */ 2,
-            /* PBType.Uint32 */ 0,
-            /* PBType.Enum */ 0,
-            /* PBType.SFixed32 */ 5,
-            /* PBType.SFixed64 */ 1,
-            /* PBType.SInt32 */ 0,
-            /* PBType.SInt64 */ 0
-        ];
-        return {
-            /**
-             * 设置ProtoBuf的消息定义字典
-             *
-             * @static
-             * @param {PBStructDict} dict
-             *
-             * @memberOf PBMessageUtils
-             */
-            setPBDict: function (dict) {
-                //对默认值做预处理，减少后期遍历次数
-                if (dict) {
-                    structDict = dict;
-                    if (!dict.$$inted) {
-                        for (var name_8 in dict) {
-                            var encode = dict[name_8];
-                            //检查处理默认值
-                            for (var idx in encode) {
-                                var body = encode[idx];
-                                //0 key
-                                //1 required optional repeated
-                                //2 数据类型
-                                //3 Message
-                                //4 默认值
-                                if (4 in body) {
-                                    var def = encode.def;
-                                    if (!def) {
-                                        //不使用encode.def=def=[]; 是为了防止def被遍历
-                                        Object.defineProperty(encode, "def", {
-                                            value: {}
-                                        });
-                                        def = encode.def;
-                                    }
-                                    var key = body[0];
-                                    //消息中没有对应key的数据，先赋值成默认值，等待后续处理
-                                    def[key] = body[4];
-                                }
-                            }
-                            if (!encode.def) {
-                                Object.defineProperty(encode, "def", {
-                                    value: Object.prototype
-                                });
-                            }
-                        }
-                        dict.$$inted = 1;
-                    }
-                }
-            },
-            readFrom: readFrom,
-            writeTo: writeTo
-        };
-        /**
-         * 读取消息
-         *
-         * @param {(string | PBStruct)} msgType
-         * @param {ByteArray} bytes
-         * @param {number} [len]
-         * @returns {Object}
-         */
-        function readFrom(msgType, bytes, len) {
-            if (len === undefined)
-                len = -1;
-            var afterLen = 0;
-            if (len > -1) {
-                afterLen = bytes.bytesAvailable - len;
-            }
-            var encode = typeof msgType === "string" ? structDict[msgType] : msgType;
-            if (!encode) {
-                junyou.ThrowError("\u975E\u6CD5\u7684\u901A\u4FE1\u7C7B\u578B[" + msgType + "]");
-                return;
-            }
-            //检查处理默认值
-            var msg = Object.create(encode.def);
-            while (bytes.bytesAvailable > afterLen) {
-                var tag = bytes.readVarint();
-                if (tag == 0)
-                    continue;
-                var idx = tag >>> 3;
-                var body = encode[idx];
-                if (!body) {
-                    junyou.ThrowError("\u8BFB\u53D6\u6D88\u606F\u7C7B\u578B\u4E3A\uFF1A" + msgType + "\uFF0C\u7D22\u5F15" + idx + "\u65F6\u6570\u636E\u51FA\u73B0\u9519\u8BEF\uFF0C\u627E\u4E0D\u5230\u5BF9\u5E94\u7684\u6570\u636E\u7ED3\u6784\u914D\u7F6E");
-                    // 使用默认读取
-                    readValue(tag, bytes);
-                    continue;
-                }
-                var name_9 = body[0];
-                var label = body[1];
-                var type = body[2];
-                var subMsgType = body[3];
-                var value = void 0;
-                if (label != 3 || (tag & 7) != 7) {
-                    switch (type) {
-                        case 1 /* Double */:
-                            value = bytes.readDouble();
-                            break;
-                        case 2 /* Float */:
-                            value = bytes.readFloat();
-                            break;
-                        case 3 /* Int64 */:
-                        case 4 /* UInt64 */:
-                        case 18 /* SInt64 */:
-                            value = bytes.readVarint64(); //理论上项目不使用
-                            break;
-                        case 5 /* Int32 */: //int32 未使用ProtoBuf的标准解析方式，标准方式处理负数会使用10字节
-                        case 17 /* SInt32 */:
-                            value = decodeZigzag32(bytes.readVarint());
-                            break;
-                        case 13 /* Uint32 */:
-                        case 14 /* Enum */:
-                            value = bytes.readVarint();
-                            break;
-                        case 6 /* Fixed64 */:
-                        case 16 /* SFixed64 */:
-                            value = bytes.readFix64(); //理论上项目不使用
-                            break;
-                        case 7 /* Fixed32 */:
-                            value = bytes.readFix32();
-                            break;
-                        case 8 /* Bool */:
-                            value = bytes.readBoolean();
-                            break;
-                        case 9 /* String */:
-                            value = readString(bytes);
-                            break;
-                        case 10 /* Group */:
-                            value = undefined;
-                            if (DEBUG) {
-                                junyou.ThrowError("\u8BFB\u53D6\u6D88\u606F\u7C7B\u578B\u4E3A\uFF1A" + msgType + "\uFF0C\u7D22\u5F15" + idx + "\u65F6\u6570\u636E\u51FA\u73B0\u5DF2\u5F03\u7528\u7684GROUP\u5206\u7EC4\u7C7B\u578B");
-                            }
-                            break;
-                        case 11 /* Message */:
-                            value = readMessage(bytes, subMsgType);
-                            break;
-                        case 12 /* Bytes */:
-                            value = readBytes(bytes);
-                            break;
-                        case 15 /* SFixed32 */:
-                            value = bytes.readSFix32();
-                            break;
-                        default:
-                            value = readValue(tag, bytes);
-                    }
-                }
-                if (label == 3) {
-                    var arr = msg[name_9];
-                    if (!arr)
-                        msg[name_9] = arr = [];
-                    arr.push(value);
-                }
-                else {
-                    msg[name_9] = value;
-                }
-            }
-            return msg;
-        }
-        function readValue(tag, bytes) {
-            var wireType = tag & 7;
-            var value;
-            switch (wireType) {
-                case 0:
-                    value = bytes.readVarint();
-                    break;
-                case 2:
-                    value = readString(bytes);
-                    break;
-                case 5:
-                    value = bytes.readInt();
-                    break;
-                case 1:
-                    value = bytes.readDouble();
-                    break;
-                default:
-                    junyou.ThrowError("protobuf的wireType未知");
-            }
-            return value;
-        }
-        function readString(bytes) {
-            var blen = bytes.readVarint();
-            if (blen > 0) {
-                return bytes.readUTFBytes(blen);
-            }
-            return "";
-        }
-        /**
-         *
-         * 读取消息
-         * @private
-         * @static
-         * @param {number} tag          标签
-         * @param {ByteArray} bytes     被处理的字节数组
-         * @param {string} subMsgType   类型标识
-         * @returns {Object}
-         */
-        function readMessage(bytes, msgType) {
-            var blen = bytes.readVarint();
-            return readFrom(msgType, bytes, blen);
-        }
-        function readBytes(bytes) {
-            var blen = bytes.readVarint();
-            return bytes.readByteArray(blen);
-        }
-        /**
-         * 写入消息
-         *
-         * @param {Object} msg
-         * @param {(string | PBStruct)} msgType
-         * @param {ByteArray} [bytes]
-         * @returns {ByteArray}
-         */
-        function writeTo(msg, msgType, bytes, debugOutData) {
-            if (msg == undefined) {
-                return;
-            }
-            var messageEncode = typeof msgType === "string" ? structDict[msgType] : msgType;
-            if (!messageEncode) {
-                junyou.ThrowError("\u975E\u6CD5\u7684\u901A\u4FE1\u7C7B\u578B[" + msgType + "]\uFF0C\u5806\u6808\u4FE1\u606F:" + new Error());
-                return;
-            }
-            if (!bytes) {
-                bytes = new junyou.ByteArray;
-            }
-            for (var numberStr in messageEncode) {
-                var num = +numberStr;
-                var body = messageEncode[num];
-                var label = body[1];
-                var name_10 = body[0];
-                if (label == 1 /* optional */ && !(name_10 in msg)) {
-                    continue;
-                }
-                var value = msg[name_10];
-                if (value == undefined || value === body[4] /* 默认值 */) {
-                    continue;
-                }
-                var type = body[2];
-                var subMsgType = body[3];
-                var wireType = wireTypeMap[type];
-                var tag = (num << 3) | wireType;
-                if (label == 3 /* repeated */) {
-                    if (DEBUG) {
-                        var arr = [];
-                        debugOutData[name_10] = arr;
-                    }
-                    for (var key in value) {
-                        var element = value[key];
-                        // 针对repeated中无法处理空的占位数组做处理，Protobuf 2 中不支持undefined进行占位  由于 wireType 只使用 0 1 2 3 4 5
-                        // 现在使用 7 作为  undefined 占位使用
-                        if (DEBUG) {
-                            arr.push(writeElementTo(element, type, element == undefined ? ((num << 3) | 7) : tag, bytes, subMsgType));
-                        }
-                        else {
-                            writeElementTo(element, type, element == undefined ? ((num << 3) | 7) : tag, bytes, subMsgType);
-                        }
-                    }
-                }
-                else {
-                    if (DEBUG) {
-                        debugOutData[name_10] = writeElementTo(value, type, tag, bytes, subMsgType);
-                    }
-                    else {
-                        writeElementTo(value, type, tag, bytes, subMsgType);
-                    }
-                }
-            }
-            return bytes;
-        }
-        function writeElementTo(value, type, tag, bytes, subMsgType) {
-            if (DEBUG) {
-                var out = value;
-            }
-            bytes.writeVarint(tag);
-            switch (type) {
-                case 7 /* Fixed32 */:
-                    bytes.writeFix32(checkUInt32(value, type));
-                    break;
-                case 15 /* SFixed32 */:
-                    bytes.writeSFix32(checkInt32(value, type));
-                    break;
-                case 2 /* Float */:
-                    bytes.writeFloat(value);
-                    break;
-                case 1 /* Double */:
-                    bytes.writeDouble(value);
-                    break;
-                case 6 /* Fixed64 */: //理论上项目不使用
-                case 16 /* SFixed64 */:
-                    bytes.writeFix64(value);
-                    break;
-                case 5 /* Int32 */: //int32处理负数，没有按规定的 10字节数据进行处理，直接使用SINT32处理
-                //  Signed Integers
-                // As you saw in the previous section, all the protocol buffer types associated with wire type 0 are encoded as varints. However, there is an important difference between the signed int types (sint32 and sint64) and the "standard" int types (int32 and int64) when it comes to encoding negative numbers. If you use int32 or int64 as the type for a negative number, the resulting varint is always ten bytes long – it is, effectively, treated like a very large unsigned integer. If you use one of the signed types, the resulting varint uses ZigZag encoding, which is much more efficient.
-                case 17 /* SInt32 */:
-                    bytes.writeVarint(zigzag32(checkInt32(value, type)));
-                    break;
-                case 14 /* Enum */:
-                case 13 /* Uint32 */:
-                    bytes.writeVarint(checkUInt32(value, type));
-                    break;
-                case 3 /* Int64 */:
-                case 18 /* SInt64 */:
-                case 4 /* UInt64 */:
-                    bytes.writeVarint64(value);
-                    break;
-                case 8 /* Bool */:
-                    bytes.writeVarint(value ? 1 : 0);
-                    break;
-                case 9 /* String */:
-                case 12 /* Bytes */:
-                case 11 /* Message */:
-                    if (type == 11 /* Message */) {
-                        if (DEBUG) {
-                            out = {};
-                            temp = writeTo(value, subMsgType, null, out);
-                        }
-                        else {
-                            var temp = writeTo(value, subMsgType);
-                        }
-                    }
-                    else if (type == 12 /* Bytes */) {
-                        temp = value;
-                        if (DEBUG) {
-                            out = Uint8Array.from(temp.bytes);
-                        }
-                    }
-                    else {
-                        temp = new junyou.ByteArray;
-                        temp.writeUTFBytes(value);
-                    }
-                    length = temp ? temp.length : 0;
-                    bytes.writeVarint(length);
-                    if (length > 0) {
-                        bytes.writeBytes(temp, 0, length);
-                    }
-                    break;
-            }
-            if (DEBUG) {
-                return out;
-            }
-            function checkUInt32(value, type) {
-                value = +value || 0;
-                if (value > 4294967295 || value < 0) {
-                    junyou.ThrowError("PBMessageUtils\u5199\u5165\u6570\u636E\u65F6\u5019\uFF0C\u4F7F\u7528\u7684\u7C7B\u578B\uFF1A" + type + "\uFF0C\u503C\u4E3A\uFF1A" + value + "\uFF0C\u4F46\u8D85\u51FA\u6574\u578B\u8303\u56F4\u3002");
-                    value >>> 0;
-                }
-                return value;
-            }
-            function checkInt32(value, type) {
-                value = +value || 0;
-                if (value > 2147483647 || value < -2147483648) {
-                    junyou.ThrowError("PBMessageUtils\u5199\u5165\u6570\u636E\u65F6\u5019\uFF0C\u4F7F\u7528\u7684\u7C7B\u578B\uFF1A" + type + "\uFF0C\u503C\u4E3A\uFF1A" + value + "\uFF0C\u4F46\u8D85\u51FA\u6574\u578B\u8303\u56F4\u3002");
-                    value >> 0;
-                }
-                return value;
-            }
-        }
-        function zigzag32(n) {
-            return (n << 1) ^ (n >> 31);
-        }
-        function decodeZigzag32(n) {
-            return n >> 1 ^ (((n & 1) << 31) >> 31);
-        }
-    })();
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -18087,20 +17994,6 @@ var junyou;
             delete target.$_tdi;
         }
     })();
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    var View = (function (_super) {
-        __extends(View, _super);
-        function View(key, className) {
-            var _this = _super.call(this) || this;
-            junyou.singleton(junyou.SuiResManager).createComponents(key, className, _this);
-            return _this;
-        }
-        return View;
-    }(egret.Sprite));
-    junyou.View = View;
-    __reflect(View.prototype, "junyou.View");
 })(junyou || (junyou = {}));
 /**
  * 参考createjs和白鹭的tween
@@ -18276,225 +18169,6 @@ var junyou;
     Ease.elasticOut = Ease.getElasticOut(1, 0.3);
     Ease.elasticInOut = Ease.getElasticInOut(1, 0.3 * 1.5);
     junyou.Ease = Ease;
-    __reflect(Ease.prototype, "junyou.Ease");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    junyou.MotionGuidePlugin = (function () {
-        return {
-            priority: 0,
-            install: function (manager) {
-                manager.installPlugin(this, ["guide", "x", "y", "rotation"]);
-            },
-            init: function (tween, prop, value) {
-                var target = tween.target;
-                if (target.x == undefined) {
-                    target.x = 0;
-                }
-                if (target.y == undefined) {
-                    target.y = 0;
-                }
-                if (target.rotation == undefined) {
-                    target.rotation = 0;
-                }
-                if (prop == "rotation") {
-                    tween.__needsRot = true;
-                }
-                return prop == "guide" ? null : value;
-            },
-            step: function (tween, prop, startValue, endValue, injectProps) {
-                // other props
-                if (prop == "rotation") {
-                    tween.__rotGlobalS = startValue;
-                    tween.__rotGlobalE = endValue;
-                    testRotData(tween, injectProps);
-                }
-                if (prop != "guide") {
-                    return endValue;
-                }
-                // guide only information - Start -
-                var temp, data = endValue;
-                if (!data.hasOwnProperty("path")) {
-                    data.path = [];
-                }
-                var path = data.path;
-                if (!data.hasOwnProperty("end")) {
-                    data.end = 1;
-                }
-                if (!data.hasOwnProperty("start")) {
-                    data.start = (startValue && startValue.hasOwnProperty("end") && startValue.path === path) ? startValue.end : 0;
-                }
-                // Figure out subline information
-                if (data.hasOwnProperty("_segments") && data._length) {
-                    return endValue;
-                }
-                var l = path.length;
-                var accuracy = 10; // Adjust to improve line following precision but sacrifice performance (# of seg)
-                if (l >= 6 && (l - 2) % 4 == 0) {
-                    data._segments = [];
-                    data._length = 0;
-                    for (var i = 2; i < l; i += 4) {
-                        var sx = path[i - 2], sy = path[i - 1];
-                        var cx = path[i + 0], cy = path[i + 1];
-                        var ex = path[i + 2], ey = path[i + 3];
-                        var oldX = sx, oldY = sy;
-                        var tempX, tempY, total = 0;
-                        var sublines = [];
-                        for (var j = 1; j <= accuracy; j++) {
-                            var t = j / accuracy;
-                            var inv = 1 - t;
-                            tempX = inv * inv * sx + 2 * inv * t * cx + t * t * ex;
-                            tempY = inv * inv * sy + 2 * inv * t * cy + t * t * ey;
-                            total += sublines[sublines.push(Math.sqrt((temp = tempX - oldX) * temp + (temp = tempY - oldY) * temp)) - 1];
-                            oldX = tempX;
-                            oldY = tempY;
-                        }
-                        data._segments.push(total);
-                        data._segments.push(sublines);
-                        data._length += total;
-                    }
-                }
-                else {
-                    throw ("invalid 'path' data, please see documentation for valid paths");
-                }
-                // Setup x/y tweens
-                temp = data.orient;
-                data.orient = true;
-                var o = {};
-                calc(data, data.start, o);
-                tween.__rotPathS = Number(o.rotation.toFixed(5));
-                calc(data, data.end, o);
-                tween.__rotPathE = Number(o.rotation.toFixed(5));
-                data.orient = false; //here and now we don't know if we need to
-                calc(data, data.end, injectProps);
-                data.orient = temp;
-                // Setup rotation properties
-                if (!data.orient) {
-                    return endValue;
-                }
-                tween.__guideData = data;
-                testRotData(tween, injectProps);
-                return endValue;
-            },
-            tween: function (tween, prop, value, startValues, endValues, ratio, wait, end) {
-                var data = endValues.guide;
-                if (data == undefined || data === startValues.guide) {
-                    return value;
-                }
-                if (data.lastRatio != ratio) {
-                    // first time through so calculate what I need to
-                    var t = ((data.end - data.start) * (wait ? data.end : ratio) + data.start);
-                    calc(data, t, tween.target);
-                    switch (data.orient) {
-                        case "cw": // mix in the original rotation
-                        case "ccw":
-                        case "auto":
-                            tween.target.rotation += data.rotOffS + data.rotDelta * ratio;
-                            break;
-                        case "fixed": // follow fixed behaviour to solve potential issues
-                        default:
-                            tween.target.rotation += data.rotOffS;
-                            break;
-                    }
-                    data.lastRatio = ratio;
-                }
-                if (prop == "rotation" && ((!data.orient) || data.orient == "false")) {
-                    return value;
-                }
-                return tween.target[prop];
-            }
-        };
-        function testRotData(tween, injectProps) {
-            // no rotation informat? if we need it come back, if we don't use 0 & ensure we have guide data
-            if (tween.__rotGlobalS === undefined || tween.__rotGlobalE === undefined) {
-                if (tween.__needsRot) {
-                    return;
-                }
-                var _curQueueProps = tween._curQueueProps;
-                if (_curQueueProps.rotation !== undefined) {
-                    tween.__rotGlobalS = tween.__rotGlobalE = _curQueueProps.rotation;
-                }
-                else {
-                    tween.__rotGlobalS = tween.__rotGlobalE = injectProps.rotation = tween.target.rotation || 0;
-                }
-            }
-            if (tween.__guideData === undefined) {
-                return;
-            }
-            // Process rotation properties
-            var data = tween.__guideData;
-            var rotGlobalD = tween.__rotGlobalE - tween.__rotGlobalS;
-            var rotPathD = tween.__rotPathE - tween.__rotPathS;
-            var rot = rotGlobalD - rotPathD;
-            if (data.orient == "auto") {
-                if (rot > 180) {
-                    rot -= 360;
-                }
-                else if (rot < -180) {
-                    rot += 360;
-                }
-            }
-            else if (data.orient == "cw") {
-                while (rot < 0) {
-                    rot += 360;
-                }
-                if (rot == 0 && rotGlobalD > 0 && rotGlobalD != 180) {
-                    rot += 360;
-                }
-            }
-            else if (data.orient == "ccw") {
-                rot = rotGlobalD - ((rotPathD > 180) ? (360 - rotPathD) : (rotPathD)); // sign flipping on path
-                while (rot > 0) {
-                    rot -= 360;
-                }
-                if (rot == 0 && rotGlobalD < 0 && rotGlobalD != -180) {
-                    rot -= 360;
-                }
-            }
-            data.rotDelta = rot;
-            data.rotOffS = tween.__rotGlobalS - tween.__rotPathS;
-            // reset
-            tween.__rotGlobalS = tween.__rotGlobalE = tween.__guideData = tween.__needsRot = undefined;
-        }
-        function calc(data, ratio, target) {
-            if (data._segments == undefined) {
-                throw ("Missing critical pre-calculated information, please file a bug");
-            }
-            if (target == undefined) {
-                target = { x: 0, y: 0, rotation: 0 };
-            }
-            var seg = data._segments;
-            var path = data.path;
-            // find segment
-            var pos = data._length * ratio;
-            var cap = seg.length - 2;
-            var n = 0;
-            while (pos > seg[n] && n < cap) {
-                pos -= seg[n];
-                n += 2;
-            }
-            // find subline
-            var sublines = seg[n + 1];
-            var i = 0;
-            cap = sublines.length - 1;
-            while (pos > sublines[i] && i < cap) {
-                pos -= sublines[i];
-                i++;
-            }
-            var t = (i / ++cap) + (pos / (cap * sublines[i]));
-            // find x/y
-            n = (n * 2) + 2;
-            var inv = 1 - t;
-            target.x = inv * inv * path[n - 2] + 2 * inv * t * path[n + 0] + t * t * path[n + 2];
-            target.y = inv * inv * path[n - 1] + 2 * inv * t * path[n + 1] + t * t * path[n + 3];
-            // orientation
-            if (data.orient) {
-                target.rotation = 57.2957795 * Math.atan2((path[n + 1] - path[n - 1]) * inv + (path[n + 3] - path[n + 1]) * t, (path[n + 0] - path[n - 2]) * inv + (path[n + 2] - path[n + 0]) * t);
-            }
-            return target;
-        }
-        ;
-    })();
 })(junyou || (junyou = {}));
 /**
  * 参考createjs和白鹭的tween
@@ -18906,7 +18580,6 @@ var junyou;
      */
     Tween.IGNORE = {};
     junyou.Tween = Tween;
-    __reflect(Tween.prototype, "junyou.Tween");
 })(junyou || (junyou = {}));
 /**
  * 参考createjs和白鹭的tween
@@ -19166,5 +18839,222 @@ var junyou;
         return TweenManager;
     }());
     junyou.TweenManager = TweenManager;
-    __reflect(TweenManager.prototype, "junyou.TweenManager");
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    junyou.MotionGuidePlugin = (function () {
+        return {
+            priority: 0,
+            install: function (manager) {
+                manager.installPlugin(this, ["guide", "x", "y", "rotation"]);
+            },
+            init: function (tween, prop, value) {
+                var target = tween.target;
+                if (target.x == undefined) {
+                    target.x = 0;
+                }
+                if (target.y == undefined) {
+                    target.y = 0;
+                }
+                if (target.rotation == undefined) {
+                    target.rotation = 0;
+                }
+                if (prop == "rotation") {
+                    tween.__needsRot = true;
+                }
+                return prop == "guide" ? null : value;
+            },
+            step: function (tween, prop, startValue, endValue, injectProps) {
+                // other props
+                if (prop == "rotation") {
+                    tween.__rotGlobalS = startValue;
+                    tween.__rotGlobalE = endValue;
+                    testRotData(tween, injectProps);
+                }
+                if (prop != "guide") {
+                    return endValue;
+                }
+                // guide only information - Start -
+                var temp, data = endValue;
+                if (!data.hasOwnProperty("path")) {
+                    data.path = [];
+                }
+                var path = data.path;
+                if (!data.hasOwnProperty("end")) {
+                    data.end = 1;
+                }
+                if (!data.hasOwnProperty("start")) {
+                    data.start = (startValue && startValue.hasOwnProperty("end") && startValue.path === path) ? startValue.end : 0;
+                }
+                // Figure out subline information
+                if (data.hasOwnProperty("_segments") && data._length) {
+                    return endValue;
+                }
+                var l = path.length;
+                var accuracy = 10; // Adjust to improve line following precision but sacrifice performance (# of seg)
+                if (l >= 6 && (l - 2) % 4 == 0) {
+                    data._segments = [];
+                    data._length = 0;
+                    for (var i = 2; i < l; i += 4) {
+                        var sx = path[i - 2], sy = path[i - 1];
+                        var cx = path[i + 0], cy = path[i + 1];
+                        var ex = path[i + 2], ey = path[i + 3];
+                        var oldX = sx, oldY = sy;
+                        var tempX, tempY, total = 0;
+                        var sublines = [];
+                        for (var j = 1; j <= accuracy; j++) {
+                            var t = j / accuracy;
+                            var inv = 1 - t;
+                            tempX = inv * inv * sx + 2 * inv * t * cx + t * t * ex;
+                            tempY = inv * inv * sy + 2 * inv * t * cy + t * t * ey;
+                            total += sublines[sublines.push(Math.sqrt((temp = tempX - oldX) * temp + (temp = tempY - oldY) * temp)) - 1];
+                            oldX = tempX;
+                            oldY = tempY;
+                        }
+                        data._segments.push(total);
+                        data._segments.push(sublines);
+                        data._length += total;
+                    }
+                }
+                else {
+                    throw ("invalid 'path' data, please see documentation for valid paths");
+                }
+                // Setup x/y tweens
+                temp = data.orient;
+                data.orient = true;
+                var o = {};
+                calc(data, data.start, o);
+                tween.__rotPathS = Number(o.rotation.toFixed(5));
+                calc(data, data.end, o);
+                tween.__rotPathE = Number(o.rotation.toFixed(5));
+                data.orient = false; //here and now we don't know if we need to
+                calc(data, data.end, injectProps);
+                data.orient = temp;
+                // Setup rotation properties
+                if (!data.orient) {
+                    return endValue;
+                }
+                tween.__guideData = data;
+                testRotData(tween, injectProps);
+                return endValue;
+            },
+            tween: function (tween, prop, value, startValues, endValues, ratio, wait, end) {
+                var data = endValues.guide;
+                if (data == undefined || data === startValues.guide) {
+                    return value;
+                }
+                if (data.lastRatio != ratio) {
+                    // first time through so calculate what I need to
+                    var t = ((data.end - data.start) * (wait ? data.end : ratio) + data.start);
+                    calc(data, t, tween.target);
+                    switch (data.orient) {
+                        case "cw": // mix in the original rotation
+                        case "ccw":
+                        case "auto":
+                            tween.target.rotation += data.rotOffS + data.rotDelta * ratio;
+                            break;
+                        case "fixed": // follow fixed behaviour to solve potential issues
+                        default:
+                            tween.target.rotation += data.rotOffS;
+                            break;
+                    }
+                    data.lastRatio = ratio;
+                }
+                if (prop == "rotation" && ((!data.orient) || data.orient == "false")) {
+                    return value;
+                }
+                return tween.target[prop];
+            }
+        };
+        function testRotData(tween, injectProps) {
+            // no rotation informat? if we need it come back, if we don't use 0 & ensure we have guide data
+            if (tween.__rotGlobalS === undefined || tween.__rotGlobalE === undefined) {
+                if (tween.__needsRot) {
+                    return;
+                }
+                var _curQueueProps = tween._curQueueProps;
+                if (_curQueueProps.rotation !== undefined) {
+                    tween.__rotGlobalS = tween.__rotGlobalE = _curQueueProps.rotation;
+                }
+                else {
+                    tween.__rotGlobalS = tween.__rotGlobalE = injectProps.rotation = tween.target.rotation || 0;
+                }
+            }
+            if (tween.__guideData === undefined) {
+                return;
+            }
+            // Process rotation properties
+            var data = tween.__guideData;
+            var rotGlobalD = tween.__rotGlobalE - tween.__rotGlobalS;
+            var rotPathD = tween.__rotPathE - tween.__rotPathS;
+            var rot = rotGlobalD - rotPathD;
+            if (data.orient == "auto") {
+                if (rot > 180) {
+                    rot -= 360;
+                }
+                else if (rot < -180) {
+                    rot += 360;
+                }
+            }
+            else if (data.orient == "cw") {
+                while (rot < 0) {
+                    rot += 360;
+                }
+                if (rot == 0 && rotGlobalD > 0 && rotGlobalD != 180) {
+                    rot += 360;
+                }
+            }
+            else if (data.orient == "ccw") {
+                rot = rotGlobalD - ((rotPathD > 180) ? (360 - rotPathD) : (rotPathD)); // sign flipping on path
+                while (rot > 0) {
+                    rot -= 360;
+                }
+                if (rot == 0 && rotGlobalD < 0 && rotGlobalD != -180) {
+                    rot -= 360;
+                }
+            }
+            data.rotDelta = rot;
+            data.rotOffS = tween.__rotGlobalS - tween.__rotPathS;
+            // reset
+            tween.__rotGlobalS = tween.__rotGlobalE = tween.__guideData = tween.__needsRot = undefined;
+        }
+        function calc(data, ratio, target) {
+            if (data._segments == undefined) {
+                throw ("Missing critical pre-calculated information, please file a bug");
+            }
+            if (target == undefined) {
+                target = { x: 0, y: 0, rotation: 0 };
+            }
+            var seg = data._segments;
+            var path = data.path;
+            // find segment
+            var pos = data._length * ratio;
+            var cap = seg.length - 2;
+            var n = 0;
+            while (pos > seg[n] && n < cap) {
+                pos -= seg[n];
+                n += 2;
+            }
+            // find subline
+            var sublines = seg[n + 1];
+            var i = 0;
+            cap = sublines.length - 1;
+            while (pos > sublines[i] && i < cap) {
+                pos -= sublines[i];
+                i++;
+            }
+            var t = (i / ++cap) + (pos / (cap * sublines[i]));
+            // find x/y
+            n = (n * 2) + 2;
+            var inv = 1 - t;
+            target.x = inv * inv * path[n - 2] + 2 * inv * t * path[n + 0] + t * t * path[n + 2];
+            target.y = inv * inv * path[n - 1] + 2 * inv * t * path[n + 1] + t * t * path[n + 3];
+            // orientation
+            if (data.orient) {
+                target.rotation = 57.2957795 * Math.atan2((path[n + 1] - path[n - 1]) * inv + (path[n + 3] - path[n + 1]) * t, (path[n + 0] - path[n - 2]) * inv + (path[n + 2] - path[n + 0]) * t);
+            }
+            return target;
+        }
+        ;
+    })();
 })(junyou || (junyou = {}));
