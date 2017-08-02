@@ -103,6 +103,13 @@ module junyou {
 
         /**
          * 将资源渲染到位图容器中
+         * 
+         * @param {egret.Bitmap} bitmap 要被绘制的位图
+         * @param {IDrawInfo} drawInfo  绘制信息
+         * @param {number} now 当前时间戳
+         * @returns {boolean} true 表示绘制成功
+         *                    其他情况标识绘制失败
+         * @memberof UnitResource
          */
         draw(bitmap: egret.Bitmap, drawInfo: IDrawInfo, now: number) {
             const datas = this._datas;
@@ -116,21 +123,13 @@ module junyou {
                 if (frames) {
                     var frame = frames[f];
                     if (frame) {
-                        // const info = this._splitInfo;
-                        // let r = info.getResource(d, a);
-                        // let uri = this.key + "/" + r + Ext.PNG;
-                        // let res = ResourceManager.get(uri, () => {
-                        //     let tmp = new SplitUnitResource(uri);
-                        //     tmp.bindTextures(datas, info.adDict[r]);
-                        //     tmp.load();
-                        //     return tmp;
-                        // });
                         let res = this.loadRes(d, a);
                         res.lastUseTime = Global.now;
                         if (frame.bitmapData) {
                             bitmap.texture = frame;
                             bitmap.anchorOffsetX = frame.tx;
                             bitmap.anchorOffsetY = frame.ty;
+                            return true;
                         } else {
                             bitmap.texture = undefined;
                         }

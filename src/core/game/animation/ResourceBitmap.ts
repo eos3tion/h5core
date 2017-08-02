@@ -17,9 +17,17 @@ module junyou {
             return this.y + this.z;
         }
 
+        /**
+         * 当前资源是否成功渲染
+         * 
+         * @param {IDrawInfo} drawInfo 
+         * @param {number} now 
+         * @returns 
+         * @memberof ResourceBitmap
+         */
         public draw(drawInfo: IDrawInfo, now: number) {
             if(!this.res)return;
-            this.res.draw(this, drawInfo, now);
+            return this.res.draw(this, drawInfo, now);
         }
 
         public set rotation(value: number) {

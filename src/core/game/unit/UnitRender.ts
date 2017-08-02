@@ -63,8 +63,11 @@ module junyou {
         }
 
         renderFrame(frame: FrameInfo, now: number) {
-            this.model.renderFrame(frame, now, this.faceTo, this);
+            let flag = this.model.renderFrame(frame, now, this.faceTo, this);
             this.unit.onRenderFrame(now);
+            if (flag) {
+                this.willRenderFrame = undefined;
+            }
         }
 
         dispatchEvent(event: string, now: number) {

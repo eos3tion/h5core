@@ -45,6 +45,17 @@ module junyou {
             }
         }
 
+        /**
+         * 渲染指定帧
+         * 
+         * @param {FrameInfo} frame 
+         * @param {number} now 
+         * @param {number} face 
+         * @param {IDrawInfo} info 
+         * @returns {boolean} true 表示此帧所有资源都正常完成渲染
+         *                    其他情况表示有些帧或者数据未加载，未完全渲染
+         * @memberof UModel
+         */
         renderFrame(frame: FrameInfo, now: number, face: number, info: IDrawInfo) {
             let ns = face > 4;
             let d = ns ? 8 - face : face;
@@ -62,10 +73,12 @@ module junyou {
             } else {
                 info.d = d;
             }
+            let flag = true;
             //渲染
             for (let res of <ResourceBitmap[]>this.$children) {
-                res.draw(info, now);
+                flag = flag && res.draw(info, now);
             }
+            return flag;
         }
 
         clear() {
