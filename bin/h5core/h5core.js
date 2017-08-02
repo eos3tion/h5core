@@ -8705,7 +8705,8 @@ var junyou;
                 return;
             }
             this.f = frame.f;
-            if (this.display.draw(this, now)) {
+            var display = this.display;
+            if (display && display.draw(this, now)) {
                 this.willRenderFrame = undefined;
             }
         };
