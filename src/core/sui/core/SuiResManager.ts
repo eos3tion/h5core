@@ -6,7 +6,7 @@ module egret {
          * @type {egret.Rectangle}
          * @memberOf DisplayObject
          */
-        suiRawRect?: Readonly<egret.Rectangle>;
+        suiRawRect?: egret.Rectangle;
     }
 }
 
