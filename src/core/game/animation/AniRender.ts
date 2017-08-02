@@ -98,7 +98,9 @@ module junyou {
                 return;
             }
             this.f = frame.f;
-            this.display.draw(this, now);
+            if (this.display.draw(this, now)) {
+                this.willRenderFrame = undefined;
+            }
         }
 
         /**

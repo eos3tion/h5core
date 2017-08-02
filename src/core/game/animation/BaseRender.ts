@@ -167,8 +167,7 @@ module junyou {
             if (this.willRenderFrame) {
                 this.clearRes();
                 this.renderFrame(this.willRenderFrame, now);
-            }
-            this.willRenderFrame = undefined;
+            }           
         }
 
 
