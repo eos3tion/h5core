@@ -33,7 +33,17 @@ module junyou {
         /**
          * 窗口失去激活
          */
-        DEACTIVATE
+        DEACTIVATE,
+
+        /**
+         * ani 一次播放完成
+         */
+        AniComplete,
+
+        /**
+         * ani 回收前触发
+         */
+        AniBeforeRecycle
 
     }
 }

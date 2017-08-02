@@ -116,15 +116,16 @@ module junyou {
                 if (frames) {
                     var frame = frames[f];
                     if (frame) {
-                        const info = this._splitInfo;
-                        let r = info.getResource(d, a);
-                        let uri = this.key + "/" + r + Ext.PNG;
-                        let res = ResourceManager.get(uri, () => {
-                            let tmp = new SplitUnitResource(uri);
-                            tmp.bindTextures(datas, info.adDict[r]);
-                            tmp.load();
-                            return tmp;
-                        });
+                        // const info = this._splitInfo;
+                        // let r = info.getResource(d, a);
+                        // let uri = this.key + "/" + r + Ext.PNG;
+                        // let res = ResourceManager.get(uri, () => {
+                        //     let tmp = new SplitUnitResource(uri);
+                        //     tmp.bindTextures(datas, info.adDict[r]);
+                        //     tmp.load();
+                        //     return tmp;
+                        // });
+                        let res = this.loadRes(d, a);
                         res.lastUseTime = Global.now;
                         if (frame.bitmapData) {
                             bitmap.texture = frame;
@@ -139,5 +140,25 @@ module junyou {
             //TODO 绘制未加载的代理图片
         }
 
+        loadRes(d: number, a: number) {
+            const info = this._splitInfo;
+            let r = info.getResource(d, a);
+            let uri = this.key + "/" + r + Ext.PNG;
+            let datas = this._datas;
+            return ResourceManager.get(uri, () => {
+                let tmp = new SplitUnitResource(uri);
+                tmp.bindTextures(datas, info.adDict[r]);
+                tmp.load();
+                return tmp;
+            });
+        }
+
+        isResOK(d: number, a: number) {
+            const info = this._splitInfo;
+            let r = info.getResource(d, a);
+            let uri = this.key + "/" + r + Ext.PNG;
+            let res = ResourceManager.getResource(uri) as SplitUnitResource;
+            return !!(res && res.bmd);
+        }
     }
 }

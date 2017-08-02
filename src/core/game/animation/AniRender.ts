@@ -6,6 +6,7 @@ module junyou {
 	 *
 	 */
     export class AniRender extends BaseRender implements IRecyclable {
+        _render: any;
 
         /**
          * 0 初始化，未运行
@@ -20,6 +21,31 @@ module junyou {
          */
         public recyclePolicy = AniRecyclePolicy.RecycleAll;
 
+        /**
+         * 循环播放次数
+         * 
+         * @type {number}
+         */
+        loop?: number;
+        /**
+         * 事件处理的回调函数
+         * 
+         * @type {{ (event: Key, render: AniRender, now?: number, ...args) }}
+         * @memberof AniOption
+         */
+        handler?: CallbackInfo<{ (event: Key, render: AniRender, now?: number, ...args) }>;
+
+        /**
+         * 是否等待纹理数据加载完成，才播放
+         * 
+         * @type {boolean}
+         * @memberof AniRender
+         */
+        waitTexture?: boolean;
+
+        resOK: boolean;
+
+        plTime: number;
         protected _guid: number;
 
         /**
@@ -75,7 +101,23 @@ module junyou {
             this.display.draw(this, now);
         }
 
+        /**
+         * 派发事件
+         * @param event     事件名
+         * @param now       当前时间
+         */
+        protected dispatchEvent(event: string, now: number) {
+            let handler = this.handler;
+            if (handler) {
+                handler.call(event, this, now);
+            }
+        }
+
         doComplete(now: number) {
+            let handler = this.handler;
+            if (handler) {
+                handler.call(EventConst.AniComplete, this, now);
+            }
             this.state = AniPlayState.Completed;
             let policy = this.recyclePolicy;
             if ((policy & AniRecyclePolicy.RecycleRender) == AniRecyclePolicy.RecycleRender) {//如果有回收Render，则进入Render中判断是否要回收可视对象
@@ -94,12 +136,22 @@ module junyou {
             }
         }
 
+        isComplete(info: ActionInfo) {
+            let loop = this.loop;
+            if (loop != undefined) {
+                loop--;
+                this.loop = loop;
+                return loop < 1;
+            }
+            return !info.isCircle
+        }
+
         public callback() {
             if (this._aniInfo) {
                 let display = this.display;
                 display.res = this._aniInfo.getResource();
                 if (this.state == AniPlayState.Playing) {
-                    display.on(Event.ENTER_FRAME, this.render, this);
+                    this.checkPlay();
                 }
             }
         }
@@ -108,16 +160,59 @@ module junyou {
          * 播放
          */
         public play(now?: number) {
-            now = now === void 0 ? Global.now : now;
+            let globalNow = Global.now;
+            now = now === void 0 ? globalNow : now;
+            this.plTime = globalNow;
             this.renderedTime = now;
             this.nextRenderTime = now;
             this.state = AniPlayState.Playing;
-            if (this.display.res) {
-                this.display.on(Event.ENTER_FRAME, this.render, this);
+            this.resOK = false;
+            this._render = undefined;
+            this.checkPlay();
+        }
+
+        private checkPlay() {
+            let display = this.display;
+            let res = display.res;
+            if (res) {//资源已经ok
+                let old = this._render;
+                let render;
+                if (this.waitTexture) {
+                    let { a, d } = this;
+                    if (res.isResOK(a, d)) {
+                        if (!this.resOK) {
+                            this.resOK = true;
+                            //重新计算时间
+                            let deltaTime = Global.now - this.plTime;
+                            this.renderedTime = this.nextRenderTime = this.renderedTime + deltaTime;
+                        }
+                        render = this.render;
+                    } else {
+                        render = this.checkPlay;
+                        res.loadRes(a, d);
+                    }
+                } else {
+                    render = this.render;
+                }
+                if (old != render) {
+                    if (old) {
+                        display.off(Event.ENTER_FRAME, old, this);
+                    }
+                    if (render) {
+                        display.on(Event.ENTER_FRAME, render, this);
+                    }
+                }
+                this._render = render;
             }
         }
 
         public onRecycle() {
+            let handler = this.handler;
+            if (handler) {
+                handler.call(EventConst.AniBeforeRecycle, this);
+                handler.recycle();
+                this.handler = undefined;
+            }
             delete AniRender._renderByGuid[this._guid];
             this.state = AniPlayState.Recycled;
             let display = this.display;
@@ -133,7 +228,13 @@ module junyou {
                 this._aniInfo.loose(this);
                 this._aniInfo = undefined;
             }
+            this.idx = 0;
             this._guid = NaN;
+            if (this.waitTexture) {
+                this.waitTexture = false;
+            }
+            this.loop = undefined;
+            this._render = undefined;
         }
 
         public onSpawn() {
@@ -164,10 +265,10 @@ module junyou {
          * 
          * @static
          * @param {string} uri    动画地址
-         * @param {number} [guid] 外部设置动画的guid
+         * @param {AniOption} [option] 动画的参数
          * @returns (description)
          */
-        public static getAni(uri: string, guid?: number) {
+        public static getAni(uri: string, option?: AniOption) {
             let aniDict = $DD.ani;
             let aniInfo: AniInfo = aniDict[uri];
             if (!aniInfo) {
@@ -177,9 +278,46 @@ module junyou {
             }
             let display = recyclable(ResourceBitmap);
             let ani = recyclable(AniRender);
-            guid = guid === void 0 ? this.guid++ : guid;
+            let guid: number, stop: boolean;
+            if (option) {
+                guid = option.guid;
+                let pos = option.pos;
+                let { x, y } = option;
+                if (pos) {
+                    x = pos.x;
+                    y = pos.y;
+                }
+                if (x != undefined) {
+                    display.x = x;
+                }
+                if (y != undefined) {
+                    display.y = y;
+                }
+                stop = option.stop;
+                let parent = option.parent;
+                if (parent) {
+                    let idx = option.childIdx;
+                    if (idx == undefined) {
+                        parent.addChild(display);
+                    } else {
+                        parent.addChildAt(display, idx);
+                    }
+                }
+                ani.loop = option.loop;
+                ani.handler = option.handler
+                let recyclePolicy = option.recyclePolicy;
+                if (recyclePolicy == undefined) {
+                    recyclePolicy = AniRecyclePolicy.RecycleAll;
+                }
+                ani.recyclePolicy = recyclePolicy;
+                ani.waitTexture = !!option.waitTexture;
+            }
+            !guid && (guid = this.guid++);
             this._renderByGuid[guid] = ani;
             ani.init(aniInfo, display, guid);
+            if (!stop) {
+                ani.play();
+            }
             return ani;
         }
 
@@ -202,5 +340,89 @@ module junyou {
                 ani.recycle();
             }
         }
+    }
+    export interface AniOption {
+        guid?: number;
+
+        /**
+         * 坐标集合
+         * 如果同时配置此值和x，优先取此值作为坐标X
+         * 如果同时配置此值和y，优先取此值作为坐标Y
+         * @type {Point}
+         * @memberof AniOption
+         */
+        pos?: Point;
+
+        /**
+         * 坐标X
+         * 
+         * @type {number}
+         * @memberof AniOption
+         */
+        x?: number;
+        /**
+         * 坐标Y
+         * 
+         * @type {number}
+         * @memberof AniOption
+         */
+        y?: number;
+
+        /**
+         * 容器，如果配置此值，则自动将视图加入到容器中
+         * 
+         * @type {egret.DisplayObjectContainer}
+         * @memberof AniOption
+         */
+        parent?: egret.DisplayObjectContainer;
+
+        /**
+         * 有parent此值才有意义
+         * 当有此值时，使用 addChildAt添加
+         * @type {number}
+         * @memberof AniOption
+         */
+        childIdx?: number;
+
+        /**
+         * 是否初始停止播放
+         * 
+         * @type {boolean}
+         * @memberof AniOption
+         */
+        stop?: boolean;
+
+        /**
+         * 循环播放次数
+         * 如果设置此值，不按原始数据的 isCircle进行播放
+         * 
+         * @type {number}
+         * @memberof AniOption
+         */
+        loop?: number;
+
+        /**
+         *  事件处理的回调函数
+         * 
+         * @type {CallbackInfo<{ (event: Key, render: AniRender, now?: number, ...args) }>}
+         * @memberof AniOption
+         */
+        handler?: CallbackInfo<{ (event: Key, render: AniRender, now?: number, ...args) }>;
+
+        /**
+         * ani回收策略
+         * 
+         * @type {AniRecyclePolicy}
+         * @memberof AniOption
+         */
+        recyclePolicy?: AniRecyclePolicy;
+
+        /**
+         * 
+         * 是否等待纹理加载完，才播放
+         * @type {boolean}
+         * @memberof AniOption
+         */
+        waitTexture?: boolean;
     }
 }
