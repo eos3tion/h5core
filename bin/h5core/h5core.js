@@ -1793,7 +1793,6 @@ var junyou;
                 this.clearRes();
                 this.renderFrame(this.willRenderFrame, now);
             }
-            this.willRenderFrame = undefined;
         };
         /**
          * 渲染指定帧
@@ -5121,10 +5120,6 @@ var junyou;
     }
     junyou.getXHR = getXHR;
 })(junyou || (junyou = {}));
-// interface ActiveXObject {
-//     new (key: "MSXML2.XMLHTTP"): XMLHttpRequest
-// }
-// declare const ActiveXObject: ActiveXObject; 
 var junyou;
 (function (junyou) {
     /**
@@ -8710,7 +8705,9 @@ var junyou;
                 return;
             }
             this.f = frame.f;
-            this.display.draw(this, now);
+            if (this.display.draw(this, now)) {
+                this.willRenderFrame = undefined;
+            }
         };
         /**
          * 派发事件
@@ -9392,6 +9389,13 @@ var junyou;
         };
         /**
          * 将资源渲染到位图容器中
+         *
+         * @param {egret.Bitmap} bitmap 要被绘制的位图
+         * @param {IDrawInfo} drawInfo  绘制信息
+         * @param {number} now 当前时间戳
+         * @returns {boolean} true 表示绘制成功
+         *                    其他情况标识绘制失败
+         * @memberof UnitResource
          */
         UnitResource.prototype.draw = function (bitmap, drawInfo, now) {
             var datas = this._datas;
@@ -9405,21 +9409,13 @@ var junyou;
                 if (frames_2) {
                     var frame = frames_2[f];
                     if (frame) {
-                        // const info = this._splitInfo;
-                        // let r = info.getResource(d, a);
-                        // let uri = this.key + "/" + r + Ext.PNG;
-                        // let res = ResourceManager.get(uri, () => {
-                        //     let tmp = new SplitUnitResource(uri);
-                        //     tmp.bindTextures(datas, info.adDict[r]);
-                        //     tmp.load();
-                        //     return tmp;
-                        // });
                         var res = this.loadRes(d, a);
                         res.lastUseTime = junyou.Global.now;
                         if (frame.bitmapData) {
                             bitmap.texture = frame;
                             bitmap.anchorOffsetX = frame.tx;
                             bitmap.anchorOffsetY = frame.ty;
+                            return true;
                         }
                         else {
                             bitmap.texture = undefined;

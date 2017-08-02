@@ -6,7 +6,7 @@ declare module egret {
          * @type {egret.Rectangle}
          * @memberOf DisplayObject
          */
-        suiRawRect?: Readonly<egret.Rectangle>;
+        suiRawRect?: egret.Rectangle;
     }
 }
 declare module junyou {
@@ -2614,6 +2614,10 @@ declare module junyou {
 interface Window {
     XMLHttpRequest?: XMLHttpRequest;
 }
+interface ActiveXObject {
+    new(key: "MSXML2.XMLHTTP"): XMLHttpRequest;
+}
+declare const ActiveXObject: ActiveXObject;
 declare module junyou {
     /**
      * protobuf2 的字段类型
@@ -4823,8 +4827,15 @@ declare module junyou {
         dataLoadComplete(data: Object, key: string): void;
         /**
          * 将资源渲染到位图容器中
+         *
+         * @param {egret.Bitmap} bitmap 要被绘制的位图
+         * @param {IDrawInfo} drawInfo  绘制信息
+         * @param {number} now 当前时间戳
+         * @returns {boolean} true 表示绘制成功
+         *                    其他情况标识绘制失败
+         * @memberof UnitResource
          */
-        draw(bitmap: egret.Bitmap, drawInfo: IDrawInfo, now: number): void;
+        draw(bitmap: egret.Bitmap, drawInfo: IDrawInfo, now: number): boolean;
         loadRes(d: number, a: number): SplitUnitResource;
         isResOK(d: number, a: number): boolean;
     }
