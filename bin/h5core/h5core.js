@@ -17049,12 +17049,20 @@ var junyou;
             if (pady === void 0) { pady = 0; }
             var _a = junyou.Layout.getParentSize(dis, parent), parentWidth = _a[0], parentHeight = _a[1];
             result = result || {};
-            var w = dis.width;
-            var h = dis.height;
             var mx = point.x;
             var my = point.y;
             var x = mx + padx;
             var y = my + pady;
+            var func = dis["getTransformedBounds"];
+            var rect;
+            if (func) {
+                rect = func.call(dis, dis);
+            }
+            else {
+                rect = new egret.Rectangle(dis.x, dis.y, dis.width, dis.height);
+            }
+            var w = rect.width;
+            var h = rect.height;
             if (w + x + padx > parentWidth) {
                 x = parentWidth - w - padx;
                 if (x < mx) {

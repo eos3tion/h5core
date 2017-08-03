@@ -251,12 +251,19 @@ module junyou {
         getTipLayoutPos(dis: LayoutDisplay, point: Point, result?: { x: number, y: number }, padx = 0, pady = 0, parent?: LayoutDisplayParent) {
             let [parentWidth, parentHeight] = Layout.getParentSize(dis, parent);
             result = result || {} as { x: number, y: number };
-            let w = dis.width;
-            let h = dis.height;
             let mx = point.x;
             let my = point.y;
             let x = mx + padx;
             let y = my + pady;
+            let func = dis["getTransformedBounds"];
+            let rect: egret.Rectangle;
+            if (func) {
+                rect = func.call(dis, dis);
+            } else {
+                rect = new egret.Rectangle(dis.x, dis.y, dis.width, dis.height);
+            }
+            let w = rect.width;
+            let h = rect.height;
             if (w + x + padx > parentWidth) {
                 x = parentWidth - w - padx;
                 if (x < mx) {
