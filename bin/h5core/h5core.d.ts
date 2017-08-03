@@ -2697,7 +2697,7 @@ declare module junyou {
          * @memberOf PBStructDict
          */
         $$inted?: any;
-        /**消息名称*/ [index: string]: PBStruct;
+        /**消息名称*/[index: string]: PBStruct;
     }
     /**
      *
@@ -3045,7 +3045,7 @@ declare module junyou {
          * @memberOf ArraySet
          */
         readonly rawDict: {
-            readonly [index: string]: V;
+            readonly[index: string]: V;
         };
         /**
          * 设置原始字典
@@ -4687,8 +4687,8 @@ declare module junyou {
         constructor(TCreator: {
             new (): T;
         } | {
-            (): T;
-        }, max?: number);
+                (): T;
+            }, max?: number);
     }
     interface RecyclablePool<T> {
         /**
@@ -8820,9 +8820,9 @@ declare module junyou {
             x: number;
             y: number;
         }, hoffset?: number, voffset?: number, innerV?: boolean, innerH?: boolean): {
-            x: number;
-            y: number;
-        };
+                x: number;
+                y: number;
+            };
         tipLayout(dis: LayoutDisplay, point: Point, result?: {
             x: number;
             y: number;
@@ -8831,9 +8831,9 @@ declare module junyou {
             x: number;
             y: number;
         }, padx?: number, pady?: number, parent?: LayoutDisplayParent): {
-            x: number;
-            y: number;
-        };
+                x: number;
+                y: number;
+            };
     };
 }
 declare module junyou {

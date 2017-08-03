@@ -258,7 +258,7 @@ module junyou {
             let func = dis["getTransformedBounds"];
             let rect: egret.Rectangle;
             if (func) {
-                rect = func.call(dis, dis);
+                rect = func.call(dis, parent || egret.sys.$TempStage);
             } else {
                 rect = new egret.Rectangle(dis.x, dis.y, dis.width, dis.height);
             }

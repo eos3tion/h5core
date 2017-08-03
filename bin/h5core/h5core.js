@@ -17056,7 +17056,7 @@ var junyou;
             var func = dis["getTransformedBounds"];
             var rect;
             if (func) {
-                rect = func.call(dis, dis);
+                rect = func.call(dis, parent || egret.sys.$TempStage);
             }
             else {
                 rect = new egret.Rectangle(dis.x, dis.y, dis.width, dis.height);
