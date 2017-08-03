@@ -237,7 +237,8 @@ module junyou {
             if (!content) {
                 return;
             }
-            content.stage.off(TE.TOUCH_MOVE, this.moveOnContent, this);
+            let stage = content.stage || egret.sys.$TempStage;
+            stage.off(TE.TOUCH_MOVE, this.moveOnContent, this);
             content.off(TE.TOUCH_END, this.endTouchContent, this);
             content.off(TE.TOUCH_RELEASE_OUTSIDE, this.endTouchContent, this);
             let now = Global.now;
