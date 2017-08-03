@@ -17626,6 +17626,9 @@ var junyou;
             }
         };
         CheckBoxGroup.prototype.$setSelectedItem = function (item) {
+            if (!item) {
+                return;
+            }
             // 检查是否勾选
             var selected = this._selected;
             var changed, idx = -1;

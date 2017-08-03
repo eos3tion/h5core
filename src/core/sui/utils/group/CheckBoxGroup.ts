@@ -38,6 +38,9 @@ module junyou {
         }
 
         protected $setSelectedItem(item?: IGroupItem) {
+            if (!item) {//不改变当前选中
+                return;
+            }
             // 检查是否勾选
             const selected = this._selected;
             let changed: boolean, idx = -1;
