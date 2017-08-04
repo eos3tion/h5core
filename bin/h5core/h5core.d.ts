@@ -2292,12 +2292,12 @@ declare module junyou {
          * @param out
          */
         protected decodeBytes(bytes: ByteArray): void;
-        protected getBytesBase(bytes: ByteArray): {
+        protected decodeBytesHeader(bytes: ByteArray): {
             nextRound: any;
             cmd: any;
             len: any;
         };
-        protected writeBytesBase(bytes: ByteArray, val: number): void;
+        protected writeBytesLength(bytes: ByteArray, val: number): void;
         /**
          *
          * 模拟服务端

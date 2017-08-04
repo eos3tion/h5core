@@ -601,14 +601,14 @@ module junyou {
             let type = data.msgType;
             bytes.writeShort(cmd);
             if (dat == undefined) {
-                this.writeBytesBase(bytes, 0);
+                this.writeBytesLength(bytes, 0);
                 if (DEBUG) {
                     var outdata = undefined;
                 }
             }
             else {
                 if (type in BytesLen) {
-                    this.writeBytesBase(bytes, BytesLen[type]);
+                    this.writeBytesLength(bytes, BytesLen[type]);
                 }
                 if (DEBUG) {
                     outdata = dat;
@@ -654,7 +654,7 @@ module junyou {
                         } else {
                             PBMessageUtils.writeTo(dat, <string>data.msgType, tempBytes);
                         }
-                        bytes.writeUnsignedShort(tempBytes.length);
+                        this.writeBytesLength(bytes,tempBytes.length)
                         bytes.writeBytes(tempBytes);
                         break;
                 }
@@ -674,7 +674,7 @@ module junyou {
             let tmpList = this._tmpList;
             let idx = 0;
             while (true) {
-                let {cmd, len, nextRound} = this.getBytesBase(bytes);
+                let {cmd, len, nextRound} = this.decodeBytesHeader(bytes);
                 if (nextRound) {
                     //回滚
                     break;
@@ -757,7 +757,7 @@ module junyou {
             }
         }
 
-        protected getBytesBase(bytes: ByteArray) {
+        protected decodeBytesHeader(bytes: ByteArray) {
             let cmd;
             let len;
             let nextRound;
@@ -778,7 +778,7 @@ module junyou {
             return { nextRound, cmd, len }
         }
 
-        protected writeBytesBase(bytes: ByteArray, val: number) {
+        protected writeBytesLength(bytes: ByteArray, val: number) {
             bytes.writeUnsignedShort(val);
         }
 

@@ -4189,14 +4189,14 @@ var junyou;
             var type = data.msgType;
             bytes.writeShort(cmd);
             if (dat == undefined) {
-                this.writeBytesBase(bytes, 0);
+                this.writeBytesLength(bytes, 0);
                 if (DEBUG) {
                     var outdata = undefined;
                 }
             }
             else {
                 if (type in BytesLen) {
-                    this.writeBytesBase(bytes, BytesLen[type]);
+                    this.writeBytesLength(bytes, BytesLen[type]);
                 }
                 if (DEBUG) {
                     outdata = dat;
@@ -4243,7 +4243,7 @@ var junyou;
                         else {
                             junyou.PBMessageUtils.writeTo(dat, data.msgType, tempBytes);
                         }
-                        bytes.writeUnsignedShort(tempBytes.length);
+                        this.writeBytesLength(bytes, tempBytes.length);
                         bytes.writeBytes(tempBytes);
                         break;
                 }
@@ -4262,7 +4262,7 @@ var junyou;
             var tmpList = this._tmpList;
             var idx = 0;
             while (true) {
-                var _a = this.getBytesBase(bytes), cmd = _a.cmd, len = _a.len, nextRound = _a.nextRound;
+                var _a = this.decodeBytesHeader(bytes), cmd = _a.cmd, len = _a.len, nextRound = _a.nextRound;
                 if (nextRound) {
                     //回滚
                     break;
@@ -4343,7 +4343,7 @@ var junyou;
                 router.dispatch(nData);
             }
         };
-        NetService.prototype.getBytesBase = function (bytes) {
+        NetService.prototype.decodeBytesHeader = function (bytes) {
             var cmd;
             var len;
             var nextRound;
@@ -4363,7 +4363,7 @@ var junyou;
             }
             return { nextRound: nextRound, cmd: cmd, len: len };
         };
-        NetService.prototype.writeBytesBase = function (bytes, val) {
+        NetService.prototype.writeBytesLength = function (bytes, val) {
             bytes.writeUnsignedShort(val);
         };
         /**
