@@ -2292,6 +2292,11 @@ declare module junyou {
          * @param out
          */
         protected decodeBytes(bytes: ByteArray): void;
+        protected getBytesBase(bytes: ByteArray): {
+            nextRound: any;
+            cmd: any;
+            len: any;
+        };
         /**
          *
          * 模拟服务端
@@ -7403,7 +7408,7 @@ declare module junyou {
      * @author 3tion
      *
      */
-    var DataLocator: {
+      var DataLocator: {
         regParser: (key: keyof CfgData, parser: ConfigDataParser) => void;
         parsePakedDatas(): void;
         regCommonParser(key: keyof CfgData, CfgCreator: 0 | (new () => Cfg), idkey?: string): void;

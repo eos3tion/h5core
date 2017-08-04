@@ -674,16 +674,9 @@ module junyou {
             let tmpList = this._tmpList;
             let idx = 0;
             while (true) {
-                if (bytes.readAvailable < 4) {
-                    break;
-                }
-                //先读取2字节协议号
-                let cmd = bytes.readShort();
-                //增加2字节的数据长度读取(这2字节是用于增加容错的，方便即便没有读到type，也能跳过指定长度的数据，让下一个指令能正常处理)
-                let len = bytes.readUnsignedShort();
-                if (bytes.readAvailable < len) {
-                    // 回滚
-                    bytes.position -= 4;
+                let {cmd, len, nextRound} = this.getBytesBase(bytes);
+                if (nextRound) {
+                    //回滚
                     break;
                 }
                 //尝试读取结束后，应该在的索引
@@ -762,6 +755,27 @@ module junyou {
                 let nData = tmpList[i];
                 router.dispatch(nData);
             }
+        }
+
+        protected getBytesBase(bytes: ByteArray) {
+            let cmd;
+            let len;
+            let nextRound;
+            if (bytes.readAvailable < 4) {
+                nextRound = true;
+                return { nextRound, cmd, len };
+            }
+            //先读取2字节协议号
+            cmd = bytes.readShort();
+            //增加2字节的数据长度读取(这2字节是用于增加容错的，方便即便没有读到type，也能跳过指定长度的数据，让下一个指令能正常处理)
+            len = bytes.readUnsignedShort();
+            if (bytes.readAvailable < len) {
+                // 回滚
+                bytes.position -= 4;
+                nextRound = true;
+                return { nextRound, cmd, len };
+            }
+            return { nextRound, cmd, len }
         }
 
         /**

@@ -4262,16 +4262,9 @@ var junyou;
             var tmpList = this._tmpList;
             var idx = 0;
             while (true) {
-                if (bytes.readAvailable < 4) {
-                    break;
-                }
-                //先读取2字节协议号
-                var cmd = bytes.readShort();
-                //增加2字节的数据长度读取(这2字节是用于增加容错的，方便即便没有读到type，也能跳过指定长度的数据，让下一个指令能正常处理)
-                var len = bytes.readUnsignedShort();
-                if (bytes.readAvailable < len) {
-                    // 回滚
-                    bytes.position -= 4;
+                var _a = this.getBytesBase(bytes), cmd = _a.cmd, len = _a.len, nextRound = _a.nextRound;
+                if (nextRound) {
+                    //回滚
                     break;
                 }
                 //尝试读取结束后，应该在的索引
@@ -4349,6 +4342,26 @@ var junyou;
                 var nData = tmpList[i];
                 router.dispatch(nData);
             }
+        };
+        NetService.prototype.getBytesBase = function (bytes) {
+            var cmd;
+            var len;
+            var nextRound;
+            if (bytes.readAvailable < 4) {
+                nextRound = true;
+                return { nextRound: nextRound, cmd: cmd, len: len };
+            }
+            //先读取2字节协议号
+            cmd = bytes.readShort();
+            //增加2字节的数据长度读取(这2字节是用于增加容错的，方便即便没有读到type，也能跳过指定长度的数据，让下一个指令能正常处理)
+            len = bytes.readUnsignedShort();
+            if (bytes.readAvailable < len) {
+                // 回滚
+                bytes.position -= 4;
+                nextRound = true;
+                return { nextRound: nextRound, cmd: cmd, len: len };
+            }
+            return { nextRound: nextRound, cmd: cmd, len: len };
         };
         /**
          *
