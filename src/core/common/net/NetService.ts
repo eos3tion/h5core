@@ -601,14 +601,14 @@ module junyou {
             let type = data.msgType;
             bytes.writeShort(cmd);
             if (dat == undefined) {
-                bytes.writeUnsignedShort(0);
+                this.writeBytesBase(bytes, 0);
                 if (DEBUG) {
                     var outdata = undefined;
                 }
             }
             else {
                 if (type in BytesLen) {
-                    bytes.writeUnsignedShort(BytesLen[type]);
+                    this.writeBytesBase(bytes, BytesLen[type]);
                 }
                 if (DEBUG) {
                     outdata = dat;
@@ -776,6 +776,10 @@ module junyou {
                 return { nextRound, cmd, len };
             }
             return { nextRound, cmd, len }
+        }
+
+        protected writeBytesBase(bytes: ByteArray, val: number) {
+            bytes.writeUnsignedShort(val);
         }
 
         /**

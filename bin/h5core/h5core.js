@@ -4189,14 +4189,14 @@ var junyou;
             var type = data.msgType;
             bytes.writeShort(cmd);
             if (dat == undefined) {
-                bytes.writeUnsignedShort(0);
+                this.writeBytesBase(bytes, 0);
                 if (DEBUG) {
                     var outdata = undefined;
                 }
             }
             else {
                 if (type in BytesLen) {
-                    bytes.writeUnsignedShort(BytesLen[type]);
+                    this.writeBytesBase(bytes, BytesLen[type]);
                 }
                 if (DEBUG) {
                     outdata = dat;
@@ -4362,6 +4362,9 @@ var junyou;
                 return { nextRound: nextRound, cmd: cmd, len: len };
             }
             return { nextRound: nextRound, cmd: cmd, len: len };
+        };
+        NetService.prototype.writeBytesBase = function (bytes, val) {
+            bytes.writeUnsignedShort(val);
         };
         /**
          *

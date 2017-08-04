@@ -2297,6 +2297,7 @@ declare module junyou {
             cmd: any;
             len: any;
         };
+        protected writeBytesBase(bytes: ByteArray, val: number): void;
         /**
          *
          * 模拟服务端
