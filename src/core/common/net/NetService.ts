@@ -290,7 +290,7 @@ if (DEBUG) {
 }
 
 module junyou {
-    const enum NSType {
+    export const enum NSType {
         Null = 0,
         Boolean = 1,
         String = 2,
@@ -301,7 +301,7 @@ module junyou {
         Int64 = 8
     }
 
-    const BytesLen = {
+    export const NSBytesLen = {
         /**NSType.Null */0: 0,
         /**NSType.Boolean */1: 1,
         /**NSType.Double */5: 8,
@@ -309,6 +309,34 @@ module junyou {
         /**NSType.Uint32 */7: 4,
         /**NSType.Int64 */8: 8
     };
+    /**
+     * 用于存储头部的临时变量
+     */
+    export const nsHeader = { cmd: 0, len: 0 };
+
+    /**
+     * 头信息
+     * 
+     * @export
+     * @interface NSHeader
+     */
+    export interface NSHeader {
+        /**
+         * 指令/协议号
+         * 
+         * @type {number}
+         * @memberof NSHeader
+         */
+        cmd: number;
+
+        /**
+         * 长度
+         * 
+         * @type {number}
+         * @memberof NSHeader
+         */
+        len: number;
+    }
 	/**
 	 * 通信服务
 	 * 收发的协议结构：
@@ -607,8 +635,8 @@ module junyou {
                 }
             }
             else {
-                if (type in BytesLen) {
-                    this.writeBytesLength(bytes, BytesLen[type]);
+                if (type in NSBytesLen) {
+                    this.writeBytesLength(bytes, NSBytesLen[type]);
                 }
                 if (DEBUG) {
                     outdata = dat;
@@ -654,7 +682,7 @@ module junyou {
                         } else {
                             PBMessageUtils.writeTo(dat, <string>data.msgType, tempBytes);
                         }
-                        this.writeBytesLength(bytes,tempBytes.length)
+                        this.writeBytesLength(bytes, tempBytes.length)
                         bytes.writeBytes(tempBytes);
                         break;
                 }
@@ -663,6 +691,7 @@ module junyou {
                 this.$writeNSLog(Global.now, "send", cmd, outdata);
             }
         }
+
 
         /**
          * @private 
@@ -673,12 +702,14 @@ module junyou {
             let receiveMSG = this._receiveMSG;
             let tmpList = this._tmpList;
             let idx = 0;
+            let header = nsHeader;
+            let decodeHeader = this.decodeHeader;
             while (true) {
-                let {cmd, len, nextRound} = this.decodeBytesHeader(bytes);
-                if (nextRound) {
+                if (!decodeHeader(bytes, header)) {
                     //回滚
                     break;
                 }
+                let { cmd, len } = header;
                 //尝试读取结束后，应该在的索引
                 let endPos = bytes.position + len;
                 let type = receiveMSG[cmd];
@@ -686,8 +717,8 @@ module junyou {
                     let flag = true;
                     let data = undefined;
                     if (len > 0) {
-                        if (type in BytesLen) {
-                            let blen = BytesLen[type];
+                        if (type in NSBytesLen) {
+                            let blen = NSBytesLen[type];
                             if (blen != len) {
                                 ThrowError(`解析指令时，类型[${type}]的指令长度[${len}]和预设的长度[${blen}]不匹配`);
                             }
@@ -757,27 +788,41 @@ module junyou {
             }
         }
 
-        protected decodeBytesHeader(bytes: ByteArray) {
-            let cmd;
-            let len;
-            let nextRound;
+        /**
+         * 解析头部信息
+         * 
+         * @protected
+         * @param {ByteArray} bytes 
+         * @param {NSHeader} header 
+         * @returns 是否可以继续  true    继续后续解析
+         *                       false   取消后续解析
+         * @memberof NetService
+         */
+        protected decodeHeader(bytes: ByteArray, header: NSHeader) {
             if (bytes.readAvailable < 4) {
-                nextRound = true;
-                return { nextRound, cmd, len };
+                return false;
             }
             //先读取2字节协议号
-            cmd = bytes.readShort();
+            header.cmd = bytes.readShort();
             //增加2字节的数据长度读取(这2字节是用于增加容错的，方便即便没有读到type，也能跳过指定长度的数据，让下一个指令能正常处理)
-            len = bytes.readUnsignedShort();
+            let len = bytes.readUnsignedShort();
             if (bytes.readAvailable < len) {
                 // 回滚
                 bytes.position -= 4;
-                nextRound = true;
-                return { nextRound, cmd, len };
+                return false;
             }
-            return { nextRound, cmd, len }
+            header.len = len;
+            return true;
         }
 
+        /**
+         * 存储数据长度
+         * 
+         * @protected
+         * @param {ByteArray} bytes 
+         * @param {number} val 
+         * @memberof NetService
+         */
         protected writeBytesLength(bytes: ByteArray, val: number) {
             bytes.writeUnsignedShort(val);
         }

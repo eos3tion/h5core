@@ -3973,7 +3973,7 @@ if (DEBUG) {
 }
 var junyou;
 (function (junyou) {
-    var BytesLen = {
+    junyou.NSBytesLen = {
         /**NSType.Null */ 0: 0,
         /**NSType.Boolean */ 1: 1,
         /**NSType.Double */ 5: 8,
@@ -3981,6 +3981,10 @@ var junyou;
         /**NSType.Uint32 */ 7: 4,
         /**NSType.Int64 */ 8: 8
     };
+    /**
+     * 用于存储头部的临时变量
+     */
+    junyou.nsHeader = { cmd: 0, len: 0 };
     /**
      * 通信服务
      * 收发的协议结构：
@@ -4195,8 +4199,8 @@ var junyou;
                 }
             }
             else {
-                if (type in BytesLen) {
-                    this.writeBytesLength(bytes, BytesLen[type]);
+                if (type in junyou.NSBytesLen) {
+                    this.writeBytesLength(bytes, junyou.NSBytesLen[type]);
                 }
                 if (DEBUG) {
                     outdata = dat;
@@ -4261,12 +4265,14 @@ var junyou;
             var receiveMSG = this._receiveMSG;
             var tmpList = this._tmpList;
             var idx = 0;
+            var header = junyou.nsHeader;
+            var decodeHeader = this.decodeHeader;
             while (true) {
-                var _a = this.decodeBytesHeader(bytes), cmd = _a.cmd, len = _a.len, nextRound = _a.nextRound;
-                if (nextRound) {
+                if (!decodeHeader(bytes, header)) {
                     //回滚
                     break;
                 }
+                var cmd = header.cmd, len = header.len;
                 //尝试读取结束后，应该在的索引
                 var endPos = bytes.position + len;
                 var type = receiveMSG[cmd];
@@ -4274,8 +4280,8 @@ var junyou;
                     var flag = true;
                     var data = undefined;
                     if (len > 0) {
-                        if (type in BytesLen) {
-                            var blen = BytesLen[type];
+                        if (type in junyou.NSBytesLen) {
+                            var blen = junyou.NSBytesLen[type];
                             if (blen != len) {
                                 junyou.ThrowError("\u89E3\u6790\u6307\u4EE4\u65F6\uFF0C\u7C7B\u578B[" + type + "]\u7684\u6307\u4EE4\u957F\u5EA6[" + len + "]\u548C\u9884\u8BBE\u7684\u957F\u5EA6[" + blen + "]\u4E0D\u5339\u914D");
                             }
@@ -4343,26 +4349,40 @@ var junyou;
                 router.dispatch(nData);
             }
         };
-        NetService.prototype.decodeBytesHeader = function (bytes) {
-            var cmd;
-            var len;
-            var nextRound;
+        /**
+         * 解析头部信息
+         *
+         * @protected
+         * @param {ByteArray} bytes
+         * @param {NSHeader} header
+         * @returns 是否可以继续  true    继续后续解析
+         *                       false   取消后续解析
+         * @memberof NetService
+         */
+        NetService.prototype.decodeHeader = function (bytes, header) {
             if (bytes.readAvailable < 4) {
-                nextRound = true;
-                return { nextRound: nextRound, cmd: cmd, len: len };
+                return false;
             }
             //先读取2字节协议号
-            cmd = bytes.readShort();
+            header.cmd = bytes.readShort();
             //增加2字节的数据长度读取(这2字节是用于增加容错的，方便即便没有读到type，也能跳过指定长度的数据，让下一个指令能正常处理)
-            len = bytes.readUnsignedShort();
+            var len = bytes.readUnsignedShort();
             if (bytes.readAvailable < len) {
                 // 回滚
                 bytes.position -= 4;
-                nextRound = true;
-                return { nextRound: nextRound, cmd: cmd, len: len };
+                return false;
             }
-            return { nextRound: nextRound, cmd: cmd, len: len };
+            header.len = len;
+            return true;
         };
+        /**
+         * 存储数据长度
+         *
+         * @protected
+         * @param {ByteArray} bytes
+         * @param {number} val
+         * @memberof NetService
+         */
         NetService.prototype.writeBytesLength = function (bytes, val) {
             bytes.writeUnsignedShort(val);
         };
