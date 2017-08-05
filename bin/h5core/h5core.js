@@ -15372,6 +15372,13 @@ var junyou;
             this.textures = [];
             this.bmdState = 0 /* UNREQUEST */;
             /**
+             * 最大纹理加载失败次数
+             *
+             * @protected
+             * @memberof SuiBmd
+             */
+            this._maxErrCount = 3;
+            /**
              * 使用计数
              */
             this.using = 0;
@@ -15405,12 +15412,27 @@ var junyou;
             configurable: true
         });
         SuiBmd.prototype.loadBmd = function () {
-            if (this.bmdState == 0 /* UNREQUEST */) {
+            if (this.bmdState <= 0 /* UNREQUEST */) {
                 RES.getResByUrl(this._url, this.checkBitmap, this, RES.ResourceItem.TYPE_IMAGE);
                 this.bmdState = 1 /* REQUESTING */;
             }
         };
         SuiBmd.prototype.checkBitmap = function (tex, key) {
+            if (!tex) {
+                //加载失败尝试3次重新加载资源
+                this.bmdState = -1 /* FAILED */;
+                var _errCount = ~~this._errCount;
+                _errCount++;
+                this._errCount = _errCount;
+                if (_errCount < this._maxErrCount) {
+                    this.loadBmd();
+                }
+                else {
+                    junyou.ThrowError("\u5C1D\u8BD5" + _errCount + "\u6B21\u52A0\u8F7D\u8D44\u6E90[" + this._url + "]\u5931\u8D25");
+                    junyou.dispatch(-1070 /* SuiBmdLoadFailed */, this._uri);
+                }
+                return;
+            }
             var bmd = tex.bitmapData;
             var imgs = this.textures;
             this.bmd = bmd;
