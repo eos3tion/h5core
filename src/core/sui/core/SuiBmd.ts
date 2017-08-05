@@ -14,7 +14,15 @@ module junyou {
 
         public bmdState: RequestState = RequestState.UNREQUEST;
 
-        private _url: string;
+        /**
+         * 最大纹理加载失败次数
+         * 
+         * @protected
+         * @memberof SuiBmd
+         */
+        protected _maxErrCount = 3;
+
+        protected _url: string;
 
         public get url() {
             return this._url;
@@ -42,19 +50,35 @@ module junyou {
          */
         public loading: SuiBmdCallback[] = [];
 
+        protected _errCount: number;
+
         public constructor(uri: string, url: string) {
             this._uri = uri;
             this._url = url;
         }
 
         public loadBmd() {
-            if (this.bmdState == RequestState.UNREQUEST) {
+            if (this.bmdState <= RequestState.UNREQUEST) {
                 RES.getResByUrl(this._url, this.checkBitmap, this, RES.ResourceItem.TYPE_IMAGE);
                 this.bmdState = RequestState.REQUESTING;
             }
         }
 
         protected checkBitmap(tex: egret.Texture, key: string) {
+            if (!tex) {
+                //加载失败尝试3次重新加载资源
+                this.bmdState = RequestState.FAILED;
+                let _errCount = ~~this._errCount;
+                _errCount++;
+                this._errCount = _errCount;
+                if (_errCount <this._maxErrCount) {
+                    this.loadBmd();
+                } else {
+                    ThrowError(`尝试${_errCount}次加载资源[${this._url}]失败`);
+                    dispatch(EventConst.SuiBmdLoadFailed,this._uri);
+                }
+                return
+            }
             let bmd = tex.bitmapData;
             let imgs = this.textures;
             this.bmd = bmd;

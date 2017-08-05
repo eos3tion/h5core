@@ -54,6 +54,14 @@ module junyou {
          * 翻页操作结束  
          * event.data 背面面积/正面面积
          */
-        FlipEnd = -1060
+        FlipEnd = -1060,
+
+        /*======================================SuiBmd=========================================== */
+
+        /**
+         * SuiBmd纹理加载失败  
+         * event.data 为资源的 uri
+         */
+        SuiBmdLoadFailed = -1070,
     }
 }
