@@ -8182,6 +8182,7 @@ var junyou;
     var fun;
     if (window.URL) {
         fun = function (link, origin) {
+            origin = origin || location.href;
             if (!/^((http|https):)?\/\//.test(link)) {
                 link = new URL(link, origin).href;
             }
@@ -8190,6 +8191,7 @@ var junyou;
     }
     else {
         fun = function (link, origin) {
+            origin = origin || location.href;
             if (!/^((http|https):)?\/\//.test(link)) {
                 link = origin + "/" + link;
             }

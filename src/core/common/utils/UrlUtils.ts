@@ -2,6 +2,7 @@ module junyou {
     let fun: { (link: string, origin?: string): string }
     if (window.URL) {
         fun = (link, origin) => {
+            origin = origin || location.href;
             if (!/^((http|https):)?\/\//.test(link)) {
                 link = new URL(link, origin).href;
             }
@@ -9,6 +10,7 @@ module junyou {
         }
     } else {
         fun = (link, origin) => {
+            origin = origin || location.href;
             if (!/^((http|https):)?\/\//.test(link)) {
                 link = origin + "/" + link;
             }
