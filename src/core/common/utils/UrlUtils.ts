@@ -1,5 +1,20 @@
 module junyou {
-
+    let fun: { (link: string, origin?: string): string }
+    if (window.URL) {
+        fun = (link, origin) => {
+            if (!/^((http|https):)?\/\//.test(link)) {
+                link = new URL(link, origin).href;
+            }
+            return link;
+        }
+    } else {
+        fun = (link, origin) => {
+            if (!/^((http|https):)?\/\//.test(link)) {
+                link = origin + "/" + link;
+            }
+            return link;
+        }
+    }
     /**
      * 处理链接地址
      * 如果是http:// 或者  https:// 获取//开头的地址，直接返回  
@@ -9,15 +24,5 @@ module junyou {
      * @param {string} [origin] 
      * @returns 
      */
-    export function solveLink(link: string, origin?: string) {
-        origin = origin || location.href;
-        if (!/^((http|https):)?\/\//.test(link)) {
-            if (window.URL) {
-                link = new URL(link, origin).href;
-            } else {
-                link = origin + "/" + link;
-            }
-        }
-        return link;
-    }
+    export var solveLink: { (link: string, origin?: string): string } = fun;
 }
