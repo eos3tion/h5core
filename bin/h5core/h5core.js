@@ -8179,6 +8179,23 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
+    var fun;
+    if (window.URL) {
+        fun = function (link, origin) {
+            if (!/^((http|https):)?\/\//.test(link)) {
+                link = new URL(link, origin).href;
+            }
+            return link;
+        };
+    }
+    else {
+        fun = function (link, origin) {
+            if (!/^((http|https):)?\/\//.test(link)) {
+                link = origin + "/" + link;
+            }
+            return link;
+        };
+    }
     /**
      * 处理链接地址
      * 如果是http:// 或者  https:// 获取//开头的地址，直接返回
@@ -8188,19 +8205,7 @@ var junyou;
      * @param {string} [origin]
      * @returns
      */
-    function solveLink(link, origin) {
-        origin = origin || location.href;
-        if (!/^((http|https):)?\/\//.test(link)) {
-            if (window.URL) {
-                link = new URL(link, origin).href;
-            }
-            else {
-                link = origin + "/" + link;
-            }
-        }
-        return link;
-    }
-    junyou.solveLink = solveLink;
+    junyou.solveLink = fun;
 })(junyou || (junyou = {}));
 /**
  * 脏字内容
