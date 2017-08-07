@@ -45,6 +45,10 @@ module junyou {
 		/**
 		 * 手机从休眠状态中被唤醒
 		 */
-		Awake
+		Awake,
+		/**
+		 * 频繁发送协议提示
+		 */
+		NetServiceSendLimit,
 	}
 }

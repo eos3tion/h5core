@@ -2195,7 +2195,15 @@ declare module junyou {
         * 请求地址
         */
         protected _actionUrl: string;
+        setLimitEventEmitable(emit: boolean): void;
         protected static _ins: NetService;
+        protected _limitAlert: boolean;
+        protected _limitSendFunc: {
+            (cmd: number, data?: any, msgType?: string | number, limit?: number);
+        };
+        protected _nolimitSendFunc: {
+            (cmd: number, data?: any, msgType?: string | number, limit?: number);
+        };
         static get(): NetService;
         /**
              * 用于调试模式下写日志
@@ -7900,6 +7908,10 @@ declare module junyou {
          * 手机从休眠状态中被唤醒
          */
         Awake = -190,
+        /**
+         * 频繁发送协议提示
+         */
+        NetServiceSendLimit = -189,
     }
 }
 declare module junyou {

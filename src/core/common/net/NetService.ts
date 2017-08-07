@@ -337,6 +337,15 @@ module junyou {
          */
         len: number;
     }
+
+    function send2(cmd: number, data?: any, msgType?: string | number, limit?: number) {
+        if (RequestLimit.check(cmd, limit)) {
+            this._send(cmd, data, msgType);
+        } else {
+            dispatch(EventConst.NetServiceSendLimit, cmd);
+        }
+    }
+
 	/**
 	 * 通信服务
 	 * 收发的协议结构：
@@ -350,8 +359,20 @@ module junyou {
         */
         protected _actionUrl: string;
 
+        public setLimitEventEmitable(emit: boolean) {
+            if (emit) {
+                this.send = send2;
+            } else {
+                delete this.send;
+            }
+        }
 
         protected static _ins: NetService;
+
+        protected _limitAlert: boolean;
+
+        protected _limitSendFunc: { (cmd: number, data?: any, msgType?: string | number, limit?: number) };
+        protected _nolimitSendFunc: { (cmd: number, data?: any, msgType?: string | number, limit?: number) };
 
         public static get(): NetService {
             return this._ins;
@@ -579,6 +600,8 @@ module junyou {
                 this._send(cmd, data, msgType);
             }
         }
+
+
 
         /**
          * 即时发送指令

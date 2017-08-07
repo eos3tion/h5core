@@ -3985,6 +3985,14 @@ var junyou;
      * 用于存储头部的临时变量
      */
     junyou.nsHeader = { cmd: 0, len: 0 };
+    function send2(cmd, data, msgType, limit) {
+        if (junyou.RequestLimit.check(cmd, limit)) {
+            this._send(cmd, data, msgType);
+        }
+        else {
+            junyou.dispatch(-189 /* NetServiceSendLimit */, cmd);
+        }
+    }
     /**
      * 通信服务
      * 收发的协议结构：
@@ -4075,6 +4083,14 @@ var junyou;
             }
             junyou.on(-190 /* Awake */, this.onawake, this);
         }
+        NetService.prototype.setLimitEventEmitable = function (emit) {
+            if (emit) {
+                this.send = send2;
+            }
+            else {
+                delete this.send;
+            }
+        };
         NetService.get = function () {
             return this._ins;
         };
