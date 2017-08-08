@@ -1,22 +1,9 @@
 module junyou {
-    let fun: { (link: string, origin?: string): string }
-    if (window.URL) {
-        fun = (link, origin) => {
-            origin = origin || location.href;
-            if (!/^((http|https):)?\/\//.test(link)) {
-                link = new URL(link, origin).href;
-            }
-            return link;
-        }
-    } else {
-        fun = (link, origin) => {
-            origin = origin || location.href;
-            if (!/^((http|https):)?\/\//.test(link)) {
-                link = origin + "/" + link;
-            }
-            return link;
-        }
-    }
+    let fun: { (link: string, origin: string): string } = window.URL ? (link, origin) => {
+        return new URL(link, origin).href;
+    } : (link, origin) => {
+        return origin + "/" + link;//这个为项目中的简易实现，实现一个完整的URL需要实现太多规则  如 "/" 开头  "//"开头  http://caniuse.com/#search=URL 目前URL的支持状况，后续将屏蔽 此实现
+    };
     /**
      * 处理链接地址
      * 如果是http:// 或者  https:// 获取//开头的地址，直接返回  
@@ -26,5 +13,11 @@ module junyou {
      * @param {string} [origin] 
      * @returns 
      */
-    export var solveLink: { (link: string, origin?: string): string } = fun;
+    export function solveLink(link: string, origin?: string): string {
+        if (!/^((http|https):)?\/\//.test(link)) {
+            origin = origin || location.href;
+            link = fun(link, origin);
+        }
+        return link;
+    }
 }
