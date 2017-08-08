@@ -1,18 +1,6 @@
 module junyou {
     export interface RequestLimit {
         /**
-         * @private
-         * 
-         * @type {{
-         *             [index: string]: number;
-         *         }}
-         * @memberOf RequestLimit
-         */
-        _dic: {
-            [index: string]: number;
-        };
-
-        /**
          * 
          * 
          * @param {(string | number)} o     锁定的对像(可以是任何类型,它会被当做一个key)
@@ -31,6 +19,8 @@ module junyou {
          */
         remove(o: string | number): void;
     }
+
+    let _dic = {} as { [index: string]: number };
 	/**
 	 * 请求限制
 	 * @author 3tion
@@ -38,29 +28,29 @@ module junyou {
 	 */
     export const RequestLimit = {
 
-        _dic: <{ [index: string]: number }>{},
-
-		/**
-		 * @param o 锁定的对像(可以是任何类型,它会被当做一个key)
-		 * @param time 锁定对像 毫秒数
-		 * @return 是否已解锁 true为没有被限制,false 被限制了
-		 *
-		 */
-        check(this: RequestLimit, o: number | string, time = 500) {
-            let dic = this._dic;
-            let t = dic[o];
-            let now = Global.now;
-            if (!t) {
-                dic[o] = time + now;
+        /**
+         * 
+         * 
+         * @param {Key} o 锁定的对像(可以是任何类型,它会被当做一个key)
+         * @param {number} [time=500] 锁定对像 毫秒数
+         * @returns 是否已解锁 true为没有被限制,false 被限制了
+         */
+        check(o: Key, time = 500) {
+            time = time | 0;
+            if (time <= 0) {
                 return true;
             }
-
-            let i: number = t - now;
+            let t = _dic[o];
+            let now = Global.now;
+            if (!t) {
+                _dic[o] = time + now;
+                return true;
+            }
+            let i = t - now;
             if (i > 0) {
                 return false;
             }
-
-            dic[o] = time + now;
+            _dic[o] = time + now;
             return true;
         },
 
@@ -69,8 +59,8 @@ module junyou {
          * @param o
          *
          */
-        remove(this: RequestLimit, o: number | string) {
-            delete this._dic[o];
+        remove(o: Key) {
+            delete _dic[o];
         }
     }
 }

@@ -7784,33 +7784,37 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
+    var _dic = {};
     /**
      * 请求限制
      * @author 3tion
      *
      */
     junyou.RequestLimit = {
-        _dic: {},
         /**
-         * @param o 锁定的对像(可以是任何类型,它会被当做一个key)
-         * @param time 锁定对像 毫秒数
-         * @return 是否已解锁 true为没有被限制,false 被限制了
          *
+         *
+         * @param {Key} o 锁定的对像(可以是任何类型,它会被当做一个key)
+         * @param {number} [time=500] 锁定对像 毫秒数
+         * @returns 是否已解锁 true为没有被限制,false 被限制了
          */
         check: function (o, time) {
             if (time === void 0) { time = 500; }
-            var dic = this._dic;
-            var t = dic[o];
+            time = time | 0;
+            if (time <= 0) {
+                return true;
+            }
+            var t = _dic[o];
             var now = junyou.Global.now;
             if (!t) {
-                dic[o] = time + now;
+                _dic[o] = time + now;
                 return true;
             }
             var i = t - now;
             if (i > 0) {
                 return false;
             }
-            dic[o] = time + now;
+            _dic[o] = time + now;
             return true;
         },
         /**
@@ -7819,7 +7823,7 @@ var junyou;
          *
          */
         remove: function (o) {
-            delete this._dic[o];
+            delete _dic[o];
         }
     };
 })(junyou || (junyou = {}));
