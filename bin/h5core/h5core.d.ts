@@ -721,7 +721,7 @@ declare module egret {
          * @inheritDoc
          * @memberOf EventDispatcher
          */
-        once(type: string | number, listener: Function, thisObject: any, useCapture?: boolean, priority?: number): void;
+        once(type: string | number, listener: Function, thisObject?: any, useCapture?: boolean, priority?: number): void;
         /**
          * addEventListener的别名
          * 使用 EventDispatcher 对象注册事件侦听器对象，以使侦听器能够接收事件通知。可以为特定类型的事件、阶段和优先级在显示列表的所有节
