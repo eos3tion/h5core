@@ -8195,8 +8195,15 @@ var junyou;
 var junyou;
 (function (junyou) {
     var fun = window.URL ? function (link, origin) {
+        origin = origin || location.href;
         return new URL(link, origin).href;
     } : function (link, origin) {
+        if (!origin) {
+            origin = location.href;
+            if (location.href != location.origin) {
+                origin = origin.substr(0, origin.lastIndexOf("/"));
+            }
+        }
         return origin + "/" + link; //这个为项目中的简易实现，实现一个完整的URL需要实现太多规则  如 "/" 开头  "//"开头  http://caniuse.com/#search=URL 目前URL的支持状况，后续将屏蔽 此实现
     };
     /**
@@ -8210,7 +8217,6 @@ var junyou;
      */
     function solveLink(link, origin) {
         if (!/^((http|https):)?\/\//.test(link)) {
-            origin = origin || location.href;
             link = fun(link, origin);
         }
         return link;
