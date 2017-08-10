@@ -1876,11 +1876,11 @@ var junyou;
         /**
          * 空对象
          */
-        EmptyObject: {},
+        EmptyObject: Object.freeze({}),
         /**
          * 空数组
          */
-        EmptyArray: [],
+        EmptyArray: Object.freeze([]),
         /**
          * 管线方法，用于符合函数的结构，并将数值传递下去
          */
@@ -1888,9 +1888,6 @@ var junyou;
             return arg;
         }
     };
-    //冻结空对象，防止对此对象附加数据
-    Object.freeze(junyou.Temp.EmptyObject);
-    Object.freeze(junyou.Temp.EmptyArray);
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -6933,7 +6930,7 @@ var junyou;
          * @static
          * @type {number}
          */
-        var _utcOffset = _sharedDate.getTimezoneOffset() * 60000 /* ONE_MINUTE */; //默认使用当前时区，防止一些报错
+        var _utcOffset = -_sharedDate.getTimezoneOffset() * 60000 /* ONE_MINUTE */; //默认使用当前时区，防止一些报错
         /**
          * 服务器UTC偏移后的基准时间
          *
@@ -6941,7 +6938,7 @@ var junyou;
          * @static
          * @type {number}
          */
-        var _serverUTCTime = -_utcOffset; //默认使用本地时间
+        var _serverUTCTime = _utcOffset; //默认使用本地时间
         var _defaultCountFormats;
         return {
             get sharedDate() {

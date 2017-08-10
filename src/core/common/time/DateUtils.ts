@@ -195,7 +195,7 @@ module junyou {
 		 * @static
 		 * @type {number}
 		 */
-		let _utcOffset = _sharedDate.getTimezoneOffset() * Time.ONE_MINUTE;//默认使用当前时区，防止一些报错
+		let _utcOffset = -_sharedDate.getTimezoneOffset() * Time.ONE_MINUTE;//默认使用当前时区，防止一些报错
 
 		/**
 		 * 服务器UTC偏移后的基准时间
@@ -204,7 +204,7 @@ module junyou {
 		 * @static
 		 * @type {number}
 		 */
-		let _serverUTCTime = -_utcOffset;//默认使用本地时间
+		let _serverUTCTime = _utcOffset;//默认使用本地时间
 
 		let _defaultCountFormats: { [index: number]: CountDownFormatOption };
 
