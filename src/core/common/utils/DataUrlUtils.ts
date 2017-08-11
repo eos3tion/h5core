@@ -36,8 +36,8 @@ module junyou {
              * @param {any} [encodeOptions] 
              * @returns 
              */
-            getDisplayBase64(dis: egret.DisplayObject, type: string, rect?: egret.Rectangle, encodeOptions?) {
-                return getBase64(getDisplayDataURL(dis, type, rect, encodeOptions));
+            getDisplayBase64(dis: egret.DisplayObject, type: string, rect?: egret.Rectangle, encodeOptions?, scale?: number) {
+                return getBase64(getDisplayDataURL(dis, type, rect, encodeOptions, scale));
             },
             /**
              * 获取可视对象的Uint8字节流
@@ -48,16 +48,16 @@ module junyou {
              * @param {any} [encodeOptions] 
              * @returns 
              */
-            getDisplayBytes(dis: egret.DisplayObject, type: string, rect?: egret.Rectangle, encodeOptions?) {
-                return getBytes(getDisplayDataURL(dis, type, rect, encodeOptions))
+            getDisplayBytes(dis: egret.DisplayObject, type: string, rect?: egret.Rectangle, encodeOptions?, scale?: number) {
+                return getBytes(getDisplayDataURL(dis, type, rect, encodeOptions, scale))
             }
         }
-        function getDisplayDataURL(dis: egret.DisplayObject, type: string, rect?: egret.Rectangle, encodeOptions?) {
+        function getDisplayDataURL(dis: egret.DisplayObject, type: string, rect?: egret.Rectangle, encodeOptions?, scale?: number) {
             if (!_texture) {
                 _texture = new egret.RenderTexture;
             }
             rect = rect || dis.getBounds();
-            _texture.drawToTexture(dis, rect);
+            _texture.drawToTexture(dis, rect, scale);
             return _texture.toDataURL(type, rect, encodeOptions);
         }
 
