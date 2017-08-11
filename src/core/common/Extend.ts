@@ -956,8 +956,3 @@ interface Storage {
 
     removeItem(key: number | string): void;
 }
-
-let __getVirtualUrl = RES.$getVirtualUrl;
-RES.$getVirtualUrl = function (url) {
-    return __getVirtualUrl.call(RES, junyou.solveLink(url));
-}
