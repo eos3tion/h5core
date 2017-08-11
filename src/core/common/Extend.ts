@@ -889,11 +889,13 @@ module egret {
             }
         }
         const htmlTextParser = new HtmlTextParser();
-        TextField.prototype.setHtmlText = function (this: TextField, value: string | number) {
-            if (typeof value == "number") {
+        TextField.prototype.setHtmlText = function (this: TextField, value?: string | number) {
+            if (value == undefined) {
+                value = "";
+            } else if (typeof value == "number") {
                 value = value + "";
             }
-            this.textFlow = value ? htmlTextParser.parser(value) : junyou.Temp.EmptyArray;
+            this.textFlow = value ? htmlTextParser.parser(value) : junyou.Temp.EmptyArray as ITextElement[];
         }
         let ept = EventDispatcher.prototype;
         ept.removeAllListeners = function (this: EventDispatcher) {
