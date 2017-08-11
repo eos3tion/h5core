@@ -1,29 +1,3 @@
-declare module junyou {
-    /**
-     *  尝试启用本地资源缓存
-     * @author 3tion(https://github.com/eos3tion/)
-     * @export
-     * @param {number} [version=1]
-     * @returns
-     */
-    function tryLocalRes(version?: number): {
-        save(data: RES.ResourceItem, callback?: (this: IDBRequest, ev: Event) => any): void;
-        get(url: string, callback: (data: RES.ResourceItem) => any): void;
-        delete(url: string, callback: (this: IDBRequest, ev: Event) => any): void;
-        clear(callback: (this: IDBRequest, ev: Event) => any): void;
-    };
-}
-declare namespace RES {
-    interface ResourceItem {
-        /**
-         * 本地缓存的数据
-         *
-         * @type {boolean}
-         * @memberOf ResourceItem
-         */
-        local?: any;
-    }
-}
 declare module egret {
     interface DisplayObject {
         /**
@@ -825,7 +799,6 @@ interface Storage {
     setItem(key: number | string, data: any): void;
     removeItem(key: number | string): void;
 }
-declare let __getVirtualUrl: typeof RES.$getVirtualUrl;
 declare module junyou {
     /**
      * 用于处理接收flash软件制作的UI，导出的数据，仿照eui
@@ -1065,8 +1038,8 @@ declare module junyou {
         };
         voidFunction: () => any;
         willReplacedFunction: () => any;
-        EmptyObject: {};
-        EmptyArray: any[];
+        EmptyObject: Readonly<{}>;
+        EmptyArray: ReadonlyArray<any>;
         pipeFunction: <T>(arg: T) => T;
     };
 }
@@ -1366,6 +1339,49 @@ declare module junyou {
     }
 }
 declare module junyou {
+    import TE = egret.TouchEvent;
+    /**
+     * 单选按钮组
+     * @author pb
+     */
+    class Group extends egret.EventDispatcher {
+        protected _list: IGroupItem[];
+        protected _selectedItem: IGroupItem;
+        protected _selectedIndex: number;
+        /**
+         * 添加单个组件
+         *
+         * @param {IGroupItem} item
+         */
+        addItem(item: IGroupItem): void;
+        protected touchHandler(e: TE): void;
+        /**
+         * 移除单个组件
+         *
+         * @param {IGroupItem} item
+         */
+        removeItem(item: IGroupItem): void;
+        /**
+         * 添加多个组件
+         *
+         * @param {...IGroupItem[]} itemArr
+         */
+        addItems(...itemArr: IGroupItem[]): void;
+        /**
+         * 设置选中组件
+         */
+        selectedItem: IGroupItem;
+        protected $setSelectedItem(item?: IGroupItem): boolean;
+        /**
+         * 设置选中索引
+         */
+        selectedIndex: number;
+        protected $setSelectedIndex(idx: number): void;
+        clear(): void;
+        onRecycle(): void;
+    }
+}
+declare module junyou {
     /**
      * mixin的基类选项
      *
@@ -1442,31 +1458,6 @@ declare module junyou {
     }, clazzB: {
         prototype: B;
     }): MixinCtor<A, B>;
-}
-declare module junyou {
-    /**
-     *
-     * @author 3tion
-     *
-     */
-    const enum RequestState {
-        /**
-         * 未请求/未加载 0
-         */
-        UNREQUEST = 0,
-        /**
-         * 请求中/加载中，未获得值 1
-         */
-        REQUESTING = 1,
-        /**
-         * 已加载/已获取到值 2
-         */
-        COMPLETE = 2,
-        /**
-         * 加载失败 -1
-         */
-        FAILED = -1,
-    }
 }
 declare module junyou {
     import EE = egret.Event;
@@ -1922,6 +1913,31 @@ declare module junyou {
         protected checkAndResetBarPos(): void;
     }
 }
+declare module junyou {
+    /**
+     *
+     * @author 3tion
+     *
+     */
+    const enum RequestState {
+        /**
+         * 未请求/未加载 0
+         */
+        UNREQUEST = 0,
+        /**
+         * 请求中/加载中，未获得值 1
+         */
+        REQUESTING = 1,
+        /**
+         * 已加载/已获取到值 2
+         */
+        COMPLETE = 2,
+        /**
+         * 加载失败 -1
+         */
+        FAILED = -1,
+    }
+}
 interface $NSFilter {
     /**
      * 感兴趣的请求
@@ -2370,49 +2386,6 @@ declare module junyou {
     }
 }
 declare module junyou {
-    import TE = egret.TouchEvent;
-    /**
-     * 单选按钮组
-     * @author pb
-     */
-    class Group extends egret.EventDispatcher {
-        protected _list: IGroupItem[];
-        protected _selectedItem: IGroupItem;
-        protected _selectedIndex: number;
-        /**
-         * 添加单个组件
-         *
-         * @param {IGroupItem} item
-         */
-        addItem(item: IGroupItem): void;
-        protected touchHandler(e: TE): void;
-        /**
-         * 移除单个组件
-         *
-         * @param {IGroupItem} item
-         */
-        removeItem(item: IGroupItem): void;
-        /**
-         * 添加多个组件
-         *
-         * @param {...IGroupItem[]} itemArr
-         */
-        addItems(...itemArr: IGroupItem[]): void;
-        /**
-         * 设置选中组件
-         */
-        selectedItem: IGroupItem;
-        protected $setSelectedItem(item?: IGroupItem): boolean;
-        /**
-         * 设置选中索引
-         */
-        selectedIndex: number;
-        protected $setSelectedIndex(idx: number): void;
-        clear(): void;
-        onRecycle(): void;
-    }
-}
-declare module junyou {
     /**
      * 限制列队
      * @author 3tion
@@ -2561,6 +2534,40 @@ declare module junyou {
          * 方便检查是否实现了IDepender
          */
         addDepend(async: IAsync): any;
+    }
+}
+declare module junyou {
+    /**
+     * 用于发送的网络数据<br/>
+     * @author 3tion
+     */
+    class NetSendData implements IRecyclable {
+        /**
+         * 协议号
+         */
+        cmd: number;
+        /**
+         * 数据
+         */
+        data: any;
+        /**
+         *
+         * protobuf message的类型
+         * @type {string | number}
+         */
+        msgType: string | number;
+        onRecycle(): void;
+    }
+    /**
+     * 网络数据，类似AS3项目中Stream<br/>
+     * @author 3tion
+     *
+     */
+    class NetData extends NetSendData {
+        /**
+         *  是否停止传播
+         */
+        stopPropagation: Boolean;
     }
 }
 declare module junyou {
@@ -2808,24 +2815,29 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     * 动画的全局对象
-     * @author
-     *
+     *  尝试启用本地资源缓存
+     * @author 3tion(https://github.com/eos3tion/)
+     * @export
+     * @param {number} [version=1]
+     * @returns
      */
-    const Global: {
-        initTick: () => void;
-        nextTick: (callback: Function, thisObj?: any, ...args: any[]) => void;
-        callLater: (callback: Function, time?: number, thisObj?: any, ...args: any[]) => void;
-        clearCallLater: (callback: Function, thisObj?: any) => any;
-        getTween: (target: any, props?: TweenOption, pluginData?: any, override?: boolean) => Tween;
-        removeTween: (tween: Tween) => void;
-        removeTweens: (target: any) => void;
-        readonly isNative: boolean;
-        readonly tweenManager: TweenManager;
-        readonly now: number;
-        readonly frameNow: number;
-        readonly webp: string;
+    function tryLocalRes(version?: number): {
+        save(data: RES.ResourceItem, callback?: (this: IDBRequest, ev: Event) => any): void;
+        get(url: string, callback: (data: RES.ResourceItem) => any): void;
+        delete(url: string, callback: (this: IDBRequest, ev: Event) => any): void;
+        clear(callback: (this: IDBRequest, ev: Event) => any): void;
     };
+}
+declare namespace RES {
+    interface ResourceItem {
+        /**
+         * 本地缓存的数据
+         *
+         * @type {boolean}
+         * @memberOf ResourceItem
+         */
+        local?: any;
+    }
 }
 declare module junyou {
     /**
@@ -2948,9 +2960,24 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     * 可用于做Key的类型
+     * 动画的全局对象
+     * @author
+     *
      */
-    type Key = number | string;
+    const Global: {
+        initTick: () => void;
+        nextTick: (callback: Function, thisObj?: any, ...args: any[]) => void;
+        callLater: (callback: Function, time?: number, thisObj?: any, ...args: any[]) => void;
+        clearCallLater: (callback: Function, thisObj?: any) => any;
+        getTween: (target: any, props?: TweenOption, pluginData?: any, override?: boolean) => Tween;
+        removeTween: (tween: Tween) => void;
+        removeTweens: (target: any) => void;
+        readonly isNative: boolean;
+        readonly tweenManager: TweenManager;
+        readonly now: number;
+        readonly frameNow: number;
+        readonly webp: string;
+    };
 }
 declare module junyou {
     /**
@@ -3613,9 +3640,9 @@ declare module junyou {
     const DataUrlUtils: {
         getBase64: (dataUrl: string) => string;
         getBytes: (dataUrl: string) => Uint8Array;
-        getDisplayDataURL: (dis: egret.DisplayObject, type: string, rect?: egret.Rectangle, encodeOptions?: any) => string;
-        getDisplayBase64(dis: egret.DisplayObject, type: string, rect?: egret.Rectangle, encodeOptions?: any): string;
-        getDisplayBytes(dis: egret.DisplayObject, type: string, rect?: egret.Rectangle, encodeOptions?: any): Uint8Array;
+        getDisplayDataURL: (dis: egret.DisplayObject, type: string, rect?: egret.Rectangle, encodeOptions?: any, scale?: number) => string;
+        getDisplayBase64(dis: egret.DisplayObject, type: string, rect?: egret.Rectangle, encodeOptions?: any, scale?: number): string;
+        getDisplayBytes(dis: egret.DisplayObject, type: string, rect?: egret.Rectangle, encodeOptions?: any, scale?: number): Uint8Array;
     };
 }
 declare module junyou {
@@ -3904,33 +3931,9 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     *
-     * 调整ClassFactory
-     * @export
-     * @class ClassFactory
-     * @template T
+     * 可用于做Key的类型
      */
-    class ClassFactory<T> {
-        private _creator;
-        private _props;
-        /**
-         * Creates an instance of ClassFactory.
-         *
-         * @param {{ new (): T }} creator
-         * @param {{ [index: string]: any }} [props]    属性模板
-         */
-        constructor(creator: {
-            new(): T;
-        }, props?: {
-            [index: string]: any;
-        });
-        /**
-         * 获取实例
-         *
-         * @returns
-         */
-        get(): T;
-    }
+    type Key = number | string;
 }
 declare module junyou {
     const TimerUtil: {
@@ -4658,6 +4661,51 @@ declare module junyou {
 }
 declare module junyou {
     /**
+     *
+     * 调整ClassFactory
+     * @export
+     * @class ClassFactory
+     * @template T
+     */
+    class ClassFactory<T> {
+        private _creator;
+        private _props;
+        /**
+         * Creates an instance of ClassFactory.
+         *
+         * @param {{ new (): T }} creator
+         * @param {{ [index: string]: any }} [props]    属性模板
+         */
+        constructor(creator: {
+            new(): T;
+        }, props?: {
+            [index: string]: any;
+        });
+        /**
+         * 获取实例
+         *
+         * @returns
+         */
+        get(): T;
+    }
+}
+declare module junyou {
+    /**
+     * 存储锚点信息
+     */
+    class JTexture extends egret.Texture {
+        /**
+         * 用于设置位图的锚点坐标X
+         */
+        tx: number;
+        /**
+         * 用于设置位图的锚点坐标Y
+         */
+        ty: number;
+    }
+}
+declare module junyou {
+    /**
      * 可回收的对象
      *
      * @export
@@ -4729,31 +4777,6 @@ declare module junyou {
         new(): T;
         _pool?: RecyclablePool<T>;
     }): Recyclable<T>;
-}
-declare module junyou {
-    /**
-     * 存储锚点信息
-     */
-    class JTexture extends egret.Texture {
-        /**
-         * 用于设置位图的锚点坐标X
-         */
-        tx: number;
-        /**
-         * 用于设置位图的锚点坐标Y
-         */
-        ty: number;
-    }
-}
-declare module junyou {
-    /**
-     * 单例工具
-     * @param clazz 要做单例的类型
-     */
-    function singleton<T>(clazz: {
-        new(): T;
-        _instance?: T;
-    }): T;
 }
 declare module junyou {
     /**
@@ -5098,16 +5121,13 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     * 用于像统计接口发送步骤信息
-     * @author pb
+     * 单例工具
+     * @param clazz 要做单例的类型
      */
-    const Stats: {
-        setUrl(url: string): any;
-        setParams(params: ExternalParam): any;
-        setSign(sign: string): any;
-        postData(step: number): void;
-        getParamUrl(step: number): string;
-    };
+    function singleton<T>(clazz: {
+        new(): T;
+        _instance?: T;
+    }): T;
 }
 declare module junyou {
     /**
@@ -5636,31 +5656,18 @@ declare module junyou {
         MODULE_SHOW = -991,
     }
 }
-declare const enum StatsState {
+declare module junyou {
     /**
-     *游戏初始完成
-    */
-    GAME_INIT_COMPLETE = 4,
-    /**
-     *配置完成
+     * 用于像统计接口发送步骤信息
+     * @author pb
      */
-    CONFIG_COMPLETE = 5,
-    /**
-     *资源完成
-     */
-    RES_COMPLETE = 6,
-    /**
-     *帐号登录完成
-     */
-    GAME_LOGIN_COMPLETE = 7,
-    /**
-     *创建角色
-     */
-    ROLE_CREATE = 8,
-    /**
-     *角色登陆完成
-     */
-    ROLE_LOGIN_COMPLETE = 9,
+    const Stats: {
+        setUrl(url: string): any;
+        setParams(params: ExternalParam): any;
+        setSign(sign: string): any;
+        postData(step: number): void;
+        getParamUrl(step: number): string;
+    };
 }
 declare module junyou {
     /**
@@ -6091,35 +6098,31 @@ declare module junyou {
         protected onScriptLoaded(): void;
     }
 }
-declare module junyou {
+declare const enum StatsState {
     /**
-     * 基于4个顶点变形的纹理
-     *
-     * @export
-     * @class QuadTransform
+     *游戏初始完成
+    */
+    GAME_INIT_COMPLETE = 4,
+    /**
+     *配置完成
      */
-    class QuadTransform {
-        private _tex;
-        private _canvas;
-        private _content;
-        constructor();
-        /**
-         * 绘制白鹭的可视对象，并且进行变形
-         *
-         * @param {egret.DisplayObject} display
-         * @param {{ x: number, y: number }} ptl
-         * @param {{ x: number, y: number }} ptr
-         * @param {{ x: number, y: number }} pbl
-         * @param {{ x: number, y: number }} pbr
-         *
-         * @memberOf QuadTransform
-         */
-        drawDisplay(display: egret.DisplayObject, ptl?: QuadTransformPoint, ptr?: QuadTransformPoint, pbl?: QuadTransformPoint, pbr?: QuadTransformPoint): egret.BitmapData;
-    }
-    interface QuadTransformPoint extends Point {
-        Rx?: number;
-        Ry?: number;
-    }
+    CONFIG_COMPLETE = 5,
+    /**
+     *资源完成
+     */
+    RES_COMPLETE = 6,
+    /**
+     *帐号登录完成
+     */
+    GAME_LOGIN_COMPLETE = 7,
+    /**
+     *创建角色
+     */
+    ROLE_CREATE = 8,
+    /**
+     *角色登陆完成
+     */
+    ROLE_LOGIN_COMPLETE = 9,
 }
 declare module junyou {
     /**
@@ -6180,84 +6183,34 @@ declare module junyou {
     }): Mediator & IStateSwitcher & AwakeCheck;
 }
 declare module junyou {
-    interface Path {
-        /**
-         * 路径
-         *
-         * @type {string}
-         * @memberOf Path
-         */
-        path: string;
-        /**
-         * 处理后的路径
-         *
-         * @type {string}
-         * @memberOf Path
-         */
-        tPath: string;
-        /**
-         * 是否忽略前缀
-         *
-         * @type {boolean}
-         * @memberOf Path
-         */
-        iPrefix?: boolean;
-        /**
-         * 父路径的标识
-         *
-         * @type {string}
-         * @memberOf Path
-         */
-        parent?: string;
-    }
-    interface JConfig {
-        /**
-         * 参数字典
-         * key      {string}    标识
-         * value    {any}       对应数据
-         *
-         * @type {{}}
-         * @memberOf JConfig
-         */
-        params?: {};
-        /**
-         * 前缀字典
-         *
-         * @type {string[]}
-         * @memberOf JConfig
-         */
-        prefixes: string[];
-        /**
-         * 路径
-         *
-         * @type {{
-         *             res: Path,
-         *             skin: Path,
-         *             [indes: string]: Path
-         *         }}
-         * @memberOf JConfig
-         */
-        paths: {
-            res: Path;
-            skin: Path;
-            [indes: string]: Path;
-        };
-    }
     /**
-     * 配置工具
-     * @author 3tion
+     * 基于4个顶点变形的纹理
+     *
      * @export
-     * @class ConfigUtils
+     * @class QuadTransform
      */
-    const ConfigUtils: {
-        setData(data: JConfig): void;
-        getResUrl(uri: string, sameDomain?: boolean): string;
-        getParam(key: string): any;
-        getSkinPath: (key: string, fileName: string) => string;
-        getSkinFile(key: string, fileName: string): string;
-        regSkinPath(key: string, path: string, iPrefix?: boolean): void;
-        getUrl(uri: string, pathKey: string): string;
-    };
+    class QuadTransform {
+        private _tex;
+        private _canvas;
+        private _content;
+        constructor();
+        /**
+         * 绘制白鹭的可视对象，并且进行变形
+         *
+         * @param {egret.DisplayObject} display
+         * @param {{ x: number, y: number }} ptl
+         * @param {{ x: number, y: number }} ptr
+         * @param {{ x: number, y: number }} pbl
+         * @param {{ x: number, y: number }} pbr
+         *
+         * @memberOf QuadTransform
+         */
+        drawDisplay(display: egret.DisplayObject, ptl?: QuadTransformPoint, ptr?: QuadTransformPoint, pbl?: QuadTransformPoint, pbr?: QuadTransformPoint): egret.BitmapData;
+    }
+    interface QuadTransformPoint extends Point {
+        Rx?: number;
+        Ry?: number;
+    }
 }
 declare module junyou {
     /**
@@ -7020,67 +6973,85 @@ declare module junyou {
         dispose(): void;
     }
 }
-/**
- * DataLocator的主数据
- * 原 junyou.DataLocator.data  的全局别名简写
- */
-declare const $DD: junyou.CfgData;
-/**
- * DataLocator的附加数据
- * 原junyou.DataLocator.extra 的全局别名简写
- */
-declare var $DE: junyou.ExtraData;
 declare module junyou {
-    /**
-     * 配置加载器<br/>
-     * 用于预加载数据的解析
-     * @author 3tion
-     *
-     */
-    var DataLocator: {
-        regParser: (key: keyof CfgData, parser: ConfigDataParser) => void;
-        parsePakedDatas(): void;
-        regCommonParser(key: keyof CfgData, CfgCreator: 0 | (new () => Cfg), idkey?: string): void;
-    };
-    /**
-     * 配置数据解析函数
-     */
-    interface ConfigDataParser {
-        (data: any): any;
-    }
-    /**
-     * 通过H5ExcelTool生成的数据
-     *
-     * @export
-     */
-    interface Cfg {
+    interface Path {
         /**
-         * 解析配置
+         * 路径
          *
-         * @param {*} data
-         * @param {*} [local]   没有接口，但是需要本地赋值的数据
-         *
-         * @memberOf ICfg
+         * @type {string}
+         * @memberOf Path
          */
-        decode?: {
-            (local?: any);
+        path: string;
+        /**
+         * 处理后的路径
+         *
+         * @type {string}
+         * @memberOf Path
+         */
+        tPath: string;
+        /**
+         * 是否忽略前缀
+         *
+         * @type {boolean}
+         * @memberOf Path
+         */
+        iPrefix?: boolean;
+        /**
+         * 父路径的标识
+         *
+         * @type {string}
+         * @memberOf Path
+         */
+        parent?: string;
+    }
+    interface JConfig {
+        /**
+         * 参数字典
+         * key      {string}    标识
+         * value    {any}       对应数据
+         *
+         * @type {{}}
+         * @memberOf JConfig
+         */
+        params?: {};
+        /**
+         * 前缀字典
+         *
+         * @type {string[]}
+         * @memberOf JConfig
+         */
+        prefixes: string[];
+        /**
+         * 路径
+         *
+         * @type {{
+         *             res: Path,
+         *             skin: Path,
+         *             [indes: string]: Path
+         *         }}
+         * @memberOf JConfig
+         */
+        paths: {
+            res: Path;
+            skin: Path;
+            [indes: string]: Path;
         };
     }
     /**
-     * 附加数据
-     *
-     * @interface ExtraData
-     */
-    interface ExtraData {
-    }
-    /**
-     * 配置数据
-     *
+     * 配置工具
+     * @author 3tion
      * @export
-     * @interface CfgData
+     * @class ConfigUtils
      */
-    interface CfgData {
-    }
+    const ConfigUtils: {
+        setData(data: JConfig): void;
+        getResUrl(uri: string, sameDomain?: boolean): string;
+        getParam(key: string): any;
+        getSkinPath: (key: string, fileName: string) => string;
+        getSkinFile(key: string, fileName: string): string;
+        regSkinPath(key: string, path: string, iPrefix?: boolean): void;
+        getUrl(uri: string, pathKey: string): string;
+    };
 }
 declare module junyou {
     /**
@@ -7476,21 +7447,67 @@ declare module junyou {
         maxValue: number;
     }
 }
+/**
+ * DataLocator的主数据
+ * 原 junyou.DataLocator.data  的全局别名简写
+ */
+declare const $DD: junyou.CfgData;
+/**
+ * DataLocator的附加数据
+ * 原junyou.DataLocator.extra 的全局别名简写
+ */
+declare var $DE: junyou.ExtraData;
 declare module junyou {
     /**
-     *
-     * @author 君游项目解析工具
+     * 配置加载器<br/>
+     * 用于预加载数据的解析
+     * @author 3tion
      *
      */
-    const DataParseUtil: {
-        parseDatas: (to: Object, from: Object, checkStart: number, checkEnd: number, dataKey: string, typeKey: string, toDatasKey: string) => void;
-        parseDatas2: (to: any, valueList: any[], keyList: string[], checkStart: number, checkEnd: number, dataKey: string, typeKey: string, toDatasKey: string) => void;
-        getData: (valueList: any[], keyList: string[], o?: Object) => any;
-        getDataList: (dataList: any[][], keyList: string[]) => any[];
-        parseDataList: (dataList: any[][], keyList: string[], forEach: (t: Object, args: any[], idx?: number) => any, thisObj: any, ...args: any[]) => void;
-        copyData: <T>(to: T, valueList: any[], keyList: string[]) => void;
-        copyDataList: <T>(creator: new () => T, dataList: any[][], keyList: string[], forEach: (t: T, args: any[], idx?: number) => any, thisObj: any, ...args: any[]) => void;
+    var DataLocator: {
+        regParser: (key: keyof CfgData, parser: ConfigDataParser) => void;
+        parsePakedDatas(): void;
+        regCommonParser(key: keyof CfgData, CfgCreator: 0 | (new () => Cfg), idkey?: string): void;
     };
+    /**
+     * 配置数据解析函数
+     */
+    interface ConfigDataParser {
+        (data: any): any;
+    }
+    /**
+     * 通过H5ExcelTool生成的数据
+     *
+     * @export
+     */
+    interface Cfg {
+        /**
+         * 解析配置
+         *
+         * @param {*} data
+         * @param {*} [local]   没有接口，但是需要本地赋值的数据
+         *
+         * @memberOf ICfg
+         */
+        decode?: {
+            (local?: any);
+        };
+    }
+    /**
+     * 附加数据
+     *
+     * @interface ExtraData
+     */
+    interface ExtraData {
+    }
+    /**
+     * 配置数据
+     *
+     * @export
+     * @interface CfgData
+     */
+    interface CfgData {
+    }
 }
 declare module junyou {
     /**
@@ -7639,53 +7656,19 @@ declare const enum ScrollDirection {
 }
 declare module junyou {
     /**
-     * 网络事件的常量集
-     * @author
-     * -100~ -199
+     *
+     * @author 君游项目解析工具
+     *
      */
-    const enum EventConst {
-        /**
-         * 登录成功
-         */
-        LOGIN_COMPLETE = -199,
-        /**
-         * 登录失败
-         */
-        LOGIN_FAILED = -198,
-        /**
-         * 连接服务器成功
-         */
-        Connected = -197,
-        /**
-         * 连接服务器失败
-         */
-        ConnectFailed = -196,
-        /**
-         * 服务器断开连接
-         */
-        Disconnect = -195,
-        ShowReconnect = -194,
-        /**
-         * 纹理加载完成
-         */
-        Texture_Complete = -193,
-        /**
-         * 网络上线
-         */
-        Online = -192,
-        /**
-         * 网络断线
-         */
-        Offline = -191,
-        /**
-         * 手机从休眠状态中被唤醒
-         */
-        Awake = -190,
-        /**
-         * 频繁发送协议提示
-         */
-        NetServiceSendLimit = -189,
-    }
+    const DataParseUtil: {
+        parseDatas: (to: Object, from: Object, checkStart: number, checkEnd: number, dataKey: string, typeKey: string, toDatasKey: string) => void;
+        parseDatas2: (to: any, valueList: any[], keyList: string[], checkStart: number, checkEnd: number, dataKey: string, typeKey: string, toDatasKey: string) => void;
+        getData: (valueList: any[], keyList: string[], o?: Object) => any;
+        getDataList: (dataList: any[][], keyList: string[]) => any[];
+        parseDataList: (dataList: any[][], keyList: string[], forEach: (t: Object, args: any[], idx?: number) => any, thisObj: any, ...args: any[]) => void;
+        copyData: <T>(to: T, valueList: any[], keyList: string[]) => void;
+        copyDataList: <T>(creator: new () => T, dataList: any[][], keyList: string[], forEach: (t: T, args: any[], idx?: number) => any, thisObj: any, ...args: any[]) => void;
+    };
 }
 declare module junyou {
     class Slider extends Component {
@@ -7866,6 +7849,304 @@ declare module junyou {
     function bindSize(define: Object, view: {
         size: egret.Rectangle;
     }): void;
+}
+declare module junyou {
+    /**
+     * 网络事件的常量集
+     * @author
+     * -100~ -199
+     */
+    const enum EventConst {
+        /**
+         * 登录成功
+         */
+        LOGIN_COMPLETE = -199,
+        /**
+         * 登录失败
+         */
+        LOGIN_FAILED = -198,
+        /**
+         * 连接服务器成功
+         */
+        Connected = -197,
+        /**
+         * 连接服务器失败
+         */
+        ConnectFailed = -196,
+        /**
+         * 服务器断开连接
+         */
+        Disconnect = -195,
+        ShowReconnect = -194,
+        /**
+         * 纹理加载完成
+         */
+        Texture_Complete = -193,
+        /**
+         * 网络上线
+         */
+        Online = -192,
+        /**
+         * 网络断线
+         */
+        Offline = -191,
+        /**
+         * 手机从休眠状态中被唤醒
+         */
+        Awake = -190,
+        /**
+         * 频繁发送协议提示
+         */
+        NetServiceSendLimit = -189,
+    }
+}
+declare module junyou {
+    /**
+     * 区段 -1000 - -1999
+     *
+     * @export
+     * @enum {number}
+     */
+    const enum EventConst {
+        /**
+         * 大小发生改变
+         */
+        Resize = -1999,
+        /**
+         * 执行强制重排面板
+         */
+        ReLayout = -1998,
+        /**
+        * 选中未选中
+        *
+        * @static
+        * @type {string}
+        */
+        CHOOSE_STATE_CHANGE = -1000,
+        /**
+         * List中单击事件
+         */
+        ITEM_TOUCH_TAP = -1001,
+        /**
+         * 分组发生改变
+         */
+        GROUP_CHANGE = -1020,
+        /**
+         * 尝试多选选中时，已经达到最大数量
+         */
+        GROUP_FULL = -1021,
+        VALUE_CHANGE = -1040,
+        PAGE_CHANGE = -1050,
+        SCROLL_POSITION_CHANGE = -1051,
+        ITEM_SELECTED = -1052,
+        /**
+         * 翻页操作结束
+         * event.data 背面面积/正面面积
+         */
+        FlipEnd = -1060,
+        /**
+         * SuiBmd纹理加载失败
+         * event.data 为资源的 uri
+         */
+        SuiBmdLoadFailed = -1070,
+    }
+}
+declare module junyou {
+    /**
+     * 导出类型，需要和导出工具的ExportType对应
+     * @author
+     *
+     */
+    const enum ExportType {
+        /**图片**/
+        Image = 0,
+        /**文本框*/
+        Text = 1,
+        /**复合容器**/
+        Container = 2,
+        /**按钮 */
+        Button = 3,
+        /**九宫图片*/
+        ScaleBitmap = 5,
+        ShapeNumber = 6,
+        NumericStepper = 7,
+        Slider = 8,
+        ScrollBar = 9,
+        /**进度条**/
+        ProgressBar = 10,
+        SlotBg = 11,
+        ShareBmp = 12,
+        Slot = 13,
+        Rectangle = 14,
+        /**
+         * 字库
+         */
+        ArtWord = 15,
+        /**
+         * 空容器，可带大小
+         */
+        Sprite = 16,
+        /**
+         * 图片加载器
+         */
+        ImageLoader = 17,
+        /**
+         * 会导出的复合容器
+         */
+        ExportedContainer = 18,
+    }
+}
+declare module junyou {
+    /**
+     *
+     * 用于处理SuiData中的纹理加载
+     * @export
+     * @class SuiBmd
+     * @author gushuai
+     */
+    class SuiBmd implements IResource {
+        bmd: egret.BitmapData;
+        textures: egret.Texture[];
+        bmdState: RequestState;
+        /**
+         * 最大纹理加载失败次数
+         *
+         * @protected
+         * @memberof SuiBmd
+         */
+        protected _maxErrCount: number;
+        protected _url: string;
+        readonly url: string;
+        /**
+         * 使用计数
+         */
+        using: number;
+        readonly isStatic: boolean;
+        private _uri;
+        readonly resID: string;
+        lastUseTime: number;
+        /**
+         * 未加载的时候，请求的位图
+         */
+        loading: SuiBmdCallback[];
+        protected _errCount: number;
+        constructor(uri: string, url: string);
+        loadBmd(): void;
+        protected checkBitmap(tex: egret.Texture, key: string): void;
+        checkExpire(expiredUseTime: number): void;
+        dispose(): void;
+    }
+}
+declare module junyou {
+    /**
+     *
+     * SuiData中位图加载完成的回调
+     * @export
+     * @interface SuiBmdCallback
+     */
+    interface SuiBmdCallback {
+        /**
+         * suidata中用的位图加载完成后，对于加载的组件的回调函数
+         *
+         *
+         * @memberOf SuiBmdRefresh
+         */
+        refreshBMD(): void;
+    }
+    /**
+     * SuiData的数据加载完成后的回调
+     *
+     * @export
+     * @interface SuiDataCallback
+     */
+    interface SuiDataCallback {
+        suiDataComplete(suiData: SuiData): void;
+        suiDataFailed(suiData: SuiData): void;
+    }
+    /**
+     * 用于加载和存储fla导出的ui数据和位图
+     * @author 3tion
+     *
+     */
+    class SuiData {
+        /**
+         * fla的名字
+         */
+        key: string;
+        /**
+         * 加载地址
+         */
+        url: string;
+        /**
+         * 位图数据
+         */
+        pngbmd: SuiBmd;
+        /**
+         * 位图数据
+         */
+        jpgbmd: SuiBmd;
+        /**
+         * 回调函数
+         */
+        callbacks?: SuiDataCallback[];
+        /**
+         * 数据加载状态
+         * 0 未加载
+         * 1 加载中
+         * 2 数据加载完成
+         */
+        state: RequestState;
+        /**
+         * 库数据
+         * key      fla中设置的导出名<br/>
+         * value    皮肤数据<br/>
+         */
+        lib: {
+            [index: string]: BaseCreator<egret.DisplayObject>;
+        };
+        /**
+         * 面板原始数据
+         *
+         * @type {PanelsData}
+         */
+        panelsData: PanelsData;
+        /**
+         * 面板/View的className集合
+         *
+         * @type {string[]}
+         */
+        panelNames: string[];
+        /**
+         * 字库数据
+         *
+         * @type {{ [index: string]: ArtWord }}
+         * @memberOf SuiData
+         */
+        fonts: {
+            [index: string]: ArtWord;
+        };
+        /**
+         * 位图创建器
+         */
+        bmplibs: {
+            [index: number]: BitmapCreator<egret.Bitmap>;
+        };
+        /***
+         * 未经过解析的源组件数据
+         */
+        sourceComponentData: Object;
+        createBmpLoader(ispng: boolean, textures: egret.Texture[]): void;
+        /**
+         * 刷新位图
+         *
+         * @param {SuiBmdCallback} bmp  要刷新的位图
+         * @param {boolean} [isjpg]     是否为jpg纹理，默认为png
+         */
+        checkRefreshBmp(bmp: SuiBmdCallback, isjpg?: boolean): boolean;
+        /**获取对应索引位置的texture */
+        getTexture(index: number): egret.Texture;
+        loadBmd<T extends Function>(callback: CallbackInfo<T>): void;
+    }
 }
 declare module junyou {
     /**
@@ -8276,264 +8557,6 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     * 区段 -1000 - -1999
-     *
-     * @export
-     * @enum {number}
-     */
-    const enum EventConst {
-        /**
-         * 大小发生改变
-         */
-        Resize = -1999,
-        /**
-         * 执行强制重排面板
-         */
-        ReLayout = -1998,
-        /**
-        * 选中未选中
-        *
-        * @static
-        * @type {string}
-        */
-        CHOOSE_STATE_CHANGE = -1000,
-        /**
-         * List中单击事件
-         */
-        ITEM_TOUCH_TAP = -1001,
-        /**
-         * 分组发生改变
-         */
-        GROUP_CHANGE = -1020,
-        /**
-         * 尝试多选选中时，已经达到最大数量
-         */
-        GROUP_FULL = -1021,
-        VALUE_CHANGE = -1040,
-        PAGE_CHANGE = -1050,
-        SCROLL_POSITION_CHANGE = -1051,
-        ITEM_SELECTED = -1052,
-        /**
-         * 翻页操作结束
-         * event.data 背面面积/正面面积
-         */
-        FlipEnd = -1060,
-        /**
-         * SuiBmd纹理加载失败
-         * event.data 为资源的 uri
-         */
-        SuiBmdLoadFailed = -1070,
-    }
-}
-declare module junyou {
-    /**
-     * 导出类型，需要和导出工具的ExportType对应
-     * @author
-     *
-     */
-    const enum ExportType {
-        /**图片**/
-        Image = 0,
-        /**文本框*/
-        Text = 1,
-        /**复合容器**/
-        Container = 2,
-        /**按钮 */
-        Button = 3,
-        /**九宫图片*/
-        ScaleBitmap = 5,
-        ShapeNumber = 6,
-        NumericStepper = 7,
-        Slider = 8,
-        ScrollBar = 9,
-        /**进度条**/
-        ProgressBar = 10,
-        SlotBg = 11,
-        ShareBmp = 12,
-        Slot = 13,
-        Rectangle = 14,
-        /**
-         * 字库
-         */
-        ArtWord = 15,
-        /**
-         * 空容器，可带大小
-         */
-        Sprite = 16,
-        /**
-         * 图片加载器
-         */
-        ImageLoader = 17,
-        /**
-         * 会导出的复合容器
-         */
-        ExportedContainer = 18,
-    }
-}
-declare module junyou {
-    /**
-     *
-     * 用于处理SuiData中的纹理加载
-     * @export
-     * @class SuiBmd
-     * @author gushuai
-     */
-    class SuiBmd implements IResource {
-        bmd: egret.BitmapData;
-        textures: egret.Texture[];
-        bmdState: RequestState;
-        /**
-         * 最大纹理加载失败次数
-         *
-         * @protected
-         * @memberof SuiBmd
-         */
-        protected _maxErrCount: number;
-        protected _url: string;
-        readonly url: string;
-        /**
-         * 使用计数
-         */
-        using: number;
-        readonly isStatic: boolean;
-        private _uri;
-        readonly resID: string;
-        lastUseTime: number;
-        /**
-         * 未加载的时候，请求的位图
-         */
-        loading: SuiBmdCallback[];
-        protected _errCount: number;
-        constructor(uri: string, url: string);
-        loadBmd(): void;
-        protected checkBitmap(tex: egret.Texture, key: string): void;
-        checkExpire(expiredUseTime: number): void;
-        dispose(): void;
-    }
-}
-declare module junyou {
-    /**
-     *
-     * SuiData中位图加载完成的回调
-     * @export
-     * @interface SuiBmdCallback
-     */
-    interface SuiBmdCallback {
-        /**
-         * suidata中用的位图加载完成后，对于加载的组件的回调函数
-         *
-         *
-         * @memberOf SuiBmdRefresh
-         */
-        refreshBMD(): void;
-    }
-    /**
-     * SuiData的数据加载完成后的回调
-     *
-     * @export
-     * @interface SuiDataCallback
-     */
-    interface SuiDataCallback {
-        suiDataComplete(suiData: SuiData): void;
-        suiDataFailed(suiData: SuiData): void;
-    }
-    /**
-     * 用于加载和存储fla导出的ui数据和位图
-     * @author 3tion
-     *
-     */
-    class SuiData {
-        /**
-         * fla的名字
-         */
-        key: string;
-        /**
-         * 加载地址
-         */
-        url: string;
-        /**
-         * 位图数据
-         */
-        pngbmd: SuiBmd;
-        /**
-         * 位图数据
-         */
-        jpgbmd: SuiBmd;
-        /**
-         * 回调函数
-         */
-        callbacks?: SuiDataCallback[];
-        /**
-         * 数据加载状态
-         * 0 未加载
-         * 1 加载中
-         * 2 数据加载完成
-         */
-        state: RequestState;
-        /**
-         * 库数据
-         * key      fla中设置的导出名<br/>
-         * value    皮肤数据<br/>
-         */
-        lib: {
-            [index: string]: BaseCreator<egret.DisplayObject>;
-        };
-        /**
-         * 面板原始数据
-         *
-         * @type {PanelsData}
-         */
-        panelsData: PanelsData;
-        /**
-         * 面板/View的className集合
-         *
-         * @type {string[]}
-         */
-        panelNames: string[];
-        /**
-         * 字库数据
-         *
-         * @type {{ [index: string]: ArtWord }}
-         * @memberOf SuiData
-         */
-        fonts: {
-            [index: string]: ArtWord;
-        };
-        /**
-         * 位图创建器
-         */
-        bmplibs: {
-            [index: number]: BitmapCreator<egret.Bitmap>;
-        };
-        /***
-         * 未经过解析的源组件数据
-         */
-        sourceComponentData: Object;
-        createBmpLoader(ispng: boolean, textures: egret.Texture[]): void;
-        /**
-         * 刷新位图
-         *
-         * @param {SuiBmdCallback} bmp  要刷新的位图
-         * @param {boolean} [isjpg]     是否为jpg纹理，默认为png
-         */
-        checkRefreshBmp(bmp: SuiBmdCallback, isjpg?: boolean): boolean;
-        /**获取对应索引位置的texture */
-        getTexture(index: number): egret.Texture;
-        loadBmd<T extends Function>(callback: CallbackInfo<T>): void;
-    }
-}
-declare module junyou {
-    /**
-      * 加载脚本
-      * @param url
-      * @param callback
-      * @param thisObj
-      * @param args
-      */
-    function loadScript(url: string, callback: Function, thisObj?: any, ...args: any[]): void;
-}
-declare module junyou {
-    /**
      * 给ArtText和ArtWord刷新纹理使用
      *
      * @export
@@ -8560,6 +8583,16 @@ declare module junyou {
         protected onAddedToStage(e: egret.Event): void;
         protected onRemoveFromStage(): void;
     }
+}
+declare module junyou {
+    /**
+      * 加载脚本
+      * @param url
+      * @param callback
+      * @param thisObj
+      * @param args
+      */
+    function loadScript(url: string, callback: Function, thisObj?: any, ...args: any[]): void;
 }
 declare module junyou {
     /**
@@ -8607,27 +8640,6 @@ declare module junyou {
         }[];
         constructor();
         toURLString(): string;
-    }
-}
-declare module junyou {
-    /**
-     * 用户认证
-     * @author 3tion
-     *
-     */
-    const enum AuthState {
-        /**
-         * 认证成功
-         */
-        AUTH_SUCCESS = 0,
-        /**
-         * 票据验证失败，要求客户端重新登录
-         */
-        AUTH_FAILED = 1,
-        /**
-         * 认证服务器忙
-         */
-        AUTH_SERVER_BUSY = 2,
     }
 }
 declare module junyou {
@@ -8902,56 +8914,26 @@ declare module junyou {
             };
     };
 }
-interface ExternalParam {
+declare module junyou {
     /**
-     * 用户标识
+     * 用户认证
+     * @author 3tion
      *
-     * @type {string}
-     * @memberOf $ep
      */
-    uid: string;
-    /**
-     * 服务器id
-     *
-     * @type {string}
-     * @memberOf $ep
-     */
-    sid: string;
-    /**
-     * 服务器ip
-     *
-     * @type {string}
-     * @memberOf $ep
-     */
-    ip: string;
-    /**
-     * 端口号
-     *
-     * @type {number}
-     * @memberOf $ep
-     */
-    port: number;
-    /**
-     * 平台标识
-     *
-     * @type {string}
-     * @memberOf $ep
-     */
-    pid: string;
-    /**
-     * 验证标识
-     *
-     * @type {string}
-     * @memberOf $ep
-     */
-    sign?: string;
-    /**
-     * 其他参数
-     *
-     * @type {*}
-     * @memberOf $ep
-     */
-    other?: any;
+    const enum AuthState {
+        /**
+         * 认证成功
+         */
+        AUTH_SUCCESS = 0,
+        /**
+         * 票据验证失败，要求客户端重新登录
+         */
+        AUTH_FAILED = 1,
+        /**
+         * 认证服务器忙
+         */
+        AUTH_SERVER_BUSY = 2,
+    }
 }
 declare var $useDPR: boolean;
 declare var dpr: number;
@@ -9055,73 +9037,56 @@ declare module junyou {
         displayMenuDatas(vos: MenuBaseVO[]): void;
     }
 }
-declare module junyou {
+interface ExternalParam {
     /**
-     * 使用http进行通信的网络服务
-     * @author 3tion
+     * 用户标识
      *
+     * @type {string}
+     * @memberOf $ep
      */
-    class HttpNetService extends NetService {
-        protected _loader: XMLHttpRequest;
-        protected _state: RequestState;
-        /**
-         * 未发送的请求
-         */
-        protected _unsendRequest: Recyclable<NetSendData>[];
-        /**
-         * 正在发送的数据
-         */
-        protected _sendingList: Recyclable<NetSendData>[];
-        /**
-         * 请求发送成功的次数
-         */
-        protected _success: number;
-        /**
-         * 请求连续发送失败的次数
-         */
-        protected _cerror: number;
-        /**
-         * 请求失败次数
-         */
-        protected _error: number;
-        constructor();
-        /**
-         * 重置
-         * @param actionUrl             请求地址
-         * @param autoTimeDelay         自动发送的最短延迟时间
-         */
-        setUrl(actionUrl: string, autoTimeDelay?: number): void;
-        /**
-        * @protected
-        */
-        protected onReadyStateChange(): void;
-        /**
-         * 发生错误
-         */
-        protected errorHandler(): void;
-        protected complete(): void;
-        /**
-         * 检查在发送过程中的请求
-         */
-        protected checkUnsend(): void;
-        protected _send(cmd: number, data: any, msgType: string): void;
-        /**
-         * 发送消息之前，用于预处理一些http头信息等
-         *
-         * @protected
-         */
-        protected onBeforeSend(): void;
-        /**
-         * 接收到服务端Response，用于预处理一些信息
-         *
-         * @protected
-         */
-        protected onBeforeSolveData(): void;
-        /**
-         * 尝试发送
-         */
-        protected trySend(): void;
-    }
+    uid: string;
+    /**
+     * 服务器id
+     *
+     * @type {string}
+     * @memberOf $ep
+     */
+    sid: string;
+    /**
+     * 服务器ip
+     *
+     * @type {string}
+     * @memberOf $ep
+     */
+    ip: string;
+    /**
+     * 端口号
+     *
+     * @type {number}
+     * @memberOf $ep
+     */
+    port: number;
+    /**
+     * 平台标识
+     *
+     * @type {string}
+     * @memberOf $ep
+     */
+    pid: string;
+    /**
+     * 验证标识
+     *
+     * @type {string}
+     * @memberOf $ep
+     */
+    sign?: string;
+    /**
+     * 其他参数
+     *
+     * @type {*}
+     * @memberOf $ep
+     */
+    other?: any;
 }
 declare module junyou {
     /**
@@ -9406,36 +9371,70 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     * 用于发送的网络数据<br/>
-     * @author 3tion
-     */
-    class NetSendData implements IRecyclable {
-        /**
-         * 协议号
-         */
-        cmd: number;
-        /**
-         * 数据
-         */
-        data: any;
-        /**
-         *
-         * protobuf message的类型
-         * @type {string | number}
-         */
-        msgType: string | number;
-        onRecycle(): void;
-    }
-    /**
-     * 网络数据，类似AS3项目中Stream<br/>
+     * 使用http进行通信的网络服务
      * @author 3tion
      *
      */
-    class NetData extends NetSendData {
+    class HttpNetService extends NetService {
+        protected _loader: XMLHttpRequest;
+        protected _state: RequestState;
         /**
-         *  是否停止传播
+         * 未发送的请求
          */
-        stopPropagation: Boolean;
+        protected _unsendRequest: Recyclable<NetSendData>[];
+        /**
+         * 正在发送的数据
+         */
+        protected _sendingList: Recyclable<NetSendData>[];
+        /**
+         * 请求发送成功的次数
+         */
+        protected _success: number;
+        /**
+         * 请求连续发送失败的次数
+         */
+        protected _cerror: number;
+        /**
+         * 请求失败次数
+         */
+        protected _error: number;
+        constructor();
+        /**
+         * 重置
+         * @param actionUrl             请求地址
+         * @param autoTimeDelay         自动发送的最短延迟时间
+         */
+        setUrl(actionUrl: string, autoTimeDelay?: number): void;
+        /**
+        * @protected
+        */
+        protected onReadyStateChange(): void;
+        /**
+         * 发生错误
+         */
+        protected errorHandler(): void;
+        protected complete(): void;
+        /**
+         * 检查在发送过程中的请求
+         */
+        protected checkUnsend(): void;
+        protected _send(cmd: number, data: any, msgType: string): void;
+        /**
+         * 发送消息之前，用于预处理一些http头信息等
+         *
+         * @protected
+         */
+        protected onBeforeSend(): void;
+        /**
+         * 接收到服务端Response，用于预处理一些信息
+         *
+         * @protected
+         */
+        protected onBeforeSolveData(): void;
+        /**
+         * 尝试发送
+         */
+        protected trySend(): void;
     }
 }
 declare module junyou {
