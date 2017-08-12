@@ -7374,7 +7374,7 @@ var junyou;
             }
             rect = rect || dis.getBounds();
             _texture.drawToTexture(dis, rect, scale);
-            return _texture.toDataURL(type, rect, encodeOptions);
+            return _texture.toDataURL(type, null, encodeOptions);
         }
         function getBase64(dataUrl) {
             return dataUrl.substr(dataUrl.indexOf(",") + 1);
