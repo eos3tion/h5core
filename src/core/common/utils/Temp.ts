@@ -57,7 +57,7 @@ module junyou {
         /**
          * 空数组
          */
-        EmptyArray: Object.freeze([]),
+        EmptyArray: Object.freeze([]) as any[],
 
         /**
          * 管线方法，用于符合函数的结构，并将数值传递下去

@@ -1039,7 +1039,7 @@ declare module junyou {
         voidFunction: () => any;
         willReplacedFunction: () => any;
         EmptyObject: Readonly<{}>;
-        EmptyArray: ReadonlyArray<any>;
+        EmptyArray: any[];
         pipeFunction: <T>(arg: T) => T;
     };
 }
