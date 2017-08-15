@@ -137,7 +137,7 @@ module junyou {
                     g.beginFill(0, 0);
                     let rect = Temp.EgretRectangle;
                     content.getBounds(rect);
-                    g.drawRect(rect.x, rect.y, rect.width, rect.height);
+                    g.drawRectangle(rect);
                     g.endFill();
                 }
             }
