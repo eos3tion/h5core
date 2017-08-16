@@ -2,6 +2,20 @@ module junyou {
     import TE = egret.TouchEvent;
     import E = egret.Event;
     export class Scroller extends egret.EventDispatcher {
+        /**
+         * touchdown的起始时间
+         * 
+         * @protected
+         * @type {number}
+         */
+        protected _st: number;
+
+        /**
+         * touchTap的超时时间，如果超过此时间，则不会触发子对象的touchTap事件
+         * 
+         */
+        public touchTapTime = 500;
+        protected _touchChildren: boolean;
 
         protected _scrollbar: ScrollBar;
 
@@ -176,8 +190,13 @@ module junyou {
                 }
                 pos = e.stageX;
             }
-            this._lastMoveTime = Global.now;
+            let now = Global.now;
+            this._st = now;
+            this._lastMoveTime = now;
             this._lastTargetPos = pos;
+            if (content instanceof egret.DisplayObjectContainer) {
+                this._touchChildren = content.touchChildren;
+            }
             content.stage.on(TE.TOUCH_MOVE, this.moveOnContent, this);
             content.on(TE.TOUCH_END, this.endTouchContent, this);
             content.on(TE.TOUCH_RELEASE_OUTSIDE, this.endTouchContent, this);
@@ -197,6 +216,9 @@ module junyou {
             sub = Math.abs(sub);
             let now = Global.now;
             let subTime = now - this._lastMoveTime;
+            if (now - this._st > this.touchTapTime && this._touchChildren != undefined) {
+                (this._content as egret.DisplayObjectContainer).touchChildren = false;
+            }
             this._lastMoveTime = now;
             this._lastTargetPos = currentPos;
             this._moveSpeed = subTime > 0 ? sub / subTime : 0;
@@ -236,6 +258,10 @@ module junyou {
             let content = this._content;
             if (!content) {
                 return;
+            }
+            if (content instanceof egret.DisplayObjectContainer) {
+                content.touchChildren = this._touchChildren;
+                this._touchChildren = undefined;
             }
             let stage = content.stage || egret.sys.$TempStage;
             stage.off(TE.TOUCH_MOVE, this.moveOnContent, this);

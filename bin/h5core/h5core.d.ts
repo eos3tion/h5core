@@ -1836,6 +1836,19 @@ declare module junyou {
 declare module junyou {
     import TE = egret.TouchEvent;
     class Scroller extends egret.EventDispatcher {
+        /**
+         * touchdown的起始时间
+         *
+         * @protected
+         * @type {number}
+         */
+        protected _st: number;
+        /**
+         * touchTap的超时时间，如果超过此时间，则不会触发子对象的touchTap事件
+         *
+         */
+        touchTapTime: number;
+        protected _touchChildren: boolean;
         protected _scrollbar: ScrollBar;
         protected _content: egret.DisplayObject;
         protected _scrollType: ScrollDirection;

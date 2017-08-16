@@ -3397,6 +3397,11 @@ var junyou;
         __extends(Scroller, _super);
         function Scroller() {
             var _this = _super.call(this) || this;
+            /**
+             * touchTap的超时时间，如果超过此时间，则不会触发子对象的touchTap事件
+             *
+             */
+            _this.touchTapTime = 500;
             _this._scrollType = 0 /* Vertical */;
             /**鼠标每移动1像素，元件移动的像素 */
             _this.globalspeed = 1;
@@ -3508,7 +3513,7 @@ var junyou;
                     g.beginFill(0, 0);
                     var rect = junyou.Temp.EgretRectangle;
                     content.getBounds(rect);
-                    g.drawRect(rect.x, rect.y, rect.width, rect.height);
+                    g.drawRectangle(rect);
                     g.endFill();
                 }
             }
@@ -3544,8 +3549,13 @@ var junyou;
                 }
                 pos = e.stageX;
             }
-            this._lastMoveTime = junyou.Global.now;
+            var now = junyou.Global.now;
+            this._st = now;
+            this._lastMoveTime = now;
             this._lastTargetPos = pos;
+            if (content instanceof egret.DisplayObjectContainer) {
+                this._touchChildren = content.touchChildren;
+            }
             content.stage.on(TE.TOUCH_MOVE, this.moveOnContent, this);
             content.on(TE.TOUCH_END, this.endTouchContent, this);
             content.on(TE.TOUCH_RELEASE_OUTSIDE, this.endTouchContent, this);
@@ -3564,6 +3574,9 @@ var junyou;
             sub = Math.abs(sub);
             var now = junyou.Global.now;
             var subTime = now - this._lastMoveTime;
+            if (now - this._st > this.touchTapTime && this._touchChildren != undefined) {
+                this._content.touchChildren = false;
+            }
             this._lastMoveTime = now;
             this._lastTargetPos = currentPos;
             this._moveSpeed = subTime > 0 ? sub / subTime : 0;
@@ -3600,6 +3613,10 @@ var junyou;
             var content = this._content;
             if (!content) {
                 return;
+            }
+            if (content instanceof egret.DisplayObjectContainer) {
+                content.touchChildren = this._touchChildren;
+                this._touchChildren = undefined;
             }
             var stage = content.stage || egret.sys.$TempStage;
             stage.off(TE.TOUCH_MOVE, this.moveOnContent, this);
