@@ -4,10 +4,10 @@ module junyou {
 	 * @author 3tion
 	 *
 	 */
-	export class ClientCheck {
+	export var ClientCheck = {
     	/**
     	 * 是否做客户端检查
     	 */
-		public static isClientCheck: boolean = true;
+		isClientCheck: true
 	}
 }

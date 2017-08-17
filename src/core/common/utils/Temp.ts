@@ -17,8 +17,15 @@ module junyou {
          * 共享数组3
          */
         SharedArray3: [],
+        /**
+         * 白鹭的点
+         */
+        EgretPoint: new egret.Point(),
+        /**
+         * 白鹭的矩形
+         */
+        EgretRectangle: new egret.Rectangle(),
 
-        EgretPoint:new egret.Point(),
 
         /**
          * 共享点1
@@ -46,11 +53,11 @@ module junyou {
         /**
          * 空对象
          */
-        EmptyObject: {},
+        EmptyObject: Object.freeze({}),
         /**
          * 空数组
          */
-        EmptyArray: [],
+        EmptyArray: Object.freeze([]) as any[],
 
         /**
          * 管线方法，用于符合函数的结构，并将数值传递下去
@@ -59,7 +66,5 @@ module junyou {
             return arg;
         }
     }
-    //冻结空对象，防止对此对象附加数据
-    Object.freeze(Temp.EmptyObject);
-    Object.freeze(Temp.EmptyArray);
+
 }

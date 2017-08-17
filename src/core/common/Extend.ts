@@ -217,11 +217,26 @@ interface Number {
      * @return 补0之后的字符串
      */
     zeroize(length: number): string;
+
+    /**
+     * 数值介于，`min` `max`直接，包含min，max  
+     * 即：[min,max]
+     * 
+     * @param {number} min 
+     * @param {number} max 
+     * @returns {boolean} 
+     * @memberof Number
+     */
+    between(min: number, max: number): boolean;
 }
 
 Object.defineProperties(Number.prototype, {
     zeroize: {
-        value: function (length) { return zeroize(this, length) },
+        value: function (this: number, length: number) { return zeroize(this, length) },
+        writable: true
+    },
+    between: {
+        value: function (this: number, min: number, max: number) { return min <= this && max >= this },
         writable: true
     }
 });
@@ -284,7 +299,7 @@ Object.defineProperties(String.prototype, {
                     });
                 }
             }
-            return this;
+            return this.toString();//防止生成String对象，ios反射String对象会当成一个NSDictionary处理
         },
         writable: true
     },
@@ -446,8 +461,11 @@ interface Array<T> {
      * 如果数组中没有要放入的对象，则将对象放入数组
      * 
      * @param {T} t 要放入的对象
+     * @returns {number} 放入的对象，在数组中的索引
+     * 
+     * @memberof Array
      */
-    pushOnce(t: T);
+    pushOnce(t: T): number;
 
     /**
     * 
@@ -462,12 +480,12 @@ interface Array<T> {
      * 排序 支持多重排序
      * 降序, 升序
      * @param {(keyof T)[]} kArr              参数属性列表
-     * @param {(boolean[] | number[])} [dArr] 是否降序，默认升序
+     * @param {(boolean[] | ArraySort[])} [dArr] 是否降序，默认升序
      * @returns {this}
      * 
      * @memberOf Array
      */
-    multiSort(kArr: (keyof T)[], dArr?: boolean[] | number[]): this;
+    multiSort(kArr: (keyof T)[], dArr?: boolean[] | ArraySort[]): this;
 
     /**
      * 默认排序
@@ -477,8 +495,8 @@ interface Array<T> {
      * 
      * @memberOf Array
      */
-    doSort(key?: keyof T, descend?: boolean): this;
-    doSort(descend?: boolean, key?: keyof T): this;
+    doSort(key?: keyof T, descend?: boolean | ArraySort): this;
+    doSort(descend?: boolean | ArraySort, key?: keyof T): this;
 
     /**
      * 将数组克隆到to  
@@ -522,15 +540,18 @@ Object.defineProperties(Array.prototype, {
         writable: true
     },
     pushOnce: {
-        value: function (t) {
-            if (!~this.indexOf(t)) {
-                this.push(t);
+        value: function <T>(this: T[], t: T) {
+            let idx = this.indexOf(t);
+            if (!~idx) {
+                idx = this.length;
+                this[idx] = t;
             }
+            return idx;
         },
         writable: true
     },
     remove: {
-        value: function (t) {
+        value: function <T>(this: T[], t: T) {
             let idx = this.indexOf(t);
             if (~idx) {
                 this.splice(idx, 1);
@@ -543,19 +564,23 @@ Object.defineProperties(Array.prototype, {
     doSort: {
         value: function () {
             let key: string, descend: boolean;
-            for (let i = 0, len = arguments.length; i < len; i++) {
+            let len = arguments.length;
+            if (DEBUG && len > 2) {
+                junyou.ThrowError(`doSort参数不能超过2`);
+            }
+            for (let i = 0; i < len; i++) {
                 let arg = arguments[i];
                 let t = typeof arg;
-                if (t === "boolean") {
-                    descend = arg;
-                } else if (t === "string") {
+                if (t === "string") {
                     key = arg;
+                } else {
+                    descend = !!arg;
                 }
             }
             if (key) {
-                return this.sort((a: any, b: any) => !descend ? a[key] - b[key] : b[key] - a[key]);
+                return this.sort((a: any, b: any) => descend ? b[key] - a[key] : a[key] - b[key]);
             } else {
-                return this.sort((a: any, b: any) => !descend ? a - b : b - a);
+                return this.sort((a: any, b: any) => descend ? b - a : a - b);
             }
         },
         writable: true
@@ -593,11 +618,9 @@ Object.defineProperties(Array.prototype, {
                     }
                     if (av < bv) {
                         return mode ? 1 : -1;
-                    }
-                    else if (av > bv) {
+                    } else if (av > bv) {
                         return mode ? -1 : 1;
-                    }
-                    else {
+                    } else {
                         continue;
                     }
                 }
@@ -608,7 +631,7 @@ Object.defineProperties(Array.prototype, {
     }
 });
 module junyou {
-    export function is(instance: any, ref: { new (): any }): boolean {
+    export function is(instance: any, ref: { new(): any }): boolean {
         return egret.is(instance, egret.getQualifiedClassName(ref));
     }
 
@@ -625,21 +648,17 @@ module junyou {
     }
 
     /**
+     * 
      * 添加到容器中
-     * x，y如果不赋值，则居中
-     * @static
+     * @export
      * @param {egret.DisplayObject} dis 可视对象
      * @param {egret.DisplayObjectContainer} container 容器
-     * @param {number} [x] 在容器中的坐标X
-     * @param {number} [y] 在容器中的坐标Y
+     * @param {LayoutType} [layout=LayoutType.MIDDLE_CENTER] 
+     * @param {number} [hoffset=0] 
+     * @param {number} [voffset=0] 
      */
-    export function addTo(dis: egret.DisplayObject, container: egret.DisplayObjectContainer, x?: number, y?: number) {
-        if (x === void 0) { // x未赋值，居中
-            dis.x = container.width - dis.width >> 1;
-        }
-        if (y === void 0) {
-            dis.y = container.height - dis.height >> 1;
-        }
+    export function addTo(dis: egret.DisplayObject, container: egret.DisplayObjectContainer, layout: LayoutType = LayoutType.MIDDLE_CENTER, hoffset = 0, voffset = 0) {
+        Layout.layout(dis, layout, hoffset, voffset, true, true, container);
         container.addChild(dis);
     }
 }
@@ -703,7 +722,7 @@ if (typeof window["Map"] == "undefined" || !window["Map"]) {
         }
 
         public has(key: K): boolean {
-            return !~this._keys.indexOf(key);
+            return ~this._keys.indexOf(key) as any;
         }
 
         public delete(key: K): boolean {
@@ -786,7 +805,7 @@ module egret {
          * @inheritDoc
          * @memberOf EventDispatcher
          */
-        once(type: string | number, listener: Function, thisObject: any, useCapture?: boolean, priority?: number): void;
+        once(type: string | number, listener: Function, thisObject?: any, useCapture?: boolean, priority?: number): void;
         /**
          * addEventListener的别名
          * 使用 EventDispatcher 对象注册事件侦听器对象，以使侦听器能够接收事件通知。可以为特定类型的事件、阶段和优先级在显示列表的所有节
@@ -839,6 +858,16 @@ module egret {
         */
         hasListen(type: string | number);
     }
+
+    export interface Graphics {
+        /**
+         * 使用  junyou.Rect 作为参数 进行绘制矩形
+         * 
+         * @param { junyou.Rect} rect 
+         * @memberof Graphics
+         */
+        drawRectangle(rect: junyou.Rect);
+    }
     (function () {
         let bpt = Bitmap.prototype;
         bpt.refreshBMD = function () {
@@ -860,11 +889,13 @@ module egret {
             }
         }
         const htmlTextParser = new HtmlTextParser();
-        TextField.prototype.setHtmlText = function (this: TextField, value: string | number) {
-            if (typeof value == "number") {
+        TextField.prototype.setHtmlText = function (this: TextField, value?: string | number) {
+            if (value == undefined) {
+                value = "";
+            } else if (typeof value == "number") {
                 value = value + "";
             }
-            this.textFlow = value ? htmlTextParser.parser(value) : junyou.Temp.EmptyArray;
+            this.textFlow = value ? htmlTextParser.parser(value) : junyou.Temp.EmptyArray as ITextElement[];
         }
         let ept = EventDispatcher.prototype;
         ept.removeAllListeners = function (this: EventDispatcher) {
@@ -907,5 +938,23 @@ module egret {
             DisplayObject.$enterFrameCallBackList.remove(this);
             DisplayObject.$renderCallBackList.remove(this);
         }
+
+        Graphics.prototype.drawRectangle = function (this: Graphics, rect: junyou.Rect) {
+            this.drawRect(rect.x, rect.y, rect.width, rect.height);
+        }
     })();
+}
+interface Storage {
+    getItem(key: number): string | null;
+    /**
+     * 
+     * 
+     * @param {number | string} key 
+     * @param {*} data 如果数据非string类型，会做toString()处理
+     * 
+     * @memberof Storage
+     */
+    setItem(key: number | string, data: any): void;
+
+    removeItem(key: number | string): void;
 }

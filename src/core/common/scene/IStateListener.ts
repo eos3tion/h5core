@@ -1,9 +1,9 @@
 module junyou {
     /**
-     * description
-     * @author pb
+     * 状态机监听器
+     * @author 3tion
      */
     export interface IStateListener {
-        setState(type: number);
+        setState(type: Key);
     }
 }

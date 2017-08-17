@@ -1,31 +1,32 @@
 module junyou {
     /**
-     * description
-     * @author pb
+     * 限制列队
+     * @author 3tion
      */
     export class LimitQueue implements ILimit {
         protected _queue: ILimit[];
-        protected _currentState: number;
-        protected _listenerMachine: IStateListener;
+        protected _current: Key;
+        protected _listener: IStateListener;
 
         constructor() {
             this._queue = [];
         }
 
         public set listener(value: IStateListener) {
-            this._listenerMachine = value;
+            this._listener = value;
         }
 
         public get listener(): IStateListener {
-            return this._listenerMachine;
+            return this._listener;
         }
 
         public addLimiter(item: ILimit): boolean {
-            if (this._queue.indexOf(item) != -1) {
+            let queue = this._queue;
+            if (queue.indexOf(item) != -1) {
                 return false;
             }
-            item.setState(this._currentState);
-            this._queue.push(item);
+            item.setState(this._current);
+            queue.push(item);
             return true;
         }
 
@@ -34,29 +35,25 @@ module junyou {
 		 * @param value
 		 * 
 		 */
-        public setState(value: number): void {
-            this._currentState = value;
+        public setState(value: Key): void {
+            this._current = value;
             let queue = this._queue;
             if (queue) {
-                let item: ILimit;
-                for (item of queue) {
+                for (let i=0;i<queue.length;i++) {
+                    let item=queue[i];
                     item.setState(value);
                 }
             }
+            let lm = this._listener;
             //查看是否有侦听状态变化的对像;
-            if (this._listenerMachine) {
-                this._listenerMachine.setState(value);
+            if (lm) {
+                lm.setState(value);
             }
         }
 
 
         public removeLimiter(item: ILimit): boolean {
-            let index: number = this._queue.indexOf(item);
-            if (index == -1) {
-                return false;
-            }
-            this._queue.splice(index, 1);
-            return true;
+            return this._queue.remove(item);
         }
 
         public clear(): void {
@@ -72,8 +69,8 @@ module junyou {
         public check(type: number): boolean {
             let queue = this._queue;
             if (queue) {
-                let limit: ILimit;
-                for (limit of queue) {
+                for (let i=0;i<queue.length;i++) {
+                    let limit = queue[i];
                     if (limit && limit.check(type)) {
                         return true;
                     }

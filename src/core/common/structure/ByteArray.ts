@@ -1,5 +1,5 @@
 module junyou {
-    const enum ByteArraySize {
+    export const enum ByteArraySize {
         SIZE_OF_UINT32 = 4,
         SIZE_OF_FIX64 = 8,
         SIZE_OF_INT64 = 8,
@@ -181,8 +181,8 @@ module junyou {
         public readVarint(): number {
             var result = 0
             for (var i = 0; ; i += 7) {
-                var b = this.readUnsignedByte();
                 if (i < 32) {
+                    let b = this.readUnsignedByte();
                     if (b >= 0x80) {
                         result |= ((b & 0x7f) << i);
                     }
@@ -190,10 +190,8 @@ module junyou {
                         result |= (b << i);
                         break
                     }
-                }
-                else {
-                    while (this.readUnsignedByte() >= 0x80) {
-                    }
+                } else {
+                    while (this.readUnsignedByte() >= 0x80) { }
                     break
                 }
             }

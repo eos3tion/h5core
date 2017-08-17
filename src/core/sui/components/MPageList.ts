@@ -15,19 +15,17 @@ module junyou {
         public displayList(data?: T[]) {
             this._selectedIndex = -1;
             let dataLen = data && data.length || 0;
-            if (this._data) {
-                //如果新赋值的数据长度比以前的短，就自动清理掉多出来的item
-                let olen = this._dataLen;
-                while (olen > dataLen) {
-                    let render = this.getItemRenderAt(olen - 1);
-                    if (render) {
-                        render.data = undefined;
-                        if (render.handleView) {
-                            render.handleView();
-                        }
+            //如果新赋值的数据长度比以前的短，就自动清理掉多出来的item
+            let olen = Math.max(this._dataLen, this._viewCount);
+            while (olen > dataLen) {
+                let render = this.getItemRenderAt(olen - 1);
+                if (render) {
+                    render.data = undefined;
+                    if (render.handleView) {
+                        render.handleView();
                     }
-                    olen--;
                 }
+                olen--;
             }
             this._data = data;
             this._dataLen = dataLen;

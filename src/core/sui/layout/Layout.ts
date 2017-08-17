@@ -109,6 +109,16 @@ module junyou {
         BOTTOM_RIGHT = BOTTOM | RIGHT
     }
 
+    export const enum LayoutTypeVertical {
+        TOP = LayoutType.TOP,
+        MIDDLE = LayoutType.MIDDLE,
+        BOTTOM = LayoutType.BOTTOM
+    }
+    export const enum LayoutTypeHorizon {
+        LEFT = LayoutType.LEFT,
+        CENTER = LayoutType.CENTER,
+        RIGHT = LayoutType.RIGHT
+    }
     export interface LayoutDisplay { x: number, y: number, width: number, height: number, parent?: LayoutDisplayParent }
     export interface LayoutDisplayParent extends Size { };
 	/**
@@ -213,6 +223,65 @@ module junyou {
             result.x = Math.round(x + hoffset);
             result.y = Math.round(y + voffset);
             return result;
-        }
+        },
+        /**
+         * 基于鼠标位置的tip的布局方式
+         * 
+         * @param {LayoutDisplay} dis 要被布局的可视对象
+         * @param {Point} point 传入的点
+         * @param {{ x: number, y: number }} [result] 
+         * @param {number} [padx=0] 间隔x
+         * @param {number} [pady=0] 间隔y
+         * @param {LayoutDisplayParent} [parent] 容器的大小
+         */
+        tipLayout(dis: LayoutDisplay, point: Point, result?: { x: number, y: number }, padx = 0, pady = 0, parent?: LayoutDisplayParent) {
+            Layout.getTipLayoutPos(dis, point, dis, padx, pady, parent);
+        },
+        /**
+         * 获取基于鼠标位置的tip的布局方式布局的坐标
+         * 
+         * @param {LayoutDisplay} dis 要被布局的可视对象
+         * @param {Point} point 传入的点
+         * @param {{ x: number, y: number }} [result] 
+         * @param {number} [padx=0] 间隔x
+         * @param {number} [pady=0] 间隔y
+         * @param {LayoutDisplayParent} [parent] 容器的大小
+         * @returns {Point} 计算后的坐标
+         */
+        getTipLayoutPos(dis: LayoutDisplay, point: Point, result?: { x: number, y: number }, padx = 0, pady = 0, parent?: LayoutDisplayParent) {
+            let [parentWidth, parentHeight] = Layout.getParentSize(dis, parent);
+            result = result || {} as { x: number, y: number };
+            let mx = point.x;
+            let my = point.y;
+            let x = mx + padx;
+            let y = my + pady;
+            let func = dis["getTransformedBounds"];
+            let rect: egret.Rectangle;
+            if (func) {
+                rect = func.call(dis, parent || egret.sys.$TempStage);
+            } else {
+                rect = new egret.Rectangle(dis.x, dis.y, dis.width, dis.height);
+            }
+            let w = rect.width;
+            let h = rect.height;
+            if (w + x + padx > parentWidth) {
+                x = parentWidth - w - padx;
+                if (x < mx) {
+                    x = mx - w - padx;
+                }
+                if (x < 0) {
+                    x = padx;
+                }
+            }
+            if (h + my + pady > parentHeight) {
+                y = parentHeight - h - pady;
+                if (y < 0) {
+                    y = pady;
+                }
+            }
+            result.x = Math.round(x);
+            result.y = Math.round(y);
+            return result;
+        },
     }
 }

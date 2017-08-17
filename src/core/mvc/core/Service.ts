@@ -12,7 +12,7 @@ module junyou {
         }
 
         public onRegister() {
-            this._ns = NetService.getInstance();
+            this._ns = NetService.get();
         }
 
         _startSync(): void {

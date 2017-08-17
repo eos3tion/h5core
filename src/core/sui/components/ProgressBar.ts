@@ -24,6 +24,13 @@ module junyou {
 
 		private _barWidth: number;
 
+		/**
+		 * 
+		 * 进度条的bar是否按遮罩的方式控制
+		 * @type {boolean}
+		 */
+		public useMask: boolean;
+
 		public constructor() {
 			super();
 			this.initComponent();
@@ -104,7 +111,18 @@ module junyou {
 
 		/*更新进度条显示*/
 		private updateBarDisplay() {
-			this._bar.width = this._value * this._barWidth / this._maxValue;
+			let bar = this._bar;
+			let v = this._value * this._barWidth / this._maxValue;
+			if (this.useMask) {
+				let rect = bar.scrollRect;
+				if (!rect) {
+					rect = new egret.Rectangle(0, 0, 0, bar.height);
+				}
+				rect.width = v;
+				bar.scrollRect = rect;
+			} else {
+				bar.width = v;
+			}
 		}
 
 		/*更新显示*/

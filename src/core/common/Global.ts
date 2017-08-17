@@ -73,7 +73,7 @@ module junyou {
 			let ticker = egret.sys.$ticker as any;
 			let update = ticker.render;
 			let delta = 0 | 1000 / ticker.$frameRate;
-			let tmp: CallbackInfo<Function>[] = [];
+			let temp: CallbackInfo<Function>[] = [];
 			_callLater = new CallLater();
 			_tweenManager || (_tweenManager = new TweenManager());
 			ticker.render = function () {
@@ -89,6 +89,7 @@ module junyou {
 				}
 				//执行顺序  nextTick  callLater TimerUtil  tween  最后是白鹭的更新
 				let len = _nextTicks.length;
+				let tmp = temp;
 				for (let i = 0; i < len; i++) {
 					tmp[i] = _nextTicks[i];
 				}
@@ -105,7 +106,7 @@ module junyou {
 		}
 
 		function nextTick(callback: Function, thisObj?: any, ...args) {
-			_nextTicks.push(CallbackInfo.getInstance(callback, thisObj, ...args));
+			_nextTicks.push(CallbackInfo.get(callback, thisObj, ...args));
 		}
 
 		/**

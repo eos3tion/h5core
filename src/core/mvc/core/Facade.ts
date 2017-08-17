@@ -21,7 +21,7 @@ module junyou {
          * 
          * @memberOf Facade
          */
-        public static getNameOfInline(inlineRef: { new (): any }, className?: string): string {
+        public static getNameOfInline(inlineRef: { new(): any }, className?: string): string {
             className = className || egret.getQualifiedClassName(inlineRef);
             let name: string;
             if ("NAME" in inlineRef) {//如果有 public static NAME 取这个作为名字
@@ -121,7 +121,13 @@ module junyou {
          * @param {string} [proxyName] 模块名称
          * @param {boolean} [async=false] 是否异步初始化，默认直接初始化
          */
-        public registerInlineProxy(ref: { new (): Proxy }, proxyName?: Key, async?: boolean) {
+        public registerInlineProxy(ref: { new(): Proxy }, proxyName?: Key, async?: boolean) {
+            if (!ref) {
+                if (DEBUG) {
+                    ThrowError("registerInlineProxy时,没有ref")
+                }
+                return
+            }
             let className = egret.getQualifiedClassName(ref);
             if (!proxyName) {
                 proxyName = Facade.getNameOfInline(ref, className);
@@ -146,7 +152,13 @@ module junyou {
          * @param {{ new (): Mediator }} ref Mediator创建器
          * @param {string} [mediatorName]   注册的模块名字
          */
-        public registerInlineMediator(ref: { new (): Mediator }, mediatorName?: Key) {
+        public registerInlineMediator(ref: { new(): Mediator }, mediatorName?: Key) {
+            if (!ref) {
+                if (DEBUG) {
+                    ThrowError(`registerInlineMediator时,没有ref`)
+                }
+                return
+            }
             let className = egret.getQualifiedClassName(ref);
             if (!mediatorName) {
                 mediatorName = Facade.getNameOfInline(ref, className);
@@ -222,10 +234,11 @@ module junyou {
          */
         public getProxy(proxyName: Key, callback: { (proxy: Proxy, ...args: any[]) }, thisObj: any, ...args) {
             let dele = this._proxys[proxyName];
-            if (DEBUG) {
-                if (!dele) {
+            if (!dele) {
+                if (DEBUG) {
                     ThrowError("没有注册proxy的关系");
                 }
+                return
             }
             let bin = <ScriptSolveBin>{};
             bin.dele = dele;
@@ -261,10 +274,11 @@ module junyou {
          */
         public getMediator(moduleID: Key, callback: { (mediator: Mediator, ...args: any[]) }, thisObj: any, ...args) {
             let dele = this._mediators[moduleID];
-            if (DEBUG) {
-                if (!dele) {
+            if (!dele) {
+                if (DEBUG) {
                     ThrowError("没有注册Mediator的关系");
                 }
+                return
             }
             let bin = <ScriptSolveBin>{};
             bin.dele = dele;
@@ -298,7 +312,7 @@ module junyou {
                     this._getHost(bin);
 
                 } else {
-                    script.callbacks.push(CallbackInfo.getInstance(this._getHost, this, bin));
+                    script.callbacks.push(CallbackInfo.get(this._getHost, this, bin));
                     script.load();
                 }
             } else {//主脚本中的模块
@@ -506,12 +520,21 @@ module junyou {
      * 
      * @memberOf FHost
      */
-    export function proxyCall(proxyName: Key, callback: { (proxy: Proxy, ...args: any[]) }, thisObj?: any, ...args) {
-        facade.getProxy(proxyName, callback, thisObj, ...args);
+    export function proxyCall(proxyName: Key, callback: { (proxy: Proxy, ...args: any[]) }, thisObj?: any, ...args)
+    export function proxyCall() {
+        let f = facade;
+        f.getProxy.apply(f, arguments);
     }
-
-    export function proxyExec(...args) {
-        facade.executeProxy.apply(facade, args);
+    /**
+     * 执行Proxy的方法
+     * @param name     proxy名字
+     * @param handlerName   函数名字
+     * @param args          参数列表
+     */
+    export function proxyExec(proxyName: Key, handlerName: string, ...args)
+    export function proxyExec() {
+        let f = facade;
+        f.executeProxy.apply(f, arguments);
     }
 
     /**
@@ -525,12 +548,25 @@ module junyou {
      * 
      * @memberOf FHost
      */
-    export function mediatorCall(mediatorName: Key, callback: { (mediator: Mediator, ...args: any[]) }, thisObj?: any, ...args) {
-        facade.getMediator(mediatorName, callback, thisObj, ...args);
+    export function mediatorCall(mediatorName: Key, callback: { (mediator: Mediator, ...args: any[]) }, thisObj?: any, ...args)
+    export function mediatorCall() {
+        let f = facade;
+        f.getMediator.apply(f, arguments);
     }
-
-    export function mediatorExec(...args) {
-        facade.executeMediator.apply(facade, args);
+    /**
+     * 
+     * 执行某个模块的方法
+     * @param {string} moduleID     模块id
+     * @param {boolean} showTip     是否显示Tip，如果无法执行，是否弹出提示
+     * @param {string} handlerName  执行的函数名
+     * @param {boolean} [show]      执行时，是否将模块显示到舞台
+     * @param {any[]} args            函数的参数列表
+     * @returns
+     */
+    export function mediatorExec(moduleID: Key, showTip: boolean, handlerName: string, show?: boolean, ...args)
+    export function mediatorExec() {
+        let f = facade;
+        f.executeMediator.apply(f, arguments);
     }
 
     /**

@@ -20,6 +20,8 @@ module junyou {
 		 */
 		public suiRawRect?: egret.Rectangle;
 
+		noWebp?: boolean;
+
 		constructor() {
 			super();
 			this.on(Event.ADDED_TO_STAGE, this.addedToStage, this);
@@ -28,7 +30,7 @@ module junyou {
 
 		addedToStage() {
 			if (this.uri) {
-				let res = ResourceManager.getTextureRes(this.uri);
+				let res = ResourceManager.getTextureRes(this.uri, this.noWebp);
 				if (res) {
 					res.bind(this);
 					res.load();

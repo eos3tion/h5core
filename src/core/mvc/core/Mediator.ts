@@ -108,5 +108,14 @@ module junyou {
                 }
             }
         }
+
+        /**
+         * 关闭Mediator控制的面板
+         * 
+         */
+        hide(...arg);
+        hide() {
+            toggle(this._name, ToggleState.HIDE);
+        }
     }
 }

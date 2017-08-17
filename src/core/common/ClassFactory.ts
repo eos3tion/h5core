@@ -8,7 +8,7 @@ module junyou {
      */
     export class ClassFactory<T>{
 
-        private _creator: { new (): T };
+        private _creator: { new(): T };
 
         private _props: { [index: string]: any };
 
@@ -18,12 +18,17 @@ module junyou {
          * @param {{ new (): T }} creator
          * @param {{ [index: string]: any }} [props]    属性模板
          */
-        public constructor(creator: { new (): T }, props?: { [index: string]: any }) {
+        public constructor(creator: { new(): T }, props?: { [index: string]: any }) {
             this._creator = creator;
             this._props = props;
         }
 
-        public newInstance() {
+        /**
+         * 获取实例
+         * 
+         * @returns 
+         */
+        public get() {
             let ins = new this._creator();
             let p = this._props;
             for (let key in p) {

@@ -58,9 +58,10 @@ module junyou {
          */
         public execute(doRecycle: boolean = true) {
             let callback = this.callback;
+            let result;
             if (callback != undefined) {
                 try {
-                    callback.apply(this.thisObj, this.args);
+                    result = callback.apply(this.thisObj, this.args);
                 } catch (e) {
                     if (DEBUG) {
                         let debug = <DebugInfo>this["_debug"];
@@ -75,6 +76,7 @@ module junyou {
             if (doRecycle) {
                 this.recycle();
             }
+            return result;
         }
 
         /**
@@ -86,7 +88,7 @@ module junyou {
             if (this.args) {
                 args = args.concat(this.args);
             }
-            this.callback.apply(this.thisObj, args);
+            return this.callback.apply(this.thisObj, args);
         }
 
         public onRecycle() {
@@ -101,11 +103,17 @@ module junyou {
         /**
          * 获取CallbackInfo的实例
          */
-        public static getInstance<T extends Function>(callback: T, thisObj?: any, ...args: any[]): CallbackInfo<T> {
+        public static get<T extends Function>(callback: T, thisObj?: any, ...args: any[]): CallbackInfo<T> {
             var info = recyclable(CallbackInfo);
             info.init(callback, thisObj, args);
             return info;
         }
+
+        /**
+         * 获取CallbackInfo的实例
+         * @deprecated  请使用`CallbackInfo.get`以减少字符串消耗
+         */
+        public static getInstance = CallbackInfo.get;
 
 
         /**

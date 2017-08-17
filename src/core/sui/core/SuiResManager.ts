@@ -6,7 +6,7 @@ module egret {
          * @type {egret.Rectangle}
          * @memberOf DisplayObject
          */
-        suiRawRect?: Readonly<egret.Rectangle>;
+        suiRawRect?: egret.Rectangle;
     }
 }
 
@@ -37,7 +37,7 @@ module junyou {
     	/**
     	 * 创建器
     	 */
-        protected _creators: { [index: string]: { new (): BaseCreator<egret.DisplayObject> } };
+        protected _creators: { [index: string]: { new(): BaseCreator<egret.DisplayObject> } };
 
 
     	/**
@@ -53,7 +53,7 @@ module junyou {
         }
 
         protected initInlineCreators() {
-            let creators: { [index: string]: { new (): BaseCreator<egret.DisplayObject> } } = {};
+            let creators: { [index: string]: { new(): BaseCreator<egret.DisplayObject> } } = {};
             this._creators = creators;
             this._sharedTFCreator = new TextFieldCreator();
             creators[ExportType.Button] = ButtonCreator;
@@ -302,7 +302,7 @@ module junyou {
                 let creator = suiData.lib[className];
                 if (creator) {
                     creator.setBaseData(baseData);
-                    return creator.getInstance();
+                    return creator.get();
                 } else if (DEBUG) {
                     ThrowError(`没有在[${suiData.key}]找到对应组件[${className}]`);
                 }
@@ -330,7 +330,7 @@ module junyou {
                 if (cRef) {
                     let creator = new cRef();
                     creator.parseData(data, suiData);
-                    return creator.getInstance();
+                    return creator.get();
                 } else if (DEBUG) {
                     ThrowError(`createElement时，没有找到对应组件，索引：[${+data[0]}]`);
                 }
@@ -351,7 +351,7 @@ module junyou {
                 let bc = bcs[index];
                 if (bc) {
                     bc.setBaseData(baseData);
-                    return bc.getInstance();
+                    return bc.get();
                 }
             }
         }
@@ -412,7 +412,7 @@ module junyou {
             let tfCreator = this._sharedTFCreator;
             tfCreator.parseSelfData(data);
             tfCreator.setBaseData(baseData);
-            return tfCreator.getInstance();
+            return tfCreator.get();
         }
 
         /**
@@ -428,7 +428,7 @@ module junyou {
             if (data[0]) {
                 dis.name = data[0];
             }
-            let [, x, y, w, h, rot] = data;
+            let [, x, y, w, h, rot, alpha] = data;
             dis.suiRawRect = new egret.Rectangle(x, y, w, h);
             if (Array.isArray(rot)) {//matrix
                 let [a, b, c, d] = rot;
@@ -443,6 +443,9 @@ module junyou {
                 if (rot) {
                     dis.rotation = rot;
                 }
+            }
+            if (alpha != undefined) {
+                dis.alpha = alpha;
             }
         }
 
@@ -530,11 +533,11 @@ module junyou {
                     let tc = new TextFieldCreator();
                     tc.setBaseData(bd)
                     tc.parseSelfData(sd);
-                    return tc.getInstance();
+                    return tc.get();
                 case ExportType.Image:
                     let bg = new BitmapCreator(suiData);
                     bg.parseData(data, suiData);
-                    return bg.getInstance();
+                    return bg.get();
                 case ExportType.Sprite:
                     let sp = new egret.Sprite();
                     SuiResManager.initBaseData(sp, bd);
@@ -694,6 +697,14 @@ module junyou {
          * @memberOf BaseData
          */
         5: number | Array<number>;
+
+        /**
+         * alpha
+         * 
+         * @type {number}
+         * @memberof BaseData
+         */
+        6?: number;
     }
 
     export interface PanelData extends Array<any> {

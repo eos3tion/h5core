@@ -69,7 +69,7 @@ module junyou {
                 let list: CallbackInfo<Function>[] = [];
                 timer.list = list;
                 _timeobj[time] = timer;
-                list.push(CallbackInfo.getInstance(callback, thisObj, ...args));
+                list.push(CallbackInfo.get(callback, thisObj, ...args));
             } else {
                 CallbackInfo.addToList(timer.list, callback, thisObj, ...args);
             }

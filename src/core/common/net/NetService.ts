@@ -273,7 +273,7 @@ if (DEBUG) {
     $gm.maxNSLogCount = 1000;
     $gm.nsLogs = [];
     $gm.route = (cmd, data) => {
-        junyou.NetService.getInstance().route(cmd, data);
+        junyou.NetService.get().route(cmd, data);
     }
     $gm.batchRoute = logs => {
         //过滤send
@@ -290,7 +290,7 @@ if (DEBUG) {
 }
 
 module junyou {
-    const enum NSType {
+    export const enum NSType {
         Null = 0,
         Boolean = 1,
         String = 2,
@@ -301,7 +301,7 @@ module junyou {
         Int64 = 8
     }
 
-    const BytesLen = {
+    export const NSBytesLen = {
         /**NSType.Null */0: 0,
         /**NSType.Boolean */1: 1,
         /**NSType.Double */5: 8,
@@ -309,6 +309,43 @@ module junyou {
         /**NSType.Uint32 */7: 4,
         /**NSType.Int64 */8: 8
     };
+    /**
+     * 用于存储头部的临时变量
+     */
+    export const nsHeader = { cmd: 0, len: 0 };
+
+    /**
+     * 头信息
+     * 
+     * @export
+     * @interface NSHeader
+     */
+    export interface NSHeader {
+        /**
+         * 指令/协议号
+         * 
+         * @type {number}
+         * @memberof NSHeader
+         */
+        cmd: number;
+
+        /**
+         * 长度
+         * 
+         * @type {number}
+         * @memberof NSHeader
+         */
+        len: number;
+    }
+
+    function send2(cmd: number, data?: any, msgType?: string | number, limit?: number) {
+        if (RequestLimit.check(cmd, limit)) {
+            this._send(cmd, data, msgType);
+        } else {
+            dispatch(EventConst.NetServiceSendLimit, cmd);
+        }
+    }
+
 	/**
 	 * 通信服务
 	 * 收发的协议结构：
@@ -322,11 +359,23 @@ module junyou {
         */
         protected _actionUrl: string;
 
+        public setLimitEventEmitable(emit: boolean) {
+            if (emit) {
+                this.send = send2;
+            } else {
+                delete this.send;
+            }
+        }
 
-        protected static _instance: NetService;
+        protected static _ins: NetService;
 
-        public static getInstance(): NetService {
-            return this._instance;
+        protected _limitAlert: boolean;
+
+        protected _limitSendFunc: { (cmd: number, data?: any, msgType?: string | number, limit?: number) };
+        protected _nolimitSendFunc: { (cmd: number, data?: any, msgType?: string | number, limit?: number) };
+
+        public static get(): NetService {
+            return this._ins;
         }
         /**
              * 用于调试模式下写日志
@@ -392,7 +441,7 @@ module junyou {
             if (DEBUG) {
                 this.$writeNSLog = (time, type, cmd, data) => {
                     data = data == undefined ? undefined : JSON.parse(JSON.stringify(data));
-                    let log = { time, type, cmd, data };
+                    let log = doFreeze({ time, type, cmd, data });
                     const nsLogs = $gm.nsLogs;
                     //清理多余的日志
                     while (nsLogs.length > $gm.maxNSLogCount) {
@@ -403,6 +452,22 @@ module junyou {
                     if ($gm.__nsLogCheck(log, nsFilter)) {
                         console.log(type, time, cmd, data);
                     }
+                    function doFreeze(obj) {
+                        if (typeof obj == "object" && obj) {
+                            let pool = [obj] as Object[];
+                            while (pool.length) {
+                                let tmp = pool.pop();
+                                Object.freeze(tmp);
+                                for (let key in tmp) {
+                                    let x = tmp[key];
+                                    if (typeof x == "object" && x) {
+                                        pool.push(x);
+                                    }
+                                }
+                            }
+                        }
+                        return obj;
+                    }
                 }
             }
             if (window.addEventListener) {//防止native报错
@@ -412,7 +477,7 @@ module junyou {
             on(EventConst.Awake, this.onawake, this);
         }
 
-        protected netChange() {
+        protected netChange = () => {
             if (navigator.onLine) {
                 dispatch(EventConst.Online);
                 this.showReconnect();
@@ -536,6 +601,8 @@ module junyou {
             }
         }
 
+
+
         /**
          * 即时发送指令
          */
@@ -585,14 +652,14 @@ module junyou {
             let type = data.msgType;
             bytes.writeShort(cmd);
             if (dat == undefined) {
-                bytes.writeUnsignedShort(0);
+                this.writeBytesLength(bytes, 0);
                 if (DEBUG) {
                     var outdata = undefined;
                 }
             }
             else {
-                if (type in BytesLen) {
-                    bytes.writeUnsignedShort(BytesLen[type]);
+                if (type in NSBytesLen) {
+                    this.writeBytesLength(bytes, NSBytesLen[type]);
                 }
                 if (DEBUG) {
                     outdata = dat;
@@ -638,7 +705,7 @@ module junyou {
                         } else {
                             PBMessageUtils.writeTo(dat, <string>data.msgType, tempBytes);
                         }
-                        bytes.writeUnsignedShort(tempBytes.length);
+                        this.writeBytesLength(bytes, tempBytes.length)
                         bytes.writeBytes(tempBytes);
                         break;
                 }
@@ -647,6 +714,7 @@ module junyou {
                 this.$writeNSLog(Global.now, "send", cmd, outdata);
             }
         }
+
 
         /**
          * @private 
@@ -657,19 +725,14 @@ module junyou {
             let receiveMSG = this._receiveMSG;
             let tmpList = this._tmpList;
             let idx = 0;
+            let header = nsHeader;
+            let decodeHeader = this.decodeHeader;
             while (true) {
-                if (bytes.readAvailable < 4) {
+                if (!decodeHeader(bytes, header)) {
+                    //回滚
                     break;
                 }
-                //先读取2字节协议号
-                let cmd = bytes.readShort();
-                //增加2字节的数据长度读取(这2字节是用于增加容错的，方便即便没有读到type，也能跳过指定长度的数据，让下一个指令能正常处理)
-                let len = bytes.readUnsignedShort();
-                if (bytes.readAvailable < len) {
-                    // 回滚
-                    bytes.position -= 4;
-                    break;
-                }
+                let { cmd, len } = header;
                 //尝试读取结束后，应该在的索引
                 let endPos = bytes.position + len;
                 let type = receiveMSG[cmd];
@@ -677,8 +740,8 @@ module junyou {
                     let flag = true;
                     let data = undefined;
                     if (len > 0) {
-                        if (type in BytesLen) {
-                            let blen = BytesLen[type];
+                        if (type in NSBytesLen) {
+                            let blen = NSBytesLen[type];
                             if (blen != len) {
                                 ThrowError(`解析指令时，类型[${type}]的指令长度[${len}]和预设的长度[${blen}]不匹配`);
                             }
@@ -733,7 +796,9 @@ module junyou {
             //调试时,显示接收的数据
             if (DEBUG) {
                 var now = Global.now;
-                for (let ndata of tmpList) {
+                //分发数据
+                for (let i = 0; i < idx; i++) {
+                    let ndata = tmpList[i];
                     this.$writeNSLog(now, "receive", ndata.cmd, ndata.data);
                 }
             }
@@ -744,6 +809,45 @@ module junyou {
                 let nData = tmpList[i];
                 router.dispatch(nData);
             }
+        }
+
+        /**
+         * 解析头部信息
+         * 
+         * @protected
+         * @param {ByteArray} bytes 
+         * @param {NSHeader} header 
+         * @returns 是否可以继续  true    继续后续解析
+         *                       false   取消后续解析
+         * @memberof NetService
+         */
+        protected decodeHeader(bytes: ByteArray, header: NSHeader) {
+            if (bytes.readAvailable < 4) {
+                return false;
+            }
+            //先读取2字节协议号
+            header.cmd = bytes.readShort();
+            //增加2字节的数据长度读取(这2字节是用于增加容错的，方便即便没有读到type，也能跳过指定长度的数据，让下一个指令能正常处理)
+            let len = bytes.readUnsignedShort();
+            if (bytes.readAvailable < len) {
+                // 回滚
+                bytes.position -= 4;
+                return false;
+            }
+            header.len = len;
+            return true;
+        }
+
+        /**
+         * 存储数据长度
+         * 
+         * @protected
+         * @param {ByteArray} bytes 
+         * @param {number} val 
+         * @memberof NetService
+         */
+        protected writeBytesLength(bytes: ByteArray, val: number) {
+            bytes.writeUnsignedShort(val);
         }
 
         /**

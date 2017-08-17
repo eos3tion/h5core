@@ -1,19 +1,14 @@
 module junyou {
     import TE = egret.TouchEvent;
     /**
-     * description
+     * 单选按钮组
      * @author pb
      */
     export class Group extends egret.EventDispatcher {
 
-        protected _list: IGroupItem[];
+        protected _list: IGroupItem[] = [];
         protected _selectedItem: IGroupItem;
-        protected _selectedIndex: number;
-
-        constructor() {
-            super();
-            this._list = [];
-        }
+        protected _selectedIndex = -1;
 
         /**
          * 添加单个组件
@@ -23,19 +18,12 @@ module junyou {
         public addItem(item: IGroupItem) {
             if (item) {
                 this._list.pushOnce(item);
-                if (is(item, ListItemRenderer)) {
-                    item.on(EventConst.ITEM_TOUCH_TAP,this.touchHandler,this);
-                } else {
-
-                    item.on(TE.TOUCH_TAP, this.touchHandler, this);
-                }
+                item.on(TE.TOUCH_TAP, this.touchHandler, this);
             }
         }
 
         protected touchHandler(e: TE) {
-            let item = e.target;
-            let idx = this._list.indexOf(item);
-            this.selectedIndex = idx;
+            this.$setSelectedItem(e.target);
         }
 
         /**
@@ -45,6 +33,9 @@ module junyou {
          */
         public removeItem(item: IGroupItem) {
             if (item) {
+                if (this._selectedItem == item) {
+                    this.$setSelectedItem();
+                }
                 this._list.remove(item);
                 item.off(TE.TOUCH_TAP, this.touchHandler, this);
             }
@@ -57,10 +48,9 @@ module junyou {
          * @param {...IGroupItem[]} itemArr
          */
         public addItems(...itemArr: IGroupItem[]) {
-            if (itemArr) {
-                itemArr.forEach(item => {
-                    this.addItem(item);
-                });
+            for (let i = 0; i < itemArr.length; i++) {
+                let item = itemArr[i];
+                this.addItem(item);
             }
         }
 
@@ -68,24 +58,28 @@ module junyou {
          * 设置选中组件
          */
         public set selectedItem(item: IGroupItem) {
+            this.$setSelectedItem(item);
+        }
+
+        protected $setSelectedItem(item?: IGroupItem) {
             let _selectedItem = this._selectedItem;
             if (_selectedItem != item) {
                 if (_selectedItem) {
                     _selectedItem.selected = false;
                 }
+                let idx = -1;
                 if (item) {
-                    if (~this._list.indexOf(item)) {
-                        this._selectedItem = item;
+                    idx = this._list.indexOf(item);
+                    if (~idx) {
                         item.selected = true;
-                    }
-                    else {
+                    } else {
+                        item = undefined;
                         ThrowError("Group 设置的组件未添加到该组");
                     }
                 }
-                else {
-                    this._selectedItem = undefined;
-                }
-                this.dispatch(EventConst.GROUP_CHANGE);
+                this._selectedItem = item;
+                this._selectedIndex = idx;
+                return this.dispatch(EventConst.GROUP_CHANGE);
             }
         }
 
@@ -97,18 +91,32 @@ module junyou {
          * 设置选中索引
          */
         public set selectedIndex(idx: number) {
-            this._selectedIndex = idx;
-            if (idx >= 0) {
-                let item = this._list[idx];
-                this.selectedItem = item;
-            }
-            else {
-                this.selectedItem = undefined;
+            this.$setSelectedIndex(idx);
+        }
+
+        protected $setSelectedIndex(idx: number) {
+            if (this._selectedIndex != idx) {
+                let item = idx >= 0 ? this._list[idx] : undefined;
+                this.$setSelectedItem(item);
             }
         }
 
-        public get selectedIndex(): number {
+        public get selectedIndex() {
             return this._selectedIndex;
+        }
+
+        public clear() {
+            const list = this._list;
+            for (let i = 0; i < list.length; i++) {
+                let item = list[i];
+                item.off(TE.TOUCH_TAP, this.touchHandler, this);
+            }
+            list.length = 0;
+            this._selectedIndex = -1;
+        }
+
+        public onRecycle() {
+            this.clear();
         }
     }
 }

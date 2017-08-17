@@ -2,6 +2,20 @@ module junyou {
     import TE = egret.TouchEvent;
     import E = egret.Event;
     export class Scroller extends egret.EventDispatcher {
+        /**
+         * touchdown的起始时间
+         * 
+         * @protected
+         * @type {number}
+         */
+        protected _st: number;
+
+        /**
+         * touchTap的超时时间，如果超过此时间，则不会触发子对象的touchTap事件
+         * 
+         */
+        public touchTapTime = 500;
+        protected _touchChildren: boolean;
 
         protected _scrollbar: ScrollBar;
 
@@ -122,6 +136,27 @@ module junyou {
             this.scrollToHead();
         }
 
+        /**
+         * 对content绘制鼠标触发区域  
+         * 将会对content的graphics先进行清理  
+         * 然后基于content的bounds进行绘制
+         * 
+         */
+        public drawTouchArea(content?: egret.Shape) {
+            content = content || this._content as egret.Shape;
+            if (content) {
+                let g = content.graphics;
+                if (g) {
+                    g.clear();
+                    g.beginFill(0, 0);
+                    let rect = Temp.EgretRectangle;
+                    content.getBounds(rect);
+                    g.drawRectangle(rect);
+                    g.endFill();
+                }
+            }
+        }
+
         public bindObj2(content: egret.DisplayObject, scrollRect: egret.Rectangle, scrollbar?: ScrollBar) {
             content.x = scrollRect.x;
             content.y = scrollRect.y;
@@ -144,19 +179,24 @@ module junyou {
             let scrollRect = content.scrollRect;
             let pos: number
             if (this._scrollType == ScrollDirection.Vertical) {
-                if (content.height < scrollRect.height) {
+                if (content.measuredHeight < scrollRect.height) {
                     return;
                 }
                 pos = e.stageY;
 
             } else {
-                if (content.width < scrollRect.width) {
+                if (content.measuredWidth < scrollRect.width) {
                     return;
                 }
                 pos = e.stageX;
             }
-            this._lastMoveTime = Global.now;
+            let now = Global.now;
+            this._st = now;
+            this._lastMoveTime = now;
             this._lastTargetPos = pos;
+            if (content instanceof egret.DisplayObjectContainer) {
+                this._touchChildren = content.touchChildren;
+            }
             content.stage.on(TE.TOUCH_MOVE, this.moveOnContent, this);
             content.on(TE.TOUCH_END, this.endTouchContent, this);
             content.on(TE.TOUCH_RELEASE_OUTSIDE, this.endTouchContent, this);
@@ -176,6 +216,9 @@ module junyou {
             sub = Math.abs(sub);
             let now = Global.now;
             let subTime = now - this._lastMoveTime;
+            if (now - this._st > this.touchTapTime && this._touchChildren != undefined) {
+                (this._content as egret.DisplayObjectContainer).touchChildren = false;
+            }
             this._lastMoveTime = now;
             this._lastTargetPos = currentPos;
             this._moveSpeed = subTime > 0 ? sub / subTime : 0;
@@ -216,7 +259,12 @@ module junyou {
             if (!content) {
                 return;
             }
-            content.stage.off(TE.TOUCH_MOVE, this.moveOnContent, this);
+            if (content instanceof egret.DisplayObjectContainer) {
+                content.touchChildren = this._touchChildren;
+                this._touchChildren = undefined;
+            }
+            let stage = content.stage || egret.sys.$TempStage;
+            stage.off(TE.TOUCH_MOVE, this.moveOnContent, this);
             content.off(TE.TOUCH_END, this.endTouchContent, this);
             content.off(TE.TOUCH_RELEASE_OUTSIDE, this.endTouchContent, this);
             let now = Global.now;
@@ -411,10 +459,10 @@ module junyou {
             }
             let contentSize: number;
             if (this._scrollType == ScrollDirection.Vertical) {
-                contentSize = content.height;
+                contentSize = content.measuredHeight;
             }
             else {
-                contentSize = content.width;
+                contentSize = content.measuredWidth;
             }
             let scrollbar = this._scrollbar;
             let bgSize = scrollbar.bgSize;
@@ -441,11 +489,11 @@ module junyou {
             let contentSize: number, scrollSize: number;
             let rect = content.scrollRect;
             if (this._scrollType == ScrollDirection.Vertical) {
-                contentSize = content.height;
+                contentSize = content.measuredHeight;
                 scrollSize = rect.height;
             }
             else {
-                contentSize = content.width;
+                contentSize = content.measuredWidth;
                 scrollSize = rect.width;
             }
             return contentSize - scrollSize;

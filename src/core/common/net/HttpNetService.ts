@@ -39,7 +39,7 @@ module junyou {
         public constructor() {
             super();
             //覆盖instance
-            NetService._instance = this;
+            NetService._ins = this;
             this._unsendRequest = [];
             this._sendingList = [];
             this._loader = getXHR();

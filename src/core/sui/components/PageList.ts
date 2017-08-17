@@ -73,7 +73,7 @@ module junyou {
 
         private renderChange: boolean = false;
 
-        protected _dataLen: number;
+        protected _dataLen = 0;
 
         public get dataLen() {
             return this._dataLen;
@@ -282,7 +282,7 @@ module junyou {
             let list = this._renderList;
             let render = list[index];
             if (!render) {
-                render = this._renderFactory.newInstance();
+                render = this._renderFactory.get();
                 list[index] = render;
                 render.on(EventConst.Resize, this.childSizeChange, this);
                 render.on(EventConst.ITEM_TOUCH_TAP, this.touchItemrender, this);
@@ -425,13 +425,26 @@ module junyou {
                 oldPos = rect.y;
                 endPos = v.y;
                 max = this._h - v.height;
+
             } else {
                 oldPos = rect.x;
                 endPos = v.x;
                 max = this._w - v.width;
             }
+
+
             if (endPos > max) {
                 endPos = max;
+            }
+            if (rect) {
+                if (this._scrollType == ScrollDirection.Vertical) {
+                    endPos = endPos - rect.height;
+                } else {
+                    endPos = endPos - rect.width;
+                }
+                if (endPos < 0) {
+                    endPos = 0;
+                }
             }
 
             let scroller = this.scroller;
@@ -619,7 +632,7 @@ module junyou {
             }
         }
 
-        private _remoreRender(item: R) {
+        protected _remoreRender(item: R) {
             removeDisplay(item.view);
             item.dispose();
             if (!this.renderChange) {
@@ -691,7 +704,7 @@ module junyou {
                     let render = list[i];
                     let v = render.view;
                     if (v) {
-                        this.addChildAt(v,0);
+                        this.addChild(v);
                     }
                 }
                 this._showStart = 0;
@@ -770,7 +783,7 @@ module junyou {
                 }
                 for (let i = 0, tlen = tmp.length; i < tlen; i++) {
                     let v = tmp[i];
-                    this.addChildAt(v,0);
+                    this.addChild(v);
                 }
                 this._showStart = fIdx;
                 this._showEnd = lIdx;
@@ -784,7 +797,7 @@ module junyou {
                 }
                 for (let i = tmp.length - 1; i >= 0; i--) {
                     let v = tmp[i];
-                    this.addChildAt(v,0);
+                    this.addChild(v);
                 }
                 this._showStart = lIdx;
                 this._showEnd = fIdx;

@@ -139,7 +139,7 @@ module junyou {
 
         public suiDataComplete(suiData: SuiData): void {
             if (this.preloadImage) {
-                suiData.loadBmd(CallbackInfo.getInstance(this.loadNext, this));
+                suiData.loadBmd(CallbackInfo.get(this.loadNext, this));
             } else {
                 this.loadNext();
             }
@@ -147,7 +147,7 @@ module junyou {
 
         public suiDataFailed(suiData: SuiData): void {
             //暂时用alert
-            alert(this._className + "加载失败");
+            // alert(this._className + "加载失败");
         }
 
 		/**
