@@ -38,25 +38,65 @@ module junyou {
 
         protected gridPane?: egret.Shape;
 
+        /**
+         * 上次渲染的起始 column
+         * 
+         * @protected
+         * @type {number}
+         */
+        protected lsc: number;
+
+        /**
+         * 上次渲染的起始 row
+         * 
+         * @protected
+         * @type {number}
+         */
+        protected lsr: number;
+
+        /**
+         * 上次渲染的结束 column
+         * 
+         * @protected
+         * @type {number}
+         */
+        protected lec: number;
+
+        /**
+         * 上次渲染的结束 row
+         * 
+         * @protected
+         * @type {number}
+         */
+        protected ler: number;
+
         public setRect(rect: egret.Rectangle) {
-            var cM = this.currentMap;
+            let cM = this.currentMap;
             if (!cM) {
                 return;
             }
             //检查地图，进行加载区块
-            var x = rect.x;
-            var y = rect.y;
-            var w = rect.width;
-            var h = rect.height;
+            let x = rect.x;
+            let y = rect.y;
+            let w = rect.width;
+            let h = rect.height;
 
-            var pW = cM.pWidth;
-            var pH = cM.pHeight;
-            var sc = x / pW >> 0;
-            var sr = y / pH >> 0;
-            var ec = (x + w) / pW >> 0;
-            var er = (y + h) / pH >> 0;
+            let pW = cM.pWidth;
+            let pH = cM.pHeight;
+            let sc = x / pW | 0;
+            let sr = y / pH | 0;
+            let ec = (x + w) / pW | 0;
+            let er = (y + h) / pH | 0;
             ec = Math.min(ec, cM.maxPicX);
             er = Math.min(er, cM.maxPicY);
+            if (sc == this.lsc && sr == this.lsr && ec == this.lec && er == this.ler) {//要加载的块没有发生任何变更
+                return;
+            }
+            this.lsc = sc;
+            this.lsr = sr;
+            this.lec = ec;
+            this.ler = er;
+
             // 先将正在显示的全部标记为未使用
             // 换地图也使用此方法处理
             let showing = this._showing;
@@ -69,10 +109,11 @@ module junyou {
                 this.$doRemoveChild(i, false);
             }
             i = 0;
+            let get = ResourceManager.get;
             for (let r = sr; r <= er; r++) {
                 for (let c = sc; c <= ec; c++) {
                     let uri = cM.getMapUri(c, r);
-                    let tm = ResourceManager.get(uri, () => {
+                    let tm = get(uri, () => {
                         let tmp = new TileMap();
                         tmp.reset(c, r, uri);
                         tmp.x = c * pW;
