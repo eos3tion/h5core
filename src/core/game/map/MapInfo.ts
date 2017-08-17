@@ -183,7 +183,7 @@ module junyou {
         }
 
         // const KEYS=["id","path","columns","rows","width","height"];
-        static decodeFromArray(arr: any[], ref?: { new (): MapInfo }): MapInfo {
+        static decodeFromArray(arr: any[], ref?: { new(): MapInfo }): MapInfo {
             ref = ref || MapInfo;
             let m = new ref();
             m.id = arr[0];
@@ -206,8 +206,8 @@ module junyou {
         /**
          * 获取资源路径
          */
-        public getMapUri(col: number, row: number): string {
-            return MapInfo.MAP_PATH + this.path + "/" + row + "_" + col + ext;
+        public getMapUri(col: number, row: number) {
+            return `${MapInfo.MAP_PATH}${this.path}/${row}_${col}${ext}`;
         }
     }
 }
