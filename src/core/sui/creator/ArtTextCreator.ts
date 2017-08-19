@@ -8,10 +8,6 @@ module junyou {
 
         private _txs: { [index: string]: egret.Texture };
 
-        public constructor() {
-            super();
-        }
-
         public parseSelfData(data: any) {
             const splitStr = data[0];
             const len = splitStr.length;
@@ -24,7 +20,7 @@ module junyou {
                 txs[key] = tx;
             }
             this._txs = txs;
-            refreshTexs(suiData, this);
+            refreshTexs(suiData, this as any);
             this._createT = (): ArtText => {
                 var shape: ArtText = new ArtText();
                 this.bindEvent(shape);

@@ -22,9 +22,6 @@ module junyou {
 
         public size: Readonly<egret.Rectangle>;
 
-        public constructor() {
-        }
-
         public bindSuiData(suiData: SuiData) {
             this._suiData = suiData;
         }
