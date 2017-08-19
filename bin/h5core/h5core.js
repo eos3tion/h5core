@@ -4756,6 +4756,22 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
+    var inter1 = "addReadyExecute";
+    var inter2 = "startSync";
+    function isIAsync(instance) {
+        /*不验证数据，因为现在做的是get asyncHelper(),不默认创建AsyncHelper，调用的时候才创建，这样会导致多一次调用*/
+        if (!(inter1 in instance || typeof instance[inter2] !== "function") /*|| !(instance[inter1] instanceof AsyncHelper)*/) {
+            return false;
+        }
+        if (!(inter2 in instance) || typeof instance[inter2] !== "function" || instance[inter2].length != 0) {
+            return false;
+        }
+        return true;
+    }
+    junyou.isIAsync = isIAsync;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
     /**
      * 用于发送的网络数据<br/>
      * @author 3tion
@@ -7297,6 +7313,184 @@ var junyou;
         return CallLater;
     }());
     junyou.CallLater = CallLater;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 圆圈倒计时
+     *
+     * @export
+     * @class CircleCountdown
+     */
+    var CircleCountdown = (function () {
+        function CircleCountdown() {
+            /**
+             * 绘制的线的宽度
+             *
+             * @protected
+             *
+             * @memberOf CircleCountdown
+             */
+            this._sw = 2;
+            this._total = 0;
+            this._cfgs = [];
+        }
+        CircleCountdown.prototype.setGraphis = function (graphics) {
+            this._g = graphics;
+            return this;
+        };
+        CircleCountdown.prototype.setCenter = function (centerX, centerY) {
+            this._cX = centerX;
+            this._cY = centerY;
+            return this;
+        };
+        CircleCountdown.prototype.setRadius = function (radius) {
+            this._radius = radius;
+            return this;
+        };
+        /**
+         * 设置起始角度和结束角度
+         *
+         * @param {number} [rad=0]
+         *
+         * @memberOf CircleCountdown
+         */
+        CircleCountdown.prototype.setRad = function (startRad, endRad) {
+            if (startRad === void 0) { startRad = 0; }
+            if (endRad === void 0) { endRad = Math.PI; }
+            this._sRad = startRad;
+            this._eRad = endRad;
+            this._dRad = endRad - startRad;
+            return this;
+        };
+        /**
+         * 设置线的宽度
+         *
+         * @param {number} [strokeWidth=1]
+         * @returns
+         *
+         * @memberOf CircleCountdown
+         */
+        CircleCountdown.prototype.setStrokeWidth = function (strokeWidth) {
+            if (strokeWidth === void 0) { strokeWidth = 2; }
+            this._sw = strokeWidth;
+            return this;
+        };
+        CircleCountdown.prototype.setCfgs = function (color) {
+            var _this = this;
+            var cfgs = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                cfgs[_i - 1] = arguments[_i];
+            }
+            if (!color) {
+                color = CircleCountdown.defaultColor;
+            }
+            if (typeof color == "number") {
+                color = { color: color, weight: 1 };
+            }
+            this.reset();
+            this.addCfg(color);
+            if (cfgs && cfgs.length) {
+                cfgs.forEach(function (color) {
+                    _this.addCfg(color);
+                });
+            }
+            return this;
+        };
+        CircleCountdown.prototype.addCfg = function (color) {
+            color = color.clone();
+            var colors = this._cfgs;
+            var prev = colors[colors.length - 1];
+            if (prev && !prev.noGradient) {
+                prev.endColor = color.color;
+            }
+            var total = this._total;
+            color.start = total;
+            total += color.weight;
+            color.end = total;
+            this._total = total;
+            //不做pushOnce，允许下面这种配置
+            //var a={color:0xff0000,point:1}; colors=[a,{color:0x00ff00,point:2},a];
+            colors.push(color);
+            return this;
+        };
+        CircleCountdown.prototype.reset = function () {
+            this._cfgs.length = 0;
+            this._total = 0;
+            this._cfg = undefined;
+            return this;
+        };
+        CircleCountdown.prototype.progress = function (value, maxValue) {
+            if (value < 0) {
+                value = 0;
+            }
+            if (maxValue < 0) {
+                if (DEBUG) {
+                    junyou.ThrowError("进度条最大宽度不应小等于0");
+                }
+                maxValue = 0.00001;
+            }
+            if (value > maxValue) {
+                value = maxValue;
+            }
+            this._p = value / maxValue;
+            junyou.Global.callLater(this.render, 0, this);
+        };
+        CircleCountdown.prototype.reuse = function () {
+            this.isEnd = false;
+        };
+        CircleCountdown.prototype.clear = function () {
+            this.isEnd = true;
+            //清理绘制
+            this._g.clear();
+        };
+        CircleCountdown.prototype.render = function () {
+            if (this.isEnd) {
+                return;
+            }
+            var cfgs = this._cfgs;
+            var len = cfgs.length;
+            var p = this._p;
+            var c = p * this._total;
+            var current;
+            for (var i = 0; i < len; i++) {
+                current = cfgs[i];
+                if (current.end > c) {
+                    break;
+                }
+            }
+            if (current) {
+                var delta = (c - current.start) / current.weight;
+                var scolor = current.color;
+                var ccolor = current.endColor; // r<<16 | g<<8 | b
+                var r = getColor(scolor, ccolor, delta, 16);
+                var g = getColor(scolor, ccolor, delta, 8);
+                var b = getColor(scolor, ccolor, delta, 0);
+                var reverse = current.shine && (p * 100 & 1);
+                if (reverse) {
+                    r ^= b;
+                    b ^= r;
+                    r ^= b;
+                    g = ~g;
+                }
+                var color = r << 16 | g << 8 | b;
+                //绘制
+                var _g = this._g;
+                _g.clear();
+                _g.lineStyle(this._sw, color);
+                var sRad = this._sRad;
+                _g.drawArc(this._cX, this._cY, this._radius, sRad, sRad + this._dRad * p);
+            }
+            function getColor(start, end, delta, shift) {
+                var sC = start >> shift & 0xff;
+                var eC = end >> shift & 0xff;
+                return Math.round(sC + (eC - sC) * delta);
+            }
+        };
+        return CircleCountdown;
+    }());
+    CircleCountdown.defaultColor = 0xff0000;
+    junyou.CircleCountdown = CircleCountdown;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -10596,22 +10790,6 @@ var junyou;
         return DependerHelper;
     }());
     junyou.DependerHelper = DependerHelper;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    var inter1 = "addReadyExecute";
-    var inter2 = "startSync";
-    function isIAsync(instance) {
-        /*不验证数据，因为现在做的是get asyncHelper(),不默认创建AsyncHelper，调用的时候才创建，这样会导致多一次调用*/
-        if (!(inter1 in instance || typeof instance[inter2] !== "function") /*|| !(instance[inter1] instanceof AsyncHelper)*/) {
-            return false;
-        }
-        if (!(inter2 in instance) || typeof instance[inter2] !== "function" || instance[inter2].length != 0) {
-            return false;
-        }
-        return true;
-    }
-    junyou.isIAsync = isIAsync;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
