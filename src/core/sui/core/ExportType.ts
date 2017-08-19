@@ -54,5 +54,10 @@ module junyou {
                  * 会导出的复合容器
                  */
                 ExportedContainer = 18,
+
+                /**
+                 * 影片剪辑
+                 */
+                MovieClip = 19,
         }
 }
