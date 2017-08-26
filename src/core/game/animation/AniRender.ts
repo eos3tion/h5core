@@ -43,8 +43,18 @@ module junyou {
          */
         waitTexture?: boolean;
 
+        /**
+         * 资源是否加载完成
+         * 
+         * @type {boolean}
+         */
         resOK: boolean;
 
+        /**
+         * 播放起始时间
+         * 
+         * @type {number}
+         */
         plTime: number;
         protected _guid: number;
 
@@ -71,7 +81,7 @@ module junyou {
         protected render() {
             let aniinfo = this._aniInfo;
             if (aniinfo) {
-                var actionInfo = aniinfo.actionInfo;
+                let actionInfo = aniinfo.actionInfo;
                 if (actionInfo) {
                     let now = Global.now;
                     this.onData(actionInfo, now);
@@ -150,10 +160,18 @@ module junyou {
         }
 
         public callback() {
-            if (this._aniInfo) {
-                let display = this.display;
-                display.res = this._aniInfo.getResource();
-                if (this.state == AniPlayState.Playing) {
+            let _aniInfo = this._aniInfo;
+            if (_aniInfo) {
+                let { f, loop, display, state } = this;
+                let actionInfo = _aniInfo.actionInfo;
+                if (loop || (loop == undefined && actionInfo.isCircle)) {
+                    let total = _aniInfo.actionInfo.frames.length;
+                    if (f > total) {
+                        f = f % total;
+                    }
+                }
+                display.res = _aniInfo.getResource();
+                if (state == AniPlayState.Playing) {
                     this.checkPlay();
                 }
             }
@@ -314,6 +332,7 @@ module junyou {
                 }
                 ani.recyclePolicy = recyclePolicy;
                 ani.waitTexture = !!option.waitTexture;
+                ani.f = option.start >>> 0;//强制为正整数
             }
             !guid && (guid = this.guid++);
             this._renderByGuid[guid] = ani;
@@ -427,5 +446,15 @@ module junyou {
          * @memberof AniOption
          */
         waitTexture?: boolean;
+
+        /**
+         * 起始帧  
+         * 如果是`循环` loop为true，如果起始帧大于总帧数，则对总帧数取模  
+         * 否则不播放
+         * 
+         * @type {number}
+         * @memberof AniOption
+         */
+        start?: number;
     }
 }
