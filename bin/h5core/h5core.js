@@ -17736,6 +17736,21 @@ var junyou;
             var ov = dy - result.y;
             this.addLayout(d, type, raw, oh, ov);
         };
+        MainUIContainer.prototype.binLayout = function (bin) {
+            if (bin.type == 0 /* FullScreen */) {
+                var dis = bin.dis;
+                var host = this._host;
+                var scale = host.scaleX;
+                dis.x = bin.hoffset * scale;
+                dis.y = bin.voffset * scale;
+                var stage = host.stage || egret.sys.$TempStage;
+                dis.width = stage.stageWidth / scale;
+                dis.height = stage.stageHeight / scale;
+            }
+            else {
+                _super.prototype.binLayout.call(this, bin);
+            }
+        };
         return MainUIContainer;
     }(junyou.LayoutContainer));
     junyou.MainUIContainer = MainUIContainer;
