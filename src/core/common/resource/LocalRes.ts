@@ -120,7 +120,7 @@ module junyou {
                 };
             }
 
-            function getObjectStore(result: IDBDatabase, mode: string) {
+            function getObjectStore(result: IDBDatabase, mode: IDBTransactionMode) {
                 return result.transaction(storeName, mode).objectStore(storeName);
             }
 

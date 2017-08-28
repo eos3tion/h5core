@@ -24,7 +24,7 @@ module junyou {
                 txs[key] = tx;
             }
             this._txs = txs;
-            refreshTexs(suiData, this);
+            refreshTexs(suiData, this as any);
             this._createT = (): ArtText => {
                 var shape: ArtText = new ArtText();
                 this.bindEvent(shape);
