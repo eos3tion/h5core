@@ -1,6 +1,10 @@
 module junyou {
     export const enum LayoutType {
         /**
+         * 全屏
+         */
+        FullScreen = 0,
+        /**
          * 垂直——上
          * 
          * @static

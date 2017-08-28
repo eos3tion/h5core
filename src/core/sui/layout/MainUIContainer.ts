@@ -64,5 +64,20 @@ module junyou {
             this.addLayout(d, type, raw, oh, ov);
         }
 
+        protected binLayout(bin: LayoutBin) {
+            if (bin.type == LayoutType.FullScreen) {
+                let { dis } = bin;
+                let host = this._host;
+                let scale = host.scaleX;
+                dis.x = bin.hoffset * scale;
+                dis.y = bin.voffset * scale;
+                let stage = host.stage || egret.sys.$TempStage;
+                dis.width = stage.stageWidth / scale;
+                dis.height = stage.stageHeight / scale;
+            } else {
+                super.binLayout(bin);
+            }
+        }
+
     }
 }
