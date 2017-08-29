@@ -8,10 +8,6 @@ module junyou {
 
         private _txs: { [index: string]: egret.Texture };
 
-        public constructor() {
-            super();
-        }
-
         public parseSelfData(data: any) {
             const splitStr = data[0];
             const len = splitStr.length;
