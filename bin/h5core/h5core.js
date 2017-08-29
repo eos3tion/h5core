@@ -1113,6 +1113,13 @@ var junyou;
         function FHost(name) {
             this._name = name;
             this.checkInject();
+            if (true) {
+                var classes = $gm.$;
+                if (!classes) {
+                    $gm.$ = classes = {};
+                }
+                classes[this["constructor"]["name"]] = this;
+            }
         }
         Object.defineProperty(FHost.prototype, "name", {
             /**
@@ -11457,10 +11464,6 @@ var junyou;
                 dele.host = host;
                 junyou.facade.inject(host);
                 host.onRegister();
-                if (true) {
-                    var name_5 = Facade.getNameOfInline(ref, className);
-                    $gm[name_5] = host;
-                }
             }
         };
         /**
@@ -16052,16 +16055,17 @@ var junyou;
          * @param {number} [frame]
          */
         MovieClip.prototype.stop = function (frame) {
-            this.currentFrame = this.getFrame(frame);
+            var cf = this.validateFrame(this.getFrame(frame));
             this.playing = false;
-            this.render(frame);
-            junyou.off(EE.ENTER_FRAME, this.doRender, this);
+            this.render(cf);
+            this.currentFrame = cf;
+            this.off(EE.ENTER_FRAME, this.doRender, this);
         };
         MovieClip.prototype.play = function (frame) {
             this.currentFrame = this.getFrame(frame);
             this.playing = true;
             this._nt = junyou.Global.now + this.timePerFrame;
-            junyou.on(EE.ENTER_FRAME, this.doRender, this);
+            this.on(EE.ENTER_FRAME, this.doRender, this);
         };
         MovieClip.prototype.doRender = function () {
             var now = junyou.Global.now;
@@ -16071,37 +16075,41 @@ var junyou;
                 var timePerFrame = this.timePerFrame;
                 //需要增加的帧数
                 var delta = (now - nt) / timePerFrame | 0;
-                cf = cf + delta;
-                var totalFrame = this.totalFrame;
-                if (cf >= totalFrame) {
-                    if (this.loop) {
-                        cf = cf % totalFrame;
-                    }
-                    else {
-                        //只到最后一帧
-                        cf = totalFrame - 1;
-                    }
-                }
-                this._nt = (cf + 1) * timePerFrame;
+                cf = this.validateFrame(cf + 1 + delta);
                 this.render(cf);
                 this.currentFrame = cf;
+                this._nt = nt + (delta + 1) * timePerFrame;
             }
+        };
+        MovieClip.prototype.validateFrame = function (cf) {
+            var totalFrame = this.totalFrame;
+            if (cf >= totalFrame) {
+                if (this.loop) {
+                    cf = cf % totalFrame;
+                }
+                else {
+                    //只到最后一帧
+                    cf = totalFrame - 1;
+                }
+            }
+            return cf;
         };
         MovieClip.prototype.getFrame = function (frame) {
             return frame == undefined ? this.currentFrame : frame;
         };
         MovieClip.prototype.render = function (frame) {
             var frameData = this.framesData[frame];
-            var dict = this.compData;
-            var sm = junyou.singleton(junyou.SuiResManager);
-            var suiData = this.suiData;
-            if (frameData.key != this.currentFrame) {
+            if (frameData && frameData.key != this.currentFrame) {
+                var dict = this.compData;
+                var sm = junyou.singleton(junyou.SuiResManager);
+                var suiData = this.suiData;
                 //清理子对象
                 this.removeChildren();
                 for (var _i = 0, _a = frameData.data; _i < _a.length; _i++) {
                     var dat = _a[_i];
                     var idx = void 0, pData = void 0, comp = void 0;
                     if (Array.isArray(dat)) {
+                        idx = dat[0];
                         pData = dat[1];
                     }
                     else {
@@ -16138,7 +16146,7 @@ var junyou;
                 var frameCount = mcData[0], frameData = mcData[1];
                 var key = j;
                 for (var i = 0; i < frameCount; i++) {
-                    framesData[j++] = { key: key, data: data };
+                    framesData[j++] = { key: key, data: frameData };
                 }
             }
             this._createT = function () { return new MovieClip(data, framesData, suiData); };
@@ -17223,13 +17231,13 @@ var junyou;
                             var local = hasLocal && {};
                             for (var j = 0; j < headersRaw.length; j++) {
                                 var head = headersRaw[j];
-                                var name_6 = head[0], test = head[1], type = head[2], def = head[3];
+                                var name_5 = head[0], test = head[1], type = head[2], def = head[3];
                                 var v = getJSONValue(rowData[j], test, def);
                                 if ((type & 2 /* Local */) == 2 /* Local */) {
-                                    local[name_6] = v;
+                                    local[name_5] = v;
                                 }
                                 else {
-                                    ins[name_6] = v;
+                                    ins[name_5] = v;
                                 }
                             }
                             forEach(ins, i - 1, key, dict, idkey);
@@ -17948,8 +17956,8 @@ var junyou;
                 if (dict) {
                     structDict = dict;
                     if (!dict.$$inted) {
-                        for (var name_7 in dict) {
-                            var encode = dict[name_7];
+                        for (var name_6 in dict) {
+                            var encode = dict[name_6];
                             //检查处理默认值
                             for (var idx in encode) {
                                 var body = encode[idx];
@@ -18019,7 +18027,7 @@ var junyou;
                     readValue(tag, bytes);
                     continue;
                 }
-                var name_8 = body[0];
+                var name_7 = body[0];
                 var label = body[1];
                 var type = body[2];
                 var subMsgType = body[3];
@@ -18078,13 +18086,13 @@ var junyou;
                     }
                 }
                 if (label == 3) {
-                    var arr = msg[name_8];
+                    var arr = msg[name_7];
                     if (!arr)
-                        msg[name_8] = arr = [];
+                        msg[name_7] = arr = [];
                     arr.push(value);
                 }
                 else {
-                    msg[name_8] = value;
+                    msg[name_7] = value;
                 }
             }
             return msg;
@@ -18159,11 +18167,11 @@ var junyou;
                 var num = +numberStr;
                 var body = messageEncode[num];
                 var label = body[1];
-                var name_9 = body[0];
-                if (label == 1 /* optional */ && !(name_9 in msg)) {
+                var name_8 = body[0];
+                if (label == 1 /* optional */ && !(name_8 in msg)) {
                     continue;
                 }
-                var value = msg[name_9];
+                var value = msg[name_8];
                 if (value == undefined || value === body[4] /* 默认值 */) {
                     continue;
                 }
@@ -18174,7 +18182,7 @@ var junyou;
                 if (label == 3 /* repeated */) {
                     if (true) {
                         var arr = [];
-                        debugOutData[name_9] = arr;
+                        debugOutData[name_8] = arr;
                     }
                     for (var key in value) {
                         var element = value[key];
@@ -18190,7 +18198,7 @@ var junyou;
                 }
                 else {
                     if (true) {
-                        debugOutData[name_9] = writeElementTo(value, type, tag, bytes, subMsgType);
+                        debugOutData[name_8] = writeElementTo(value, type, tag, bytes, subMsgType);
                     }
                     else {
                         writeElementTo(value, type, tag, bytes, subMsgType);
