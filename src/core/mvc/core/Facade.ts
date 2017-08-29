@@ -138,11 +138,7 @@ module junyou {
                 let host: Proxy = new ref();
                 dele.host = host;
                 facade.inject(host);
-                host.onRegister();
-                if (DEBUG) {
-                    let name = Facade.getNameOfInline(ref, className);
-                    $gm[name] = host;
-                }
+                host.onRegister();                
             }
         }
 
