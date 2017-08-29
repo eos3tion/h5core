@@ -149,16 +149,17 @@ module junyou {
          * @param {number} [frame] 
          */
         public stop(frame?: number) {
-            this.currentFrame = this.getFrame(frame);
+            let cf = this.validateFrame(this.getFrame(frame));
             this.playing = false;
-            this.render(frame);
-            off(EE.ENTER_FRAME, this.doRender, this);
+            this.render(cf);
+            this.currentFrame = cf;
+            this.off(EE.ENTER_FRAME, this.doRender, this);
         }
         public play(frame?: number) {
             this.currentFrame = this.getFrame(frame);
             this.playing = true;
             this._nt = Global.now + this.timePerFrame;
-            on(EE.ENTER_FRAME, this.doRender, this);
+            this.on(EE.ENTER_FRAME, this.doRender, this);
         }
 
         protected doRender() {
@@ -169,20 +170,24 @@ module junyou {
                 let timePerFrame = this.timePerFrame;
                 //需要增加的帧数
                 let delta = (now - nt) / timePerFrame | 0;
-                cf = cf + delta;
-                let totalFrame = this.totalFrame;
-                if (cf >= totalFrame) {
-                    if (this.loop) {
-                        cf = cf % totalFrame;
-                    } else {
-                        //只到最后一帧
-                        cf = totalFrame - 1;
-                    }
-                }
-                this._nt = (cf + 1) * timePerFrame;
+                cf = this.validateFrame(cf + 1 + delta);
                 this.render(cf);
                 this.currentFrame = cf;
+                this._nt = nt + (delta + 1) * timePerFrame;
             }
+        }
+
+        protected validateFrame(cf: number) {
+            let totalFrame = this.totalFrame;
+            if (cf >= totalFrame) {
+                if (this.loop) {
+                    cf = cf % totalFrame;
+                } else {
+                    //只到最后一帧
+                    cf = totalFrame - 1;
+                }
+            }
+            return cf;
         }
 
         protected getFrame(frame?: number) {
@@ -191,15 +196,16 @@ module junyou {
 
         protected render(frame: number) {
             let frameData = this.framesData[frame];
-            let dict = this.compData;
-            let sm = singleton(SuiResManager);
-            let suiData = this.suiData;
-            if (frameData.key != this.currentFrame) {//当前帧是否和要渲染的关键帧相同
+            if (frameData && frameData.key != this.currentFrame) {//当前帧是否和要渲染的关键帧相同
+                let dict = this.compData;
+                let sm = singleton(SuiResManager);
+                let suiData = this.suiData;
                 //清理子对象
                 this.removeChildren();
                 for (let dat of frameData.data) {
                     let idx: number, pData, comp: egret.DisplayObject;
                     if (Array.isArray(dat)) {
+                        idx = dat[0];
                         pData = dat[1];
                     } else {
                         idx = dat;
@@ -228,7 +234,7 @@ module junyou {
                 let [frameCount, frameData] = mcData;
                 let key = j;
                 for (let i = 0; i < frameCount; i++) {
-                    framesData[j++] = { key, data };
+                    framesData[j++] = { key, data: frameData };
                 }
             }
             this._createT = () => new MovieClip(data, framesData, suiData);
