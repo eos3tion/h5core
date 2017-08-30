@@ -19,6 +19,14 @@ module junyou {
          * @memberof MCEleRef
          */
         1?: BaseData | ComponentData;
+
+        /**
+         * 如果是文本框，可能有文本数据
+         * 
+         * @type {TextData}
+         * @memberof MCEleRef
+         */
+        2?:TextData;
     }
 
     interface MCSelfData extends Array<any> {
@@ -79,7 +87,7 @@ module junyou {
 
 
 
-    export class MovieClip extends egret.Sprite {
+    export class MovieClip extends Component {
         protected suiData: SuiData;
         protected framesData: MCFrameData[];
         /**
@@ -199,14 +207,16 @@ module junyou {
             if (frameData && frameData.key != this.currentFrame) {//当前帧是否和要渲染的关键帧相同
                 let dict = this.compData;
                 let sm = singleton(SuiResManager);
+                let tc = sm.sharedTFCreator;
                 let suiData = this.suiData;
                 //清理子对象
                 this.removeChildren();
                 for (let dat of frameData.data) {
-                    let idx: number, pData, comp: egret.DisplayObject;
+                    let idx: number, pData, comp: egret.DisplayObject,textData:TextData;
                     if (Array.isArray(dat)) {
                         idx = dat[0];
                         pData = dat[1];
+                        textData = dat[2];
                     } else {
                         idx = dat;
                     }
@@ -216,17 +226,35 @@ module junyou {
                         comp = dict[idx];
                         this.addChild(comp);
                         if (pData) {//调整基础属性
-                            SuiResManager.initBaseData(comp, pData);
+                            SuiResManager.initBaseData(comp, pData); 
+                        }
+                        if(comp instanceof egret.TextField){//如果是文本框，特殊处理
+                            if(!textData){
+                                textData = comp.rawTextData;
+                            }
+                            sm.sharedTFCreator.initTextData(comp,textData);
                         }
                     }
                 }
             }
         }
     }
-    export class MovieClipCreator extends BaseCreator<egret.Sprite>{
+    /**
+     * MC创建器
+     * 
+     * @export
+     * @class MovieClipCreator
+     * @extends {BaseCreator<MovieClip>}
+     */
+    export class MovieClipCreator extends BaseCreator<MovieClip>{
 
         public parseSelfData(data: any) {
             let suiData = this._suiData;
+            let framesData = this.$getFramesData(data);
+            this._createT = () => new MovieClip(data, framesData, suiData);
+        }
+
+        $getFramesData(data: any) {
             let framesData = [] as MCFrameData[];
             let j = 0;
             //整理数据，补全非关键帧
@@ -237,7 +265,7 @@ module junyou {
                     framesData[j++] = { key, data: frameData };
                 }
             }
-            this._createT = () => new MovieClip(data, framesData, suiData);
+            return framesData;
         }
     }
 }

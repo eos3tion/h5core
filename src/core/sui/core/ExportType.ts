@@ -59,5 +59,10 @@ module junyou {
                  * 影片剪辑
                  */
                 MovieClip = 19,
+
+                /**
+                 * MC按钮
+                 */
+                MCButton = 20
         }
 }

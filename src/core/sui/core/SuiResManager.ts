@@ -43,7 +43,7 @@ module junyou {
     	/**
     	 * 共享的文本创建器
     	 */
-        protected _sharedTFCreator: TextFieldCreator;
+        sharedTFCreator: TextFieldCreator;
 
         public constructor() {
             this._suiDatas = {};
@@ -55,7 +55,7 @@ module junyou {
         protected initInlineCreators() {
             let creators: { [index: string]: { new(): BaseCreator<egret.DisplayObject> } } = {};
             this._creators = creators;
-            this._sharedTFCreator = new TextFieldCreator();
+            this.sharedTFCreator = new TextFieldCreator();
             creators[ExportType.Button] = ButtonCreator;
             creators[ExportType.ShapeNumber] = ArtTextCreator;
             creators[ExportType.ScaleBitmap] = ScaleBitmapCreator;
@@ -67,6 +67,7 @@ module junyou {
             creators[ExportType.ShareBmp] = ShareBitmapCreator;
             creators[ExportType.Slot] = SlotCreator;
             creators[ExportType.MovieClip] = MovieClipCreator;
+            creators[ExportType.MCButton] = MCButtonCreator;
         }
 
         public getData(key: string) {
@@ -410,7 +411,7 @@ module junyou {
          * @param baseData  基础数据 data[1]
          */
         public createTextField(uri: string, data: any, baseData: any): egret.TextField {
-            let tfCreator = this._sharedTFCreator;
+            let tfCreator = this.sharedTFCreator;
             tfCreator.parseSelfData(data);
             tfCreator.setBaseData(baseData);
             return tfCreator.get();
