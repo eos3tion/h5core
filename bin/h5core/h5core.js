@@ -22,7 +22,7 @@ var junyou;
         SuiResManager.prototype.initInlineCreators = function () {
             var creators = {};
             this._creators = creators;
-            this._sharedTFCreator = new junyou.TextFieldCreator();
+            this.sharedTFCreator = new junyou.TextFieldCreator();
             creators[3 /* Button */] = junyou.ButtonCreator;
             creators[6 /* ShapeNumber */] = junyou.ArtTextCreator;
             creators[5 /* ScaleBitmap */] = junyou.ScaleBitmapCreator;
@@ -34,6 +34,7 @@ var junyou;
             creators[12 /* ShareBmp */] = junyou.ShareBitmapCreator;
             creators[13 /* Slot */] = junyou.SlotCreator;
             creators[19 /* MovieClip */] = junyou.MovieClipCreator;
+            creators[20 /* MCButton */] = junyou.MCButtonCreator;
         };
         SuiResManager.prototype.getData = function (key) {
             return this._suiDatas[key];
@@ -363,7 +364,7 @@ var junyou;
          * @param baseData  基础数据 data[1]
          */
         SuiResManager.prototype.createTextField = function (uri, data, baseData) {
-            var tfCreator = this._sharedTFCreator;
+            var tfCreator = this.sharedTFCreator;
             tfCreator.parseSelfData(data);
             tfCreator.setBaseData(baseData);
             return tfCreator.get();
@@ -2484,9 +2485,11 @@ var junyou;
              * 设置按钮上的标签
              */
             set: function (value) {
-                if (this.txtLabel) {
+                var tf = this.txtLabel;
+                if (tf) {
                     if (this._label != value) {
-                        this.txtLabel.text = value;
+                        tf.text = value;
+                        this._label = value;
                     }
                 }
             },
@@ -2520,7 +2523,7 @@ var junyou;
             this.refresh();
         };
         Button.prototype.refresh = function (changed) {
-            var frame = +!this._enabled << 1 | (+this._selected);
+            var frame = this.$getBtnFrame();
             var bmp = this.bitmaps[frame];
             var old = this._currentBmp;
             if (!bmp) {
@@ -2548,6 +2551,14 @@ var junyou;
                     _super.prototype.addChild.call(this, this._children);
                 }
             }
+        };
+        /**
+         * 获取按钮的帧数
+         *
+         * @returns
+         */
+        Button.prototype.$getBtnFrame = function () {
+            return +!this._enabled << 1 | (+this._selected);
         };
         /**
          * 绑定TOUCH_TAP的回调
@@ -3890,6 +3901,20 @@ var junyou;
         return merged;
     }
     junyou.getMixin = getMixin;
+    /**
+     * 拷贝属性
+     *
+     * @export
+     * @template To
+     * @template From
+     * @param {To} to
+     * @param {From} from
+     * @param {keyof B} key
+     */
+    function copyProperty(to, from, key) {
+        Object.defineProperty(to, key, Object.getOwnPropertyDescriptor(from, key));
+    }
+    junyou.copyProperty = copyProperty;
 })(junyou || (junyou = {}));
 if (true) {
     var $gm = $gm || {};
@@ -4764,22 +4789,6 @@ var junyou;
         return MenuBaseRender;
     }());
     junyou.MenuBaseRender = MenuBaseRender;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    var inter1 = "addReadyExecute";
-    var inter2 = "startSync";
-    function isIAsync(instance) {
-        /*不验证数据，因为现在做的是get asyncHelper(),不默认创建AsyncHelper，调用的时候才创建，这样会导致多一次调用*/
-        if (!(inter1 in instance || typeof instance[inter2] !== "function") /*|| !(instance[inter1] instanceof AsyncHelper)*/) {
-            return false;
-        }
-        if (!(inter2 in instance) || typeof instance[inter2] !== "function" || instance[inter2].length != 0) {
-            return false;
-        }
-        return true;
-    }
-    junyou.isIAsync = isIAsync;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -11315,6 +11324,22 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
+    var inter1 = "addReadyExecute";
+    var inter2 = "startSync";
+    function isIAsync(instance) {
+        /*不验证数据，因为现在做的是get asyncHelper(),不默认创建AsyncHelper，调用的时候才创建，这样会导致多一次调用*/
+        if (!(inter1 in instance || typeof instance[inter2] !== "function") /*|| !(instance[inter1] instanceof AsyncHelper)*/) {
+            return false;
+        }
+        if (!(inter2 in instance) || typeof instance[inter2] !== "function" || instance[inter2].length != 0) {
+            return false;
+        }
+        return true;
+    }
+    junyou.isIAsync = isIAsync;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
     /**
      *
      * 调整ClassFactory
@@ -16014,6 +16039,72 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
+    /**
+     *
+     * 新版使用MC的按钮，减少制作按钮的难度
+     *
+     *
+     * @export
+     * @class MCButton
+     * @extends {Button}
+     */
+    var MCButton = (function (_super) {
+        __extends(MCButton, _super);
+        function MCButton(mc) {
+            var _this = _super.call(this) || this;
+            if (mc) {
+                _this.setSkin(mc);
+            }
+            return _this;
+        }
+        MCButton.prototype.setSkin = function (mc) {
+            //检查是否有文本框
+            this.txtLabel = mc.tf;
+            this.mc = mc;
+            this.addChild(mc);
+            this.refresh();
+        };
+        MCButton.prototype.refresh = function () {
+            //停在指定帧
+            var mc = this.mc;
+            if (mc) {
+                mc.stop(this.$getBtnFrame());
+            }
+        };
+        MCButton.prototype.dispose = function () {
+            _super.prototype.dispose.call(this);
+            var mc = this.mc;
+            if (mc) {
+                mc.dispose();
+            }
+        };
+        return MCButton;
+    }(junyou.Button));
+    junyou.MCButton = MCButton;
+    MCButton.prototype.addChild = junyou.Component.prototype.addChild;
+    /**
+     * MC按钮创建器
+     *
+     * @export
+     * @class MCButtonCreator
+     * @extends {BaseCreator<MCButton>}
+     */
+    var MCButtonCreator = (function (_super) {
+        __extends(MCButtonCreator, _super);
+        function MCButtonCreator() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        MCButtonCreator.prototype.parseSelfData = function (data) {
+            var suiData = this._suiData;
+            var framesData = junyou.MovieClipCreator.prototype.$getFramesData(data);
+            this._createT = function () { return new MCButton(new junyou.MovieClip(data, framesData, suiData)); };
+        };
+        return MCButtonCreator;
+    }(junyou.BaseCreator));
+    junyou.MCButtonCreator = MCButtonCreator;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
     var EE = egret.Event;
     var MovieClip = (function (_super) {
         __extends(MovieClip, _super);
@@ -16102,15 +16193,17 @@ var junyou;
             if (frameData && frameData.key != this.currentFrame) {
                 var dict = this.compData;
                 var sm = junyou.singleton(junyou.SuiResManager);
+                var tc = sm.sharedTFCreator;
                 var suiData = this.suiData;
                 //清理子对象
                 this.removeChildren();
                 for (var _i = 0, _a = frameData.data; _i < _a.length; _i++) {
                     var dat = _a[_i];
-                    var idx = void 0, pData = void 0, comp = void 0;
+                    var idx = void 0, pData = void 0, comp = void 0, textData = void 0;
                     if (Array.isArray(dat)) {
                         idx = dat[0];
                         pData = dat[1];
+                        textData = dat[2];
                     }
                     else {
                         idx = dat;
@@ -16124,13 +16217,26 @@ var junyou;
                         if (pData) {
                             junyou.SuiResManager.initBaseData(comp, pData);
                         }
+                        if (comp instanceof egret.TextField) {
+                            if (!textData) {
+                                textData = comp.rawTextData;
+                            }
+                            sm.sharedTFCreator.initTextData(comp, textData);
+                        }
                     }
                 }
             }
         };
         return MovieClip;
-    }(egret.Sprite));
+    }(junyou.Component));
     junyou.MovieClip = MovieClip;
+    /**
+     * MC创建器
+     *
+     * @export
+     * @class MovieClipCreator
+     * @extends {BaseCreator<MovieClip>}
+     */
     var MovieClipCreator = (function (_super) {
         __extends(MovieClipCreator, _super);
         function MovieClipCreator() {
@@ -16138,6 +16244,10 @@ var junyou;
         }
         MovieClipCreator.prototype.parseSelfData = function (data) {
             var suiData = this._suiData;
+            var framesData = this.$getFramesData(data);
+            this._createT = function () { return new MovieClip(data, framesData, suiData); };
+        };
+        MovieClipCreator.prototype.$getFramesData = function (data) {
             var framesData = [];
             var j = 0;
             //整理数据，补全非关键帧
@@ -16149,7 +16259,7 @@ var junyou;
                     framesData[j++] = { key: key, data: frameData };
                 }
             }
-            this._createT = function () { return new MovieClip(data, framesData, suiData); };
+            return framesData;
         };
         return MovieClipCreator;
     }(junyou.BaseCreator));
@@ -16464,6 +16574,15 @@ var junyou;
             return _super.call(this) || this;
         }
         TextFieldCreator.prototype.parseSelfData = function (data) {
+            var _this = this;
+            this._createT = function () {
+                var tf = new egret.TextField();
+                tf.rawTextData = data;
+                _this.initTextData(tf, data);
+                return tf;
+            };
+        };
+        TextFieldCreator.prototype.initTextData = function (tf, data) {
             //静态文本框按动态文本框处理
             var textType = ["dynamic", "dynamic", "input"][+data[0]];
             var face = data[1] || TextFieldCreator.DefaultFonts;
@@ -16485,20 +16604,16 @@ var junyou;
                 }
                 stroke = strokeDat[1];
             }
-            this._createT = function () {
-                var tf = new egret.TextField();
-                tf.type = textType;
-                tf.fontFamily = face;
-                tf.textAlign = align;
-                tf.textColor = color;
-                tf.size = size;
-                tf.lineSpacing = spacing;
-                tf.bold = bold;
-                tf.italic = italic;
-                tf.stroke = stroke;
-                tf.strokeColor = strokeColor;
-                return tf;
-            };
+            tf.type = textType;
+            tf.fontFamily = face;
+            tf.textAlign = align;
+            tf.textColor = color;
+            tf.size = size;
+            tf.lineSpacing = spacing;
+            tf.bold = bold;
+            tf.italic = italic;
+            tf.stroke = stroke;
+            tf.strokeColor = strokeColor;
         };
         return TextFieldCreator;
     }(junyou.BaseCreator));
