@@ -1,5 +1,5 @@
 module junyou {
-    export interface RequestLimit {
+    export interface RequestLimitType {
         /**
          * 
          * 
@@ -26,7 +26,7 @@ module junyou {
 	 * @author 3tion
 	 *
 	 */
-    export const RequestLimit = {
+    export const RequestLimit: RequestLimitType = {
 
         /**
          * 

@@ -12,7 +12,18 @@ module junyou {
         longitude: number;
     }
 
-    export var Location = {
+    export interface LocationConstructor {
+        /**
+         * 根据两个经纬度获取距离(单位：米)
+         * 
+         * @param {Location} l1
+         * @param {Location} l2 
+         * @returns 距离(单位：米)
+         */
+        getDist(l1: Location, l2: Location): number
+    }
+
+    export var Location: LocationConstructor = {
         /**
          * 根据两个经纬度获取距离(单位：米)
          * 

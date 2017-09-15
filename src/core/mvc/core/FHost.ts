@@ -1,5 +1,14 @@
+interface $gmType {
+    /**
+     * 主控类型，包括Proxy和Mediator
+     * 
+     * @type {{ [index: string]: junyou.FHost }}
+     * @memberof $gmType
+     */
+    $: { [index: string]: junyou.FHost };
+}
 module junyou {
-    export declare type InjectProxy = { new (): IAsync } | string | number;
+    export declare type InjectProxy = { new(): IAsync } | string | number;
 	/**
 	 * Mediator和Proxy的基类
 	 * @author 3tion
@@ -26,9 +35,16 @@ module junyou {
         }
 
 
-        public constructor(name: string | number) {
+        constructor(name: string | number) {
             this._name = name;
             this.checkInject();
+            if (DEBUG) {
+                let classes = $gm.$;
+                if (!classes) {
+                    $gm.$ = classes = {};
+                }
+                classes[this["constructor"]["name"]] = this;
+            }
         }
 
         /**
@@ -146,9 +162,9 @@ module junyou {
      * @param {({ new (): IAsync } | string)} ref 如果注册的是Class，必须是Inline方式注册的Proxy
      * @returns
      */
-    export function __dependProxy(ref: { new (): IAsync } | string | number) {
+    export function __dependProxy(ref: { new(): IAsync } | string | number) {
         return function (target: any, key: string) {
-            let _injectProxys: { [index: string]: { new (): IAsync } | string | number } = target._injectProxys;
+            let _injectProxys: { [index: string]: { new(): IAsync } | string | number } = target._injectProxys;
             if (!_injectProxys) {
                 target._injectProxys = _injectProxys = {};
             }

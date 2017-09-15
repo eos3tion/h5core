@@ -15,7 +15,7 @@ module junyou {
          * @type {{ new (): T }}
          * @memberOf MixinOption
          */
-        clazz: { new (): T },
+        clazz: { new(): T },
         /**
          * 
          * 
@@ -98,5 +98,19 @@ module junyou {
             merged = expand(merged, clazzB);
         }
         return <MixinCtor<A, B>>merged;
+    }
+
+    /**
+     * 拷贝属性
+     * 
+     * @export
+     * @template To 
+     * @template From 
+     * @param {To} to 
+     * @param {From} from 
+     * @param {keyof B} key 
+     */
+    export function copyProperty<To, From>(to: To, from: From, key: keyof From) {
+        Object.defineProperty(to, key, Object.getOwnPropertyDescriptor(from, key));
     }
 }

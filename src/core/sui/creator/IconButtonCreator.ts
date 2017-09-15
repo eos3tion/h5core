@@ -7,10 +7,6 @@ module junyou {
 
         private _sData: any[];
 
-        public constructor() {
-            super();
-        }
-
         public parseSelfData(data: any) {
             this._sData = data;
             this._createT = this.createIconButton;

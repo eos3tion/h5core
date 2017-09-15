@@ -14,7 +14,7 @@ module junyou {
 	 * @author 3tion
 	 *
 	 */
-	export class Button extends Component implements IGroupItem {
+	export class Button extends Component implements IButton {
 
 		public txtLabel: egret.TextField;
 		public bitmaps: egret.Bitmap[];
@@ -71,9 +71,11 @@ module junyou {
 		 * 设置按钮上的标签
 		 */
 		public set label(value: string) {
-			if (this.txtLabel) {
+			let tf = this.txtLabel;
+			if (tf) {
 				if (this._label != value) {
-					this.txtLabel.text = value;
+					tf.text = value;
+					this._label = value;
 				}
 			}
 		}
@@ -112,9 +114,9 @@ module junyou {
 		}
 
 		protected refresh(changed?: boolean) {
-			var frame = +!this._enabled << 1 | (+this._selected);
-			var bmp = this.bitmaps[frame];
-			var old = this._currentBmp;
+			let frame = this.$getBtnFrame();
+			let bmp = this.bitmaps[frame];
+			let old = this._currentBmp;
 			if (!bmp) {
 				bmp = this.bitmaps[0];
 			}
@@ -140,6 +142,15 @@ module junyou {
 					super.addChild(this._children);
 				}
 			}
+		}
+
+		/**
+		 * 获取按钮的帧数
+		 * 
+		 * @returns 
+		 */
+		protected $getBtnFrame() {
+			return +!this._enabled << 1 | (+this._selected);
 		}
 
 		/**

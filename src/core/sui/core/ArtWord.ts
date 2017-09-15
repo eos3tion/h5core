@@ -45,7 +45,7 @@ module junyou {
                 let key = dat[0];
                 txs[key] = suiData.getTexture(dat[1]);//imgs[dat[1]];
             }
-            refreshTexs(suiData, this);
+            refreshTexs(suiData, this as any);
         }
     }
 }

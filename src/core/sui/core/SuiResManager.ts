@@ -43,7 +43,7 @@ module junyou {
     	/**
     	 * 共享的文本创建器
     	 */
-        protected _sharedTFCreator: TextFieldCreator;
+        sharedTFCreator: TextFieldCreator;
 
         public constructor() {
             this._suiDatas = {};
@@ -55,7 +55,7 @@ module junyou {
         protected initInlineCreators() {
             let creators: { [index: string]: { new(): BaseCreator<egret.DisplayObject> } } = {};
             this._creators = creators;
-            this._sharedTFCreator = new TextFieldCreator();
+            this.sharedTFCreator = new TextFieldCreator();
             creators[ExportType.Button] = ButtonCreator;
             creators[ExportType.ShapeNumber] = ArtTextCreator;
             creators[ExportType.ScaleBitmap] = ScaleBitmapCreator;
@@ -66,6 +66,8 @@ module junyou {
             creators[ExportType.SlotBg] = ScaleBitmapCreator;
             creators[ExportType.ShareBmp] = ShareBitmapCreator;
             creators[ExportType.Slot] = SlotCreator;
+            creators[ExportType.MovieClip] = MovieClipCreator;
+            creators[ExportType.MCButton] = MCButtonCreator;
         }
 
         public getData(key: string) {
@@ -323,10 +325,10 @@ module junyou {
          * 3 引用的库 0 当前库  1 lib  字符串 库名字
          * @memberOf BaseCreator
          */
-        public createElement(uri: string, data: ComponentData): egret.DisplayObject {
-            var suiData = this._suiDatas[uri];
+        public createElement(uri: string | SuiData, data: ComponentData): egret.DisplayObject {
+            let suiData = typeof uri === "string" ? this._suiDatas[uri] : uri;
             if (suiData) {
-                var cRef = this._creators[+data[0]];
+                let cRef = this._creators[+data[0]];
                 if (cRef) {
                     let creator = new cRef();
                     creator.parseData(data, suiData);
@@ -409,7 +411,7 @@ module junyou {
          * @param baseData  基础数据 data[1]
          */
         public createTextField(uri: string, data: any, baseData: any): egret.TextField {
-            let tfCreator = this._sharedTFCreator;
+            let tfCreator = this.sharedTFCreator;
             tfCreator.parseSelfData(data);
             tfCreator.setBaseData(baseData);
             return tfCreator.get();
@@ -424,7 +426,7 @@ module junyou {
             return this.createTextField(uri, data[2], data[1]);
         }
 
-        public static initBaseData(dis: egret.DisplayObject, data: any, noSize?: boolean) {
+        public static initBaseData(dis: egret.DisplayObject, data: any) {
             if (data[0]) {
                 dis.name = data[0];
             }
@@ -499,31 +501,35 @@ module junyou {
                 return;
             }
             for (let i = 0; i < compsData.length; i++) {
-                let data = compsData[i];
-                let ele;
-                let baseData = data[1];
-                let type = data[0];
-                if (type == ExportType.Rectangle) {
-                    ele = new egret.Rectangle(baseData[1], baseData[2], baseData[3], baseData[4]);
+                this.createComponent(compsData[i], suiData, view);
+            }
+        }
+
+        public createComponent(data: ComponentData, suiData: SuiData, view: egret.DisplayObjectContainer) {
+            let ele;
+            let baseData = data[1];
+            let type = data[0];
+            if (type == ExportType.Rectangle) {
+                ele = new egret.Rectangle(baseData[1], baseData[2], baseData[3], baseData[4]);
+            } else {
+                if (type == ExportType.Container) {
+                    ele = new egret.Sprite();
+                    SuiResManager.initBaseData(ele, baseData);
+                    this._createComponents(suiData, ele, data[2]);
                 } else {
-                    if (type == ExportType.Container) {
-                        ele = new egret.Sprite();
-                        SuiResManager.initBaseData(ele, baseData);
-                        this._createComponents(suiData, ele, data[2]);
-                    } else {
-                        ele = this.getElement(suiData, data);
-                    }
-                    if (ele) {
-                        view.addChild(ele);
-                    } else if (DEBUG) {
-                        ThrowError(`没有正确创建原件，类型：${type}，数据：${JSON.stringify(data)}`);
-                    }
+                    ele = this.getElement(suiData, data);
                 }
-                let name = baseData[0];
-                if (name) {//有些图片没有做实例引用，有名字的才进行赋值
-                    view[name] = ele;
+                if (ele) {
+                    view.addChild(ele);
+                } else if (DEBUG) {
+                    ThrowError(`没有正确创建原件，类型：${type}，数据：${JSON.stringify(data)}`);
                 }
             }
+            let name = baseData[0];
+            if (name) {//有些图片没有做实例引用，有名字的才进行赋值
+                view[name] = ele;
+            }
+            return ele;
         }
 
         public getElement(suiData: SuiData, data: ComponentData) {

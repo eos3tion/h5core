@@ -5,12 +5,8 @@ module junyou {
 	 *
 	 */
     export class ButtonCreator extends BaseCreator<Button> {
-        public constructor() {
-            super();
-        }
 
         public parseSelfData(data: any) {
-            let suiData = this._suiData;
             let tc: TextFieldCreator;
             if (data[0]) {
                 tc = new TextFieldCreator();
