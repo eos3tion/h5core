@@ -43,7 +43,16 @@ module junyou {
         /**
          * ani 回收前触发
          */
-        AniBeforeRecycle
+        AniBeforeRecycle,
 
+        /**
+         * 检查下一个
+         */
+        MsgRenderCheckNext,
+
+        /**
+         * 检查最末尾
+         */
+        MsgRenderCheckEnd,
     }
 }

@@ -101,8 +101,8 @@ module junyou {
                 render.setStyles(this.renderStyle);
                 render.index = index;
                 this._messageRenderArr[index] = render;
-                render.on(MessageRender.CHECK_END, this.checkEnd, this);
-                render.on(MessageRender.CHECK_NEXT, this.checkNext, this);
+                render.on(EventConst.MsgRenderCheckEnd, this.checkEnd, this);
+                render.on(EventConst.MsgRenderCheckNext, this.checkNext, this);
             }
             return render;
         }

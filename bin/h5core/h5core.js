@@ -12242,8 +12242,8 @@ var junyou;
                 render.setStyles(this.renderStyle);
                 render.index = index;
                 this._messageRenderArr[index] = render;
-                render.on(junyou.MessageRender.CHECK_END, this.checkEnd, this);
-                render.on(junyou.MessageRender.CHECK_NEXT, this.checkNext, this);
+                render.on(-1990 /* MsgRenderCheckEnd */, this.checkEnd, this);
+                render.on(-1991 /* MsgRenderCheckNext */, this.checkNext, this);
             }
             return render;
         };
@@ -12445,33 +12445,35 @@ var junyou;
             return false;
         };
         MessageRender.prototype.tick = function () {
-            if (this.currentTextField && (this.currentTextField.x + this.currentTextField.width < 0)) {
-                this.currentTextField.text = "";
-                this.currentTextField.x = this._txtStartPos;
-                this.currentTextField = undefined;
+            var currentTextField = this.currentTextField;
+            if (currentTextField && (currentTextField.x + currentTextField.width < 0)) {
+                currentTextField.text = "";
+                currentTextField.x = this._txtStartPos;
+                currentTextField = undefined;
                 this.isrunning = false;
                 this.cantick = false;
                 //当前的出了可视范围
                 //而且还没有第2条消息，就表示这个render可以停了，并且抛个事件，通知检测其他的render 
-                this.dispatchEvent(new egret.Event(MessageRender.CHECK_END));
+                this.dispatch(-1990 /* MsgRenderCheckEnd */);
                 // console.log(this.index);
                 return;
             }
-            if (this.currentTextField && ((this.currentTextField.x + this.currentTextField.width) < this._checkPos)) {
+            if (currentTextField && ((currentTextField.x + currentTextField.width) < this._checkPos)) {
                 if (!this._checkDispatched) {
                     this._checkDispatched = true;
-                    this.dispatchEvent(new egret.Event(MessageRender.CHECK_NEXT));
+                    this.dispatch(-1991 /* MsgRenderCheckNext */);
                 }
             }
-            if (this.otherTextField) {
+            var otherTextField = this.otherTextField;
+            if (otherTextField) {
                 //出了可视范围
-                if (this.otherTextField.x + this.otherTextField.width < 0) {
-                    this.otherTextField.x = this._txtStartPos;
-                    this.otherTextField.text = "";
+                if (otherTextField.x + otherTextField.width < 0) {
+                    otherTextField.x = this._txtStartPos;
+                    otherTextField.text = "";
                     this.otherTextField = undefined;
                 }
                 else {
-                    this.otherTextField.x -= this.speed;
+                    otherTextField.x -= this.speed;
                 }
             }
             this.currentTextField.x -= this.speed;
