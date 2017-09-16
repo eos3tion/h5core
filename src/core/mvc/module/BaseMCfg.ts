@@ -6,11 +6,6 @@ module junyou {
     export class BaseMCfg {
 
         /**
-         * 模块对应面板，放置的容器标识
-         */
-        public containerID: number;
-
-        /**
          * 当前显示状态
          */
         public showState: ModuleShowState = ModuleShowState.HIDE;
