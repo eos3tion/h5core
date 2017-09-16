@@ -59,7 +59,7 @@ module junyou {
 
         public loadBmd() {
             if (this.bmdState <= RequestState.UNREQUEST) {
-                RES.getResByUrl(this._url, this.checkBitmap, this, RES.ResourceItem.TYPE_IMAGE);
+                RES.getResByUrl(this._url, this.checkBitmap, this, EgretResType.TYPE_IMAGE);
                 this.bmdState = RequestState.REQUESTING;
             }
         }

@@ -287,7 +287,7 @@ module junyou {
          * @param eventType		事件
          *
          */
-        public bindButton(id: string | number, io: DisplayObject, eventType: string = egret.TouchEvent.TOUCH_TAP): void {
+        public bindButton(id: string | number, io: DisplayObject, eventType: string = EgretEvent.TOUCH_TAP): void {
             if (this._ioBind.has(io)) {
                 ThrowError("ModuleManager 注册按钮时候，重复注册了按钮");
                 return;

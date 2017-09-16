@@ -30,8 +30,8 @@ module junyou {
         }
 
         protected bindEvent(bmp: ArtText) {
-            bmp.on(egret.Event.ADDED_TO_STAGE, this.onAddedToStage, this);
-            bmp.on(egret.Event.REMOVED_FROM_STAGE, this.onRemoveFromStage, this);
+            bmp.on(EgretEvent.ADDED_TO_STAGE, this.onAddedToStage, this);
+            bmp.on(EgretEvent.REMOVED_FROM_STAGE, this.onRemoveFromStage, this);
         }
 
         protected onAddedToStage(e: egret.Event) {

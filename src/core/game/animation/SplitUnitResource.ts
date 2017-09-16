@@ -80,7 +80,7 @@ module junyou {
             if (this.state == RequestState.UNREQUEST) {
                 this.state = RequestState.REQUESTING;
                 //后续尝试直接用ImageLoader加载
-                RES.getResByUrl(this.url, this.loadComplete, this, RES.ResourceItem.TYPE_IMAGE);
+                RES.getResByUrl(this.url, this.loadComplete, this, EgretResType.TYPE_IMAGE);
             }
         }
 

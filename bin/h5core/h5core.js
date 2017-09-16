@@ -761,10 +761,9 @@ var junyou;
             this.bindChildren();
         };
         Component.prototype.stageEvent = function (remove) {
-            var ev = egret.Event;
             var handler = remove ? this.off : this.on;
-            handler.call(this, ev.ADDED_TO_STAGE, this.awake, this);
-            handler.call(this, ev.REMOVED_FROM_STAGE, this.sleep, this);
+            handler.call(this, "addedToStage" /* ADDED_TO_STAGE */, this.awake, this);
+            handler.call(this, "removedFromStage" /* REMOVED_FROM_STAGE */, this.sleep, this);
         };
         Component.prototype.awake = function () {
         };
@@ -2376,18 +2375,6 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
-     * 扩展名常量
-     * @author 3tion
-     */
-    junyou.Ext = {
-        JPG: ".jpg",
-        PNG: ".png",
-        WEBP: ".webp"
-    };
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
      * 用于君游项目数据同步，后台运行<br/>
      * 只有注册和注销，没有awake和sleep
      * @author 3tion
@@ -2483,7 +2470,6 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    var EE = egret.Event;
     /**
      * 可以调用 @d_interest 的视图
      * 可以进行关注facade中的事件
@@ -2499,14 +2485,14 @@ var junyou;
         }
         ViewController.prototype.removeSkinListener = function (skin) {
             if (skin) {
-                skin.off(EE.REMOVED_FROM_STAGE, this.stageHandler, this);
-                skin.off(EE.ADDED_TO_STAGE, this.stageHandler, this);
+                skin.off("removedFromStage" /* REMOVED_FROM_STAGE */, this.stageHandler, this);
+                skin.off("addedToStage" /* ADDED_TO_STAGE */, this.stageHandler, this);
             }
         };
         ViewController.prototype.addSkinListener = function (skin) {
             if (skin) {
-                skin.on(EE.REMOVED_FROM_STAGE, this.stageHandler, this);
-                skin.on(EE.ADDED_TO_STAGE, this.stageHandler, this);
+                skin.on("removedFromStage" /* REMOVED_FROM_STAGE */, this.stageHandler, this);
+                skin.on("addedToStage" /* ADDED_TO_STAGE */, this.stageHandler, this);
             }
         };
         Object.defineProperty(ViewController.prototype, "isReady", {
@@ -2519,7 +2505,7 @@ var junyou;
         ViewController.prototype.stageHandler = function (e) {
             var type, ins;
             var _interests = this._interests;
-            if (e.type == EE.ADDED_TO_STAGE) {
+            if (e.type == "addedToStage" /* ADDED_TO_STAGE */) {
                 //加入关注的事件
                 for (type in _interests) {
                     ins = _interests[type];
@@ -2585,7 +2571,6 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    var TE = egret.TouchEvent;
     /**
      * 按钮
      * 在fla中 按钮只是需要1帧
@@ -2713,7 +2698,7 @@ var junyou;
          * @param {boolean} [useCapture]
          */
         Button.prototype.bindTouch = function (handler, thisObject, priority, useCapture) {
-            this.on(TE.TOUCH_TAP, handler, thisObject, useCapture, priority);
+            this.on("touchTap" /* TOUCH_TAP */, handler, thisObject, useCapture, priority);
         };
         /**
          * 解除TOUCH_TAP的回调的绑定
@@ -2725,7 +2710,7 @@ var junyou;
          * @memberOf Button
          */
         Button.prototype.looseTouch = function (handler, thisObject, useCapture) {
-            this.off(TE.TOUCH_TAP, handler, thisObject, useCapture);
+            this.off("touchTap" /* TOUCH_TAP */, handler, thisObject, useCapture);
         };
         Button.prototype.addChild = function (child) {
             var children = this._children;
@@ -2943,7 +2928,7 @@ var junyou;
         PageList.prototype.childSizeChange = function () {
             if (!this._childSizeChanged) {
                 this._childSizeChanged = true;
-                this.once(egret.Event.ENTER_FRAME, this.reCalc, this);
+                this.once("enterFrame" /* ENTER_FRAME */, this.reCalc, this);
             }
         };
         /**
@@ -3289,7 +3274,7 @@ var junyou;
             item.dispose();
             if (!this.renderChange) {
                 this.renderChange = true;
-                this.once(egret.Event.ENTER_FRAME, this.refreshByRemoveItem, this);
+                this.once("enterFrame" /* ENTER_FRAME */, this.refreshByRemoveItem, this);
             }
         };
         PageList.prototype.refreshByRemoveItem = function () {
@@ -3474,8 +3459,6 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    var TE = egret.TouchEvent;
-    var E = egret.Event;
     var Scroller = (function (_super) {
         __extends(Scroller, _super);
         function Scroller() {
@@ -3550,11 +3533,11 @@ var junyou;
             var old = this._content;
             if (old != content) {
                 if (old) {
-                    old.off(TE.TOUCH_BEGIN, this.onTargetTouchBegin, this);
+                    old.off("touchBegin" /* TOUCH_BEGIN */, this.onTargetTouchBegin, this);
                     old.off(-1999 /* Resize */, this.contentSizeChange, this);
-                    content.stage.off(TE.TOUCH_MOVE, this.moveOnContent, this);
-                    content.off(TE.TOUCH_END, this.endTouchContent, this);
-                    content.off(TE.TOUCH_RELEASE_OUTSIDE, this.endTouchContent, this);
+                    content.stage.off("touchMove" /* TOUCH_MOVE */, this.moveOnContent, this);
+                    content.off("touchEnd" /* TOUCH_END */, this.endTouchContent, this);
+                    content.off("touchReleaseOutside" /* TOUCH_RELEASE_OUTSIDE */, this.endTouchContent, this);
                 }
             }
             this._content = content;
@@ -3562,7 +3545,7 @@ var junyou;
                 content["scroller"] = this;
             }
             content.touchEnabled = true;
-            content.on(TE.TOUCH_BEGIN, this.onTargetTouchBegin, this);
+            content.on("touchBegin" /* TOUCH_BEGIN */, this.onTargetTouchBegin, this);
             content.on(-1999 /* Resize */, this.contentSizeChange, this);
             if (scrollbar) {
                 this._scrollbar = scrollbar;
@@ -3573,7 +3556,7 @@ var junyou;
                     this.onScrollBarAdded();
                 }
                 else {
-                    scrollbar.on(E.ADDED_TO_STAGE, this.onScrollBarAdded, this);
+                    scrollbar.on("addedToStage" /* ADDED_TO_STAGE */, this.onScrollBarAdded, this);
                 }
             }
             else {
@@ -3639,9 +3622,9 @@ var junyou;
             if (content instanceof egret.DisplayObjectContainer) {
                 this._touchChildren = content.touchChildren;
             }
-            content.stage.on(TE.TOUCH_MOVE, this.moveOnContent, this);
-            content.on(TE.TOUCH_END, this.endTouchContent, this);
-            content.on(TE.TOUCH_RELEASE_OUTSIDE, this.endTouchContent, this);
+            content.stage.on("touchMove" /* TOUCH_MOVE */, this.moveOnContent, this);
+            content.on("touchEnd" /* TOUCH_END */, this.endTouchContent, this);
+            content.on("touchReleaseOutside" /* TOUCH_RELEASE_OUTSIDE */, this.endTouchContent, this);
             this.showBar();
         };
         Scroller.prototype.moveOnContent = function (e) {
@@ -3668,7 +3651,7 @@ var junyou;
         };
         Scroller.prototype.stopTouchTween = function () {
             this._moveSpeed = 0;
-            this._content.off(E.ENTER_FRAME, this.onEnterFrame, this);
+            this._content.off("enterFrame" /* ENTER_FRAME */, this.onEnterFrame, this);
         };
         Scroller.prototype.onEnterFrame = function () {
             var content = this._content;
@@ -3676,7 +3659,7 @@ var junyou;
                 return;
             }
             if (this._moveSpeed == 0) {
-                content.off(E.ENTER_FRAME, this.onEnterFrame, this);
+                content.off("enterFrame" /* ENTER_FRAME */, this.onEnterFrame, this);
                 this.hideBar();
                 return;
             }
@@ -3702,12 +3685,12 @@ var junyou;
                 this._touchChildren = undefined;
             }
             var stage = content.stage || egret.sys.$TempStage;
-            stage.off(TE.TOUCH_MOVE, this.moveOnContent, this);
-            content.off(TE.TOUCH_END, this.endTouchContent, this);
-            content.off(TE.TOUCH_RELEASE_OUTSIDE, this.endTouchContent, this);
+            stage.off("touchMove" /* TOUCH_MOVE */, this.moveOnContent, this);
+            content.off("touchEnd" /* TOUCH_END */, this.endTouchContent, this);
+            content.off("touchReleaseOutside" /* TOUCH_RELEASE_OUTSIDE */, this.endTouchContent, this);
             var now = junyou.Global.now;
             if (now - this._lastMoveTime < 150) {
-                content.on(E.ENTER_FRAME, this.onEnterFrame, this);
+                content.on("enterFrame" /* ENTER_FRAME */, this.onEnterFrame, this);
                 this._lastFrameTime = this._lastMoveTime;
             }
             else {
@@ -3836,7 +3819,7 @@ var junyou;
             }
             if (this._moveSpeed > 0) {
                 this._moveSpeed = 0;
-                this._content.off(E.ENTER_FRAME, this.onEnterFrame, this);
+                this._content.off("enterFrame" /* ENTER_FRAME */, this.onEnterFrame, this);
             }
             var rect = content.scrollRect;
             var scrollbar = this._scrollbar;
@@ -4638,8 +4621,8 @@ var junyou;
             }
         };
         BitmapCreator.prototype.bindEvent = function (bmp) {
-            bmp.on(egret.Event.ADDED_TO_STAGE, this.onAddedToStage, this);
-            bmp.on(egret.Event.REMOVED_FROM_STAGE, this.onRemoveFromStage, this);
+            bmp.on("addedToStage" /* ADDED_TO_STAGE */, this.onAddedToStage, this);
+            bmp.on("removedFromStage" /* REMOVED_FROM_STAGE */, this.onRemoveFromStage, this);
         };
         BitmapCreator.prototype.onAddedToStage = function (e) {
             var suiData = this._suiData;
@@ -4663,7 +4646,6 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    var EE = egret.Event;
     var LayoutContainer = (function () {
         function LayoutContainer(basis, host) {
             this.$layoutBins = new junyou.ArraySet();
@@ -4671,8 +4653,8 @@ var junyou;
             this._host = host;
             this._basis = basis;
             junyou.on(-1998 /* ReLayout */, this.onResize, this);
-            host.on(EE.REMOVED_FROM_STAGE, this.offStage, this);
-            host.on(EE.ADDED_TO_STAGE, this.onStage, this);
+            host.on("removedFromStage" /* REMOVED_FROM_STAGE */, this.offStage, this);
+            host.on("addedToStage" /* ADDED_TO_STAGE */, this.onStage, this);
             if (host.stage) {
                 this.onStage();
             }
@@ -4705,11 +4687,11 @@ var junyou;
             return { dw: dw, dh: dh, scale: scale, lw: lw, lh: lh };
         };
         LayoutContainer.prototype.onStage = function () {
-            this._host.stage.on(EE.RESIZE, this.onResize, this);
+            this._host.stage.on("resize" /* RESIZE */, this.onResize, this);
             this.onResize();
         };
         LayoutContainer.prototype.offStage = function () {
-            egret.sys.$TempStage.off(EE.RESIZE, this.onResize, this);
+            egret.sys.$TempStage.off("resize" /* RESIZE */, this.onResize, this);
         };
         Object.defineProperty(LayoutContainer.prototype, "view", {
             get: function () {
@@ -4738,7 +4720,7 @@ var junyou;
                 this.binLayout(bin);
             }
             else {
-                dis.on(egret.Event.ADDED_TO_STAGE, this.onAdded, this);
+                dis.on("addedToStage" /* ADDED_TO_STAGE */, this.onAdded, this);
             }
         };
         LayoutContainer.prototype.onAdded = function (e) {
@@ -4837,7 +4819,7 @@ var junyou;
         MenuBaseRender.prototype.$setSkin = function (value) {
             this._skin = value;
             this._size = value.getBounds();
-            value.on(egret.TouchEvent.TOUCH_TAP, this.itemClick, this);
+            value.on("touchTap" /* TOUCH_TAP */, this.itemClick, this);
             this.bindComponent();
         };
         MenuBaseRender.prototype.bindComponent = function () {
@@ -4856,7 +4838,6 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    var TE = egret.TouchEvent;
     /**
      * 单选按钮组
      * @author pb
@@ -4877,7 +4858,7 @@ var junyou;
         Group.prototype.addItem = function (item) {
             if (item) {
                 this._list.pushOnce(item);
-                item.on(TE.TOUCH_TAP, this.touchHandler, this);
+                item.on("touchTap" /* TOUCH_TAP */, this.touchHandler, this);
             }
         };
         Group.prototype.touchHandler = function (e) {
@@ -4894,7 +4875,7 @@ var junyou;
                     this.$setSelectedItem();
                 }
                 this._list.remove(item);
-                item.off(TE.TOUCH_TAP, this.touchHandler, this);
+                item.off("touchTap" /* TOUCH_TAP */, this.touchHandler, this);
             }
         };
         /**
@@ -4970,7 +4951,7 @@ var junyou;
             var list = this._list;
             for (var i = 0; i < list.length; i++) {
                 var item = list[i];
-                item.off(TE.TOUCH_TAP, this.touchHandler, this);
+                item.off("touchTap" /* TOUCH_TAP */, this.touchHandler, this);
             }
             list.length = 0;
             this._selectedIndex = -1;
@@ -5112,221 +5093,720 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    junyou.MotionGuidePlugin = (function () {
-        return {
-            priority: 0,
-            install: function (manager) {
-                manager.installPlugin(this, ["guide", "x", "y", "rotation"]);
-            },
-            init: function (tween, prop, value) {
-                var target = tween.target;
-                if (target.x == undefined) {
-                    target.x = 0;
-                }
-                if (target.y == undefined) {
-                    target.y = 0;
-                }
-                if (target.rotation == undefined) {
-                    target.rotation = 0;
-                }
-                if (prop == "rotation") {
-                    tween.__needsRot = true;
-                }
-                return prop == "guide" ? null : value;
-            },
-            step: function (tween, prop, startValue, endValue, injectProps) {
-                // other props
-                if (prop == "rotation") {
-                    tween.__rotGlobalS = startValue;
-                    tween.__rotGlobalE = endValue;
-                    testRotData(tween, injectProps);
-                }
-                if (prop != "guide") {
-                    return endValue;
-                }
-                // guide only information - Start -
-                var temp, data = endValue;
-                if (!data.hasOwnProperty("path")) {
-                    data.path = [];
-                }
-                var path = data.path;
-                if (!data.hasOwnProperty("end")) {
-                    data.end = 1;
-                }
-                if (!data.hasOwnProperty("start")) {
-                    data.start = (startValue && startValue.hasOwnProperty("end") && startValue.path === path) ? startValue.end : 0;
-                }
-                // Figure out subline information
-                if (data.hasOwnProperty("_segments") && data._length) {
-                    return endValue;
-                }
-                var l = path.length;
-                var accuracy = 10; // Adjust to improve line following precision but sacrifice performance (# of seg)
-                if (l >= 6 && (l - 2) % 4 == 0) {
-                    data._segments = [];
-                    data._length = 0;
-                    for (var i = 2; i < l; i += 4) {
-                        var sx = path[i - 2], sy = path[i - 1];
-                        var cx = path[i + 0], cy = path[i + 1];
-                        var ex = path[i + 2], ey = path[i + 3];
-                        var oldX = sx, oldY = sy;
-                        var tempX, tempY, total = 0;
-                        var sublines = [];
-                        for (var j = 1; j <= accuracy; j++) {
-                            var t = j / accuracy;
-                            var inv = 1 - t;
-                            tempX = inv * inv * sx + 2 * inv * t * cx + t * t * ex;
-                            tempY = inv * inv * sy + 2 * inv * t * cy + t * t * ey;
-                            total += sublines[sublines.push(Math.sqrt((temp = tempX - oldX) * temp + (temp = tempY - oldY) * temp)) - 1];
-                            oldX = tempX;
-                            oldY = tempY;
-                        }
-                        data._segments.push(total);
-                        data._segments.push(sublines);
-                        data._length += total;
+    /**
+     * 绑定属性名，当属性值发生改变时，可自动对外抛eventType事件
+     *
+     * @export
+     * @param {(string | number)} eventType     事件类型
+     * @param {boolean} [selfDispatch]          默认false，使用Facade抛事件，event.data为实例本身
+     *                                          如果为true，需要为EventDispatcher的实现，会使用自身抛事件
+     * @returns
+     */
+    function d_fire(eventType, selfDispatch) {
+        return function (target, value) {
+            new Watcher(value, function () {
+                if (selfDispatch) {
+                    if (typeof this.dispatch === "function") {
+                        this.dispatch(eventType);
                     }
                 }
                 else {
-                    throw ("invalid 'path' data, please see documentation for valid paths");
+                    junyou.dispatch(eventType, this);
                 }
-                // Setup x/y tweens
-                temp = data.orient;
-                data.orient = true;
-                var o = {};
-                calc(data, data.start, o);
-                tween.__rotPathS = Number(o.rotation.toFixed(5));
-                calc(data, data.end, o);
-                tween.__rotPathE = Number(o.rotation.toFixed(5));
-                data.orient = false; //here and now we don't know if we need to
-                calc(data, data.end, injectProps);
-                data.orient = temp;
-                // Setup rotation properties
-                if (!data.orient) {
-                    return endValue;
-                }
-                tween.__guideData = data;
-                testRotData(tween, injectProps);
-                return endValue;
-            },
-            tween: function (tween, prop, value, startValues, endValues, ratio, wait, end) {
-                var data = endValues.guide;
-                if (data == undefined || data === startValues.guide) {
-                    return value;
-                }
-                if (data.lastRatio != ratio) {
-                    // first time through so calculate what I need to
-                    var t = ((data.end - data.start) * (wait ? data.end : ratio) + data.start);
-                    calc(data, t, tween.target);
-                    switch (data.orient) {
-                        case "cw": // mix in the original rotation
-                        case "ccw":
-                        case "auto":
-                            tween.target.rotation += data.rotOffS + data.rotDelta * ratio;
-                            break;
-                        case "fixed": // follow fixed behaviour to solve potential issues
-                        default:
-                            tween.target.rotation += data.rotOffS;
-                            break;
-                    }
-                    data.lastRatio = ratio;
-                }
-                if (prop == "rotation" && ((!data.orient) || data.orient == "false")) {
-                    return value;
-                }
-                return tween.target[prop];
-            }
+            }).reset(target);
+            //此处的target为prototype
+            //事件回调时候，this为实例
         };
-        function testRotData(tween, injectProps) {
-            // no rotation informat? if we need it come back, if we don't use 0 & ensure we have guide data
-            if (tween.__rotGlobalS === undefined || tween.__rotGlobalE === undefined) {
-                if (tween.__needsRot) {
-                    return;
-                }
-                var _curQueueProps = tween._curQueueProps;
-                if (_curQueueProps.rotation !== undefined) {
-                    tween.__rotGlobalS = tween.__rotGlobalE = _curQueueProps.rotation;
-                }
-                else {
-                    tween.__rotGlobalS = tween.__rotGlobalE = injectProps.rotation = tween.target.rotation || 0;
+    }
+    junyou.d_fire = d_fire;
+    /**
+     * 使用微软vs code中使用的代码
+     * 用于一些 lazy 的调用
+     * https://github.com/Microsoft/vscode/blob/master/src/vs/base/common/decorators.ts
+     *
+     * @export
+     * @param {*} target
+     * @param {string} key
+     * @param {*} descriptor
+     */
+    function d_memoize(target, key, descriptor) {
+        var fnKey = null;
+        var fn = null;
+        if (typeof descriptor.value === 'function') {
+            fnKey = 'value';
+            fn = descriptor.value;
+        }
+        else if (typeof descriptor.get === 'function') {
+            fnKey = 'get';
+            fn = descriptor.get;
+        }
+        if (!fn) {
+            throw new Error('not supported');
+        }
+        var memoizeKey = "$memoize$" + key;
+        descriptor[fnKey] = function () {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            if (!this.hasOwnProperty(memoizeKey)) {
+                Object.defineProperty(this, memoizeKey, {
+                    configurable: false,
+                    enumerable: false,
+                    writable: false,
+                    value: fn.apply(this, args)
+                });
+            }
+            return this[memoizeKey];
+        };
+    }
+    junyou.d_memoize = d_memoize;
+    /**
+     * @private
+     */
+    var _$l = "__listeners__";
+    /**
+     * @private
+     */
+    var _$b = "__bindables__";
+    /**
+     * @private
+     */
+    var _$c = 0;
+    function notifyListener(host, property) {
+        var list = host[_$l];
+        var length = list.length;
+        for (var i = 0; i < length; i += 2) {
+            var listener = list[i];
+            var target = list[i + 1];
+            listener.call(target, property, host);
+        }
+    }
+    /**
+     * @language en_US
+     * The Watcher class defines utility method that you can use with bindable properties.
+     * These methods let you define an event handler that is executed whenever a bindable property is updated.
+     *
+     * @version Egret 2.4
+     * @version eui 1.0
+     * @platform Web,Native
+     * @includeExample extension/eui/binding/WatcherExample.ts
+     */
+    /**
+     * @language zh_CN
+     * Watcher 类能够监视可绑定属性的改变，您可以定义一个事件处理函数作为 Watcher 的回调方法，在每次可绑定属性的值改变时都执行此函数。
+     *
+     * @version Egret 2.4
+     * @version eui 1.0
+     * @platform Web,Native
+     * @includeExample extension/eui/binding/WatcherExample.ts
+     */
+    var Watcher = (function () {
+        /**
+         * Creates an instance of Watcher.
+         *
+         * @param {string} property                 监听的属性
+         * @param {(value: any) => void} handler    回调函数
+         * @param {*} [thisObject]                  回调函数的this对象，如果不设置this，则当监听对象属性变化时，将以监听的对象作为this参数，进行回调
+         * @param {Watcher} [next]
+         */
+        function Watcher(property, handler, thisObject, next) {
+            /**
+             * @private
+             */
+            this.isExecuting = false;
+            this.property = property;
+            this.handler = handler;
+            this.next = next;
+            this.thisObject = thisObject;
+        }
+        /**
+         * @language en_US
+         * Creates and starts a Watcher instance.
+         * The Watcher can only watch the property of a Object which host is instance of egret.IEventDispatcher.
+         * @param host The object that hosts the property or property chain to be watched.
+         * You can use the use the <code>reset()</code> method to change the value of the <code>host</code> argument
+         * after creating the Watcher instance.
+         * The <code>host</code> maintains a list of <code>handlers</code> to invoke when <code>prop</code> changes.
+         * @param chain A value specifying the property or chain to be watched.
+         * For example, to watch the property <code>host.a.b.c</code>,
+         * call the method as: <code>watch(host, ["a","b","c"], ...)</code>.
+         * @param handler  An event handler function called when the value of the watched property
+         * (or any property in a watched chain) is modified.
+         * @param thisObject <code>this</code> object of which binding with handler
+         * @returns he ChangeWatcher instance, if at least one property name has been specified to
+         * the <code>chain</code> argument; null otherwise.
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        /**
+         * @language zh_CN
+         * 创建并启动 Watcher 实例。注意：Watcher 只能监视 host 为 egret.IEventDispatcher 对象的属性改变。若属性链中某个属性所对应的实例不是 egret.IEventDispatcher，
+         * 则属性链中在它之后的属性改变将无法检测到。
+         * @param host 用于承载要监视的属性或属性链的对象。
+         * 创建Watcher实例后，您可以利用<code>reset()</code>方法更改<code>host</code>参数的值。
+         * 当<code>prop</code>改变的时候，会使得host对应的一系列<code>handlers</code>被触发。
+         * @param chain 用于指定要监视的属性链的值。例如，要监视属性 host.a.b.c，需按以下形式调用此方法：watch¬(host, ["a","b","c"], ...)。
+         * @param handler 在监视的目标属性链中任何属性的值发生改变时调用的事件处理函数。
+         * @param thisObject handler 方法绑定的this对象
+         * @returns 如果已为 chain 参数至少指定了一个属性名称，则返回 Watcher 实例；否则返回 null。
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        Watcher.watch = function (host, chain, handler, thisObject) {
+            if (true) {
+                if (!chain) {
+                    egret.$error(1003, "chain");
                 }
             }
-            if (tween.__guideData === undefined) {
+            if (chain.length > 0) {
+                var property = chain.shift();
+                var next = Watcher.watch(null, chain, handler, thisObject);
+                var watcher = new Watcher(property, handler, thisObject, next);
+                watcher.reset(host);
+                return watcher;
+            }
+            else {
                 return;
             }
-            // Process rotation properties
-            var data = tween.__guideData;
-            var rotGlobalD = tween.__rotGlobalE - tween.__rotGlobalS;
-            var rotPathD = tween.__rotPathE - tween.__rotPathS;
-            var rot = rotGlobalD - rotPathD;
-            if (data.orient == "auto") {
-                if (rot > 180) {
-                    rot -= 360;
+        };
+        /**
+         * @private
+         * 检查属性是否可以绑定。若还未绑定，尝试添加绑定事件。若是只读或只写属性，返回false。
+         */
+        Watcher.checkBindable = function (host, property) {
+            var list = host[_$b];
+            if (list && list.indexOf(property) != -1) {
+                return true;
+            }
+            var isEventDispatcher = egret.is(host, "egret.IEventDispatcher");
+            if (!isEventDispatcher && !host[_$l]) {
+                host[_$l] = [];
+            }
+            var data = host.getPropertyDescriptor(property);
+            if (data && data.set && data.get) {
+                var orgSet_1 = data.set;
+                data.set = function (value) {
+                    if (this[property] != value) {
+                        orgSet_1.call(this, value);
+                        if (isEventDispatcher) {
+                            junyou.PropertyEvent.dispatchPropertyEvent(this, -2000 /* PROPERTY_CHANGE */, property);
+                        }
+                        else {
+                            notifyListener(this, property);
+                        }
+                    }
+                };
+            }
+            else if (!data || (!data.get && !data.set)) {
+                _$c++;
+                var newProp_1 = "_" + _$c + property;
+                host[newProp_1] = data ? data.value : null;
+                data = { enumerable: true, configurable: true };
+                data.get = function () {
+                    return this[newProp_1];
+                };
+                data.set = function (value) {
+                    if (this[newProp_1] != value) {
+                        this[newProp_1] = value;
+                        if (isEventDispatcher) {
+                            junyou.PropertyEvent.dispatchPropertyEvent(this, -2000 /* PROPERTY_CHANGE */, property);
+                        }
+                        else {
+                            notifyListener(this, property);
+                        }
+                    }
+                };
+            }
+            else {
+                return false;
+            }
+            Object.defineProperty(host, property, data);
+            junyou.registerBindable(host, property);
+        };
+        /**
+         * @language en_US
+         * Detaches this Watcher instance, and its handler function, from the current host.
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        /**
+         * @language zh_CN
+         * 从当前宿主中断开此 Watcher 实例及其处理函数。
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        Watcher.prototype.unwatch = function () {
+            this.reset(null);
+            this.handler = null;
+            if (this.next) {
+                this.next.handler = null;
+            }
+        };
+        /**
+         * @language en_US
+         * Retrieves the current value of the watched property or property chain, or null if the host object is null.
+         * @example
+         * <pre>
+         * watch(obj, ["a","b","c"], ...).getValue() === obj.a.b.c
+         * </pre>
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        /**
+         * @language zh_CN
+         * 检索观察的属性或属性链的当前值，当宿主对象为空时此值为空。
+         * @example
+         * <pre>
+         * watch(obj, ["a","b","c"], ...).getValue() === obj.a.b.c
+         * </pre>
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        Watcher.prototype.getValue = function () {
+            if (this.next) {
+                return this.next.getValue();
+            }
+            return this.getHostPropertyValue();
+        };
+        /**
+         * @language en_US
+         * Sets the handler function.s
+         * @param handler The handler function. This argument must not be null.
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        /**
+         * @language zh_CN
+         * 设置处理函数。
+         * @param handler 处理函数，此参数必须为非空。
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        Watcher.prototype.setHandler = function (handler, thisObject) {
+            this.handler = handler;
+            this.thisObject = thisObject;
+            if (this.next) {
+                this.next.setHandler(handler, thisObject);
+            }
+        };
+        /**
+         * @language en_US
+         * Resets this ChangeWatcher instance to use a new host object.
+         * You can call this method to reuse a watcher instance on a different host.
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        /**
+         * @language zh_CN
+         * 重置此 Watcher 实例使用新的宿主对象。
+         * 您可以通过该方法实现一个Watcher实例用于不同的宿主。
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        Watcher.prototype.reset = function (newHost) {
+            var oldHost = this.host;
+            if (oldHost) {
+                if (oldHost instanceof egret.EventDispatcher) {
+                    oldHost.off(-2000 /* PROPERTY_CHANGE */, this.wrapHandler, this);
                 }
-                else if (rot < -180) {
-                    rot += 360;
+                else {
+                    var list = oldHost[_$l];
+                    var index = list.indexOf(this);
+                    list.splice(index - 1, 2);
                 }
             }
-            else if (data.orient == "cw") {
-                while (rot < 0) {
-                    rot += 360;
+            this.host = newHost;
+            if (newHost) {
+                Watcher.checkBindable(newHost, this.property);
+                if (newHost instanceof egret.EventDispatcher) {
+                    newHost.on(-2000 /* PROPERTY_CHANGE */, this.wrapHandler, this, false, 100);
                 }
-                if (rot == 0 && rotGlobalD > 0 && rotGlobalD != 180) {
-                    rot += 360;
-                }
-            }
-            else if (data.orient == "ccw") {
-                rot = rotGlobalD - ((rotPathD > 180) ? (360 - rotPathD) : (rotPathD)); // sign flipping on path
-                while (rot > 0) {
-                    rot -= 360;
-                }
-                if (rot == 0 && rotGlobalD < 0 && rotGlobalD != -180) {
-                    rot -= 360;
+                else {
+                    var list = newHost[_$l];
+                    list.push(this.onPropertyChange);
+                    list.push(this);
                 }
             }
-            data.rotDelta = rot;
-            data.rotOffS = tween.__rotGlobalS - tween.__rotPathS;
-            // reset
-            tween.__rotGlobalS = tween.__rotGlobalE = tween.__guideData = tween.__needsRot = undefined;
+            if (this.next) {
+                this.next.reset(this.getHostPropertyValue());
+            }
+            return this;
+        };
+        /**
+         * @private
+         *
+         * @returns
+         */
+        Watcher.prototype.getHostPropertyValue = function () {
+            return this.host ? this.host[this.property] : null;
+        };
+        /**
+         * @private
+         */
+        Watcher.prototype.wrapHandler = function (event) {
+            this.onPropertyChange(event.property, event.currentTarget);
+        };
+        /**
+         * @private
+         */
+        Watcher.prototype.onPropertyChange = function (property, dispatcher) {
+            if (property == this.property && !this.isExecuting) {
+                try {
+                    this.isExecuting = true;
+                    if (this.next)
+                        this.next.reset(this.getHostPropertyValue());
+                    if (this.thisObject) {
+                        this.handler.call(this.thisObject, this.getValue());
+                    }
+                    else {
+                        this.handler.call(dispatcher, this.getValue());
+                    }
+                }
+                finally {
+                    this.isExecuting = false;
+                }
+            }
+        };
+        return Watcher;
+    }());
+    junyou.Watcher = Watcher;
+    __reflect(Watcher.prototype, "junyou.Watcher");
+})(junyou || (junyou = {}));
+//////////////////////////////////////////////////////////////////////////////////////
+//
+//  Copyright (c) 2014-2015, Egret Technology Inc.
+//  All rights reserved.
+//  Redistribution and use in source and binary forms, with or without
+//  modification, are permitted provided that the following conditions are met:
+//
+//     * Redistributions of source code must retain the above copyright
+//       notice, this list of conditions and the following disclaimer.
+//     * Redistributions in binary form must reproduce the above copyright
+//       notice, this list of conditions and the following disclaimer in the
+//       documentation and/or other materials provided with the distribution.
+//     * Neither the name of the Egret nor the
+//       names of its contributors may be used to endorse or promote products
+//       derived from this software without specific prior written permission.
+//
+//  THIS SOFTWARE IS PROVIDED BY EGRET AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
+//  OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+//  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+//  IN NO EVENT SHALL EGRET AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+//  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+//  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;LOSS OF USE, DATA,
+//  OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+//  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+//  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+//  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//
+//////////////////////////////////////////////////////////////////////////////////////
+(function (junyou) {
+    /**
+     * @language en_US
+     * The Binding class defines utility methods for performing data binding.
+     * You can use the methods defined in this class to configure data bindings.
+     * @version Egret 2.4
+     * @version eui 1.0
+     * @platform Web,Native
+     * @includeExample extension/eui/binding/BindingExample.ts
+     */
+    /**
+     * @language zh_CN
+     * 绑定工具类，用于执行数据绑定用的方法集。您可以使用此类中定义的方法来配置数据绑定。
+     * @version Egret 2.4
+     * @version eui 1.0
+     * @platform Web,Native
+     * @includeExample extension/eui/binding/BindingExample.ts
+     */
+    var Binding = (function () {
+        function Binding() {
         }
-        function calc(data, ratio, target) {
-            if (data._segments == undefined) {
-                throw ("Missing critical pre-calculated information, please file a bug");
+        /**
+         * @language en_US
+         * Binds a property, <prop>prop</code> on the <code>target</code> Object, to a bindable property or peoperty chain.
+         * @param host The object that hosts the property or property chain to be watched.
+         * The <code>host</code> maintains a list of <code>targets</code> to update theirs <code>prop</code> when <code>chain</code> changes.
+         * @param chain A value specifying the property or chain to be watched. For example, when watch the property <code>host.a.b.c</code>,
+         * you need call the method like this: <code>indProperty(host, ["a","b","c"], ...)</code>
+         * @param target The Object defining the property to be bound to <code>chain</code>.
+         * @param prop The name of the public property defined in the <code>site</code> Object to be bound.
+         * @returns A ChangeWatcher instance, if at least one property name has been specified
+         * to the <code>chain</code> argument; null otherwise.
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        /**
+         * @language zh_CN
+         * 绑定一个对象的属性值到要监视的对象属性上。
+         * @param host 用于承载要监视的属性或属性链的对象。
+         * 当 <code>host</code>上<code>chain</code>所对应的值发生改变时，<code>target</code>上的<code>prop</code>属性将被自动更新。
+         * @param chain 用于指定要监视的属性链的值。例如，要监视属性 <code>host.a.b.c</code>，需按以下形式调用此方法：<code>bindProperty(host, ["a","b","c"], ...)。</code>
+         * @param target 本次绑定要更新的目标对象。
+         * @param prop 本次绑定要更新的目标属性名称。
+         * @returns 如果已为 chain 参数至少指定了一个属性名称，则返回 Watcher 实例；否则返回 null。
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        Binding.bindProperty = function (host, chain, target, prop) {
+            var watcher = junyou.Watcher.watch(host, chain, null, null);
+            if (watcher) {
+                var assign = function (value) {
+                    target[prop] = value;
+                };
+                watcher.setHandler(assign, null);
+                assign(watcher.getValue());
             }
-            if (target == undefined) {
-                target = { x: 0, y: 0, rotation: 0 };
+            return watcher;
+        };
+        /**
+         * @language en_US
+         * Binds a callback, <prop>handler</code> on the <code>target</code> Object, to a bindable property or peoperty chain.
+         * Callback method to invoke with an argument of the current value of <code>chain</code> when that value changes.
+         * @param host The object that hosts the property or property chain to be watched.
+         * @param chain A value specifying the property or chain to be watched. For example, when watch the property <code>host.a.b.c</code>,
+         * you need call the method like this: <code>indProperty(host, ["a","b","c"], ...)</code>
+         * @param handler method to invoke with an argument of the current value of <code>chain</code> when that value changes.
+         * @param thisObject <code>this</code> object of binding method
+         * @returns A ChangeWatcher instance, if at least one property name has been  specified to the <code>chain</code> argument; null otherwise.
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        /**
+         * @language zh_CN
+         * 绑定一个回调函数到要监视的对象属性上。当 host上 chain 所对应的值发生改变时，handler 方法将被自动调用。
+         * @param host 用于承载要监视的属性或属性链的对象。
+         * @param chain 用于指定要监视的属性链的值。例如，要监视属性 host.a.b.c，需按以下形式调用此方法：bindSetter(host, ["a","b","c"], ...)。
+         * @param handler 在监视的目标属性链中任何属性的值发生改变时调用的事件处理函数。
+         * @param thisObject handler 方法绑定的this对象
+         * @returns 如果已为 chain 参数至少指定了一个属性名称，则返回 Watcher 实例；否则返回 null。
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        Binding.bindHandler = function (host, chain, handler, thisObject) {
+            var watcher = junyou.Watcher.watch(host, chain, handler, thisObject);
+            if (watcher) {
+                handler.call(thisObject, watcher.getValue());
             }
-            var seg = data._segments;
-            var path = data.path;
-            // find segment
-            var pos = data._length * ratio;
-            var cap = seg.length - 2;
-            var n = 0;
-            while (pos > seg[n] && n < cap) {
-                pos -= seg[n];
-                n += 2;
-            }
-            // find subline
-            var sublines = seg[n + 1];
-            var i = 0;
-            cap = sublines.length - 1;
-            while (pos > sublines[i] && i < cap) {
-                pos -= sublines[i];
-                i++;
-            }
-            var t = (i / ++cap) + (pos / (cap * sublines[i]));
-            // find x/y
-            n = (n * 2) + 2;
-            var inv = 1 - t;
-            target.x = inv * inv * path[n - 2] + 2 * inv * t * path[n + 0] + t * t * path[n + 2];
-            target.y = inv * inv * path[n - 1] + 2 * inv * t * path[n + 1] + t * t * path[n + 3];
-            // orientation
-            if (data.orient) {
-                target.rotation = 57.2957795 * Math.atan2((path[n + 1] - path[n - 1]) * inv + (path[n + 3] - path[n + 1]) * t, (path[n + 0] - path[n - 2]) * inv + (path[n + 2] - path[n + 0]) * t);
-            }
-            return target;
+            return watcher;
+        };
+        return Binding;
+    }());
+    junyou.Binding = Binding;
+    __reflect(Binding.prototype, "junyou.Binding");
+})(junyou || (junyou = {}));
+//////////////////////////////////////////////////////////////////////////////////////
+//
+//  Copyright (c) 2014-2015, Egret Technology Inc.
+//  All rights reserved.
+//  Redistribution and use in source and binary forms, with or without
+//  modification, are permitted provided that the following conditions are met:
+//
+//     * Redistributions of source code must retain the above copyright
+//       notice, this list of conditions and the following disclaimer.
+//     * Redistributions in binary form must reproduce the above copyright
+//       notice, this list of conditions and the following disclaimer in the
+//       documentation and/or other materials provided with the distribution.
+//     * Neither the name of the Egret nor the
+//       names of its contributors may be used to endorse or promote products
+//       derived from this software without specific prior written permission.
+//
+//  THIS SOFTWARE IS PROVIDED BY EGRET AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
+//  OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+//  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+//  IN NO EVENT SHALL EGRET AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+//  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+//  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;LOSS OF USE, DATA,
+//  OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+//  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+//  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+//  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//
+//////////////////////////////////////////////////////////////////////////////////////
+(function (junyou) {
+    /**
+     * @language en_US
+     * The PropertyChangeEvent class represents the event object
+     * passed to the event listener when one of the properties of
+     * an object has changed, and provides information about the change.
+     *
+     * @version Egret 2.4
+     * @version eui 1.0
+     * @platform Web,Native
+     * @includeExample  extension/eui/events/PropertyEventExample.ts
+     */
+    /**
+     * @language zh_CN
+     * 对象的一个属性发生更改时传递到事件侦听器的事件。
+     *
+     * @version Egret 2.4
+     * @version eui 1.0
+     * @platform Web,Native
+     * @includeExample  extension/eui/events/PropertyEventExample.ts
+     */
+    var PropertyEvent = (function (_super) {
+        __extends(PropertyEvent, _super);
+        /**
+         * @language en_US
+         * Constructor.
+         *
+         * @param type The event type; indicates the action that triggered the event.
+         * @param bubbles Specifies whether the event can bubble
+         * up the display list hierarchy.
+         * @param cancelable Specifies whether the behavior
+         * associated with the event can be prevented.
+         * @param property Name of the property that changed.
+         *
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        /**
+         * @language zh_CN
+         * 创建一个属性改变事件。
+         *
+         * @param type 事件类型；指示触发事件的动作。
+         * @param bubbles 指定该事件是否可以在显示列表层次结构得到冒泡处理。
+         * @param cancelable 指定是否可以防止与事件相关联的行为。
+         * @param property 发生改变的属性名称。
+         *
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        function PropertyEvent(type, bubbles, cancelable, property) {
+            var _this = _super.call(this, type, bubbles, cancelable) || this;
+            _this.property = property;
+            return _this;
         }
-        ;
-    })();
+        /**
+         * @language en_US
+         * Dispatch an event with specified EventDispatcher. The dispatched event will be cached in the object pool,
+         * for the next cycle of reuse.
+         *
+         * @param target the target of event dispatcher.
+         * @param eventType The event type; indicates the action that triggered the event.
+         * @param property Name of the property that changed.
+         *
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        /**
+         * @language zh_CN
+         * 使用指定的 EventDispatcher 对象来抛出事件对象。抛出的对象将会缓存在对象池上，供下次循环复用。
+         *
+         * @param target 事件派发目标
+         * @param eventType 事件类型；指示触发事件的动作。
+         * @param property 发生改变的属性名称。
+         *
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        PropertyEvent.dispatchPropertyEvent = function (target, eventType, property) {
+            if (!target.hasListen(eventType)) {
+                return true;
+            }
+            var event = egret.Event.create(PropertyEvent, eventType);
+            event.property = property;
+            var result = target.dispatchEvent(event);
+            egret.Event.release(event);
+            return result;
+        };
+        return PropertyEvent;
+    }(egret.Event));
+    junyou.PropertyEvent = PropertyEvent;
+    __reflect(PropertyEvent.prototype, "junyou.PropertyEvent");
+})(junyou || (junyou = {}));
+//////////////////////////////////////////////////////////////////////////////////////
+//
+//  Copyright (c) 2014-2015, Egret Technology Inc.
+//  All rights reserved.
+//  Redistribution and use in source and binary forms, with or without
+//  modification, are permitted provided that the following conditions are met:
+//
+//     * Redistributions of source code must retain the above copyright
+//       notice, this list of conditions and the following disclaimer.
+//     * Redistributions in binary form must reproduce the above copyright
+//       notice, this list of conditions and the following disclaimer in the
+//       documentation and/or other materials provided with the distribution.
+//     * Neither the name of the Egret nor the
+//       names of its contributors may be used to endorse or promote products
+//       derived from this software without specific prior written permission.
+//
+//  THIS SOFTWARE IS PROVIDED BY EGRET AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
+//  OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+//  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+//  IN NO EVENT SHALL EGRET AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+//  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+//  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;LOSS OF USE, DATA,
+//  OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+//  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+//  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+//  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//
+//////////////////////////////////////////////////////////////////////////////////////
+(function (junyou) {
+    var key = "__bindables__";
+    /**
+     * @language en_US
+     * Register a property of an instance is can be bound.
+     * This method is ususally invoked by Watcher class.
+     *
+     * @param instance the instance to be registered.
+     * @param property the property of specified instance to be registered.
+     *
+     * @version Egret 2.4
+     * @version eui 1.0
+     * @platform Web,Native
+     */
+    /**
+     * @language zh_CN
+     * 标记实例的一个属性是可绑定的,此方法通常由 Watcher 类调用。
+     *
+     * @param instance 要标记的实例
+     * @param property 可绑定的属性。
+     *
+     * @version Egret 2.4
+     * @version eui 1.0
+     * @platform Web,Native
+     */
+    function registerBindable(instance, property) {
+        if (true) {
+            if (!instance) {
+                egret.$error(1003, "instance");
+            }
+            if (!property) {
+                egret.$error(1003, "property");
+            }
+        }
+        if (instance.hasOwnProperty(key)) {
+            instance[key].push(property);
+        }
+        else {
+            var list = [property];
+            if (instance[key]) {
+                list = instance[key].concat(list);
+            }
+            instance[key] = list;
+        }
+    }
+    junyou.registerBindable = registerBindable;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -6208,7 +6688,7 @@ var junyou;
                         }
                     }
                 }
-                item.loaded = (event.$type == egret.Event.COMPLETE);
+                item.loaded = (event.$type == "complete" /* COMPLETE */);
                 if (item.loaded) {
                     var texture = new egret.Texture();
                     texture._setBitmapData(request.data);
@@ -6220,7 +6700,7 @@ var junyou;
             };
             return ImageAnalyzer;
         }(RES.ImageAnalyzer));
-        RES.registerAnalyzer(RES.ResourceItem.TYPE_IMAGE, ImageAnalyzer);
+        RES.registerAnalyzer("image" /* TYPE_IMAGE */, ImageAnalyzer);
         return db;
     }
     junyou.tryLocalRes = tryLocalRes;
@@ -6390,7 +6870,7 @@ var junyou;
         //     return this._tex;
         // }
         TextureResource.prototype.load = function () {
-            RES.getResByUrl(this.url, this.loadComplete, this, RES.ResourceItem.TYPE_IMAGE);
+            RES.getResByUrl(this.url, this.loadComplete, this, "image" /* TYPE_IMAGE */);
         };
         /**
          * 资源加载完成
@@ -6422,171 +6902,220 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    /**
-     * 动画的全局对象
-     * @author
-     *
-     */
-    junyou.Global = (function () {
-        try {
-            var supportWebp = document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') == 0;
-        }
-        catch (err) {
-        }
-        var _webp = supportWebp ? junyou.Ext.WEBP : "";
-        var _isNative = egret.Capabilities.supportVersion != "Unknown";
-        /**
-         *  当前这一帧的时间
-         */
-        var now = 0;
-        /**
-         * 按照帧，应该走的时间
-         * 每帧根据帧率加固定时间
-         * 用于处理逐帧同步用
-         */
-        var frameNow = 0;
-        var _callLater;
-        var _tweenManager;
-        var _nextTicks = [];
+    junyou.MotionGuidePlugin = (function () {
         return {
-            initTick: initTick, nextTick: nextTick, callLater: callLater, clearCallLater: clearCallLater, getTween: getTween, removeTween: removeTween, removeTweens: removeTweens,
-            get isNative() {
-                return _isNative;
+            priority: 0,
+            install: function (manager) {
+                manager.installPlugin(this, ["guide", "x", "y", "rotation"]);
             },
-            get tweenManager() {
-                return _tweenManager || (_tweenManager = new junyou.TweenManager());
+            init: function (tween, prop, value) {
+                var target = tween.target;
+                if (target.x == undefined) {
+                    target.x = 0;
+                }
+                if (target.y == undefined) {
+                    target.y = 0;
+                }
+                if (target.rotation == undefined) {
+                    target.rotation = 0;
+                }
+                if (prop == "rotation") {
+                    tween.__needsRot = true;
+                }
+                return prop == "guide" ? null : value;
             },
-            /**
-             *  当前这一帧的时间
-             */
-            get now() {
-                return now;
-            },
-            /**
-             * 按照帧，应该走的时间
-             * 每帧根据帧率加固定时间
-             * 用于处理逐帧同步用
-             */
-            get frameNow() {
-                return frameNow;
-            },
-            /**
-             * 是否支持webp
-             */
-            get webp() {
-                return _webp;
-            }
-        };
-        /**
-         * 注入白鹭的全局Ticker
-         */
-        function initTick() {
-            var ticker = egret.sys.$ticker;
-            var update = ticker.render;
-            var delta = 0 | 1000 / ticker.$frameRate;
-            var temp = [];
-            _callLater = new junyou.CallLater();
-            _tweenManager || (_tweenManager = new junyou.TweenManager());
-            ticker.render = function () {
-                var _now = Date.now();
-                var dis = _now - now;
-                now = _now;
-                if (dis > 2000) {
-                    //有2秒钟大概就是进入过休眠了
-                    junyou.dispatch(-190 /* Awake */);
-                    frameNow = _now;
+            step: function (tween, prop, startValue, endValue, injectProps) {
+                // other props
+                if (prop == "rotation") {
+                    tween.__rotGlobalS = startValue;
+                    tween.__rotGlobalE = endValue;
+                    testRotData(tween, injectProps);
+                }
+                if (prop != "guide") {
+                    return endValue;
+                }
+                // guide only information - Start -
+                var temp, data = endValue;
+                if (!data.hasOwnProperty("path")) {
+                    data.path = [];
+                }
+                var path = data.path;
+                if (!data.hasOwnProperty("end")) {
+                    data.end = 1;
+                }
+                if (!data.hasOwnProperty("start")) {
+                    data.start = (startValue && startValue.hasOwnProperty("end") && startValue.path === path) ? startValue.end : 0;
+                }
+                // Figure out subline information
+                if (data.hasOwnProperty("_segments") && data._length) {
+                    return endValue;
+                }
+                var l = path.length;
+                var accuracy = 10; // Adjust to improve line following precision but sacrifice performance (# of seg)
+                if (l >= 6 && (l - 2) % 4 == 0) {
+                    data._segments = [];
+                    data._length = 0;
+                    for (var i = 2; i < l; i += 4) {
+                        var sx = path[i - 2], sy = path[i - 1];
+                        var cx = path[i + 0], cy = path[i + 1];
+                        var ex = path[i + 2], ey = path[i + 3];
+                        var oldX = sx, oldY = sy;
+                        var tempX, tempY, total = 0;
+                        var sublines = [];
+                        for (var j = 1; j <= accuracy; j++) {
+                            var t = j / accuracy;
+                            var inv = 1 - t;
+                            tempX = inv * inv * sx + 2 * inv * t * cx + t * t * ex;
+                            tempY = inv * inv * sy + 2 * inv * t * cy + t * t * ey;
+                            total += sublines[sublines.push(Math.sqrt((temp = tempX - oldX) * temp + (temp = tempY - oldY) * temp)) - 1];
+                            oldX = tempX;
+                            oldY = tempY;
+                        }
+                        data._segments.push(total);
+                        data._segments.push(sublines);
+                        data._length += total;
+                    }
                 }
                 else {
-                    frameNow += delta;
+                    throw ("invalid 'path' data, please see documentation for valid paths");
                 }
-                //执行顺序  nextTick  callLater TimerUtil  tween  最后是白鹭的更新
-                var len = _nextTicks.length;
-                var tmp = temp;
-                for (var i = 0; i < len; i++) {
-                    tmp[i] = _nextTicks[i];
+                // Setup x/y tweens
+                temp = data.orient;
+                data.orient = true;
+                var o = {};
+                calc(data, data.start, o);
+                tween.__rotPathS = Number(o.rotation.toFixed(5));
+                calc(data, data.end, o);
+                tween.__rotPathE = Number(o.rotation.toFixed(5));
+                data.orient = false; //here and now we don't know if we need to
+                calc(data, data.end, injectProps);
+                data.orient = temp;
+                // Setup rotation properties
+                if (!data.orient) {
+                    return endValue;
                 }
-                _nextTicks.length = 0;
-                //先复制再操作是为了防止回调过程中，有新增的nextTick
-                for (var i = 0; i < len; i++) {
-                    tmp[i].execute();
+                tween.__guideData = data;
+                testRotData(tween, injectProps);
+                return endValue;
+            },
+            tween: function (tween, prop, value, startValues, endValues, ratio, wait, end) {
+                var data = endValues.guide;
+                if (data == undefined || data === startValues.guide) {
+                    return value;
                 }
-                _callLater.tick(_now);
-                junyou.TimerUtil.tick(_now);
-                _tweenManager.tick(dis);
-                update.call(ticker);
-            };
-        }
-        function nextTick(callback, thisObj) {
-            var args = [];
-            for (var _i = 2; _i < arguments.length; _i++) {
-                args[_i - 2] = arguments[_i];
+                if (data.lastRatio != ratio) {
+                    // first time through so calculate what I need to
+                    var t = ((data.end - data.start) * (wait ? data.end : ratio) + data.start);
+                    calc(data, t, tween.target);
+                    switch (data.orient) {
+                        case "cw": // mix in the original rotation
+                        case "ccw":
+                        case "auto":
+                            tween.target.rotation += data.rotOffS + data.rotDelta * ratio;
+                            break;
+                        case "fixed": // follow fixed behaviour to solve potential issues
+                        default:
+                            tween.target.rotation += data.rotOffS;
+                            break;
+                    }
+                    data.lastRatio = ratio;
+                }
+                if (prop == "rotation" && ((!data.orient) || data.orient == "false")) {
+                    return value;
+                }
+                return tween.target[prop];
             }
-            _nextTicks.push(junyou.CallbackInfo.get.apply(junyou.CallbackInfo, [callback, thisObj].concat(args)));
-        }
-        /**
-         * 延迟执行
-         *
-         * @static
-         * @param {Function} callback (description)
-         * @param {number} [time] 延迟执行的时间
-         * @param {*} [thisObj] (description)
-         * @param args (description)
-         */
-        function callLater(callback, time, thisObj) {
-            var args = [];
-            for (var _i = 3; _i < arguments.length; _i++) {
-                args[_i - 3] = arguments[_i];
+        };
+        function testRotData(tween, injectProps) {
+            // no rotation informat? if we need it come back, if we don't use 0 & ensure we have guide data
+            if (tween.__rotGlobalS === undefined || tween.__rotGlobalE === undefined) {
+                if (tween.__needsRot) {
+                    return;
+                }
+                var _curQueueProps = tween._curQueueProps;
+                if (_curQueueProps.rotation !== undefined) {
+                    tween.__rotGlobalS = tween.__rotGlobalE = _curQueueProps.rotation;
+                }
+                else {
+                    tween.__rotGlobalS = tween.__rotGlobalE = injectProps.rotation = tween.target.rotation || 0;
+                }
             }
-            return _callLater.callLater.apply(_callLater, [callback, now, time, thisObj].concat(args));
+            if (tween.__guideData === undefined) {
+                return;
+            }
+            // Process rotation properties
+            var data = tween.__guideData;
+            var rotGlobalD = tween.__rotGlobalE - tween.__rotGlobalS;
+            var rotPathD = tween.__rotPathE - tween.__rotPathS;
+            var rot = rotGlobalD - rotPathD;
+            if (data.orient == "auto") {
+                if (rot > 180) {
+                    rot -= 360;
+                }
+                else if (rot < -180) {
+                    rot += 360;
+                }
+            }
+            else if (data.orient == "cw") {
+                while (rot < 0) {
+                    rot += 360;
+                }
+                if (rot == 0 && rotGlobalD > 0 && rotGlobalD != 180) {
+                    rot += 360;
+                }
+            }
+            else if (data.orient == "ccw") {
+                rot = rotGlobalD - ((rotPathD > 180) ? (360 - rotPathD) : (rotPathD)); // sign flipping on path
+                while (rot > 0) {
+                    rot -= 360;
+                }
+                if (rot == 0 && rotGlobalD < 0 && rotGlobalD != -180) {
+                    rot -= 360;
+                }
+            }
+            data.rotDelta = rot;
+            data.rotOffS = tween.__rotGlobalS - tween.__rotPathS;
+            // reset
+            tween.__rotGlobalS = tween.__rotGlobalE = tween.__guideData = tween.__needsRot = undefined;
         }
-        /**
-         * 清理延迟
-         *
-         * @static
-         * @param {Function} callback (description)
-         * @param {*} [thisObj] (description)
-         * @returns (description)
-         */
-        function clearCallLater(callback, thisObj) {
-            return _callLater.clearCallLater(callback, thisObj);
+        function calc(data, ratio, target) {
+            if (data._segments == undefined) {
+                throw ("Missing critical pre-calculated information, please file a bug");
+            }
+            if (target == undefined) {
+                target = { x: 0, y: 0, rotation: 0 };
+            }
+            var seg = data._segments;
+            var path = data.path;
+            // find segment
+            var pos = data._length * ratio;
+            var cap = seg.length - 2;
+            var n = 0;
+            while (pos > seg[n] && n < cap) {
+                pos -= seg[n];
+                n += 2;
+            }
+            // find subline
+            var sublines = seg[n + 1];
+            var i = 0;
+            cap = sublines.length - 1;
+            while (pos > sublines[i] && i < cap) {
+                pos -= sublines[i];
+                i++;
+            }
+            var t = (i / ++cap) + (pos / (cap * sublines[i]));
+            // find x/y
+            n = (n * 2) + 2;
+            var inv = 1 - t;
+            target.x = inv * inv * path[n - 2] + 2 * inv * t * path[n + 0] + t * t * path[n + 2];
+            target.y = inv * inv * path[n - 1] + 2 * inv * t * path[n + 1] + t * t * path[n + 3];
+            // orientation
+            if (data.orient) {
+                target.rotation = 57.2957795 * Math.atan2((path[n + 1] - path[n - 1]) * inv + (path[n + 3] - path[n + 1]) * t, (path[n + 0] - path[n - 2]) * inv + (path[n + 2] - path[n + 0]) * t);
+            }
+            return target;
         }
-        /**
-         * 获取Tween
-         *
-         * @static
-         * @param {*} target 要对那个对象做Tween处理
-         * @param {TweenOption} props Tween的附加属性 (如： `{loop:true, paused:true}`).
-         * All properties default to `false`. Supported props are:
-         * <UL>
-         *    <LI> loop: sets the loop property on this tween.</LI>
-         *    <LI> useTicks: uses ticks for all durations instead of milliseconds.</LI>
-         *    <LI> ignoreGlobalPause: sets the {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}} property on
-         *    this tween.</LI>
-         *    <LI> override: if true, `createjs. this.removeTweens(target)` will be called to remove any other tweens with
-         *    the same target.
-         *    <LI> paused: indicates whether to start the tween paused.</LI>
-         *    <LI> position: indicates the initial position for this tween.</LI>
-         *    <LI> onChange: specifies a listener for the {{#crossLink "Tween/change:event"}}{{/crossLink}} event.</LI>
-         * </UL>
-         * @param {*} pluginData 插件数据
-         * @param {boolean} override 是否覆盖
-         * @returns {Tween} tween的实例
-         */
-        function getTween(target, props, pluginData, override) {
-            return _tweenManager.get(target, props, pluginData, override);
-        }
-        /**
-         * 移除指定的Tween
-         *
-         * @param {Tween} tween
-         * @returns
-         */
-        function removeTween(tween) {
-            return _tweenManager.removeTween(tween);
-        }
-        function removeTweens(target) {
-            return _tweenManager.removeTweens(target);
-        }
+        ;
     })();
 })(junyou || (junyou = {}));
 var junyou;
@@ -8568,7 +9097,7 @@ var junyou;
         }
         function startChannel(sound, ch, startTime, loop) {
             var channel = sound.sound.play(startTime, loop);
-            channel.once(egret.Event.COMPLETE, onComplete, undefined);
+            channel.once("complete" /* COMPLETE */, onComplete, undefined);
             ch.channel = channel;
             var actions = ch.actions;
             if (actions) {
@@ -8626,8 +9155,8 @@ var junyou;
                 // let eSound = new egret.Sound();
                 // soundsDict[url] = sound = { url, sound: eSound, state: RequestState.REQUESTING };
                 // eSound.load(url);
-                // (eSound as egret.EventDispatcher).on(egret.Event.COMPLETE, soundComplete);
-                // (eSound as egret.EventDispatcher).on(egret.IOErrorEvent.IO_ERROR, soundError);
+                // (eSound as egret.EventDispatcher).on(EgretEvent.COMPLETE, soundComplete);
+                // (eSound as egret.EventDispatcher).on(EgretEvent.IO_ERROR, soundError);
             }
             return sound;
         }
@@ -8680,6 +9209,175 @@ var junyou;
                     }
                 }
             }
+        }
+    })();
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 动画的全局对象
+     * @author
+     *
+     */
+    junyou.Global = (function () {
+        try {
+            var supportWebp = document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') == 0;
+        }
+        catch (err) {
+        }
+        var _webp = supportWebp ? ".webp" /* WEBP */ : "";
+        var _isNative = egret.Capabilities.supportVersion != "Unknown";
+        /**
+         *  当前这一帧的时间
+         */
+        var now = 0;
+        /**
+         * 按照帧，应该走的时间
+         * 每帧根据帧率加固定时间
+         * 用于处理逐帧同步用
+         */
+        var frameNow = 0;
+        var _callLater;
+        var _tweenManager;
+        var _nextTicks = [];
+        return {
+            initTick: initTick, nextTick: nextTick, callLater: callLater, clearCallLater: clearCallLater, getTween: getTween, removeTween: removeTween, removeTweens: removeTweens,
+            get isNative() {
+                return _isNative;
+            },
+            get tweenManager() {
+                return _tweenManager || (_tweenManager = new junyou.TweenManager());
+            },
+            /**
+             *  当前这一帧的时间
+             */
+            get now() {
+                return now;
+            },
+            /**
+             * 按照帧，应该走的时间
+             * 每帧根据帧率加固定时间
+             * 用于处理逐帧同步用
+             */
+            get frameNow() {
+                return frameNow;
+            },
+            /**
+             * 是否支持webp
+             */
+            get webp() {
+                return _webp;
+            }
+        };
+        /**
+         * 注入白鹭的全局Ticker
+         */
+        function initTick() {
+            var ticker = egret.sys.$ticker;
+            var update = ticker.render;
+            var delta = 0 | 1000 / ticker.$frameRate;
+            var temp = [];
+            _callLater = new junyou.CallLater();
+            _tweenManager || (_tweenManager = new junyou.TweenManager());
+            ticker.render = function () {
+                var _now = Date.now();
+                var dis = _now - now;
+                now = _now;
+                if (dis > 2000) {
+                    //有2秒钟大概就是进入过休眠了
+                    junyou.dispatch(-190 /* Awake */);
+                    frameNow = _now;
+                }
+                else {
+                    frameNow += delta;
+                }
+                //执行顺序  nextTick  callLater TimerUtil  tween  最后是白鹭的更新
+                var len = _nextTicks.length;
+                var tmp = temp;
+                for (var i = 0; i < len; i++) {
+                    tmp[i] = _nextTicks[i];
+                }
+                _nextTicks.length = 0;
+                //先复制再操作是为了防止回调过程中，有新增的nextTick
+                for (var i = 0; i < len; i++) {
+                    tmp[i].execute();
+                }
+                _callLater.tick(_now);
+                junyou.TimerUtil.tick(_now);
+                _tweenManager.tick(dis);
+                update.call(ticker);
+            };
+        }
+        function nextTick(callback, thisObj) {
+            var args = [];
+            for (var _i = 2; _i < arguments.length; _i++) {
+                args[_i - 2] = arguments[_i];
+            }
+            _nextTicks.push(junyou.CallbackInfo.get.apply(junyou.CallbackInfo, [callback, thisObj].concat(args)));
+        }
+        /**
+         * 延迟执行
+         *
+         * @static
+         * @param {Function} callback (description)
+         * @param {number} [time] 延迟执行的时间
+         * @param {*} [thisObj] (description)
+         * @param args (description)
+         */
+        function callLater(callback, time, thisObj) {
+            var args = [];
+            for (var _i = 3; _i < arguments.length; _i++) {
+                args[_i - 3] = arguments[_i];
+            }
+            return _callLater.callLater.apply(_callLater, [callback, now, time, thisObj].concat(args));
+        }
+        /**
+         * 清理延迟
+         *
+         * @static
+         * @param {Function} callback (description)
+         * @param {*} [thisObj] (description)
+         * @returns (description)
+         */
+        function clearCallLater(callback, thisObj) {
+            return _callLater.clearCallLater(callback, thisObj);
+        }
+        /**
+         * 获取Tween
+         *
+         * @static
+         * @param {*} target 要对那个对象做Tween处理
+         * @param {TweenOption} props Tween的附加属性 (如： `{loop:true, paused:true}`).
+         * All properties default to `false`. Supported props are:
+         * <UL>
+         *    <LI> loop: sets the loop property on this tween.</LI>
+         *    <LI> useTicks: uses ticks for all durations instead of milliseconds.</LI>
+         *    <LI> ignoreGlobalPause: sets the {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}} property on
+         *    this tween.</LI>
+         *    <LI> override: if true, `createjs. this.removeTweens(target)` will be called to remove any other tweens with
+         *    the same target.
+         *    <LI> paused: indicates whether to start the tween paused.</LI>
+         *    <LI> position: indicates the initial position for this tween.</LI>
+         *    <LI> onChange: specifies a listener for the {{#crossLink "Tween/change:event"}}{{/crossLink}} event.</LI>
+         * </UL>
+         * @param {*} pluginData 插件数据
+         * @param {boolean} override 是否覆盖
+         * @returns {Tween} tween的实例
+         */
+        function getTween(target, props, pluginData, override) {
+            return _tweenManager.get(target, props, pluginData, override);
+        }
+        /**
+         * 移除指定的Tween
+         *
+         * @param {Tween} tween
+         * @returns
+         */
+        function removeTween(tween) {
+            return _tweenManager.removeTween(tween);
+        }
+        function removeTweens(target) {
+            return _tweenManager.removeTweens(target);
         }
     })();
 })(junyou || (junyou = {}));
@@ -9160,45 +9858,6 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    /**
-      * 加载脚本
-      * @param url
-      * @param callback
-      * @param thisObj
-      * @param args
-      */
-    function loadScript(url, callback, thisObj) {
-        var args = [];
-        for (var _i = 3; _i < arguments.length; _i++) {
-            args[_i - 3] = arguments[_i];
-        }
-        if (!url) {
-            return;
-        }
-        var script = document.createElement("script");
-        script.type = "text/javascript";
-        //检测客户端类型
-        if (script.readyState) {
-            script.onreadystatechange = function () {
-                if (script.readyState === "loaded" || script.readyState === "complete") {
-                    script.onreadystatechange = null;
-                    callback.apply(thisObj, args);
-                }
-            };
-        }
-        else {
-            script.onload = function () {
-                callback.apply(thisObj, args);
-            };
-        }
-        script.src = url;
-        // 调整为放到文档最后
-        document.documentElement.appendChild(script);
-    }
-    junyou.loadScript = loadScript;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
     var DSprite = (function (_super) {
         __extends(DSprite, _super);
         function DSprite() {
@@ -9242,7 +9901,7 @@ var junyou;
                 if (state == 0 /* UNREQUEST */) {
                     var uri = junyou.ResPrefix.ANI + this.key + "/" + junyou.UnitResource.DATA_JSON;
                     this.url = junyou.ConfigUtils.getResUrl(uri);
-                    RES.getResByUrl(this.url, this.dataLoadComplete, this, RES.ResourceItem.TYPE_JSON);
+                    RES.getResByUrl(this.url, this.dataLoadComplete, this, "json" /* TYPE_JSON */);
                     this.state = 1 /* REQUESTING */;
                 }
             }
@@ -9384,7 +10043,6 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    var Event = egret.Event;
     /**
      * 由于目前特效和渲染器是完全一一对应关系，所以直接做成AniBitmap
      * @author 3tion
@@ -9478,7 +10136,7 @@ var junyou;
                 var display = this.display;
                 if (display) {
                     //这里不删除和AniRender的引用关系，但移除渲染事件
-                    display.off(Event.ENTER_FRAME, this.render, this);
+                    display.off("enterFrame" /* ENTER_FRAME */, this.render, this);
                     if ((policy & 1 /* RecycleDisplay */) == 1 /* RecycleDisplay */) {
                         //回收策略要求回收可视对象，才移除引用
                         this.display = undefined;
@@ -9554,10 +10212,10 @@ var junyou;
                 }
                 if (old != render) {
                     if (old) {
-                        display.off(Event.ENTER_FRAME, old, this);
+                        display.off("enterFrame" /* ENTER_FRAME */, old, this);
                     }
                     if (render) {
-                        display.on(Event.ENTER_FRAME, render, this);
+                        display.on("enterFrame" /* ENTER_FRAME */, render, this);
                     }
                 }
                 this._render = render;
@@ -9576,7 +10234,7 @@ var junyou;
             if (display) {
                 //这里必须移除和可视对象的关联
                 this.display = undefined;
-                display.off(Event.ENTER_FRAME, this.render, this);
+                display.off("enterFrame" /* ENTER_FRAME */, this.render, this);
                 if ((this.recyclePolicy & 1 /* RecycleDisplay */) == 1 /* RecycleDisplay */) {
                     display.recycle();
                 }
@@ -9700,40 +10358,41 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
-     *
-     * 调整ClassFactory
-     * @export
-     * @class ClassFactory
-     * @template T
-     */
-    var ClassFactory = (function () {
-        /**
-         * Creates an instance of ClassFactory.
-         *
-         * @param {{ new (): T }} creator
-         * @param {{ [index: string]: any }} [props]    属性模板
-         */
-        function ClassFactory(creator, props) {
-            this._creator = creator;
-            this._props = props;
+      * 加载脚本
+      * @param url
+      * @param callback
+      * @param thisObj
+      * @param args
+      */
+    function loadScript(url, callback, thisObj) {
+        var args = [];
+        for (var _i = 3; _i < arguments.length; _i++) {
+            args[_i - 3] = arguments[_i];
         }
-        /**
-         * 获取实例
-         *
-         * @returns
-         */
-        ClassFactory.prototype.get = function () {
-            var ins = new this._creator();
-            var p = this._props;
-            for (var key in p) {
-                ins[key] = p[key];
-            }
-            return ins;
-        };
-        return ClassFactory;
-    }());
-    junyou.ClassFactory = ClassFactory;
-    __reflect(ClassFactory.prototype, "junyou.ClassFactory");
+        if (!url) {
+            return;
+        }
+        var script = document.createElement("script");
+        script.type = "text/javascript";
+        //检测客户端类型
+        if (script.readyState) {
+            script.onreadystatechange = function () {
+                if (script.readyState === "loaded" || script.readyState === "complete") {
+                    script.onreadystatechange = null;
+                    callback.apply(thisObj, args);
+                }
+            };
+        }
+        else {
+            script.onload = function () {
+                callback.apply(thisObj, args);
+            };
+        }
+        script.src = url;
+        // 调整为放到文档最后
+        document.documentElement.appendChild(script);
+    }
+    junyou.loadScript = loadScript;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -9753,83 +10412,135 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
-     * 回收池
+     * 回调信息，用于存储回调数据
      * @author 3tion
      *
      */
-    var RecyclablePool = (function () {
-        function RecyclablePool(TCreator, max) {
-            if (max === void 0) { max = 100; }
-            this._pool = [];
-            this._max = max;
-            this._TCreator = TCreator;
-        }
-        RecyclablePool.prototype.get = function () {
-            var ins;
-            var pool = this._pool;
-            if (pool.length) {
-                ins = pool.pop();
-            }
-            else {
-                ins = new this._TCreator();
-            }
-            if (typeof ins.onSpawn === "function") {
-                ins.onSpawn();
-            }
+    var CallbackInfo = (function () {
+        function CallbackInfo() {
             if (true) {
-                ins._insid = _recid++;
+                var data = { enumerable: true, configurable: true };
+                data.get = function () {
+                    return this._cb;
+                };
+                data.set = function (value) {
+                    if (this._cb != value) {
+                        this._cb = value;
+                        if (value != undefined) {
+                            this._debug = { handle: value.toString(), stack: new Error().stack };
+                        }
+                    }
+                };
+                Object.defineProperty(this, "callback", data);
             }
-            return ins;
+        }
+        CallbackInfo.prototype.init = function (callback, thisObj, args) {
+            this.callback = callback;
+            this.args = args;
+            this.thisObj = thisObj;
         };
         /**
-         * 回收
+         * 检查回调是否一致，只检查参数和this对象,不检查参数
          */
-        RecyclablePool.prototype.recycle = function (t) {
-            var pool = this._pool;
-            var idx = pool.indexOf(t);
-            if (!~idx) {
-                if (typeof t.onRecycle === "function") {
-                    t.onRecycle();
-                }
-                if (pool.length < this._max) {
-                    pool.push(t);
-                }
-            }
+        CallbackInfo.prototype.checkHandle = function (callback, thisObj) {
+            return this.callback === callback && this.thisObj == thisObj /* 允许null==undefined */;
         };
-        return RecyclablePool;
-    }());
-    junyou.RecyclablePool = RecyclablePool;
-    __reflect(RecyclablePool.prototype, "junyou.RecyclablePool");
-    var rpt = RecyclablePool.prototype;
-    rpt.getInstance = rpt.get;
-    if (true) {
-        var _recid = 0;
-    }
-    /**
-     * 获取一个recyclable的对象
-     *
-     * @export
-     * @template T
-     * @param {{ new (): T; _pool?: RecyclablePool<T> }} clazz
-     * @returns {(T & { recycle() })}
-     */
-    function recyclable(clazz) {
-        var pool = clazz._pool;
-        if (!pool) {
-            pool = new RecyclablePool(clazz);
-            Object.defineProperty(clazz, "_pool", {
-                value: pool
-            });
-            var pt = clazz.prototype;
-            if (pt.recycle == undefined) {
-                pt.recycle = function () {
-                    pool.recycle(this);
-                };
+        /**
+         * 执行回调
+         * 回调函数，将以args作为参数，callback作为函数执行
+         * @param {boolean} [doRecycle=true] 是否回收CallbackInfo，默认为true
+         */
+        CallbackInfo.prototype.execute = function (doRecycle) {
+            if (doRecycle === void 0) { doRecycle = true; }
+            var callback = this.callback;
+            var result;
+            if (callback != undefined) {
+                try {
+                    result = callback.apply(this.thisObj, this.args);
+                }
+                catch (e) {
+                    if (true) {
+                        var debug = this["_debug"];
+                        junyou.ThrowError("CallbackInfo\u6267\u884C\u62A5\u9519\uFF0C\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n}==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + e.stack);
+                        console.log.apply(console, ["参数列表"].concat(this.args));
+                    }
+                }
             }
-        }
-        return pool.get();
-    }
-    junyou.recyclable = recyclable;
+            else if (true) {
+                var debug = this["_debug"];
+                junyou.ThrowError("\u5BF9\u5DF2\u56DE\u6536\u7684CallbackInfo\u6267\u884C\u4E86\u56DE\u8C03\uFF0C\u6700\u540E\u4E00\u6B21\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + new Error().stack);
+            }
+            if (doRecycle) {
+                this.recycle();
+            }
+            return result;
+        };
+        /**
+         * 用于执行其他参数
+         * 初始的参数会按顺序放在末位
+         * @param args (description)
+         */
+        CallbackInfo.prototype.call = function () {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            if (this.args) {
+                args = args.concat(this.args);
+            }
+            return this.callback.apply(this.thisObj, args);
+        };
+        CallbackInfo.prototype.onRecycle = function () {
+            this.callback = undefined;
+            this.args = undefined;
+            this.thisObj = undefined;
+        };
+        /**
+         * 获取CallbackInfo的实例
+         */
+        CallbackInfo.get = function (callback, thisObj) {
+            var args = [];
+            for (var _i = 2; _i < arguments.length; _i++) {
+                args[_i - 2] = arguments[_i];
+            }
+            var info = junyou.recyclable(CallbackInfo);
+            info.init(callback, thisObj, args);
+            return info;
+        };
+        /**
+         * 加入到数组
+         * 检查是否有this和handle相同的callback，如果有，就用新的参数替换旧参数
+         * @param list
+         * @param handle
+         * @param args
+         * @param thisObj
+         */
+        CallbackInfo.addToList = function (list, handle, thisObj) {
+            var args = [];
+            for (var _i = 3; _i < arguments.length; _i++) {
+                args[_i - 3] = arguments[_i];
+            }
+            //检查是否有this和handle相同的callback
+            for (var _a = 0, list_2 = list; _a < list_2.length; _a++) {
+                var callback = list_2[_a];
+                if (callback.checkHandle(handle, thisObj)) {
+                    callback.args = args;
+                    return callback;
+                }
+            }
+            callback = this.getInstance.apply(this, [handle, thisObj].concat(args));
+            list.push(callback);
+            return callback;
+        };
+        /**
+         * 获取CallbackInfo的实例
+         * @deprecated  请使用`CallbackInfo.get`以减少字符串消耗
+         */
+        CallbackInfo.getInstance = CallbackInfo.get;
+        return CallbackInfo;
+    }());
+    junyou.CallbackInfo = CallbackInfo;
+    __reflect(CallbackInfo.prototype, "junyou.CallbackInfo", ["junyou.IRecyclable"]);
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -9951,7 +10662,7 @@ var junyou;
             if (this.state == 0 /* UNREQUEST */) {
                 this.state = 1 /* REQUESTING */;
                 //后续尝试直接用ImageLoader加载
-                RES.getResByUrl(this.url, this.loadComplete, this, RES.ResourceItem.TYPE_IMAGE);
+                RES.getResByUrl(this.url, this.loadComplete, this, "image" /* TYPE_IMAGE */);
             }
         };
         /**
@@ -10060,7 +10771,7 @@ var junyou;
                 var url = junyou.ConfigUtils.getResUrl(uri);
                 this.url = url;
                 this.state = 1 /* REQUESTING */;
-                RES.getResByUrl(url, this.dataLoadComplete, this, RES.ResourceItem.TYPE_JSON);
+                RES.getResByUrl(url, this.dataLoadComplete, this, "json" /* TYPE_JSON */);
             }
         };
         /**
@@ -10112,7 +10823,7 @@ var junyou;
         UnitResource.prototype.loadRes = function (d, a) {
             var info = this._splitInfo;
             var r = info.getResource(d, a);
-            var uri = this.key + "/" + r + junyou.Ext.PNG;
+            var uri = this.key + "/" + r + ".png" /* PNG */;
             var datas = this._datas;
             return junyou.ResourceManager.get(uri, function () {
                 var tmp = new junyou.SplitUnitResource(uri);
@@ -10124,7 +10835,7 @@ var junyou;
         UnitResource.prototype.isResOK = function (d, a) {
             var info = this._splitInfo;
             var r = info.getResource(d, a);
-            var uri = this.key + "/" + r + junyou.Ext.PNG;
+            var uri = this.key + "/" + r + ".png" /* PNG */;
             var res = junyou.ResourceManager.getResource(uri);
             return !!(res && res.bmd);
         };
@@ -10920,7 +11631,7 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    var ext = junyou.Ext.JPG + (junyou.Global.webp ? junyou.Ext.WEBP : "");
+    var ext = ".jpg" /* JPG */ + (junyou.Global.webp ? ".webp" /* WEBP */ : "");
     /**
      * 地图基础信息<br/>
      * 由地图编辑器生成的地图信息
@@ -11481,7 +12192,7 @@ var junyou;
             this.checkNext();
             if (this.isruning == false) {
                 this.isruning = true;
-                this._con.on(egret.Event.ENTER_FRAME, this.tick, this);
+                this._con.on("enterFrame" /* ENTER_FRAME */, this.tick, this);
             }
         };
         /**
@@ -11556,7 +12267,7 @@ var junyou;
                 }
             }
             if (isruning == false) {
-                this._con.off(egret.Event.ENTER_FRAME, this.tick, this);
+                this._con.off("enterFrame" /* ENTER_FRAME */, this.tick, this);
                 this.isruning = false;
             }
         };
@@ -11597,7 +12308,7 @@ var junyou;
                 }
                 if (this.isruning == false) {
                     this.isruning = true;
-                    this._con.on(egret.Event.ENTER_FRAME, this.tick, this);
+                    this._con.on("enterFrame" /* ENTER_FRAME */, this.tick, this);
                 }
             }
         };
@@ -11648,7 +12359,7 @@ var junyou;
             this.con.addChild(this._txtField);
             this._txtField2 = new egret.TextField();
             this.con.addChild(this._txtField2);
-            this.on(egret.Event.ADDED_TO_STAGE, this.addToStage, this);
+            this.on("addedToStage" /* ADDED_TO_STAGE */, this.addToStage, this);
         };
         MessageRender.prototype.addToStage = function (e) {
             this.cantick = true;
@@ -11810,20 +12521,83 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
-     * 单例工具
-     * @param clazz 要做单例的类型
+     * 回收池
+     * @author 3tion
+     *
      */
-    function singleton(clazz) {
-        var instance = clazz._instance;
-        if (!instance) {
-            instance = new clazz;
-            Object.defineProperty(clazz, "_instance", {
-                value: instance
-            });
+    var RecyclablePool = (function () {
+        function RecyclablePool(TCreator, max) {
+            if (max === void 0) { max = 100; }
+            this._pool = [];
+            this._max = max;
+            this._TCreator = TCreator;
         }
-        return instance;
+        RecyclablePool.prototype.get = function () {
+            var ins;
+            var pool = this._pool;
+            if (pool.length) {
+                ins = pool.pop();
+            }
+            else {
+                ins = new this._TCreator();
+            }
+            if (typeof ins.onSpawn === "function") {
+                ins.onSpawn();
+            }
+            if (true) {
+                ins._insid = _recid++;
+            }
+            return ins;
+        };
+        /**
+         * 回收
+         */
+        RecyclablePool.prototype.recycle = function (t) {
+            var pool = this._pool;
+            var idx = pool.indexOf(t);
+            if (!~idx) {
+                if (typeof t.onRecycle === "function") {
+                    t.onRecycle();
+                }
+                if (pool.length < this._max) {
+                    pool.push(t);
+                }
+            }
+        };
+        return RecyclablePool;
+    }());
+    junyou.RecyclablePool = RecyclablePool;
+    __reflect(RecyclablePool.prototype, "junyou.RecyclablePool");
+    var rpt = RecyclablePool.prototype;
+    rpt.getInstance = rpt.get;
+    if (true) {
+        var _recid = 0;
     }
-    junyou.singleton = singleton;
+    /**
+     * 获取一个recyclable的对象
+     *
+     * @export
+     * @template T
+     * @param {{ new (): T; _pool?: RecyclablePool<T> }} clazz
+     * @returns {(T & { recycle() })}
+     */
+    function recyclable(clazz) {
+        var pool = clazz._pool;
+        if (!pool) {
+            pool = new RecyclablePool(clazz);
+            Object.defineProperty(clazz, "_pool", {
+                value: pool
+            });
+            var pt = clazz.prototype;
+            if (pt.recycle == undefined) {
+                pt.recycle = function () {
+                    pool.recycle(this);
+                };
+            }
+        }
+        return pool.get();
+    }
+    junyou.recyclable = recyclable;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -12242,8 +13016,8 @@ var junyou;
             this.rotation = 0;
             this.alpha = 1;
             var list = this.$children;
-            for (var _i = 0, list_2 = list; _i < list_2.length; _i++) {
-                var bmp = list_2[_i];
+            for (var _i = 0, list_3 = list; _i < list_3.length; _i++) {
+                var bmp = list_3[_i];
                 bmp.recycle();
             }
         };
@@ -12829,44 +13603,20 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
-     * 用于像统计接口发送步骤信息
-     * @author pb
+     * 单例工具
+     * @param clazz 要做单例的类型
      */
-    junyou.Stats = (function () {
-        var _actionUrl, _ip, _sign, _pid, _uid, _sid;
-        return {
-            setUrl: function (url) {
-                if (url.charAt(url.length - 1) != "?") {
-                    url += "?";
-                }
-                _actionUrl = url;
-                return this;
-            },
-            setParams: function (params) {
-                _ip = getData(params.ip);
-                _pid = getData(params.pid);
-                _uid = getData(params.uid);
-                _sid = getData(params.sid);
-                return this;
-            },
-            setSign: function (sign) {
-                _sign = getData(sign);
-                return this;
-            },
-            postData: function (step) {
-                junyou.sendToUrl(_actionUrl + this.getParamUrl(step));
-            },
-            getParamUrl: function (step) {
-                return "step=" + getData(step) + "&ip=" + _ip
-                    + "&sign=" + _sign + "&pid=" + _pid
-                    + "&sid=" + _sid + "&uid=" + _uid
-                    + "&client_time=" + junyou.Global.now;
-            }
-        };
-        function getData(value) {
-            return value === undefined ? "" : encodeURIComponent(value);
+    function singleton(clazz) {
+        var instance = clazz._instance;
+        if (!instance) {
+            instance = new clazz;
+            Object.defineProperty(clazz, "_instance", {
+                value: instance
+            });
         }
-    })();
+        return instance;
+    }
+    junyou.singleton = singleton;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -12994,135 +13744,44 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
-     * 回调信息，用于存储回调数据
-     * @author 3tion
-     *
+     * 用于像统计接口发送步骤信息
+     * @author pb
      */
-    var CallbackInfo = (function () {
-        function CallbackInfo() {
-            if (true) {
-                var data = { enumerable: true, configurable: true };
-                data.get = function () {
-                    return this._cb;
-                };
-                data.set = function (value) {
-                    if (this._cb != value) {
-                        this._cb = value;
-                        if (value != undefined) {
-                            this._debug = { handle: value.toString(), stack: new Error().stack };
-                        }
-                    }
-                };
-                Object.defineProperty(this, "callback", data);
+    junyou.Stats = (function () {
+        var _actionUrl, _ip, _sign, _pid, _uid, _sid;
+        return {
+            setUrl: function (url) {
+                if (url.charAt(url.length - 1) != "?") {
+                    url += "?";
+                }
+                _actionUrl = url;
+                return this;
+            },
+            setParams: function (params) {
+                _ip = getData(params.ip);
+                _pid = getData(params.pid);
+                _uid = getData(params.uid);
+                _sid = getData(params.sid);
+                return this;
+            },
+            setSign: function (sign) {
+                _sign = getData(sign);
+                return this;
+            },
+            postData: function (step) {
+                junyou.sendToUrl(_actionUrl + this.getParamUrl(step));
+            },
+            getParamUrl: function (step) {
+                return "step=" + getData(step) + "&ip=" + _ip
+                    + "&sign=" + _sign + "&pid=" + _pid
+                    + "&sid=" + _sid + "&uid=" + _uid
+                    + "&client_time=" + junyou.Global.now;
             }
+        };
+        function getData(value) {
+            return value === undefined ? "" : encodeURIComponent(value);
         }
-        CallbackInfo.prototype.init = function (callback, thisObj, args) {
-            this.callback = callback;
-            this.args = args;
-            this.thisObj = thisObj;
-        };
-        /**
-         * 检查回调是否一致，只检查参数和this对象,不检查参数
-         */
-        CallbackInfo.prototype.checkHandle = function (callback, thisObj) {
-            return this.callback === callback && this.thisObj == thisObj /* 允许null==undefined */;
-        };
-        /**
-         * 执行回调
-         * 回调函数，将以args作为参数，callback作为函数执行
-         * @param {boolean} [doRecycle=true] 是否回收CallbackInfo，默认为true
-         */
-        CallbackInfo.prototype.execute = function (doRecycle) {
-            if (doRecycle === void 0) { doRecycle = true; }
-            var callback = this.callback;
-            var result;
-            if (callback != undefined) {
-                try {
-                    result = callback.apply(this.thisObj, this.args);
-                }
-                catch (e) {
-                    if (true) {
-                        var debug = this["_debug"];
-                        junyou.ThrowError("CallbackInfo\u6267\u884C\u62A5\u9519\uFF0C\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n}==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + e.stack);
-                        console.log.apply(console, ["参数列表"].concat(this.args));
-                    }
-                }
-            }
-            else if (true) {
-                var debug = this["_debug"];
-                junyou.ThrowError("\u5BF9\u5DF2\u56DE\u6536\u7684CallbackInfo\u6267\u884C\u4E86\u56DE\u8C03\uFF0C\u6700\u540E\u4E00\u6B21\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + new Error().stack);
-            }
-            if (doRecycle) {
-                this.recycle();
-            }
-            return result;
-        };
-        /**
-         * 用于执行其他参数
-         * 初始的参数会按顺序放在末位
-         * @param args (description)
-         */
-        CallbackInfo.prototype.call = function () {
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
-            }
-            if (this.args) {
-                args = args.concat(this.args);
-            }
-            return this.callback.apply(this.thisObj, args);
-        };
-        CallbackInfo.prototype.onRecycle = function () {
-            this.callback = undefined;
-            this.args = undefined;
-            this.thisObj = undefined;
-        };
-        /**
-         * 获取CallbackInfo的实例
-         */
-        CallbackInfo.get = function (callback, thisObj) {
-            var args = [];
-            for (var _i = 2; _i < arguments.length; _i++) {
-                args[_i - 2] = arguments[_i];
-            }
-            var info = junyou.recyclable(CallbackInfo);
-            info.init(callback, thisObj, args);
-            return info;
-        };
-        /**
-         * 加入到数组
-         * 检查是否有this和handle相同的callback，如果有，就用新的参数替换旧参数
-         * @param list
-         * @param handle
-         * @param args
-         * @param thisObj
-         */
-        CallbackInfo.addToList = function (list, handle, thisObj) {
-            var args = [];
-            for (var _i = 3; _i < arguments.length; _i++) {
-                args[_i - 3] = arguments[_i];
-            }
-            //检查是否有this和handle相同的callback
-            for (var _a = 0, list_3 = list; _a < list_3.length; _a++) {
-                var callback = list_3[_a];
-                if (callback.checkHandle(handle, thisObj)) {
-                    callback.args = args;
-                    return callback;
-                }
-            }
-            callback = this.getInstance.apply(this, [handle, thisObj].concat(args));
-            list.push(callback);
-            return callback;
-        };
-        /**
-         * 获取CallbackInfo的实例
-         * @deprecated  请使用`CallbackInfo.get`以减少字符串消耗
-         */
-        CallbackInfo.getInstance = CallbackInfo.get;
-        return CallbackInfo;
-    }());
-    junyou.CallbackInfo = CallbackInfo;
-    __reflect(CallbackInfo.prototype, "junyou.CallbackInfo", ["junyou.IRecyclable"]);
+    })();
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -15223,7 +15882,7 @@ var junyou;
          *
          */
         ModuleManager.prototype.bindButton = function (id, io, eventType) {
-            if (eventType === void 0) { eventType = egret.TouchEvent.TOUCH_TAP; }
+            if (eventType === void 0) { eventType = "touchTap" /* TOUCH_TAP */; }
             if (this._ioBind.has(io)) {
                 junyou.ThrowError("ModuleManager 注册按钮时候，重复注册了按钮");
                 return;
@@ -15693,7 +16352,7 @@ var junyou;
             var layers = dic[id];
             this._current = id;
             if (layers && layers.length) {
-                this._stage.on(egret.Event.RESIZE, this.drawBlur, this);
+                this._stage.on("resize" /* RESIZE */, this.drawBlur, this);
                 this.drawBlur();
             }
         };
@@ -15729,7 +16388,7 @@ var junyou;
             }
         };
         BlurScreen.prototype.hideBlur = function () {
-            this._stage.off(egret.Event.RESIZE, this.drawBlur, this);
+            this._stage.off("resize" /* RESIZE */, this.drawBlur, this);
             junyou.removeDisplay(this._bmp);
             this._tex.$renderBuffer.resize(0, 0);
             var layers = this._dic[this._current];
@@ -15875,7 +16534,7 @@ var junyou;
                         this.addModal();
                     }
                     else {
-                        this.on(egret.Event.ADDED_TO_STAGE, this.addedToStage, this);
+                        this.on("addedToStage" /* ADDED_TO_STAGE */, this.addedToStage, this);
                     }
                 }
                 else {
@@ -15883,7 +16542,7 @@ var junyou;
                         this.removeModal();
                     }
                     else {
-                        this.off(egret.Event.ADDED_TO_STAGE, this.addedToStage, this);
+                        this.off("addedToStage" /* ADDED_TO_STAGE */, this.addedToStage, this);
                     }
                 }
             },
@@ -15908,7 +16567,7 @@ var junyou;
                 g.drawRect(0, 0, width, height);
                 g.endFill();
             }
-            m.on(egret.TouchEvent.TOUCH_TAP, this.hide, this);
+            m.on("touchTap" /* TOUCH_TAP */, this.hide, this);
             this.addChildAt(m, 0);
         };
         /**
@@ -15918,7 +16577,7 @@ var junyou;
          */
         Panel.prototype.removeModal = function () {
             if (this.modal) {
-                this.modal.off(egret.TouchEvent.TOUCH_TAP, this.hide, this);
+                this.modal.off("touchTap" /* TOUCH_TAP */, this.hide, this);
                 junyou.removeDisplay(this.modal);
             }
         };
@@ -16316,7 +16975,6 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    var TE = egret.TouchEvent;
     /**
      * 左上的点
      */
@@ -16401,7 +17059,7 @@ var junyou;
             this.tr = { x: width, y: 0 };
             this.br = { x: width, y: height };
             this.size = size;
-            this.on(TE.TOUCH_BEGIN, this.touchBegin, this);
+            this.on("touchBegin" /* TOUCH_BEGIN */, this.touchBegin, this);
         };
         Flip.prototype.touchBegin = function (e) {
             //检查鼠标点是在上半区还是下半区
@@ -16417,9 +17075,9 @@ var junyou;
                 this.oX = isLeft ? 0 : width;
                 this.oY = isTop ? 0 : height;
                 var stage = this.stage;
-                stage.on(TE.TOUCH_MOVE, this.touchMove, this);
-                stage.on(TE.TOUCH_END, this.touchEnd, this);
-                stage.on(TE.TOUCH_RELEASE_OUTSIDE, this.touchEnd, this);
+                stage.on("touchMove" /* TOUCH_MOVE */, this.touchMove, this);
+                stage.on("touchEnd" /* TOUCH_END */, this.touchEnd, this);
+                stage.on("touchReleaseOutside" /* TOUCH_RELEASE_OUTSIDE */, this.touchEnd, this);
                 this.draw(x, y);
             }
         };
@@ -16448,9 +17106,9 @@ var junyou;
         };
         Flip.prototype.clearEvents = function () {
             var stage = egret.sys.$TempStage;
-            stage.off(TE.TOUCH_MOVE, this.touchMove, this);
-            stage.off(TE.TOUCH_END, this.touchEnd, this);
-            stage.off(TE.TOUCH_RELEASE_OUTSIDE, this.touchEnd, this);
+            stage.off("touchMove" /* TOUCH_MOVE */, this.touchMove, this);
+            stage.off("touchEnd" /* TOUCH_END */, this.touchEnd, this);
+            stage.off("touchReleaseOutside" /* TOUCH_RELEASE_OUTSIDE */, this.touchEnd, this);
         };
         Flip.prototype.reset = function () {
             var _a = this, frontDis = _a.frontDis, backCon = _a.backCon, frontMask = _a.frontMask;
@@ -16735,7 +17393,6 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    var Event = egret.Event;
     /**
      * 图片
      * 外部加载
@@ -16746,8 +17403,8 @@ var junyou;
         __extends(Image, _super);
         function Image() {
             var _this = _super.call(this) || this;
-            _this.on(Event.ADDED_TO_STAGE, _this.addedToStage, _this);
-            _this.on(Event.REMOVED_FROM_STAGE, _this.removedFromStage, _this);
+            _this.on("addedToStage" /* ADDED_TO_STAGE */, _this.addedToStage, _this);
+            _this.on("removedFromStage" /* REMOVED_FROM_STAGE */, _this.removedFromStage, _this);
             return _this;
         }
         Image.prototype.addedToStage = function () {
@@ -16795,8 +17452,8 @@ var junyou;
          */
         Image.prototype.dispose = function () {
             this.removedFromStage();
-            this.off(Event.ADDED_TO_STAGE, this.addedToStage, this);
-            this.off(Event.REMOVED_FROM_STAGE, this.removedFromStage, this);
+            this.off("addedToStage" /* ADDED_TO_STAGE */, this.addedToStage, this);
+            this.off("removedFromStage" /* REMOVED_FROM_STAGE */, this.removedFromStage, this);
         };
         return Image;
     }(egret.Bitmap));
@@ -16805,7 +17462,6 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    var TE = egret.TouchEvent;
     var ListItemRenderer = (function (_super) {
         __extends(ListItemRenderer, _super);
         function ListItemRenderer() {
@@ -16845,7 +17501,7 @@ var junyou;
         };
         ListItemRenderer.prototype.onTouchTap = function () {
             this.dispatch(-1001 /* ITEM_TOUCH_TAP */);
-            this.dispatchEventWith(TE.TOUCH_TAP);
+            this.dispatchEventWith("touchTap" /* TOUCH_TAP */);
         };
         ListItemRenderer.prototype.$setData = function (value) {
             this._data = value;
@@ -17030,13 +17686,13 @@ var junyou;
         };
         ListItemRenderer.prototype.removeSkinListener = function (skin) {
             if (skin) {
-                skin.off(TE.TOUCH_TAP, this.onTouchTap, this);
+                skin.off("touchTap" /* TOUCH_TAP */, this.onTouchTap, this);
                 junyou.ViewController.prototype.removeSkinListener.call(this, skin);
             }
         };
         ListItemRenderer.prototype.addSkinListener = function (skin) {
             if (skin) {
-                skin.on(TE.TOUCH_TAP, this.onTouchTap, this);
+                skin.on("touchTap" /* TOUCH_TAP */, this.onTouchTap, this);
                 junyou.ViewController.prototype.addSkinListener.call(this, skin);
             }
         };
@@ -17051,7 +17707,7 @@ var junyou;
          */
         ListItemRenderer.prototype.bindTouch = function (handler, thisObject, priority, useCapture) {
             this.skin.touchEnabled = true;
-            this.on(TE.TOUCH_TAP, handler, thisObject, useCapture, priority);
+            this.on("touchTap" /* TOUCH_TAP */, handler, thisObject, useCapture, priority);
         };
         /**
          * 解除TOUCH_TAP的回调的绑定
@@ -17063,7 +17719,7 @@ var junyou;
          * @memberOf Button
          */
         ListItemRenderer.prototype.looseTouch = function (handler, thisObject, useCapture) {
-            this.off(TE.TOUCH_TAP, handler, thisObject, useCapture);
+            this.off("touchTap" /* TOUCH_TAP */, handler, thisObject, useCapture);
         };
         Object.defineProperty(ListItemRenderer.prototype, "isReady", {
             get: function () {
@@ -17536,10 +18192,11 @@ var junyou;
             _super.prototype.onTargetTouchBegin.call(this, e);
         };
         PageScroller.prototype.endTouchContent = function (e) {
-            console.log(this._moveSpeed);
-            this._content.stage.off(egret.TouchEvent.TOUCH_MOVE, this.moveOnContent, this);
-            this._content.off(egret.TouchEvent.TOUCH_END, this.endTouchContent, this);
-            this._content.off(egret.TouchEvent.TOUCH_RELEASE_OUTSIDE, this.endTouchContent, this);
+            var _content = this._content;
+            var stage = _content.stage || egret.sys.$TempStage;
+            stage.off("touchMove" /* TOUCH_MOVE */, this.moveOnContent, this);
+            _content.off("touchEnd" /* TOUCH_END */, this.endTouchContent, this);
+            _content.off("touchReleaseOutside" /* TOUCH_RELEASE_OUTSIDE */, this.endTouchContent, this);
             var now = junyou.Global.now;
             var nowPos;
             if (this._scrollType == 0) {
@@ -17600,10 +18257,13 @@ var junyou;
                 //自然衰减到当前页
                 this._moveSpeed = this.autoScrollSpeed;
             }
-            this._content.stage.on(egret.Event.ENTER_FRAME, this.autoScrollToNextPage, this);
+            if (_content.stage) {
+                stage.on("enterFrame" /* ENTER_FRAME */, this.autoScrollToNextPage, this);
+            }
         };
         PageScroller.prototype.autoScrollToNextPage = function (e) {
-            var rect = this._content.scrollRect;
+            var _content = this._content;
+            var rect = _content.scrollRect;
             var currentPos;
             var targetPos = this._pageSize * (this._scrollToPage - 1);
             if (this._scrollType == 0) {
@@ -17618,9 +18278,9 @@ var junyou;
             var subdis = targetPos - currentPos;
             var deriction = subdis > 0 ? -1 : 1;
             if (Math.abs(subdis) < sub || Math.abs(subdis) < 2) {
-                this._content.stage.off(egret.Event.ENTER_FRAME, this.autoScrollToNextPage, this);
+                _content.stage.off("enterFrame" /* ENTER_FRAME */, this.autoScrollToNextPage, this);
                 this.doScrollContent(subdis * deriction);
-                rect = this._content.scrollRect;
+                rect = _content.scrollRect;
                 if (this._scrollType == 0) {
                     currentPos = rect.y;
                 }
@@ -17992,12 +18652,12 @@ var junyou;
             return _this;
         }
         Slider.prototype.addListener = function () {
-            this.thumb.on(egret.TouchEvent.TOUCH_BEGIN, this.onThumbBegin, this);
-            this.on(egret.Event.ADDED_TO_STAGE, this.onAddToStage, this);
+            this.thumb.on("touchBegin" /* TOUCH_BEGIN */, this.onThumbBegin, this);
+            this.on("addedToStage" /* ADDED_TO_STAGE */, this.onAddToStage, this);
         };
         Slider.prototype.onAddToStage = function (e) {
             if (this._barEnabled) {
-                this.stage.on(egret.TouchEvent.TOUCH_END, this.bgOut, this);
+                this.stage.on("touchEnd" /* TOUCH_END */, this.bgOut, this);
             }
         };
         Object.defineProperty(Slider.prototype, "barEnabled", {
@@ -18005,15 +18665,15 @@ var junyou;
             set: function (value) {
                 this._barEnabled = value;
                 if (value) {
-                    this.bgline.on(egret.TouchEvent.TOUCH_BEGIN, this.bgClick, this);
+                    this.bgline.on("touchBegin" /* TOUCH_BEGIN */, this.bgClick, this);
                     if (this.stage) {
-                        this.stage.on(egret.TouchEvent.TOUCH_END, this.bgOut, this);
+                        this.stage.on("touchEnd" /* TOUCH_END */, this.bgOut, this);
                     }
                 }
                 else {
-                    this.bgline.off(egret.TouchEvent.TOUCH_BEGIN, this.bgClick, this);
+                    this.bgline.off("touchBegin" /* TOUCH_BEGIN */, this.bgClick, this);
                     if (this.stage) {
-                        this.bgline.off(egret.TouchEvent.TOUCH_END, this.bgOut, this);
+                        this.bgline.off("touchEnd" /* TOUCH_END */, this.bgOut, this);
                     }
                 }
             },
@@ -18032,15 +18692,15 @@ var junyou;
         };
         Slider.prototype.onThumbBegin = function (e) {
             this._lastThumbX = this.thumb.localToGlobal().x;
-            this.stage.on(egret.TouchEvent.TOUCH_MOVE, this.mouseMove, this);
-            this.thumb.on(egret.TouchEvent.TOUCH_END, this.onThumbEnd, this);
-            this.thumb.on(egret.TouchEvent.TOUCH_RELEASE_OUTSIDE, this.onThumbEnd, this);
+            this.stage.on("touchMove" /* TOUCH_MOVE */, this.mouseMove, this);
+            this.thumb.on("touchEnd" /* TOUCH_END */, this.onThumbEnd, this);
+            this.thumb.on("touchReleaseOutside" /* TOUCH_RELEASE_OUTSIDE */, this.onThumbEnd, this);
             this.tipTxt.visible = true;
         };
         Slider.prototype.onThumbEnd = function (e) {
-            this.stage.off(egret.TouchEvent.TOUCH_MOVE, this.mouseMove, this);
-            this.thumb.off(egret.TouchEvent.TOUCH_END, this.onThumbEnd, this);
-            this.thumb.off(egret.TouchEvent.TOUCH_RELEASE_OUTSIDE, this.onThumbEnd, this);
+            this.stage.off("touchMove" /* TOUCH_MOVE */, this.mouseMove, this);
+            this.thumb.off("touchEnd" /* TOUCH_END */, this.onThumbEnd, this);
+            this.thumb.off("touchReleaseOutside" /* TOUCH_RELEASE_OUTSIDE */, this.onThumbEnd, this);
         };
         Slider.prototype.mouseMove = function (e) {
             var currentX = e.stageX;
@@ -18457,719 +19117,40 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
-     * 绑定属性名，当属性值发生改变时，可自动对外抛eventType事件
      *
+     * 调整ClassFactory
      * @export
-     * @param {(string | number)} eventType     事件类型
-     * @param {boolean} [selfDispatch]          默认false，使用Facade抛事件，event.data为实例本身
-     *                                          如果为true，需要为EventDispatcher的实现，会使用自身抛事件
-     * @returns
+     * @class ClassFactory
+     * @template T
      */
-    function d_fire(eventType, selfDispatch) {
-        return function (target, value) {
-            new Watcher(value, function () {
-                if (selfDispatch) {
-                    if (typeof this.dispatch === "function") {
-                        this.dispatch(eventType);
-                    }
-                }
-                else {
-                    junyou.dispatch(eventType, this);
-                }
-            }).reset(target);
-            //此处的target为prototype
-            //事件回调时候，this为实例
-        };
-    }
-    junyou.d_fire = d_fire;
-    /**
-     * 使用微软vs code中使用的代码
-     * 用于一些 lazy 的调用
-     * https://github.com/Microsoft/vscode/blob/master/src/vs/base/common/decorators.ts
-     *
-     * @export
-     * @param {*} target
-     * @param {string} key
-     * @param {*} descriptor
-     */
-    function d_memoize(target, key, descriptor) {
-        var fnKey = null;
-        var fn = null;
-        if (typeof descriptor.value === 'function') {
-            fnKey = 'value';
-            fn = descriptor.value;
-        }
-        else if (typeof descriptor.get === 'function') {
-            fnKey = 'get';
-            fn = descriptor.get;
-        }
-        if (!fn) {
-            throw new Error('not supported');
-        }
-        var memoizeKey = "$memoize$" + key;
-        descriptor[fnKey] = function () {
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
-            }
-            if (!this.hasOwnProperty(memoizeKey)) {
-                Object.defineProperty(this, memoizeKey, {
-                    configurable: false,
-                    enumerable: false,
-                    writable: false,
-                    value: fn.apply(this, args)
-                });
-            }
-            return this[memoizeKey];
-        };
-    }
-    junyou.d_memoize = d_memoize;
-    /**
-     * @private
-     */
-    var _$l = "__listeners__";
-    /**
-     * @private
-     */
-    var _$b = "__bindables__";
-    /**
-     * @private
-     */
-    var _$c = 0;
-    function notifyListener(host, property) {
-        var list = host[_$l];
-        var length = list.length;
-        for (var i = 0; i < length; i += 2) {
-            var listener = list[i];
-            var target = list[i + 1];
-            listener.call(target, property, host);
-        }
-    }
-    /**
-     * @language en_US
-     * The Watcher class defines utility method that you can use with bindable properties.
-     * These methods let you define an event handler that is executed whenever a bindable property is updated.
-     *
-     * @version Egret 2.4
-     * @version eui 1.0
-     * @platform Web,Native
-     * @includeExample extension/eui/binding/WatcherExample.ts
-     */
-    /**
-     * @language zh_CN
-     * Watcher 类能够监视可绑定属性的改变，您可以定义一个事件处理函数作为 Watcher 的回调方法，在每次可绑定属性的值改变时都执行此函数。
-     *
-     * @version Egret 2.4
-     * @version eui 1.0
-     * @platform Web,Native
-     * @includeExample extension/eui/binding/WatcherExample.ts
-     */
-    var Watcher = (function () {
+    var ClassFactory = (function () {
         /**
-         * Creates an instance of Watcher.
+         * Creates an instance of ClassFactory.
          *
-         * @param {string} property                 监听的属性
-         * @param {(value: any) => void} handler    回调函数
-         * @param {*} [thisObject]                  回调函数的this对象，如果不设置this，则当监听对象属性变化时，将以监听的对象作为this参数，进行回调
-         * @param {Watcher} [next]
+         * @param {{ new (): T }} creator
+         * @param {{ [index: string]: any }} [props]    属性模板
          */
-        function Watcher(property, handler, thisObject, next) {
-            /**
-             * @private
-             */
-            this.isExecuting = false;
-            this.property = property;
-            this.handler = handler;
-            this.next = next;
-            this.thisObject = thisObject;
+        function ClassFactory(creator, props) {
+            this._creator = creator;
+            this._props = props;
         }
         /**
-         * @language en_US
-         * Creates and starts a Watcher instance.
-         * The Watcher can only watch the property of a Object which host is instance of egret.IEventDispatcher.
-         * @param host The object that hosts the property or property chain to be watched.
-         * You can use the use the <code>reset()</code> method to change the value of the <code>host</code> argument
-         * after creating the Watcher instance.
-         * The <code>host</code> maintains a list of <code>handlers</code> to invoke when <code>prop</code> changes.
-         * @param chain A value specifying the property or chain to be watched.
-         * For example, to watch the property <code>host.a.b.c</code>,
-         * call the method as: <code>watch(host, ["a","b","c"], ...)</code>.
-         * @param handler  An event handler function called when the value of the watched property
-         * (or any property in a watched chain) is modified.
-         * @param thisObject <code>this</code> object of which binding with handler
-         * @returns he ChangeWatcher instance, if at least one property name has been specified to
-         * the <code>chain</code> argument; null otherwise.
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        /**
-         * @language zh_CN
-         * 创建并启动 Watcher 实例。注意：Watcher 只能监视 host 为 egret.IEventDispatcher 对象的属性改变。若属性链中某个属性所对应的实例不是 egret.IEventDispatcher，
-         * 则属性链中在它之后的属性改变将无法检测到。
-         * @param host 用于承载要监视的属性或属性链的对象。
-         * 创建Watcher实例后，您可以利用<code>reset()</code>方法更改<code>host</code>参数的值。
-         * 当<code>prop</code>改变的时候，会使得host对应的一系列<code>handlers</code>被触发。
-         * @param chain 用于指定要监视的属性链的值。例如，要监视属性 host.a.b.c，需按以下形式调用此方法：watch¬(host, ["a","b","c"], ...)。
-         * @param handler 在监视的目标属性链中任何属性的值发生改变时调用的事件处理函数。
-         * @param thisObject handler 方法绑定的this对象
-         * @returns 如果已为 chain 参数至少指定了一个属性名称，则返回 Watcher 实例；否则返回 null。
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        Watcher.watch = function (host, chain, handler, thisObject) {
-            if (true) {
-                if (!chain) {
-                    egret.$error(1003, "chain");
-                }
-            }
-            if (chain.length > 0) {
-                var property = chain.shift();
-                var next = Watcher.watch(null, chain, handler, thisObject);
-                var watcher = new Watcher(property, handler, thisObject, next);
-                watcher.reset(host);
-                return watcher;
-            }
-            else {
-                return;
-            }
-        };
-        /**
-         * @private
-         * 检查属性是否可以绑定。若还未绑定，尝试添加绑定事件。若是只读或只写属性，返回false。
-         */
-        Watcher.checkBindable = function (host, property) {
-            var list = host[_$b];
-            if (list && list.indexOf(property) != -1) {
-                return true;
-            }
-            var isEventDispatcher = egret.is(host, "egret.IEventDispatcher");
-            if (!isEventDispatcher && !host[_$l]) {
-                host[_$l] = [];
-            }
-            var data = host.getPropertyDescriptor(property);
-            if (data && data.set && data.get) {
-                var orgSet_1 = data.set;
-                data.set = function (value) {
-                    if (this[property] != value) {
-                        orgSet_1.call(this, value);
-                        if (isEventDispatcher) {
-                            junyou.PropertyEvent.dispatchPropertyEvent(this, -2000 /* PROPERTY_CHANGE */, property);
-                        }
-                        else {
-                            notifyListener(this, property);
-                        }
-                    }
-                };
-            }
-            else if (!data || (!data.get && !data.set)) {
-                _$c++;
-                var newProp_1 = "_" + _$c + property;
-                host[newProp_1] = data ? data.value : null;
-                data = { enumerable: true, configurable: true };
-                data.get = function () {
-                    return this[newProp_1];
-                };
-                data.set = function (value) {
-                    if (this[newProp_1] != value) {
-                        this[newProp_1] = value;
-                        if (isEventDispatcher) {
-                            junyou.PropertyEvent.dispatchPropertyEvent(this, -2000 /* PROPERTY_CHANGE */, property);
-                        }
-                        else {
-                            notifyListener(this, property);
-                        }
-                    }
-                };
-            }
-            else {
-                return false;
-            }
-            Object.defineProperty(host, property, data);
-            junyou.registerBindable(host, property);
-        };
-        /**
-         * @language en_US
-         * Detaches this Watcher instance, and its handler function, from the current host.
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        /**
-         * @language zh_CN
-         * 从当前宿主中断开此 Watcher 实例及其处理函数。
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        Watcher.prototype.unwatch = function () {
-            this.reset(null);
-            this.handler = null;
-            if (this.next) {
-                this.next.handler = null;
-            }
-        };
-        /**
-         * @language en_US
-         * Retrieves the current value of the watched property or property chain, or null if the host object is null.
-         * @example
-         * <pre>
-         * watch(obj, ["a","b","c"], ...).getValue() === obj.a.b.c
-         * </pre>
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        /**
-         * @language zh_CN
-         * 检索观察的属性或属性链的当前值，当宿主对象为空时此值为空。
-         * @example
-         * <pre>
-         * watch(obj, ["a","b","c"], ...).getValue() === obj.a.b.c
-         * </pre>
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        Watcher.prototype.getValue = function () {
-            if (this.next) {
-                return this.next.getValue();
-            }
-            return this.getHostPropertyValue();
-        };
-        /**
-         * @language en_US
-         * Sets the handler function.s
-         * @param handler The handler function. This argument must not be null.
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        /**
-         * @language zh_CN
-         * 设置处理函数。
-         * @param handler 处理函数，此参数必须为非空。
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        Watcher.prototype.setHandler = function (handler, thisObject) {
-            this.handler = handler;
-            this.thisObject = thisObject;
-            if (this.next) {
-                this.next.setHandler(handler, thisObject);
-            }
-        };
-        /**
-         * @language en_US
-         * Resets this ChangeWatcher instance to use a new host object.
-         * You can call this method to reuse a watcher instance on a different host.
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        /**
-         * @language zh_CN
-         * 重置此 Watcher 实例使用新的宿主对象。
-         * 您可以通过该方法实现一个Watcher实例用于不同的宿主。
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        Watcher.prototype.reset = function (newHost) {
-            var oldHost = this.host;
-            if (oldHost) {
-                if (oldHost instanceof egret.EventDispatcher) {
-                    oldHost.off(-2000 /* PROPERTY_CHANGE */, this.wrapHandler, this);
-                }
-                else {
-                    var list = oldHost[_$l];
-                    var index = list.indexOf(this);
-                    list.splice(index - 1, 2);
-                }
-            }
-            this.host = newHost;
-            if (newHost) {
-                Watcher.checkBindable(newHost, this.property);
-                if (newHost instanceof egret.EventDispatcher) {
-                    newHost.on(-2000 /* PROPERTY_CHANGE */, this.wrapHandler, this, false, 100);
-                }
-                else {
-                    var list = newHost[_$l];
-                    list.push(this.onPropertyChange);
-                    list.push(this);
-                }
-            }
-            if (this.next) {
-                this.next.reset(this.getHostPropertyValue());
-            }
-            return this;
-        };
-        /**
-         * @private
+         * 获取实例
          *
          * @returns
          */
-        Watcher.prototype.getHostPropertyValue = function () {
-            return this.host ? this.host[this.property] : null;
-        };
-        /**
-         * @private
-         */
-        Watcher.prototype.wrapHandler = function (event) {
-            this.onPropertyChange(event.property, event.currentTarget);
-        };
-        /**
-         * @private
-         */
-        Watcher.prototype.onPropertyChange = function (property, dispatcher) {
-            if (property == this.property && !this.isExecuting) {
-                try {
-                    this.isExecuting = true;
-                    if (this.next)
-                        this.next.reset(this.getHostPropertyValue());
-                    if (this.thisObject) {
-                        this.handler.call(this.thisObject, this.getValue());
-                    }
-                    else {
-                        this.handler.call(dispatcher, this.getValue());
-                    }
-                }
-                finally {
-                    this.isExecuting = false;
-                }
+        ClassFactory.prototype.get = function () {
+            var ins = new this._creator();
+            var p = this._props;
+            for (var key in p) {
+                ins[key] = p[key];
             }
+            return ins;
         };
-        return Watcher;
+        return ClassFactory;
     }());
-    junyou.Watcher = Watcher;
-    __reflect(Watcher.prototype, "junyou.Watcher");
-})(junyou || (junyou = {}));
-//////////////////////////////////////////////////////////////////////////////////////
-//
-//  Copyright (c) 2014-2015, Egret Technology Inc.
-//  All rights reserved.
-//  Redistribution and use in source and binary forms, with or without
-//  modification, are permitted provided that the following conditions are met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above copyright
-//       notice, this list of conditions and the following disclaimer in the
-//       documentation and/or other materials provided with the distribution.
-//     * Neither the name of the Egret nor the
-//       names of its contributors may be used to endorse or promote products
-//       derived from this software without specific prior written permission.
-//
-//  THIS SOFTWARE IS PROVIDED BY EGRET AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
-//  OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-//  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-//  IN NO EVENT SHALL EGRET AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-//  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-//  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;LOSS OF USE, DATA,
-//  OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-//  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-//  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-//  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-//////////////////////////////////////////////////////////////////////////////////////
-(function (junyou) {
-    /**
-     * @language en_US
-     * The Binding class defines utility methods for performing data binding.
-     * You can use the methods defined in this class to configure data bindings.
-     * @version Egret 2.4
-     * @version eui 1.0
-     * @platform Web,Native
-     * @includeExample extension/eui/binding/BindingExample.ts
-     */
-    /**
-     * @language zh_CN
-     * 绑定工具类，用于执行数据绑定用的方法集。您可以使用此类中定义的方法来配置数据绑定。
-     * @version Egret 2.4
-     * @version eui 1.0
-     * @platform Web,Native
-     * @includeExample extension/eui/binding/BindingExample.ts
-     */
-    var Binding = (function () {
-        function Binding() {
-        }
-        /**
-         * @language en_US
-         * Binds a property, <prop>prop</code> on the <code>target</code> Object, to a bindable property or peoperty chain.
-         * @param host The object that hosts the property or property chain to be watched.
-         * The <code>host</code> maintains a list of <code>targets</code> to update theirs <code>prop</code> when <code>chain</code> changes.
-         * @param chain A value specifying the property or chain to be watched. For example, when watch the property <code>host.a.b.c</code>,
-         * you need call the method like this: <code>indProperty(host, ["a","b","c"], ...)</code>
-         * @param target The Object defining the property to be bound to <code>chain</code>.
-         * @param prop The name of the public property defined in the <code>site</code> Object to be bound.
-         * @returns A ChangeWatcher instance, if at least one property name has been specified
-         * to the <code>chain</code> argument; null otherwise.
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        /**
-         * @language zh_CN
-         * 绑定一个对象的属性值到要监视的对象属性上。
-         * @param host 用于承载要监视的属性或属性链的对象。
-         * 当 <code>host</code>上<code>chain</code>所对应的值发生改变时，<code>target</code>上的<code>prop</code>属性将被自动更新。
-         * @param chain 用于指定要监视的属性链的值。例如，要监视属性 <code>host.a.b.c</code>，需按以下形式调用此方法：<code>bindProperty(host, ["a","b","c"], ...)。</code>
-         * @param target 本次绑定要更新的目标对象。
-         * @param prop 本次绑定要更新的目标属性名称。
-         * @returns 如果已为 chain 参数至少指定了一个属性名称，则返回 Watcher 实例；否则返回 null。
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        Binding.bindProperty = function (host, chain, target, prop) {
-            var watcher = junyou.Watcher.watch(host, chain, null, null);
-            if (watcher) {
-                var assign = function (value) {
-                    target[prop] = value;
-                };
-                watcher.setHandler(assign, null);
-                assign(watcher.getValue());
-            }
-            return watcher;
-        };
-        /**
-         * @language en_US
-         * Binds a callback, <prop>handler</code> on the <code>target</code> Object, to a bindable property or peoperty chain.
-         * Callback method to invoke with an argument of the current value of <code>chain</code> when that value changes.
-         * @param host The object that hosts the property or property chain to be watched.
-         * @param chain A value specifying the property or chain to be watched. For example, when watch the property <code>host.a.b.c</code>,
-         * you need call the method like this: <code>indProperty(host, ["a","b","c"], ...)</code>
-         * @param handler method to invoke with an argument of the current value of <code>chain</code> when that value changes.
-         * @param thisObject <code>this</code> object of binding method
-         * @returns A ChangeWatcher instance, if at least one property name has been  specified to the <code>chain</code> argument; null otherwise.
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        /**
-         * @language zh_CN
-         * 绑定一个回调函数到要监视的对象属性上。当 host上 chain 所对应的值发生改变时，handler 方法将被自动调用。
-         * @param host 用于承载要监视的属性或属性链的对象。
-         * @param chain 用于指定要监视的属性链的值。例如，要监视属性 host.a.b.c，需按以下形式调用此方法：bindSetter(host, ["a","b","c"], ...)。
-         * @param handler 在监视的目标属性链中任何属性的值发生改变时调用的事件处理函数。
-         * @param thisObject handler 方法绑定的this对象
-         * @returns 如果已为 chain 参数至少指定了一个属性名称，则返回 Watcher 实例；否则返回 null。
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        Binding.bindHandler = function (host, chain, handler, thisObject) {
-            var watcher = junyou.Watcher.watch(host, chain, handler, thisObject);
-            if (watcher) {
-                handler.call(thisObject, watcher.getValue());
-            }
-            return watcher;
-        };
-        return Binding;
-    }());
-    junyou.Binding = Binding;
-    __reflect(Binding.prototype, "junyou.Binding");
-})(junyou || (junyou = {}));
-//////////////////////////////////////////////////////////////////////////////////////
-//
-//  Copyright (c) 2014-2015, Egret Technology Inc.
-//  All rights reserved.
-//  Redistribution and use in source and binary forms, with or without
-//  modification, are permitted provided that the following conditions are met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above copyright
-//       notice, this list of conditions and the following disclaimer in the
-//       documentation and/or other materials provided with the distribution.
-//     * Neither the name of the Egret nor the
-//       names of its contributors may be used to endorse or promote products
-//       derived from this software without specific prior written permission.
-//
-//  THIS SOFTWARE IS PROVIDED BY EGRET AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
-//  OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-//  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-//  IN NO EVENT SHALL EGRET AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-//  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-//  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;LOSS OF USE, DATA,
-//  OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-//  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-//  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-//  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-//////////////////////////////////////////////////////////////////////////////////////
-(function (junyou) {
-    /**
-     * @language en_US
-     * The PropertyChangeEvent class represents the event object
-     * passed to the event listener when one of the properties of
-     * an object has changed, and provides information about the change.
-     *
-     * @version Egret 2.4
-     * @version eui 1.0
-     * @platform Web,Native
-     * @includeExample  extension/eui/events/PropertyEventExample.ts
-     */
-    /**
-     * @language zh_CN
-     * 对象的一个属性发生更改时传递到事件侦听器的事件。
-     *
-     * @version Egret 2.4
-     * @version eui 1.0
-     * @platform Web,Native
-     * @includeExample  extension/eui/events/PropertyEventExample.ts
-     */
-    var PropertyEvent = (function (_super) {
-        __extends(PropertyEvent, _super);
-        /**
-         * @language en_US
-         * Constructor.
-         *
-         * @param type The event type; indicates the action that triggered the event.
-         * @param bubbles Specifies whether the event can bubble
-         * up the display list hierarchy.
-         * @param cancelable Specifies whether the behavior
-         * associated with the event can be prevented.
-         * @param property Name of the property that changed.
-         *
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        /**
-         * @language zh_CN
-         * 创建一个属性改变事件。
-         *
-         * @param type 事件类型；指示触发事件的动作。
-         * @param bubbles 指定该事件是否可以在显示列表层次结构得到冒泡处理。
-         * @param cancelable 指定是否可以防止与事件相关联的行为。
-         * @param property 发生改变的属性名称。
-         *
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        function PropertyEvent(type, bubbles, cancelable, property) {
-            var _this = _super.call(this, type, bubbles, cancelable) || this;
-            _this.property = property;
-            return _this;
-        }
-        /**
-         * @language en_US
-         * Dispatch an event with specified EventDispatcher. The dispatched event will be cached in the object pool,
-         * for the next cycle of reuse.
-         *
-         * @param target the target of event dispatcher.
-         * @param eventType The event type; indicates the action that triggered the event.
-         * @param property Name of the property that changed.
-         *
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        /**
-         * @language zh_CN
-         * 使用指定的 EventDispatcher 对象来抛出事件对象。抛出的对象将会缓存在对象池上，供下次循环复用。
-         *
-         * @param target 事件派发目标
-         * @param eventType 事件类型；指示触发事件的动作。
-         * @param property 发生改变的属性名称。
-         *
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        PropertyEvent.dispatchPropertyEvent = function (target, eventType, property) {
-            if (!target.hasListen(eventType)) {
-                return true;
-            }
-            var event = egret.Event.create(PropertyEvent, eventType);
-            event.property = property;
-            var result = target.dispatchEvent(event);
-            egret.Event.release(event);
-            return result;
-        };
-        return PropertyEvent;
-    }(egret.Event));
-    junyou.PropertyEvent = PropertyEvent;
-    __reflect(PropertyEvent.prototype, "junyou.PropertyEvent");
-})(junyou || (junyou = {}));
-//////////////////////////////////////////////////////////////////////////////////////
-//
-//  Copyright (c) 2014-2015, Egret Technology Inc.
-//  All rights reserved.
-//  Redistribution and use in source and binary forms, with or without
-//  modification, are permitted provided that the following conditions are met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above copyright
-//       notice, this list of conditions and the following disclaimer in the
-//       documentation and/or other materials provided with the distribution.
-//     * Neither the name of the Egret nor the
-//       names of its contributors may be used to endorse or promote products
-//       derived from this software without specific prior written permission.
-//
-//  THIS SOFTWARE IS PROVIDED BY EGRET AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
-//  OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-//  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-//  IN NO EVENT SHALL EGRET AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-//  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-//  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;LOSS OF USE, DATA,
-//  OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-//  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-//  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-//  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-//////////////////////////////////////////////////////////////////////////////////////
-(function (junyou) {
-    var key = "__bindables__";
-    /**
-     * @language en_US
-     * Register a property of an instance is can be bound.
-     * This method is ususally invoked by Watcher class.
-     *
-     * @param instance the instance to be registered.
-     * @param property the property of specified instance to be registered.
-     *
-     * @version Egret 2.4
-     * @version eui 1.0
-     * @platform Web,Native
-     */
-    /**
-     * @language zh_CN
-     * 标记实例的一个属性是可绑定的,此方法通常由 Watcher 类调用。
-     *
-     * @param instance 要标记的实例
-     * @param property 可绑定的属性。
-     *
-     * @version Egret 2.4
-     * @version eui 1.0
-     * @platform Web,Native
-     */
-    function registerBindable(instance, property) {
-        if (true) {
-            if (!instance) {
-                egret.$error(1003, "instance");
-            }
-            if (!property) {
-                egret.$error(1003, "property");
-            }
-        }
-        if (instance.hasOwnProperty(key)) {
-            instance[key].push(property);
-        }
-        else {
-            var list = [property];
-            if (instance[key]) {
-                list = instance[key].concat(list);
-            }
-            instance[key] = list;
-        }
-    }
-    junyou.registerBindable = registerBindable;
+    junyou.ClassFactory = ClassFactory;
+    __reflect(ClassFactory.prototype, "junyou.ClassFactory");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -19252,7 +19233,7 @@ var junyou;
         });
         SuiBmd.prototype.loadBmd = function () {
             if (this.bmdState <= 0 /* UNREQUEST */) {
-                RES.getResByUrl(this._url, this.checkBitmap, this, RES.ResourceItem.TYPE_IMAGE);
+                RES.getResByUrl(this._url, this.checkBitmap, this, "image" /* TYPE_IMAGE */);
                 this.bmdState = 1 /* REQUESTING */;
             }
         };
@@ -19333,7 +19314,7 @@ var junyou;
             this.lib = {};
         }
         SuiData.prototype.createBmpLoader = function (ispng, textures) {
-            var file = "d" + (ispng ? junyou.Ext.PNG : junyou.Ext.JPG);
+            var file = "d" + (ispng ? ".png" /* PNG */ : ".jpg" /* JPG */);
             var key = this.key;
             //增加一个skin前缀
             var uri = "skin/" + junyou.ConfigUtils.getSkinPath(key, file);
@@ -19470,8 +19451,8 @@ var junyou;
             };
         };
         ArtTextCreator.prototype.bindEvent = function (bmp) {
-            bmp.on(egret.Event.ADDED_TO_STAGE, this.onAddedToStage, this);
-            bmp.on(egret.Event.REMOVED_FROM_STAGE, this.onRemoveFromStage, this);
+            bmp.on("addedToStage" /* ADDED_TO_STAGE */, this.onAddedToStage, this);
+            bmp.on("removedFromStage" /* REMOVED_FROM_STAGE */, this.onRemoveFromStage, this);
         };
         ArtTextCreator.prototype.onAddedToStage = function (e) {
             var suiData = this._suiData;
@@ -19689,7 +19670,6 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    var EE = egret.Event;
     var MovieClip = (function (_super) {
         __extends(MovieClip, _super);
         function MovieClip(data, framesData, suiData) {
@@ -19734,13 +19714,13 @@ var junyou;
             this.playing = false;
             this.render(cf);
             this.currentFrame = cf;
-            this.off(EE.ENTER_FRAME, this.doRender, this);
+            this.off("enterFrame" /* ENTER_FRAME */, this.doRender, this);
         };
         MovieClip.prototype.play = function (frame) {
             this.currentFrame = this.getFrame(frame);
             this.playing = true;
             this._nt = junyou.Global.now + this.timePerFrame;
-            this.on(EE.ENTER_FRAME, this.doRender, this);
+            this.on("enterFrame" /* ENTER_FRAME */, this.doRender, this);
         };
         MovieClip.prototype.doRender = function () {
             var now = junyou.Global.now;
@@ -21101,7 +21081,6 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    var TE = egret.TouchEvent;
     /**
      * ToolTip的数据
      * @author 3tion
@@ -21118,12 +21097,12 @@ var junyou;
             if (this.target != dis) {
                 this.clearDisListener(this.target);
                 junyou.Global.clearCallLater(this.showTip, this);
-                dis.on(TE.TOUCH_BEGIN, this.checkTouch, this);
+                dis.on("touchBegin" /* TOUCH_BEGIN */, this.checkTouch, this);
             }
         };
         ToolTipData.prototype.clearDisListener = function (dis) {
-            dis.off(TE.TOUCH_BEGIN, this.checkTouch, this);
-            dis.off(TE.TOUCH_END, this.touchEnd, this);
+            dis.off("touchBegin" /* TOUCH_BEGIN */, this.checkTouch, this);
+            dis.off("touchEnd" /* TOUCH_END */, this.touchEnd, this);
         };
         ToolTipData.prototype.onRecycle = function () {
             if (this.target) {
@@ -21135,15 +21114,15 @@ var junyou;
             this.tooltip = undefined;
         };
         ToolTipData.prototype.checkTouch = function (e) {
-            this.target.on(TE.TOUCH_END, this.touchEnd, this);
+            this.target.on("touchEnd" /* TOUCH_END */, this.touchEnd, this);
             junyou.Global.callLater(this.showTip, junyou.ToolTipManager.touchTime, this);
         };
         ToolTipData.prototype.showTip = function () {
-            this.target.off(TE.TOUCH_END, this.touchEnd, this);
+            this.target.off("touchEnd" /* TOUCH_END */, this.touchEnd, this);
             this.tooltip.show(this.con);
         };
         ToolTipData.prototype.touchEnd = function (e) {
-            this.target.off(TE.TOUCH_END, this.touchEnd, this);
+            this.target.off("touchEnd" /* TOUCH_END */, this.touchEnd, this);
             junyou.Global.clearCallLater(this.showTip, this);
         };
         return ToolTipData;
@@ -21288,7 +21267,7 @@ var junyou;
             if (item) {
                 this._list.remove(item);
                 this._selected.remove(item);
-                item.off(egret.TouchEvent.TOUCH_TAP, this.touchHandler, this);
+                item.off("touchTap" /* TOUCH_TAP */, this.touchHandler, this);
             }
         };
         CheckBoxGroup.prototype.$setSelectedItem = function (item) {
@@ -21383,7 +21362,7 @@ var junyou;
      * @export
      */
     junyou.GroupItemButton = (function () {
-        var TE = egret.TouchEvent.TOUCH_TAP;
+        var TE = "touchTap" /* TOUCH_TAP */;
         var ButtonKey = "$gib$btn";
         var TextFieldKey = "$gib$txt";
         return {
@@ -21442,13 +21421,7 @@ var junyou;
      * @author pb
      */
     junyou.TouchDown = (function () {
-        var _$TDOpt = { int: { x: 1, y: 1 } };
-        var TE = egret.TouchEvent;
-        var E = egret.Event.REMOVED_FROM_STAGE;
-        var TEB = TE.TOUCH_BEGIN;
-        var TEE = TE.TOUCH_END;
-        var TEO = TE.TOUCH_RELEASE_OUTSIDE;
-        var TEC = TE.TOUCH_CANCEL;
+        var _$TDOpt = Object.freeze({ int: { x: 1, y: 1 } });
         return {
             /**
              * 绑定组件
@@ -21457,7 +21430,7 @@ var junyou;
              */
             bindItem: function (item) {
                 if (item) {
-                    item.on(TEB, touchBegin);
+                    item.on("touchBegin" /* TOUCH_BEGIN */, touchBegin);
                 }
             },
             /**
@@ -21467,23 +21440,23 @@ var junyou;
              */
             looseItem: function (item) {
                 if (item) {
-                    item.off(TEB, touchBegin);
+                    item.off("touchBegin" /* TOUCH_BEGIN */, touchBegin);
                     clearEndListener(item);
                 }
             }
         };
         function clearEndListener(item) {
-            item.off(TEE, touchEnd);
-            item.off(TEC, touchEnd);
-            item.off(TEO, touchEnd);
-            item.off(E, touchEnd);
+            item.off("touchEnd" /* TOUCH_END */, touchEnd);
+            item.off("touchCancel" /* TOUCH_CANCEL */, touchEnd);
+            item.off("touchReleaseOutside" /* TOUCH_RELEASE_OUTSIDE */, touchEnd);
+            item.off("removedFromStage" /* REMOVED_FROM_STAGE */, touchEnd);
         }
         function touchBegin(e) {
             var target = e.target;
-            target.on(TEE, touchEnd);
-            target.on(TEC, touchEnd);
-            target.on(TEO, touchEnd);
-            target.on(E, touchEnd);
+            target.on("touchEnd" /* TOUCH_END */, touchEnd);
+            target.on("touchCancel" /* TOUCH_CANCEL */, touchEnd);
+            target.on("touchReleaseOutside" /* TOUCH_RELEASE_OUTSIDE */, touchEnd);
+            target.on("removedFromStage" /* REMOVED_FROM_STAGE */, touchEnd);
             var raw = target.$_tdi;
             if (!raw) {
                 target.$_tdi = raw = {};

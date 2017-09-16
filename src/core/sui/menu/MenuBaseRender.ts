@@ -59,7 +59,7 @@ module junyou {
         protected $setSkin(value: egret.DisplayObject) {
             this._skin = value;
             this._size = value.getBounds();
-            value.on(egret.TouchEvent.TOUCH_TAP, this.itemClick, this);
+            value.on(EgretEvent.TOUCH_TAP, this.itemClick, this);
             this.bindComponent();
         }
 

@@ -4,7 +4,6 @@ module egret {
     }
 }
 module junyou {
-    import EE = egret.Event;
     export abstract class LayoutContainer {
         public static readonly MIN = Object.freeze({ width: 0, height: 0 });
 
@@ -20,8 +19,8 @@ module junyou {
             this._host = host;
             this._basis = basis;
             on(EventConst.ReLayout, this.onResize, this);
-            host.on(EE.REMOVED_FROM_STAGE, this.offStage, this);
-            host.on(EE.ADDED_TO_STAGE, this.onStage, this);
+            host.on(EgretEvent.REMOVED_FROM_STAGE, this.offStage, this);
+            host.on(EgretEvent.ADDED_TO_STAGE, this.onStage, this);
             if (host.stage) {
                 this.onStage();
             }
@@ -56,11 +55,11 @@ module junyou {
         }
 
         protected onStage() {
-            this._host.stage.on(EE.RESIZE, this.onResize, this);
+            this._host.stage.on(EgretEvent.RESIZE, this.onResize, this);
             this.onResize();
         }
         protected offStage() {
-            egret.sys.$TempStage.off(EE.RESIZE, this.onResize, this);
+            egret.sys.$TempStage.off(EgretEvent.RESIZE, this.onResize, this);
         }
 
         abstract onResize();
@@ -83,7 +82,7 @@ module junyou {
             if (stage) {
                 this.binLayout(bin);
             } else {
-                dis.on(egret.Event.ADDED_TO_STAGE, this.onAdded, this);
+                dis.on(EgretEvent.ADDED_TO_STAGE, this.onAdded, this);
             }
         }
         protected onAdded(e: egret.Event) {

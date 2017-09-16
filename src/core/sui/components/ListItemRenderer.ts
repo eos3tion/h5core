@@ -1,5 +1,4 @@
 module junyou {
-    import TE = egret.TouchEvent;
     export interface ListItemRender<T> extends egret.EventDispatcher {
 
         handleView(): void;
@@ -127,7 +126,7 @@ module junyou {
 
         private onTouchTap() {
             this.dispatch(EventConst.ITEM_TOUCH_TAP);
-            this.dispatchEventWith(TE.TOUCH_TAP);
+            this.dispatchEventWith(EgretEvent.TOUCH_TAP);
         }
 
         protected $setData(value: T) {
@@ -328,14 +327,14 @@ module junyou {
 
         removeSkinListener(skin: egret.DisplayObject) {
             if (skin) {
-                skin.off(TE.TOUCH_TAP, this.onTouchTap, this);
+                skin.off(EgretEvent.TOUCH_TAP, this.onTouchTap, this);
                 ViewController.prototype.removeSkinListener.call(this, skin);
             }
         }
 
         addSkinListener(skin: egret.DisplayObject) {
             if (skin) {
-                skin.on(TE.TOUCH_TAP, this.onTouchTap, this);
+                skin.on(EgretEvent.TOUCH_TAP, this.onTouchTap, this);
                 ViewController.prototype.addSkinListener.call(this, skin);
             }
         }
@@ -351,7 +350,7 @@ module junyou {
 		 */
         bindTouch(handler: { (this: T, e?: egret.Event): any }, thisObject?: T, priority?: number, useCapture?: boolean) {
             this.skin.touchEnabled = true;
-            this.on(TE.TOUCH_TAP, handler, thisObject, useCapture, priority);
+            this.on(EgretEvent.TOUCH_TAP, handler, thisObject, useCapture, priority);
         }
 
         /**
@@ -364,7 +363,7 @@ module junyou {
          * @memberOf Button
          */
         public looseTouch(handler: Function, thisObject?: any, useCapture?: boolean) {
-            this.off(TE.TOUCH_TAP, handler, thisObject, useCapture);
+            this.off(EgretEvent.TOUCH_TAP, handler, thisObject, useCapture);
         }
 
         /**

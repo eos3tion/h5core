@@ -1,5 +1,4 @@
 module junyou {
-    import TE = egret.TouchEvent;
     /**
      * ToolTip的数据
      * @author 3tion
@@ -47,14 +46,14 @@ module junyou {
             if (this.target != dis) {
                 this.clearDisListener(this.target);
                 Global.clearCallLater(this.showTip, this);
-                dis.on(TE.TOUCH_BEGIN, this.checkTouch, this);
+                dis.on(EgretEvent.TOUCH_BEGIN, this.checkTouch, this);
             }
 
         }
 
         private clearDisListener(dis: egret.DisplayObject) {
-            dis.off(TE.TOUCH_BEGIN, this.checkTouch, this);
-            dis.off(TE.TOUCH_END, this.touchEnd, this);
+            dis.off(EgretEvent.TOUCH_BEGIN, this.checkTouch, this);
+            dis.off(EgretEvent.TOUCH_END, this.touchEnd, this);
         }
 
         onRecycle() {
@@ -67,18 +66,18 @@ module junyou {
             this.tooltip = undefined;
         }
 
-        private checkTouch(e: TE) {
-            this.target.on(TE.TOUCH_END, this.touchEnd, this);
+        private checkTouch(e: egret.TouchEvent) {
+            this.target.on(EgretEvent.TOUCH_END, this.touchEnd, this);
             Global.callLater(this.showTip, ToolTipManager.touchTime, this)
         }
 
         private showTip() {
-            this.target.off(TE.TOUCH_END, this.touchEnd, this);
+            this.target.off(EgretEvent.TOUCH_END, this.touchEnd, this);
             this.tooltip.show(this.con);
         }
 
-        private touchEnd(e: TE) {
-            this.target.off(TE.TOUCH_END, this.touchEnd, this);
+        private touchEnd(e: egret.TouchEvent) {
+            this.target.off(EgretEvent.TOUCH_END, this.touchEnd, this);
             Global.clearCallLater(this.showTip, this);
         }
     }

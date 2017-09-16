@@ -49,7 +49,7 @@ module junyou {
             this.checkNext();
             if (this.isruning == false) {
                 this.isruning = true;
-                this._con.on(egret.Event.ENTER_FRAME, this.tick, this);
+                this._con.on(EgretEvent.ENTER_FRAME, this.tick, this);
             }
         }
 
@@ -128,7 +128,7 @@ module junyou {
                 }
             }
             if (isruning == false) {
-                this._con.off(egret.Event.ENTER_FRAME, this.tick, this);
+                this._con.off(EgretEvent.ENTER_FRAME, this.tick, this);
                 this.isruning = false;
             }
         }
@@ -169,7 +169,7 @@ module junyou {
 
                 if (this.isruning == false) {
                     this.isruning = true;
-                    this._con.on(egret.Event.ENTER_FRAME, this.tick, this);
+                    this._con.on(EgretEvent.ENTER_FRAME, this.tick, this);
                 }
             }
         }

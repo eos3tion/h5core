@@ -42,29 +42,29 @@ module junyou {
         }
 
         private addListener() {
-            this.thumb.on(egret.TouchEvent.TOUCH_BEGIN, this.onThumbBegin, this);
-            this.on(egret.Event.ADDED_TO_STAGE, this.onAddToStage, this);
+            this.thumb.on(EgretEvent.TOUCH_BEGIN, this.onThumbBegin, this);
+            this.on(EgretEvent.ADDED_TO_STAGE, this.onAddToStage, this);
         }
 
         private onAddToStage(e: egret.Event) {
             if (this._barEnabled) {
-                this.stage.on(egret.TouchEvent.TOUCH_END, this.bgOut, this);
+                this.stage.on(EgretEvent.TOUCH_END, this.bgOut, this);
             }
         }
         /*使不使用底条点击直接设值 */
         public set barEnabled(value: boolean) {
             this._barEnabled = value;
             if (value) {
-                this.bgline.on(egret.TouchEvent.TOUCH_BEGIN, this.bgClick, this);
+                this.bgline.on(EgretEvent.TOUCH_BEGIN, this.bgClick, this);
                 if (this.stage) {
-                    this.stage.on(egret.TouchEvent.TOUCH_END, this.bgOut, this);
+                    this.stage.on(EgretEvent.TOUCH_END, this.bgOut, this);
                 }
 
             }
             else {
-                this.bgline.off(egret.TouchEvent.TOUCH_BEGIN, this.bgClick, this);
+                this.bgline.off(EgretEvent.TOUCH_BEGIN, this.bgClick, this);
                 if (this.stage) {
-                    this.bgline.off(egret.TouchEvent.TOUCH_END, this.bgOut, this);
+                    this.bgline.off(EgretEvent.TOUCH_END, this.bgOut, this);
                 }
 
             }
@@ -84,18 +84,18 @@ module junyou {
 
         private onThumbBegin(e: egret.TouchEvent) {
             this._lastThumbX = this.thumb.localToGlobal().x;
-            this.stage.on(egret.TouchEvent.TOUCH_MOVE, this.mouseMove, this)
-            this.thumb.on(egret.TouchEvent.TOUCH_END, this.onThumbEnd, this);
-            this.thumb.on(egret.TouchEvent.TOUCH_RELEASE_OUTSIDE, this.onThumbEnd, this);
+            this.stage.on(EgretEvent.TOUCH_MOVE, this.mouseMove, this)
+            this.thumb.on(EgretEvent.TOUCH_END, this.onThumbEnd, this);
+            this.thumb.on(EgretEvent.TOUCH_RELEASE_OUTSIDE, this.onThumbEnd, this);
             this.tipTxt.visible = true;
         }
 
 
 
         private onThumbEnd(e: egret.TouchEvent) {
-            this.stage.off(egret.TouchEvent.TOUCH_MOVE, this.mouseMove, this);
-            this.thumb.off(egret.TouchEvent.TOUCH_END, this.onThumbEnd, this);
-            this.thumb.off(egret.TouchEvent.TOUCH_RELEASE_OUTSIDE, this.onThumbEnd, this);
+            this.stage.off(EgretEvent.TOUCH_MOVE, this.mouseMove, this);
+            this.thumb.off(EgretEvent.TOUCH_END, this.onThumbEnd, this);
+            this.thumb.off(EgretEvent.TOUCH_RELEASE_OUTSIDE, this.onThumbEnd, this);
         }
 
         private mouseMove(e: egret.TouchEvent) {

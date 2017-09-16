@@ -1,7 +1,5 @@
 module junyou {
 
-    import EE = egret.Event;
-
     export interface MCEleRef extends Array<any> {
         /**
          * mc的索引，
@@ -26,7 +24,7 @@ module junyou {
          * @type {TextData}
          * @memberof MCEleRef
          */
-        2?:TextData;
+        2?: TextData;
     }
 
     interface MCSelfData extends Array<any> {
@@ -161,13 +159,13 @@ module junyou {
             this.playing = false;
             this.render(cf);
             this.currentFrame = cf;
-            this.off(EE.ENTER_FRAME, this.doRender, this);
+            this.off(EgretEvent.ENTER_FRAME, this.doRender, this);
         }
         public play(frame?: number) {
             this.currentFrame = this.getFrame(frame);
             this.playing = true;
             this._nt = Global.now + this.timePerFrame;
-            this.on(EE.ENTER_FRAME, this.doRender, this);
+            this.on(EgretEvent.ENTER_FRAME, this.doRender, this);
         }
 
         protected doRender() {
@@ -212,7 +210,7 @@ module junyou {
                 //清理子对象
                 this.removeChildren();
                 for (let dat of frameData.data) {
-                    let idx: number, pData, comp: egret.DisplayObject,textData:TextData;
+                    let idx: number, pData, comp: egret.DisplayObject, textData: TextData;
                     if (Array.isArray(dat)) {
                         idx = dat[0];
                         pData = dat[1];
@@ -226,13 +224,13 @@ module junyou {
                         comp = dict[idx];
                         this.addChild(comp);
                         if (pData) {//调整基础属性
-                            SuiResManager.initBaseData(comp, pData); 
+                            SuiResManager.initBaseData(comp, pData);
                         }
-                        if(comp instanceof egret.TextField){//如果是文本框，特殊处理
-                            if(!textData){
+                        if (comp instanceof egret.TextField) {//如果是文本框，特殊处理
+                            if (!textData) {
                                 textData = comp.rawTextData;
                             }
-                            sm.sharedTFCreator.initTextData(comp,textData);
+                            sm.sharedTFCreator.initTextData(comp, textData);
                         }
                     }
                 }

@@ -1,6 +1,5 @@
 module junyou {
-    import TE = egret.TouchEvent;
-    import E = egret.Event;
+
     export class Scroller extends egret.EventDispatcher {
         /**
          * touchdown的起始时间
@@ -105,11 +104,11 @@ module junyou {
             let old = this._content;
             if (old != content) {
                 if (old) {
-                    old.off(TE.TOUCH_BEGIN, this.onTargetTouchBegin, this);
+                    old.off(EgretEvent.TOUCH_BEGIN, this.onTargetTouchBegin, this);
                     old.off(EventConst.Resize, this.contentSizeChange, this);
-                    content.stage.off(TE.TOUCH_MOVE, this.moveOnContent, this);
-                    content.off(TE.TOUCH_END, this.endTouchContent, this);
-                    content.off(TE.TOUCH_RELEASE_OUTSIDE, this.endTouchContent, this);
+                    content.stage.off(EgretEvent.TOUCH_MOVE, this.moveOnContent, this);
+                    content.off(EgretEvent.TOUCH_END, this.endTouchContent, this);
+                    content.off(EgretEvent.TOUCH_RELEASE_OUTSIDE, this.endTouchContent, this);
                 }
             }
             this._content = content;
@@ -117,7 +116,7 @@ module junyou {
                 content["scroller"] = this;
             }
             content.touchEnabled = true;
-            content.on(TE.TOUCH_BEGIN, this.onTargetTouchBegin, this);
+            content.on(EgretEvent.TOUCH_BEGIN, this.onTargetTouchBegin, this);
             content.on(EventConst.Resize, this.contentSizeChange, this);
             if (scrollbar) {
                 this._scrollbar = scrollbar;
@@ -127,7 +126,7 @@ module junyou {
                 if (scrollbar.stage) {
                     this.onScrollBarAdded();
                 } else {
-                    scrollbar.on(E.ADDED_TO_STAGE, this.onScrollBarAdded, this);
+                    scrollbar.on(EgretEvent.ADDED_TO_STAGE, this.onScrollBarAdded, this);
                 }
 
             } else {
@@ -171,7 +170,7 @@ module junyou {
             }
         }
 
-        protected onTargetTouchBegin(e: TE) {
+        protected onTargetTouchBegin(e: egret.TouchEvent) {
             let content = this._content;
             if (!content) {
                 return;
@@ -197,14 +196,14 @@ module junyou {
             if (content instanceof egret.DisplayObjectContainer) {
                 this._touchChildren = content.touchChildren;
             }
-            content.stage.on(TE.TOUCH_MOVE, this.moveOnContent, this);
-            content.on(TE.TOUCH_END, this.endTouchContent, this);
-            content.on(TE.TOUCH_RELEASE_OUTSIDE, this.endTouchContent, this);
+            content.stage.on(EgretEvent.TOUCH_MOVE, this.moveOnContent, this);
+            content.on(EgretEvent.TOUCH_END, this.endTouchContent, this);
+            content.on(EgretEvent.TOUCH_RELEASE_OUTSIDE, this.endTouchContent, this);
             this.showBar();
         }
 
 
-        protected moveOnContent(e: TE) {
+        protected moveOnContent(e: egret.TouchEvent) {
             let currentPos: number;
             if (this._scrollType == ScrollDirection.Vertical) {
                 currentPos = e.stageY;
@@ -228,7 +227,7 @@ module junyou {
 
         public stopTouchTween() {
             this._moveSpeed = 0;
-            this._content.off(E.ENTER_FRAME, this.onEnterFrame, this);
+            this._content.off(EgretEvent.ENTER_FRAME, this.onEnterFrame, this);
         }
 
         protected onEnterFrame() {
@@ -237,7 +236,7 @@ module junyou {
                 return;
             }
             if (this._moveSpeed == 0) {
-                content.off(E.ENTER_FRAME, this.onEnterFrame, this);
+                content.off(EgretEvent.ENTER_FRAME, this.onEnterFrame, this);
                 this.hideBar();
                 return;
             }
@@ -264,12 +263,12 @@ module junyou {
                 this._touchChildren = undefined;
             }
             let stage = content.stage || egret.sys.$TempStage;
-            stage.off(TE.TOUCH_MOVE, this.moveOnContent, this);
-            content.off(TE.TOUCH_END, this.endTouchContent, this);
-            content.off(TE.TOUCH_RELEASE_OUTSIDE, this.endTouchContent, this);
+            stage.off(EgretEvent.TOUCH_MOVE, this.moveOnContent, this);
+            content.off(EgretEvent.TOUCH_END, this.endTouchContent, this);
+            content.off(EgretEvent.TOUCH_RELEASE_OUTSIDE, this.endTouchContent, this);
             let now = Global.now;
             if (now - this._lastMoveTime < 150) {
-                content.on(E.ENTER_FRAME, this.onEnterFrame, this);
+                content.on(EgretEvent.ENTER_FRAME, this.onEnterFrame, this);
                 this._lastFrameTime = this._lastMoveTime;
             }
             else {
@@ -401,7 +400,7 @@ module junyou {
             }
             if (this._moveSpeed > 0) {
                 this._moveSpeed = 0;
-                this._content.off(E.ENTER_FRAME, this.onEnterFrame, this);
+                this._content.off(EgretEvent.ENTER_FRAME, this.onEnterFrame, this);
             }
 
             let rect = content.scrollRect;

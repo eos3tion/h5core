@@ -17,7 +17,6 @@ module junyou {
         BottomLeft = 0b100,
         BottomRight = 0b1000,
     }
-    import TE = egret.TouchEvent;
 
     /**
      * 左上的点
@@ -167,10 +166,10 @@ module junyou {
             this.tr = { x: width, y: 0 };
             this.br = { x: width, y: height };
             this.size = size;
-            this.on(TE.TOUCH_BEGIN, this.touchBegin, this);
+            this.on(EgretEvent.TOUCH_BEGIN, this.touchBegin, this);
         }
 
-        protected touchBegin(e: TE) {
+        protected touchBegin(e: egret.TouchEvent) {
             //检查鼠标点是在上半区还是下半区
             let { width, height } = this.size;
             let { x, y } = this.getLocal(e);
@@ -184,26 +183,26 @@ module junyou {
                 this.oX = isLeft ? 0 : width;
                 this.oY = isTop ? 0 : height;
                 let stage = this.stage;
-                stage.on(TE.TOUCH_MOVE, this.touchMove, this);
-                stage.on(TE.TOUCH_END, this.touchEnd, this);
-                stage.on(TE.TOUCH_RELEASE_OUTSIDE, this.touchEnd, this);
+                stage.on(EgretEvent.TOUCH_MOVE, this.touchMove, this);
+                stage.on(EgretEvent.TOUCH_END, this.touchEnd, this);
+                stage.on(EgretEvent.TOUCH_RELEASE_OUTSIDE, this.touchEnd, this);
                 this.draw(x, y);
             }
         }
 
-        protected touchMove(e: TE) {
+        protected touchMove(e: egret.TouchEvent) {
             let { x, y } = this.getLocal(e);
             this.draw(x, y);
         }
 
-        protected getLocal(e: TE) {
+        protected getLocal(e: egret.TouchEvent) {
             let { stageX, stageY } = e;
             let pt = Temp.EgretPoint;
             this.globalToLocal(stageX, stageY, pt);
             return pt;
         }
 
-        protected touchEnd(e: TE) {
+        protected touchEnd(e: egret.TouchEvent) {
             // let { width, height } = this.size;
             // let { isLeft, isTop } = this.getCorner(e.localX, e.localY, width, height);
             // let cCorner = this.cCorner;
@@ -220,9 +219,9 @@ module junyou {
 
         protected clearEvents() {
             let stage = egret.sys.$TempStage;
-            stage.off(TE.TOUCH_MOVE, this.touchMove, this);
-            stage.off(TE.TOUCH_END, this.touchEnd, this);
-            stage.off(TE.TOUCH_RELEASE_OUTSIDE, this.touchEnd, this);
+            stage.off(EgretEvent.TOUCH_MOVE, this.touchMove, this);
+            stage.off(EgretEvent.TOUCH_END, this.touchEnd, this);
+            stage.off(EgretEvent.TOUCH_RELEASE_OUTSIDE, this.touchEnd, this);
         }
 
         reset() {

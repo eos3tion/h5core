@@ -218,7 +218,7 @@ module junyou {
                         }
                     }
                 }
-                item.loaded = (event.$type == egret.Event.COMPLETE);
+                item.loaded = (event.$type == EgretEvent.COMPLETE);
                 if (item.loaded) {
                     let texture: egret.Texture = new egret.Texture();
                     texture._setBitmapData(request.data);
@@ -229,7 +229,7 @@ module junyou {
                 return data.func.call(data.thisObject, item);
             }
         }
-        RES.registerAnalyzer(RES.ResourceItem.TYPE_IMAGE, ImageAnalyzer);
+        RES.registerAnalyzer(EgretResType.TYPE_IMAGE, ImageAnalyzer);
         return db;
     }
 }
