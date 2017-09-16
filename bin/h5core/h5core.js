@@ -10041,6 +10041,53 @@ var junyou;
         };
     })();
 })(junyou || (junyou = {}));
+if (true) {
+    var $gm = $gm || {};
+    $gm.recordAni = function () {
+        $gm._recordAni = !$gm._recordAni;
+        if ($gm._recordAni) {
+            if (!$gm._aniRecords) {
+                $gm._aniRecords = {};
+            }
+        }
+        else {
+            delete $gm._aniRecords;
+        }
+    };
+    $gm.showAniRecords = function (time) {
+        if (time === void 0) { time = 0; }
+        var dict = $gm._aniRecords;
+        var now = Date.now();
+        var output = [];
+        for (var guid in dict) {
+            var record = dict[guid];
+            var delta = now - record.time;
+            if (delta > time) {
+                output.push({ delta: delta, guid: record.guid, stack: record.stack });
+            }
+        }
+        output.sort(function (a, b) { return a.delta - b.delta; });
+        if (true)
+            console.table(output);
+    };
+    $gm.showAniStacks = function (time) {
+        if (time === void 0) { time = 0; }
+        var dict = $gm._aniRecords;
+        var now = Date.now();
+        var output = {};
+        for (var guid in dict) {
+            var record = dict[guid];
+            var delta = now - record.time;
+            if (delta > time) {
+                output[record.stack] = ~~output[record.stack] + 1;
+            }
+        }
+        for (var stack in output) {
+            if (true)
+                egret.log("次数：", output[stack], "堆栈：\n", stack);
+        }
+    };
+}
 var junyou;
 (function (junyou) {
     /**
@@ -10184,6 +10231,14 @@ var junyou;
             this.resOK = false;
             this._render = undefined;
             this.checkPlay();
+            if (true) {
+                if ($gm._recordAni) {
+                    var stack = new Error().stack;
+                    var guid = this._guid;
+                    var bin = { stack: stack, guid: guid, time: now };
+                    $gm._aniRecords[guid] = bin;
+                }
+            }
         };
         AniRender.prototype.checkPlay = function () {
             var display = this.display;
@@ -10222,6 +10277,11 @@ var junyou;
             }
         };
         AniRender.prototype.onRecycle = function () {
+            if (true) {
+                if ($gm._recordAni) {
+                    delete $gm._aniRecords[this._guid];
+                }
+            }
             var handler = this.handler;
             if (handler) {
                 handler.call(-1992 /* AniBeforeRecycle */, this);
