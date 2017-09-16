@@ -1,3 +1,110 @@
+interface $gmType {
+    /**
+     * 记录Ani数据
+     * 
+     * 
+     * @memberOf $gmType
+     */
+    recordAni(): void;
+    /**
+     * 是否记录Ani数据
+     * 
+     * @type {boolean}
+     * @memberOf $gmType
+     */
+    _recordAni: boolean;
+
+    /**
+     * ani记录
+     * 
+     * @type {{ [index: number]: $gmAniInfo }}
+     * @memberOf $gmType
+     */
+    _aniRecords: { [index: number]: $gmAniInfo };
+
+    /**
+     * 显示aniRender的记录信息
+     * 
+     * @param {number} time 超过多少时间的进行显示，默认值为0
+     * 
+     * @memberOf $gmType
+     */
+    showAniRecords(time?: number): void;
+
+    /**
+     * 显示残留的aniRender的堆栈信息
+     * 
+     * @param {number} [time]
+     * 
+     * @memberOf $gmType
+     */
+    showAniStacks(time?: number): void;
+}
+interface $gmAniInfo {
+    /**
+     * ani标识
+     * 
+     * @type {number}
+     * @memberOf $gmAniInfo
+     */
+    guid: number;
+    /**
+     * 堆栈信息
+     * 
+     * @type {string}
+     * @memberOf $gmAniInfo
+     */
+    stack: string;
+    /**
+     * 启动时间
+     * 
+     * @type {number}
+     * @memberOf $gmAniInfo
+     */
+    time: number;
+}
+if (DEBUG) {
+    var $gm = $gm || <$gmType>{};
+    $gm.recordAni = () => {
+        $gm._recordAni = !$gm._recordAni;
+        if ($gm._recordAni) {
+            if (!$gm._aniRecords) {
+                $gm._aniRecords = {};
+            }
+        } else {
+            delete $gm._aniRecords;
+        }
+    }
+    $gm.showAniRecords = (time = 0) => {
+        let dict = $gm._aniRecords;
+        let now = Date.now();
+        let output = [];
+        for (let guid in dict) {
+            let record = dict[guid];
+            let delta = now - record.time;
+            if (delta > time) {
+                output.push({ delta: delta, guid: record.guid, stack: record.stack });
+            }
+        }
+        output.sort((a, b) => a.delta - b.delta);
+        if (DEBUG) console.table(output);
+    }
+    $gm.showAniStacks = (time = 0) => {
+        let dict = $gm._aniRecords;
+        let now = Date.now();
+        let output = {};
+        for (let guid in dict) {
+            let record = dict[guid];
+            let delta = now - record.time;
+            if (delta > time) {
+                output[record.stack] = ~~output[record.stack] + 1;
+            }
+        }
+        for (let stack in output) {
+            if (DEBUG) egret.log("次数：", output[stack], "堆栈：\n", stack);
+        }
+    }
+}
 module junyou {
 	/**
 	 * 由于目前特效和渲染器是完全一一对应关系，所以直接做成AniBitmap
@@ -189,6 +296,14 @@ module junyou {
             this.resOK = false;
             this._render = undefined;
             this.checkPlay();
+            if (DEBUG) {
+                if ($gm._recordAni) {
+                    let stack = new Error().stack;
+                    let guid = this._guid;
+                    let bin = <$gmAniInfo>{ stack, guid, time: now };
+                    $gm._aniRecords[guid] = bin;
+                }
+            }
         }
 
         private checkPlay() {
@@ -227,6 +342,11 @@ module junyou {
         }
 
         public onRecycle() {
+            if (DEBUG) {
+                if ($gm._recordAni) {
+                    delete $gm._aniRecords[this._guid];
+                }
+            }
             let handler = this.handler;
             if (handler) {
                 handler.call(EventConst.AniBeforeRecycle, this);
