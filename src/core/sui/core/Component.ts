@@ -21,7 +21,7 @@ module junyou {
          * 
          * @type {*}@memberof Component
          */
-        public data?:any;
+        public data?: any;
 
         protected _guid: string;
 
@@ -66,10 +66,9 @@ module junyou {
         }
 
         protected stageEvent(remove?: boolean) {
-            const ev = egret.Event;
             let handler = remove ? this.off : this.on;
-            handler.call(this, ev.ADDED_TO_STAGE, this.awake, this);
-            handler.call(this, ev.REMOVED_FROM_STAGE, this.sleep, this);
+            handler.call(this, EgretEvent.ADDED_TO_STAGE, this.awake, this);
+            handler.call(this, EgretEvent.REMOVED_FROM_STAGE, this.sleep, this);
         }
 
         protected awake() {

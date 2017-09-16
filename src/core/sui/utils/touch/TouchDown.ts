@@ -18,13 +18,7 @@ module junyou {
      * @author pb
      */
     export const TouchDown = (function () {
-        const _$TDOpt = { int: { x: 1, y: 1 } };
-        const TE = egret.TouchEvent;
-        const E = egret.Event.REMOVED_FROM_STAGE;
-        const TEB = TE.TOUCH_BEGIN;
-        const TEE = TE.TOUCH_END;
-        const TEO = TE.TOUCH_RELEASE_OUTSIDE;
-        const TEC = TE.TOUCH_CANCEL;
+        const _$TDOpt = Object.freeze({ int: { x: 1, y: 1 } });
         return {
             /**
              * 绑定组件
@@ -33,7 +27,7 @@ module junyou {
              */
             bindItem(item: TouchDownItem) {
                 if (item) {
-                    item.on(TEB, touchBegin);
+                    item.on(EgretEvent.TOUCH_BEGIN, touchBegin);
                 }
             },
 
@@ -44,25 +38,25 @@ module junyou {
              */
             looseItem(item: TouchDownItem) {
                 if (item) {
-                    item.off(TEB, touchBegin);
+                    item.off(EgretEvent.TOUCH_BEGIN, touchBegin);
                     clearEndListener(item);
                 }
             }
         }
 
         function clearEndListener(item: TouchDownItem) {
-            item.off(TEE, touchEnd);
-            item.off(TEC, touchEnd);
-            item.off(TEO, touchEnd);
-            item.off(E, touchEnd);
+            item.off(EgretEvent.TOUCH_END, touchEnd);
+            item.off(EgretEvent.TOUCH_CANCEL, touchEnd);
+            item.off(EgretEvent.TOUCH_RELEASE_OUTSIDE, touchEnd);
+            item.off(EgretEvent.REMOVED_FROM_STAGE, touchEnd);
         }
 
         function touchBegin(e: egret.Event) {
             let target = e.target;
-            target.on(TEE, touchEnd);
-            target.on(TEC, touchEnd);
-            target.on(TEO, touchEnd);
-            target.on(E, touchEnd);
+            target.on(EgretEvent.TOUCH_END, touchEnd);
+            target.on(EgretEvent.TOUCH_CANCEL, touchEnd);
+            target.on(EgretEvent.TOUCH_RELEASE_OUTSIDE, touchEnd);
+            target.on(EgretEvent.REMOVED_FROM_STAGE, touchEnd);
             let raw = target.$_tdi;
             if (!raw) {
                 target.$_tdi = raw = <TouchDownRaw>{};

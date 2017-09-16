@@ -63,7 +63,7 @@ module junyou {
             this.con.addChild(this._txtField);
             this._txtField2 = new egret.TextField();
             this.con.addChild(this._txtField2);
-            this.on(egret.Event.ADDED_TO_STAGE, this.addToStage, this);
+            this.on(EgretEvent.ADDED_TO_STAGE, this.addToStage, this);
         }
 
         private addToStage(e: egret.Event) {

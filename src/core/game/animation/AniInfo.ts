@@ -33,7 +33,7 @@ module junyou {
                 if (state == RequestState.UNREQUEST) {
                     let uri = ResPrefix.ANI + this.key + "/" + UnitResource.DATA_JSON;
                     this.url = ConfigUtils.getResUrl(uri);
-                    RES.getResByUrl(this.url, this.dataLoadComplete, this, RES.ResourceItem.TYPE_JSON);
+                    RES.getResByUrl(this.url, this.dataLoadComplete, this, EgretResType.TYPE_JSON);
                     this.state = RequestState.REQUESTING;
                 }
             }

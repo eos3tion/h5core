@@ -76,7 +76,7 @@ module junyou {
         // }
 
         load() {
-            RES.getResByUrl(this.url, this.loadComplete, this, RES.ResourceItem.TYPE_IMAGE);
+            RES.getResByUrl(this.url, this.loadComplete, this, EgretResType.TYPE_IMAGE);
         }
 
         /**

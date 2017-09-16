@@ -1,5 +1,4 @@
 module junyou {
-	import Event = egret.Event;
 	/**
 	 * 图片
 	 * 外部加载
@@ -24,8 +23,8 @@ module junyou {
 
 		constructor() {
 			super();
-			this.on(Event.ADDED_TO_STAGE, this.addedToStage, this);
-			this.on(Event.REMOVED_FROM_STAGE, this.removedFromStage, this);
+			this.on(EgretEvent.ADDED_TO_STAGE, this.addedToStage, this);
+			this.on(EgretEvent.REMOVED_FROM_STAGE, this.removedFromStage, this);
 		}
 
 		addedToStage() {
@@ -72,8 +71,8 @@ module junyou {
 		 */
 		public dispose() {
 			this.removedFromStage();
-			this.off(Event.ADDED_TO_STAGE, this.addedToStage, this);
-			this.off(Event.REMOVED_FROM_STAGE, this.removedFromStage, this);
+			this.off(EgretEvent.ADDED_TO_STAGE, this.addedToStage, this);
+			this.off(EgretEvent.REMOVED_FROM_STAGE, this.removedFromStage, this);
 		}
 
 	}

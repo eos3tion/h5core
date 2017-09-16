@@ -88,7 +88,7 @@ module junyou {
                 var url = ConfigUtils.getResUrl(uri);
                 this.url = url;
                 this.state = RequestState.REQUESTING;
-                RES.getResByUrl(url, this.dataLoadComplete, this, RES.ResourceItem.TYPE_JSON);
+                RES.getResByUrl(url, this.dataLoadComplete, this, EgretResType.TYPE_JSON);
             }
         }
 

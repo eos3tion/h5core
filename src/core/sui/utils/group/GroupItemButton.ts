@@ -6,7 +6,7 @@ module junyou {
      * @export
      */
     export var GroupItemButton = (function () {
-        const TE = egret.TouchEvent.TOUCH_TAP;
+        const TE = EgretEvent.TOUCH_TAP;
         const ButtonKey = "$gib$btn";
         const TextFieldKey = "$gib$txt";
         return {

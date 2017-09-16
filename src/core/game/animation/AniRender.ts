@@ -1,5 +1,4 @@
 module junyou {
-    import Event = egret.Event;
 	/**
 	 * 由于目前特效和渲染器是完全一一对应关系，所以直接做成AniBitmap
 	 * @author 3tion
@@ -139,7 +138,7 @@ module junyou {
                 let display = this.display;
                 if (display) {
                     //这里不删除和AniRender的引用关系，但移除渲染事件
-                    display.off(Event.ENTER_FRAME, this.render, this);
+                    display.off(EgretEvent.ENTER_FRAME, this.render, this);
                     if ((policy & AniRecyclePolicy.RecycleDisplay) == AniRecyclePolicy.RecycleDisplay) {
                         //回收策略要求回收可视对象，才移除引用
                         this.display = undefined;
@@ -217,10 +216,10 @@ module junyou {
                 }
                 if (old != render) {
                     if (old) {
-                        display.off(Event.ENTER_FRAME, old, this);
+                        display.off(EgretEvent.ENTER_FRAME, old, this);
                     }
                     if (render) {
-                        display.on(Event.ENTER_FRAME, render, this);
+                        display.on(EgretEvent.ENTER_FRAME, render, this);
                     }
                 }
                 this._render = render;
@@ -240,7 +239,7 @@ module junyou {
             if (display) {
                 //这里必须移除和可视对象的关联
                 this.display = undefined;
-                display.off(Event.ENTER_FRAME, this.render, this);
+                display.off(EgretEvent.ENTER_FRAME, this.render, this);
                 if ((this.recyclePolicy & AniRecyclePolicy.RecycleDisplay) == AniRecyclePolicy.RecycleDisplay) {
                     display.recycle();
                 }

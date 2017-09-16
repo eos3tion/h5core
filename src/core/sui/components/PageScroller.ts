@@ -71,10 +71,11 @@ module junyou {
         }
 
         protected endTouchContent(e: egret.TouchEvent) {
-            console.log(this._moveSpeed);
-            this._content.stage.off(egret.TouchEvent.TOUCH_MOVE, this.moveOnContent, this);
-            this._content.off(egret.TouchEvent.TOUCH_END, this.endTouchContent, this);
-            this._content.off(egret.TouchEvent.TOUCH_RELEASE_OUTSIDE, this.endTouchContent, this);
+            let _content = this._content;
+            let stage = _content.stage || egret.sys.$TempStage;
+            stage.off(EgretEvent.TOUCH_MOVE, this.moveOnContent, this);
+            _content.off(EgretEvent.TOUCH_END, this.endTouchContent, this);
+            _content.off(EgretEvent.TOUCH_RELEASE_OUTSIDE, this.endTouchContent, this);
             let now: number = Global.now;
             let nowPos: number;
             if (this._scrollType == 0) {
@@ -131,28 +132,31 @@ module junyou {
                 //自然衰减到当前页
                 this._moveSpeed = this.autoScrollSpeed;
             }
-            this._content.stage.on(egret.Event.ENTER_FRAME, this.autoScrollToNextPage, this);
+            if (_content.stage) {
+                stage.on(EgretEvent.ENTER_FRAME, this.autoScrollToNextPage, this);
+            }
         }
 
         private autoScrollToNextPage(e: egret.Event) {
-            let rect: egret.Rectangle = this._content.scrollRect;
+            let _content = this._content;
+            let rect: egret.Rectangle = _content.scrollRect;
             let currentPos: number;
-            let targetPos: number = this._pageSize * (this._scrollToPage - 1);
+            let targetPos = this._pageSize * (this._scrollToPage - 1);
             if (this._scrollType == 0) {
                 currentPos = rect.y;
             } else {
                 currentPos = rect.x;
             }
-            let now: number = Global.now;
-            let subTime: number = now - this._lastFrameTime;
+            let now = Global.now;
+            let subTime = now - this._lastFrameTime;
             let sub = this._moveSpeed * subTime * this.globalspeed;
             let subdis = targetPos - currentPos;
             let deriction = subdis > 0 ? -1 : 1;
 
             if (Math.abs(subdis) < sub || Math.abs(subdis) < 2) {
-                this._content.stage.off(egret.Event.ENTER_FRAME, this.autoScrollToNextPage, this);
+                _content.stage.off(EgretEvent.ENTER_FRAME, this.autoScrollToNextPage, this);
                 this.doScrollContent(subdis * deriction);
-                rect = this._content.scrollRect;
+                rect = _content.scrollRect;
                 if (this._scrollType == 0) {
                     currentPos = rect.y;
                 } else {

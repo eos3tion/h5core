@@ -69,7 +69,7 @@ module junyou {
             let layers = dic[id];
             this._current = id;
             if (layers && layers.length) {
-                this._stage.on(egret.Event.RESIZE, this.drawBlur, this);
+                this._stage.on(EgretEvent.RESIZE, this.drawBlur, this);
                 this.drawBlur();
             }
         }
@@ -108,7 +108,7 @@ module junyou {
         }
 
         public hideBlur() {
-            this._stage.off(egret.Event.RESIZE, this.drawBlur, this);
+            this._stage.off(EgretEvent.RESIZE, this.drawBlur, this);
             removeDisplay(this._bmp);
             this._tex.$renderBuffer.resize(0, 0);
             let layers = this._dic[this._current];

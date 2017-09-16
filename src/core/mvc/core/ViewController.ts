@@ -1,5 +1,4 @@
 module junyou {
-    import EE = egret.Event;
 
     export interface ViewController {
         /**
@@ -34,25 +33,25 @@ module junyou {
 
         removeSkinListener(skin: egret.DisplayObject) {
             if (skin) {
-                skin.off(EE.REMOVED_FROM_STAGE, this.stageHandler, this);
-                skin.off(EE.ADDED_TO_STAGE, this.stageHandler, this);
+                skin.off(EgretEvent.REMOVED_FROM_STAGE, this.stageHandler, this);
+                skin.off(EgretEvent.ADDED_TO_STAGE, this.stageHandler, this);
             }
         }
 
         addSkinListener(skin: egret.DisplayObject) {
             if (skin) {
-                skin.on(EE.REMOVED_FROM_STAGE, this.stageHandler, this);
-                skin.on(EE.ADDED_TO_STAGE, this.stageHandler, this);
+                skin.on(EgretEvent.REMOVED_FROM_STAGE, this.stageHandler, this);
+                skin.on(EgretEvent.ADDED_TO_STAGE, this.stageHandler, this);
             }
         }
 
         public get isReady() {
             return this._ready;
         }
-        stageHandler(e: EE) {
+        stageHandler(e: egret.Event) {
             let type: string, ins: Interest;
             const _interests = this._interests;
-            if (e.type == EE.ADDED_TO_STAGE) {
+            if (e.type == EgretEvent.ADDED_TO_STAGE) {
                 //加入关注的事件
                 for (type in _interests) {
                     ins = _interests[type];
@@ -80,7 +79,7 @@ module junyou {
         /**
          * 回调函数
          */
-        handler: (e?: EE) => void;
+        handler: (e?: egret.Event) => void;
         /**
          * 
          * 优先级

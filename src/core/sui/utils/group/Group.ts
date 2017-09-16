@@ -1,5 +1,4 @@
 module junyou {
-    import TE = egret.TouchEvent;
     /**
      * 单选按钮组
      * @author pb
@@ -18,11 +17,11 @@ module junyou {
         public addItem(item: IGroupItem) {
             if (item) {
                 this._list.pushOnce(item);
-                item.on(TE.TOUCH_TAP, this.touchHandler, this);
+                item.on(EgretEvent.TOUCH_TAP, this.touchHandler, this);
             }
         }
 
-        protected touchHandler(e: TE) {
+        protected touchHandler(e: egret.TouchEvent) {
             this.$setSelectedItem(e.target);
         }
 
@@ -37,7 +36,7 @@ module junyou {
                     this.$setSelectedItem();
                 }
                 this._list.remove(item);
-                item.off(TE.TOUCH_TAP, this.touchHandler, this);
+                item.off(EgretEvent.TOUCH_TAP, this.touchHandler, this);
             }
         }
 
@@ -109,7 +108,7 @@ module junyou {
             const list = this._list;
             for (let i = 0; i < list.length; i++) {
                 let item = list[i];
-                item.off(TE.TOUCH_TAP, this.touchHandler, this);
+                item.off(EgretEvent.TOUCH_TAP, this.touchHandler, this);
             }
             list.length = 0;
             this._selectedIndex = -1;

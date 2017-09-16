@@ -197,7 +197,7 @@ module junyou {
                     this.addModal();
                 }
                 else {
-                    this.on(egret.Event.ADDED_TO_STAGE, this.addedToStage, this);
+                    this.on(EgretEvent.ADDED_TO_STAGE, this.addedToStage, this);
                 }
             }
             else {
@@ -205,7 +205,7 @@ module junyou {
                     this.removeModal();
                 }
                 else {
-                    this.off(egret.Event.ADDED_TO_STAGE, this.addedToStage, this);
+                    this.off(EgretEvent.ADDED_TO_STAGE, this.addedToStage, this);
                 }
             }
         }
@@ -228,7 +228,7 @@ module junyou {
                 g.drawRect(0, 0, width, height);
                 g.endFill();
             }
-            m.on(egret.TouchEvent.TOUCH_TAP, this.hide, this);
+            m.on(EgretEvent.TOUCH_TAP, this.hide, this);
             this.addChildAt(m, 0);
         }
 
@@ -239,7 +239,7 @@ module junyou {
          */
         public removeModal() {
             if (this.modal) {
-                this.modal.off(egret.TouchEvent.TOUCH_TAP, this.hide, this);
+                this.modal.off(EgretEvent.TOUCH_TAP, this.hide, this);
                 removeDisplay(this.modal);
             }
         }

@@ -294,7 +294,7 @@ module junyou {
         protected childSizeChange() {
             if (!this._childSizeChanged) {
                 this._childSizeChanged = true;
-                this.once(egret.Event.ENTER_FRAME, this.reCalc, this);
+                this.once(EgretEvent.ENTER_FRAME, this.reCalc, this);
             }
         }
 
@@ -637,7 +637,7 @@ module junyou {
             item.dispose();
             if (!this.renderChange) {
                 this.renderChange = true;
-                this.once(egret.Event.ENTER_FRAME, this.refreshByRemoveItem, this);
+                this.once(EgretEvent.ENTER_FRAME, this.refreshByRemoveItem, this);
             }
         }
 

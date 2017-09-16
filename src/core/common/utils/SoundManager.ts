@@ -137,7 +137,7 @@ module junyou {
 
         function startChannel(sound: Sound, ch: SoundChannel, startTime: number, loop: number) {
             let channel = sound.sound.play(startTime, loop);
-            channel.once(egret.Event.COMPLETE, onComplete, undefined);
+            channel.once(EgretEvent.COMPLETE, onComplete, undefined);
             ch.channel = channel;
             let actions = ch.actions;
             if (actions) {
@@ -195,8 +195,8 @@ module junyou {
                 // let eSound = new egret.Sound();
                 // soundsDict[url] = sound = { url, sound: eSound, state: RequestState.REQUESTING };
                 // eSound.load(url);
-                // (eSound as egret.EventDispatcher).on(egret.Event.COMPLETE, soundComplete);
-                // (eSound as egret.EventDispatcher).on(egret.IOErrorEvent.IO_ERROR, soundError);
+                // (eSound as egret.EventDispatcher).on(EgretEvent.COMPLETE, soundComplete);
+                // (eSound as egret.EventDispatcher).on(EgretEvent.IO_ERROR, soundError);
             }
             return sound;
         }
