@@ -70,7 +70,7 @@ module junyou {
     	 * 注入白鹭的全局Ticker
     	 */
 		function initTick() {
-			let ticker = egret.sys.$ticker as any;
+			let ticker = egret.ticker || egret.sys.$ticker as any;
 			let update = ticker.render;
 			let delta = 0 | 1000 / ticker.$frameRate;
 			let temp: CallbackInfo<Function>[] = [];

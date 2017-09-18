@@ -9273,7 +9273,7 @@ var junyou;
          * 注入白鹭的全局Ticker
          */
         function initTick() {
-            var ticker = egret.sys.$ticker;
+            var ticker = egret.ticker || egret.sys.$ticker;
             var update = ticker.render;
             var delta = 0 | 1000 / ticker.$frameRate;
             var temp = [];
