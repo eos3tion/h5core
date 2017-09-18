@@ -89,94 +89,10 @@ module junyou {
 
         public getWalk?(x: number, y: number): number;
 
-        // /**
-        //  * 路径点信息 低版本WebView不支持 ArrayBuffer
-        //  */
-        // public pathdata: Uint8Array;
-
-        // /**
-        // *
-        // * @param x
-        // * @param y
-        // * @return 0 非安全 1 安全
-        // * JCSXXXXX
-        // *
-        // */
-        // public getSafety(x: number, y: number): number {
-        //     /*     var vl = ba[y * w + x]
-        //             vl = (vl >> 5) & 1*/
-        //     if (!this.pathdata) {
-        //         return 0;
-        //     }
-        //     return this.pathdata[y * this.columns + x] >> 5 & 1
-        // };
-        // /**
-        // *
-        // * @param x
-        // * @param y
-        // * @return
-        // * 0 不可走
-        // * 1 可走
-        // */
-        // public getWalk(x: number, y: number): number {
-        //     if (!this.pathdata) {
-        //         return 0;
-        //     }
-        //     var columns = this.columns;
-        //     var d = y * columns + x;
-        //     if (d < 0) {
-        //         return 0;
-        //     }
-        //     else if (d > this.pathdata.length) {
-        //         return 0;
-        //     }
-        //     else {
-        //         return this.pathdata[y * columns + x] & 1;
-        //     }
-        // }
-        // /**
-        // * 获取穿越点
-        // * @param x
-        // * @param y
-        // * @return 0 可穿  1 不可穿
-        // * JCSXXXXX
-        // */
-        // public getCross(x, y) {
-        //     if (!this.pathdata) {
-        //         return 0;
-        //     }
-        //     return this.pathdata[y * this.columns + x] >> 6 & 1;
-        // }
-
-
-        // /**
-        // * 获取跳跃点
-        // * @param x
-        // * @param y
-        // * @return 0 可跳 1 不可跳
-        // * JCSXXXXX
-        // */
-        // public getJump(x, y) {
-        //     if (!this.pathdata) {
-        //         return 0;
-        //     }
-        //     return this.pathdata[y * this.columns + x] >> 7;
-        // }
-
-        // /**
-        // * 获取透明点
-        // * @param x
-        // * @param y
-        // * @return
-        // * ALPHA值0-10
-        // * TTTTAAAA
-        // */
-        // public getAlpha(x, y) {
-        //     if (!this.pathdata) {
-        //         return 0;
-        //     }
-        //     return this.pathdata[y * this.columns + x] & 15;
-        // }
+        /**
+         * 路径点信息 低版本WebView不支持 ArrayBuffer
+         */
+        public pathdata?: Uint8Array;
 
         public constructor() {
             super();
@@ -194,12 +110,12 @@ module junyou {
             m.height = arr[5];
             m.maxPicX = m.width / m.pWidth - 1 >> 0;
             m.maxPicY = m.height / m.pHeight - 1 >> 0;
-            // //地图的base64数据
+            // 地图的base64数据
             // 项目部使用路径点信息
-            // let b64: string = arr[6];
-            // if (b64) {
-            //     m.pathdata = Base64.getBytesFromBase64(b64);
-            // }
+            let b64: string = arr[6];
+            if (b64) {
+                m.pathdata = new Uint8Array(egret.Base64Util.decode(b64));
+            }
             return m;
         }
 

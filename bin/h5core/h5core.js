@@ -11700,90 +11700,6 @@ var junyou;
      */
     var MapInfo = (function (_super) {
         __extends(MapInfo, _super);
-        // /**
-        //  * 路径点信息 低版本WebView不支持 ArrayBuffer
-        //  */
-        // public pathdata: Uint8Array;
-        // /**
-        // *
-        // * @param x
-        // * @param y
-        // * @return 0 非安全 1 安全
-        // * JCSXXXXX
-        // *
-        // */
-        // public getSafety(x: number, y: number): number {
-        //     /*     var vl = ba[y * w + x]
-        //             vl = (vl >> 5) & 1*/
-        //     if (!this.pathdata) {
-        //         return 0;
-        //     }
-        //     return this.pathdata[y * this.columns + x] >> 5 & 1
-        // };
-        // /**
-        // *
-        // * @param x
-        // * @param y
-        // * @return
-        // * 0 不可走
-        // * 1 可走
-        // */
-        // public getWalk(x: number, y: number): number {
-        //     if (!this.pathdata) {
-        //         return 0;
-        //     }
-        //     var columns = this.columns;
-        //     var d = y * columns + x;
-        //     if (d < 0) {
-        //         return 0;
-        //     }
-        //     else if (d > this.pathdata.length) {
-        //         return 0;
-        //     }
-        //     else {
-        //         return this.pathdata[y * columns + x] & 1;
-        //     }
-        // }
-        // /**
-        // * 获取穿越点
-        // * @param x
-        // * @param y
-        // * @return 0 可穿  1 不可穿
-        // * JCSXXXXX
-        // */
-        // public getCross(x, y) {
-        //     if (!this.pathdata) {
-        //         return 0;
-        //     }
-        //     return this.pathdata[y * this.columns + x] >> 6 & 1;
-        // }
-        // /**
-        // * 获取跳跃点
-        // * @param x
-        // * @param y
-        // * @return 0 可跳 1 不可跳
-        // * JCSXXXXX
-        // */
-        // public getJump(x, y) {
-        //     if (!this.pathdata) {
-        //         return 0;
-        //     }
-        //     return this.pathdata[y * this.columns + x] >> 7;
-        // }
-        // /**
-        // * 获取透明点
-        // * @param x
-        // * @param y
-        // * @return
-        // * ALPHA值0-10
-        // * TTTTAAAA
-        // */
-        // public getAlpha(x, y) {
-        //     if (!this.pathdata) {
-        //         return 0;
-        //     }
-        //     return this.pathdata[y * this.columns + x] & 15;
-        // }
         function MapInfo() {
             var _this = _super.call(this) || this;
             /**
@@ -11808,12 +11724,12 @@ var junyou;
             m.height = arr[5];
             m.maxPicX = m.width / m.pWidth - 1 >> 0;
             m.maxPicY = m.height / m.pHeight - 1 >> 0;
-            // //地图的base64数据
+            // 地图的base64数据
             // 项目部使用路径点信息
-            // let b64: string = arr[6];
-            // if (b64) {
-            //     m.pathdata = Base64.getBytesFromBase64(b64);
-            // }
+            var b64 = arr[6];
+            if (b64) {
+                m.pathdata = new Uint8Array(egret.Base64Util.decode(b64));
+            }
             return m;
         };
         /**
@@ -20605,7 +20521,7 @@ var junyou;
         }
         ResizeManager.prototype.init = function (stage) {
             this._stage = stage || egret.sys.$TempStage;
-            this._stage.on(egret.Event.RESIZE, this.onResize, this);
+            this._stage.on("resize" /* RESIZE */, this.onResize, this);
         };
         /**
          *
@@ -20624,7 +20540,7 @@ var junyou;
             dis.$_resize = { layout: layout, hoffset: hoffset, voffset: voffset, container: container };
             list[len] = dis;
             if (!dis.stage) {
-                dis.on(egret.Event.ADDED_TO_STAGE, this.onAdded, this);
+                dis.on("addedToStage" /* ADDED_TO_STAGE */, this.onAdded, this);
             }
         };
         /**
@@ -20635,7 +20551,7 @@ var junyou;
          */
         ResizeManager.prototype.remove = function (dis) {
             this._list.remove(dis);
-            dis.off(egret.Event.ADDED_TO_STAGE, this.onAdded, this);
+            dis.off("addedToStage" /* ADDED_TO_STAGE */, this.onAdded, this);
             if (dis.$_resize) {
                 dis.$_resize = undefined;
             }
@@ -20660,7 +20576,7 @@ var junyou;
             }
         };
         ResizeManager.prototype.dispose = function () {
-            this._stage.off(egret.Event.ADDED_TO_STAGE, this.onAdded, this);
+            this._stage.off("addedToStage" /* ADDED_TO_STAGE */, this.onAdded, this);
             this._list.length = 0;
         };
         return ResizeManager;
