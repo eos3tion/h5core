@@ -16,7 +16,7 @@ module junyou {
 
         public init(stage?: egret.Stage) {
             this._stage = stage || egret.sys.$TempStage;
-            this._stage.on(egret.Event.RESIZE, this.onResize, this);
+            this._stage.on(EgretEvent.RESIZE, this.onResize, this);
         }
 
 
@@ -37,7 +37,7 @@ module junyou {
             dis.$_resize = { layout, hoffset, voffset, container };
             list[len] = dis;
             if (!dis.stage) {
-                dis.on(egret.Event.ADDED_TO_STAGE, this.onAdded, this);
+                dis.on(EgretEvent.ADDED_TO_STAGE, this.onAdded, this);
             }
         }
 
@@ -49,7 +49,7 @@ module junyou {
          */
         public remove(dis: ResizeDisplay) {
             this._list.remove(dis);
-            dis.off(egret.Event.ADDED_TO_STAGE, this.onAdded, this);
+            dis.off(EgretEvent.ADDED_TO_STAGE, this.onAdded, this);
             if (dis.$_resize) {
                 dis.$_resize = undefined;
             }
@@ -77,7 +77,7 @@ module junyou {
         }
 
         public dispose() {
-            this._stage.off(egret.Event.ADDED_TO_STAGE, this.onAdded, this);
+            this._stage.off(EgretEvent.ADDED_TO_STAGE, this.onAdded, this);
             this._list.length = 0;
         }
     }
