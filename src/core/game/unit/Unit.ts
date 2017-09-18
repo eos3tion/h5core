@@ -1,6 +1,4 @@
 module junyou {
-    import EE = egret.Event;
-    import Container = egret.DisplayObjectContainer
 	/**
 	 * 基本单位<br/>
 	 * 是一个状态机<br/>
@@ -358,7 +356,7 @@ module junyou {
         public onRecycle() {
             removeDisplay(this.body);
             const model = this._model;
-            model.off(EE.ENTER_FRAME, this.$render, this);
+            model.off(EgretEvent.ENTER_FRAME, this.$render, this);
             model.clear();
             this.rotation = 0;
             this.z = 0;
@@ -550,7 +548,7 @@ module junyou {
             // 子类实现其他层的添加
             GameEngine.instance.getLayer(GameLayerID.Sorted).addChild(this.body);
             if (doRender) {
-                this.model.on(EE.ENTER_FRAME, this.$render, this);
+                this.model.on(EgretEvent.ENTER_FRAME, this.$render, this);
             }
             this.state = UnitState.Stage;
             this.dispatch(EventConst.UnitAddToStage);
@@ -564,10 +562,10 @@ module junyou {
          * 
          * @memberOf Unit
          */
-        public addToContainer(container: Container, doRender = true) {
+        public addToContainer(container: egret.DisplayObjectContainer, doRender = true) {
             container.addChild(this.body);
             if (doRender) {
-                this.model.on(EE.ENTER_FRAME, this.$render, this);
+                this.model.on(EgretEvent.ENTER_FRAME, this.$render, this);
             }
             this.state = UnitState.Stage;
             this.dispatch(EventConst.UnitAddToStage);

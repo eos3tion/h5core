@@ -7560,7 +7560,6 @@ declare module junyou {
     }
 }
 declare module junyou {
-    import Container = egret.DisplayObjectContainer;
     /**
      * 基本单位<br/>
      * 是一个状态机<br/>
@@ -7805,7 +7804,7 @@ declare module junyou {
          *
          * @memberOf Unit
          */
-        addToContainer(container: Container, doRender?: boolean): void;
+        addToContainer(container: egret.DisplayObjectContainer, doRender?: boolean): void;
         protected _depth: number;
         protected _x: number;
         protected _y: number;

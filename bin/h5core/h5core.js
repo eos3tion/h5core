@@ -12088,13 +12088,13 @@ var junyou;
             var ctrl = { stop: false };
             add(fx, fy, 0, (Math.abs(tx - fx) + Math.abs(ty - fy)) * 10);
             var stage = egret.sys.$TempStage;
-            stage.on(egret.Event.ENTER_FRAME, onTick, null);
+            stage.on("enterFrame" /* ENTER_FRAME */, onTick, null);
             return ctrl;
             function onTick() {
                 var t = Date.now();
                 var _loop_3 = function () {
                     if (ctrl.stop) {
-                        stage.off(egret.Event.ENTER_FRAME, onTick, null);
+                        stage.off("enterFrame" /* ENTER_FRAME */, onTick, null);
                         return { value: void 0 };
                     }
                     var node = openList.shift();
@@ -12105,7 +12105,7 @@ var junyou;
                     //标记已经搜索过的
                     closedList[key] = true;
                     if (x == tx && y == ty) {
-                        stage.off(egret.Event.ENTER_FRAME, onTick, null);
+                        stage.off("enterFrame" /* ENTER_FRAME */, onTick, null);
                         return { value: callback.apply(void 0, [end(minNode)].concat(args)) };
                     }
                     aSurOff.forEach(function (element) {
@@ -12155,7 +12155,7 @@ var junyou;
             }
             function end(node) {
                 // 移除监听
-                stage.off(egret.Event.ENTER_FRAME, onTick, null);
+                stage.off("enterFrame" /* ENTER_FRAME */, onTick, null);
                 var list = [];
                 var j = 0;
                 for (var i = node.step; i > 0; i--) {
@@ -13094,7 +13094,6 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    var EE = egret.Event;
     /**
      * 基本单位<br/>
      * 是一个状态机<br/>
@@ -13374,7 +13373,7 @@ var junyou;
         Unit.prototype.onRecycle = function () {
             junyou.removeDisplay(this.body);
             var model = this._model;
-            model.off(EE.ENTER_FRAME, this.$render, this);
+            model.off("enterFrame" /* ENTER_FRAME */, this.$render, this);
             model.clear();
             this.rotation = 0;
             this.z = 0;
@@ -13539,7 +13538,7 @@ var junyou;
             // 子类实现其他层的添加
             junyou.GameEngine.instance.getLayer(1760 /* Sorted */).addChild(this.body);
             if (doRender) {
-                this.model.on(EE.ENTER_FRAME, this.$render, this);
+                this.model.on("enterFrame" /* ENTER_FRAME */, this.$render, this);
             }
             this.state = 1 /* Stage */;
             this.dispatch(-1997 /* UnitAddToStage */);
@@ -13556,7 +13555,7 @@ var junyou;
             if (doRender === void 0) { doRender = true; }
             container.addChild(this.body);
             if (doRender) {
-                this.model.on(EE.ENTER_FRAME, this.$render, this);
+                this.model.on("enterFrame" /* ENTER_FRAME */, this.$render, this);
             }
             this.state = 1 /* Stage */;
             this.dispatch(-1997 /* UnitAddToStage */);

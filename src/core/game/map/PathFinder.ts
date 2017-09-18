@@ -174,24 +174,24 @@ module junyou {
             const ctrl = { stop: false };
             add(fx, fy, 0, (Math.abs(tx - fx) + Math.abs(ty - fy)) * 10);
             const stage = egret.sys.$TempStage;
-            stage.on(egret.Event.ENTER_FRAME, onTick, null);
+            stage.on(EgretEvent.ENTER_FRAME, onTick, null);
             return ctrl;
             function onTick() {
                 let t = Date.now();
                 while (openList.length) {
                     if (ctrl.stop) {//如果外部控制结束
-                        stage.off(egret.Event.ENTER_FRAME, onTick, null);
+                        stage.off(EgretEvent.ENTER_FRAME, onTick, null);
                         return;
                     }
                     let node = openList.shift();
-                    const {x, y, g, key} = node;
+                    const { x, y, g, key } = node;
                     if (closedList[key]) {
                         continue;
                     }
                     //标记已经搜索过的
                     closedList[key] = true;
                     if (x == tx && y == ty) {//找到终点
-                        stage.off(egret.Event.ENTER_FRAME, onTick, null);
+                        stage.off(EgretEvent.ENTER_FRAME, onTick, null);
                         return callback(end(minNode), ...args);
                     }
 
@@ -235,7 +235,7 @@ module junyou {
             }
             function end(node: PathNode): PathNode[] {
                 // 移除监听
-                stage.off(egret.Event.ENTER_FRAME, onTick, null);
+                stage.off(EgretEvent.ENTER_FRAME, onTick, null);
                 let list = [];
                 let j = 0;
                 for (let i = node.step; i > 0; i--) {
