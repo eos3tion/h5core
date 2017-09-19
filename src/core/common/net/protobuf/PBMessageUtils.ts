@@ -410,7 +410,9 @@ module junyou {
                 }
                 else {
                     if (DEBUG) {
-                        debugOutData[name] = writeElementTo(value, type, tag, bytes, subMsgType);
+                        if (debugOutData) {
+                            debugOutData[name] = writeElementTo(value, type, tag, bytes, subMsgType);
+                        }
                     } else {
                         writeElementTo(value, type, tag, bytes, subMsgType);
                     }

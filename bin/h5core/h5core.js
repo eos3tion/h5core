@@ -6354,7 +6354,9 @@ var junyou;
                 }
                 else {
                     if (true) {
-                        debugOutData[name_7] = writeElementTo(value, type, tag, bytes, subMsgType);
+                        if (debugOutData) {
+                            debugOutData[name_7] = writeElementTo(value, type, tag, bytes, subMsgType);
+                        }
                     }
                     else {
                         writeElementTo(value, type, tag, bytes, subMsgType);
