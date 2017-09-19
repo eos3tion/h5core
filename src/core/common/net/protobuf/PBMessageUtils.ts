@@ -250,7 +250,9 @@ module junyou {
                         case PBType.SInt64:
                             value = bytes.readVarint64();//理论上项目不使用
                             break;
-                        case PBType.Int32://int32 未使用ProtoBuf的标准解析方式，标准方式处理负数会使用10字节
+                        case PBType.Int32:
+                            value = bytes.readVarint();
+                            break;
                         case PBType.SInt32:
                             value = decodeZigzag32(bytes.readVarint());
                             break;
@@ -441,9 +443,9 @@ module junyou {
                 case PBType.SFixed64://理论上项目不使用
                     bytes.writeFix64(value as number);
                     break;
-                case PBType.Int32://int32处理负数，没有按规定的 10字节数据进行处理，直接使用SINT32处理
-                //  Signed Integers
-                // As you saw in the previous section, all the protocol buffer types associated with wire type 0 are encoded as varints. However, there is an important difference between the signed int types (sint32 and sint64) and the "standard" int types (int32 and int64) when it comes to encoding negative numbers. If you use int32 or int64 as the type for a negative number, the resulting varint is always ten bytes long – it is, effectively, treated like a very large unsigned integer. If you use one of the signed types, the resulting varint uses ZigZag encoding, which is much more efficient.
+                case PBType.Int32://改为标准方式处理
+                    bytes.writeVarint(checkInt32(value, type));
+                    break;
                 case PBType.SInt32:
                     bytes.writeVarint(zigzag32(checkInt32(value, type)));
                     break;
