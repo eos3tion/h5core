@@ -132,7 +132,7 @@ module junyou {
          * @returns {ByteArray}
          */
         public readByteArray(length: number): ByteArray {
-            return new ByteArray(this.readBuffer(length));
+            return new junyou.ByteArray(this.readBuffer(length));
         }
 		/**
 		 * 向字节流中写入64位的可变长度的整数(Protobuf)
