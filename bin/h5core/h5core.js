@@ -4048,6 +4048,27 @@ var junyou;
         Object.defineProperty(to, key, Object.getOwnPropertyDescriptor(from, key));
     }
     junyou.copyProperty = copyProperty;
+    /**
+     * 批量拷贝属性
+     *
+     * @export
+     * @template To
+     * @template From
+     * @param {To} to
+     * @param {From} from
+     * @param {...(keyof From)[]} keys
+     */
+    function copyProperties(to, from) {
+        var keys = [];
+        for (var _i = 2; _i < arguments.length; _i++) {
+            keys[_i - 2] = arguments[_i];
+        }
+        for (var i = 0; i < keys.length; i++) {
+            var key = keys[i];
+            copyProperty(to, from, key);
+        }
+    }
+    junyou.copyProperties = copyProperties;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -6201,7 +6222,9 @@ var junyou;
                         case 18 /* SInt64 */:
                             value = bytes.readVarint64(); //理论上项目不使用
                             break;
-                        case 5 /* Int32 */: //int32 未使用ProtoBuf的标准解析方式，标准方式处理负数会使用10字节
+                        case 5 /* Int32 */:
+                            value = bytes.readVarint();
+                            break;
                         case 17 /* SInt32 */:
                             value = decodeZigzag32(bytes.readVarint());
                             break;
@@ -6385,9 +6408,9 @@ var junyou;
                 case 16 /* SFixed64 */://理论上项目不使用
                     bytes.writeFix64(value);
                     break;
-                case 5 /* Int32 */: //int32处理负数，没有按规定的 10字节数据进行处理，直接使用SINT32处理
-                //  Signed Integers
-                // As you saw in the previous section, all the protocol buffer types associated with wire type 0 are encoded as varints. However, there is an important difference between the signed int types (sint32 and sint64) and the "standard" int types (int32 and int64) when it comes to encoding negative numbers. If you use int32 or int64 as the type for a negative number, the resulting varint is always ten bytes long – it is, effectively, treated like a very large unsigned integer. If you use one of the signed types, the resulting varint uses ZigZag encoding, which is much more efficient.
+                case 5 /* Int32 */://改为标准方式处理
+                    bytes.writeVarint(checkInt32(value, type));
+                    break;
                 case 17 /* SInt32 */:
                     bytes.writeVarint(zigzag32(checkInt32(value, type)));
                     break;
@@ -7659,7 +7682,7 @@ var junyou;
          * @returns {ByteArray}
          */
         ByteArray.prototype.readByteArray = function (length) {
-            return new ByteArray(this.readBuffer(length));
+            return new junyou.ByteArray(this.readBuffer(length));
         };
         /**
          * 向字节流中写入64位的可变长度的整数(Protobuf)

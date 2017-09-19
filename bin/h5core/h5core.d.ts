@@ -2771,6 +2771,17 @@ declare module junyou {
      * @param {keyof B} key
      */
     function copyProperty<To, From>(to: To, from: From, key: keyof From): void;
+    /**
+     * 批量拷贝属性
+     *
+     * @export
+     * @template To
+     * @template From
+     * @param {To} to
+     * @param {From} from
+     * @param {...(keyof From)[]} keys
+     */
+    function copyProperties<To, From>(to: To, from: From, ...keys: (keyof From)[]): void;
 }
 declare module egret {
     interface DisplayObject {
