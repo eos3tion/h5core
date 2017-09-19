@@ -392,7 +392,7 @@ module junyou {
                 let wireType = wireTypeMap[type];
                 let tag = (num << 3) | wireType;
                 if (label == PBFieldType.repeated) {
-                    if (DEBUG) {
+                    if (DEBUG && debugOutData) {
                         var arr = [];
                         debugOutData[name] = arr;
                     }
@@ -400,7 +400,7 @@ module junyou {
                         let element = value[key];
                         // 针对repeated中无法处理空的占位数组做处理，Protobuf 2 中不支持undefined进行占位  由于 wireType 只使用 0 1 2 3 4 5
                         // 现在使用 7 作为  undefined 占位使用
-                        if (DEBUG) {
+                        if (DEBUG && debugOutData) {
                             arr.push(writeElementTo(element, type, element == undefined ? ((num << 3) | 7) : tag, bytes, subMsgType));
                         } else {
                             writeElementTo(element, type, element == undefined ? ((num << 3) | 7) : tag, bytes, subMsgType);
