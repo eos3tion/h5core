@@ -113,4 +113,21 @@ module junyou {
     export function copyProperty<To, From>(to: To, from: From, key: keyof From) {
         Object.defineProperty(to, key, Object.getOwnPropertyDescriptor(from, key));
     }
+
+    /**
+     * 批量拷贝属性
+     * 
+     * @export
+     * @template To 
+     * @template From 
+     * @param {To} to 
+     * @param {From} from 
+     * @param {...(keyof From)[]} keys 
+     */
+    export function copyProperties<To, From>(to: To, from: From, ...keys: (keyof From)[]) {
+        for (let i = 0; i < keys.length; i++) {
+            let key = keys[i];
+            copyProperty(to, from, key);
+        }
+    }
 }
