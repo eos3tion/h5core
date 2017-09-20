@@ -18,13 +18,6 @@ module junyou {
 	 */
     export class MapInfo extends egret.HashObject {
 
-        /**
-         * 地图路径前缀
-         * 
-         * @static
-         */
-        static MAP_PATH = "m/";
-
     	/**
     	 * 地图唯一标识
     	 */
@@ -120,10 +113,19 @@ module junyou {
         }
 
         /**
-         * 获取资源路径
-         */
-        public getMapUri(col: number, row: number) {
-            return `${MapInfo.MAP_PATH}${this.path}/${row}_${col}${ext}`;
+        * 获取资源路径
+        */
+        getMapUri: { (col: number, row: number) };
+    }
+
+    if (DEBUG) {
+        MapInfo.prototype.getMapUri = function (col: number, row: number): string {
+            return "m/" + this.resPath + "/" + row.zeroize(3) + col.zeroize(3) + Ext.JPG;
+        }
+    }
+    if (RELEASE) {
+        MapInfo.prototype.getMapUri = function (col: number, row: number) {
+            return `m2/${this.path}/${row}_${col}${ext}`;
         }
     }
 }
