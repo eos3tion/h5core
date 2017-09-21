@@ -11755,22 +11755,20 @@ var junyou;
             }
             return m;
         };
-        /**
-         * 获取资源路径
-         */
-        MapInfo.prototype.getMapUri = function (col, row) {
-            return "" + MapInfo.MAP_PATH + this.path + "/" + row + "_" + col + ext;
-        };
-        /**
-         * 地图路径前缀
-         *
-         * @static
-         */
-        MapInfo.MAP_PATH = "m/";
         return MapInfo;
     }(egret.HashObject));
     junyou.MapInfo = MapInfo;
     __reflect(MapInfo.prototype, "junyou.MapInfo");
+    if (true) {
+        MapInfo.prototype.getMapUri = function (col, row) {
+            return "m/" + this.resPath + "/" + row.zeroize(3) + col.zeroize(3) + ".jpg" /* JPG */;
+        };
+    }
+    if (false) {
+        MapInfo.prototype.getMapUri = function (col, row) {
+            return "m2/" + this.path + "/" + row + "_" + col + ext;
+        };
+    }
 })(junyou || (junyou = {}));
 if (true) {
     var $gm = $gm || {};
@@ -15360,6 +15358,26 @@ var junyou;
         Service.prototype._startSync = function () {
             // Service默认为同步，如果需要收到服务端数据的，重写此方法
             this.selfReady();
+        };
+        /**
+         * 用于新版本的自动生成代码的注册
+         * [cmd,msgType,handler,cmd1,msgType1,handler1,cmd2,msgType2,handler2,....cmdN,msgTypeN,handlerN]
+         * @protected
+         * @param {any} args
+         */
+        Service.prototype.reg = function () {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            var ns = this._ns;
+            for (var i = 0; i < args.length; i += 3) {
+                var cmd = args[i];
+                var ref = args[i + 1];
+                var handler = args[i + 2];
+                ns.register(cmd, handler);
+                ns.regReceiveMSGRef(cmd, ref);
+            }
         };
         /**
          * 注册消息引用
