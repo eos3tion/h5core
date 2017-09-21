@@ -21,6 +21,23 @@ module junyou {
         }
 
         /**
+         * 用于新版本的自动生成代码的注册
+         * [cmd,msgType,handler,cmd1,msgType1,handler1,cmd2,msgType2,handler2,....cmdN,msgTypeN,handlerN]
+         * @protected
+         * @param {any} args 
+         */
+        protected reg(...args) {
+            let ns = this._ns;
+            for (let i = 0; i < args.length; i += 3) {
+                let cmd = args[i];
+                let ref = args[i + 1];
+                let handler = args[i + 2];
+                ns.register(cmd, handler);
+                ns.regReceiveMSGRef(cmd, ref);
+            }
+        }
+
+        /**
          * 注册消息引用
          * 
          * @protected
