@@ -7973,14 +7973,6 @@ declare module junyou {
 }
 declare module junyou {
     class UnitSetting {
-        private static _setting;
-        /**
-         * 获取默认设置
-         *
-         * @readonly
-         * @static
-         */
-        static readonly default: UnitSetting;
         /**
          * 是否添加UI层
          */
@@ -8007,6 +7999,10 @@ declare module junyou {
          */
         depthB: number;
     }
+    /**
+     * 默认的单位设置
+     */
+    const defaultUnitSetting: UnitSetting;
 }
 declare module junyou {
     /**

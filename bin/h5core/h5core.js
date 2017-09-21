@@ -13804,19 +13804,6 @@ var junyou;
              */
             this.depthB = 0.19;
         }
-        Object.defineProperty(UnitSetting, "default", {
-            /**
-             * 获取默认设置
-             *
-             * @readonly
-             * @static
-             */
-            get: function () {
-                return this._setting = this._setting || new UnitSetting;
-            },
-            enumerable: true,
-            configurable: true
-        });
         //防止同一坐标的单位排序深度相同，出现闪烁的情况
         UnitSetting.prototype.getDepth = function () {
             return this.depthA + Math.random() * this.depthB;
@@ -13825,6 +13812,10 @@ var junyou;
     }());
     junyou.UnitSetting = UnitSetting;
     __reflect(UnitSetting.prototype, "junyou.UnitSetting");
+    /**
+     * 默认的单位设置
+     */
+    junyou.defaultUnitSetting = new UnitSetting();
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {

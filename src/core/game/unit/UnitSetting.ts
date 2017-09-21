@@ -1,18 +1,6 @@
 module junyou {
 	export class UnitSetting {
 
-		private static _setting: UnitSetting;
-
-		/**
-		 * 获取默认设置
-		 * 
-		 * @readonly
-		 * @static
-		 */
-		public static get default() {
-			return this._setting = this._setting || new UnitSetting;
-		}
-
 	    /**
 		 * 是否添加UI层
 		 */
@@ -46,4 +34,9 @@ module junyou {
 		 */
 		public depthB = 0.19;
 	}
+
+	/**
+	 * 默认的单位设置
+	 */
+	export const defaultUnitSetting = new UnitSetting();
 }
