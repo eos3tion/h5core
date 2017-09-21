@@ -11,7 +11,7 @@ interface $gmType {
 }
 declare module junyou {
     type InjectProxy = {
-        new(): IAsync;
+        new (): IAsync;
     } | string | number;
     /**
      * Mediator和Proxy的基类
@@ -92,7 +92,7 @@ declare module junyou {
      * @returns
      */
     function __dependProxy(ref: {
-        new(): IAsync;
+        new (): IAsync;
     } | string | number): (target: any, key: string) => void;
 }
 declare module junyou {
@@ -364,7 +364,7 @@ interface Array<T> {
 }
 declare module junyou {
     function is(instance: any, ref: {
-        new(): any;
+        new (): any;
     }): boolean;
     /**
      * 移除可视对象
@@ -2699,7 +2699,7 @@ declare module junyou {
          * @memberOf MixinOption
          */
         clazz: {
-            new(): T;
+            new (): T;
         };
         /**
          *
@@ -2822,7 +2822,7 @@ declare module junyou {
          */
         protected _creators: {
             [index: string]: {
-                new(): BaseCreator<egret.DisplayObject>;
+                new (): BaseCreator<egret.DisplayObject>;
             };
         };
         /**
@@ -3827,7 +3827,7 @@ declare module junyou {
          * @memberOf PBStructDict
          */
         $$inted?: any;
-        /**消息名称*/[index: string]: PBStruct;
+        /**消息名称*/ [index: string]: PBStruct;
     }
     /**
      *
@@ -5336,7 +5336,7 @@ declare module junyou {
         };
         static instance: GameEngine;
         static init(stage: egret.Stage, ref?: {
-            new(stage: egret.Stage): GameEngine;
+            new (stage: egret.Stage): GameEngine;
         }): void;
         static addLayerConfig(id: number, parentid?: number, ref?: new (id: number) => GameLayer): void;
         /**
@@ -6746,7 +6746,7 @@ declare module junyou {
         pathdata?: Uint8Array;
         constructor();
         static decodeFromArray(arr: any[], ref?: {
-            new(): MapInfo;
+            new (): MapInfo;
         }): MapInfo;
         /**
         * 获取资源路径
@@ -6987,8 +6987,8 @@ declare module junyou {
         getPath(fx: number, fy: number, tx: number, ty: number, callback: {
             (path: PathNode[], ...args): void;
         }, ...args: any[]): {
-                stop: boolean;
-            };
+            stop: boolean;
+        };
     }
 }
 declare module junyou {
@@ -7192,10 +7192,10 @@ declare module junyou {
          */
         recycle(t: T): void;
         constructor(TCreator: {
-            new(): T;
+            new (): T;
         } | {
-                (): T;
-            }, max?: number);
+            (): T;
+        }, max?: number);
     }
     interface RecyclablePool<T> {
         /**
@@ -7220,7 +7220,7 @@ declare module junyou {
      * @returns {(T & { recycle() })}
      */
     function recyclable<T>(clazz: {
-        new(): T;
+        new (): T;
         _pool?: RecyclablePool<T>;
     }): Recyclable<T>;
 }
@@ -7855,47 +7855,65 @@ declare module junyou {
      * @param clazz 要做单例的类型
      */
     function singleton<T>(clazz: {
-        new(): T;
+        new (): T;
         _instance?: T;
     }): T;
 }
 declare module junyou {
-    interface UnitDomainConstructor {
-        /**
-         * 全部单位
-         */
-        DOMAIN_ALL: number;
-        /**
-         * 角色域
-         */
-        DOMAIN_ROLE: number;
-        /**
-         * 怪物域
-         */
-        DOMAIN_MONSTER: number;
-    }
     /**
-     * 单位的域
+     * 场景单位域的类型
+     *
+     * @export
+     * @enum {number}
      */
-    var UnitDomain: UnitDomainConstructor;
+    const enum UnitDomainType {
+        /**
+         * 所有单位
+         */
+        All = 0,
+        /**
+         * 角色
+         */
+        Role = 1,
+        /**
+         * 怪物
+         */
+        Monster = 2,
+    }
+    type UnitDomain = {
+        [index: string]: Unit;
+    };
     /**
      * 单位管理器
-     * @author
+     * @author 3tion
      *
      */
     class UnitController {
         /**
-         * Key     int  domain的名称<br/>
-         * Value Object 一个字典 Key guid  value JUnit
+         * 按类型存放的域
+         *
+         * @protected
+         * @type {{ [index: number]: { [index: string]: Unit } }}
          */
-        protected _domains: Object;
+        protected _domains: {
+            [index: number]: UnitDomain;
+        };
         /**
-         * Key 		int domain的名称<br/>
-         * Value 	int 这个域的单位数量
+         * 用于存放单位数量的字典
+         *
+         * @protected
+         * @type {{ [index: number]: number }}
          */
-        protected _domainCounts: Object;
-        protected _domainAll: Object;
-        static instance: UnitController;
+        protected _domainCounts: {
+            [index: number]: number;
+        };
+        /**
+         * 所有单位存放的域
+         *
+         * @protected
+         * @type {UnitDomain}
+         */
+        protected _domainAll: UnitDomain;
         constructor();
         /**
          * 注册一个单位
@@ -7910,34 +7928,34 @@ declare module junyou {
          * @return
          *
          */
-        removeUnit(guid: number | string): Unit;
+        removeUnit(guid: Key): Unit;
         /**
-         * 获取指定域的单位集合
-         * @param domain	指定域
-         * @return
          *
+         * 获取指定域的单位集合
+         * @param {number} domain 指定域
+         * @returns
          */
-        getDomainUnits(domain: number): Object;
+        get(domain: number): UnitDomain;
         /**
          * 获取指定域的单位数量
          * @param domain
          * @return
          *
          */
-        getDomainUnitCount(domain: number): number;
+        getCount(domain: number): number;
         /**
          * 根据GUID获取JUnit
          * @param guid
          * @return
          *
          */
-        getUnit(guid: number | string): Unit;
+        getUnit(guid: Key): Unit;
         /**
-         * 清理对象
-         * @param exceptGuids	需要保留的单位的GUID列表
          *
+         * 清理对象
+         * @param {...Key[]} exceptGuids 需要保留的单位的GUID列表
          */
-        clear(exceptGuids?: Array<number | string>): void;
+        clear(...exceptGuids: Key[]): void;
     }
 }
 declare module junyou {
@@ -8410,7 +8428,7 @@ declare module junyou {
          * @memberOf Facade
          */
         static getNameOfInline(inlineRef: {
-            new(): any;
+            new (): any;
         }, className?: string): string;
         /**
          * 存储的数据Proxy
@@ -8466,7 +8484,7 @@ declare module junyou {
          * @param {boolean} [async=false] 是否异步初始化，默认直接初始化
          */
         registerInlineProxy(ref: {
-            new(): Proxy;
+            new (): Proxy;
         }, proxyName?: Key, async?: boolean): void;
         /**
          *
@@ -8475,7 +8493,7 @@ declare module junyou {
          * @param {string} [mediatorName]   注册的模块名字
          */
         registerInlineMediator(ref: {
-            new(): Mediator;
+            new (): Mediator;
         }, mediatorName?: Key): void;
         /**
          * 注册Proxy的配置
@@ -10679,7 +10697,7 @@ declare module junyou {
          * @param {{ [index: string]: any }} [props]    属性模板
          */
         constructor(creator: {
-            new(): T;
+            new (): T;
         }, props?: {
             [index: string]: any;
         });
@@ -11573,9 +11591,9 @@ declare module junyou {
             x: number;
             y: number;
         }, hoffset?: number, voffset?: number, innerV?: boolean, innerH?: boolean): {
-                x: number;
-                y: number;
-            };
+            x: number;
+            y: number;
+        };
         tipLayout(dis: LayoutDisplay, point: Point, result?: {
             x: number;
             y: number;
@@ -11584,9 +11602,9 @@ declare module junyou {
             x: number;
             y: number;
         }, padx?: number, pady?: number, parent?: LayoutDisplayParent): {
-                x: number;
-                y: number;
-            };
+            x: number;
+            y: number;
+        };
     };
 }
 declare module junyou {
@@ -11602,7 +11620,7 @@ interface Window {
     XMLHttpRequest?: XMLHttpRequest;
 }
 interface ActiveXObject {
-    new(key: "MSXML2.XMLHTTP"): XMLHttpRequest;
+    new (key: "MSXML2.XMLHTTP"): XMLHttpRequest;
 }
 declare const ActiveXObject: ActiveXObject;
 declare var $useDPR: boolean;
@@ -11855,7 +11873,7 @@ declare module junyou {
          * @type {{new():T}}
          */
         renderClass: {
-            new(): T;
+            new (): T;
         };
         /**
          * 背景

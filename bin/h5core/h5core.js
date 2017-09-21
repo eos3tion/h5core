@@ -13619,15 +13619,8 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
-     * 单位的域
-     */
-    junyou.UnitDomain = {};
-    junyou.UnitDomain.DOMAIN_ALL = 0;
-    junyou.UnitDomain.DOMAIN_ROLE = 1;
-    junyou.UnitDomain.DOMAIN_MONSTER = 2;
-    /**
      * 单位管理器
-     * @author
+     * @author 3tion
      *
      */
     var UnitController = (function () {
@@ -13635,8 +13628,8 @@ var junyou;
             this._domains = {};
             this._domainCounts = {};
             this._domainAll = {};
-            this._domains[junyou.UnitDomain.DOMAIN_ALL] = this._domainAll;
-            this._domainCounts[junyou.UnitDomain.DOMAIN_ALL] = 0;
+            this._domains[0 /* All */] = this._domainAll;
+            this._domainCounts[0 /* All */] = 0;
         }
         /**
          * 注册一个单位
@@ -13650,13 +13643,14 @@ var junyou;
                 domains[_i - 1] = arguments[_i];
             }
             var guid = unit.guid;
-            for (var _a = 0, domains_1 = domains; _a < domains_1.length; _a++) {
-                var domain = domains_1[_a];
-                var dom = this._domains[domain];
+            var _a = this, _domains = _a._domains, _domainCounts = _a._domainCounts;
+            for (var _b = 0, domains_1 = domains; _b < domains_1.length; _b++) {
+                var domain = domains_1[_b];
+                var dom = _domains[domain];
                 if (!dom) {
                     dom = {};
-                    this._domains[domain] = dom;
-                    this._domainCounts[domain] = 0;
+                    _domains[domain] = dom;
+                    _domainCounts[domain] = 0;
                 }
                 dom[guid] = unit;
             }
@@ -13671,13 +13665,11 @@ var junyou;
         UnitController.prototype.removeUnit = function (guid) {
             var unit = this._domainAll[guid];
             if (unit) {
-                var tunit;
-                var _domainCounts = this._domainCounts;
-                var _domains = this._domains;
-                _domainCounts[junyou.UnitDomain.DOMAIN_ALL]--;
-                for (var key in this._domains) {
+                var _a = this, _domainCounts = _a._domainCounts, _domains = _a._domains;
+                _domainCounts[0 /* All */]--;
+                for (var key in _domains) {
                     var domain = _domains[key];
-                    tunit = domain[guid];
+                    var tunit = domain[guid];
                     if (tunit) {
                         _domainCounts[key]--;
                         delete domain[guid];
@@ -13687,12 +13679,12 @@ var junyou;
             return unit;
         };
         /**
-         * 获取指定域的单位集合
-         * @param domain	指定域
-         * @return
          *
+         * 获取指定域的单位集合
+         * @param {number} domain 指定域
+         * @returns
          */
-        UnitController.prototype.getDomainUnits = function (domain) {
+        UnitController.prototype.get = function (domain) {
             return this._domains[domain];
         };
         /**
@@ -13701,7 +13693,7 @@ var junyou;
          * @return
          *
          */
-        UnitController.prototype.getDomainUnitCount = function (domain) {
+        UnitController.prototype.getCount = function (domain) {
             return this._domainCounts[domain];
         };
         /**
@@ -13714,26 +13706,28 @@ var junyou;
             return this._domainAll[guid];
         };
         /**
-         * 清理对象
-         * @param exceptGuids	需要保留的单位的GUID列表
          *
+         * 清理对象
+         * @param {...Key[]} exceptGuids 需要保留的单位的GUID列表
          */
-        UnitController.prototype.clear = function (exceptGuids) {
+        UnitController.prototype.clear = function () {
+            var exceptGuids = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                exceptGuids[_i] = arguments[_i];
+            }
             var gcList = junyou.Temp.SharedArray1;
-            gcList.length = 0;
             var i = 0;
             for (var guid in this._domainAll) {
                 if (!exceptGuids || !~exceptGuids.indexOf(guid)) {
                     gcList[i++] = guid;
                 }
             }
-            for (var _i = 0, gcList_1 = gcList; _i < gcList_1.length; _i++) {
-                guid = gcList_1[_i];
-                this.removeUnit(guid);
+            gcList.length = i;
+            while (--i >= 0) {
+                this.removeUnit(gcList[i]);
             }
             gcList.length = 0;
         };
-        UnitController.instance = new UnitController();
         return UnitController;
     }());
     junyou.UnitController = UnitController;

@@ -1,5 +1,5 @@
 module junyou {
-    export class UnitSetting {
+	export class UnitSetting {
 
 		private static _setting: UnitSetting;
 
@@ -16,34 +16,34 @@ module junyou {
 	    /**
 		 * 是否添加UI层
 		 */
-        public hasUILayer: boolean = true;
+		public hasUILayer = true;
 
 		/**
 		 * 是否添加Buff容器
 		 */
-        public hasBuffLayer: boolean = true;
+		public hasBuffLayer = true;
 
 		/**
 		 * 是否添加光环容器
 		 */
-        public hasHaloLayer: boolean = true;
+		public hasHaloLayer = true;
 
         /**
 		 * 是否添加到游戏场景中
 		 */
-        public addToEngine: boolean = true;
+		public addToEngine = true;
 
-        //防止同一坐标的单位排序深度相同，出现闪烁的情况
-        public getDepth(): number {
-            return this.depthA + Math.random() * this.depthB;
-        }
+		//防止同一坐标的单位排序深度相同，出现闪烁的情况
+		public getDepth() {
+			return this.depthA + Math.random() * this.depthB;
+		}
 		/**
 		 * 深度的参数A
 		 */
-        public depthA: number = 0;
+		public depthA = 0;
 		/**
 		 * 深度的参数B
 		 */
-        public depthB: number = 0.19;
-    }
+		public depthB = 0.19;
+	}
 }

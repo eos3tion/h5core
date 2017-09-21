@@ -1,62 +1,66 @@
 module junyou {
 
-
-    export interface UnitDomainConstructor {
-
+    /**
+     * 场景单位域的类型
+     * 
+     * @export
+     * @enum {number}
+     */
+    export const enum UnitDomainType {
         /**
-         * 全部单位
+         * 所有单位
          */
-        DOMAIN_ALL: number;
+        All = 0,
         /**
-         * 角色域
+         * 角色
          */
-        DOMAIN_ROLE: number;
+        Role = 1,
         /**
-         * 怪物域
+         * 怪物
          */
-        DOMAIN_MONSTER: number;
+        Monster = 2
     }
 
-    /**
-     * 单位的域
-     */
-    export var UnitDomain: UnitDomainConstructor = <UnitDomainConstructor>{};
-
-
-    UnitDomain.DOMAIN_ALL = 0;
-    UnitDomain.DOMAIN_ROLE = 1;
-    UnitDomain.DOMAIN_MONSTER = 2;
+    export type UnitDomain = { [index: string]: Unit };
 
 	/**
 	 * 单位管理器
-	 * @author 
+	 * @author 3tion
 	 *
 	 */
     export class UnitController {
 
+        /**
+         * 按类型存放的域
+         * 
+         * @protected
+         * @type {{ [index: number]: { [index: string]: Unit } }}
+         */
+        protected _domains: { [index: number]: UnitDomain };
+
 
         /**
-         * Key     int  domain的名称<br/>
-         * Value Object 一个字典 Key guid  value JUnit
+         * 用于存放单位数量的字典
+         * 
+         * @protected
+         * @type {{ [index: number]: number }}
          */
-        protected _domains: Object;
+        protected _domainCounts: { [index: number]: number };
 
-		/**
-		 * Key 		int domain的名称<br/>
-		 * Value 	int 这个域的单位数量
-		 */
-        protected _domainCounts: Object;
-
-        protected _domainAll: Object;
-
-        public static instance = new UnitController();
+        /**
+         * 所有单位存放的域
+         * 
+         * @protected
+         * @type {UnitDomain}
+         */
+        protected _domainAll: UnitDomain;
 
         constructor() {
             this._domains = {};
             this._domainCounts = {};
             this._domainAll = {};
-            this._domains[UnitDomain.DOMAIN_ALL] = this._domainAll;
-            this._domainCounts[UnitDomain.DOMAIN_ALL] = 0;
+            this._domains[UnitDomainType.All] = this._domainAll;
+            this._domainCounts[UnitDomainType.All] = 0;
         }
 
         /**
@@ -66,13 +70,14 @@ module junyou {
          *
          */
         public registerUnit(unit: Unit, ...domains): void {
-            var guid: string | number = unit.guid;
-            for (var domain of domains) {
-                var dom: Object = this._domains[domain];
+            let guid = unit.guid;
+            const { _domains, _domainCounts } = this;
+            for (let domain of domains) {
+                let dom = _domains[domain];
                 if (!dom) {
                     dom = {};
-                    this._domains[domain] = dom;
-                    this._domainCounts[domain] = 0;
+                    _domains[domain] = dom;
+                    _domainCounts[domain] = 0;
                 }
                 dom[guid] = unit;
             }
@@ -85,16 +90,14 @@ module junyou {
 		 * @return
 		 *
 		 */
-        public removeUnit(guid: number | string): Unit {
-            var unit: Unit = this._domainAll[guid];
+        public removeUnit(guid: Key): Unit {
+            let unit = this._domainAll[guid];
             if (unit) {
-                var tunit: Unit;
-                var _domainCounts = this._domainCounts;
-                var _domains = this._domains;
-                _domainCounts[UnitDomain.DOMAIN_ALL]--;
-                for (var key in this._domains) {
-                    var domain: Object = _domains[key];
-                    tunit = domain[guid];
+                let { _domainCounts, _domains } = this;
+                _domainCounts[UnitDomainType.All]--;
+                for (let key in _domains) {
+                    let domain = _domains[key];
+                    let tunit = domain[guid];
                     if (tunit) {
                         _domainCounts[key]--;
                         delete domain[guid];
@@ -103,13 +106,14 @@ module junyou {
             }
             return unit;
         }
+
         /**
-		 * 获取指定域的单位集合
-		 * @param domain	指定域
-		 * @return
-		 *
-		 */
-        public getDomainUnits(domain: number): Object {
+         * 
+         * 获取指定域的单位集合
+         * @param {number} domain 指定域
+         * @returns 
+         */
+        public get(domain: number) {
             return this._domains[domain];
         }
         /**
@@ -118,7 +122,7 @@ module junyou {
          * @return
          *
          */
-        public getDomainUnitCount(domain: number): number {
+        public getCount(domain: number) {
             return this._domainCounts[domain];
         }
 
@@ -128,26 +132,26 @@ module junyou {
          * @return
          *
          */
-        public getUnit(guid: number | string): Unit {
+        public getUnit(guid: Key) {
             return this._domainAll[guid];
         }
 
-		/**
-		 * 清理对象
-		 * @param exceptGuids	需要保留的单位的GUID列表
-		 *
-		 */
-        public clear(exceptGuids?: Array<number | string>): void {
-            var gcList = Temp.SharedArray1;
-            gcList.length = 0;
-            var i = 0;
-            for (var guid in this._domainAll) {
+        /**
+         * 
+         * 清理对象
+         * @param {...Key[]} exceptGuids 需要保留的单位的GUID列表
+         */
+        public clear(...exceptGuids: Key[]): void {
+            let gcList = Temp.SharedArray1;
+            let i = 0;
+            for (let guid in this._domainAll) {
                 if (!exceptGuids || !~exceptGuids.indexOf(guid)) {
                     gcList[i++] = guid;
                 }
             }
-            for (guid of gcList) {
-                this.removeUnit(guid);
+            gcList.length = i;
+            while (--i >= 0) {
+                this.removeUnit(gcList[i]);
             }
             gcList.length = 0;
         }
