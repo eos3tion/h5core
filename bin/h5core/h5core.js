@@ -5094,7 +5094,7 @@ var junyou;
                 }
                 catch (e) {
                     if (true) {
-                        junyou.ThrowError("\u6267\u884C\u7F51\u7EDC\u56DE\u8C03\u65B9\u6CD5\u51FA\u9519" + JSON.stringify(data) + "\uFF0C\n\u9519\u8BEF\uFF1A" + e.message + "\uFF0C\u5806\u6808\uFF1A\n" + e.stack);
+                        junyou.ThrowError("\u6267\u884C\u7F51\u7EDC\u56DE\u8C03\u65B9\u6CD5\u51FA\u9519" + JSON.stringify(data), e);
                     }
                 }
                 if (bin.once) {
