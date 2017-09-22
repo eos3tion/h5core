@@ -13,12 +13,7 @@ module junyou {
          * @type {UnitState}
          */
         public state: UnitState;
-        /**
-         * 默认的部位列表
-         * 
-         * @static
-         */
-        public static PART_LIST = ["cloth"];
+
         /**
          * 单位标识
          */
@@ -103,7 +98,7 @@ module junyou {
 
         /**
          * 纸娃娃排序列表
-         * 
+         * 从下层到上层排序
          * @protected
          * @type {string[]}
          */
@@ -135,7 +130,6 @@ module junyou {
 
         public constructor(pst: string, setting: UnitSetting) {
             super();
-            this._partList = Unit.PART_LIST;
             this._resDict = {};
             this.initDisplayList(setting);
             this.pst = pst;
@@ -240,16 +234,6 @@ module junyou {
             return this._render.actionInfo as ActionInfo;
         }
 
-
-		/**
-		 * 设置衣服/裸模/底图
-		 */
-        public setCloth(uri: string) {
-            if (uri) {
-                uri = ResPrefix.Cloth + uri;
-            }
-            this.setRes("cloth", uri);
-        }
 
         /**
          * 对指定部位设置资源
