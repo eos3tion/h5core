@@ -3,7 +3,13 @@
  */
 module junyou {
 
+    export const enum UnitResourceConst {
 
+        /**
+         * 单配置文件的路径
+         */
+        CfgFile = "d.json"
+    }
 
 
 	/**
@@ -12,12 +18,6 @@ module junyou {
 	 * 以及图片的坐标信息
 	 */
     export class UnitResource {
-
-
-        /**
-         * 单配置文件的路径
-         */
-        public static DATA_JSON: string = "d.json";
 
         /**
          * 资源标识
@@ -84,8 +84,8 @@ module junyou {
          */
         public loadData() {
             if (this.state == RequestState.UNREQUEST) {
-                var uri = this.key + "/" + UnitResource.DATA_JSON;
-                var url = ConfigUtils.getResUrl(uri);
+                let uri = this.key + "/" + UnitResourceConst.CfgFile;
+                let url = ConfigUtils.getResUrl(uri);
                 this.url = url;
                 this.state = RequestState.REQUESTING;
                 RES.getResByUrl(url, this.dataLoadComplete, this, EgretResType.TYPE_JSON);
