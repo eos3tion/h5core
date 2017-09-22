@@ -11757,7 +11757,7 @@ var junyou;
     __reflect(MapInfo.prototype, "junyou.MapInfo");
     if (true) {
         MapInfo.prototype.getMapUri = function (col, row) {
-            return "m/" + this.resPath + "/" + row.zeroize(3) + col.zeroize(3) + ".jpg" /* JPG */;
+            return "m/" + this.path + "/" + row.zeroize(3) + col.zeroize(3) + ".jpg" /* JPG */;
         };
     }
     if (false) {

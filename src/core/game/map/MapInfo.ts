@@ -120,7 +120,7 @@ module junyou {
 
     if (DEBUG) {
         MapInfo.prototype.getMapUri = function (col: number, row: number): string {
-            return "m/" + this.resPath + "/" + row.zeroize(3) + col.zeroize(3) + Ext.JPG;
+            return "m/" + this.path + "/" + row.zeroize(3) + col.zeroize(3) + Ext.JPG;
         }
     }
     if (RELEASE) {
