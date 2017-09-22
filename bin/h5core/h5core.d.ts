@@ -7664,7 +7664,7 @@ declare module junyou {
         pst: string;
         protected abstract pstInfoChange(): any;
         protected abstract getPstInfo(pst: string): PstInfo;
-        constructor(pst: string, setting: UnitSetting);
+        init(pst: string, setting: UnitSetting): this;
         onSpwan(): void;
         /**
          * 重置渲染器时间

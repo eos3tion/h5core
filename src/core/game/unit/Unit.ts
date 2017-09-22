@@ -128,14 +128,14 @@ module junyou {
         protected abstract getPstInfo(pst: string): PstInfo;
 
 
-        public constructor(pst: string, setting: UnitSetting) {
-            super();
+        public init(pst: string, setting: UnitSetting) {
             this._resDict = {};
             this.initDisplayList(setting);
             this.pst = pst;
             this.initDefaultAction();
             this.startUnitAction();
             this.onSpwan();
+            return this;
         }
 
         public onSpwan() {

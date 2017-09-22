@@ -12940,7 +12940,7 @@ var junyou;
         /**
          * 检查/重置资源列表
          *
-         * @param {string[]} resOrder 部位的排列顺序
+         * @param {Key[]} resOrder 部位的排列顺序
          * @param {{ [index: string]: UnitResource }} resDict 部位和资源的字典
          */
         UModel.prototype.checkResList = function (resOrder, resDict) {
@@ -13035,20 +13035,14 @@ var junyou;
      */
     var Unit = (function (_super) {
         __extends(Unit, _super);
-        function Unit(pst, setting) {
-            var _this = _super.call(this) || this;
+        function Unit() {
+            var _this = _super !== null && _super.apply(this, arguments) || this;
             /**
              * 当前骑乘标识
              */
             _this._mountType = 0 /* ground */;
             _this._z = 0;
             _this._rotation = 0;
-            _this._resDict = {};
-            _this.initDisplayList(setting);
-            _this.pst = pst;
-            _this.initDefaultAction();
-            _this.startUnitAction();
-            _this.onSpwan();
             return _this;
         }
         Object.defineProperty(Unit.prototype, "playSpeed", {
@@ -13107,6 +13101,15 @@ var junyou;
             enumerable: true,
             configurable: true
         });
+        Unit.prototype.init = function (pst, setting) {
+            this._resDict = {};
+            this.initDisplayList(setting);
+            this.pst = pst;
+            this.initDefaultAction();
+            this.startUnitAction();
+            this.onSpwan();
+            return this;
+        };
         Unit.prototype.onSpwan = function () {
             this.state = 0 /* Init */;
             this.dispatch(-1998 /* UnitCreate */);
@@ -13202,7 +13205,7 @@ var junyou;
          * 对指定部位设置资源
          *
          * @protected
-         * @param {string} part 部位
+         * @param {Key} part 部位
          * @param {string} [uri] 资源路径，不传则清空部位
          * @param {string} [pst] 通过其他pst配置进行加载
          */
