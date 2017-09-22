@@ -60,6 +60,15 @@ module junyou {
             this.setSize(width, height);
         }
 
+        /**
+         * 强制设置为改变  
+         * 用于地图切换时，坐标不发生变化的情况
+         * 
+         */
+        public invalidate() {
+            this._changed = true;
+        }
+
         /**          
          * 相机跟随一个可视对象          
          * @param target 镜头要跟随的目标          
