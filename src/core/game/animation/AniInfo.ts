@@ -31,7 +31,7 @@ module junyou {
                 }
                 this._refList.push(render);
                 if (state == RequestState.UNREQUEST) {
-                    let uri = ResPrefix.ANI + this.key + "/" + UnitResource.DATA_JSON;
+                    let uri = ResPrefix.Ani + this.key + "/" + UnitResourceConst.CfgFile;
                     this.url = ConfigUtils.getResUrl(uri);
                     RES.getResByUrl(this.url, this.dataLoadComplete, this, EgretResType.TYPE_JSON);
                     this.state = RequestState.REQUESTING;
@@ -72,7 +72,7 @@ module junyou {
 
         public init(key: string, data: any[]) {
             super.init(key, data[0]);
-            var res: UnitResource = new UnitResource(ResPrefix.ANI + key, this.splitInfo);
+            let res: UnitResource = new UnitResource(ResPrefix.Ani + key, this.splitInfo);
             res.decodeData(data[1]);
             this._resources = res;
             this.state = RequestState.COMPLETE;
