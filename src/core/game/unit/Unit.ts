@@ -100,9 +100,9 @@ module junyou {
          * 纸娃娃排序列表
          * 从下层到上层排序
          * @protected
-         * @type {string[]}
+         * @type {Key[]}
          */
-        protected _partList: string[];
+        protected _partList: Key[];
 
         /**
          * 上一次渲染的信息
@@ -239,11 +239,11 @@ module junyou {
          * 对指定部位设置资源
          * 
          * @protected
-         * @param {string} part 部位
+         * @param {Key} part 部位
          * @param {string} [uri] 资源路径，不传则清空部位
          * @param {string} [pst] 通过其他pst配置进行加载
          */
-        protected setRes(part: string, uri?: string, pst?: string) {
+        protected setRes(part: Key, uri?: string, pst?: string) {
             let old = this._resDict[part];
             let res: UnitResource;
             if (uri) {
@@ -286,7 +286,7 @@ module junyou {
          * @param {string[]} [resOrder] 部位的排列顺序
          * @param {{ [index: string]: UnitResource }} [resDict] 部位和资源的字典
          */
-        public checkResList(resOrder?: string[], resDict?: { [index: string]: UnitResource }) {
+        public checkResList(resOrder?: Key[], resDict?: { [index: string]: UnitResource }) {
             this._model.checkResList(resOrder || this._partList, resDict || this._resDict)
         }
 

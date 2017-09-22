@@ -18,10 +18,10 @@ module junyou {
         /**
          * 检查/重置资源列表
          * 
-         * @param {string[]} resOrder 部位的排列顺序
+         * @param {Key[]} resOrder 部位的排列顺序
          * @param {{ [index: string]: UnitResource }} resDict 部位和资源的字典
          */
-        public checkResList(resOrder: string[], resDict: { [index: string]: UnitResource }) {
+        public checkResList(resOrder: Key[], resDict: { [index: string]: UnitResource }) {
             let children = this.$children;
             let i = 0;
             let len = children.length;

@@ -7543,10 +7543,10 @@ declare module junyou {
         /**
          * 检查/重置资源列表
          *
-         * @param {string[]} resOrder 部位的排列顺序
+         * @param {Key[]} resOrder 部位的排列顺序
          * @param {{ [index: string]: UnitResource }} resDict 部位和资源的字典
          */
-        checkResList(resOrder: string[], resDict: {
+        checkResList(resOrder: Key[], resDict: {
             [index: string]: UnitResource;
         }): void;
         /**
@@ -7648,9 +7648,9 @@ declare module junyou {
          * 纸娃娃排序列表
          * 从下层到上层排序
          * @protected
-         * @type {string[]}
+         * @type {Key[]}
          */
-        protected _partList: string[];
+        protected _partList: Key[];
         /**
          * 上一次渲染的信息
          *
@@ -7704,11 +7704,11 @@ declare module junyou {
          * 对指定部位设置资源
          *
          * @protected
-         * @param {string} part 部位
+         * @param {Key} part 部位
          * @param {string} [uri] 资源路径，不传则清空部位
          * @param {string} [pst] 通过其他pst配置进行加载
          */
-        protected setRes(part: string, uri?: string, pst?: string): void;
+        protected setRes(part: Key, uri?: string, pst?: string): void;
         /**
          * 资源列表发生改变
          */
@@ -7723,7 +7723,7 @@ declare module junyou {
          * @param {string[]} [resOrder] 部位的排列顺序
          * @param {{ [index: string]: UnitResource }} [resDict] 部位和资源的字典
          */
-        checkResList(resOrder?: string[], resDict?: {
+        checkResList(resOrder?: Key[], resDict?: {
             [index: string]: UnitResource;
         }): void;
         /**
