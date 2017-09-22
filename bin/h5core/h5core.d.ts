@@ -5304,24 +5304,11 @@ declare module junyou {
  * @author 3tion
  */
 declare module junyou {
-    /**
-     * 资源前缀
-     * 用于配置文件夹
-     * 如果是/结尾
-     * 目前测试使用的
-     * Cloth为u/
-     * ANI为a/
-     */
-    var ResPrefix: ResPrefixConstructor;
-    interface ResPrefixConstructor {
+    const enum ResPrefix {
         /**
-         * 衣服/底图
+         * 特效文件夹
          */
-        Cloth: string;
-        /**
-         * 特效
-         */
-        ANI: string;
+        Ani = "a/",
     }
 }
 declare module junyou {
@@ -6094,16 +6081,18 @@ declare module junyou {
  * @author 3tion
  */
 declare module junyou {
+    const enum UnitResourceConst {
+        /**
+         * 单配置文件的路径
+         */
+        CfgFile = "d.json",
+    }
     /**
      * 单位资源<br/>
      * 图片按动作或者方向的序列帧，装箱处理后的图片位图资源<br/>
      * 以及图片的坐标信息
      */
     class UnitResource {
-        /**
-         * 单配置文件的路径
-         */
-        static DATA_JSON: string;
         /**
          * 资源标识
          */
@@ -7591,12 +7580,6 @@ declare module junyou {
          */
         state: UnitState;
         /**
-         * 默认的部位列表
-         *
-         * @static
-         */
-        static PART_LIST: string[];
-        /**
          * 单位标识
          */
         guid: Key;
@@ -7663,7 +7646,7 @@ declare module junyou {
         protected _action: number;
         /**
          * 纸娃娃排序列表
-         *
+         * 从下层到上层排序
          * @protected
          * @type {string[]}
          */
@@ -7717,10 +7700,6 @@ declare module junyou {
          * 获取当前动作序列
          */
         getCurAction(): Readonly<ActionInfo>;
-        /**
-         * 设置衣服/裸模/底图
-         */
-        setCloth(uri: string): void;
         /**
          * 对指定部位设置资源
          *

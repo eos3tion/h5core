@@ -9749,14 +9749,6 @@ var junyou;
         }
     })();
 })(junyou || (junyou = {}));
-/**
- * 游戏的常量的接口定义
- * 子项目自身实现接口
- * @author 3tion
- */
-var junyou;
-(function (junyou) {
-})(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
     /**
@@ -9922,7 +9914,7 @@ var junyou;
                 }
                 this._refList.push(render);
                 if (state == 0 /* UNREQUEST */) {
-                    var uri = junyou.ResPrefix.ANI + this.key + "/" + junyou.UnitResource.DATA_JSON;
+                    var uri = "a/" /* Ani */ + this.key + "/" + "d.json" /* CfgFile */;
                     this.url = junyou.ConfigUtils.getResUrl(uri);
                     RES.getResByUrl(this.url, this.dataLoadComplete, this, "json" /* TYPE_JSON */);
                     this.state = 1 /* REQUESTING */;
@@ -9961,7 +9953,7 @@ var junyou;
         };
         AniInfo.prototype.init = function (key, data) {
             _super.prototype.init.call(this, key, data[0]);
-            var res = new junyou.UnitResource(junyou.ResPrefix.ANI + key, this.splitInfo);
+            var res = new junyou.UnitResource("a/" /* Ani */ + key, this.splitInfo);
             res.decodeData(data[1]);
             this._resources = res;
             this.state = 2 /* COMPLETE */;
@@ -10850,7 +10842,7 @@ var junyou;
          */
         UnitResource.prototype.loadData = function () {
             if (this.state == 0 /* UNREQUEST */) {
-                var uri = this.key + "/" + UnitResource.DATA_JSON;
+                var uri = this.key + "/" + "d.json" /* CfgFile */;
                 var url = junyou.ConfigUtils.getResUrl(uri);
                 this.url = url;
                 this.state = 1 /* REQUESTING */;
@@ -10922,10 +10914,6 @@ var junyou;
             var res = junyou.ResourceManager.getResource(uri);
             return !!(res && res.bmd);
         };
-        /**
-         * 单配置文件的路径
-         */
-        UnitResource.DATA_JSON = "d.json";
         return UnitResource;
     }());
     junyou.UnitResource = UnitResource;
@@ -13055,7 +13043,6 @@ var junyou;
             _this._mountType = 0 /* ground */;
             _this._z = 0;
             _this._rotation = 0;
-            _this._partList = Unit.PART_LIST;
             _this._resDict = {};
             _this.initDisplayList(setting);
             _this.pst = pst;
@@ -13210,15 +13197,6 @@ var junyou;
          */
         Unit.prototype.getCurAction = function () {
             return this._render.actionInfo;
-        };
-        /**
-         * 设置衣服/裸模/底图
-         */
-        Unit.prototype.setCloth = function (uri) {
-            if (uri) {
-                uri = junyou.ResPrefix.Cloth + uri;
-            }
-            this.setRes("cloth", uri);
         };
         /**
          * 对指定部位设置资源
@@ -13595,12 +13573,6 @@ var junyou;
             enumerable: true,
             configurable: true
         });
-        /**
-         * 默认的部位列表
-         *
-         * @static
-         */
-        Unit.PART_LIST = ["cloth"];
         return Unit;
     }(egret.EventDispatcher));
     junyou.Unit = Unit;
