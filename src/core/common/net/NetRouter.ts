@@ -90,7 +90,7 @@ module junyou {
         }
 
         private dispatchList: NetBin[] = [];
-        
+
         /**
         * 调用列表
         */
@@ -114,7 +114,7 @@ module junyou {
                     bin.handler(data);
                 } catch (e) {
                     if (DEBUG) {
-                        ThrowError(`执行网络回调方法出错${JSON.stringify(data)}，\n错误：${e.message}，堆栈：\n${e.stack}`);
+                        ThrowError(`执行网络回调方法出错${JSON.stringify(data)}`, e);
                     }
                 }
                 if (bin.once) {//如果只执行一次的，就移除
