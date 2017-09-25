@@ -11842,6 +11842,11 @@ var junyou;
             var er = (y + h) / pH | 0;
             ec = Math.min(ec, cM.maxPicX);
             er = Math.min(er, cM.maxPicY);
+            if (true) {
+                if (this.drawGrid) {
+                    this.drawGrid(x, y, w, h, cM);
+                }
+            }
             if (sc == this.lsc && sr == this.lsr && ec == this.lec && er == this.ler) {
                 return;
             }
@@ -11885,11 +11890,6 @@ var junyou;
             var this_1 = this;
             for (var r = sr; r <= er; r++) {
                 _loop_1(r);
-            }
-            if (true) {
-                if (this.drawGrid) {
-                    this.drawGrid(x, y, w, h, cM);
-                }
             }
             showing.length = i;
         };

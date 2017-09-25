@@ -89,6 +89,11 @@ module junyou {
             let er = (y + h) / pH | 0;
             ec = Math.min(ec, cM.maxPicX);
             er = Math.min(er, cM.maxPicY);
+            if (DEBUG) {
+                if (this.drawGrid) {
+                    this.drawGrid(x, y, w, h, cM);
+                }
+            }
             if (sc == this.lsc && sr == this.lsr && ec == this.lec && er == this.ler) {//要加载的块没有发生任何变更
                 return;
             }
@@ -125,11 +130,6 @@ module junyou {
                     tm.isStatic = true;
                     this.$doAddChild(tm, i, false);
                     showing[i++] = tm;
-                }
-            }
-            if (DEBUG) {
-                if (this.drawGrid) {
-                    this.drawGrid(x, y, w, h, cM);
                 }
             }
             showing.length = i;
