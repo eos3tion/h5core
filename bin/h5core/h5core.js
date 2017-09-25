@@ -11731,7 +11731,7 @@ var junyou;
             _this.pHeight = 256 /* DefaultSize */;
             return _this;
         }
-        // const KEYS=["id","path","columns","rows","width","height"];
+        // const KEYS=["id", "path", "columns", "rows", "width", "height", "gridWidth", "gridHeight"];
         MapInfo.decodeFromArray = function (arr, ref) {
             ref = ref || MapInfo;
             var m = new ref();
@@ -11741,11 +11741,13 @@ var junyou;
             m.rows = arr[3];
             m.width = arr[4];
             m.height = arr[5];
+            m.gridWidth = arr[6];
+            m.gridHeight = arr[7];
             m.maxPicX = m.width / m.pWidth - 1 >> 0;
             m.maxPicY = m.height / m.pHeight - 1 >> 0;
             // 地图的base64数据
             // 项目部使用路径点信息
-            var b64 = arr[6];
+            var b64 = arr[8];
             if (b64) {
                 m.pathdata = new Uint8Array(egret.Base64Util.decode(b64));
             }
