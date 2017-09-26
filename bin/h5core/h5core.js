@@ -14991,7 +14991,7 @@ var junyou;
          */
         function Mediator(moduleID) {
             var _this = _super.call(this, moduleID) || this;
-            _this.init && _this.init();
+            _this.init();
             return _this;
         }
         Object.defineProperty(Mediator.prototype, "view", {
@@ -15044,6 +15044,15 @@ var junyou;
             else {
                 this.dependerReadyCheck();
             }
+        };
+        /**
+         * 用于写加载数据和加载创建视图的代码
+         *
+         * @protected
+         * @abstract
+         */
+        Mediator.prototype.init = function () {
+            this._ready = true;
         };
         /**
          *
