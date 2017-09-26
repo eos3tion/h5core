@@ -14988,7 +14988,7 @@ var junyou;
          */
         function Mediator(moduleID) {
             var _this = _super.call(this, moduleID) || this;
-            _this.init();
+            _this.init && _this.init();
             return _this;
         }
         Object.defineProperty(Mediator.prototype, "view", {

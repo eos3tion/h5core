@@ -8792,7 +8792,7 @@ declare module junyou {
          * @protected
          * @abstract
          */
-        protected abstract init(): any;
+        protected init?(): any;
         /**
          *
          * 依赖项完毕后检查
