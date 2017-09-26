@@ -36,7 +36,7 @@ module junyou {
                 this.addSkinListener(value);
                 value.moduleID = this._name;
                 if (isIAsync(value)) {
-                    (<IAsyncPanel>value).addReadyExecute(this.preViewCompleteHandler, this);
+                    value.addReadyExecute(this.preViewCompleteHandler, this);
                 }
             }
         }
@@ -48,7 +48,7 @@ module junyou {
          */
         public startSync() {
             if (isIAsync(this.$view)) {
-                const async = <IAsyncPanel>this.$view;
+                const async = this.$view;
                 if (async.isReady) {
                     this.preViewCompleteHandler();
                 } else {
