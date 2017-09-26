@@ -36,7 +36,9 @@ module junyou {
                 this.addSkinListener(value);
                 value.moduleID = this._name;
                 if (isIAsync(value)) {
-                    value.addReadyExecute(this.preViewCompleteHandler, this);
+                    value.addReadyExecute(this.viewComplete, this);
+                } else {
+                    this.viewComplete();
                 }
             }
         }
@@ -50,9 +52,9 @@ module junyou {
             if (isIAsync(this.$view)) {
                 const async = this.$view;
                 if (async.isReady) {
-                    this.preViewCompleteHandler();
+                    this.viewComplete();
                 } else {
-                    async.addReadyExecute(this.preViewCompleteHandler, this);
+                    async.addReadyExecute(this.viewComplete, this);
                     async.startSync();
                 }
             }
@@ -63,7 +65,7 @@ module junyou {
          * 视图加载完毕
          * @protected
          */
-        protected preViewCompleteHandler() {
+        protected viewComplete() {
             this._preViewReady = true;
             if (this._dependerHelper) {//不创建
                 this._dependerHelper.check();
@@ -79,7 +81,7 @@ module junyou {
          */
         public constructor(moduleID: string | number) {
             super(moduleID);
-            this.init();
+            this.init && this.init();
         }
 
         /**
@@ -88,9 +90,7 @@ module junyou {
          * @protected
          * @abstract
          */
-        protected init() {
-            this._ready = true;
-        }
+        protected init?();
 
         /**
          * 
