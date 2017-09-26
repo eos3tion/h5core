@@ -11,7 +11,7 @@ interface $gmType {
 }
 declare module junyou {
     type InjectProxy = {
-        new(): IAsync;
+        new (): IAsync;
     } | string | number;
     /**
      * Mediator和Proxy的基类
@@ -92,7 +92,7 @@ declare module junyou {
      * @returns
      */
     function __dependProxy(ref: {
-        new(): IAsync;
+        new (): IAsync;
     } | string | number): (target: any, key: string) => void;
 }
 declare module junyou {
@@ -364,7 +364,7 @@ interface Array<T> {
 }
 declare module junyou {
     function is(instance: any, ref: {
-        new(): any;
+        new (): any;
     }): boolean;
     /**
      * 移除可视对象
@@ -2699,7 +2699,7 @@ declare module junyou {
          * @memberOf MixinOption
          */
         clazz: {
-            new(): T;
+            new (): T;
         };
         /**
          *
@@ -2822,7 +2822,7 @@ declare module junyou {
          */
         protected _creators: {
             [index: string]: {
-                new(): BaseCreator<egret.DisplayObject>;
+                new (): BaseCreator<egret.DisplayObject>;
             };
         };
         /**
@@ -3827,7 +3827,7 @@ declare module junyou {
          * @memberOf PBStructDict
          */
         $$inted?: any;
-        /**消息名称*/[index: string]: PBStruct;
+        /**消息名称*/ [index: string]: PBStruct;
     }
     /**
      *
@@ -5323,7 +5323,7 @@ declare module junyou {
         };
         static instance: GameEngine;
         static init(stage: egret.Stage, ref?: {
-            new(stage: egret.Stage): GameEngine;
+            new (stage: egret.Stage): GameEngine;
         }): void;
         static addLayerConfig(id: number, parentid?: number, ref?: new (id: number) => GameLayer): void;
         /**
@@ -6741,7 +6741,7 @@ declare module junyou {
         pathdata?: Uint8Array;
         constructor();
         static decodeFromArray(arr: any[], ref?: {
-            new(): MapInfo;
+            new (): MapInfo;
         }): MapInfo;
         /**
         * 获取资源路径
@@ -6982,8 +6982,8 @@ declare module junyou {
         getPath(fx: number, fy: number, tx: number, ty: number, callback: {
             (path: PathNode[], ...args): void;
         }, ...args: any[]): {
-                stop: boolean;
-            };
+            stop: boolean;
+        };
     }
 }
 declare module junyou {
@@ -7187,10 +7187,10 @@ declare module junyou {
          */
         recycle(t: T): void;
         constructor(TCreator: {
-            new(): T;
+            new (): T;
         } | {
-                (): T;
-            }, max?: number);
+            (): T;
+        }, max?: number);
     }
     interface RecyclablePool<T> {
         /**
@@ -7215,7 +7215,7 @@ declare module junyou {
      * @returns {(T & { recycle() })}
      */
     function recyclable<T>(clazz: {
-        new(): T;
+        new (): T;
         _pool?: RecyclablePool<T>;
     }): Recyclable<T>;
 }
@@ -7840,7 +7840,7 @@ declare module junyou {
      * @param clazz 要做单例的类型
      */
     function singleton<T>(clazz: {
-        new(): T;
+        new (): T;
         _instance?: T;
     }): T;
 }
@@ -8409,7 +8409,7 @@ declare module junyou {
          * @memberOf Facade
          */
         static getNameOfInline(inlineRef: {
-            new(): any;
+            new (): any;
         }, className?: string): string;
         /**
          * 存储的数据Proxy
@@ -8465,7 +8465,7 @@ declare module junyou {
          * @param {boolean} [async=false] 是否异步初始化，默认直接初始化
          */
         registerInlineProxy(ref: {
-            new(): Proxy;
+            new (): Proxy;
         }, proxyName?: Key, async?: boolean): void;
         /**
          *
@@ -8474,7 +8474,7 @@ declare module junyou {
          * @param {string} [mediatorName]   注册的模块名字
          */
         registerInlineMediator(ref: {
-            new(): Mediator;
+            new (): Mediator;
         }, mediatorName?: Key): void;
         /**
          * 注册Proxy的配置
@@ -8501,7 +8501,7 @@ declare module junyou {
          */
         getProxy(proxyName: Key, callback: {
             (proxy: Proxy, ...args: any[]);
-        }, thisObj: any, ...args: any[]): void;
+        }, thisObj: any, ...args: any[]): FHost;
         /**
          * 以同步方式获取proxy，不会验证proxy是否加载完毕
          * 有可能无法取到proxy
@@ -8522,7 +8522,7 @@ declare module junyou {
          */
         getMediator(moduleID: Key, callback: {
             (mediator: Mediator, ...args: any[]);
-        }, thisObj: any, ...args: any[]): void;
+        }, thisObj: any, ...args: any[]): FHost;
         /**
          * 以同步方式获取Mediator，不会验证Mediator是否加载完毕
          * 有可能无法取到Mediator
@@ -8555,7 +8555,7 @@ declare module junyou {
          * @param {any[]} args            函数的参数列表
          * @returns
          */
-        executeMediator(moduleID: Key, showTip: boolean, handlerName: string, show?: boolean, ...args: any[]): void;
+        executeMediator(moduleID: Key, showTip: boolean, handlerName: string, show?: boolean, ...args: any[]): FHost;
         /**
          * 不做验证，直接执行mediator的方法
          * 此方法只允许ModuleHandler使用
@@ -8565,7 +8565,7 @@ declare module junyou {
          * @param handlerName   执行的函数名
          * @param args
          */
-        $executeMediator(moduleID: string, handlerName: string, ...args: any[]): void;
+        $executeMediator(moduleID: string, handlerName: string, ...args: any[]): FHost;
         protected _executeMediator(mediator: Mediator, handlerName: string, ...args: any[]): void;
         protected _executeAndShowMediator(mediator: Mediator, handlerName: string, ...args: any[]): void;
         /**
@@ -8574,7 +8574,7 @@ declare module junyou {
          * @param handlerName   函数名字
          * @param args          参数列表
          */
-        executeProxy(proxyName: Key, handlerName: string, ...args: any[]): void;
+        executeProxy(proxyName: Key, handlerName: string, ...args: any[]): FHost;
         protected _executeProxy(proxy: Proxy, handlerName: string, ...args: any[]): void;
         /**
          * 正在注入的对象
@@ -8623,14 +8623,14 @@ declare module junyou {
      */
     function proxyCall(proxyName: Key, callback: {
         (proxy: Proxy, ...args: any[]);
-    }, thisObj?: any, ...args: any[]): any;
+    }, thisObj?: any, ...args: any[]): Proxy;
     /**
      * 执行Proxy的方法
      * @param name     proxy名字
      * @param handlerName   函数名字
      * @param args          参数列表
      */
-    function proxyExec(proxyName: Key, handlerName: string, ...args: any[]): any;
+    function proxyExec(proxyName: Key, handlerName: string, ...args: any[]): Proxy;
     /**
      * 等其他Mediator加载好后回调
      *
@@ -8644,7 +8644,7 @@ declare module junyou {
      */
     function mediatorCall(mediatorName: Key, callback: {
         (mediator: Mediator, ...args: any[]);
-    }, thisObj?: any, ...args: any[]): any;
+    }, thisObj?: any, ...args: any[]): Mediator;
     /**
      *
      * 执行某个模块的方法
@@ -8655,7 +8655,7 @@ declare module junyou {
      * @param {any[]} args            函数的参数列表
      * @returns
      */
-    function mediatorExec(moduleID: Key, showTip: boolean, handlerName: string, show?: boolean, ...args: any[]): any;
+    function mediatorExec(moduleID: Key, showTip: boolean, handlerName: string, show?: boolean, ...args: any[]): Mediator;
     /**
      * 全局抛事件
      *
@@ -8779,7 +8779,7 @@ declare module junyou {
          * 视图加载完毕
          * @protected
          */
-        protected preViewCompleteHandler(): void;
+        protected viewComplete(): void;
         /**
          * Creates an instance of Mediator.
          *
@@ -8792,7 +8792,7 @@ declare module junyou {
          * @protected
          * @abstract
          */
-        protected init(): void;
+        protected init?(): any;
         /**
          *
          * 依赖项完毕后检查
@@ -10678,7 +10678,7 @@ declare module junyou {
          * @param {{ [index: string]: any }} [props]    属性模板
          */
         constructor(creator: {
-            new(): T;
+            new (): T;
         }, props?: {
             [index: string]: any;
         });
@@ -11572,9 +11572,9 @@ declare module junyou {
             x: number;
             y: number;
         }, hoffset?: number, voffset?: number, innerV?: boolean, innerH?: boolean): {
-                x: number;
-                y: number;
-            };
+            x: number;
+            y: number;
+        };
         tipLayout(dis: LayoutDisplay, point: Point, result?: {
             x: number;
             y: number;
@@ -11583,9 +11583,9 @@ declare module junyou {
             x: number;
             y: number;
         }, padx?: number, pady?: number, parent?: LayoutDisplayParent): {
-                x: number;
-                y: number;
-            };
+            x: number;
+            y: number;
+        };
     };
 }
 declare module junyou {
@@ -11601,7 +11601,7 @@ interface Window {
     XMLHttpRequest?: XMLHttpRequest;
 }
 interface ActiveXObject {
-    new(key: "MSXML2.XMLHTTP"): XMLHttpRequest;
+    new (key: "MSXML2.XMLHTTP"): XMLHttpRequest;
 }
 declare const ActiveXObject: ActiveXObject;
 declare var $useDPR: boolean;
@@ -11854,7 +11854,7 @@ declare module junyou {
          * @type {{new():T}}
          */
         renderClass: {
-            new(): T;
+            new (): T;
         };
         /**
          * 背景

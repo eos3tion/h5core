@@ -14662,7 +14662,7 @@ var junyou;
             bin.callback = callback;
             bin.thisObj = thisObj;
             bin.args = args;
-            this._solveScriptCallback(bin);
+            return this._solveScriptCallback(bin);
         };
         /**
          * 以同步方式获取proxy，不会验证proxy是否加载完毕
@@ -14704,7 +14704,7 @@ var junyou;
             bin.callback = callback;
             bin.thisObj = thisObj;
             bin.args = args;
-            this._solveScriptCallback(bin);
+            return this._solveScriptCallback(bin);
         };
         /**
          * 以同步方式获取Mediator，不会验证Mediator是否加载完毕
@@ -14724,19 +14724,14 @@ var junyou;
         Facade.prototype._solveScriptCallback = function (bin) {
             if (bin.dele.scriptid) {
                 var script = this.getOrCreateScript(bin.dele);
-                if (script.state == 2 /* COMPLETE */) {
-                    //直接回调
-                    this._getHost(bin);
-                }
-                else {
+                if (script.state != 2 /* COMPLETE */) {
                     script.callbacks.push(junyou.CallbackInfo.get(this._getHost, this, bin));
                     script.load();
+                    return;
                 }
             }
-            else {
-                //直接回调
-                this._getHost(bin);
-            }
+            //直接回调
+            return this._getHost(bin);
         };
         Facade.prototype._getHost = function (bin) {
             var dele = bin.dele;
@@ -14754,6 +14749,7 @@ var junyou;
                 host.addReadyExecute.apply(host, [bin.callback, bin.thisObj, host].concat(bin.args));
                 host.startSync();
             }
+            return host;
             var _a;
         };
         /**
@@ -14787,12 +14783,8 @@ var junyou;
                 args[_i - 4] = arguments[_i];
             }
             if (this._mm && this._mm.isModuleOpened(moduleID, showTip)) {
-                if (show) {
-                    this.getMediator.apply(this, [moduleID, this._executeAndShowMediator, this, handlerName].concat(args));
-                }
-                else {
-                    this.getMediator.apply(this, [moduleID, this._executeMediator, this, handlerName].concat(args));
-                }
+                var hander = show ? this._executeAndShowMediator : this._executeMediator;
+                return this.getMediator.apply(this, [moduleID, hander, this, handlerName].concat(args));
             }
         };
         /**
@@ -14809,7 +14801,7 @@ var junyou;
             for (var _i = 2; _i < arguments.length; _i++) {
                 args[_i - 2] = arguments[_i];
             }
-            this.getMediator(moduleID, this._executeMediator, this, args);
+            return this.getMediator(moduleID, this._executeMediator, this, args);
         };
         Facade.prototype._executeMediator = function (mediator, handlerName) {
             var args = [];
@@ -14843,7 +14835,7 @@ var junyou;
             for (var _i = 2; _i < arguments.length; _i++) {
                 args[_i - 2] = arguments[_i];
             }
-            this.getProxy.apply(this, [proxyName, this._executeProxy, this, handlerName].concat(args));
+            return this.getProxy.apply(this, [proxyName, this._executeProxy, this, handlerName].concat(args));
         };
         Facade.prototype._executeProxy = function (proxy, handlerName) {
             var args = [];
@@ -14887,22 +14879,22 @@ var junyou;
     __reflect(Facade.prototype, "junyou.Facade");
     function proxyCall() {
         var f = junyou.facade;
-        f.getProxy.apply(f, arguments);
+        return f.getProxy.apply(f, arguments);
     }
     junyou.proxyCall = proxyCall;
     function proxyExec() {
         var f = junyou.facade;
-        f.executeProxy.apply(f, arguments);
+        return f.executeProxy.apply(f, arguments);
     }
     junyou.proxyExec = proxyExec;
     function mediatorCall() {
         var f = junyou.facade;
-        f.getMediator.apply(f, arguments);
+        return f.getMediator.apply(f, arguments);
     }
     junyou.mediatorCall = mediatorCall;
     function mediatorExec() {
         var f = junyou.facade;
-        f.executeMediator.apply(f, arguments);
+        return f.executeMediator.apply(f, arguments);
     }
     junyou.mediatorExec = mediatorExec;
     /**
@@ -14991,7 +14983,7 @@ var junyou;
          */
         function Mediator(moduleID) {
             var _this = _super.call(this, moduleID) || this;
-            _this.init();
+            _this.init && _this.init();
             return _this;
         }
         Object.defineProperty(Mediator.prototype, "view", {
@@ -15009,7 +15001,10 @@ var junyou;
                     this.addSkinListener(value);
                     value.moduleID = this._name;
                     if (junyou.isIAsync(value)) {
-                        value.addReadyExecute(this.preViewCompleteHandler, this);
+                        value.addReadyExecute(this.viewComplete, this);
+                    }
+                    else {
+                        this.viewComplete();
                     }
                 }
             },
@@ -15023,10 +15018,10 @@ var junyou;
             if (junyou.isIAsync(this.$view)) {
                 var async = this.$view;
                 if (async.isReady) {
-                    this.preViewCompleteHandler();
+                    this.viewComplete();
                 }
                 else {
-                    async.addReadyExecute(this.preViewCompleteHandler, this);
+                    async.addReadyExecute(this.viewComplete, this);
                     async.startSync();
                 }
             }
@@ -15036,7 +15031,7 @@ var junyou;
          * 视图加载完毕
          * @protected
          */
-        Mediator.prototype.preViewCompleteHandler = function () {
+        Mediator.prototype.viewComplete = function () {
             this._preViewReady = true;
             if (this._dependerHelper) {
                 this._dependerHelper.check();
@@ -15044,15 +15039,6 @@ var junyou;
             else {
                 this.dependerReadyCheck();
             }
-        };
-        /**
-         * 用于写加载数据和加载创建视图的代码
-         *
-         * @protected
-         * @abstract
-         */
-        Mediator.prototype.init = function () {
-            this._ready = true;
         };
         /**
          *
