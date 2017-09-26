@@ -138,7 +138,7 @@ module junyou {
                 let host: Proxy = new ref();
                 dele.host = host;
                 facade.inject(host);
-                host.onRegister();                
+                host.onRegister();
             }
         }
 
@@ -241,7 +241,7 @@ module junyou {
             bin.callback = callback;
             bin.thisObj = thisObj;
             bin.args = args;
-            this._solveScriptCallback(bin);
+            return this._solveScriptCallback(bin);
         }
 
         /**
@@ -281,7 +281,7 @@ module junyou {
             bin.callback = callback;
             bin.thisObj = thisObj;
             bin.args = args;
-            this._solveScriptCallback(bin);
+            return this._solveScriptCallback(bin);
         }
 
         /**
@@ -303,18 +303,14 @@ module junyou {
         private _solveScriptCallback(bin: ScriptSolveBin) {
             if (bin.dele.scriptid) {
                 let script = this.getOrCreateScript(bin.dele);
-                if (script.state == RequestState.COMPLETE) {
-                    //直接回调
-                    this._getHost(bin);
-
-                } else {
+                if (script.state != RequestState.COMPLETE) {
                     script.callbacks.push(CallbackInfo.get(this._getHost, this, bin));
                     script.load();
+                    return;
                 }
-            } else {//主脚本中的模块
-                //直接回调
-                this._getHost(bin);
             }
+            //直接回调
+            return this._getHost(bin);
         }
 
         private _getHost(bin: ScriptSolveBin) {
@@ -332,6 +328,7 @@ module junyou {
                 host.addReadyExecute(bin.callback, bin.thisObj, host, ...bin.args);
                 host.startSync();
             }
+            return host;
         }
 
 
@@ -364,11 +361,8 @@ module junyou {
          */
         public executeMediator(moduleID: Key, showTip: boolean, handlerName: string, show?: boolean, ...args) {
             if (this._mm && this._mm.isModuleOpened(moduleID, showTip)) {
-                if (show) {
-                    this.getMediator(moduleID, this._executeAndShowMediator, this, handlerName, ...args);
-                } else {
-                    this.getMediator(moduleID, this._executeMediator, this, handlerName, ...args);
-                }
+                let hander = show ? this._executeAndShowMediator : this._executeMediator;
+                return this.getMediator(moduleID, hander, this, handlerName, ...args);
             }
         }
 
@@ -382,7 +376,7 @@ module junyou {
          * @param args
          */
         public $executeMediator(moduleID: string, handlerName: string, ...args) {
-            this.getMediator(moduleID, this._executeMediator, this, args);
+            return this.getMediator(moduleID, this._executeMediator, this, args);
         }
 
         protected _executeMediator(mediator: Mediator, handlerName: string, ...args: any[]) {
@@ -406,7 +400,7 @@ module junyou {
          * @param args          参数列表
          */
         public executeProxy(proxyName: Key, handlerName: string, ...args) {
-            this.getProxy(proxyName, this._executeProxy, this, handlerName, ...args);
+            return this.getProxy(proxyName, this._executeProxy, this, handlerName, ...args);
         }
 
         protected _executeProxy(proxy: Proxy, handlerName: string, ...args: any[]) {
@@ -516,10 +510,10 @@ module junyou {
      * 
      * @memberOf FHost
      */
-    export function proxyCall(proxyName: Key, callback: { (proxy: Proxy, ...args: any[]) }, thisObj?: any, ...args)
-    export function proxyCall() {
+    export function proxyCall(proxyName: Key, callback: { (proxy: Proxy, ...args: any[]) }, thisObj?: any, ...args): Proxy
+    export function proxyCall(): Proxy {
         let f = facade;
-        f.getProxy.apply(f, arguments);
+        return f.getProxy.apply(f, arguments);
     }
     /**
      * 执行Proxy的方法
@@ -527,10 +521,10 @@ module junyou {
      * @param handlerName   函数名字
      * @param args          参数列表
      */
-    export function proxyExec(proxyName: Key, handlerName: string, ...args)
-    export function proxyExec() {
+    export function proxyExec(proxyName: Key, handlerName: string, ...args): Proxy
+    export function proxyExec(): Proxy {
         let f = facade;
-        f.executeProxy.apply(f, arguments);
+        return f.executeProxy.apply(f, arguments);
     }
 
     /**
@@ -544,10 +538,10 @@ module junyou {
      * 
      * @memberOf FHost
      */
-    export function mediatorCall(mediatorName: Key, callback: { (mediator: Mediator, ...args: any[]) }, thisObj?: any, ...args)
-    export function mediatorCall() {
+    export function mediatorCall(mediatorName: Key, callback: { (mediator: Mediator, ...args: any[]) }, thisObj?: any, ...args): Mediator
+    export function mediatorCall(): Mediator {
         let f = facade;
-        f.getMediator.apply(f, arguments);
+        return f.getMediator.apply(f, arguments);
     }
     /**
      * 
@@ -559,10 +553,10 @@ module junyou {
      * @param {any[]} args            函数的参数列表
      * @returns
      */
-    export function mediatorExec(moduleID: Key, showTip: boolean, handlerName: string, show?: boolean, ...args)
-    export function mediatorExec() {
+    export function mediatorExec(moduleID: Key, showTip: boolean, handlerName: string, show?: boolean, ...args): Mediator
+    export function mediatorExec(): Mediator {
         let f = facade;
-        f.executeMediator.apply(f, arguments);
+        return f.executeMediator.apply(f, arguments);
     }
 
     /**
