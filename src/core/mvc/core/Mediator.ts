@@ -79,7 +79,7 @@ module junyou {
          */
         public constructor(moduleID: string | number) {
             super(moduleID);
-            this.init && this.init();
+            this.init();
         }
 
         /**
@@ -88,7 +88,9 @@ module junyou {
          * @protected
          * @abstract
          */
-        protected init?();
+        protected init() {
+            this._ready = true;
+        }
 
         /**
          * 
