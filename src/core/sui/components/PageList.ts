@@ -48,6 +48,14 @@ module junyou {
          * @memberof PageListOption
          */
         itemHeight?: number;
+
+        /**
+         * 是否为固定尺寸
+         * 
+         * @type {boolean}
+         * @memberof PageListOption
+         */
+        staticSize?: boolean;
     }
 
     export class PageList<T, R extends ListItemRender<T>> extends egret.Sprite {
@@ -149,6 +157,12 @@ module junyou {
 
         private rawDataChanged: boolean;
 
+        /**
+         * 是否为固定尺寸
+         * 
+         * @type {boolean}
+         */
+        staticSize: boolean;
 
         /**
          * Creates an instance of PageList.
@@ -180,6 +194,7 @@ module junyou {
                 itemWidth = opt.itemWidth;
                 itemHeight = opt.itemHeight;
                 columnCount = opt.columnCount;
+                this.staticSize = opt.staticSize;
             } else {
                 hgap = opt;
             }
@@ -375,7 +390,7 @@ module junyou {
             let end = len - 1;
             // let lastrender: R;
             //得到单行/单列最大索引数
-            const { itemWidth, itemHeight, _columncount, _hgap, _vgap } = this;
+            const { itemWidth, itemHeight, _columncount, _hgap, _vgap, staticSize } = this;
             let rowCount = len / _columncount;
             let oy = 0, ox = 0;
             let maxWidth = 0, maxHeight = 0;
@@ -389,13 +404,24 @@ module junyou {
                     }
                     let render = renderList[i++];
                     let v = render.view;
+
                     let w = 0;
                     if (v) {
+                        let size: Size = v;
+                        if (staticSize) {
+                            let rect = v.suiRawRect;
+                            if (rect) {
+                                size = rect;
+                            }
+                        }
+                        w = size.width;
+                        let vh = size.height;
+
                         v.x = ox;
                         v.y = oy;
-                        w = v.width;
+
                         let rright = v.x + w;
-                        let vh = v.height;
+
                         if (maxWidth < rright) {
                             maxWidth = rright;
                         }
