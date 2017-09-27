@@ -5570,407 +5570,434 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
+    var structDict = junyou.Temp.EmptyObject;
+    /**
+     * protobuf wiretype的字典
+     * key  {number}    ProtoBuf的类型
+     * Value {number}   WireType
+     *
+     * @private
+     * @static
+     * @type {{ [index: number]: number }}
+     */
+    var wireTypeMap = [
+        /* 无 */ ,
+        /* PBType.Double */ 1,
+        /* PBType.Float */ 5,
+        /* PBType.Int64 */ 0,
+        /* PBType.UInt64 */ 0,
+        /* PBType.Int32 */ 0,
+        /* PBType.Fixed64 */ 1,
+        /* PBType.Fixed32 */ 5,
+        /* PBType.Bool */ 0,
+        /* PBType.String */ 2,
+        /* PBType.Group */ ,
+        /* PBType.Message */ 2,
+        /* PBType.Bytes */ 2,
+        /* PBType.Uint32 */ 0,
+        /* PBType.Enum */ 0,
+        /* PBType.SFixed32 */ 5,
+        /* PBType.SFixed64 */ 1,
+        /* PBType.SInt32 */ 0,
+        /* PBType.SInt64 */ 0
+    ];
+    /**
+     * 消息定义的字典
+     */
+    var defDict = {};
+    function regDef(m, def) {
+        var msg;
+        if (typeof m != "object") {
+            msg = structDict[m];
+            if (!msg) {
+                defDict[m] = def;
+                return;
+            }
+        }
+        else {
+            msg = m;
+        }
+        Object.defineProperty(msg, "def" /* defKey */, {
+            value: def
+        });
+    }
     /**
      *
      * @author 3tion
      * javascript 只会使用到 varint32->number string boolean
      *
      */
-    junyou.PBMessageUtils = (function () {
-        var structDict = junyou.Temp.EmptyObject;
+    junyou.PBMessageUtils = {
         /**
-         * protobuf wiretype的字典
-         * key  {number}    ProtoBuf的类型
-         * Value {number}   WireType
-         *
-         * @private
-         * @static
-         * @type {{ [index: number]: number }}
+         * 注册定义
          */
-        var wireTypeMap = [
-            /* 无 */ ,
-            /* PBType.Double */ 1,
-            /* PBType.Float */ 5,
-            /* PBType.Int64 */ 0,
-            /* PBType.UInt64 */ 0,
-            /* PBType.Int32 */ 0,
-            /* PBType.Fixed64 */ 1,
-            /* PBType.Fixed32 */ 5,
-            /* PBType.Bool */ 0,
-            /* PBType.String */ 2,
-            /* PBType.Group */ ,
-            /* PBType.Message */ 2,
-            /* PBType.Bytes */ 2,
-            /* PBType.Uint32 */ 0,
-            /* PBType.Enum */ 0,
-            /* PBType.SFixed32 */ 5,
-            /* PBType.SFixed64 */ 1,
-            /* PBType.SInt32 */ 0,
-            /* PBType.SInt64 */ 0
-        ];
-        return {
-            /**
-             * 设置ProtoBuf的消息定义字典
-             *
-             * @static
-             * @param {PBStructDict} dict
-             *
-             * @memberOf PBMessageUtils
-             */
-            setPBDict: function (dict) {
-                //对默认值做预处理，减少后期遍历次数
-                if (dict) {
-                    structDict = dict;
-                    if (!dict.$$inted) {
-                        for (var name_3 in dict) {
-                            var encode = dict[name_3];
-                            //检查处理默认值
-                            for (var idx in encode) {
-                                var body = encode[idx];
-                                //0 key
-                                //1 required optional repeated
-                                //2 数据类型
-                                //3 Message
-                                //4 默认值
-                                if (4 in body) {
-                                    var def = encode.def;
-                                    if (!def) {
-                                        //不使用encode.def=def=[]; 是为了防止def被遍历
-                                        Object.defineProperty(encode, "def", {
-                                            value: {}
-                                        });
-                                        def = encode.def;
-                                    }
-                                    var key = body[0];
-                                    //消息中没有对应key的数据，先赋值成默认值，等待后续处理
-                                    def[key] = body[4];
+        regDef: regDef,
+        /**
+         * 设置ProtoBuf的消息定义字典
+         *
+         * @static
+         * @param {PBStructDict} dict
+         *
+         * @memberOf PBMessageUtils
+         */
+        setPBDict: function (dict) {
+            //对默认值做预处理，减少后期遍历次数
+            if (dict) {
+                structDict = dict;
+                var defD = defDict;
+                if (!dict.$$inted) {
+                    for (var name_3 in dict) {
+                        var encode = dict[name_3];
+                        var def = defD[name_3];
+                        if (def) {
+                            regDef(encode, def);
+                        }
+                        //检查处理默认值
+                        for (var idx in encode) {
+                            var body = encode[idx];
+                            //0 key
+                            //1 required optional repeated
+                            //2 数据类型
+                            //3 Message
+                            //4 默认值
+                            if (4 in body) {
+                                var def_1 = encode.def;
+                                if (!def_1) {
+                                    //不使用encode.def=def=[]; 是为了防止def被遍历
+                                    Object.defineProperty(encode, "def" /* defKey */, {
+                                        value: {}
+                                    });
+                                    def_1 = encode.def;
                                 }
-                            }
-                            if (!encode.def) {
-                                Object.defineProperty(encode, "def", {
-                                    value: Object.prototype
-                                });
+                                var key = body[0];
+                                //消息中没有对应key的数据，先赋值成默认值，等待后续处理
+                                def_1[key] = body[4];
                             }
                         }
-                        dict.$$inted = 1;
+                        if (!encode.def) {
+                            Object.defineProperty(encode, "def" /* defKey */, {
+                                value: Object.prototype
+                            });
+                        }
+                    }
+                    dict.$$inted = 1;
+                }
+            }
+        },
+        readFrom: readFrom,
+        writeTo: writeTo
+    };
+    /**
+     * 读取消息
+     *
+     * @param {(string | PBStruct)} msgType
+     * @param {ByteArray} bytes
+     * @param {number} [len]
+     * @returns {Object}
+     */
+    function readFrom(msgType, bytes, len) {
+        if (len === undefined)
+            len = -1;
+        var afterLen = 0;
+        if (len > -1) {
+            afterLen = bytes.bytesAvailable - len;
+        }
+        var encode = typeof msgType === "string" ? structDict[msgType] : msgType;
+        if (!encode) {
+            junyou.ThrowError("\u975E\u6CD5\u7684\u901A\u4FE1\u7C7B\u578B[" + msgType + "]");
+            return;
+        }
+        //检查处理默认值
+        var msg = Object.create(encode.def);
+        while (bytes.bytesAvailable > afterLen) {
+            var tag = bytes.readVarint();
+            if (tag == 0)
+                continue;
+            var idx = tag >>> 3;
+            var body = encode[idx];
+            if (!body) {
+                junyou.ThrowError("\u8BFB\u53D6\u6D88\u606F\u7C7B\u578B\u4E3A\uFF1A" + msgType + "\uFF0C\u7D22\u5F15" + idx + "\u65F6\u6570\u636E\u51FA\u73B0\u9519\u8BEF\uFF0C\u627E\u4E0D\u5230\u5BF9\u5E94\u7684\u6570\u636E\u7ED3\u6784\u914D\u7F6E");
+                // 使用默认读取
+                readValue(tag, bytes);
+                continue;
+            }
+            var name_4 = body[0];
+            var label = body[1];
+            var type = body[2];
+            var subMsgType = body[3];
+            var value = void 0;
+            if (label != 3 || (tag & 7) != 7) {
+                switch (type) {
+                    case 1 /* Double */:
+                        value = bytes.readDouble();
+                        break;
+                    case 2 /* Float */:
+                        value = bytes.readFloat();
+                        break;
+                    case 3 /* Int64 */:
+                    case 4 /* UInt64 */:
+                    case 18 /* SInt64 */:
+                        value = bytes.readVarint64(); //理论上项目不使用
+                        break;
+                    case 5 /* Int32 */:
+                        value = bytes.readVarint();
+                        break;
+                    case 17 /* SInt32 */:
+                        value = decodeZigzag32(bytes.readVarint());
+                        break;
+                    case 13 /* Uint32 */:
+                    case 14 /* Enum */:
+                        value = bytes.readVarint();
+                        break;
+                    case 6 /* Fixed64 */:
+                    case 16 /* SFixed64 */:
+                        value = bytes.readFix64(); //理论上项目不使用
+                        break;
+                    case 7 /* Fixed32 */:
+                        value = bytes.readFix32();
+                        break;
+                    case 8 /* Bool */:
+                        value = bytes.readBoolean();
+                        break;
+                    case 9 /* String */:
+                        value = readString(bytes);
+                        break;
+                    case 10 /* Group */://(protobuf 已弃用)
+                        value = undefined;
+                        if (true) {
+                            junyou.ThrowError("\u8BFB\u53D6\u6D88\u606F\u7C7B\u578B\u4E3A\uFF1A" + msgType + "\uFF0C\u7D22\u5F15" + idx + "\u65F6\u6570\u636E\u51FA\u73B0\u5DF2\u5F03\u7528\u7684GROUP\u5206\u7EC4\u7C7B\u578B");
+                        }
+                        break;
+                    case 11 /* Message */://消息
+                        value = readMessage(bytes, subMsgType);
+                        break;
+                    case 12 /* Bytes */:
+                        value = readBytes(bytes);
+                        break;
+                    case 15 /* SFixed32 */:
+                        value = bytes.readSFix32();
+                        break;
+                    default:
+                        value = readValue(tag, bytes);
+                }
+            }
+            if (label == 3) {
+                var arr = msg[name_4];
+                if (!arr)
+                    msg[name_4] = arr = [];
+                arr.push(value);
+            }
+            else {
+                msg[name_4] = value;
+            }
+        }
+        return msg;
+    }
+    function readValue(tag, bytes) {
+        var wireType = tag & 7;
+        var value;
+        switch (wireType) {
+            case 0://Varint	int32, int64, uint32, uint64, sint32, sint64, bool, enum
+                value = bytes.readVarint();
+                break;
+            case 2://Length-delimi	string, bytes, embedded messages, packed repeated fields
+                value = readString(bytes);
+                break;
+            case 5://32-bit	fixed32, sfixed32, float
+                value = bytes.readInt();
+                break;
+            case 1://64-bit	fixed64, sfixed64, double
+                value = bytes.readDouble();
+                break;
+            default:
+                junyou.ThrowError("protobuf的wireType未知");
+        }
+        return value;
+    }
+    function readString(bytes) {
+        var blen = bytes.readVarint();
+        if (blen > 0) {
+            return bytes.readUTFBytes(blen);
+        }
+        return "";
+    }
+    /**
+     *
+     * 读取消息
+     * @private
+     * @static
+     * @param {number} tag          标签
+     * @param {ByteArray} bytes     被处理的字节数组
+     * @param {string} subMsgType   类型标识
+     * @returns {Object}
+     */
+    function readMessage(bytes, msgType) {
+        var blen = bytes.readVarint();
+        return readFrom(msgType, bytes, blen);
+    }
+    function readBytes(bytes) {
+        var blen = bytes.readVarint();
+        return bytes.readByteArray(blen);
+    }
+    /**
+     * 写入消息
+     *
+     * @param {Object} msg
+     * @param {(string | PBStruct)} msgType
+     * @param {ByteArray} [bytes]
+     * @returns {ByteArray}
+     */
+    function writeTo(msg, msgType, bytes, debugOutData) {
+        if (msg == undefined) {
+            return;
+        }
+        var messageEncode = typeof msgType === "string" ? structDict[msgType] : msgType;
+        if (!messageEncode) {
+            junyou.ThrowError("\u975E\u6CD5\u7684\u901A\u4FE1\u7C7B\u578B[" + msgType + "]\uFF0C\u5806\u6808\u4FE1\u606F:" + new Error());
+            return;
+        }
+        if (!bytes) {
+            bytes = new junyou.ByteArray;
+        }
+        for (var numberStr in messageEncode) {
+            var num = +numberStr;
+            var body = messageEncode[num];
+            var label = body[1];
+            var name_5 = body[0];
+            if (label == 1 /* optional */ && !(name_5 in msg)) {
+                continue;
+            }
+            var value = msg[name_5];
+            if (value == undefined || value === body[4] /* 默认值 */) {
+                continue;
+            }
+            var type = body[2];
+            var subMsgType = body[3];
+            var wireType = wireTypeMap[type];
+            var tag = (num << 3) | wireType;
+            if (label == 3 /* repeated */) {
+                if (true && debugOutData) {
+                    var arr = [];
+                    debugOutData[name_5] = arr;
+                }
+                for (var key in value) {
+                    var element = value[key];
+                    // 针对repeated中无法处理空的占位数组做处理，Protobuf 2 中不支持undefined进行占位  由于 wireType 只使用 0 1 2 3 4 5
+                    // 现在使用 7 作为  undefined 占位使用
+                    if (true && debugOutData) {
+                        arr.push(writeElementTo(element, type, element == undefined ? ((num << 3) | 7) : tag, bytes, subMsgType));
+                    }
+                    else {
+                        writeElementTo(element, type, element == undefined ? ((num << 3) | 7) : tag, bytes, subMsgType);
                     }
                 }
-            },
-            readFrom: readFrom,
-            writeTo: writeTo
-        };
-        /**
-         * 读取消息
-         *
-         * @param {(string | PBStruct)} msgType
-         * @param {ByteArray} bytes
-         * @param {number} [len]
-         * @returns {Object}
-         */
-        function readFrom(msgType, bytes, len) {
-            if (len === undefined)
-                len = -1;
-            var afterLen = 0;
-            if (len > -1) {
-                afterLen = bytes.bytesAvailable - len;
             }
-            var encode = typeof msgType === "string" ? structDict[msgType] : msgType;
-            if (!encode) {
-                junyou.ThrowError("\u975E\u6CD5\u7684\u901A\u4FE1\u7C7B\u578B[" + msgType + "]");
-                return;
-            }
-            //检查处理默认值
-            var msg = Object.create(encode.def);
-            while (bytes.bytesAvailable > afterLen) {
-                var tag = bytes.readVarint();
-                if (tag == 0)
-                    continue;
-                var idx = tag >>> 3;
-                var body = encode[idx];
-                if (!body) {
-                    junyou.ThrowError("\u8BFB\u53D6\u6D88\u606F\u7C7B\u578B\u4E3A\uFF1A" + msgType + "\uFF0C\u7D22\u5F15" + idx + "\u65F6\u6570\u636E\u51FA\u73B0\u9519\u8BEF\uFF0C\u627E\u4E0D\u5230\u5BF9\u5E94\u7684\u6570\u636E\u7ED3\u6784\u914D\u7F6E");
-                    // 使用默认读取
-                    readValue(tag, bytes);
-                    continue;
-                }
-                var name_4 = body[0];
-                var label = body[1];
-                var type = body[2];
-                var subMsgType = body[3];
-                var value = void 0;
-                if (label != 3 || (tag & 7) != 7) {
-                    switch (type) {
-                        case 1 /* Double */:
-                            value = bytes.readDouble();
-                            break;
-                        case 2 /* Float */:
-                            value = bytes.readFloat();
-                            break;
-                        case 3 /* Int64 */:
-                        case 4 /* UInt64 */:
-                        case 18 /* SInt64 */:
-                            value = bytes.readVarint64(); //理论上项目不使用
-                            break;
-                        case 5 /* Int32 */:
-                            value = bytes.readVarint();
-                            break;
-                        case 17 /* SInt32 */:
-                            value = decodeZigzag32(bytes.readVarint());
-                            break;
-                        case 13 /* Uint32 */:
-                        case 14 /* Enum */:
-                            value = bytes.readVarint();
-                            break;
-                        case 6 /* Fixed64 */:
-                        case 16 /* SFixed64 */:
-                            value = bytes.readFix64(); //理论上项目不使用
-                            break;
-                        case 7 /* Fixed32 */:
-                            value = bytes.readFix32();
-                            break;
-                        case 8 /* Bool */:
-                            value = bytes.readBoolean();
-                            break;
-                        case 9 /* String */:
-                            value = readString(bytes);
-                            break;
-                        case 10 /* Group */://(protobuf 已弃用)
-                            value = undefined;
-                            if (true) {
-                                junyou.ThrowError("\u8BFB\u53D6\u6D88\u606F\u7C7B\u578B\u4E3A\uFF1A" + msgType + "\uFF0C\u7D22\u5F15" + idx + "\u65F6\u6570\u636E\u51FA\u73B0\u5DF2\u5F03\u7528\u7684GROUP\u5206\u7EC4\u7C7B\u578B");
-                            }
-                            break;
-                        case 11 /* Message */://消息
-                            value = readMessage(bytes, subMsgType);
-                            break;
-                        case 12 /* Bytes */:
-                            value = readBytes(bytes);
-                            break;
-                        case 15 /* SFixed32 */:
-                            value = bytes.readSFix32();
-                            break;
-                        default:
-                            value = readValue(tag, bytes);
-                    }
-                }
-                if (label == 3) {
-                    var arr = msg[name_4];
-                    if (!arr)
-                        msg[name_4] = arr = [];
-                    arr.push(value);
+            else {
+                if (true && debugOutData) {
+                    debugOutData[name_5] = writeElementTo(value, type, tag, bytes, subMsgType);
                 }
                 else {
-                    msg[name_4] = value;
+                    writeElementTo(value, type, tag, bytes, subMsgType);
                 }
             }
-            return msg;
         }
-        function readValue(tag, bytes) {
-            var wireType = tag & 7;
-            var value;
-            switch (wireType) {
-                case 0://Varint	int32, int64, uint32, uint64, sint32, sint64, bool, enum
-                    value = bytes.readVarint();
-                    break;
-                case 2://Length-delimi	string, bytes, embedded messages, packed repeated fields
-                    value = readString(bytes);
-                    break;
-                case 5://32-bit	fixed32, sfixed32, float
-                    value = bytes.readInt();
-                    break;
-                case 1://64-bit	fixed64, sfixed64, double
-                    value = bytes.readDouble();
-                    break;
-                default:
-                    junyou.ThrowError("protobuf的wireType未知");
+        return bytes;
+    }
+    function writeElementTo(value, type, tag, bytes, subMsgType) {
+        if (true) {
+            var out = value;
+        }
+        bytes.writeVarint(tag);
+        switch (type) {
+            case 7 /* Fixed32 */:
+                bytes.writeFix32(checkUInt32(value, type));
+                break;
+            case 15 /* SFixed32 */:
+                bytes.writeSFix32(checkInt32(value, type));
+                break;
+            case 2 /* Float */:
+                bytes.writeFloat(value);
+                break;
+            case 1 /* Double */:
+                bytes.writeDouble(value);
+                break;
+            case 6 /* Fixed64 */: //理论上项目不使用
+            case 16 /* SFixed64 */://理论上项目不使用
+                bytes.writeFix64(value);
+                break;
+            case 5 /* Int32 */:
+                bytes.writeVarint(checkInt32(value, type));
+                break;
+            case 17 /* SInt32 */:
+                bytes.writeVarint(zigzag32(checkInt32(value, type)));
+                break;
+            case 14 /* Enum */:
+            case 13 /* Uint32 */:
+                bytes.writeVarint(checkUInt32(value, type));
+                break;
+            case 3 /* Int64 */:
+            case 18 /* SInt64 */:
+            case 4 /* UInt64 */:
+                bytes.writeVarint64(value);
+                break;
+            case 8 /* Bool */:
+                bytes.writeVarint(value ? 1 : 0);
+                break;
+            case 9 /* String */:
+            case 12 /* Bytes */:
+            case 11 /* Message */:
+                if (type == 11 /* Message */) {
+                    if (true) {
+                        out = {};
+                        temp = writeTo(value, subMsgType, null, out);
+                    }
+                    else {
+                        var temp = writeTo(value, subMsgType);
+                    }
+                }
+                else if (type == 12 /* Bytes */) {
+                    temp = value;
+                    if (true) {
+                        out = Uint8Array.from(temp.bytes);
+                    }
+                }
+                else {
+                    temp = new junyou.ByteArray;
+                    temp.writeUTFBytes(value);
+                }
+                length = temp ? temp.length : 0;
+                bytes.writeVarint(length);
+                if (length > 0) {
+                    bytes.writeBytes(temp, 0, length);
+                }
+                break;
+        }
+        if (true) {
+            return out;
+        }
+        function checkUInt32(value, type) {
+            value = +value || 0;
+            if (value > 4294967295 || value < 0) {
+                junyou.ThrowError("PBMessageUtils\u5199\u5165\u6570\u636E\u65F6\u5019\uFF0C\u4F7F\u7528\u7684\u7C7B\u578B\uFF1A" + type + "\uFF0C\u503C\u4E3A\uFF1A" + value + "\uFF0C\u4F46\u8D85\u51FA\u6574\u578B\u8303\u56F4\u3002");
+                value >>> 0;
             }
             return value;
         }
-        function readString(bytes) {
-            var blen = bytes.readVarint();
-            if (blen > 0) {
-                return bytes.readUTFBytes(blen);
+        function checkInt32(value, type) {
+            value = +value || 0;
+            if (value > 2147483647 || value < -2147483648) {
+                junyou.ThrowError("PBMessageUtils\u5199\u5165\u6570\u636E\u65F6\u5019\uFF0C\u4F7F\u7528\u7684\u7C7B\u578B\uFF1A" + type + "\uFF0C\u503C\u4E3A\uFF1A" + value + "\uFF0C\u4F46\u8D85\u51FA\u6574\u578B\u8303\u56F4\u3002");
+                value >> 0;
             }
-            return "";
+            return value;
         }
-        /**
-         *
-         * 读取消息
-         * @private
-         * @static
-         * @param {number} tag          标签
-         * @param {ByteArray} bytes     被处理的字节数组
-         * @param {string} subMsgType   类型标识
-         * @returns {Object}
-         */
-        function readMessage(bytes, msgType) {
-            var blen = bytes.readVarint();
-            return readFrom(msgType, bytes, blen);
-        }
-        function readBytes(bytes) {
-            var blen = bytes.readVarint();
-            return bytes.readByteArray(blen);
-        }
-        /**
-         * 写入消息
-         *
-         * @param {Object} msg
-         * @param {(string | PBStruct)} msgType
-         * @param {ByteArray} [bytes]
-         * @returns {ByteArray}
-         */
-        function writeTo(msg, msgType, bytes, debugOutData) {
-            if (msg == undefined) {
-                return;
-            }
-            var messageEncode = typeof msgType === "string" ? structDict[msgType] : msgType;
-            if (!messageEncode) {
-                junyou.ThrowError("\u975E\u6CD5\u7684\u901A\u4FE1\u7C7B\u578B[" + msgType + "]\uFF0C\u5806\u6808\u4FE1\u606F:" + new Error());
-                return;
-            }
-            if (!bytes) {
-                bytes = new junyou.ByteArray;
-            }
-            for (var numberStr in messageEncode) {
-                var num = +numberStr;
-                var body = messageEncode[num];
-                var label = body[1];
-                var name_5 = body[0];
-                if (label == 1 /* optional */ && !(name_5 in msg)) {
-                    continue;
-                }
-                var value = msg[name_5];
-                if (value == undefined || value === body[4] /* 默认值 */) {
-                    continue;
-                }
-                var type = body[2];
-                var subMsgType = body[3];
-                var wireType = wireTypeMap[type];
-                var tag = (num << 3) | wireType;
-                if (label == 3 /* repeated */) {
-                    if (true && debugOutData) {
-                        var arr = [];
-                        debugOutData[name_5] = arr;
-                    }
-                    for (var key in value) {
-                        var element = value[key];
-                        // 针对repeated中无法处理空的占位数组做处理，Protobuf 2 中不支持undefined进行占位  由于 wireType 只使用 0 1 2 3 4 5
-                        // 现在使用 7 作为  undefined 占位使用
-                        if (true && debugOutData) {
-                            arr.push(writeElementTo(element, type, element == undefined ? ((num << 3) | 7) : tag, bytes, subMsgType));
-                        }
-                        else {
-                            writeElementTo(element, type, element == undefined ? ((num << 3) | 7) : tag, bytes, subMsgType);
-                        }
-                    }
-                }
-                else {
-                    if (true && debugOutData) {
-                        debugOutData[name_5] = writeElementTo(value, type, tag, bytes, subMsgType);
-                    }
-                    else {
-                        writeElementTo(value, type, tag, bytes, subMsgType);
-                    }
-                }
-            }
-            return bytes;
-        }
-        function writeElementTo(value, type, tag, bytes, subMsgType) {
-            if (true) {
-                var out = value;
-            }
-            bytes.writeVarint(tag);
-            switch (type) {
-                case 7 /* Fixed32 */:
-                    bytes.writeFix32(checkUInt32(value, type));
-                    break;
-                case 15 /* SFixed32 */:
-                    bytes.writeSFix32(checkInt32(value, type));
-                    break;
-                case 2 /* Float */:
-                    bytes.writeFloat(value);
-                    break;
-                case 1 /* Double */:
-                    bytes.writeDouble(value);
-                    break;
-                case 6 /* Fixed64 */: //理论上项目不使用
-                case 16 /* SFixed64 */://理论上项目不使用
-                    bytes.writeFix64(value);
-                    break;
-                case 5 /* Int32 */://改为标准方式处理
-                    bytes.writeVarint(checkInt32(value, type));
-                    break;
-                case 17 /* SInt32 */:
-                    bytes.writeVarint(zigzag32(checkInt32(value, type)));
-                    break;
-                case 14 /* Enum */:
-                case 13 /* Uint32 */:
-                    bytes.writeVarint(checkUInt32(value, type));
-                    break;
-                case 3 /* Int64 */:
-                case 18 /* SInt64 */:
-                case 4 /* UInt64 */:
-                    bytes.writeVarint64(value);
-                    break;
-                case 8 /* Bool */:
-                    bytes.writeVarint(value ? 1 : 0);
-                    break;
-                case 9 /* String */:
-                case 12 /* Bytes */:
-                case 11 /* Message */:
-                    if (type == 11 /* Message */) {
-                        if (true) {
-                            out = {};
-                            temp = writeTo(value, subMsgType, null, out);
-                        }
-                        else {
-                            var temp = writeTo(value, subMsgType);
-                        }
-                    }
-                    else if (type == 12 /* Bytes */) {
-                        temp = value;
-                        if (true) {
-                            out = Uint8Array.from(temp.bytes);
-                        }
-                    }
-                    else {
-                        temp = new junyou.ByteArray;
-                        temp.writeUTFBytes(value);
-                    }
-                    length = temp ? temp.length : 0;
-                    bytes.writeVarint(length);
-                    if (length > 0) {
-                        bytes.writeBytes(temp, 0, length);
-                    }
-                    break;
-            }
-            if (true) {
-                return out;
-            }
-            function checkUInt32(value, type) {
-                value = +value || 0;
-                if (value > 4294967295 || value < 0) {
-                    junyou.ThrowError("PBMessageUtils\u5199\u5165\u6570\u636E\u65F6\u5019\uFF0C\u4F7F\u7528\u7684\u7C7B\u578B\uFF1A" + type + "\uFF0C\u503C\u4E3A\uFF1A" + value + "\uFF0C\u4F46\u8D85\u51FA\u6574\u578B\u8303\u56F4\u3002");
-                    value >>> 0;
-                }
-                return value;
-            }
-            function checkInt32(value, type) {
-                value = +value || 0;
-                if (value > 2147483647 || value < -2147483648) {
-                    junyou.ThrowError("PBMessageUtils\u5199\u5165\u6570\u636E\u65F6\u5019\uFF0C\u4F7F\u7528\u7684\u7C7B\u578B\uFF1A" + type + "\uFF0C\u503C\u4E3A\uFF1A" + value + "\uFF0C\u4F46\u8D85\u51FA\u6574\u578B\u8303\u56F4\u3002");
-                    value >> 0;
-                }
-                return value;
-            }
-        }
-        function zigzag32(n) {
-            return (n << 1) ^ (n >> 31);
-        }
-        function decodeZigzag32(n) {
-            return n >> 1 ^ (((n & 1) << 31) >> 31);
-        }
-    })();
+    }
+    function zigzag32(n) {
+        return (n << 1) ^ (n >> 31);
+    }
+    function decodeZigzag32(n) {
+        return n >> 1 ^ (((n & 1) << 31) >> 31);
+    }
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
