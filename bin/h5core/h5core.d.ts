@@ -2085,6 +2085,13 @@ declare module junyou {
          * @memberof PageListOption
          */
         itemHeight?: number;
+        /**
+         * 是否为固定尺寸
+         *
+         * @type {boolean}
+         * @memberof PageListOption
+         */
+        staticSize?: boolean;
     }
     class PageList<T, R extends ListItemRender<T>> extends egret.Sprite {
         protected _renderFactory: ClassFactory<R>;
@@ -2148,6 +2155,12 @@ declare module junyou {
         private itemHeight;
         private useTweenIndex;
         private rawDataChanged;
+        /**
+         * 是否为固定尺寸
+         *
+         * @type {boolean}
+         */
+        staticSize: boolean;
         /**
          * Creates an instance of PageList.
          * @param {ClassFactory<R>} renderfactory

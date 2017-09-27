@@ -2319,6 +2319,7 @@ var junyou;
                 itemWidth = opt.itemWidth;
                 itemHeight = opt.itemHeight;
                 columnCount = opt.columnCount;
+                _this.staticSize = opt.staticSize;
             }
             else {
                 hgap = opt;
@@ -2516,7 +2517,7 @@ var junyou;
             var end = len - 1;
             // let lastrender: R;
             //得到单行/单列最大索引数
-            var _a = this, itemWidth = _a.itemWidth, itemHeight = _a.itemHeight, _columncount = _a._columncount, _hgap = _a._hgap, _vgap = _a._vgap;
+            var _a = this, itemWidth = _a.itemWidth, itemHeight = _a.itemHeight, _columncount = _a._columncount, _hgap = _a._hgap, _vgap = _a._vgap, staticSize = _a.staticSize;
             var rowCount = len / _columncount;
             var oy = 0, ox = 0;
             var maxWidth = 0, maxHeight = 0;
@@ -2532,11 +2533,18 @@ var junyou;
                     var v = render.view;
                     var w = 0;
                     if (v) {
+                        var size = v;
+                        if (staticSize) {
+                            var rect = v.suiRawRect;
+                            if (rect) {
+                                size = rect;
+                            }
+                        }
+                        w = size.width;
+                        var vh = size.height;
                         v.x = ox;
                         v.y = oy;
-                        w = v.width;
                         var rright = v.x + w;
-                        var vh = v.height;
                         if (maxWidth < rright) {
                             maxWidth = rright;
                         }
