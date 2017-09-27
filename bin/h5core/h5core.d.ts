@@ -7015,13 +7015,16 @@ declare module junyou {
      *
      * @export
      * @template T
-     * @param {{ new (): T; _pool?: RecyclablePool<T> }} clazz
-     * @returns {(T & { recycle() })}
+     * @param {({ new(): T, _pool?: RecyclablePool<T> } | { (): T, _pool?: RecyclablePool<T> })} clazz
+     * @returns {Recyclable<T>}
      */
     function recyclable<T>(clazz: {
         new(): T;
         _pool?: RecyclablePool<T>;
-    }): Recyclable<T>;
+    } | {
+            (): T;
+            _pool?: RecyclablePool<T>;
+        }): Recyclable<T>;
 }
 declare module junyou {
     /**

@@ -12099,8 +12099,8 @@ var junyou;
      *
      * @export
      * @template T
-     * @param {{ new (): T; _pool?: RecyclablePool<T> }} clazz
-     * @returns {(T & { recycle() })}
+     * @param {({ new(): T, _pool?: RecyclablePool<T> } | { (): T, _pool?: RecyclablePool<T> })} clazz
+     * @returns {Recyclable<T>}
      */
     function recyclable(clazz) {
         var pool = clazz._pool;
