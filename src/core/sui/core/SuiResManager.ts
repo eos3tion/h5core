@@ -591,6 +591,30 @@ module junyou {
             }
         }
 
+        /**
+         * 获取控件尺寸
+         * 
+         * @param {string} key 
+         * @param {string} className 
+         * @param {egret.Rectangle} [outRect] 
+         * @returns 
+         */
+        public getSize(key: string, className: string, outRect?: egret.Rectangle) {
+            const suiData = this._suiDatas[key];
+            if (suiData) {
+                const panelsData = suiData.panelsData;
+                if (panelsData) {
+                    const panelData = panelsData[className];
+                    if (panelData) {
+                        const sizeData = panelData[0];
+                        outRect = outRect || new egret.Rectangle();
+                        outRect.setTo(sizeData[0], sizeData[1], sizeData[2], sizeData[3]);
+                        return outRect;
+                    }
+                }
+            }
+        }
+
     }
 
     export interface SizeData {
