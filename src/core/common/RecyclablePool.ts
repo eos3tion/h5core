@@ -100,11 +100,11 @@ module junyou {
      * 获取一个recyclable的对象
      * 
      * @export
-     * @template T
-     * @param {{ new (): T; _pool?: RecyclablePool<T> }} clazz
-     * @returns {(T & { recycle() })}
+     * @template T 
+     * @param {({ new(): T, _pool?: RecyclablePool<T> } | { (): T, _pool?: RecyclablePool<T> })} clazz 
+     * @returns {Recyclable<T>} 
      */
-    export function recyclable<T>(clazz: { new(): T; _pool?: RecyclablePool<T> }): Recyclable<T> {
+    export function recyclable<T>(clazz: { new(): T, _pool?: RecyclablePool<T> } | { (): T, _pool?: RecyclablePool<T> }): Recyclable<T> {
         let pool = clazz._pool;
         if (!pool) {
             pool = new RecyclablePool(clazz);
