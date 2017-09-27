@@ -8,6 +8,8 @@ module junyou {
      * @extends {PageList}
      */
     export class MPageList<T, R extends ListItemRender<T>> extends PageList<T, R>{
+
+        protected _viewCount = 0;
         public constructor() {
             super(null);
         }

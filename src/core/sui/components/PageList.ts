@@ -10,6 +10,46 @@ module junyou {
         MaxColumnCount = 9999
     }
 
+    export interface PageListOption {
+        /**
+         * 单元格之间的宽度
+         * 
+         * @type {number}
+         * @memberof PageListOption
+         */
+        hgap?: number;
+        /**
+         * 单元格之间的高度
+         * 
+         * @type {number}
+         * @memberof PageListOption
+         */
+        vgap?: number;
+        /**
+         * 列表共有几列（最小1最大9999）
+         * 
+         * @type {number}
+         * @memberof PageListOption
+         */
+        columnCount?: number;
+
+        /**
+         * itemrender固定宽度
+         * 
+         * @type {number}
+         * @memberof PageListOption
+         */
+        itemWidth?: number;
+
+        /**
+         * itemrender固定高度
+         * 
+         * @type {number}
+         * @memberof PageListOption
+         */
+        itemHeight?: number;
+    }
+
     export class PageList<T, R extends ListItemRender<T>> extends egret.Sprite {
 
         protected _renderFactory: ClassFactory<R>
@@ -47,8 +87,6 @@ module junyou {
          * @type {number}
          */
         protected _columncount: number;
-
-        protected _viewCount: number;
 
         protected _renderList: R[];
 
@@ -111,25 +149,46 @@ module junyou {
 
         private rawDataChanged: boolean;
 
+
+        /**
+         * Creates an instance of PageList.
+         * @param {ClassFactory<R>} renderfactory 
+         * @param {PageListOption} [option] 
+         */
+        public constructor(renderfactory: ClassFactory<R>, option?: PageListOption)
         /**
          * 列表
          * 有固定宽、高值则用固定值
          * 否则用itemrender宽、高布局
          * 
-         * @ param renderfactory
-         * @ param hgap 单元格之间的宽度
-         * @ param vgap 单元格之间的高度
-         * @ param viewCount 可视范围内有几个列表项
-         * @ param columnCount 列表共有几列（最小1最大9999）
-         * @ param itemWidth itemrender固定宽度
-         * @ param itemHeight itemrender固定高度
+         * @param renderfactory
+         * @param hgap 单元格之间的宽度
+         * @param vgap 单元格之间的高度
+         * @param viewCount 可视范围内有几个列表项
+         * @param columnCount 列表共有几列（最小1最大9999）
+         * @param itemWidth itemrender固定宽度
+         * @param itemHeight itemrender固定高度
          */
-        public constructor(renderfactory: ClassFactory<R>, hgap?: number, vgap?: number, viewCount?: number, columnCount: number = 1, itemWidth?: number, itemHeight?: number) {
+        public constructor(renderfactory: ClassFactory<R>, hgap?: number, vgap?: number, viewCount?: number, columnCount?: number, itemWidth?: number, itemHeight?: number)
+        public constructor(renderfactory: ClassFactory<R>, opt?: any, vgap?: number, viewCount?: number, columnCount?: number, itemWidth?: number, itemHeight?: number) {
             super();
             this._renderFactory = renderfactory;
+            let hgap: number;
+            if (typeof opt == "object") {
+                hgap = opt.hgap;
+                vgap = opt.vgap;
+                itemWidth = opt.itemWidth;
+                itemHeight = opt.itemHeight;
+                columnCount = opt.columnCount;
+            } else {
+                hgap = opt;
+            }
+            columnCount = ~~columnCount;
+            if (columnCount < 1) {
+                columnCount = 1;
+            }
             this._columncount = columnCount;
             this._hgap = ~~hgap;
-            this._viewCount = ~~viewCount;
             this._vgap = ~~vgap;
             this.itemWidth = itemWidth;
             this.itemHeight = itemHeight;
