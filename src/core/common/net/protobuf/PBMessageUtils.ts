@@ -148,21 +148,7 @@ module junyou {
      */
     let defDict = {} as { [msgType: number]: any };
 
-    /**
-     * 注册定义
-     * 
-     * @param {PBStruct} msg 消息
-     * @param {*} def 类型定义
-     */
-    function regDef(msg: PBStruct, def: any)
-    /**
-     * 注册定义
-     * 
-     * @param {Key} msgType 消息类型标识
-     * @param {*} def 类型定义
-     */
-    function regDef(msgType: Key, def: any)
-    function regDef(m, def) {
+     function regDef(m, def) {
         let msg: PBStruct;
         if (typeof m != "object") {
             msg = structDict[m];
