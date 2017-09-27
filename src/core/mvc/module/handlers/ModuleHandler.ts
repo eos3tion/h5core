@@ -11,7 +11,7 @@ module junyou {
 		 * 打开某个模块
 		 * @param cfg
 		 */
-		show(cfg: IModuleCfg);
+		show(cfg: IModuleCfg, param?: ModuleParam);
 
 
         /**
@@ -19,6 +19,6 @@ module junyou {
          * @param cfg
          *
          */
-		hide(cfg: IModuleCfg);
+		hide(cfg: IModuleCfg, param?: ModuleParam);
 	}
 }

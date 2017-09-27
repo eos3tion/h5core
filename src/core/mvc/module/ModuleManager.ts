@@ -1,5 +1,4 @@
 module junyou {
-    import DisplayObject = egret.DisplayObject;
 	/**
 	 * 模块管理器
 	 * 用于管理模块的开启/关闭
@@ -11,91 +10,91 @@ module junyou {
         /**
          * 显示tip的函数
          */
-        public showTip: { (msg: ModuleTipState): void };
+        showTip: { (msg: ModuleTipState): void };
 
     	/**
     	 * 字典<br/>
     	 * Key      {string}        模块ID<br/>
     	 * Value    {ModuleCfg}     模块配置
     	 */
-        protected _allById: { [index: string]: IModuleCfg };
+        _allById: { [index: string]: IModuleCfg };
 
         /**
          * 功能使用/显示限制的检查器<br/>
          * Key      {number}                检查器的类型对应limittype/showtype字段<br/>
          * Value    {IModuleChecker}		  模块限制检查器
          */
-        protected _checkers: { [index: number]: IModuleChecker };
+        _checkers: { [index: number]: IModuleChecker };
 
 
         /**
          * 需要检查
          */
-        protected _needCheck = false;
+        _needCheck = false;
 
 
         /**
          * 需要检查显示
          */
-        protected _needCheckShow = false;
+        _needCheckShow = false;
 
         /**
 		 * 未显示的按钮的模块
 		 */
-        protected _unshowns: (string | number)[];
+        _unshowns: (string | number)[];
 
 
         /**
          * Key      {number} 模块id<br/>
 		 * Value    {egret.DisplayObject[]} 绑定在同一个模块上的按钮的数组
          */
-        protected _bindedIOById: { [index: number]: DisplayObject[] };
+        _bindedIOById: { [index: number]: egret.DisplayObject[] };
 
 
         /**
          * Key      {number}            模块类型<br/>
          * Value    {IModuleHandler}    模块处理器
          */
-        protected _handlersByType: { [index: number]: ModuleHandler };
+        _handlersByType: { [index: number]: ModuleHandler };
 
 
         /**
          * Key      {string}            模块id<br/>
          * Value    {IModuleHandler}    模块处理器
          */
-        protected _handlersById: { [index: string]: ModuleHandler };
+        _handlersById: { [index: string]: ModuleHandler };
 
         /**
          * Key      {egret.DisplayObject}   绑定的交互对象<br/>
          * Value    {number}                模块id
          */
-        protected _ioBind: Map<DisplayObject, string | number>;
+        _ioBind: Map<egret.DisplayObject, string | number>;
 
 
-        public constructor() {
+        constructor() {
         }
 
-        public init() {
+        init() {
             this._bindedIOById = [];
             this._handlersByType = [];
             this._checkers = [];
             this._allById = {};
             this._unshowns = [];
             this._handlersById = {};
-            this._ioBind = new Map<DisplayObject, string | number>();
+            this._ioBind = new Map<egret.DisplayObject, string | number>();
             on(EventConst.MODULE_NEED_CHECK_SHOW, this.checkShowHandler, this);
         }
 
         /**
          *  创建控件ToolTip的方法
          */
-        public createToolTip: (cfg: IModuleCfg) => string;
+        createToolTip: (cfg: IModuleCfg) => string;
 
     	/**
     	 * 设置模块配置数据
     	 * @param { [index: string]: ModuleCfg }    cfgs
     	 */
-        public setCfgs(cfgs: { [index: string]: IModuleCfg }) {
+        setCfgs(cfgs: { [index: string]: IModuleCfg }) {
             this._allById = cfgs;
             this.doCheckLimits();
         }
@@ -106,7 +105,7 @@ module junyou {
          * @param handler
          *
          */
-        public registerHandler(type: number, handler: ModuleHandler): void {
+        registerHandler(type: number, handler: ModuleHandler): void {
             this._handlersByType[type] = handler;
         }
         /**
@@ -115,7 +114,7 @@ module junyou {
          * @param handler
          *
          */
-        public registerHandlerById(id: string | number, handler: ModuleHandler): void {
+        registerHandlerById(id: string | number, handler: ModuleHandler): void {
             let cfg: IModuleCfg = this._allById[id];
             if (cfg) {
                 this._handlersById[id] = handler;
@@ -131,12 +130,12 @@ module junyou {
 		 * Value	{IModuleChecker}	    模块限制检查器
 		 *
 		 */
-        public set checkers(value: { [index: number]: IModuleChecker }) {
+        set checkers(value: { [index: number]: IModuleChecker }) {
             this._checkers = value;
             this.doCheckLimits();
         }
 
-        protected doCheckLimits() {
+        doCheckLimits() {
             this._needCheck = true;
             egret.callLater(this.checkLimits, this);
         }
@@ -145,7 +144,7 @@ module junyou {
         /**
          * 检查限制
          */
-        protected checkLimits(): void {
+        checkLimits(): void {
             if (this._needCheck) {
                 this._needCheck = false;
                 let _checks = this._checkers;
@@ -230,7 +229,7 @@ module junyou {
          * 模块是否已经显示
          * @param module    {string | number | IModuleCfg}    模块或者模块配置
          */
-        public isModuleShow(module: string | number | IModuleCfg): boolean {
+        isModuleShow(module: string | number | IModuleCfg): boolean {
             let cfg: IModuleCfg = this.getCfg(module);
             if (DEBUG) {
                 if (!cfg) {
@@ -252,7 +251,7 @@ module junyou {
          * @param module    {string | number | IModuleCfg}    模块或者模块配置
          * @param showtip   是否显示Tip
          */
-        public isModuleOpened(module: string | number | IModuleCfg, showtip: boolean): boolean {
+        isModuleOpened(module: string | number | IModuleCfg, showtip: boolean): boolean {
             let cfg: IModuleCfg = this.getCfg(module);
             if (DEBUG) {
                 if (!cfg) {
@@ -287,7 +286,7 @@ module junyou {
          * @param eventType		事件
          *
          */
-        public bindButton(id: string | number, io: DisplayObject, eventType: string = EgretEvent.TOUCH_TAP): void {
+        bindButton(id: string | number, io: egret.DisplayObject, eventType: string = EgretEvent.TOUCH_TAP): void {
             if (this._ioBind.has(io)) {
                 ThrowError("ModuleManager 注册按钮时候，重复注册了按钮");
                 return;
@@ -329,8 +328,8 @@ module junyou {
          * @param event
          *
          */
-        protected ioHandler(event: egret.Event): void {
-            this.toggle(this._ioBind.get(<DisplayObject>(event.currentTarget)));
+        ioHandler(event: egret.Event): void {
+            this.toggle(this._ioBind.get(event.currentTarget));
         }
 
         /**
@@ -338,12 +337,12 @@ module junyou {
 		 * @param event
 		 *
 		 */
-        protected checkShowHandler(event?: egret.Event): void {
+        checkShowHandler(): void {
             this._needCheckShow = true;
             egret.callLater(this._checkShowHandler, this);
         }
 
-        protected _checkShowHandler() {
+        _checkShowHandler() {
             if (!this._needCheckShow) {
                 return;
             }
@@ -379,7 +378,7 @@ module junyou {
          * @return true   可以正常打开
          *         false  被模块配置拦截，无法打开
          */
-        public toggle(moduleID: string | number, show?: ToggleState, showtip = true) {
+        toggle(moduleID: string | number, show?: ToggleState, showtip = true, param?: ModuleParam) {
             var cfg: IModuleCfg = this._allById[moduleID] as IModuleCfg;
             if (!cfg) {
                 ThrowError("ModuleManager execute时，无法找到对应模块配置,ModuleID为:" + moduleID);
@@ -400,19 +399,19 @@ module junyou {
                         switch (cfg.showState) {
                             case ModuleShowState.HIDE:
                             case ModuleShowState.HIDING:
-                                moduleHandler.show(cfg);
+                                moduleHandler.show(cfg, param);
                                 break;
                             case ModuleShowState.SHOW:
                             case ModuleShowState.SHOWING:
-                                moduleHandler.hide(cfg);
+                                moduleHandler.hide(cfg, param);
                                 break;
                         }
                         break;
                     case ToggleState.HIDE:
-                        moduleHandler.hide(cfg);
+                        moduleHandler.hide(cfg, param);
                         break;
                     case ToggleState.SHOW:
-                        moduleHandler.show(cfg);
+                        moduleHandler.show(cfg, param);
                         break;
                 }
                 return true;
@@ -424,7 +423,7 @@ module junyou {
          * 获取模块
          * @param module
          */
-        public getCfg(module: string | number | IModuleCfg) {
+        getCfg(module: string | number | IModuleCfg) {
             return typeof module === "object" ? module : this._allById[module];
         }
 
@@ -434,16 +433,12 @@ module junyou {
          * @param {string | number}  mid    服务器模块id
          * @param {boolean} state       模块状态
          */
-        public serverChangeModuleState(mid: string | number, state: boolean) {
+        serverChangeModuleState(mid: string | number, state: boolean) {
             let mcfg = this._allById[mid];
             if (mcfg) {
                 if (state != mcfg.serverOpen) {
                     mcfg.serverOpen = state;
-                    if (state) {
-                        dispatch(EventConst.MODULE_SERVER_OPEN, mid);
-                    } else {
-                        dispatch(EventConst.MODULE_SERVER_CLOSE, mid);
-                    }
+                    dispatch(state ? EventConst.MODULE_SERVER_OPEN : EventConst.MODULE_SERVER_CLOSE, mid);
                 }
             }
         }
