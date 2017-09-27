@@ -2049,6 +2049,43 @@ declare module junyou {
     const enum PageConst {
         MaxColumnCount = 9999,
     }
+    interface PageListOption {
+        /**
+         * 单元格之间的宽度
+         *
+         * @type {number}
+         * @memberof PageListOption
+         */
+        hgap?: number;
+        /**
+         * 单元格之间的高度
+         *
+         * @type {number}
+         * @memberof PageListOption
+         */
+        vgap?: number;
+        /**
+         * 列表共有几列（最小1最大9999）
+         *
+         * @type {number}
+         * @memberof PageListOption
+         */
+        columnCount?: number;
+        /**
+         * itemrender固定宽度
+         *
+         * @type {number}
+         * @memberof PageListOption
+         */
+        itemWidth?: number;
+        /**
+         * itemrender固定高度
+         *
+         * @type {number}
+         * @memberof PageListOption
+         */
+        itemHeight?: number;
+    }
     class PageList<T, R extends ListItemRender<T>> extends egret.Sprite {
         protected _renderFactory: ClassFactory<R>;
         /**
@@ -2080,7 +2117,6 @@ declare module junyou {
          * @type {number}
          */
         protected _columncount: number;
-        protected _viewCount: number;
         protected _renderList: R[];
         protected _data: T[];
         protected _childSizeChanged: boolean;
@@ -2113,17 +2149,23 @@ declare module junyou {
         private useTweenIndex;
         private rawDataChanged;
         /**
+         * Creates an instance of PageList.
+         * @param {ClassFactory<R>} renderfactory
+         * @param {PageListOption} [option]
+         */
+        constructor(renderfactory: ClassFactory<R>, option?: PageListOption);
+        /**
          * 列表
          * 有固定宽、高值则用固定值
          * 否则用itemrender宽、高布局
          *
-         * @ param renderfactory
-         * @ param hgap 单元格之间的宽度
-         * @ param vgap 单元格之间的高度
-         * @ param viewCount 可视范围内有几个列表项
-         * @ param columnCount 列表共有几列（最小1最大9999）
-         * @ param itemWidth itemrender固定宽度
-         * @ param itemHeight itemrender固定高度
+         * @param renderfactory
+         * @param hgap 单元格之间的宽度
+         * @param vgap 单元格之间的高度
+         * @param viewCount 可视范围内有几个列表项
+         * @param columnCount 列表共有几列（最小1最大9999）
+         * @param itemWidth itemrender固定宽度
+         * @param itemHeight itemrender固定高度
          */
         constructor(renderfactory: ClassFactory<R>, hgap?: number, vgap?: number, viewCount?: number, columnCount?: number, itemWidth?: number, itemHeight?: number);
         displayList(data?: T[]): void;
@@ -9995,6 +10037,7 @@ declare module junyou {
      * @extends {PageList}
      */
     class MPageList<T, R extends ListItemRender<T>> extends PageList<T, R> {
+        protected _viewCount: number;
         constructor();
         displayList(data?: T[]): void;
         addItem(item: R, index?: number): void;
@@ -10882,6 +10925,15 @@ declare module junyou {
         private _createComponents(suiData, view, compsData);
         createComponent(data: ComponentData, suiData: SuiData, view: egret.DisplayObjectContainer): any;
         getElement(suiData: SuiData, data: ComponentData): egret.DisplayObject;
+        /**
+         * 获取控件尺寸
+         *
+         * @param {string} key
+         * @param {string} className
+         * @param {egret.Rectangle} [outRect]
+         * @returns
+         */
+        getSize(key: string, className: string, outRect?: egret.Rectangle): egret.Rectangle;
     }
     interface SizeData {
         /**

@@ -2301,21 +2301,7 @@ var junyou;
 (function (junyou) {
     var PageList = (function (_super) {
         __extends(PageList, _super);
-        /**
-         * 列表
-         * 有固定宽、高值则用固定值
-         * 否则用itemrender宽、高布局
-         *
-         * @ param renderfactory
-         * @ param hgap 单元格之间的宽度
-         * @ param vgap 单元格之间的高度
-         * @ param viewCount 可视范围内有几个列表项
-         * @ param columnCount 列表共有几列（最小1最大9999）
-         * @ param itemWidth itemrender固定宽度
-         * @ param itemHeight itemrender固定高度
-         */
-        function PageList(renderfactory, hgap, vgap, viewCount, columnCount, itemWidth, itemHeight) {
-            if (columnCount === void 0) { columnCount = 1; }
+        function PageList(renderfactory, opt, vgap, viewCount, columnCount, itemWidth, itemHeight) {
             var _this = _super.call(this) || this;
             _this._childSizeChanged = false;
             _this._selectedIndex = -1;
@@ -2326,9 +2312,23 @@ var junyou;
             _this.renderChange = false;
             _this._dataLen = 0;
             _this._renderFactory = renderfactory;
+            var hgap;
+            if (typeof opt == "object") {
+                hgap = opt.hgap;
+                vgap = opt.vgap;
+                itemWidth = opt.itemWidth;
+                itemHeight = opt.itemHeight;
+                columnCount = opt.columnCount;
+            }
+            else {
+                hgap = opt;
+            }
+            columnCount = ~~columnCount;
+            if (columnCount < 1) {
+                columnCount = 1;
+            }
             _this._columncount = columnCount;
             _this._hgap = ~~hgap;
-            _this._viewCount = ~~viewCount;
             _this._vgap = ~~vgap;
             _this.itemWidth = itemWidth;
             _this.itemHeight = itemHeight;
@@ -17265,7 +17265,9 @@ var junyou;
     var MPageList = (function (_super) {
         __extends(MPageList, _super);
         function MPageList() {
-            return _super.call(this, null) || this;
+            var _this = _super.call(this, null) || this;
+            _this._viewCount = 0;
+            return _this;
         }
         MPageList.prototype.displayList = function (data) {
             this._selectedIndex = -1;
@@ -19424,6 +19426,29 @@ var junyou;
                         }
                         return this.createElement(libKey, data);
                     }
+            }
+        };
+        /**
+         * 获取控件尺寸
+         *
+         * @param {string} key
+         * @param {string} className
+         * @param {egret.Rectangle} [outRect]
+         * @returns
+         */
+        SuiResManager.prototype.getSize = function (key, className, outRect) {
+            var suiData = this._suiDatas[key];
+            if (suiData) {
+                var panelsData = suiData.panelsData;
+                if (panelsData) {
+                    var panelData = panelsData[className];
+                    if (panelData) {
+                        var sizeData = panelData[0];
+                        outRect = outRect || new egret.Rectangle();
+                        outRect.setTo(sizeData[0], sizeData[1], sizeData[2], sizeData[3]);
+                        return outRect;
+                    }
+                }
             }
         };
         return SuiResManager;
