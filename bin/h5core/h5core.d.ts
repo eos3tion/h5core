@@ -1,110 +1,3 @@
-interface $gmType {
-    /**
-     * 主控类型，包括Proxy和Mediator
-     *
-     * @type {{ [index: string]: junyou.FHost }}
-     * @memberof $gmType
-     */
-    $: {
-        [index: string]: junyou.FHost;
-    };
-}
-declare module junyou {
-    type InjectProxy = {
-        new (): IAsync;
-    } | string | number;
-    /**
-     * Mediator和Proxy的基类
-     * @author 3tion
-     *
-     */
-    abstract class FHost implements IDepender {
-        protected _name: string | number;
-        /**
-         * 用于处理依赖注入的Proxy
-         *
-         * @protected
-         * @type {({[index:string]:{ new (): IAsync } | string})}
-         * @memberOf FHost
-         */
-        protected _injectProxys: {
-            [index: string]: InjectProxy;
-        };
-        /**
-         * 唯一标识
-         */
-        readonly name: string | number;
-        constructor(name: string | number);
-        /**
-         * 检查依赖注入的数据
-         *
-         * @protected
-         *
-         * @memberOf FHost
-         */
-        protected checkInject(): void;
-        /**
-         * 异步的Helper
-         */
-        protected _asyncHelper: AsyncHelper;
-        addReadyExecute(handle: Function, thisObj: any, ...args: any[]): void;
-        /**
-         * 作为依赖者的Helper
-         */
-        protected _dependerHelper: DependerHelper;
-        readonly isReady: boolean;
-        startSync(): void;
-        /**
-         * 添加依赖项
-         */
-        addDepend(async: IAsync): void;
-        /**
-         *
-         * 获取模块回调
-         * @protected
-         * @param {Proxy} proxy 数据模块
-         * @param {any[]} args  回调参数
-         */
-        protected getProxyCallback(proxy: Proxy, property: string): void;
-        /**
-         * 依赖项，加载完成后的检查
-         */
-        protected dependerReadyCheck(): void;
-        /**
-         * 模块在Facade注册时执行
-         */
-        onRegister(): void;
-        /**
-         * 模块从Facade注销时
-         */
-        onRemove(): void;
-        /**
-         * 全部加载好以后要处理的事情<br/>
-         * 包括依赖项加载完毕
-         */
-        protected afterAllReady(): void;
-    }
-    /**
-     *
-     * 附加依赖的Proxy
-     * @export
-     * @param {({ new (): IAsync } | string)} ref 如果注册的是Class，必须是Inline方式注册的Proxy
-     * @returns
-     */
-    function __dependProxy(ref: {
-        new (): IAsync;
-    } | string | number): (target: any, key: string) => void;
-}
-declare module junyou {
-    /**
-     *
-     * 附加依赖的Proxy
-     * @export
-     * @param {({ new (): IAsync } | string)} ref
-     * @returns
-     */
-    var d_dependProxy: typeof __dependProxy;
-}
 declare function parseInt(s: number, radix?: number): number;
 /**
  * 对数字进行补0操作
@@ -364,7 +257,7 @@ interface Array<T> {
 }
 declare module junyou {
     function is(instance: any, ref: {
-        new (): any;
+        new(): any;
     }): boolean;
     /**
      * 移除可视对象
@@ -524,6 +417,113 @@ interface Storage {
      */
     setItem(key: number | string, data: any): void;
     removeItem(key: number | string): void;
+}
+interface $gmType {
+    /**
+     * 主控类型，包括Proxy和Mediator
+     *
+     * @type {{ [index: string]: junyou.FHost }}
+     * @memberof $gmType
+     */
+    $: {
+        [index: string]: junyou.FHost;
+    };
+}
+declare module junyou {
+    type InjectProxy = {
+        new(): IAsync;
+    } | string | number;
+    /**
+     * Mediator和Proxy的基类
+     * @author 3tion
+     *
+     */
+    abstract class FHost implements IDepender {
+        protected _name: string | number;
+        /**
+         * 用于处理依赖注入的Proxy
+         *
+         * @protected
+         * @type {({[index:string]:{ new (): IAsync } | string})}
+         * @memberOf FHost
+         */
+        protected _injectProxys: {
+            [index: string]: InjectProxy;
+        };
+        /**
+         * 唯一标识
+         */
+        readonly name: string | number;
+        constructor(name: string | number);
+        /**
+         * 检查依赖注入的数据
+         *
+         * @protected
+         *
+         * @memberOf FHost
+         */
+        protected checkInject(): void;
+        /**
+         * 异步的Helper
+         */
+        protected _asyncHelper: AsyncHelper;
+        addReadyExecute(handle: Function, thisObj: any, ...args: any[]): void;
+        /**
+         * 作为依赖者的Helper
+         */
+        protected _dependerHelper: DependerHelper;
+        readonly isReady: boolean;
+        startSync(): void;
+        /**
+         * 添加依赖项
+         */
+        addDepend(async: IAsync): void;
+        /**
+         *
+         * 获取模块回调
+         * @protected
+         * @param {Proxy} proxy 数据模块
+         * @param {any[]} args  回调参数
+         */
+        protected getProxyCallback(proxy: Proxy, property: string): void;
+        /**
+         * 依赖项，加载完成后的检查
+         */
+        protected dependerReadyCheck(): void;
+        /**
+         * 模块在Facade注册时执行
+         */
+        onRegister(): void;
+        /**
+         * 模块从Facade注销时
+         */
+        onRemove(): void;
+        /**
+         * 全部加载好以后要处理的事情<br/>
+         * 包括依赖项加载完毕
+         */
+        protected afterAllReady(): void;
+    }
+    /**
+     *
+     * 附加依赖的Proxy
+     * @export
+     * @param {({ new (): IAsync } | string)} ref 如果注册的是Class，必须是Inline方式注册的Proxy
+     * @returns
+     */
+    function __dependProxy(ref: {
+        new(): IAsync;
+    } | string | number): (target: any, key: string) => void;
+}
+declare module junyou {
+    /**
+     *
+     * 附加依赖的Proxy
+     * @export
+     * @param {({ new (): IAsync } | string)} ref
+     * @returns
+     */
+    var d_dependProxy: typeof __dependProxy;
 }
 declare module junyou {
     /**
@@ -690,451 +690,15 @@ declare module junyou {
         get(): T;
     }
 }
-interface $NSFilter {
-    /**
-     * 感兴趣的请求
-     *
-     * @type { [index: number]: boolean }
-     * @memberOf $gmNSLog
-     */
-    cmds?: number[];
-    /**
-     * 是否为白名单模式，默认黑名单
-     *
-     * @type {boolean}
-     * @memberOf $NSFilter
-     */
-    isWhite: boolean;
-    /**
-     * 过滤器
-     *
-     * @type {{ ($gmNSLog, ...args): boolean }}
-     * @memberOf $NSFilter
-     */
-    filter?: {
-        ($gmNSLog, ...args): boolean;
-    };
-    /**
-     * 过滤器参数
-     *
-     * @type {any[]}
-     * @memberOf $NSFilter
-     */
-    filterParams?: any[];
-}
-interface $NSLog {
-    time: number;
-    type: "send" | "receive";
-    cmd: number;
-    data: any;
-}
-/**
- * 用于扩展GM指令
- *
- * @interface $gmType
- */
-interface $gmType {
-    /**
-     * 发送的网络消息的日志
-     *
-     * @type {$NSFilter}
-     * @memberOf $gmType
-     */
-    printSendFilter: $NSFilter;
-    /**
-     * 接收的网络消息的日志
-     *
-     * @type {$NSFilter}
-     * @memberOf $gmType
-     */
-    printReceiveFilter: $NSFilter;
-    /**
-     * 日志数据
-     *
-     * @type $NSLog[])}
-     * @memberOf $gmType
-     */
-    nsLogs: $NSLog[];
-    /**
-     * 输出日志内容
-     * @memberOf $gmType
-     */
-    showNSLog(): $NSLog[];
-    showNSLog(filter: {
-        ($gmNSLog: $NSLog, ...args): boolean;
-    }, ...args: any[]): $NSLog[];
-    showNSLog(isWhite: boolean, ...cmds: number[]): $NSLog[];
-    /**
-     * 使用黑名单模式，进行输出
-     *
-     * @param {...number[]} cmds
-     *
-     * @memberOf $gmType
-     */
-    showNSLog(...cmds: number[]): $NSLog[];
-    /**
-     * 最大网络日志数量
-     *
-     * @type {number}
-     * @memberOf $gmType
-     */
-    maxNSLogCount: number;
-    /**
-     * 控制台输出发送日志
-     * @memberOf $gm
-     */
-    printSend(): any;
-    /**
-     * 使用过滤函数过滤在控制台输出的发送日志
-     *
-     * @param {{ ($gmNSLog, ...args): boolean }} filter     过滤函数，函数返回true的会显示在控制台上
-     * @param {any} args                                    过滤函数使用的参数
-     *
-     * @memberOf $gmType
-     */
-    printSend(filter: {
-        ($gmNSLog: $NSLog, ...args): boolean;
-    }, ...args: any[]): any;
-    /**
-     * 显示或排除指定指令的发送日志，并在控制台输出
-     *
-     * @param {boolean} isWhite     是否为白名单模式
-     * @param {...number[]} cmds    指令列表
-     *
-     * @memberOf $gmType
-     */
-    printSend(isWhite: boolean, ...cmds: number[]): any;
-    /**
-     * 排除指定指令的发送日志，将其他日志信息在控制台输出
-     *
-     * @param {...number[]} cmds    黑名单列表
-     *
-     * @memberOf $gmType
-     */
-    printSend(...cmds: number[]): any;
-    /**
-     * 控制台输出接收日志
-     * @memberOf $gmType
-     */
-    printReceive(): any;
-    /**
-     * 使用过滤函数过滤并在控制台输出接收日志
-     *
-     * @param {{ ($gmNSLog, ...args): boolean }} filter     过滤函数，函数返回true的会显示在控制台上
-     * @param {any} args                                    过滤函数使用的参数
-     *
-     * @memberOf $gmType
-     */
-    printReceive(filter: {
-        ($gmNSLog: $NSLog, ...args): boolean;
-    }, ...args: any[]): any;
-    /**
-     * 显示或排除指定指令的接收日志，并在控制台输出
-     *
-     * @param {boolean} isWhite     是否为白名单模式
-     * @param {...number[]} cmds    指令列表
-     *
-     * @memberOf $gmType
-     */
-    printReceive(isWhite: boolean, ...cmds: number[]): any;
-    /**
-     * 排除指定指令的接收日志，将其他日志信息在控制台输出
-     *
-     * @param {...number[]} cmds
-     *
-     * @memberOf $gmType
-     */
-    printReceive(...cmds: number[]): any;
-    /**
-     * 调用printSend和printReceive的一个简写
-     *
-     *
-     * @memberof $gmType
-     */
-    print(): any;
-    /**
-     * 模拟服务端发送数据
-     *
-     * @param {number} cmd
-     * @param {*} [data]
-     *
-     * @memberof $gmType
-     */
-    route(cmd: number, data?: any): any;
-    /**
-     * 使用日志数据进行模拟调试
-     *
-     * @param {$NSLog[]} logs
-     *
-     * @memberof $gmType
-     */
-    batchRoute(logs: $NSLog[]): any;
-    /**
-     * 获取网络传输数据日志的过滤器
-     * @returns {$NSFilter}
-     *
-     * @memberOf $gmType
-     */
-    __getNSFilter(...args: any[]): $NSFilter;
-    /**
-     * 检查是否需要显示日志
-     *
-     * @param {$NSLog} log
-     * @param {$NSFilter} nsFilter
-     * @returns {boolean}
-     *
-     * @memberOf $gmType
-     */
-    __nsLogCheck(log: $NSLog, nsFilter: $NSFilter): boolean;
-}
 declare module junyou {
-    const enum NSType {
-        Null = 0,
-        Boolean = 1,
-        String = 2,
-        Bytes = 4,
-        Double = 5,
-        Int32 = 6,
-        Uint32 = 7,
-        Int64 = 8,
-    }
-    const NSBytesLen: {
-        0: number;
-        1: number;
-        5: number;
-        6: number;
-        7: number;
-        8: number;
-    };
     /**
-     * 用于存储头部的临时变量
-     */
-    const nsHeader: {
-        cmd: number;
-        len: number;
-    };
-    /**
-     * 头信息
-     *
-     * @export
-     * @interface NSHeader
-     */
-    interface NSHeader {
-        /**
-         * 指令/协议号
-         *
-         * @type {number}
-         * @memberof NSHeader
-         */
-        cmd: number;
-        /**
-         * 长度
-         *
-         * @type {number}
-         * @memberof NSHeader
-         */
-        len: number;
-    }
-    /**
-     * 通信服务
-     * 收发的协议结构：
-     * 2字节协议号 2字节包长度(n) n字节包
+     * 扩展名常量
      * @author 3tion
-     *
      */
-    abstract class NetService {
-        /**
-        * 请求地址
-        */
-        protected _actionUrl: string;
-        setLimitEventEmitable(emit: boolean): void;
-        protected static _ins: NetService;
-        protected _limitAlert: boolean;
-        protected _limitSendFunc: {
-            (cmd: number, data?: any, msgType?: string | number, limit?: number);
-        };
-        protected _nolimitSendFunc: {
-            (cmd: number, data?: any, msgType?: string | number, limit?: number);
-        };
-        static get(): NetService;
-        /**
-             * 用于调试模式下写日志
-             *
-             * @param {number} time
-             * @param {("send" | "receive")} type
-             * @param {number} cmd
-             * @param {*} data
-             *
-             * @memberOf $gmType
-             */
-        protected $writeNSLog: {
-            (time: number, type: "send" | "receive", cmd: number, data: any): void;
-        };
-        protected _router: NetRouter;
-        /**
-         * 待发送的的被动指令列表
-         */
-        protected _pcmdList: Recyclable<NetSendData>[];
-        /**
-         * 接收数据的临时数组
-         */
-        protected _tmpList: Recyclable<NetData>[];
-        /**
-         * 读取的字节缓存
-         */
-        protected _readBuffer: ByteArray;
-        /**
-         * 发送的字节缓存
-         */
-        protected _sendBuffer: ByteArray;
-        protected _tempBytes: ByteArray;
-        /**
-         * 接收消息的创建器
-         *
-         */
-        protected _receiveMSG: {
-            [index: number]: string | number;
-        };
-        /**
-         * 设置地址
-         *
-         * @abstract
-         * @param {string} actionUrl
-         */
-        abstract setUrl(actionUrl: string): any;
-        constructor();
-        protected netChange: () => void;
-        /**
-         * 基础连接时间
-         *
-         *
-         * @memberOf NetService
-         */
-        baseConTime: number;
-        /**
-         * 最大连接时间
-         *
-         *
-         * @memberOf NetService
-         */
-        maxConTime: Time;
-        /**
-         * 重连次数
-         *
-         * @private
-         * @type {number}
-         * @memberOf NetService
-         */
-        protected _reconCount: number;
-        /**
-         * 下次自动拉取请求的时间戳
-         */
-        protected _nextAutoTime: number;
-        /**
-         * 下次自动请求的最短
-         */
-        protected _autoTimeDelay: number;
-        protected showReconnect(): void;
-        protected onawake(): void;
-        /**
-         * 基础类型消息
-         */
-        regReceiveMSGRef(cmd: number, ref: string | number): void;
-        /**
-         * 注册处理器
-         * @param {number} cmd 协议号
-         * @param {INetHandler} handler 处理网络数据的处理器
-         * @param {number} [priority=0] 处理优先级
-         */
-        register(cmd: number, handler: INetHandler, priotity?: number): boolean;
-        /**
-         * 注册单次执行的处理器
-         * @param {number} cmd 协议号
-         * @param {INetHandler} handler 处理网络数据的处理器
-         * @param {number} [priority=0] 处理优先级
-         */
-        regOnce(cmd: number, handler: INetHandler, priotity?: number): boolean;
-        /**
-         * 移除协议号和处理器的监听
-         *
-         * @param {number} cmd 协议号
-         * @param {INetHandler} handler 处理网络数据的处理器
-         */
-        remove(cmd: number, handler: INetHandler): void;
-        protected _register(cmd: number, handler: INetHandler, priotity: number, once: boolean): boolean;
-        /**
-         * 即时发送指令<br/>
-         * 用于处理角色主动操作的请求，如点击合成道具，使用物品等
-         * @param {number} cmd 协议号
-         * @param {any} [data] 数据，简单数据(number,boolean,string)复合数据
-         * @param {string} [msgType] 如果是复合数据，必须有此值
-         * @param {number} [limit] 客户端发送时间限制，默认500毫秒
-         */
-        send(cmd: number, data?: any, msgType?: string | number, limit?: number): void;
-        /**
-         * 即时发送指令
-         */
-        protected abstract _send(cmd: number, data: any, msgType: string | number): any;
-        /**
-         * 断开连接
-         */
-        disconnect(): void;
-        /**
-         * 消极发送指令
-         * 如果使用通协议的指令，有堆积的指令，先合并，新的替换旧的
-         * __`请勿将一些用户操作使用此指令发送`__
-         * 处理一些实时性要求不高的指令，这些指令先缓存堆积，等到用户主动发指令的时候，一起发送
-         * @param {number} cmd 协议号
-         * @param {any} [data] 数据，简单数据(number,boolean,string)复合数据
-         * @param {string} [msgType] 如果是复合数据，必须有此值
-         */
-        sendPassive(cmd: number, data?: any, msgType?: string | number): void;
-        /**
-         * 向缓冲数组中写入数据
-         */
-        protected writeToBuffer(bytes: ByteArray, data: NetSendData): void;
-        /**
-         * @private
-         * @param bytes
-         * @param out
-         */
-        protected decodeBytes(bytes: ByteArray): void;
-        /**
-         * 解析头部信息
-         *
-         * @protected
-         * @param {ByteArray} bytes
-         * @param {NSHeader} header
-         * @returns 是否可以继续  true    继续后续解析
-         *                       false   取消后续解析
-         * @memberof NetService
-         */
-        protected decodeHeader(bytes: ByteArray, header: NSHeader): boolean;
-        /**
-         * 存储数据长度
-         *
-         * @protected
-         * @param {ByteArray} bytes
-         * @param {number} val
-         * @memberof NetService
-         */
-        protected writeBytesLength(bytes: ByteArray, val: number): void;
-        /**
-         *
-         * 模拟服务端
-         * @param {number} cmd
-         * @param {*} [data]
-         */
-        route(cmd: number, data?: any): void;
-    }
-    interface ReconectEvent extends egret.Event {
-        /**
-         * 重连次数
-         *
-         * @type {number}
-         * @memberOf ReconectEvent
-         */
-        data: number;
+    const enum Ext {
+        JPG = ".jpg",
+        PNG = ".png",
+        WEBP = ".webp",
     }
 }
 declare module junyou {
@@ -1612,17 +1176,6 @@ declare module junyou {
          */
         doRender(unit: Unit, now: number): void;
         recycle(): void;
-    }
-}
-declare module junyou {
-    /**
-     * 扩展名常量
-     * @author 3tion
-     */
-    const enum Ext {
-        JPG = ".jpg",
-        PNG = ".png",
-        WEBP = ".webp",
     }
 }
 declare const enum EgretEvent {
@@ -2165,6 +1718,106 @@ declare const enum EgretResType {
 }
 declare module junyou {
     /**
+     * mixin的基类选项
+     *
+     * @export
+     * @interface MixinOption
+     * @template T
+     */
+    interface MixinOption<T> {
+        /**
+         *
+         * mixin的基类
+         * @type {{ new (): T }}
+         * @memberOf MixinOption
+         */
+        clazz: {
+            new(): T;
+        };
+        /**
+         *
+         *
+         * @type {(keyof T)[]}
+         * @memberOf MixinOption
+         */
+        keys: (keyof T)[];
+    }
+    /**
+     * 扩展一个实例，如果A类型实例本身并没有B类型的方法，则直接对实例的属性进行赋值，否则将不会赋值
+     *
+     * @export
+     * @template A
+     * @template B
+     * @param {A} instance                  要扩展的实例
+     * @param {{ prototype: B }} clazzB     需要扩展的对象方法
+     * @param {boolean} override            是否强制覆盖原有方法
+     * @returns {(A & B)}
+     */
+    function expandInstance<A, B, K extends keyof B>(instance: A, clazzB: {
+        prototype: B;
+    }, ...keys: K[]): A & B;
+    /**
+     * 将类型A扩展类型B的指定属性，并返回引用
+     *
+     * @export
+     * @template A
+     * @template B
+     * @template K
+     * @template B
+     * @param {{ prototype: A }} clazzA     要被扩展的类型
+     * @param {{ prototype: B }} clazzB     扩展的模板
+     * @param {...K[]} keys      如果没有参数，则将B的全部属性复制给类型A
+     * @returns {(A & Record<K, B>)}
+     */
+    function expand<A, B, K extends keyof B>(clazzA: {
+        prototype: A;
+    }, clazzB: {
+        prototype: B;
+    }, ...keys: K[]): A & Record<K, B>;
+    type Constructor<T> = new (...args: any[]) => T;
+    type MixinCtor<A, B> = new () => A & B & {
+        constructor: MixinCtor<A, B>;
+    };
+    /**
+     * 获取一个复合类型
+     *
+     * @export
+     * @template A
+     * @template B
+     * @param {{ prototype: A }} clazzA     类型A
+     * @param {{ prototype: B }} clazzB     类型B
+     * @returns
+     */
+    function getMixin<A, B>(clazzA: {
+        prototype: A;
+    }, clazzB: {
+        prototype: B;
+    }): MixinCtor<A, B>;
+    /**
+     * 拷贝属性
+     *
+     * @export
+     * @template To
+     * @template From
+     * @param {To} to
+     * @param {From} from
+     * @param {keyof B} key
+     */
+    function copyProperty<To, From>(to: To, from: From, key: keyof From): void;
+    /**
+     * 批量拷贝属性
+     *
+     * @export
+     * @template To
+     * @template From
+     * @param {To} to
+     * @param {From} from
+     * @param {...(keyof From)[]} keys
+     */
+    function copyProperties<To, From>(to: To, from: From, ...keys: (keyof From)[]): void;
+}
+declare module junyou {
+    /**
      * 用于君游项目数据同步，后台运行<br/>
      * 只有注册和注销，没有awake和sleep
      * @author 3tion
@@ -2685,392 +2338,6 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     * mixin的基类选项
-     *
-     * @export
-     * @interface MixinOption
-     * @template T
-     */
-    interface MixinOption<T> {
-        /**
-         *
-         * mixin的基类
-         * @type {{ new (): T }}
-         * @memberOf MixinOption
-         */
-        clazz: {
-            new (): T;
-        };
-        /**
-         *
-         *
-         * @type {(keyof T)[]}
-         * @memberOf MixinOption
-         */
-        keys: (keyof T)[];
-    }
-    /**
-     * 扩展一个实例，如果A类型实例本身并没有B类型的方法，则直接对实例的属性进行赋值，否则将不会赋值
-     *
-     * @export
-     * @template A
-     * @template B
-     * @param {A} instance                  要扩展的实例
-     * @param {{ prototype: B }} clazzB     需要扩展的对象方法
-     * @param {boolean} override            是否强制覆盖原有方法
-     * @returns {(A & B)}
-     */
-    function expandInstance<A, B, K extends keyof B>(instance: A, clazzB: {
-        prototype: B;
-    }, ...keys: K[]): A & B;
-    /**
-     * 将类型A扩展类型B的指定属性，并返回引用
-     *
-     * @export
-     * @template A
-     * @template B
-     * @template K
-     * @template B
-     * @param {{ prototype: A }} clazzA     要被扩展的类型
-     * @param {{ prototype: B }} clazzB     扩展的模板
-     * @param {...K[]} keys      如果没有参数，则将B的全部属性复制给类型A
-     * @returns {(A & Record<K, B>)}
-     */
-    function expand<A, B, K extends keyof B>(clazzA: {
-        prototype: A;
-    }, clazzB: {
-        prototype: B;
-    }, ...keys: K[]): A & Record<K, B>;
-    type Constructor<T> = new (...args: any[]) => T;
-    type MixinCtor<A, B> = new () => A & B & {
-        constructor: MixinCtor<A, B>;
-    };
-    /**
-     * 获取一个复合类型
-     *
-     * @export
-     * @template A
-     * @template B
-     * @param {{ prototype: A }} clazzA     类型A
-     * @param {{ prototype: B }} clazzB     类型B
-     * @returns
-     */
-    function getMixin<A, B>(clazzA: {
-        prototype: A;
-    }, clazzB: {
-        prototype: B;
-    }): MixinCtor<A, B>;
-    /**
-     * 拷贝属性
-     *
-     * @export
-     * @template To
-     * @template From
-     * @param {To} to
-     * @param {From} from
-     * @param {keyof B} key
-     */
-    function copyProperty<To, From>(to: To, from: From, key: keyof From): void;
-    /**
-     * 批量拷贝属性
-     *
-     * @export
-     * @template To
-     * @template From
-     * @param {To} to
-     * @param {From} from
-     * @param {...(keyof From)[]} keys
-     */
-    function copyProperties<To, From>(to: To, from: From, ...keys: (keyof From)[]): void;
-}
-declare module egret {
-    interface DisplayObject {
-        /**
-         * 扩展sui的可视对象，的原始尺寸和坐标
-         *
-         * @type {egret.Rectangle}
-         * @memberOf DisplayObject
-         */
-        suiRawRect?: egret.Rectangle;
-    }
-}
-declare module junyou {
-    import Texture = egret.Texture;
-    const DATA_FILE = "s.json";
-    /**
-     * 用于管理位图和数据
-     * @author 3tion
-     *
-     */
-    class SuiResManager {
-        /**
-         * Key      {string}    fla的文件名
-         * Value    {SuiData}   数据
-         */
-        protected _suiDatas: {
-            [index: string]: SuiData;
-        };
-        /**
-         * Key      {string}    主配置文件的加载地址
-         * Value    {SuiData}   数据
-         */
-        protected _urlKey: {
-            [index: string]: SuiData;
-        };
-        /**
-         * 创建器
-         */
-        protected _creators: {
-            [index: string]: {
-                new (): BaseCreator<egret.DisplayObject>;
-            };
-        };
-        /**
-         * 共享的文本创建器
-         */
-        sharedTFCreator: TextFieldCreator;
-        constructor();
-        protected initInlineCreators(): void;
-        getData(key: string): SuiData;
-        /**
-         * 加载数据
-         */
-        loadData(key: string, callback: SuiDataCallback): void;
-        /**
-         *
-         * 直接将已经加载好的内置数据，和key进行绑定
-         * @param {string} key
-         * @param {*} data
-         */
-        setInlineData(key: string, data: any): void;
-        /**
-         *
-         * 初始化数据
-         * @private
-         * @param {*} data
-         * @param {SuiData} suiData
-         */
-        private _initSuiData(data, suiData);
-        /**
-         * 数据加载完成
-         */
-        protected checkData(data: any, key: string): void;
-        /**
-         * 处理控件数据
-         */
-        protected parseComponentData(allComData: {
-            0: string[];
-            1: any[];
-            2: SizeData[];
-        }[], suiData: SuiData): void;
-        /**
-         * 解析图片数据
-         *  0 图片宽  1图片高度   2偏移X   3偏移Y
-         */
-        protected parseTextureData(data: number[][], suiData: SuiData, ispng?: boolean): void;
-        /**
-         * 创建可视控件
-         * @param uri           皮肤标识
-         * @param className     类名字
-         * @param baseData      基础数据
-         */
-        createDisplayObject(uri: string, className: string, baseData?: any): egret.DisplayObject;
-        /**
-         * 处理元素数据
-         * 对应 https://github.com/eos3tion/ExportUIFromFlash  项目中
-         * Solution.ts -> getElementData的元素数据的解析
-         * @param {string} uri 库标识
-         * @param {ComponentData} data 长度为4的数组
-         * 0 导出类型
-         * 1 基础数据 @see Solution.getEleBaseData
-         * 2 对象数据 不同类型，数据不同
-         * 3 引用的库 0 当前库  1 lib  字符串 库名字
-         * @memberOf BaseCreator
-         */
-        createElement(uri: string | SuiData, data: ComponentData): egret.DisplayObject;
-        /**
-         * 创建位图对象
-         * @param uri       皮肤标识
-         * @param index     位图索引 data[2]
-         * @param baseData  基础数据 data[1]
-         */
-        createBitmap(uri: string, index: number, baseData: BaseData): egret.Bitmap;
-        /**
-         * 获取美术字
-         *
-         * @param {string} uri          皮肤标识
-         * @param {string} artword      美术字
-         * @returns
-         *
-         * @memberOf SuiResManager
-         */
-        getArtWord(uri: string, artword: string): ArtWord;
-        /**
-         * 获取美术字的纹理
-         *
-         * @param {string} uri          皮肤标识
-         * @param {string} artword      美术字
-         * @param {Key} font         指定的文字
-         * @returns
-         *
-         * @memberOf SuiResManager
-         */
-        getArtWordTexture(uri: string, artword: string, font: Key): Texture;
-        /**
-         *  创建位图对象
-         * @param uri       皮肤标识
-         * @param data      JSON的数据
-         */
-        createBitmapByData(uri: string, data: any): egret.Bitmap;
-        /**
-         * 创建文本框
-         * @param uri       皮肤标识
-         * @param data      私有数据 data[2]
-         * @param baseData  基础数据 data[1]
-         */
-        createTextField(uri: string, data: any, baseData: any): egret.TextField;
-        /**
-        *  创建文本框
-        * @param uri       皮肤标识
-        * @param data      JSON的数据
-        */
-        createTextFieldByData(uri: string, data: any): egret.TextField;
-        static initBaseData(dis: egret.DisplayObject, data: any): void;
-        /**
-         * 创建子控件
-         *
-         * @param {string} key
-         * @param {string} className
-         * @param {egret.DisplayObjectContainer} view
-         */
-        createComponents(key: string, className: string, view: egret.DisplayObjectContainer): void;
-        private _createComponents(suiData, view, compsData);
-        createComponent(data: ComponentData, suiData: SuiData, view: egret.DisplayObjectContainer): any;
-        getElement(suiData: SuiData, data: ComponentData): egret.DisplayObject;
-    }
-    interface SizeData {
-        /**
-         * x坐标
-         *
-         * @type {number}
-         * @memberOf BaseData
-         */
-        0: number;
-        /**
-         * y坐标
-         *
-         * @type {number}
-         * @memberOf BaseData
-         */
-        1: number;
-        /**
-         * width
-         *
-         * @type {number}
-         * @memberOf BaseData
-         */
-        2: number;
-        /**
-         * height
-         *
-         * @type {number}
-         * @memberOf BaseData
-         */
-        3: number;
-    }
-    interface ComponentData extends Array<any> {
-        /**
-         * 导出类型
-         *
-         * @type {ExportType}
-         * @memberOf ComponentData
-         */
-        0: ExportType;
-        /**
-         * 基础数据
-         *
-         * @type {BaseData}
-         * @memberOf ComponentData
-         */
-        1: BaseData;
-        /**
-         * 组件数据
-         *
-         * @type {any}
-         * @memberOf ComponentData
-         */
-        2: any;
-        /**
-         * 是否引用lib
-         * 如果没有此值或者0，则使用当前key
-         * 1 使用 lib
-         * 其他字符串，则为 suiData的key
-         * @type {1|string}
-         * @memberOf ComponentData
-         */
-        3?: 0 | 1 | string;
-    }
-    interface BaseData {
-        /**
-         * 控件名称
-         *
-         * @type {string}
-         * @memberOf BaseData
-         */
-        0: string;
-        /**
-         * x坐标
-         *
-         * @type {number}
-         * @memberOf BaseData
-         */
-        1: number;
-        /**
-         * y坐标
-         *
-         * @type {number}
-         * @memberOf BaseData
-         */
-        2: number;
-        /**
-         * width
-         *
-         * @type {number}
-         * @memberOf BaseData
-         */
-        3: number;
-        /**
-         * height
-         *
-         * @type {number}
-         * @memberOf BaseData
-         */
-        4: number;
-        /**
-         * 旋转角度/或者matrix的[a,b,c,d]四个值组成的数组
-         *
-         * @type {number}
-         * @memberOf BaseData
-         */
-        5: number | Array<number>;
-        /**
-         * alpha
-         *
-         * @type {number}
-         * @memberof BaseData
-         */
-        6?: number;
-    }
-    interface PanelData extends Array<any> {
-        0: SizeData;
-        1: ComponentData[];
-    }
-    interface PanelsData {
-        [index: string]: PanelData;
-    }
-}
-declare module junyou {
-    /**
      *
      * @author 3tion
      *
@@ -3092,6 +2359,453 @@ declare module junyou {
          * 加载失败 -1
          */
         FAILED = -1,
+    }
+}
+interface $NSFilter {
+    /**
+     * 感兴趣的请求
+     *
+     * @type { [index: number]: boolean }
+     * @memberOf $gmNSLog
+     */
+    cmds?: number[];
+    /**
+     * 是否为白名单模式，默认黑名单
+     *
+     * @type {boolean}
+     * @memberOf $NSFilter
+     */
+    isWhite: boolean;
+    /**
+     * 过滤器
+     *
+     * @type {{ ($gmNSLog, ...args): boolean }}
+     * @memberOf $NSFilter
+     */
+    filter?: {
+        ($gmNSLog, ...args): boolean;
+    };
+    /**
+     * 过滤器参数
+     *
+     * @type {any[]}
+     * @memberOf $NSFilter
+     */
+    filterParams?: any[];
+}
+interface $NSLog {
+    time: number;
+    type: "send" | "receive";
+    cmd: number;
+    data: any;
+}
+/**
+ * 用于扩展GM指令
+ *
+ * @interface $gmType
+ */
+interface $gmType {
+    /**
+     * 发送的网络消息的日志
+     *
+     * @type {$NSFilter}
+     * @memberOf $gmType
+     */
+    printSendFilter: $NSFilter;
+    /**
+     * 接收的网络消息的日志
+     *
+     * @type {$NSFilter}
+     * @memberOf $gmType
+     */
+    printReceiveFilter: $NSFilter;
+    /**
+     * 日志数据
+     *
+     * @type $NSLog[])}
+     * @memberOf $gmType
+     */
+    nsLogs: $NSLog[];
+    /**
+     * 输出日志内容
+     * @memberOf $gmType
+     */
+    showNSLog(): $NSLog[];
+    showNSLog(filter: {
+        ($gmNSLog: $NSLog, ...args): boolean;
+    }, ...args: any[]): $NSLog[];
+    showNSLog(isWhite: boolean, ...cmds: number[]): $NSLog[];
+    /**
+     * 使用黑名单模式，进行输出
+     *
+     * @param {...number[]} cmds
+     *
+     * @memberOf $gmType
+     */
+    showNSLog(...cmds: number[]): $NSLog[];
+    /**
+     * 最大网络日志数量
+     *
+     * @type {number}
+     * @memberOf $gmType
+     */
+    maxNSLogCount: number;
+    /**
+     * 控制台输出发送日志
+     * @memberOf $gm
+     */
+    printSend(): any;
+    /**
+     * 使用过滤函数过滤在控制台输出的发送日志
+     *
+     * @param {{ ($gmNSLog, ...args): boolean }} filter     过滤函数，函数返回true的会显示在控制台上
+     * @param {any} args                                    过滤函数使用的参数
+     *
+     * @memberOf $gmType
+     */
+    printSend(filter: {
+        ($gmNSLog: $NSLog, ...args): boolean;
+    }, ...args: any[]): any;
+    /**
+     * 显示或排除指定指令的发送日志，并在控制台输出
+     *
+     * @param {boolean} isWhite     是否为白名单模式
+     * @param {...number[]} cmds    指令列表
+     *
+     * @memberOf $gmType
+     */
+    printSend(isWhite: boolean, ...cmds: number[]): any;
+    /**
+     * 排除指定指令的发送日志，将其他日志信息在控制台输出
+     *
+     * @param {...number[]} cmds    黑名单列表
+     *
+     * @memberOf $gmType
+     */
+    printSend(...cmds: number[]): any;
+    /**
+     * 控制台输出接收日志
+     * @memberOf $gmType
+     */
+    printReceive(): any;
+    /**
+     * 使用过滤函数过滤并在控制台输出接收日志
+     *
+     * @param {{ ($gmNSLog, ...args): boolean }} filter     过滤函数，函数返回true的会显示在控制台上
+     * @param {any} args                                    过滤函数使用的参数
+     *
+     * @memberOf $gmType
+     */
+    printReceive(filter: {
+        ($gmNSLog: $NSLog, ...args): boolean;
+    }, ...args: any[]): any;
+    /**
+     * 显示或排除指定指令的接收日志，并在控制台输出
+     *
+     * @param {boolean} isWhite     是否为白名单模式
+     * @param {...number[]} cmds    指令列表
+     *
+     * @memberOf $gmType
+     */
+    printReceive(isWhite: boolean, ...cmds: number[]): any;
+    /**
+     * 排除指定指令的接收日志，将其他日志信息在控制台输出
+     *
+     * @param {...number[]} cmds
+     *
+     * @memberOf $gmType
+     */
+    printReceive(...cmds: number[]): any;
+    /**
+     * 调用printSend和printReceive的一个简写
+     *
+     *
+     * @memberof $gmType
+     */
+    print(): any;
+    /**
+     * 模拟服务端发送数据
+     *
+     * @param {number} cmd
+     * @param {*} [data]
+     *
+     * @memberof $gmType
+     */
+    route(cmd: number, data?: any): any;
+    /**
+     * 使用日志数据进行模拟调试
+     *
+     * @param {$NSLog[]} logs
+     *
+     * @memberof $gmType
+     */
+    batchRoute(logs: $NSLog[]): any;
+    /**
+     * 获取网络传输数据日志的过滤器
+     * @returns {$NSFilter}
+     *
+     * @memberOf $gmType
+     */
+    __getNSFilter(...args: any[]): $NSFilter;
+    /**
+     * 检查是否需要显示日志
+     *
+     * @param {$NSLog} log
+     * @param {$NSFilter} nsFilter
+     * @returns {boolean}
+     *
+     * @memberOf $gmType
+     */
+    __nsLogCheck(log: $NSLog, nsFilter: $NSFilter): boolean;
+}
+declare module junyou {
+    const enum NSType {
+        Null = 0,
+        Boolean = 1,
+        String = 2,
+        Bytes = 4,
+        Double = 5,
+        Int32 = 6,
+        Uint32 = 7,
+        Int64 = 8,
+    }
+    const NSBytesLen: {
+        0: number;
+        1: number;
+        5: number;
+        6: number;
+        7: number;
+        8: number;
+    };
+    /**
+     * 用于存储头部的临时变量
+     */
+    const nsHeader: {
+        cmd: number;
+        len: number;
+    };
+    /**
+     * 头信息
+     *
+     * @export
+     * @interface NSHeader
+     */
+    interface NSHeader {
+        /**
+         * 指令/协议号
+         *
+         * @type {number}
+         * @memberof NSHeader
+         */
+        cmd: number;
+        /**
+         * 长度
+         *
+         * @type {number}
+         * @memberof NSHeader
+         */
+        len: number;
+    }
+    /**
+     * 通信服务
+     * 收发的协议结构：
+     * 2字节协议号 2字节包长度(n) n字节包
+     * @author 3tion
+     *
+     */
+    abstract class NetService {
+        /**
+        * 请求地址
+        */
+        protected _actionUrl: string;
+        setLimitEventEmitable(emit: boolean): void;
+        protected static _ins: NetService;
+        protected _limitAlert: boolean;
+        protected _limitSendFunc: {
+            (cmd: number, data?: any, msgType?: string | number, limit?: number);
+        };
+        protected _nolimitSendFunc: {
+            (cmd: number, data?: any, msgType?: string | number, limit?: number);
+        };
+        static get(): NetService;
+        /**
+             * 用于调试模式下写日志
+             *
+             * @param {number} time
+             * @param {("send" | "receive")} type
+             * @param {number} cmd
+             * @param {*} data
+             *
+             * @memberOf $gmType
+             */
+        protected $writeNSLog: {
+            (time: number, type: "send" | "receive", cmd: number, data: any): void;
+        };
+        protected _router: NetRouter;
+        /**
+         * 待发送的的被动指令列表
+         */
+        protected _pcmdList: Recyclable<NetSendData>[];
+        /**
+         * 接收数据的临时数组
+         */
+        protected _tmpList: Recyclable<NetData>[];
+        /**
+         * 读取的字节缓存
+         */
+        protected _readBuffer: ByteArray;
+        /**
+         * 发送的字节缓存
+         */
+        protected _sendBuffer: ByteArray;
+        protected _tempBytes: ByteArray;
+        /**
+         * 接收消息的创建器
+         *
+         */
+        protected _receiveMSG: {
+            [index: number]: string | number;
+        };
+        /**
+         * 设置地址
+         *
+         * @abstract
+         * @param {string} actionUrl
+         */
+        abstract setUrl(actionUrl: string): any;
+        constructor();
+        protected netChange: () => void;
+        /**
+         * 基础连接时间
+         *
+         *
+         * @memberOf NetService
+         */
+        baseConTime: number;
+        /**
+         * 最大连接时间
+         *
+         *
+         * @memberOf NetService
+         */
+        maxConTime: Time;
+        /**
+         * 重连次数
+         *
+         * @private
+         * @type {number}
+         * @memberOf NetService
+         */
+        protected _reconCount: number;
+        /**
+         * 下次自动拉取请求的时间戳
+         */
+        protected _nextAutoTime: number;
+        /**
+         * 下次自动请求的最短
+         */
+        protected _autoTimeDelay: number;
+        protected showReconnect(): void;
+        protected onawake(): void;
+        /**
+         * 基础类型消息
+         */
+        regReceiveMSGRef(cmd: number, ref: string | number): void;
+        /**
+         * 注册处理器
+         * @param {number} cmd 协议号
+         * @param {INetHandler} handler 处理网络数据的处理器
+         * @param {number} [priority=0] 处理优先级
+         */
+        register(cmd: number, handler: INetHandler, priotity?: number): boolean;
+        /**
+         * 注册单次执行的处理器
+         * @param {number} cmd 协议号
+         * @param {INetHandler} handler 处理网络数据的处理器
+         * @param {number} [priority=0] 处理优先级
+         */
+        regOnce(cmd: number, handler: INetHandler, priotity?: number): boolean;
+        /**
+         * 移除协议号和处理器的监听
+         *
+         * @param {number} cmd 协议号
+         * @param {INetHandler} handler 处理网络数据的处理器
+         */
+        remove(cmd: number, handler: INetHandler): void;
+        protected _register(cmd: number, handler: INetHandler, priotity: number, once: boolean): boolean;
+        /**
+         * 即时发送指令<br/>
+         * 用于处理角色主动操作的请求，如点击合成道具，使用物品等
+         * @param {number} cmd 协议号
+         * @param {any} [data] 数据，简单数据(number,boolean,string)复合数据
+         * @param {string} [msgType] 如果是复合数据，必须有此值
+         * @param {number} [limit] 客户端发送时间限制，默认500毫秒
+         */
+        send(cmd: number, data?: any, msgType?: string | number, limit?: number): void;
+        /**
+         * 即时发送指令
+         */
+        protected abstract _send(cmd: number, data: any, msgType: string | number): any;
+        /**
+         * 断开连接
+         */
+        disconnect(): void;
+        /**
+         * 消极发送指令
+         * 如果使用通协议的指令，有堆积的指令，先合并，新的替换旧的
+         * __`请勿将一些用户操作使用此指令发送`__
+         * 处理一些实时性要求不高的指令，这些指令先缓存堆积，等到用户主动发指令的时候，一起发送
+         * @param {number} cmd 协议号
+         * @param {any} [data] 数据，简单数据(number,boolean,string)复合数据
+         * @param {string} [msgType] 如果是复合数据，必须有此值
+         */
+        sendPassive(cmd: number, data?: any, msgType?: string | number): void;
+        /**
+         * 向缓冲数组中写入数据
+         */
+        protected writeToBuffer(bytes: ByteArray, data: NetSendData): void;
+        /**
+         * @private
+         * @param bytes
+         * @param out
+         */
+        protected decodeBytes(bytes: ByteArray): void;
+        /**
+         * 解析头部信息
+         *
+         * @protected
+         * @param {ByteArray} bytes
+         * @param {NSHeader} header
+         * @returns 是否可以继续  true    继续后续解析
+         *                       false   取消后续解析
+         * @memberof NetService
+         */
+        protected decodeHeader(bytes: ByteArray, header: NSHeader): boolean;
+        /**
+         * 存储数据长度
+         *
+         * @protected
+         * @param {ByteArray} bytes
+         * @param {number} val
+         * @memberof NetService
+         */
+        protected writeBytesLength(bytes: ByteArray, val: number): void;
+        /**
+         *
+         * 模拟服务端
+         * @param {number} cmd
+         * @param {*} [data]
+         */
+        route(cmd: number, data?: any): void;
+    }
+    interface ReconectEvent extends egret.Event {
+        /**
+         * 重连次数
+         *
+         * @type {number}
+         * @memberOf ReconectEvent
+         */
+        data: number;
     }
 }
 declare module junyou {
@@ -3242,6 +2956,40 @@ declare module junyou {
         protected $setSelectedIndex(idx: number): void;
         clear(): void;
         onRecycle(): void;
+    }
+}
+declare module junyou {
+    /**
+     * 用于发送的网络数据<br/>
+     * @author 3tion
+     */
+    class NetSendData implements IRecyclable {
+        /**
+         * 协议号
+         */
+        cmd: number;
+        /**
+         * 数据
+         */
+        data: any;
+        /**
+         *
+         * protobuf message的类型
+         * @type {string | number}
+         */
+        msgType: string | number;
+        onRecycle(): void;
+    }
+    /**
+     * 网络数据，类似AS3项目中Stream<br/>
+     * @author 3tion
+     *
+     */
+    class NetData extends NetSendData {
+        /**
+         *  是否停止传播
+         */
+        stopPropagation: Boolean;
     }
 }
 declare module junyou {
@@ -3827,7 +3575,7 @@ declare module junyou {
          * @memberOf PBStructDict
          */
         $$inted?: any;
-        /**消息名称*/ [index: string]: PBStruct;
+        /**消息名称*/[index: string]: PBStruct;
     }
     /**
      *
@@ -5323,7 +5071,7 @@ declare module junyou {
         };
         static instance: GameEngine;
         static init(stage: egret.Stage, ref?: {
-            new (stage: egret.Stage): GameEngine;
+            new(stage: egret.Stage): GameEngine;
         }): void;
         static addLayerConfig(id: number, parentid?: number, ref?: new (id: number) => GameLayer): void;
         /**
@@ -6741,7 +6489,7 @@ declare module junyou {
         pathdata?: Uint8Array;
         constructor();
         static decodeFromArray(arr: any[], ref?: {
-            new (): MapInfo;
+            new(): MapInfo;
         }): MapInfo;
         /**
         * 获取资源路径
@@ -6982,8 +6730,8 @@ declare module junyou {
         getPath(fx: number, fy: number, tx: number, ty: number, callback: {
             (path: PathNode[], ...args): void;
         }, ...args: any[]): {
-            stop: boolean;
-        };
+                stop: boolean;
+            };
     }
 }
 declare module junyou {
@@ -7187,10 +6935,10 @@ declare module junyou {
          */
         recycle(t: T): void;
         constructor(TCreator: {
-            new (): T;
+            new(): T;
         } | {
-            (): T;
-        }, max?: number);
+                (): T;
+            }, max?: number);
     }
     interface RecyclablePool<T> {
         /**
@@ -7215,7 +6963,7 @@ declare module junyou {
      * @returns {(T & { recycle() })}
      */
     function recyclable<T>(clazz: {
-        new (): T;
+        new(): T;
         _pool?: RecyclablePool<T>;
     }): Recyclable<T>;
 }
@@ -7840,7 +7588,7 @@ declare module junyou {
      * @param clazz 要做单例的类型
      */
     function singleton<T>(clazz: {
-        new (): T;
+        new(): T;
         _instance?: T;
     }): T;
 }
@@ -8409,7 +8157,7 @@ declare module junyou {
          * @memberOf Facade
          */
         static getNameOfInline(inlineRef: {
-            new (): any;
+            new(): any;
         }, className?: string): string;
         /**
          * 存储的数据Proxy
@@ -8465,7 +8213,7 @@ declare module junyou {
          * @param {boolean} [async=false] 是否异步初始化，默认直接初始化
          */
         registerInlineProxy(ref: {
-            new (): Proxy;
+            new(): Proxy;
         }, proxyName?: Key, async?: boolean): void;
         /**
          *
@@ -8474,7 +8222,7 @@ declare module junyou {
          * @param {string} [mediatorName]   注册的模块名字
          */
         registerInlineMediator(ref: {
-            new (): Mediator;
+            new(): Mediator;
         }, mediatorName?: Key): void;
         /**
          * 注册Proxy的配置
@@ -9204,7 +8952,6 @@ declare module junyou {
     }
 }
 declare module junyou {
-    import DisplayObject = egret.DisplayObject;
     /**
      * 模块管理器
      * 用于管理模块的开启/关闭
@@ -9223,7 +8970,7 @@ declare module junyou {
          * Key      {string}        模块ID<br/>
          * Value    {ModuleCfg}     模块配置
          */
-        protected _allById: {
+        _allById: {
             [index: string]: IModuleCfg;
         };
         /**
@@ -9231,47 +8978,47 @@ declare module junyou {
          * Key      {number}                检查器的类型对应limittype/showtype字段<br/>
          * Value    {IModuleChecker}		  模块限制检查器
          */
-        protected _checkers: {
+        _checkers: {
             [index: number]: IModuleChecker;
         };
         /**
          * 需要检查
          */
-        protected _needCheck: boolean;
+        _needCheck: boolean;
         /**
          * 需要检查显示
          */
-        protected _needCheckShow: boolean;
+        _needCheckShow: boolean;
         /**
          * 未显示的按钮的模块
          */
-        protected _unshowns: (string | number)[];
+        _unshowns: (string | number)[];
         /**
          * Key      {number} 模块id<br/>
          * Value    {egret.DisplayObject[]} 绑定在同一个模块上的按钮的数组
          */
-        protected _bindedIOById: {
-            [index: number]: DisplayObject[];
+        _bindedIOById: {
+            [index: number]: egret.DisplayObject[];
         };
         /**
          * Key      {number}            模块类型<br/>
          * Value    {IModuleHandler}    模块处理器
          */
-        protected _handlersByType: {
+        _handlersByType: {
             [index: number]: ModuleHandler;
         };
         /**
          * Key      {string}            模块id<br/>
          * Value    {IModuleHandler}    模块处理器
          */
-        protected _handlersById: {
+        _handlersById: {
             [index: string]: ModuleHandler;
         };
         /**
          * Key      {egret.DisplayObject}   绑定的交互对象<br/>
          * Value    {number}                模块id
          */
-        protected _ioBind: Map<DisplayObject, string | number>;
+        _ioBind: Map<egret.DisplayObject, string | number>;
         constructor();
         init(): void;
         /**
@@ -9309,11 +9056,11 @@ declare module junyou {
         checkers: {
             [index: number]: IModuleChecker;
         };
-        protected doCheckLimits(): void;
+        doCheckLimits(): void;
         /**
          * 检查限制
          */
-        protected checkLimits(): void;
+        checkLimits(): void;
         /**
          * 模块是否已经显示
          * @param module    {string | number | IModuleCfg}    模块或者模块配置
@@ -9332,20 +9079,20 @@ declare module junyou {
          * @param eventType		事件
          *
          */
-        bindButton(id: string | number, io: DisplayObject, eventType?: string): void;
+        bindButton(id: string | number, io: egret.DisplayObject, eventType?: string): void;
         /**
          * 交互事件的处理
          * @param event
          *
          */
-        protected ioHandler(event: egret.Event): void;
+        ioHandler(event: egret.Event): void;
         /**
          * 检查显示
          * @param event
          *
          */
-        protected checkShowHandler(event?: egret.Event): void;
-        protected _checkShowHandler(): void;
+        checkShowHandler(): void;
+        _checkShowHandler(): void;
         /**
          *
          * 打开/关闭指定模块
@@ -9355,7 +9102,7 @@ declare module junyou {
          * @return true   可以正常打开
          *         false  被模块配置拦截，无法打开
          */
-        toggle(moduleID: string | number, show?: ToggleState, showtip?: boolean): boolean;
+        toggle(moduleID: string | number, show?: ToggleState, showtip?: boolean, param?: ModuleParam): boolean;
         /**
          * 获取模块
          * @param module
@@ -9368,6 +9115,16 @@ declare module junyou {
          * @param {boolean} state       模块状态
          */
         serverChangeModuleState(mid: string | number, state: boolean): void;
+    }
+}
+declare module junyou {
+    /**
+     * 模块参数
+     *
+     * @export
+     * @interface ModuleParam
+     */
+    interface ModuleParam {
     }
 }
 declare module junyou {
@@ -9407,13 +9164,13 @@ declare module junyou {
          * 打开某个模块
          * @param cfg
          */
-        show(cfg: IModuleCfg): any;
+        show(cfg: IModuleCfg, param?: ModuleParam): any;
         /**
          * 重舞台移除某个模块
          * @param cfg
          *
          */
-        hide(cfg: IModuleCfg): any;
+        hide(cfg: IModuleCfg, param?: ModuleParam): any;
     }
 }
 declare module junyou {
@@ -10678,7 +10435,7 @@ declare module junyou {
          * @param {{ [index: string]: any }} [props]    属性模板
          */
         constructor(creator: {
-            new (): T;
+            new(): T;
         }, props?: {
             [index: string]: any;
         });
@@ -10960,6 +10717,306 @@ declare module junyou {
         loadBmd<T extends Function>(callback: CallbackInfo<T>): void;
     }
 }
+declare module egret {
+    interface DisplayObject {
+        /**
+         * 扩展sui的可视对象，的原始尺寸和坐标
+         *
+         * @type {egret.Rectangle}
+         * @memberOf DisplayObject
+         */
+        suiRawRect?: egret.Rectangle;
+    }
+}
+declare module junyou {
+    import Texture = egret.Texture;
+    const DATA_FILE = "s.json";
+    /**
+     * 用于管理位图和数据
+     * @author 3tion
+     *
+     */
+    class SuiResManager {
+        /**
+         * Key      {string}    fla的文件名
+         * Value    {SuiData}   数据
+         */
+        protected _suiDatas: {
+            [index: string]: SuiData;
+        };
+        /**
+         * Key      {string}    主配置文件的加载地址
+         * Value    {SuiData}   数据
+         */
+        protected _urlKey: {
+            [index: string]: SuiData;
+        };
+        /**
+         * 创建器
+         */
+        protected _creators: {
+            [index: string]: {
+                new(): BaseCreator<egret.DisplayObject>;
+            };
+        };
+        /**
+         * 共享的文本创建器
+         */
+        sharedTFCreator: TextFieldCreator;
+        constructor();
+        protected initInlineCreators(): void;
+        getData(key: string): SuiData;
+        /**
+         * 加载数据
+         */
+        loadData(key: string, callback: SuiDataCallback): void;
+        /**
+         *
+         * 直接将已经加载好的内置数据，和key进行绑定
+         * @param {string} key
+         * @param {*} data
+         */
+        setInlineData(key: string, data: any): void;
+        /**
+         *
+         * 初始化数据
+         * @private
+         * @param {*} data
+         * @param {SuiData} suiData
+         */
+        private _initSuiData(data, suiData);
+        /**
+         * 数据加载完成
+         */
+        protected checkData(data: any, key: string): void;
+        /**
+         * 处理控件数据
+         */
+        protected parseComponentData(allComData: {
+            0: string[];
+            1: any[];
+            2: SizeData[];
+        }[], suiData: SuiData): void;
+        /**
+         * 解析图片数据
+         *  0 图片宽  1图片高度   2偏移X   3偏移Y
+         */
+        protected parseTextureData(data: number[][], suiData: SuiData, ispng?: boolean): void;
+        /**
+         * 创建可视控件
+         * @param uri           皮肤标识
+         * @param className     类名字
+         * @param baseData      基础数据
+         */
+        createDisplayObject(uri: string, className: string, baseData?: any): egret.DisplayObject;
+        /**
+         * 处理元素数据
+         * 对应 https://github.com/eos3tion/ExportUIFromFlash  项目中
+         * Solution.ts -> getElementData的元素数据的解析
+         * @param {string} uri 库标识
+         * @param {ComponentData} data 长度为4的数组
+         * 0 导出类型
+         * 1 基础数据 @see Solution.getEleBaseData
+         * 2 对象数据 不同类型，数据不同
+         * 3 引用的库 0 当前库  1 lib  字符串 库名字
+         * @memberOf BaseCreator
+         */
+        createElement(uri: string | SuiData, data: ComponentData): egret.DisplayObject;
+        /**
+         * 创建位图对象
+         * @param uri       皮肤标识
+         * @param index     位图索引 data[2]
+         * @param baseData  基础数据 data[1]
+         */
+        createBitmap(uri: string, index: number, baseData: BaseData): egret.Bitmap;
+        /**
+         * 获取美术字
+         *
+         * @param {string} uri          皮肤标识
+         * @param {string} artword      美术字
+         * @returns
+         *
+         * @memberOf SuiResManager
+         */
+        getArtWord(uri: string, artword: string): ArtWord;
+        /**
+         * 获取美术字的纹理
+         *
+         * @param {string} uri          皮肤标识
+         * @param {string} artword      美术字
+         * @param {Key} font         指定的文字
+         * @returns
+         *
+         * @memberOf SuiResManager
+         */
+        getArtWordTexture(uri: string, artword: string, font: Key): Texture;
+        /**
+         *  创建位图对象
+         * @param uri       皮肤标识
+         * @param data      JSON的数据
+         */
+        createBitmapByData(uri: string, data: any): egret.Bitmap;
+        /**
+         * 创建文本框
+         * @param uri       皮肤标识
+         * @param data      私有数据 data[2]
+         * @param baseData  基础数据 data[1]
+         */
+        createTextField(uri: string, data: any, baseData: any): egret.TextField;
+        /**
+        *  创建文本框
+        * @param uri       皮肤标识
+        * @param data      JSON的数据
+        */
+        createTextFieldByData(uri: string, data: any): egret.TextField;
+        static initBaseData(dis: egret.DisplayObject, data: any): void;
+        /**
+         * 创建子控件
+         *
+         * @param {string} key
+         * @param {string} className
+         * @param {egret.DisplayObjectContainer} view
+         */
+        createComponents(key: string, className: string, view: egret.DisplayObjectContainer): void;
+        private _createComponents(suiData, view, compsData);
+        createComponent(data: ComponentData, suiData: SuiData, view: egret.DisplayObjectContainer): any;
+        getElement(suiData: SuiData, data: ComponentData): egret.DisplayObject;
+    }
+    interface SizeData {
+        /**
+         * x坐标
+         *
+         * @type {number}
+         * @memberOf BaseData
+         */
+        0: number;
+        /**
+         * y坐标
+         *
+         * @type {number}
+         * @memberOf BaseData
+         */
+        1: number;
+        /**
+         * width
+         *
+         * @type {number}
+         * @memberOf BaseData
+         */
+        2: number;
+        /**
+         * height
+         *
+         * @type {number}
+         * @memberOf BaseData
+         */
+        3: number;
+    }
+    interface ComponentData extends Array<any> {
+        /**
+         * 导出类型
+         *
+         * @type {ExportType}
+         * @memberOf ComponentData
+         */
+        0: ExportType;
+        /**
+         * 基础数据
+         *
+         * @type {BaseData}
+         * @memberOf ComponentData
+         */
+        1: BaseData;
+        /**
+         * 组件数据
+         *
+         * @type {any}
+         * @memberOf ComponentData
+         */
+        2: any;
+        /**
+         * 是否引用lib
+         * 如果没有此值或者0，则使用当前key
+         * 1 使用 lib
+         * 其他字符串，则为 suiData的key
+         * @type {1|string}
+         * @memberOf ComponentData
+         */
+        3?: 0 | 1 | string;
+    }
+    interface BaseData {
+        /**
+         * 控件名称
+         *
+         * @type {string}
+         * @memberOf BaseData
+         */
+        0: string;
+        /**
+         * x坐标
+         *
+         * @type {number}
+         * @memberOf BaseData
+         */
+        1: number;
+        /**
+         * y坐标
+         *
+         * @type {number}
+         * @memberOf BaseData
+         */
+        2: number;
+        /**
+         * width
+         *
+         * @type {number}
+         * @memberOf BaseData
+         */
+        3: number;
+        /**
+         * height
+         *
+         * @type {number}
+         * @memberOf BaseData
+         */
+        4: number;
+        /**
+         * 旋转角度/或者matrix的[a,b,c,d]四个值组成的数组
+         *
+         * @type {number}
+         * @memberOf BaseData
+         */
+        5: number | Array<number>;
+        /**
+         * alpha
+         *
+         * @type {number}
+         * @memberof BaseData
+         */
+        6?: number;
+    }
+    interface PanelData extends Array<any> {
+        0: SizeData;
+        1: ComponentData[];
+    }
+    interface PanelsData {
+        [index: string]: PanelData;
+    }
+}
+declare module junyou {
+    /**
+     *
+     * @author gushuai
+     *
+     */
+    class ArtTextCreator extends BaseCreator<ArtText> {
+        private _txs;
+        parseSelfData(data: any): void;
+        protected bindEvent(bmp: ArtText): void;
+        protected onAddedToStage(e: egret.Event): void;
+        protected onRemoveFromStage(): void;
+    }
+}
 declare module junyou {
     /**
      * 平台数据
@@ -11010,20 +11067,6 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     *
-     * @author gushuai
-     *
-     */
-    class ArtTextCreator extends BaseCreator<ArtText> {
-        private _txs;
-        parseSelfData(data: any): void;
-        protected bindEvent(bmp: ArtText): void;
-        protected onAddedToStage(e: egret.Event): void;
-        protected onRemoveFromStage(): void;
-    }
-}
-declare module junyou {
-    /**
      * 用户认证
      * @author 3tion
      *
@@ -11042,57 +11085,6 @@ declare module junyou {
          */
         AUTH_SERVER_BUSY = 2,
     }
-}
-interface ExternalParam {
-    /**
-     * 用户标识
-     *
-     * @type {string}
-     * @memberOf $ep
-     */
-    uid: string;
-    /**
-     * 服务器id
-     *
-     * @type {string}
-     * @memberOf $ep
-     */
-    sid: string;
-    /**
-     * 服务器ip
-     *
-     * @type {string}
-     * @memberOf $ep
-     */
-    ip: string;
-    /**
-     * 端口号
-     *
-     * @type {number}
-     * @memberOf $ep
-     */
-    port: number;
-    /**
-     * 平台标识
-     *
-     * @type {string}
-     * @memberOf $ep
-     */
-    pid: string;
-    /**
-     * 验证标识
-     *
-     * @type {string}
-     * @memberOf $ep
-     */
-    sign?: string;
-    /**
-     * 其他参数
-     *
-     * @type {*}
-     * @memberOf $ep
-     */
-    other?: any;
 }
 declare module junyou {
     /**
@@ -11572,9 +11564,9 @@ declare module junyou {
             x: number;
             y: number;
         }, hoffset?: number, voffset?: number, innerV?: boolean, innerH?: boolean): {
-            x: number;
-            y: number;
-        };
+                x: number;
+                y: number;
+            };
         tipLayout(dis: LayoutDisplay, point: Point, result?: {
             x: number;
             y: number;
@@ -11583,27 +11575,62 @@ declare module junyou {
             x: number;
             y: number;
         }, padx?: number, pady?: number, parent?: LayoutDisplayParent): {
-            x: number;
-            y: number;
-        };
+                x: number;
+                y: number;
+            };
     };
 }
-declare module junyou {
+interface ExternalParam {
     /**
-     * 获取XMLHttpRequest对象
+     * 用户标识
      *
-     * @export
-     * @returns
+     * @type {string}
+     * @memberOf $ep
      */
-    function getXHR(): XMLHttpRequest;
+    uid: string;
+    /**
+     * 服务器id
+     *
+     * @type {string}
+     * @memberOf $ep
+     */
+    sid: string;
+    /**
+     * 服务器ip
+     *
+     * @type {string}
+     * @memberOf $ep
+     */
+    ip: string;
+    /**
+     * 端口号
+     *
+     * @type {number}
+     * @memberOf $ep
+     */
+    port: number;
+    /**
+     * 平台标识
+     *
+     * @type {string}
+     * @memberOf $ep
+     */
+    pid: string;
+    /**
+     * 验证标识
+     *
+     * @type {string}
+     * @memberOf $ep
+     */
+    sign?: string;
+    /**
+     * 其他参数
+     *
+     * @type {*}
+     * @memberOf $ep
+     */
+    other?: any;
 }
-interface Window {
-    XMLHttpRequest?: XMLHttpRequest;
-}
-interface ActiveXObject {
-    new (key: "MSXML2.XMLHTTP"): XMLHttpRequest;
-}
-declare const ActiveXObject: ActiveXObject;
 declare var $useDPR: boolean;
 declare var dpr: number;
 declare module junyou {
@@ -11748,72 +11775,20 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     * 使用http进行通信的网络服务
-     * @author 3tion
+     * 获取XMLHttpRequest对象
      *
+     * @export
+     * @returns
      */
-    class HttpNetService extends NetService {
-        protected _loader: XMLHttpRequest;
-        protected _state: RequestState;
-        /**
-         * 未发送的请求
-         */
-        protected _unsendRequest: Recyclable<NetSendData>[];
-        /**
-         * 正在发送的数据
-         */
-        protected _sendingList: Recyclable<NetSendData>[];
-        /**
-         * 请求发送成功的次数
-         */
-        protected _success: number;
-        /**
-         * 请求连续发送失败的次数
-         */
-        protected _cerror: number;
-        /**
-         * 请求失败次数
-         */
-        protected _error: number;
-        constructor();
-        /**
-         * 重置
-         * @param actionUrl             请求地址
-         * @param autoTimeDelay         自动发送的最短延迟时间
-         */
-        setUrl(actionUrl: string, autoTimeDelay?: number): void;
-        /**
-        * @protected
-        */
-        protected onReadyStateChange(): void;
-        /**
-         * 发生错误
-         */
-        protected errorHandler(): void;
-        protected complete(): void;
-        /**
-         * 检查在发送过程中的请求
-         */
-        protected checkUnsend(): void;
-        protected _send(cmd: number, data: any, msgType: string): void;
-        /**
-         * 发送消息之前，用于预处理一些http头信息等
-         *
-         * @protected
-         */
-        protected onBeforeSend(): void;
-        /**
-         * 接收到服务端Response，用于预处理一些信息
-         *
-         * @protected
-         */
-        protected onBeforeSolveData(): void;
-        /**
-         * 尝试发送
-         */
-        protected trySend(): void;
-    }
+    function getXHR(): XMLHttpRequest;
 }
+interface Window {
+    XMLHttpRequest?: XMLHttpRequest;
+}
+interface ActiveXObject {
+    new(key: "MSXML2.XMLHTTP"): XMLHttpRequest;
+}
+declare const ActiveXObject: ActiveXObject;
 declare module junyou {
     /**
      * @author gushuai
@@ -11854,7 +11829,7 @@ declare module junyou {
          * @type {{new():T}}
          */
         renderClass: {
-            new (): T;
+            new(): T;
         };
         /**
          * 背景
@@ -12097,36 +12072,70 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     * 用于发送的网络数据<br/>
-     * @author 3tion
-     */
-    class NetSendData implements IRecyclable {
-        /**
-         * 协议号
-         */
-        cmd: number;
-        /**
-         * 数据
-         */
-        data: any;
-        /**
-         *
-         * protobuf message的类型
-         * @type {string | number}
-         */
-        msgType: string | number;
-        onRecycle(): void;
-    }
-    /**
-     * 网络数据，类似AS3项目中Stream<br/>
+     * 使用http进行通信的网络服务
      * @author 3tion
      *
      */
-    class NetData extends NetSendData {
+    class HttpNetService extends NetService {
+        protected _loader: XMLHttpRequest;
+        protected _state: RequestState;
         /**
-         *  是否停止传播
+         * 未发送的请求
          */
-        stopPropagation: Boolean;
+        protected _unsendRequest: Recyclable<NetSendData>[];
+        /**
+         * 正在发送的数据
+         */
+        protected _sendingList: Recyclable<NetSendData>[];
+        /**
+         * 请求发送成功的次数
+         */
+        protected _success: number;
+        /**
+         * 请求连续发送失败的次数
+         */
+        protected _cerror: number;
+        /**
+         * 请求失败次数
+         */
+        protected _error: number;
+        constructor();
+        /**
+         * 重置
+         * @param actionUrl             请求地址
+         * @param autoTimeDelay         自动发送的最短延迟时间
+         */
+        setUrl(actionUrl: string, autoTimeDelay?: number): void;
+        /**
+        * @protected
+        */
+        protected onReadyStateChange(): void;
+        /**
+         * 发生错误
+         */
+        protected errorHandler(): void;
+        protected complete(): void;
+        /**
+         * 检查在发送过程中的请求
+         */
+        protected checkUnsend(): void;
+        protected _send(cmd: number, data: any, msgType: string): void;
+        /**
+         * 发送消息之前，用于预处理一些http头信息等
+         *
+         * @protected
+         */
+        protected onBeforeSend(): void;
+        /**
+         * 接收到服务端Response，用于预处理一些信息
+         *
+         * @protected
+         */
+        protected onBeforeSolveData(): void;
+        /**
+         * 尝试发送
+         */
+        protected trySend(): void;
     }
 }
 declare module junyou {
