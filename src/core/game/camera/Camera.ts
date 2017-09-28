@@ -31,7 +31,7 @@ module junyou {
         get changed(): boolean {
             const target = this._target;
             if (target) {
-                let pos = target.x << 16 | (target.y & 0xffff);
+                let pos = getPosHash(target);
                 if (pos != this._lastPos) {
                     this._lastPos = pos;
                     return true;
@@ -137,5 +137,20 @@ module junyou {
             }
             return this._rect;
         }
+    }
+
+    /**
+     * 获取坐标点的hash值
+     * 
+     * @export
+     * @param {Point} pos 
+     * @returns 
+     */
+    export function getPosHash(pos: Point) {
+        return pos.x << 16 | (pos.y & 0xffff)
+    }
+
+    export function getPosHash2(x: number, y: number) {
+        return x << 16 | (y & 0xffff);
     }
 }
