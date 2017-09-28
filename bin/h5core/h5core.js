@@ -14297,13 +14297,14 @@ var junyou;
          * @param {(Key)} moduleID      模块id
          * @param {ToggleState} [toggleState]      0 自动切换(默认)<br/>  1 打开模块<br/> -1 关闭模块<br/>
          * @param {boolean} [showTip=true]          是否显示Tip
+         * @param {ModuleParam} [param] 模块参数
          *
          * @memberOf Facade
          */
-        Facade.prototype.toggle = function (moduleID, toggleState, showTip) {
+        Facade.prototype.toggle = function (moduleID, toggleState, showTip, param) {
             if (showTip === void 0) { showTip = true; }
             if (this._mm) {
-                this._mm.toggle(moduleID, toggleState, showTip);
+                this._mm.toggle(moduleID, toggleState, showTip, param);
             }
         };
         /**
@@ -14453,12 +14454,13 @@ var junyou;
      * @param {(Key)} moduleID      模块id
      * @param {ToggleState} [toggleState]      0 自动切换(默认)<br/>  1 打开模块<br/> -1 关闭模块<br/>
      * @param {boolean} [showTip=true]          是否显示Tip
+     * @param {ModuleParam} [param] 模块参数
      *
      * @memberOf Facade
      */
-    function toggle(moduleID, toggleState, showTip) {
+    function toggle(moduleID, toggleState, showTip, param) {
         if (showTip === void 0) { showTip = true; }
-        junyou.facade.toggle(moduleID, toggleState, showTip);
+        junyou.facade.toggle(moduleID, toggleState, showTip, param);
     }
     junyou.toggle = toggle;
     /**
