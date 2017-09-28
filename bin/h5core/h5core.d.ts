@@ -6000,6 +6000,15 @@ declare module junyou {
          */
         readonly rect: egret.Rectangle;
     }
+    /**
+     * 获取坐标点的hash值
+     *
+     * @export
+     * @param {Point} pos
+     * @returns
+     */
+    function getPosHash(pos: Point): number;
+    function getPosHash2(x: number, y: number): number;
 }
 declare module junyou {
     const enum CooldownState {

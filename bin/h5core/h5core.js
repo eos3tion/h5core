@@ -10471,7 +10471,7 @@ var junyou;
             get: function () {
                 var target = this._target;
                 if (target) {
-                    var pos = target.x << 16 | (target.y & 0xffff);
+                    var pos = getPosHash(target);
                     if (pos != this._lastPos) {
                         this._lastPos = pos;
                         return true;
@@ -10571,6 +10571,21 @@ var junyou;
     }(egret.HashObject));
     junyou.Camera = Camera;
     __reflect(Camera.prototype, "junyou.Camera");
+    /**
+     * 获取坐标点的hash值
+     *
+     * @export
+     * @param {Point} pos
+     * @returns
+     */
+    function getPosHash(pos) {
+        return pos.x << 16 | (pos.y & 0xffff);
+    }
+    junyou.getPosHash = getPosHash;
+    function getPosHash2(x, y) {
+        return x << 16 | (y & 0xffff);
+    }
+    junyou.getPosHash2 = getPosHash2;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
