@@ -338,12 +338,13 @@ module junyou {
          * @param {(Key)} moduleID      模块id
          * @param {ToggleState} [toggleState]      0 自动切换(默认)<br/>  1 打开模块<br/> -1 关闭模块<br/>  
          * @param {boolean} [showTip=true]          是否显示Tip
+         * @param {ModuleParam} [param] 模块参数
          * 
          * @memberOf Facade
          */
-        public toggle(moduleID: Key, toggleState?: ToggleState, showTip = true) {
+        public toggle(moduleID: Key, toggleState?: ToggleState, showTip = true, param?: ModuleParam) {
             if (this._mm) {
-                this._mm.toggle(moduleID, toggleState, showTip);
+                this._mm.toggle(moduleID, toggleState, showTip, param);
             }
         }
 
@@ -575,11 +576,12 @@ module junyou {
      * @param {(Key)} moduleID      模块id
      * @param {ToggleState} [toggleState]      0 自动切换(默认)<br/>  1 打开模块<br/> -1 关闭模块<br/>  
      * @param {boolean} [showTip=true]          是否显示Tip
+     * @param {ModuleParam} [param] 模块参数
      * 
      * @memberOf Facade
      */
-    export function toggle(moduleID: Key, toggleState?: ToggleState, showTip = true) {
-        facade.toggle(moduleID, toggleState, showTip);
+    export function toggle(moduleID: Key, toggleState?: ToggleState, showTip = true, param?: ModuleParam) {
+        facade.toggle(moduleID, toggleState, showTip, param);
     }
 
     /**
