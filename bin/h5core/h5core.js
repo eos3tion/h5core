@@ -20635,11 +20635,13 @@ var junyou;
          */
         ResizeManager.prototype.add = function (dis, layout, hoffset, voffset, container) {
             var list = this._list;
-            var len = list.length;
             dis.$_resize = { layout: layout, hoffset: hoffset, voffset: voffset, container: container };
-            list[len] = dis;
-            if (!dis.stage) {
-                dis.on("addedToStage" /* ADDED_TO_STAGE */, this.onAdded, this);
+            list.pushOnce(dis);
+            if (dis.stage) {
+                this.resize(dis);
+            }
+            else {
+                dis.once("addedToStage" /* ADDED_TO_STAGE */, this.onAdded, this);
             }
         };
         /**

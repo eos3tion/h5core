@@ -33,11 +33,12 @@ module junyou {
          */
         public add(dis: ResizeDisplay, layout: number, hoffset?: number, voffset?: number, container?: egret.DisplayObjectContainer) {
             const list = this._list;
-            let len = list.length;
             dis.$_resize = { layout, hoffset, voffset, container };
-            list[len] = dis;
-            if (!dis.stage) {
-                dis.on(EgretEvent.ADDED_TO_STAGE, this.onAdded, this);
+            list.pushOnce(dis);
+            if (dis.stage) {
+                this.resize(dis);
+            } else {
+                dis.once(EgretEvent.ADDED_TO_STAGE, this.onAdded, this);
             }
         }
 
