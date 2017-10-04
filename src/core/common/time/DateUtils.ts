@@ -101,7 +101,14 @@ module junyou {
          *
          * @memberOf DateUtils
          */
-		getDefaultCDFOption(format: number): any;
+		getDefaultCDFOption(format: number): CountDownFormatOption;
+		/**
+		 * 注册默认的CD格式，方便后续调用
+		 * 
+		 * @param {CountDownFormat} format 
+		 * @param {CountDownFormatOption} opt 
+		 */
+		regCDFormat(format: CountDownFormat, opt: CountDownFormatOption);
         /**
          * 初始化服务器时间
          *
@@ -179,7 +186,6 @@ module junyou {
 		getCountdown(leftTime: number, format: CountDownFormatOption): string;
 	}
 
-
 	/**
 	 * 时间处理函数
 	 * DateUtils
@@ -187,7 +193,7 @@ module junyou {
 	export const DateUtils: DateUtilsInterface = (function () {
 		const _sharedDate = new Date();
 
-
+		let _defaultCountFormats: { [index: number]: CountDownFormatOption };
 		/**
 		 * 基于UTC的时间偏移
 		 * 
@@ -206,41 +212,21 @@ module junyou {
 		 */
 		let _serverUTCTime = _utcOffset;//默认使用本地时间
 
-		let _defaultCountFormats: { [index: number]: CountDownFormatOption };
-
 		return {
 			get sharedDate() {
 				return _sharedDate;
 			},
+			getDefaultCDFOption,
 			/**
-			 * CountDownFormat
-			 * 获取默认的`倒计时`格式
-				$_ndays	{0}天  
-				$_nhours	{0}小时  
-				$_nminutes	{0}分钟  
-				$_nsecends	{0}秒  
-	
-			 * @static
-			 * @param {CountDownFormat} format
-			 * @returns {CountDownFormatOption}
+			 * 注册默认的CD格式，方便后续调用
 			 * 
-			 * @memberOf DateUtils
+			 * @param {CountDownFormat} format 
+			 * @param {CountDownFormatOption} opt 
 			 */
-			getDefaultCDFOption(format: CountDownFormat): CountDownFormatOption {
-				if (!_defaultCountFormats) {
-					let LangUtil = junyou.LangUtil;
-					_defaultCountFormats = {
-						[CountDownFormat.D_H_M_S]: { d: LangUtil.getMsg("$_ndays"), h: LangUtil.getMsg("$_nhours"), m: LangUtil.getMsg("$_nminutes"), s: LangUtil.getMsg("$_nsecends") },
-						[CountDownFormat.H_M_S]: { h: LangUtil.getMsg("$_nhours"), m: LangUtil.getMsg("$_nminutes"), s: LangUtil.getMsg("$_nsecends") },
-						[CountDownFormat.H_M]: { h: LangUtil.getMsg("$_nhours"), m: LangUtil.getMsg("$_nminutes") },
-						[CountDownFormat.M_S]: { m: LangUtil.getMsg("$_nminutes"), s: LangUtil.getMsg("$_nsecends") },
-						[CountDownFormat.S]: { s: LangUtil.getMsg("$_nsecends") }
-					}
-					DateUtils.getDefaultCDFOption = getDefaultCDFOption;
-				}
-				return getDefaultCDFOption(format);
+			regCDFormat(format: CountDownFormat, opt: CountDownFormatOption) {
+				initDefaultCDFormats();
+				_defaultCountFormats[format] = opt;
 			},
-
 			/**
 			 * 初始化服务器时间
 			 * 
@@ -353,7 +339,10 @@ module junyou {
 			 * @param {CountDownFormatOption} format 倒计时修饰符，
 			 * format 示例：{d:"{0}天",h:"{0}小时",m:"{0}分",s:"{0}秒"}
 			 */
-			getCountdown(leftTime: number, format: CountDownFormatOption) {
+			getCountdown(leftTime: number, format: CountDownFormatOption | CountDownFormat) {
+				if (typeof format === "number") {
+					format = getDefaultCDFOption(format);
+				}
 				let out = "";
 				let tmp = format.d;
 				if (tmp) {// 需要显示天
@@ -381,8 +370,42 @@ module junyou {
 				return out;
 			}
 		}
-		function getDefaultCDFOption(format) {
-			return _defaultCountFormats[format];
+		/**
+		 * CountDownFormat
+		 * 获取默认的`倒计时`格式
+			$_ndays	{0}天  
+			$_nhours	{0}小时  
+			$_nminutes	{0}分钟  
+			$_nsecends	{0}秒  
+
+		 * @static
+		 * @param {CountDownFormat} format
+		 * @returns {CountDownFormatOption}
+		 * 
+		 * @memberOf DateUtils
+		 */
+		function getDefaultCDFOption(format: CountDownFormat): CountDownFormatOption {
+			if (initDefaultCDFormats()) {
+				DateUtils.getDefaultCDFOption = _getDefaultCDFOption;
+			}
+			return _getDefaultCDFOption(format);
+			function _getDefaultCDFOption(format) {
+				return _defaultCountFormats[format];
+			}
+		}
+
+		function initDefaultCDFormats() {
+			if (!_defaultCountFormats) {
+				let LangUtil = junyou.LangUtil;
+				_defaultCountFormats = {
+					[CountDownFormat.D_H_M_S]: { d: LangUtil.getMsg("$_ndays"), h: LangUtil.getMsg("$_nhours"), m: LangUtil.getMsg("$_nminutes"), s: LangUtil.getMsg("$_nsecends") },
+					[CountDownFormat.H_M_S]: { h: LangUtil.getMsg("$_nhours"), m: LangUtil.getMsg("$_nminutes"), s: LangUtil.getMsg("$_nsecends") },
+					[CountDownFormat.H_M]: { h: LangUtil.getMsg("$_nhours"), m: LangUtil.getMsg("$_nminutes") },
+					[CountDownFormat.M_S]: { m: LangUtil.getMsg("$_nminutes"), s: LangUtil.getMsg("$_nsecends") },
+					[CountDownFormat.S]: { s: LangUtil.getMsg("$_nsecends") }
+				}
+				return true;
+			}
 		}
 	})()
 }
