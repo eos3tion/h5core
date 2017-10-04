@@ -4349,6 +4349,13 @@ declare module junyou {
          */
         readonly serverDate: Date;
         /**
+         * 共享时间
+         *
+         * @type {Date}
+         * @memberof DateUtilsInterface
+         */
+        readonly sharedDate: Date;
+        /**
          * 项目中，所有时间都需要基于UTC偏移处理
          *
          * @static
@@ -4390,12 +4397,8 @@ declare module junyou {
          * @param {{ d?: string, h?: string, m?: string, s?: string }} format 倒计时修饰符，
          * format 示例：{d:"{0}天",h:"{0}小时",m:"{0}分",s:"{0}秒"}
          */
-        getCountdown(leftTime: number, format: CountDownFormatOption): string;
+        getCountdown(leftTime: number, format: CountDownFormatOption | CountDownFormat): string;
     }
-    /**
-     * 时间处理函数
-     * DateUtils
-     */
     const DateUtils: DateUtilsInterface;
 }
 declare module junyou {
