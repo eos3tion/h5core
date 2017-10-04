@@ -7440,6 +7440,7 @@ var junyou;
      */
     junyou.DateUtils = (function () {
         var _sharedDate = new Date();
+        var _defaultCountFormats;
         /**
          * 基于UTC的时间偏移
          *
@@ -7456,39 +7457,20 @@ var junyou;
          * @type {number}
          */
         var _serverUTCTime = _utcOffset; //默认使用本地时间
-        var _defaultCountFormats;
         return {
             get sharedDate() {
                 return _sharedDate;
             },
+            getDefaultCDFOption: getDefaultCDFOption,
             /**
-             * CountDownFormat
-             * 获取默认的`倒计时`格式
-                $_ndays	{0}天
-                $_nhours	{0}小时
-                $_nminutes	{0}分钟
-                $_nsecends	{0}秒
-    
-             * @static
-             * @param {CountDownFormat} format
-             * @returns {CountDownFormatOption}
+             * 注册默认的CD格式，方便后续调用
              *
-             * @memberOf DateUtils
+             * @param {CountDownFormat} format
+             * @param {CountDownFormatOption} opt
              */
-            getDefaultCDFOption: function (format) {
-                if (!_defaultCountFormats) {
-                    var LangUtil_1 = junyou.LangUtil;
-                    _defaultCountFormats = (_a = {},
-                        _a[0 /* D_H_M_S */] = { d: LangUtil_1.getMsg("$_ndays"), h: LangUtil_1.getMsg("$_nhours"), m: LangUtil_1.getMsg("$_nminutes"), s: LangUtil_1.getMsg("$_nsecends") },
-                        _a[1 /* H_M_S */] = { h: LangUtil_1.getMsg("$_nhours"), m: LangUtil_1.getMsg("$_nminutes"), s: LangUtil_1.getMsg("$_nsecends") },
-                        _a[2 /* H_M */] = { h: LangUtil_1.getMsg("$_nhours"), m: LangUtil_1.getMsg("$_nminutes") },
-                        _a[3 /* M_S */] = { m: LangUtil_1.getMsg("$_nminutes"), s: LangUtil_1.getMsg("$_nsecends") },
-                        _a[4 /* S */] = { s: LangUtil_1.getMsg("$_nsecends") },
-                        _a);
-                    junyou.DateUtils.getDefaultCDFOption = getDefaultCDFOption;
-                }
-                return getDefaultCDFOption(format);
-                var _a;
+            regCDFormat: function (format, opt) {
+                initDefaultCDFormats();
+                _defaultCountFormats[format] = opt;
             },
             /**
              * 初始化服务器时间
@@ -7596,6 +7578,9 @@ var junyou;
              * format 示例：{d:"{0}天",h:"{0}小时",m:"{0}分",s:"{0}秒"}
              */
             getCountdown: function (leftTime, format) {
+                if (typeof format === "number") {
+                    format = getDefaultCDFOption(format);
+                }
                 var out = "";
                 var tmp = format.d;
                 if (tmp) {
@@ -7623,8 +7608,42 @@ var junyou;
                 return out;
             }
         };
+        /**
+         * CountDownFormat
+         * 获取默认的`倒计时`格式
+            $_ndays	{0}天
+            $_nhours	{0}小时
+            $_nminutes	{0}分钟
+            $_nsecends	{0}秒
+
+         * @static
+         * @param {CountDownFormat} format
+         * @returns {CountDownFormatOption}
+         *
+         * @memberOf DateUtils
+         */
         function getDefaultCDFOption(format) {
-            return _defaultCountFormats[format];
+            if (initDefaultCDFormats()) {
+                junyou.DateUtils.getDefaultCDFOption = _getDefaultCDFOption;
+            }
+            return _getDefaultCDFOption(format);
+            function _getDefaultCDFOption(format) {
+                return _defaultCountFormats[format];
+            }
+        }
+        function initDefaultCDFormats() {
+            if (!_defaultCountFormats) {
+                var LangUtil_1 = junyou.LangUtil;
+                _defaultCountFormats = (_a = {},
+                    _a[0 /* D_H_M_S */] = { d: LangUtil_1.getMsg("$_ndays"), h: LangUtil_1.getMsg("$_nhours"), m: LangUtil_1.getMsg("$_nminutes"), s: LangUtil_1.getMsg("$_nsecends") },
+                    _a[1 /* H_M_S */] = { h: LangUtil_1.getMsg("$_nhours"), m: LangUtil_1.getMsg("$_nminutes"), s: LangUtil_1.getMsg("$_nsecends") },
+                    _a[2 /* H_M */] = { h: LangUtil_1.getMsg("$_nhours"), m: LangUtil_1.getMsg("$_nminutes") },
+                    _a[3 /* M_S */] = { m: LangUtil_1.getMsg("$_nminutes"), s: LangUtil_1.getMsg("$_nsecends") },
+                    _a[4 /* S */] = { s: LangUtil_1.getMsg("$_nsecends") },
+                    _a);
+                return true;
+            }
+            var _a;
         }
     })();
 })(junyou || (junyou = {}));

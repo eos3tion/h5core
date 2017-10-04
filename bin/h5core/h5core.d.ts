@@ -257,7 +257,7 @@ interface Array<T> {
 }
 declare module junyou {
     function is(instance: any, ref: {
-        new (): any;
+        new(): any;
     }): boolean;
     /**
      * 移除可视对象
@@ -431,7 +431,7 @@ interface $gmType {
 }
 declare module junyou {
     type InjectProxy = {
-        new (): IAsync;
+        new(): IAsync;
     } | string | number;
     /**
      * Mediator和Proxy的基类
@@ -512,7 +512,7 @@ declare module junyou {
      * @returns
      */
     function __dependProxy(ref: {
-        new (): IAsync;
+        new(): IAsync;
     } | string | number): (target: any, key: string) => void;
 }
 declare module junyou {
@@ -1732,7 +1732,7 @@ declare module junyou {
          * @memberOf MixinOption
          */
         clazz: {
-            new (): T;
+            new(): T;
         };
         /**
          *
@@ -3630,7 +3630,7 @@ declare module junyou {
          * @memberOf PBStructDict
          */
         $$inted?: any;
-        /**消息名称*/ [index: string]: PBStruct;
+        /**消息名称*/[index: string]: PBStruct;
     }
     /**
      *
@@ -4308,7 +4308,14 @@ declare module junyou {
          *
          * @memberOf DateUtils
          */
-        getDefaultCDFOption(format: number): any;
+        getDefaultCDFOption(format: number): CountDownFormatOption;
+        /**
+         * 注册默认的CD格式，方便后续调用
+         *
+         * @param {CountDownFormat} format
+         * @param {CountDownFormatOption} opt
+         */
+        regCDFormat(format: CountDownFormat, opt: CountDownFormatOption): any;
         /**
          * 初始化服务器时间
          *
@@ -5127,7 +5134,7 @@ declare module junyou {
         };
         static instance: GameEngine;
         static init(stage: egret.Stage, ref?: {
-            new (stage: egret.Stage): GameEngine;
+            new(stage: egret.Stage): GameEngine;
         }): void;
         static addLayerConfig(id: number, parentid?: number, ref?: new (id: number) => GameLayer): void;
         /**
@@ -6554,7 +6561,7 @@ declare module junyou {
         pathdata?: Uint8Array;
         constructor();
         static decodeFromArray(arr: any[], ref?: {
-            new (): MapInfo;
+            new(): MapInfo;
         }): MapInfo;
         /**
         * 获取资源路径
@@ -6795,8 +6802,8 @@ declare module junyou {
         getPath(fx: number, fy: number, tx: number, ty: number, callback: {
             (path: PathNode[], ...args): void;
         }, ...args: any[]): {
-            stop: boolean;
-        };
+                stop: boolean;
+            };
     }
 }
 declare module junyou {
@@ -7000,10 +7007,10 @@ declare module junyou {
          */
         recycle(t: T): void;
         constructor(TCreator: {
-            new (): T;
+            new(): T;
         } | {
-            (): T;
-        }, max?: number);
+                (): T;
+            }, max?: number);
     }
     interface RecyclablePool<T> {
         /**
@@ -7028,12 +7035,12 @@ declare module junyou {
      * @returns {Recyclable<T>}
      */
     function recyclable<T>(clazz: {
-        new (): T;
+        new(): T;
         _pool?: RecyclablePool<T>;
     } | {
-        (): T;
-        _pool?: RecyclablePool<T>;
-    }): Recyclable<T>;
+            (): T;
+            _pool?: RecyclablePool<T>;
+        }): Recyclable<T>;
 }
 declare module junyou {
     /**
@@ -7656,7 +7663,7 @@ declare module junyou {
      * @param clazz 要做单例的类型
      */
     function singleton<T>(clazz: {
-        new (): T;
+        new(): T;
         _instance?: T;
     }): T;
 }
@@ -8225,7 +8232,7 @@ declare module junyou {
          * @memberOf Facade
          */
         static getNameOfInline(inlineRef: {
-            new (): any;
+            new(): any;
         }, className?: string): string;
         /**
          * 存储的数据Proxy
@@ -8281,7 +8288,7 @@ declare module junyou {
          * @param {boolean} [async=false] 是否异步初始化，默认直接初始化
          */
         registerInlineProxy(ref: {
-            new (): Proxy;
+            new(): Proxy;
         }, proxyName?: Key, async?: boolean): void;
         /**
          *
@@ -8290,7 +8297,7 @@ declare module junyou {
          * @param {string} [mediatorName]   注册的模块名字
          */
         registerInlineMediator(ref: {
-            new (): Mediator;
+            new(): Mediator;
         }, mediatorName?: Key): void;
         /**
          * 注册Proxy的配置
@@ -10506,7 +10513,7 @@ declare module junyou {
          * @param {{ [index: string]: any }} [props]    属性模板
          */
         constructor(creator: {
-            new (): T;
+            new(): T;
         }, props?: {
             [index: string]: any;
         });
@@ -10827,7 +10834,7 @@ declare module junyou {
          */
         protected _creators: {
             [index: string]: {
-                new (): BaseCreator<egret.DisplayObject>;
+                new(): BaseCreator<egret.DisplayObject>;
             };
         };
         /**
@@ -11644,9 +11651,9 @@ declare module junyou {
             x: number;
             y: number;
         }, hoffset?: number, voffset?: number, innerV?: boolean, innerH?: boolean): {
-            x: number;
-            y: number;
-        };
+                x: number;
+                y: number;
+            };
         tipLayout(dis: LayoutDisplay, point: Point, result?: {
             x: number;
             y: number;
@@ -11655,9 +11662,9 @@ declare module junyou {
             x: number;
             y: number;
         }, padx?: number, pady?: number, parent?: LayoutDisplayParent): {
-            x: number;
-            y: number;
-        };
+                x: number;
+                y: number;
+            };
     };
 }
 interface ExternalParam {
@@ -11866,7 +11873,7 @@ interface Window {
     XMLHttpRequest?: XMLHttpRequest;
 }
 interface ActiveXObject {
-    new (key: "MSXML2.XMLHTTP"): XMLHttpRequest;
+    new(key: "MSXML2.XMLHTTP"): XMLHttpRequest;
 }
 declare const ActiveXObject: ActiveXObject;
 declare module junyou {
@@ -11909,7 +11916,7 @@ declare module junyou {
          * @type {{new():T}}
          */
         renderClass: {
-            new (): T;
+            new(): T;
         };
         /**
          * 背景
