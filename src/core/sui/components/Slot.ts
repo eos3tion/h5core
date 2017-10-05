@@ -17,7 +17,7 @@ module junyou {
 
     /**
      * 格位基本类
-     * @author pb
+     * @author 3tion
      */
     export class Slot extends Component {
         public bg: egret.Bitmap;
@@ -25,10 +25,9 @@ module junyou {
         protected _countTxt: egret.TextField;
         protected _rect: egret.Rectangle;
 
-        protected _iconSource: string;
+        protected _uri: string;
         protected _count = 1;
         protected _countShow = SlotCountShow.Show;
-        protected _countInvalidate = true;
         protected _changed: boolean;
 
         protected _data: any;
@@ -92,8 +91,8 @@ module junyou {
         }
 
         public set iconSource(uri: string) {
-            if (this._iconSource != uri) {
-                this._iconSource = uri;
+            if (this._uri != uri) {
+                this._uri = uri;
                 this.icon.source = uri;
             }
         }
@@ -122,31 +121,25 @@ module junyou {
             return this._countShow;
         }
 
-        private refreshCount() {
-            if (this.stage) {
-                this._countInvalidate = true;
-            }
-            if (this._countInvalidate && this._countTxt) {
+        refreshCount() {
+            if (this.stage && this._countTxt) {
                 this._countTxt.text = this.getCount();
-                this._countInvalidate = false;
             }
         }
 
-        private getCount(): string {
+        getCount() {
             let str = "";
+            let count = this._count;
             switch (this.countShow) {
-                case SlotCountShow.NotShow:
-                    str = "";
-                    break;
                 case SlotCountShow.Show:
-                    if (this._count > 1) {
-                        str = this._count + "";
-                    } else {
-                        str = "";
+                    if (count > 1) {
+                        str = count + "";
                     }
                     break;
                 case SlotCountShow.Custom:
-                    str = Slot.getCountString(this._count);
+                    str = Slot.getCountString(count);
+                    break;
+                default:
                     break;
             }
             return str;
@@ -159,7 +152,7 @@ module junyou {
             }
         }
 
-        protected refreshDisplay() {
+        refreshDisplay() {
             if (!this._changed) {
                 return false;
             }
@@ -176,7 +169,6 @@ module junyou {
 
         /**
          * 皮肤添加到舞台
-         * to be override
          */
         public awake() {
             this.refreshDisplay();
