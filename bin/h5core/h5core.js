@@ -11143,20 +11143,20 @@ var junyou;
             /**
              * Key      {number}        格位编号
              * Value    {ItemBase}     道具实现
-             * @type {{[index:number]:IItem}}
+             * @type {{[slot:number]:IItem}}
              */
             this.bySlot = {};
             /**
              * Key      {number}    格位唯一标识
              * Value    {ItemBase}     道具实现
-             * @type {{ [index: number]: ItemBase }}
+             * @type {{ [guid: number]: ItemBase }}
              */
             this.byGuid = {};
             /**
              * 基于格位类型的字典
              * Key      {number}    格位类型
              * Value    {SlotType}  格位类型的数据
-             * @type {{ [index: number]: SlotType }}
+             * @type {{ [slotType: number]: SlotTypeData }}
              */
             this.bySlotType = [];
         }
@@ -11176,7 +11176,7 @@ var junyou;
             }
             var slotInfo = this.bySlotType[slotType];
             if (!slotInfo) {
-                junyou.ThrowError("无法找到指定的格位数据");
+                true && junyou.ThrowError("无法找到指定的格位数据");
                 return;
             }
             var end = slotInfo.lock;
@@ -11186,35 +11186,8 @@ var junyou;
                 handler.apply(void 0, [item].concat(otherParams));
             }
         };
-        /**
-         * 遍历物品列表，检查是否有符合条件
-         *
-         * @param {{ (item: ItemBase<IItemCfg>, ...args) }} handler 检测函数
-         * @param {number} [slotType=0] 格位类型
-         * @param otherParams 其他参数
-         * @returns true        成功通过检查
-         *          false       所有道具未通过检查
-         */
-        Items.prototype.checkFor = function (handler, slotType) {
-            if (slotType === void 0) { slotType = 0; }
-            var otherParams = [];
-            for (var _i = 2; _i < arguments.length; _i++) {
-                otherParams[_i - 2] = arguments[_i];
-            }
-            var slotInfo = this.bySlotType[slotType];
-            if (!slotInfo) {
-                junyou.ThrowError("无法找到指定的格位数据");
-                return false;
-            }
-            var end = slotInfo.lock;
-            var bySlot = this.bySlot;
-            for (var i = slotInfo.begin; i < end; i++) {
-                var item = bySlot[i];
-                if (handler.apply(void 0, [item].concat(otherParams))) {
-                    return true;
-                }
-            }
-            return true;
+        Items.prototype.checkFor = function () {
+            return !!this.find.apply(this, arguments);
         };
         /**
          * 获取符合条件的物品总数量
@@ -11225,14 +11198,14 @@ var junyou;
          * @returns {number} 符合物品的数量
          */
         Items.prototype.getCount = function (filter, slotType) {
-            if (slotType === void 0) { slotType = 0; }
+            if (slotType === void 0) { slotType = 0 /* Default */; }
             var otherParams = [];
             for (var _i = 2; _i < arguments.length; _i++) {
                 otherParams[_i - 2] = arguments[_i];
             }
             var slotInfo = this.bySlotType[slotType];
             if (!slotInfo) {
-                junyou.ThrowError("无法找到指定的格位数据");
+                true && junyou.ThrowError("无法找到指定的格位数据");
                 return 0;
             }
             var count = 0;
@@ -11263,7 +11236,7 @@ var junyou;
             }
             var slotInfo = this.bySlotType[slotType];
             if (!slotInfo) {
-                junyou.ThrowError("无法找到指定的格位数据");
+                true && junyou.ThrowError("无法找到指定的格位数据");
                 return;
             }
             var end = slotInfo.lock;
@@ -11274,7 +11247,6 @@ var junyou;
                     return item;
                 }
             }
-            return;
         };
         return Items;
     }());
@@ -18408,7 +18380,7 @@ var junyou;
 (function (junyou) {
     /**
      * 格位基本类
-     * @author pb
+     * @author 3tion
      */
     var Slot = (function (_super) {
         __extends(Slot, _super);
@@ -18416,7 +18388,6 @@ var junyou;
             var _this = _super.call(this) || this;
             _this._count = 1;
             _this._countShow = 1 /* Show */;
-            _this._countInvalidate = true;
             _this.icon = new junyou.Image();
             return _this;
         }
@@ -18472,8 +18443,8 @@ var junyou;
         });
         Object.defineProperty(Slot.prototype, "iconSource", {
             set: function (uri) {
-                if (this._iconSource != uri) {
-                    this._iconSource = uri;
+                if (this._uri != uri) {
+                    this._uri = uri;
                     this.icon.source = uri;
                 }
             },
@@ -18510,30 +18481,23 @@ var junyou;
             configurable: true
         });
         Slot.prototype.refreshCount = function () {
-            if (this.stage) {
-                this._countInvalidate = true;
-            }
-            if (this._countInvalidate && this._countTxt) {
+            if (this.stage && this._countTxt) {
                 this._countTxt.text = this.getCount();
-                this._countInvalidate = false;
             }
         };
         Slot.prototype.getCount = function () {
             var str = "";
+            var count = this._count;
             switch (this.countShow) {
-                case 0 /* NotShow */:
-                    str = "";
-                    break;
                 case 1 /* Show */:
-                    if (this._count > 1) {
-                        str = this._count + "";
-                    }
-                    else {
-                        str = "";
+                    if (count > 1) {
+                        str = count + "";
                     }
                     break;
                 case 2 /* Custom */:
-                    str = Slot.getCountString(this._count);
+                    str = Slot.getCountString(count);
+                    break;
+                default:
                     break;
             }
             return str;
@@ -18560,7 +18524,6 @@ var junyou;
         };
         /**
          * 皮肤添加到舞台
-         * to be override
          */
         Slot.prototype.awake = function () {
             this.refreshDisplay();

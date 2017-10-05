@@ -257,7 +257,7 @@ interface Array<T> {
 }
 declare module junyou {
     function is(instance: any, ref: {
-        new(): any;
+        new (): any;
     }): boolean;
     /**
      * 移除可视对象
@@ -431,7 +431,7 @@ interface $gmType {
 }
 declare module junyou {
     type InjectProxy = {
-        new(): IAsync;
+        new (): IAsync;
     } | string | number;
     /**
      * Mediator和Proxy的基类
@@ -512,7 +512,7 @@ declare module junyou {
      * @returns
      */
     function __dependProxy(ref: {
-        new(): IAsync;
+        new (): IAsync;
     } | string | number): (target: any, key: string) => void;
 }
 declare module junyou {
@@ -1732,7 +1732,7 @@ declare module junyou {
          * @memberOf MixinOption
          */
         clazz: {
-            new(): T;
+            new (): T;
         };
         /**
          *
@@ -3630,7 +3630,7 @@ declare module junyou {
          * @memberOf PBStructDict
          */
         $$inted?: any;
-        /**消息名称*/[index: string]: PBStruct;
+        /**消息名称*/ [index: string]: PBStruct;
     }
     /**
      *
@@ -5137,7 +5137,7 @@ declare module junyou {
         };
         static instance: GameEngine;
         static init(stage: egret.Stage, ref?: {
-            new(stage: egret.Stage): GameEngine;
+            new (stage: egret.Stage): GameEngine;
         }): void;
         static addLayerConfig(id: number, parentid?: number, ref?: new (id: number) => GameLayer): void;
         /**
@@ -6396,29 +6396,28 @@ declare module junyou {
         /**
          * Key      {number}        格位编号
          * Value    {ItemBase}     道具实现
-         * @type {{[index:number]:IItem}}
+         * @type {{[slot:number]:IItem}}
          */
         bySlot: {
-            [index: number]: ItemBase<IItemCfg>;
+            [slot: number]: ItemBase<IItemCfg>;
         };
         /**
          * Key      {number}    格位唯一标识
          * Value    {ItemBase}     道具实现
-         * @type {{ [index: number]: ItemBase }}
+         * @type {{ [guid: number]: ItemBase }}
          */
         byGuid: {
-            [index: number]: ItemBase<IItemCfg>;
+            [guid: number]: ItemBase<IItemCfg>;
         };
         /**
          * 基于格位类型的字典
          * Key      {number}    格位类型
          * Value    {SlotType}  格位类型的数据
-         * @type {{ [index: number]: SlotType }}
+         * @type {{ [slotType: number]: SlotTypeData }}
          */
         bySlotType: {
-            [index: number]: SlotType;
+            [slotType: number]: SlotTypeData;
         };
-        constructor();
         /**
          * 遍历所有物品，使用handler处理
          *
@@ -6441,7 +6440,7 @@ declare module junyou {
          */
         checkFor(handler: {
             (item: ItemBase<IItemCfg>, ...args);
-        }, slotType?: number, ...otherParams: any[]): boolean;
+        }, slotType?: SlotType, ...otherParams: any[]): any;
         /**
          * 获取符合条件的物品总数量
          *
@@ -6452,7 +6451,7 @@ declare module junyou {
          */
         getCount(filter: {
             (item: ItemBase<IItemCfg>, ...args);
-        }, slotType?: number, ...otherParams: any[]): number;
+        }, slotType?: SlotType, ...otherParams: any[]): number;
         /**
          * 遍历物品列表，检查是否有符合条件的物品
          *
@@ -6472,7 +6471,7 @@ declare module junyou {
      * 格位区段类型
      * @author 3tion
      */
-    interface SlotType {
+    interface SlotTypeData {
         /**
          * 格位区段的起始
          *
@@ -6497,6 +6496,18 @@ declare module junyou {
          * @type {number}
          */
         type: number;
+    }
+    /**
+     * 格位类型
+     *
+     * @export
+     * @enum {number}
+     */
+    const enum SlotType {
+        /**
+         * 默认编号
+         */
+        Default = 0,
     }
 }
 declare module junyou {
@@ -6564,7 +6575,7 @@ declare module junyou {
         pathdata?: Uint8Array;
         constructor();
         static decodeFromArray(arr: any[], ref?: {
-            new(): MapInfo;
+            new (): MapInfo;
         }): MapInfo;
         /**
         * 获取资源路径
@@ -6805,8 +6816,8 @@ declare module junyou {
         getPath(fx: number, fy: number, tx: number, ty: number, callback: {
             (path: PathNode[], ...args): void;
         }, ...args: any[]): {
-                stop: boolean;
-            };
+            stop: boolean;
+        };
     }
 }
 declare module junyou {
@@ -7010,10 +7021,10 @@ declare module junyou {
          */
         recycle(t: T): void;
         constructor(TCreator: {
-            new(): T;
+            new (): T;
         } | {
-                (): T;
-            }, max?: number);
+            (): T;
+        }, max?: number);
     }
     interface RecyclablePool<T> {
         /**
@@ -7038,12 +7049,12 @@ declare module junyou {
      * @returns {Recyclable<T>}
      */
     function recyclable<T>(clazz: {
-        new(): T;
+        new (): T;
         _pool?: RecyclablePool<T>;
     } | {
-            (): T;
-            _pool?: RecyclablePool<T>;
-        }): Recyclable<T>;
+        (): T;
+        _pool?: RecyclablePool<T>;
+    }): Recyclable<T>;
 }
 declare module junyou {
     /**
@@ -7666,7 +7677,7 @@ declare module junyou {
      * @param clazz 要做单例的类型
      */
     function singleton<T>(clazz: {
-        new(): T;
+        new (): T;
         _instance?: T;
     }): T;
 }
@@ -8235,7 +8246,7 @@ declare module junyou {
          * @memberOf Facade
          */
         static getNameOfInline(inlineRef: {
-            new(): any;
+            new (): any;
         }, className?: string): string;
         /**
          * 存储的数据Proxy
@@ -8291,7 +8302,7 @@ declare module junyou {
          * @param {boolean} [async=false] 是否异步初始化，默认直接初始化
          */
         registerInlineProxy(ref: {
-            new(): Proxy;
+            new (): Proxy;
         }, proxyName?: Key, async?: boolean): void;
         /**
          *
@@ -8300,7 +8311,7 @@ declare module junyou {
          * @param {string} [mediatorName]   注册的模块名字
          */
         registerInlineMediator(ref: {
-            new(): Mediator;
+            new (): Mediator;
         }, mediatorName?: Key): void;
         /**
          * 注册Proxy的配置
@@ -10396,17 +10407,16 @@ declare module junyou {
     }
     /**
      * 格位基本类
-     * @author pb
+     * @author 3tion
      */
     class Slot extends Component {
         bg: egret.Bitmap;
         protected icon: Image;
         protected _countTxt: egret.TextField;
         protected _rect: egret.Rectangle;
-        protected _iconSource: string;
+        protected _uri: string;
         protected _count: number;
         protected _countShow: SlotCountShow;
-        protected _countInvalidate: boolean;
         protected _changed: boolean;
         protected _data: any;
         constructor();
@@ -10433,13 +10443,12 @@ declare module junyou {
          * 2 大于1的数量，显示数值，超过一万的，会以xxx万显示 默认为2<br/>
          */
         countShow: SlotCountShow;
-        private refreshCount();
-        private getCount();
+        refreshCount(): void;
+        getCount(): string;
         invalidateDisplay(): void;
-        protected refreshDisplay(): boolean;
+        refreshDisplay(): boolean;
         /**
          * 皮肤添加到舞台
-         * to be override
          */
         awake(): void;
         /**
@@ -10516,7 +10525,7 @@ declare module junyou {
          * @param {{ [index: string]: any }} [props]    属性模板
          */
         constructor(creator: {
-            new(): T;
+            new (): T;
         }, props?: {
             [index: string]: any;
         });
@@ -10837,7 +10846,7 @@ declare module junyou {
          */
         protected _creators: {
             [index: string]: {
-                new(): BaseCreator<egret.DisplayObject>;
+                new (): BaseCreator<egret.DisplayObject>;
             };
         };
         /**
@@ -11654,9 +11663,9 @@ declare module junyou {
             x: number;
             y: number;
         }, hoffset?: number, voffset?: number, innerV?: boolean, innerH?: boolean): {
-                x: number;
-                y: number;
-            };
+            x: number;
+            y: number;
+        };
         tipLayout(dis: LayoutDisplay, point: Point, result?: {
             x: number;
             y: number;
@@ -11665,9 +11674,9 @@ declare module junyou {
             x: number;
             y: number;
         }, padx?: number, pady?: number, parent?: LayoutDisplayParent): {
-                x: number;
-                y: number;
-            };
+            x: number;
+            y: number;
+        };
     };
 }
 interface ExternalParam {
@@ -11876,7 +11885,7 @@ interface Window {
     XMLHttpRequest?: XMLHttpRequest;
 }
 interface ActiveXObject {
-    new(key: "MSXML2.XMLHTTP"): XMLHttpRequest;
+    new (key: "MSXML2.XMLHTTP"): XMLHttpRequest;
 }
 declare const ActiveXObject: ActiveXObject;
 declare module junyou {
@@ -11919,7 +11928,7 @@ declare module junyou {
          * @type {{new():T}}
          */
         renderClass: {
-            new(): T;
+            new (): T;
         };
         /**
          * 背景
