@@ -3,7 +3,7 @@ module junyou {
      * 格位区段类型
      * @author 3tion
      */
-    export interface SlotType {
+    export interface SlotTypeData {
         /**
          * 格位区段的起始
          * 
@@ -28,5 +28,18 @@ module junyou {
          * @type {number}
          */
         type: number;
+    }
+
+    /**
+     * 格位类型
+     * 
+     * @export
+     * @enum {number}
+     */
+    export const enum SlotType {
+        /**
+         * 默认编号
+         */
+        Default = 0,
     }
 }

@@ -8,28 +8,24 @@ module junyou {
         /**
          * Key      {number}        格位编号
          * Value    {ItemBase}     道具实现
-         * @type {{[index:number]:IItem}}
+         * @type {{[slot:number]:IItem}}
          */
-        public bySlot: { [index: number]: ItemBase<IItemCfg> } = {};
+        public bySlot: { [slot: number]: ItemBase<IItemCfg> } = {};
 
         /**
          * Key      {number}    格位唯一标识
          * Value    {ItemBase}     道具实现
-         * @type {{ [index: number]: ItemBase }}
+         * @type {{ [guid: number]: ItemBase }}
          */
-        public byGuid: { [index: number]: ItemBase<IItemCfg> } = {};
+        public byGuid: { [guid: number]: ItemBase<IItemCfg> } = {};
 
         /**
          * 基于格位类型的字典
          * Key      {number}    格位类型
          * Value    {SlotType}  格位类型的数据
-         * @type {{ [index: number]: SlotType }}
+         * @type {{ [slotType: number]: SlotTypeData }}
          */
-        public bySlotType: { [index: number]: SlotType } = [];
-
-        constructor() {
-
-        }
+        public bySlotType: { [slotType: number]: SlotTypeData } = [];
 
         /**
          * 遍历所有物品，使用handler处理
@@ -42,7 +38,7 @@ module junyou {
         public forEach(handler: { (item: ItemBase<IItemCfg>, ...args) }, slotType: number = 0, ...otherParams) {
             let slotInfo = this.bySlotType[slotType];
             if (!slotInfo) {
-                ThrowError("无法找到指定的格位数据");
+                DEBUG && ThrowError("无法找到指定的格位数据");
                 return;
             }
 
@@ -63,22 +59,9 @@ module junyou {
          * @returns true        成功通过检查
          *          false       所有道具未通过检查
          */
-        public checkFor(handler: { (item: ItemBase<IItemCfg>, ...args) }, slotType: number = 0, ...otherParams) {
-            let slotInfo = this.bySlotType[slotType];
-            if (!slotInfo) {
-                ThrowError("无法找到指定的格位数据");
-                return false;
-            }
-
-            let end = slotInfo.lock;
-            let bySlot = this.bySlot;
-            for (let i = slotInfo.begin; i < end; i++) {
-                let item = bySlot[i];
-                if (handler(item, ...otherParams)) {
-                    return true;
-                }
-            }
-            return true;
+        public checkFor(handler: { (item: ItemBase<IItemCfg>, ...args) }, slotType?: SlotType, ...otherParams)
+        public checkFor() {
+            return !!this.find.apply(this, arguments);
         }
 
         /**
@@ -89,10 +72,10 @@ module junyou {
          * @param otherParams 其他参数
          * @returns {number} 符合物品的数量
          */
-        public getCount(filter: { (item: ItemBase<IItemCfg>, ...args) }, slotType: number = 0, ...otherParams) {
+        public getCount(filter: { (item: ItemBase<IItemCfg>, ...args) }, slotType = SlotType.Default, ...otherParams) {
             let slotInfo = this.bySlotType[slotType];
             if (!slotInfo) {
-                ThrowError("无法找到指定的格位数据");
+                DEBUG && ThrowError("无法找到指定的格位数据");
                 return 0;
             }
             let count = 0;
@@ -119,7 +102,7 @@ module junyou {
         public find(handler: { (item: ItemBase<IItemCfg>, ...args) }, slotType: number = 0, ...otherParams) {
             let slotInfo = this.bySlotType[slotType];
             if (!slotInfo) {
-                ThrowError("无法找到指定的格位数据");
+                DEBUG && ThrowError("无法找到指定的格位数据");
                 return;
             }
 
@@ -131,7 +114,6 @@ module junyou {
                     return item;
                 }
             }
-            return;
         }
     }
 }
