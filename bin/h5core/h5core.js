@@ -17101,8 +17101,9 @@ var junyou;
             this.addSkinListener(this._skin);
             var c = this._container;
             if (c) {
-                c.addChild(this._skin);
+                c.addChild(value);
             }
+            this.bindComponent();
         };
         /**
          * 根据数据处理视图
