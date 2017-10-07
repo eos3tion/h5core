@@ -193,8 +193,9 @@ module junyou {
             this.addSkinListener(this._skin);
             let c = this._container;
             if (c) {
-                c.addChild(this._skin);
+                c.addChild(value);
             }
+            this.bindComponent();
         }
 
         public get skin() {
