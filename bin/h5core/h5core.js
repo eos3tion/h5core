@@ -5399,7 +5399,7 @@ var junyou;
             pdata.data = data;
             pdata.msgType = msgType;
             var sendBuffer = this._sendBuffer;
-            sendBuffer.clear();
+            sendBuffer.reset();
             this.writeToBuffer(sendBuffer, pdata);
             pdata.recycle();
             var pcmdList = this._pcmdList;
@@ -5410,7 +5410,7 @@ var junyou;
             }
             //清空被动数据
             pcmdList.length = 0;
-            ws.send(sendBuffer.buffer);
+            ws.send(sendBuffer.outBytes);
         };
         return WSNetService;
     }(junyou.NetService));
@@ -7154,6 +7154,27 @@ var junyou;
                 }
             }
             return junyou.Int64.toNumber(low, high);
+        };
+        Object.defineProperty(ByteArray.prototype, "outBytes", {
+            /**
+             * 获取写入的字节
+             * 此方法不会新建 ArrayBuffer
+             * @readonly
+             * @memberof ByteArray
+             */
+            get: function () {
+                return new Uint8Array(this._bytes, 0, this.write_position);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         * 重置索引
+         *
+         * @memberof ByteArray
+         */
+        ByteArray.prototype.reset = function () {
+            this.write_position = this.position = 0;
         };
         return ByteArray;
     }(egret.ByteArray));
@@ -20548,7 +20569,7 @@ var junyou;
             loader.responseType = "arraybuffer";
             this.onBeforeSend();
             var sendBuffer = this._sendBuffer;
-            sendBuffer.clear();
+            sendBuffer.reset();
             // var sendPool = this._sendDataPool;
             var unsend = this._unsendRequest;
             var sending = this._sendingList;
@@ -20569,7 +20590,7 @@ var junyou;
             pcmdList.length = 0;
             //清空未发送的数据
             unsend.length = 0;
-            loader.send(sendBuffer.buffer);
+            loader.send(sendBuffer.outBytes);
             //重置自动发送的时间
             this._nextAutoTime = junyou.Global.now + this._autoTimeDelay;
         };

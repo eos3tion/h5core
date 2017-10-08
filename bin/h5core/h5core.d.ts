@@ -4038,6 +4038,19 @@ declare module junyou {
           * 读取字节流中的32位变长整数(Protobuf)
           */
         readVarint64(): number;
+        /**
+         * 获取写入的字节
+         * 此方法不会新建 ArrayBuffer
+         * @readonly
+         * @memberof ByteArray
+         */
+        readonly outBytes: Uint8Array;
+        /**
+         * 重置索引
+         *
+         * @memberof ByteArray
+         */
+        reset(): void;
     }
 }
 declare module junyou {
