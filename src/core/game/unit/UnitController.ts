@@ -21,8 +21,8 @@ module junyou {
         Monster = 2
     }
 
-    export type UnitDomain = { [index: string]: Unit };
-
+    export type UnitDomain = $UnitDomain<Unit>;
+    export type $UnitDomain<T extends Unit> = { [guid: string]: T };
 	/**
 	 * 单位管理器
 	 * @author 3tion
