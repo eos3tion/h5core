@@ -197,7 +197,7 @@ module junyou {
             pdata.data = data;
             pdata.msgType = msgType;
             var sendBuffer = this._sendBuffer;
-            sendBuffer.clear();
+            sendBuffer.reset();
             this.writeToBuffer(sendBuffer, pdata);
             pdata.recycle();
             var pcmdList = this._pcmdList;
@@ -207,7 +207,7 @@ module junyou {
             }
             //清空被动数据
             pcmdList.length = 0;
-            ws.send(sendBuffer.buffer);
+            ws.send(sendBuffer.outBytes);
         }
     }
 }

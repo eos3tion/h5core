@@ -116,7 +116,7 @@ module junyou {
             var readBuffer = this._readBuffer;
             readBuffer.replaceBuffer(this._loader.response);
             readBuffer.position = 0;
-            
+
             //成功一次清零连续失败次数
             this._cerror = 0;
             this._success++;
@@ -167,7 +167,7 @@ module junyou {
          * 
          * @protected
          */
-        protected onBeforeSolveData(){
+        protected onBeforeSolveData() {
 
         }
 
@@ -184,7 +184,7 @@ module junyou {
             loader.responseType = "arraybuffer";
             this.onBeforeSend();
             var sendBuffer = this._sendBuffer;
-            sendBuffer.clear();
+            sendBuffer.reset();
             // var sendPool = this._sendDataPool;
             var unsend = this._unsendRequest;
             var sending = this._sendingList;
@@ -204,7 +204,7 @@ module junyou {
             pcmdList.length = 0;
             //清空未发送的数据
             unsend.length = 0;
-            loader.send(sendBuffer.buffer);
+            loader.send(sendBuffer.outBytes);
             //重置自动发送的时间
             this._nextAutoTime = Global.now + this._autoTimeDelay;
         }
