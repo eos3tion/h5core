@@ -28,24 +28,24 @@ module junyou {
 	 * @author 3tion
 	 *
 	 */
-    export class UnitController {
+    export class UnitController<T extends Unit> {
 
         /**
          * 按类型存放的域
          * 
          * @protected
-         * @type {{ [index: number]: { [index: string]: Unit } }}
+         * @type {{ [unitDomainType: number]: $UnitDomain<T> }}
          */
-        protected _domains: { [index: number]: UnitDomain };
+        protected _domains: { [unitDomainType: number]: $UnitDomain<T> };
 
 
         /**
          * 用于存放单位数量的字典
          * 
          * @protected
-         * @type {{ [index: number]: number }}
+         * @type {{ [unitDomainType: number]: number }}
          */
-        protected _domainCounts: { [index: number]: number };
+        protected _domainCounts: { [unitDomainType: number]: number };
 
         /**
          * 所有单位存放的域
@@ -53,13 +53,12 @@ module junyou {
          * @protected
          * @type {UnitDomain}
          */
-        protected _domainAll: UnitDomain;
+        protected _domainAll: $UnitDomain<T>;
 
         constructor() {
             this._domains = {};
             this._domainCounts = {};
-            this._domainAll = {};
-            this._domains[UnitDomainType.All] = this._domainAll;
+            this._domains[UnitDomainType.All] = this._domainAll = {};
             this._domainCounts[UnitDomainType.All] = 0;
         }
 
@@ -69,10 +68,14 @@ module junyou {
          * @param domains
          *
          */
-        public registerUnit(unit: Unit, ...domains): void {
+        public registerUnit(unit: T, ...domains)
+        public registerUnit() {
+            let args = arguments;
+            let unit: T = args[0];
             let guid = unit.guid;
             const { _domains, _domainCounts } = this;
-            for (let domain of domains) {
+            for (let i = 1; i < args.length; i++) {
+                let domain = args[i];
                 let dom = _domains[domain];
                 if (!dom) {
                     dom = {};
@@ -90,7 +93,7 @@ module junyou {
 		 * @return
 		 *
 		 */
-        public removeUnit(guid: Key): Unit {
+        public removeUnit(guid: Key): T {
             let unit = this._domainAll[guid];
             if (unit) {
                 let { _domainCounts, _domains } = this;
