@@ -1,6 +1,49 @@
 module junyou {
 
     /**
+     * 创建器
+     */
+    export type Creator<T> = { new(): T } | { (): T };
+    /**
+     * 
+     * 调整ClassFactory
+     * @export
+     * @class ClassFactory
+     * @template T
+     */
+    export class ClassFactory<T>{
+
+        private _creator: Creator<T>;
+
+        private _props: Partial<T>;
+
+        /**
+         * @param {Creator<T>} creator 
+         * @param {Partial<T>} [props] 属性模板
+         * @memberof ClassFactory
+         */
+        public constructor(creator: Creator<T>, props?: Partial<T>) {
+            this._creator = creator;
+            this._props = props;
+        }
+
+        /**
+         * 获取实例
+         * 
+         * @returns 
+         */
+        public get() {
+            let ins = new (this._creator as any)();
+            let p = this._props;
+            for (let key in p) {
+                ins[key] = p[key];
+            }
+            return ins;
+        }
+    }
+
+
+    /**
      * 可回收的对象
      * 
      * @export
@@ -33,7 +76,7 @@ module junyou {
 
         private _pool: T[];
         private _max: number;
-        private _TCreator: { new(): T } | { (): T };
+        private _creator: Creator<T>;
 
         public get(): T {
             var ins: T & IRecyclable;
@@ -41,7 +84,7 @@ module junyou {
             if (pool.length) {
                 ins = pool.pop();
             } else {
-                ins = new (this._TCreator as any)();
+                ins = new (this._creator as any)();
             }
             if (typeof ins.onSpawn === "function") {
                 ins.onSpawn();
@@ -68,29 +111,13 @@ module junyou {
             }
         }
 
-        public constructor(TCreator: { new(): T } | { (): T }, max = 100) {
+        public constructor(TCreator: Creator<T>, max = 100) {
             this._pool = [];
             this._max = max;
-            this._TCreator = TCreator;
+            this._creator = TCreator;
         }
     }
-
-    export interface RecyclablePool<T> {
-        /**
-         * getInstance的简写别名
-         * 
-         * @returns {T} 
-         * 
-         * @memberof RecyclablePool
-         * @deprecated  请使用`RecyclablePool.get`以减少字符串消耗
-         */
-        getInstance(): T
-    }
-    let rpt = RecyclablePool.prototype;
-
-    rpt.getInstance = rpt.get;
-
-    export declare type Recyclable<T> = T & { recycle(): void };
+    export type Recyclable<T> = T & { recycle(): void };
 
     if (DEBUG) {
         var _recid = 0;
@@ -104,7 +131,7 @@ module junyou {
      * @param {({ new(): T, _pool?: RecyclablePool<T> } | { (): T, _pool?: RecyclablePool<T> })} clazz 
      * @returns {Recyclable<T>} 
      */
-    export function recyclable<T>(clazz: { new(): T, _pool?: RecyclablePool<T> } | { (): T, _pool?: RecyclablePool<T> }): Recyclable<T> {
+    export function recyclable<T>(clazz: Creator<T> & { _pool?: RecyclablePool<T> }): Recyclable<T> {
         let pool = clazz._pool;
         if (!pool) {
             pool = new RecyclablePool(clazz);
@@ -119,5 +146,20 @@ module junyou {
             }
         }
         return pool.get() as Recyclable<T>;
+    }
+    
+    /**
+     * 单例工具
+     * @param clazz 要做单例的类型
+     */
+    export function singleton<T>(clazz: { new(): T; _instance?: T }): T {
+        let instance = clazz._instance;
+        if (!instance) {
+            instance = new clazz;
+            Object.defineProperty(clazz, "_instance", {
+                value: instance
+            })
+        }
+        return instance;
     }
 }

@@ -91,8 +91,8 @@ module junyou {
      */
     export function getMixin<A, B>(clazzA: { prototype: A }, clazzB: { prototype: B }) {
         let merged: any = function () { }
-        if (typeof Object["assign"] != undefined) {//高级版本的浏览器有Object.assign原生方法
-            Object["assign"](merged.prototype, clazzA.prototype, clazzB.prototype);
+        if ((Object as any).assign) {//高级版本的浏览器有Object.assign原生方法
+            (Object as any).assign(merged.prototype, clazzA.prototype, clazzB.prototype);
         } else {
             merged = expand(merged, clazzA);
             merged = expand(merged, clazzB);
