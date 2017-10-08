@@ -243,5 +243,23 @@ module junyou {
             return Int64.toNumber(low, high);
         }
 
+        /**
+         * 获取写入的字节
+         * 此方法不会新建 ArrayBuffer
+         * @readonly
+         * @memberof ByteArray
+         */
+        public get outBytes() {
+            return new Uint8Array(this._bytes, 0, this.write_position);
+        }
+
+        /**
+         * 重置索引
+         * 
+         * @memberof ByteArray
+         */
+        public reset() {
+            this.write_position = this.position = 0;
+        }
     }
 }
