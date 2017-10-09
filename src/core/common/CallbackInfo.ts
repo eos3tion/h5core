@@ -4,6 +4,42 @@ module junyou {
         handle: string;
         stack: string;
     }
+
+    function call(info: $CallbackInfo, ars?: ArrayLike<any>) {
+        let args = [];
+        let i = 0;
+        if (ars) {
+            for (; i < ars.length; i++) {
+                args[i] = ars[i];
+            }
+        }
+        let argus = info.args;
+        if (argus) {
+            for (let j = 0; j < argus.length; j++) {
+                args[i++] = argus[j];
+            }
+        }
+        let callback = info.callback;
+        let result;
+        if (callback != undefined) {
+            try {
+                result = callback.apply(info.thisObj, args);
+            } catch (e) {
+                if (DEBUG) {
+                    let debug = <DebugInfo>info["_debug"];
+                    ThrowError(`CallbackInfo执行报错，赋值内容：============Function=============:\n${debug.handle}\n}==============Stack============:\n${debug.stack}\n当前堆栈：${e.stack}`);
+                    console.log("参数列表", ...this.args);
+                }
+            }
+        } else if (DEBUG) {
+            let debug = info["_debug"];
+            ThrowError(`对已回收的CallbackInfo执行了回调，最后一次赋值内容：============Function=============:\n${debug.handle}\n==============Stack============:\n${debug.stack}\n当前堆栈：${new Error().stack}`)
+        }
+        return result;
+    }
+
+    export type $CallbackInfo = CallbackInfo<Function>;
+
 	/**
 	 * 回调信息，用于存储回调数据
 	 * @author 3tion
@@ -13,9 +49,6 @@ module junyou {
         public callback: T;
         public args: any[];
         public thisObj: any;
-
-
-
         /**
          * 待执行的时间
          */
@@ -56,23 +89,9 @@ module junyou {
          * 回调函数，将以args作为参数，callback作为函数执行
          * @param {boolean} [doRecycle=true] 是否回收CallbackInfo，默认为true
          */
-        public execute(doRecycle: boolean = true) {
+        public execute(doRecycle = true) {
             let callback = this.callback;
-            let result;
-            if (callback != undefined) {
-                try {
-                    result = callback.apply(this.thisObj, this.args);
-                } catch (e) {
-                    if (DEBUG) {
-                        let debug = <DebugInfo>this["_debug"];
-                        ThrowError(`CallbackInfo执行报错，赋值内容：============Function=============:\n${debug.handle}\n}==============Stack============:\n${debug.stack}\n当前堆栈：${e.stack}`);
-                        console.log("参数列表", ...this.args);
-                    }
-                }
-            } else if (DEBUG) {
-                let debug = this["_debug"];
-                ThrowError(`对已回收的CallbackInfo执行了回调，最后一次赋值内容：============Function=============:\n${debug.handle}\n==============Stack============:\n${debug.stack}\n当前堆栈：${new Error().stack}`)
-            }
+            let result = call(this);
             if (doRecycle) {
                 this.recycle();
             }
@@ -84,11 +103,22 @@ module junyou {
          * 初始的参数会按顺序放在末位
          * @param args (description)
          */
-        public call(...args) {
-            if (this.args) {
-                args = args.concat(this.args);
-            }
-            return this.callback.apply(this.thisObj, args);
+        public call(...args)
+        public call() {
+            return call(this, arguments);
+        }
+
+        /**
+         * 用于执行其他参数
+         * 初始的参数会按顺序放在末位
+         * 此方法会回收callbackInfo
+         * @param {any} args 
+         */
+        public callAndRecycle(...args)
+        public callAndRecycle() {
+            let result = call(this, arguments);
+            this.recycle();
+            return result;
         }
 
         public onRecycle() {
@@ -110,13 +140,6 @@ module junyou {
         }
 
         /**
-         * 获取CallbackInfo的实例
-         * @deprecated  请使用`CallbackInfo.get`以减少字符串消耗
-         */
-        public static getInstance = CallbackInfo.get;
-
-
-        /**
          * 加入到数组
          * 检查是否有this和handle相同的callback，如果有，就用新的参数替换旧参数
          * @param list
@@ -132,7 +155,7 @@ module junyou {
                     return callback;
                 }
             }
-            callback = this.getInstance(handle, thisObj, ...args);
+            callback = this.get(handle, thisObj, ...args);
             list.push(callback);
             return callback;
         }
