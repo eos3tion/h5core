@@ -5692,6 +5692,7 @@ declare module junyou {
     }
 }
 declare module junyou {
+    type $CallbackInfo = CallbackInfo<Function>;
     /**
      * 回调信息，用于存储回调数据
      * @author 3tion
@@ -5723,6 +5724,13 @@ declare module junyou {
          * @param args (description)
          */
         call(...args: any[]): any;
+        /**
+         * 用于执行其他参数
+         * 初始的参数会按顺序放在末位
+         * 此方法会回收callbackInfo
+         * @param {any} args
+         */
+        callAndRecycle(...args: any[]): any;
         onRecycle(): void;
         recycle: {
             ();
@@ -5731,11 +5739,6 @@ declare module junyou {
          * 获取CallbackInfo的实例
          */
         static get<T extends Function>(callback: T, thisObj?: any, ...args: any[]): CallbackInfo<T>;
-        /**
-         * 获取CallbackInfo的实例
-         * @deprecated  请使用`CallbackInfo.get`以减少字符串消耗
-         */
-        static getInstance: typeof CallbackInfo.get;
         /**
          * 加入到数组
          * 检查是否有this和handle相同的callback，如果有，就用新的参数替换旧参数
@@ -6645,14 +6648,13 @@ declare module junyou {
          * @param {number} fy               起点坐标y
          * @param {number} tx               终点坐标x
          * @param {number} ty               终点坐标y
-         * @param {{ (path: PathNode[], ...args) }} callback    寻找到目标后的 回调方法
-         * @param {any} args                回调函数的其他参数
+         * @param {CallbackInfo<{ (path: PathNode[], ...args) }>} callback    寻找到目标后的 回调方法
          *
          * @memberOf PathFinder
          */
-        getPath(fx: number, fy: number, tx: number, ty: number, callback: {
+        getPath(fx: number, fy: number, tx: number, ty: number, callback: CallbackInfo<{
             (path: PathNode[], ...args);
-        }, ...args: any[]): any;
+        }>): any;
     }
     /**
      * 寻路的节点
@@ -6747,9 +6749,9 @@ declare module junyou {
          *
          * @memberOf PathFinder
          */
-        getPath(fx: number, fy: number, tx: number, ty: number, callback: {
-            (path: PathNode[], ...args): void;
-        }, ...args: any[]): {
+        getPath(fx: number, fy: number, tx: number, ty: number, callback: CallbackInfo<{
+            (path: PathNode[], ...args);
+        }>): {
                 stop: boolean;
             };
     }

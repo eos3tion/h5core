@@ -9906,6 +9906,40 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
+    function call(info, ars) {
+        var args = [];
+        var i = 0;
+        if (ars) {
+            for (; i < ars.length; i++) {
+                args[i] = ars[i];
+            }
+        }
+        var argus = info.args;
+        if (argus) {
+            for (var j = 0; j < argus.length; j++) {
+                args[i++] = argus[j];
+            }
+        }
+        var callback = info.callback;
+        var result;
+        if (callback != undefined) {
+            try {
+                result = callback.apply(info.thisObj, args);
+            }
+            catch (e) {
+                if (true) {
+                    var debug = info["_debug"];
+                    junyou.ThrowError("CallbackInfo\u6267\u884C\u62A5\u9519\uFF0C\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n}==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + e.stack);
+                    console.log.apply(console, ["参数列表"].concat(this.args));
+                }
+            }
+        }
+        else if (true) {
+            var debug = info["_debug"];
+            junyou.ThrowError("\u5BF9\u5DF2\u56DE\u6536\u7684CallbackInfo\u6267\u884C\u4E86\u56DE\u8C03\uFF0C\u6700\u540E\u4E00\u6B21\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + new Error().stack);
+        }
+        return result;
+    }
     /**
      * 回调信息，用于存储回调数据
      * @author 3tion
@@ -9948,42 +9982,19 @@ var junyou;
         CallbackInfo.prototype.execute = function (doRecycle) {
             if (doRecycle === void 0) { doRecycle = true; }
             var callback = this.callback;
-            var result;
-            if (callback != undefined) {
-                try {
-                    result = callback.apply(this.thisObj, this.args);
-                }
-                catch (e) {
-                    if (true) {
-                        var debug = this["_debug"];
-                        junyou.ThrowError("CallbackInfo\u6267\u884C\u62A5\u9519\uFF0C\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n}==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + e.stack);
-                        console.log.apply(console, ["参数列表"].concat(this.args));
-                    }
-                }
-            }
-            else if (true) {
-                var debug = this["_debug"];
-                junyou.ThrowError("\u5BF9\u5DF2\u56DE\u6536\u7684CallbackInfo\u6267\u884C\u4E86\u56DE\u8C03\uFF0C\u6700\u540E\u4E00\u6B21\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + new Error().stack);
-            }
+            var result = call(this);
             if (doRecycle) {
                 this.recycle();
             }
             return result;
         };
-        /**
-         * 用于执行其他参数
-         * 初始的参数会按顺序放在末位
-         * @param args (description)
-         */
         CallbackInfo.prototype.call = function () {
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
-            }
-            if (this.args) {
-                args = args.concat(this.args);
-            }
-            return this.callback.apply(this.thisObj, args);
+            return call(this, arguments);
+        };
+        CallbackInfo.prototype.callAndRecycle = function () {
+            var result = call(this, arguments);
+            this.recycle();
+            return result;
         };
         CallbackInfo.prototype.onRecycle = function () {
             this.callback = undefined;
@@ -10023,15 +10034,10 @@ var junyou;
                     return callback;
                 }
             }
-            callback = this.getInstance.apply(this, [handle, thisObj].concat(args));
+            callback = this.get.apply(this, [handle, thisObj].concat(args));
             list.push(callback);
             return callback;
         };
-        /**
-         * 获取CallbackInfo的实例
-         * @deprecated  请使用`CallbackInfo.get`以减少字符串消耗
-         */
-        CallbackInfo.getInstance = CallbackInfo.get;
         return CallbackInfo;
     }());
     junyou.CallbackInfo = CallbackInfo;
@@ -11391,12 +11397,8 @@ var junyou;
          * @memberOf PathFinder
          */
         Astar.prototype.getPath = function (fx, fy, tx, ty, callback) {
-            var args = [];
-            for (var _i = 5; _i < arguments.length; _i++) {
-                args[_i - 5] = arguments[_i];
-            }
             if (fx == tx && fy == ty) {
-                callback.apply(void 0, [null].concat(args));
+                callback.callAndRecycle(null);
                 return;
             }
             var map = this._map;
@@ -11404,7 +11406,7 @@ var junyou;
             var h = map.rows;
             var maxLength = this._maxLength;
             if (fx > w || fy > h) {
-                callback.apply(void 0, [null].concat(args));
+                callback.callAndRecycle(null);
                 return;
             }
             /**
@@ -11448,7 +11450,7 @@ var junyou;
                     closedList[key] = true;
                     if (x == tx && y == ty) {
                         stage.off("enterFrame" /* ENTER_FRAME */, onTick, null);
-                        return { value: callback.apply(void 0, [end(minNode)].concat(args)) };
+                        return { value: callback.callAndRecycle(end(minNode)) };
                     }
                     aSurOff.forEach(function (element) {
                         var tmpx = element[0] + x;
@@ -11493,7 +11495,7 @@ var junyou;
                     if (state_1 === "break")
                         break;
                 }
-                return callback.apply(void 0, [end(minNode)].concat(args));
+                return callback.callAndRecycle(end(minNode));
             }
             function end(node) {
                 // 移除监听
