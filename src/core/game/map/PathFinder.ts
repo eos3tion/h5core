@@ -25,12 +25,11 @@ module junyou {
          * @param {number} fy               起点坐标y
          * @param {number} tx               终点坐标x
          * @param {number} ty               终点坐标y
-         * @param {{ (path: PathNode[], ...args) }} callback    寻找到目标后的 回调方法
-         * @param {any} args                回调函数的其他参数
+         * @param {CallbackInfo<{ (path: PathNode[], ...args) }>} callback    寻找到目标后的 回调方法
          * 
          * @memberOf PathFinder
          */
-        getPath(fx: number, fy: number, tx: number, ty: number, callback: { (path: PathNode[], ...args) }, ...args);
+        getPath(fx: number, fy: number, tx: number, ty: number, callback: CallbackInfo<{ (path: PathNode[], ...args) }>);
     }
 
     /**
@@ -101,9 +100,9 @@ module junyou {
      * 坐标偏移数据
      */
     const aSurOff: [number, number][] = [
-        /*↖*/[-1, -1], /*↑*/[0, -1], /*↗*/[1, -1],
-        /*←*/[-1, 0], /*    ㊥    */ /*→*/[1, 0],
-        /*↙*/[-1, 1], /*↓*/[0, 1],   /*↘*/[1, 1]];
+            /*↖*/[-1, -1], /*↑*/[0, -1], /*↗*/[1, -1],
+            /*←*/[-1, 0], /*    ㊥    */ /*→*/[1, 0],
+            /*↙*/[-1, 1], /*↓*/[0, 1],   /*↘*/[1, 1]];
     /**
      * A星寻路算法
      * @author 3tion
@@ -138,9 +137,9 @@ module junyou {
          * 
          * @memberOf PathFinder
          */
-        public getPath(fx: number, fy: number, tx: number, ty: number, callback: { (path: PathNode[], ...args): void }, ...args) {
+        public getPath(fx: number, fy: number, tx: number, ty: number, callback: CallbackInfo<{ (path: PathNode[], ...args) }>) {
             if (fx == tx && fy == ty) {
-                callback(null, ...args);
+                callback.callAndRecycle(null);
                 return;
             }
             const map = this._map;
@@ -148,7 +147,7 @@ module junyou {
             const h = map.rows;
             const maxLength = this._maxLength;
             if (fx > w || fy > h) {
-                callback(null, ...args);
+                callback.callAndRecycle(null);
                 return;
             }
             /**
@@ -192,7 +191,7 @@ module junyou {
                     closedList[key] = true;
                     if (x == tx && y == ty) {//找到终点
                         stage.off(EgretEvent.ENTER_FRAME, onTick, null);
-                        return callback(end(minNode), ...args);
+                        return callback.callAndRecycle(end(minNode));
                     }
 
                     aSurOff.forEach(element => {
@@ -231,7 +230,7 @@ module junyou {
                         return;
                     }
                 }
-                return callback(end(minNode), ...args);
+                return callback.callAndRecycle(end(minNode));
             }
             function end(node: PathNode): PathNode[] {
                 // 移除监听
