@@ -479,14 +479,6 @@ declare module junyou {
          */
         addDepend(async: IAsync): void;
         /**
-         *
-         * 获取模块回调
-         * @protected
-         * @param {Proxy} proxy 数据模块
-         * @param {any[]} args  回调参数
-         */
-        protected getProxyCallback(proxy: Proxy, property: string): void;
-        /**
          * 依赖项，加载完成后的检查
          */
         protected dependerReadyCheck(): void;
@@ -8238,9 +8230,9 @@ declare module junyou {
          * @param {*} thisObj 回调函数的this对象
          * @param args 回调函数的参数列表
          */
-        getProxy(proxyName: Key, callback: {
+        getProxy(proxyName: Key, callback?: {
             (proxy: Proxy, ...args: any[]);
-        }, thisObj: any, ...args: any[]): FHost;
+        }, thisObj?: any, ...args: any[]): FHost;
         /**
          * 以同步方式获取proxy，不会验证proxy是否加载完毕
          * 有可能无法取到proxy
@@ -8259,9 +8251,9 @@ declare module junyou {
          * @param {*} thisObj 回调函数的this对象
          * @param args 回调函数的参数列表
          */
-        getMediator(moduleID: Key, callback: {
+        getMediator(moduleID: Key, callback?: {
             (mediator: Mediator, ...args: any[]);
-        }, thisObj: any, ...args: any[]): FHost;
+        }, thisObj?: any, ...args: any[]): FHost;
         /**
          * 以同步方式获取Mediator，不会验证Mediator是否加载完毕
          * 有可能无法取到Mediator
@@ -8361,7 +8353,7 @@ declare module junyou {
      *
      * @memberOf FHost
      */
-    function proxyCall(proxyName: Key, callback: {
+    function proxyCall(proxyName: Key, callback?: {
         (proxy: Proxy, ...args: any[]);
     }, thisObj?: any, ...args: any[]): Proxy;
     /**
@@ -8382,7 +8374,7 @@ declare module junyou {
      *
      * @memberOf FHost
      */
-    function mediatorCall(mediatorName: Key, callback: {
+    function mediatorCall(mediatorName: Key, callback?: {
         (mediator: Mediator, ...args: any[]);
     }, thisObj?: any, ...args: any[]): Mediator;
     /**

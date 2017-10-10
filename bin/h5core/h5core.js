@@ -619,7 +619,9 @@ var junyou;
                     else {
                         proxyName = ref;
                     }
-                    junyou.proxyCall(proxyName, this.getProxyCallback, this, key);
+                    var proxy = junyou.proxyCall(proxyName);
+                    this[key] = proxy;
+                    this.addDepend(proxy);
                 }
             }
         };
@@ -652,17 +654,6 @@ var junyou;
                 this._dependerHelper = new junyou.DependerHelper(this, this.dependerReadyCheck);
             }
             this._dependerHelper.addDepend(async);
-        };
-        /**
-         *
-         * 获取模块回调
-         * @protected
-         * @param {Proxy} proxy 数据模块
-         * @param {any[]} args  回调参数
-         */
-        FHost.prototype.getProxyCallback = function (proxy, property) {
-            this[property] = proxy;
-            this.addDepend(proxy);
         };
         /**
          * 依赖项，加载完成后的检查
@@ -14270,15 +14261,15 @@ var junyou;
                 junyou.facade.inject(host);
                 host.onRegister();
             }
+            var callback = bin.callback;
             if (host.isReady) {
-                (_a = bin.callback).call.apply(_a, [bin.thisObj, host].concat(bin.args));
+                callback && callback.call.apply(callback, [bin.thisObj, host].concat(bin.args));
             }
             else {
-                host.addReadyExecute.apply(host, [bin.callback, bin.thisObj, host].concat(bin.args));
+                callback && host.addReadyExecute.apply(host, [callback, bin.thisObj, host].concat(bin.args));
                 host.startSync();
             }
             return host;
-            var _a;
         };
         /**
          *
