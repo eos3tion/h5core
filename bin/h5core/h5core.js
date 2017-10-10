@@ -6182,6 +6182,12 @@ var junyou;
         }
     })();
 })(junyou || (junyou = {}));
+if (true) {
+    var ErrorTexture = new egret.Texture();
+    var img = new Image(40, 40);
+    img.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAAWUlEQVRYR+3SwQkAIAwEwaT/orWI/YiM/wWZ3J6ZMw+/9cF4HYIRcAgSrAK1t0GCVaD2NkiwCtTeBglWgdrbIMEqUHsbJFgFam+DBKtA7W2QYBWovQ1+L3gB8nhP2Y60cpgAAAAASUVORK5CYII=";
+    ErrorTexture._setBitmapData(img);
+}
 var junyou;
 (function (junyou) {
     /**
@@ -6254,7 +6260,15 @@ var junyou;
                 this._tex = res;
                 for (var _i = 0, _a = this._list; _i < _a.length; _i++) {
                     var bmp = _a[_i];
-                    bmp.texture = this._tex;
+                    bmp.texture = res;
+                    if (true && !res) {
+                        bmp.texture = ErrorTexture;
+                        var rect = bmp.suiRawRect;
+                        if (rect) {
+                            bmp.width = rect.width;
+                            bmp.height = rect.height;
+                        }
+                    }
                     bmp.dispatch(-193 /* Texture_Complete */);
                 }
             }
@@ -16226,7 +16240,7 @@ var junyou;
                 this._asyncHelper.readyNow();
             }
         };
-        Panel.prototype.addedToStage = function () {
+        Panel.prototype.modalToStage = function () {
             if (this._isModal) {
                 this.addModal();
             }
@@ -16236,21 +16250,19 @@ var junyou;
                 return this._isModal;
             },
             set: function (value) {
-                this._isModal = value;
-                if (value) {
-                    if (this.stage) {
-                        this.addModal();
+                if (this._isModal != value) {
+                    this._isModal = value;
+                    if (value) {
+                        if (this.stage) {
+                            this.addModal();
+                        }
+                        else {
+                            this.once("addedToStage" /* ADDED_TO_STAGE */, this.modalToStage, this);
+                        }
                     }
                     else {
-                        this.on("addedToStage" /* ADDED_TO_STAGE */, this.addedToStage, this);
-                    }
-                }
-                else {
-                    if (this.stage) {
                         this.removeModal();
-                    }
-                    else {
-                        this.off("addedToStage" /* ADDED_TO_STAGE */, this.addedToStage, this);
+                        this.off("addedToStage" /* ADDED_TO_STAGE */, this.modalToStage, this);
                     }
                 }
             },
@@ -16267,16 +16279,26 @@ var junyou;
             if (!m) {
                 this.modal = m = new egret.Shape();
                 m.touchEnabled = true;
-                var g = m.graphics;
-                g.beginFill(Panel.MODAL_COLOR, Panel.MODAL_ALPHA);
-                var stage = egret.sys.$TempStage;
-                width = width || stage.stageWidth;
-                height = height || stage.stageHeight;
-                g.drawRect(0, 0, width, height);
-                g.endFill();
             }
+            var rect = this.suiRawRect;
+            var g = m.graphics;
+            g.clear();
+            g.beginFill(Panel.MODAL_COLOR, Panel.MODAL_ALPHA);
+            var stage = egret.sys.$TempStage;
+            stage.on("resize" /* RESIZE */, this.onModalResize, this);
+            width = width || stage.stageWidth;
+            height = height || stage.stageHeight;
+            var sx = rect.x - (width - rect.width >> 1);
+            var sy = rect.y - (width - rect.height >> 1);
+            g.drawRect(sx, sy, width, height);
+            g.endFill();
             m.on("touchTap" /* TOUCH_TAP */, this.hide, this);
             this.addChildAt(m, 0);
+            this.x = -sx;
+            this.y = -sy;
+        };
+        Panel.prototype.onModalResize = function () {
+            this.addModal();
         };
         /**
          * 移除模态
@@ -16288,6 +16310,7 @@ var junyou;
                 this.modal.off("touchTap" /* TOUCH_TAP */, this.hide, this);
                 junyou.removeDisplay(this.modal);
             }
+            egret.sys.$TempStage.off("resize" /* RESIZE */, this.onModalResize, this);
         };
         /**
          * 关闭

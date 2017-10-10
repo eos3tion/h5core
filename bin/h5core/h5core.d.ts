@@ -9459,7 +9459,7 @@ declare module junyou {
          * 皮肤数据加载完成
          */
         skinDataComplete(): void;
-        protected addedToStage(): void;
+        protected modalToStage(): void;
         isModal: boolean;
         /**
          * 加模态
@@ -9467,6 +9467,7 @@ declare module junyou {
          * @public
          */
         addModal(width?: number, height?: number): void;
+        private onModalResize();
         /**
          * 移除模态
          *
