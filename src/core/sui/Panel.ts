@@ -226,7 +226,7 @@ module junyou {
             width = width || stage.stageWidth;
             height = height || stage.stageHeight;
             let sx = rect.x - (width - rect.width >> 1);
-            let sy = rect.y - (width - rect.height >> 1);
+            let sy = rect.y - (height - rect.height >> 1);
             g.drawRect(sx, sy, width, height);
             g.endFill();
             m.on(EgretEvent.TOUCH_TAP, this.hide, this);
