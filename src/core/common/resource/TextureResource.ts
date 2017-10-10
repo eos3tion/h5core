@@ -1,4 +1,12 @@
+
+if (DEBUG) {
+    var ErrorTexture = new egret.Texture();
+    let img = new Image(40, 40);
+    img.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAAWUlEQVRYR+3SwQkAIAwEwaT/orWI/YiM/wWZ3J6ZMw+/9cF4HYIRcAgSrAK1t0GCVaD2NkiwCtTeBglWgdrbIMEqUHsbJFgFam+DBKtA7W2QYBWovQ1+L3gB8nhP2Y60cpgAAAAASUVORK5CYII="
+    ErrorTexture._setBitmapData(img as any);
+}
 module junyou {
+
 
     import Bitmap = egret.Bitmap;
     /**
@@ -86,7 +94,15 @@ module junyou {
             if (key == this.url) {
                 this._tex = res;
                 for (let bmp of this._list) {
-                    bmp.texture = this._tex;
+                    bmp.texture = res;
+                    if (DEBUG && !res) {
+                        bmp.texture = ErrorTexture;
+                        let rect = bmp.suiRawRect;
+                        if (rect) {
+                            bmp.width = rect.width;
+                            bmp.height = rect.height;
+                        }
+                    }
                     bmp.dispatch(EventConst.Texture_Complete);
                 }
             }
