@@ -54,14 +54,9 @@ Object.defineProperties(Object.prototype, {
     copyto: {
         value: function (to) {
             for (var p in this) {
-                if (!(p in to)) {
+                var data = to.getPropertyDescriptor(p);
+                if (!data || (data.set || data.writable)) {
                     to[p] = this[p];
-                }
-                else {
-                    var data = to.getPropertyDescriptor(p);
-                    if (data && data.set) {
-                        to[p] = this[p];
-                    }
                 }
             }
         },
