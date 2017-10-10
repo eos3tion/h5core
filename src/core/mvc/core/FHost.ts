@@ -68,7 +68,9 @@ module junyou {
                     } else {
                         proxyName = <any>ref;
                     }
-                    proxyCall(proxyName, this.getProxyCallback, this, key);
+                    let proxy = proxyCall(proxyName);
+                    this[key] = proxy;
+                    this.addDepend(proxy);
                 }
             }
         }
@@ -111,17 +113,6 @@ module junyou {
             this._dependerHelper.addDepend(async);
         }
 
-        /**
-         * 
-         * 获取模块回调
-         * @protected
-         * @param {Proxy} proxy 数据模块
-         * @param {any[]} args  回调参数
-         */
-        protected getProxyCallback(proxy: Proxy, property: string) {
-            this[property] = proxy;
-            this.addDepend(proxy);
-        }
 
         /**
          * 依赖项，加载完成后的检查
