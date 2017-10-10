@@ -220,16 +220,27 @@ module junyou {
             if (!m) {
                 this.modal = m = new egret.Shape();
                 m.touchEnabled = true;
-                let g = m.graphics;
-                g.beginFill(Panel.MODAL_COLOR, Panel.MODAL_ALPHA);
-                let stage = egret.sys.$TempStage;
-                width = width || stage.stageWidth;
-                height = height || stage.stageHeight;
-                g.drawRect(0, 0, width, height);
-                g.endFill();
             }
+            let rect = this.suiRawRect;
+            let g = m.graphics;
+            g.clear();
+            g.beginFill(Panel.MODAL_COLOR, Panel.MODAL_ALPHA);
+            let stage = egret.sys.$TempStage;
+            stage.on(EgretEvent.RESIZE, this.onResize, this);
+            width = width || stage.stageWidth;
+            height = height || stage.stageHeight;
+            let sx = rect.x - (width - rect.width >> 1);
+            let sy = rect.y - (width - rect.height >> 1);
+            g.drawRect(sx, sy, width, height);
+            g.endFill();
             m.on(EgretEvent.TOUCH_TAP, this.hide, this);
             this.addChildAt(m, 0);
+            this.x = -sx;
+            this.y = -sy;
+        }
+
+        onResize() {
+            this.addModal();
         }
 
         /**
@@ -242,6 +253,7 @@ module junyou {
                 this.modal.off(EgretEvent.TOUCH_TAP, this.hide, this);
                 removeDisplay(this.modal);
             }
+            egret.sys.$TempStage.off(EgretEvent.RESIZE, this.onResize, this);
         }
 
         /**
