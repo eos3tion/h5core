@@ -228,7 +228,7 @@ module junyou {
          * @param {*} thisObj 回调函数的this对象
          * @param args 回调函数的参数列表
          */
-        public getProxy(proxyName: Key, callback: { (proxy: Proxy, ...args: any[]) }, thisObj: any, ...args) {
+        public getProxy(proxyName: Key, callback?: { (proxy: Proxy, ...args: any[]) }, thisObj?: any, ...args) {
             let dele = this._proxys[proxyName];
             if (!dele) {
                 if (DEBUG) {
@@ -268,7 +268,7 @@ module junyou {
          * @param {*} thisObj 回调函数的this对象
          * @param args 回调函数的参数列表
          */
-        public getMediator(moduleID: Key, callback: { (mediator: Mediator, ...args: any[]) }, thisObj: any, ...args) {
+        public getMediator(moduleID: Key, callback?: { (mediator: Mediator, ...args: any[]) }, thisObj?: any, ...args) {
             let dele = this._mediators[moduleID];
             if (!dele) {
                 if (DEBUG) {
@@ -322,10 +322,11 @@ module junyou {
                 facade.inject(host);
                 host.onRegister();
             }
+            let callback = bin.callback;
             if (host.isReady) {
-                bin.callback.call(bin.thisObj, host, ...bin.args);
+                callback && callback.call(bin.thisObj, host, ...bin.args);
             } else {
-                host.addReadyExecute(bin.callback, bin.thisObj, host, ...bin.args);
+                callback && host.addReadyExecute(callback, bin.thisObj, host, ...bin.args);
                 host.startSync();
             }
             return host;
@@ -511,7 +512,7 @@ module junyou {
      * 
      * @memberOf FHost
      */
-    export function proxyCall(proxyName: Key, callback: { (proxy: Proxy, ...args: any[]) }, thisObj?: any, ...args): Proxy
+    export function proxyCall(proxyName: Key, callback?: { (proxy: Proxy, ...args: any[]) }, thisObj?: any, ...args): Proxy
     export function proxyCall(): Proxy {
         let f = facade;
         return f.getProxy.apply(f, arguments);
@@ -539,7 +540,7 @@ module junyou {
      * 
      * @memberOf FHost
      */
-    export function mediatorCall(mediatorName: Key, callback: { (mediator: Mediator, ...args: any[]) }, thisObj?: any, ...args): Mediator
+    export function mediatorCall(mediatorName: Key, callback?: { (mediator: Mediator, ...args: any[]) }, thisObj?: any, ...args): Mediator
     export function mediatorCall(): Mediator {
         let f = facade;
         return f.getMediator.apply(f, arguments);
