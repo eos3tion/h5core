@@ -16289,7 +16289,7 @@ var junyou;
             width = width || stage.stageWidth;
             height = height || stage.stageHeight;
             var sx = rect.x - (width - rect.width >> 1);
-            var sy = rect.y - (width - rect.height >> 1);
+            var sy = rect.y - (height - rect.height >> 1);
             g.drawRect(sx, sy, width, height);
             g.endFill();
             m.on("touchTap" /* TOUCH_TAP */, this.hide, this);
