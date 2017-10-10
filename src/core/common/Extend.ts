@@ -73,13 +73,9 @@ Object.defineProperties(Object.prototype, {
     copyto: {
         value: function (to: Object) {
             for (let p in this) {
-                if (!(p in to)) { // 本身没有这个属性
+                var data: PropertyDescriptor = to.getPropertyDescriptor(p);
+                if (!data || (data.set || data.writable)) {// 可进行赋值，防止将属性中的方法给重写
                     to[p] = this[p];
-                } else {
-                    var data: PropertyDescriptor = to.getPropertyDescriptor(p);
-                    if (data && data.set) {// 可进行赋值
-                        to[p] = this[p];
-                    }
                 }
             }
         },
