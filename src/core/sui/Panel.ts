@@ -178,7 +178,7 @@ module junyou {
         }
 
 
-        protected addedToStage() {
+        protected modalToStage() {
             if (this._isModal) {
                 this.addModal();
             }
@@ -191,21 +191,17 @@ module junyou {
         }
 
         public set isModal(value: boolean) {
-            this._isModal = value;
-            if (value) {
-                if (this.stage) {
-                    this.addModal();
-                }
-                else {
-                    this.on(EgretEvent.ADDED_TO_STAGE, this.addedToStage, this);
-                }
-            }
-            else {
-                if (this.stage) {
+            if (this._isModal != value) {
+                this._isModal = value;
+                if (value) {
+                    if (this.stage) {
+                        this.addModal();
+                    } else {
+                        this.once(EgretEvent.ADDED_TO_STAGE, this.modalToStage, this);
+                    }
+                } else {
                     this.removeModal();
-                }
-                else {
-                    this.off(EgretEvent.ADDED_TO_STAGE, this.addedToStage, this);
+                    this.off(EgretEvent.ADDED_TO_STAGE, this.modalToStage, this);
                 }
             }
         }
@@ -226,7 +222,7 @@ module junyou {
             g.clear();
             g.beginFill(Panel.MODAL_COLOR, Panel.MODAL_ALPHA);
             let stage = egret.sys.$TempStage;
-            stage.on(EgretEvent.RESIZE, this.onResize, this);
+            stage.on(EgretEvent.RESIZE, this.onModalResize, this);
             width = width || stage.stageWidth;
             height = height || stage.stageHeight;
             let sx = rect.x - (width - rect.width >> 1);
@@ -239,7 +235,7 @@ module junyou {
             this.y = -sy;
         }
 
-        onResize() {
+        private onModalResize() {
             this.addModal();
         }
 
@@ -253,7 +249,7 @@ module junyou {
                 this.modal.off(EgretEvent.TOUCH_TAP, this.hide, this);
                 removeDisplay(this.modal);
             }
-            egret.sys.$TempStage.off(EgretEvent.RESIZE, this.onResize, this);
+            egret.sys.$TempStage.off(EgretEvent.RESIZE, this.onModalResize, this);
         }
 
         /**
