@@ -324,6 +324,8 @@ module junyou {
          */
         public dispose() {
             this.removeSkinListener(this._skin);
+            //清理自身所有事件
+            this.removeAllListeners();
         }
 
         removeSkinListener(skin: egret.DisplayObject) {
