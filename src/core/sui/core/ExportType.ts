@@ -63,6 +63,11 @@ module junyou {
                 /**
                  * MC按钮
                  */
-                MCButton = 20
+                MCButton = 20,
+
+                /**
+                 * MC版的进度条
+                 */
+                MCProgress = 21
         }
 }
