@@ -53,21 +53,22 @@ module junyou {
         }
 
         protected initInlineCreators() {
-            let creators: { [index: string]: { new(): BaseCreator<egret.DisplayObject> } } = {};
-            this._creators = creators;
+            this._creators = {
+                [ExportType.Button]: ButtonCreator,
+                [ExportType.ShapeNumber]: ArtTextCreator,
+                [ExportType.ScaleBitmap]: ScaleBitmapCreator,
+                [ExportType.NumericStepper]: NumericStepperCreator,
+                [ExportType.Slider]: SliderCreator,
+                [ExportType.ScrollBar]: ScrollBarCreator,
+                [ExportType.ProgressBar]: ProgressBarCreator,
+                [ExportType.SlotBg]: ScaleBitmapCreator,
+                [ExportType.ShareBmp]: ShareBitmapCreator,
+                [ExportType.Slot]: SlotCreator,
+                [ExportType.MovieClip]: MovieClipCreator,
+                [ExportType.MCButton]: MCButtonCreator,
+                [ExportType.MCProgress]: MCProgressCreator,
+            };
             this.sharedTFCreator = new TextFieldCreator();
-            creators[ExportType.Button] = ButtonCreator;
-            creators[ExportType.ShapeNumber] = ArtTextCreator;
-            creators[ExportType.ScaleBitmap] = ScaleBitmapCreator;
-            creators[ExportType.NumericStepper] = NumericStepperCreator;
-            creators[ExportType.Slider] = SliderCreator;
-            creators[ExportType.ScrollBar] = ScrollBarCreator;
-            creators[ExportType.ProgressBar] = ProgressBarCreator;
-            creators[ExportType.SlotBg] = ScaleBitmapCreator;
-            creators[ExportType.ShareBmp] = ShareBitmapCreator;
-            creators[ExportType.Slot] = SlotCreator;
-            creators[ExportType.MovieClip] = MovieClipCreator;
-            creators[ExportType.MCButton] = MCButtonCreator;
         }
 
         public getData(key: string) {
