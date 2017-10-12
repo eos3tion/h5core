@@ -140,7 +140,7 @@ module junyou {
      * @param {({ (): T & { _pool?: RecyclablePool<T> } })} clazz 
      * @param {true} addInstanceRecycle
      */
-    export function recyclable<T>(clazz: { (): T & { _pool?: RecyclablePool<T> } }, addInstanceRecycle: true)
+    export function recyclable<T>(clazz: { (): T & { _pool?: RecyclablePool<T> } }, addInstanceRecycle?: boolean)
     export function recyclable<T>(clazz: Creator<T> & { _pool?: RecyclablePool<T> }, addInstanceRecycle?: boolean): Recyclable<T> {
         let pool = clazz._pool;
         if (!pool) {
