@@ -6,6 +6,13 @@ module junyou {
 	 *
 	 */
     export abstract class Proxy extends FHost {
+
+        /**
+         * 是否被其他模块依赖
+         * 
+         * @type {boolean}
+         */
+        _$isDep: boolean;
         /**
 		 * 默认当作同步数据，认为是已经处理好的
 		 */

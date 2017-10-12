@@ -70,6 +70,7 @@ module junyou {
                     }
                     let proxy = proxyCall(proxyName);
                     this[key] = proxy;
+                    proxy._$isDep = true;
                     this.addDepend(proxy);
                 }
             }
