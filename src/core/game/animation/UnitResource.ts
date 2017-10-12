@@ -140,16 +140,17 @@ module junyou {
         }
 
         loadRes(d: number, a: number) {
-            const info = this._splitInfo;
-            let r = info.getResource(d, a);
+            let r = this._splitInfo.getResource(d, a);
             let uri = this.key + "/" + r + Ext.PNG;
             let datas = this._datas;
-            return ResourceManager.get(uri, () => {
-                let tmp = new SplitUnitResource(uri);
-                tmp.bindTextures(datas, info.adDict[r]);
-                tmp.load();
-                return tmp;
-            });
+            return ResourceManager.get(uri, this.noRes, this, uri, r);
+        }
+
+        noRes(uri: string, r: string) {
+            let tmp = new SplitUnitResource(uri);
+            tmp.bindTextures(this._datas, this._splitInfo.adDict[r]);
+            tmp.load();
+            return tmp;
         }
 
         isResOK(d: number, a: number) {

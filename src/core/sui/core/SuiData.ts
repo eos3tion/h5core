@@ -112,16 +112,17 @@ module junyou {
 
         public createBmpLoader(ispng: boolean, textures: egret.Texture[]) {
             let file = "d" + (ispng ? Ext.PNG : Ext.JPG);
-            let key = this.key;
             //增加一个skin前缀
-            let uri = "skin/" + ConfigUtils.getSkinPath(key, file);
-            let tmp = ResourceManager.get(uri, () => {
-                let url = ConfigUtils.getSkinFile(key, file) + Global.webp;
-                let tmp = new SuiBmd(uri, url);
-                tmp.textures = textures;
-                return tmp;
-            });
+            let uri = "skin/" + ConfigUtils.getSkinPath(this.key, file);
+            let tmp = ResourceManager.get(uri, this.noRes, this, uri, file, textures);
             ispng ? this.pngbmd = tmp : this.jpgbmd = tmp;
+        }
+
+        noRes(uri: string, file: string, textures: egret.Texture[]) {
+            let url = ConfigUtils.getSkinFile(this.key, file) + Global.webp;
+            let tmp = new SuiBmd(uri, url);
+            tmp.textures = textures;
+            return tmp;
         }
 
         /**
