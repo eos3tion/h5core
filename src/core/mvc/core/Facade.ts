@@ -86,7 +86,7 @@ module junyou {
             return this._mm;
         }
 
-        protected _removeHost(name: string, dict: { [index: string]: ScriptHelper<FHost> }) {
+        protected _removeHost(name: Key, dict: { [index: string]: ScriptHelper<FHost> }) {
             let dele = dict[name];
             let host: FHost;
             if (dele) {
@@ -102,15 +102,21 @@ module junyou {
         /**
          * 移除面板控制器
          */
-        public removeMediator(mediatorName: string) {
+        public removeMediator(mediatorName: Key) {
             return this._removeHost(mediatorName, this._mediators);
         }
 
 
         /**
-         * 移除模块
+         * 移除模块  
+         * 如果模块被其他模块依赖，此方法并不能清楚依赖引用
          */
-        public removeProxy(proxyName: string) {
+        public removeProxy(proxyName: Key) {
+            let proxy = this._proxys[proxyName];
+            if (proxy.host._$isDep) {
+                ThrowError(`模块被依赖，不允许移除`);
+                return
+            }
             return this._removeHost(proxyName, this._proxys);
         }
 
