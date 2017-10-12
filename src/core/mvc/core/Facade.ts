@@ -114,7 +114,7 @@ module junyou {
         public removeProxy(proxyName: Key) {
             let proxy = this._proxys[proxyName];
             if (proxy.host._$isDep) {
-                ThrowError(`模块被依赖，不允许移除`);
+                DEBUG && ThrowError(`模块[${proxyName}]被依赖，不允许移除`, null, true);
                 return
             }
             return this._removeHost(proxyName, this._proxys);
