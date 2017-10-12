@@ -5565,7 +5565,7 @@ declare module junyou {
          * @param {AniOption} [option] 动画的参数
          * @returns (description)
          */
-        static getAni(uri: string, option?: AniOption): Recyclable<AniRender>;
+        static getAni(uri: string, option?: AniOption): any;
         /**
          * 获取正在运行的AniRender
          * @param guid  唯一标识
@@ -10112,12 +10112,26 @@ declare module junyou {
      *
      * @export
      * @template T
-     * @param {({ new(): T, _pool?: RecyclablePool<T> } | { (): T, _pool?: RecyclablePool<T> })} clazz
-     * @returns {Recyclable<T>}
+     * @param {({ new(): T & { _pool?: RecyclablePool<T> } })} clazz
      */
-    function recyclable<T>(clazz: Creator<T> & {
-        _pool?: RecyclablePool<T>;
-    }): Recyclable<T>;
+    function recyclable<T>(clazz: {
+        new(): T & {
+            _pool?: RecyclablePool<T>;
+        };
+    }): any;
+    /**
+     * 使用创建函数进行创建
+     *
+     * @export
+     * @template T
+     * @param {({ (): T & { _pool?: RecyclablePool<T> } })} clazz
+     * @param {true} addInstanceRecycle
+     */
+    function recyclable<T>(clazz: {
+        (): T & {
+            _pool?: RecyclablePool<T>;
+        };
+    }, addInstanceRecycle?: boolean): any;
     /**
      * 单例工具
      * @param clazz 要做单例的类型

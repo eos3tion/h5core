@@ -17549,29 +17549,31 @@ var junyou;
     if (true) {
         var _recid = 0;
     }
-    /**
-     * 获取一个recyclable的对象
-     *
-     * @export
-     * @template T
-     * @param {({ new(): T, _pool?: RecyclablePool<T> } | { (): T, _pool?: RecyclablePool<T> })} clazz
-     * @returns {Recyclable<T>}
-     */
-    function recyclable(clazz) {
+    function recyclable(clazz, addInstanceRecycle) {
         var pool = clazz._pool;
         if (!pool) {
-            pool = new RecyclablePool(clazz);
+            if (addInstanceRecycle) {
+                pool = new RecyclablePool(function () {
+                    var ins = new clazz();
+                    ins.recycle = recycle;
+                    return ins;
+                });
+            }
+            else {
+                pool = new RecyclablePool(clazz);
+                var pt = clazz.prototype;
+                if (pt.recycle == undefined) {
+                    pt.recycle = recycle;
+                }
+            }
             Object.defineProperty(clazz, "_pool", {
                 value: pool
             });
-            var pt = clazz.prototype;
-            if (pt.recycle == undefined) {
-                pt.recycle = function () {
-                    pool.recycle(this);
-                };
-            }
         }
         return pool.get();
+        function recycle() {
+            pool.recycle(this);
+        }
     }
     junyou.recyclable = recyclable;
     /**
