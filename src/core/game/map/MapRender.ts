@@ -118,14 +118,7 @@ module junyou {
             for (let r = sr; r <= er; r++) {
                 for (let c = sc; c <= ec; c++) {
                     let uri = cM.getMapUri(c, r);
-                    let tm = get(uri, () => {
-                        let tmp = new TileMap();
-                        tmp.reset(c, r, uri);
-                        tmp.x = c * pW;
-                        tmp.y = r * pH;
-                        tmp.load();
-                        return tmp;
-                    });
+                    let tm = get(uri, this.noRes, this, uri, c, r, pW, pH);
                     // 舞台上的标记为静态
                     tm.isStatic = true;
                     this.$doAddChild(tm, i, false);
@@ -133,6 +126,15 @@ module junyou {
                 }
             }
             showing.length = i;
+        }
+
+        protected noRes(uri: string, c: number, r: number, pW: number, pH: number) {
+            let tmp = new TileMap();
+            tmp.reset(c, r, uri);
+            tmp.x = c * pW;
+            tmp.y = r * pH;
+            tmp.load();
+            return tmp;
         }
         constructor(id: number) {
             super(id)
@@ -167,6 +169,12 @@ module junyou {
 
                 }
             }
+        }
+
+        removeChildren() {
+            //重置显示的地图序列
+            this._showing.length = 0;
+            super.removeChildren();
         }
     }
 
