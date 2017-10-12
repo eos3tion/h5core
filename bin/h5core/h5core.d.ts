@@ -1817,6 +1817,12 @@ declare module junyou {
      */
     abstract class Proxy extends FHost {
         /**
+         * 是否被其他模块依赖
+         *
+         * @type {boolean}
+         */
+        _$isDep: boolean;
+        /**
          * 默认当作同步数据，认为是已经处理好的
          */
         protected _selfReady: boolean;
@@ -4964,7 +4970,7 @@ declare module junyou {
      */
     var errorPrefix: string;
     interface ThrowError {
-        (msg: string, err?: Error): void;
+        (msg: string, err?: Error, alert?: boolean): void;
         MaxCount?: number;
         errorMsg?: string[];
     }
@@ -8177,17 +8183,18 @@ declare module junyou {
          * @memberOf Facade
          */
         readonly mm: ModuleManager;
-        protected _removeHost(name: string, dict: {
+        protected _removeHost(name: Key, dict: {
             [index: string]: ScriptHelper<FHost>;
         }): FHost;
         /**
          * 移除面板控制器
          */
-        removeMediator(mediatorName: string): FHost;
+        removeMediator(mediatorName: Key): FHost;
         /**
          * 移除模块
+         * 如果模块被其他模块依赖，此方法并不能清楚依赖引用
          */
-        removeProxy(proxyName: string): FHost;
+        removeProxy(proxyName: Key): FHost;
         /**
          *
          * 注册内部模块

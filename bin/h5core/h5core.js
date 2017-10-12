@@ -616,6 +616,7 @@ var junyou;
                     }
                     var proxy = junyou.proxyCall(proxyName);
                     this[key] = proxy;
+                    proxy._$isDep = true;
                     this.addDepend(proxy);
                 }
             }
@@ -9110,64 +9111,64 @@ var junyou;
      * 错误前缀
      */
     junyou.errorPrefix = "";
+    if (false) {
+        /**
+         * 内存中存储的错误数据信息
+         *
+         */
+        var errorMsg = [];
+        /**
+         * 在内存中存储报错数据
+         * @param msg
+         * @param atWho
+         *
+         */
+        function pushMsg(msg) {
+            if (errorMsg.length > junyou.ThrowError.MaxCount) {
+                errorMsg.shift();
+            }
+            var msg = getMsg(msg);
+            errorMsg.push(msg);
+            return msg;
+        }
+    }
+    /**
+    * 在内存中存储报错数据
+    * @param msg
+    * @private
+    */
+    function getMsg(msg) {
+        return new Date().format("[yyyy-MM-dd HH:mm:ss]", true) + "[info:]" + msg;
+    }
     /**
      * 抛错
      * @param {string | Error}  msg 描述
      **/
-    junyou.ThrowError = (function () {
-        if (false) {
-            /**
-             * 内存中存储的错误数据信息
-             *
-             */
-            var errorMsg = [];
-            /**
-             * 在内存中存储报错数据
-             * @param msg
-             * @param atWho
-             *
-             */
-            function pushMsg(msg) {
-                if (errorMsg.length > ThrowError.MaxCount) {
-                    errorMsg.shift();
-                }
-                var msg = getMsg(msg);
-                errorMsg.push(msg);
-                return msg;
-            }
+    junyou.ThrowError = function (msg, err, alert) {
+        if (true && alert) {
+            window.alert(msg);
         }
-        var ThrowError = function (msg, err) {
-            msg = junyou.errorPrefix + msg;
-            msg += "%c";
-            if (err) {
-                msg += "\nError:\n[name]:" + err.name + ",[message]:" + err.message;
-            }
-            else {
-                err = new Error();
-            }
-            msg += "\n[stack]:\n" + err.stack;
-            if (true) {
-                msg = getMsg(msg);
-            }
-            else if (false) {
-                msg = pushMsg(msg);
-            }
-            console.log(msg, "color:red");
-        };
-        if (false) {
-            ThrowError.MaxCount = 50;
-            ThrowError.errorMsg = errorMsg;
+        msg = junyou.errorPrefix + msg;
+        msg += "%c";
+        if (err) {
+            msg += "\nError:\n[name]:" + err.name + ",[message]:" + err.message;
         }
-        return ThrowError;
-        /**
-        * 在内存中存储报错数据
-        * @param msg
-        * @private
-        */
-        function getMsg(msg) {
-            return new Date().format("[yyyy-MM-dd HH:mm:ss]", true) + "[info:]" + msg;
+        else {
+            err = new Error();
         }
-    })();
+        msg += "\n[stack]:\n" + err.stack;
+        if (true) {
+            msg = getMsg(msg);
+        }
+        else if (false) {
+            msg = pushMsg(msg);
+        }
+        console.log(msg, "color:red");
+    };
+    if (false) {
+        junyou.ThrowError.MaxCount = 50;
+        junyou.ThrowError.errorMsg = errorMsg;
+    }
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -14062,8 +14063,14 @@ var junyou;
         };
         /**
          * 移除模块
+         * 如果模块被其他模块依赖，此方法并不能清楚依赖引用
          */
         Facade.prototype.removeProxy = function (proxyName) {
+            var proxy = this._proxys[proxyName];
+            if (proxy.host._$isDep) {
+                true && junyou.ThrowError("\u6A21\u5757[" + proxyName + "]\u88AB\u4F9D\u8D56\uFF0C\u4E0D\u5141\u8BB8\u79FB\u9664", null, true);
+                return;
+            }
             return this._removeHost(proxyName, this._proxys);
         };
         /**
@@ -17201,6 +17208,8 @@ var junyou;
          */
         ListItemRenderer.prototype.dispose = function () {
             this.removeSkinListener(this._skin);
+            //清理自身所有事件
+            this.removeAllListeners();
         };
         ListItemRenderer.prototype.removeSkinListener = function (skin) {
             if (skin) {
