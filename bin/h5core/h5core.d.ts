@@ -519,6 +519,49 @@ declare module junyou {
 }
 declare module junyou {
     /**
+     * 基础创建器
+     * @author 3tion
+     *
+     */
+    class BaseCreator<T extends egret.DisplayObject> {
+        protected _suiData: SuiData;
+        readonly suiData: SuiData;
+        protected _baseData: BaseData;
+        protected _createT: () => T;
+        protected _parsed: boolean;
+        size: Readonly<egret.Rectangle>;
+        bindSuiData(suiData: SuiData): void;
+        parseData(data: ComponentData, suiData: SuiData): void;
+        /**
+         * 处理尺寸
+         *
+         * @param {SizeData} data
+         *
+         * @memberOf BaseCreator
+         */
+        parseSize(data: SizeData): void;
+        /**
+         * 处理元素数据
+         * 对应 https://github.com/eos3tion/ExportUIFromFlash  项目中
+         * Solution.ts -> getElementData的元素数据的解析
+         * @param {ComponentData} data 长度为4的数组
+         * 0 导出类型
+         * 1 基础数据 @see Solution.getEleBaseData
+         * 2 对象数据 不同类型，数据不同
+         * 3 引用的库 0 当前库  1 lib  字符串 库名字
+         * @memberOf BaseCreator
+         */
+        createElement(data: ComponentData): egret.DisplayObject;
+        setBaseData(data: BaseData): void;
+        parseSelfData(data: any): void;
+        /**
+         * 获取实例
+         */
+        get(): T;
+    }
+}
+declare module junyou {
+    /**
      * 用于处理接收flash软件制作的UI，导出的数据，仿照eui
      * 不过简化eui的一些layout的支持
      * 按目前情况看，不太会制作复杂排版的ui，父容器不做统一的测量和重新布局
@@ -641,56 +684,103 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     * 基础创建器
+     * 骑乘状态
+     */
+    const enum MountType {
+        /**
+         * 在地面上
+         */
+        ground = 0,
+        /**
+         * 在坐骑上
+         */
+        ride = 1,
+    }
+    /**
+     * 动作类型
+     */
+    const enum ActionType {
+        /**
+         * 待机
+         */
+        standBy = 0,
+        /**
+         * 移动
+         */
+        move = 1,
+        /**
+         * 攻击
+         */
+        attack = 2,
+        /**
+         * 跳
+         */
+        jump = 3,
+    }
+    /**
+     * 单位动作
      * @author 3tion
      *
      */
-    class BaseCreator<T extends egret.DisplayObject> {
-        protected _suiData: SuiData;
-        readonly suiData: SuiData;
-        protected _baseData: BaseData;
-        protected _createT: () => T;
-        protected _parsed: boolean;
-        size: Readonly<egret.Rectangle>;
-        bindSuiData(suiData: SuiData): void;
-        parseData(data: ComponentData, suiData: SuiData): void;
+    class UnitAction {
+        static defaultAction: {
+            mountType: MountType;
+            action: number;
+        };
         /**
-         * 处理尺寸
+         * 根据坐骑状态，获取人物动作序列的配置
          *
-         * @param {SizeData} data
-         *
-         * @memberOf BaseCreator
+         * @param {MountType} mountType 坐骑状态
+         * @returns {IUnitActionInfo} 动作结果
          */
-        parseSize(data: SizeData): void;
+        getAction(mountType: MountType): IUnitActionInfo;
         /**
-         * 处理元素数据
-         * 对应 https://github.com/eos3tion/ExportUIFromFlash  项目中
-         * Solution.ts -> getElementData的元素数据的解析
-         * @param {ComponentData} data 长度为4的数组
-         * 0 导出类型
-         * 1 基础数据 @see Solution.getEleBaseData
-         * 2 对象数据 不同类型，数据不同
-         * 3 引用的库 0 当前库  1 lib  字符串 库名字
-         * @memberOf BaseCreator
+         * 单位播放动作
+         * 如果子类要制作动态的自定义动作，重写此方法
+         * @param {Unit} unit               单位
+         * @param {MountType} mountType     骑乘状态
+         * @param {number} now              时间戳
          */
-        createElement(data: ComponentData): egret.DisplayObject;
-        setBaseData(data: BaseData): void;
-        parseSelfData(data: any): void;
+        playAction(unit: Unit, mountType: MountType, now: number): void;
         /**
-         * 获取实例
+         * 播放动作
          */
-        get(): T;
-    }
-}
-declare module junyou {
-    /**
-     * 扩展名常量
-     * @author 3tion
-     */
-    const enum Ext {
-        JPG = ".jpg",
-        PNG = ".png",
-        WEBP = ".webp",
+        start(unit: Unit, now: number): void;
+        /**
+         * 动作执行数据计算<br/>
+         * 如更新单位坐标等
+         */
+        doData(unit: Unit, now: number): void;
+        /**
+         * 检查当前动作是否可以结束<br/>
+         * @return true 可以结束<br/>
+         *         false 不可结束
+         */
+        readonly canStop: Boolean;
+        /**
+         * 强制结束
+         */
+        terminate(): void;
+        /**
+         * 动画播放结束的回调
+         */
+        playComplete(unit: Unit, now: number): void;
+        protected _isEnd: Boolean;
+        /**
+         * 动作是否已经结束
+         * @return true，动作已经结束，可以做下一个动作<br/>
+         *         false, 动作未结束，
+         */
+        readonly isEnd: Boolean;
+        /**
+         * 执行事件
+         */
+        dispatchEvent(unit: Unit, eventType: string, now: number): void;
+        /**
+         * 渲染时执行
+         */
+        doRender(unit: Unit, now: number): void;
+        recycle(): void;
     }
 }
 declare module junyou {
@@ -1071,103 +1161,13 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     * 骑乘状态
-     */
-    const enum MountType {
-        /**
-         * 在地面上
-         */
-        ground = 0,
-        /**
-         * 在坐骑上
-         */
-        ride = 1,
-    }
-    /**
-     * 动作类型
-     */
-    const enum ActionType {
-        /**
-         * 待机
-         */
-        standBy = 0,
-        /**
-         * 移动
-         */
-        move = 1,
-        /**
-         * 攻击
-         */
-        attack = 2,
-        /**
-         * 跳
-         */
-        jump = 3,
-    }
-    /**
-     * 单位动作
+     * 扩展名常量
      * @author 3tion
-     *
      */
-    class UnitAction {
-        static defaultAction: {
-            mountType: MountType;
-            action: number;
-        };
-        /**
-         * 根据坐骑状态，获取人物动作序列的配置
-         *
-         * @param {MountType} mountType 坐骑状态
-         * @returns {IUnitActionInfo} 动作结果
-         */
-        getAction(mountType: MountType): IUnitActionInfo;
-        /**
-         * 单位播放动作
-         * 如果子类要制作动态的自定义动作，重写此方法
-         * @param {Unit} unit               单位
-         * @param {MountType} mountType     骑乘状态
-         * @param {number} now              时间戳
-         */
-        playAction(unit: Unit, mountType: MountType, now: number): void;
-        /**
-         * 播放动作
-         */
-        start(unit: Unit, now: number): void;
-        /**
-         * 动作执行数据计算<br/>
-         * 如更新单位坐标等
-         */
-        doData(unit: Unit, now: number): void;
-        /**
-         * 检查当前动作是否可以结束<br/>
-         * @return true 可以结束<br/>
-         *         false 不可结束
-         */
-        readonly canStop: Boolean;
-        /**
-         * 强制结束
-         */
-        terminate(): void;
-        /**
-         * 动画播放结束的回调
-         */
-        playComplete(unit: Unit, now: number): void;
-        protected _isEnd: Boolean;
-        /**
-         * 动作是否已经结束
-         * @return true，动作已经结束，可以做下一个动作<br/>
-         *         false, 动作未结束，
-         */
-        readonly isEnd: Boolean;
-        /**
-         * 执行事件
-         */
-        dispatchEvent(unit: Unit, eventType: string, now: number): void;
-        /**
-         * 渲染时执行
-         */
-        doRender(unit: Unit, now: number): void;
-        recycle(): void;
+    const enum Ext {
+        JPG = ".jpg",
+        PNG = ".png",
+        WEBP = ".webp",
     }
 }
 declare const enum EgretEvent {
@@ -1939,103 +1939,6 @@ declare module junyou {
     * @param {number} [priority=0]                 优先级，默认为0
     */
     var d_interest: typeof interest;
-}
-declare module junyou {
-    /**
-     * 按钮
-     * 在fla中 按钮只是需要1帧
-     * 按钮帧数对应的状态为
-     * 第1帧  启用 未选中
-     * 第2帧  启用 选中
-     * 第3帧  禁用 未选中
-     * 第4帧  禁用 选中
-     *
-     * 第4帧 没有，会用 第3帧代替
-     * 第3帧 或者 第2帧 没有，会用第一帧代替
-     * @author 3tion
-     *
-     */
-    class Button extends Component implements IButton {
-        txtLabel: egret.TextField;
-        bitmaps: egret.Bitmap[];
-        /**
-         * 按钮的底部
-         *
-         * @type {egret.DisplayObject}
-         * @memberOf Button
-         */
-        floor?: egret.DisplayObject;
-        /**
-         * 按钮的顶部
-         *
-         * @type {egret.DisplayObject}
-         * @memberOf Button
-         */
-        ceil?: egret.DisplayObject;
-        /**
-         *
-         * 用于放置子容器
-         * @protected
-         * @type {egret.DisplayObjectContainer}
-         */
-        protected _children?: egret.DisplayObjectContainer;
-        protected _label: string;
-        /**
-         * 是否选中
-         */
-        protected _selected: boolean;
-        protected _currentBmp: egret.Bitmap;
-        useDisableFilter(value: boolean): void;
-        constructor();
-        bindChildren(): void;
-        /**
-         * 获取按钮上的标签
-         */
-        /**
-         * 设置按钮上的标签
-         */
-        label: string;
-        protected $setEnabled(value: boolean): void;
-        /**
-         * 获取当前按钮选中状态
-         */
-        /**
-         * 设置选中
-         */
-        selected: boolean;
-        protected $setSelected(value: boolean): void;
-        protected refresh(changed?: boolean): void;
-        /**
-         * 获取按钮的帧数
-         *
-         * @returns
-         */
-        protected $getBtnFrame(): number;
-        /**
-         * 绑定TOUCH_TAP的回调
-         *
-         * @template T
-         * @param {{ (this: T, e?: egret.Event): any }} handler
-         * @param {T} [thisObject]
-         * @param {number} [priority]
-         * @param {boolean} [useCapture]
-         */
-        bindTouch<T>(handler: {
-            (this: T, e?: egret.Event): any;
-        }, thisObject?: T, priority?: number, useCapture?: boolean): void;
-        /**
-         * 解除TOUCH_TAP的回调的绑定
-         *
-         * @param {Function} handler
-         * @param {*} thisObject
-         * @param {boolean} [useCapture]
-         *
-         * @memberOf Button
-         */
-        looseTouch(handler: Function, thisObject?: any, useCapture?: boolean): void;
-        addChild(child: egret.DisplayObject): egret.DisplayObject;
-        dispose(): void;
-    }
 }
 declare module junyou {
     /**
@@ -2882,6 +2785,148 @@ declare module junyou {
         protected onRemoveFromStage(e: egret.Event): void;
     }
 }
+declare module junyou {
+    interface IButton extends Component {
+        /**
+         * 按钮上的标签
+         *
+         * @type {string}
+         * @memberof IButton
+         */
+        label: string;
+        /**
+         * 是否选中
+         *
+         * @type {boolean}
+         */
+        selected: boolean;
+        /**
+         * 绑定TOUCH_TAP的回调
+         *
+         * @template T
+         * @param {{ (this: T, e?: egret.Event): any }} handler
+         * @param {T} [thisObject]
+         * @param {number} [priority]
+         * @param {boolean} [useCapture]
+         */
+        bindTouch<T>(handler: {
+            (this: T, e?: egret.Event): any;
+        }, thisObject?: T, priority?: number, useCapture?: boolean): any;
+        /**
+         * 解除TOUCH_TAP的回调的绑定
+         *
+         * @param {Function} handler
+         * @param {*} thisObject
+         * @param {boolean} [useCapture]
+         *
+         * @memberOf Button
+         */
+        looseTouch(handler: Function, thisObject?: any, useCapture?: boolean): any;
+    }
+    /**
+     * 按钮
+     * 在fla中 按钮只是需要1帧
+     * 按钮帧数对应的状态为
+     * 第1帧  启用 未选中
+     * 第2帧  启用 选中
+     * 第3帧  禁用 未选中
+     * 第4帧  禁用 选中
+     *
+     * 第4帧 没有，会用 第3帧代替
+     * 第3帧 或者 第2帧 没有，会用第一帧代替
+     * @author 3tion
+     *
+     */
+    class Button extends Component implements IButton {
+        txtLabel: egret.TextField;
+        bitmaps: egret.Bitmap[];
+        /**
+         * 按钮的底部
+         *
+         * @type {egret.DisplayObject}
+         * @memberOf Button
+         */
+        floor?: egret.DisplayObject;
+        /**
+         * 按钮的顶部
+         *
+         * @type {egret.DisplayObject}
+         * @memberOf Button
+         */
+        ceil?: egret.DisplayObject;
+        /**
+         *
+         * 用于放置子容器
+         * @protected
+         * @type {egret.DisplayObjectContainer}
+         */
+        protected _children?: egret.DisplayObjectContainer;
+        protected _label: string;
+        /**
+         * 是否选中
+         */
+        protected _selected: boolean;
+        protected _currentBmp: egret.Bitmap;
+        useDisableFilter(value: boolean): void;
+        constructor();
+        bindChildren(): void;
+        /**
+         * 获取按钮上的标签
+         */
+        /**
+         * 设置按钮上的标签
+         */
+        label: string;
+        protected $setEnabled(value: boolean): void;
+        /**
+         * 获取当前按钮选中状态
+         */
+        /**
+         * 设置选中
+         */
+        selected: boolean;
+        protected $setSelected(value: boolean): void;
+        protected refresh(changed?: boolean): void;
+        /**
+         * 获取按钮的帧数
+         *
+         * @returns
+         */
+        protected $getBtnFrame(): number;
+        /**
+         * 绑定TOUCH_TAP的回调
+         *
+         * @template T
+         * @param {{ (this: T, e?: egret.Event): any }} handler
+         * @param {T} [thisObject]
+         * @param {number} [priority]
+         * @param {boolean} [useCapture]
+         */
+        bindTouch<T>(handler: {
+            (this: T, e?: egret.Event): any;
+        }, thisObject?: T, priority?: number, useCapture?: boolean): void;
+        /**
+         * 解除TOUCH_TAP的回调的绑定
+         *
+         * @param {Function} handler
+         * @param {*} thisObject
+         * @param {boolean} [useCapture]
+         *
+         * @memberOf Button
+         */
+        looseTouch(handler: Function, thisObject?: any, useCapture?: boolean): void;
+        addChild(child: egret.DisplayObject): egret.DisplayObject;
+        dispose(): void;
+    }
+    /**
+     * 按钮创建器
+     * @author 3tion
+     *
+     */
+    class ButtonCreator extends BaseCreator<Button> {
+        parseSelfData(data: any): void;
+    }
+}
 declare module egret {
     interface DisplayObject {
         $layoutHost: junyou.LayoutContainer;
@@ -3618,9 +3663,6 @@ declare namespace RES {
     }
 }
 declare module junyou {
-    /**
-     * 资源管理器
-     */
     const ResourceManager: {
         get<T extends IResource>(resid: string, noResHandler: (...args: any[]) => T, thisObj?: any, ...args: any[]): T;
         getTextureRes(resID: string, noWebp?: boolean): TextureResource;
@@ -5878,6 +5920,7 @@ declare module junyou {
          */
         draw(bitmap: egret.Bitmap, drawInfo: IDrawInfo, now: number): boolean;
         loadRes(d: number, a: number): SplitUnitResource;
+        noRes(uri: string, r: string): SplitUnitResource;
         isResOK(d: number, a: number): boolean;
     }
 }
@@ -6580,7 +6623,9 @@ declare module junyou {
          */
         protected ler: number;
         setRect(rect: egret.Rectangle): void;
+        protected noRes(uri: string, c: number, r: number, pW: number, pH: number): TileMap;
         constructor(id: number);
+        removeChildren(): void;
     }
     /**
     * TileMap
@@ -7231,46 +7276,31 @@ declare module junyou {
         getAction(mountType: MountType): IUnitActionInfo;
     }
 }
-declare module junyou {
+declare const enum StatsState {
     /**
-     *
-     *
-     * @export
-     * @class UModel
-     * @extends {egret.DisplayObjectContainer}
-     * @author 3tion
+     *游戏初始完成
+    */
+    GAME_INIT_COMPLETE = 4,
+    /**
+     *配置完成
      */
-    class UModel extends egret.DisplayObjectContainer {
-        /**
-         * 独立使用时，用于排序深度
-         *
-         * @type {number}
-         */
-        depth?: number;
-        /**
-         * 检查/重置资源列表
-         *
-         * @param {Key[]} resOrder 部位的排列顺序
-         * @param {{ [index: string]: UnitResource }} resDict 部位和资源的字典
-         */
-        checkResList(resOrder: Key[], resDict: {
-            [index: string]: UnitResource;
-        }): void;
-        /**
-         * 渲染指定帧
-         *
-         * @param {FrameInfo} frame
-         * @param {number} now
-         * @param {number} face
-         * @param {IDrawInfo} info
-         * @returns {boolean} true 表示此帧所有资源都正常完成渲染
-         *                    其他情况表示有些帧或者数据未加载，未完全渲染
-         * @memberof UModel
-         */
-        renderFrame(frame: FrameInfo, now: number, face: number, info: IDrawInfo): boolean;
-        clear(): void;
-        onRecycle(): void;
-    }
+    CONFIG_COMPLETE = 5,
+    /**
+     *资源完成
+     */
+    RES_COMPLETE = 6,
+    /**
+     *帐号登录完成
+     */
+    GAME_LOGIN_COMPLETE = 7,
+    /**
+     *创建角色
+     */
+    ROLE_CREATE = 8,
+    /**
+     *角色登陆完成
+     */
+    ROLE_LOGIN_COMPLETE = 9,
 }
 declare module junyou {
     /**
@@ -7541,31 +7571,35 @@ declare module junyou {
         rotation: number;
     }
 }
-declare const enum StatsState {
+declare module junyou {
     /**
-     *游戏初始完成
-    */
-    GAME_INIT_COMPLETE = 4,
-    /**
-     *配置完成
+     * 基于4个顶点变形的纹理
+     *
+     * @export
+     * @class QuadTransform
      */
-    CONFIG_COMPLETE = 5,
-    /**
-     *资源完成
-     */
-    RES_COMPLETE = 6,
-    /**
-     *帐号登录完成
-     */
-    GAME_LOGIN_COMPLETE = 7,
-    /**
-     *创建角色
-     */
-    ROLE_CREATE = 8,
-    /**
-     *角色登陆完成
-     */
-    ROLE_LOGIN_COMPLETE = 9,
+    class QuadTransform {
+        private _tex;
+        private _canvas;
+        private _content;
+        constructor();
+        /**
+         * 绘制白鹭的可视对象，并且进行变形
+         *
+         * @param {egret.DisplayObject} display
+         * @param {{ x: number, y: number }} ptl
+         * @param {{ x: number, y: number }} ptr
+         * @param {{ x: number, y: number }} pbl
+         * @param {{ x: number, y: number }} pbr
+         *
+         * @memberOf QuadTransform
+         */
+        drawDisplay(display: egret.DisplayObject, ptl?: QuadTransformPoint, ptr?: QuadTransformPoint, pbl?: QuadTransformPoint, pbr?: QuadTransformPoint): egret.BitmapData;
+    }
+    interface QuadTransformPoint extends Point {
+        Rx?: number;
+        Ry?: number;
+    }
 }
 declare module junyou {
     /**
@@ -7697,34 +7731,37 @@ declare module junyou {
     }
 }
 declare module junyou {
-    /**
-     * 基于4个顶点变形的纹理
-     *
-     * @export
-     * @class QuadTransform
-     */
-    class QuadTransform {
-        private _tex;
-        private _canvas;
-        private _content;
-        constructor();
+    class UnitSetting {
         /**
-         * 绘制白鹭的可视对象，并且进行变形
-         *
-         * @param {egret.DisplayObject} display
-         * @param {{ x: number, y: number }} ptl
-         * @param {{ x: number, y: number }} ptr
-         * @param {{ x: number, y: number }} pbl
-         * @param {{ x: number, y: number }} pbr
-         *
-         * @memberOf QuadTransform
+         * 是否添加UI层
          */
-        drawDisplay(display: egret.DisplayObject, ptl?: QuadTransformPoint, ptr?: QuadTransformPoint, pbl?: QuadTransformPoint, pbr?: QuadTransformPoint): egret.BitmapData;
+        hasUILayer: boolean;
+        /**
+         * 是否添加Buff容器
+         */
+        hasBuffLayer: boolean;
+        /**
+         * 是否添加光环容器
+         */
+        hasHaloLayer: boolean;
+        /**
+         * 是否添加到游戏场景中
+         */
+        addToEngine: boolean;
+        getDepth(): number;
+        /**
+         * 深度的参数A
+         */
+        depthA: number;
+        /**
+         * 深度的参数B
+         */
+        depthB: number;
     }
-    interface QuadTransformPoint extends Point {
-        Rx?: number;
-        Ry?: number;
-    }
+    /**
+     * 默认的单位设置
+     */
+    const defaultUnitSetting: UnitSetting;
 }
 declare module junyou {
     /**
@@ -9510,95 +9547,6 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     * 艺术字
-     */
-    class ArtText extends Component {
-        suiData: SuiData;
-        /**
-         * 垂直对齐方式
-         *
-         * @private
-         * @type {LayoutTypeVertical}
-         */
-        private _align;
-        textures: {
-            [index: string]: egret.Texture;
-        };
-        protected _value: string | number;
-        /**
-         * 水平间距
-         *
-         */
-        hgap: number;
-        private artwidth;
-        private _maxHeight;
-        constructor();
-        refreshBMD(): void;
-        /**
-         * 设置垂直对齐规则
-         *
-         * @param {LayoutTypeVertical} value
-         */
-        setVerticalAlign(value: LayoutTypeVertical): void;
-        protected $setValue(val: string | number): void;
-        value: string | number;
-        $getWidth(): number;
-        protected checkAlign(): void;
-        dispose(): void;
-    }
-}
-declare module junyou {
-    /**
-     * 网络事件的常量集
-     * @author
-     * -100~ -199
-     */
-    const enum EventConst {
-        /**
-         * 登录成功
-         */
-        LOGIN_COMPLETE = -199,
-        /**
-         * 登录失败
-         */
-        LOGIN_FAILED = -198,
-        /**
-         * 连接服务器成功
-         */
-        Connected = -197,
-        /**
-         * 连接服务器失败
-         */
-        ConnectFailed = -196,
-        /**
-         * 服务器断开连接
-         */
-        Disconnect = -195,
-        ShowReconnect = -194,
-        /**
-         * 纹理加载完成
-         */
-        Texture_Complete = -193,
-        /**
-         * 网络上线
-         */
-        Online = -192,
-        /**
-         * 网络断线
-         */
-        Offline = -191,
-        /**
-         * 手机从休眠状态中被唤醒
-         */
-        Awake = -190,
-        /**
-         * 频繁发送协议提示
-         */
-        NetServiceSendLimit = -189,
-    }
-}
-declare module junyou {
-    /**
      * 翻页的4个区域
      * ```
      *    TopLeft      │    TopRight
@@ -9708,76 +9656,6 @@ declare module junyou {
         protected clearEvents(): void;
         reset(): void;
         private draw(x, y);
-    }
-}
-declare module junyou {
-    interface IButton extends Component {
-        /**
-         * 按钮上的标签
-         *
-         * @type {string}
-         * @memberof IButton
-         */
-        label: string;
-        /**
-         * 是否选中
-         *
-         * @type {boolean}
-         */
-        selected: boolean;
-        /**
-         * 绑定TOUCH_TAP的回调
-         *
-         * @template T
-         * @param {{ (this: T, e?: egret.Event): any }} handler
-         * @param {T} [thisObject]
-         * @param {number} [priority]
-         * @param {boolean} [useCapture]
-         */
-        bindTouch<T>(handler: {
-            (this: T, e?: egret.Event): any;
-        }, thisObject?: T, priority?: number, useCapture?: boolean): any;
-        /**
-         * 解除TOUCH_TAP的回调的绑定
-         *
-         * @param {Function} handler
-         * @param {*} thisObject
-         * @param {boolean} [useCapture]
-         *
-         * @memberOf Button
-         */
-        looseTouch(handler: Function, thisObject?: any, useCapture?: boolean): any;
-    }
-}
-declare module junyou {
-    /**
-     * 图标按鈕
-     * @pb
-     *
-     */
-    class IconButton extends Button {
-        private _iconLayout;
-        private _iconContainer;
-        private _icon;
-        private _iconSource;
-        constructor();
-        private initComponent();
-        /**
-         * 设置按钮上的图标
-         * 支持layout
-         */
-        icon: Image;
-        private iconComplete();
-        /**
-         * 设置按钮上的图标资源uri
-         */
-        iconSource: string;
-        private updateDisplayList();
-        /**
-         * 调整图标在按钮上的位置
-         */
-        private layout();
-        iconLayout: number;
     }
 }
 declare module junyou {
@@ -10007,28 +9885,98 @@ declare module junyou {
     }
 }
 declare module junyou {
-    class NumericStepper extends Component {
-        minBtn: Button;
-        subBtn: Button;
-        addBtn: Button;
-        maxBtn: Button;
-        txtbg: ScaleBitmap;
-        txt: egret.TextField;
-        private _value;
-        private _width;
-        private _minValue;
-        private _maxValue;
-        constructor();
-        addSubComponents(): void;
-        width: number;
-        private setMinValue(e);
-        private addValue(e);
-        private subValue(e);
-        private setMaxValue(e);
-        value: number;
-        minValue: number;
-        maxValue: number;
+    /**
+     * 网络事件的常量集
+     * @author
+     * -100~ -199
+     */
+    const enum EventConst {
+        /**
+         * 登录成功
+         */
+        LOGIN_COMPLETE = -199,
+        /**
+         * 登录失败
+         */
+        LOGIN_FAILED = -198,
+        /**
+         * 连接服务器成功
+         */
+        Connected = -197,
+        /**
+         * 连接服务器失败
+         */
+        ConnectFailed = -196,
+        /**
+         * 服务器断开连接
+         */
+        Disconnect = -195,
+        ShowReconnect = -194,
+        /**
+         * 纹理加载完成
+         */
+        Texture_Complete = -193,
+        /**
+         * 网络上线
+         */
+        Online = -192,
+        /**
+         * 网络断线
+         */
+        Offline = -191,
+        /**
+         * 手机从休眠状态中被唤醒
+         */
+        Awake = -190,
+        /**
+         * 频繁发送协议提示
+         */
+        NetServiceSendLimit = -189,
     }
+}
+declare module junyou {
+    /**
+     * 翻页，一次手势翻一页
+     *
+     * @export
+     * @class PageScroller
+     * @extends {Scroller}
+     */
+    class PageScroller extends Scroller {
+        /**
+         * 当前在第几页
+         *
+         * @type {number}
+         */
+        currentPage: number;
+        autoScrollSpeed: number;
+        minPageScrollSpeed: number;
+        /**
+         * 总共将显示对象切割成几页
+         *
+         * @type {number}
+         */
+        private _totalpageCount;
+        private _firstTouchPos;
+        private _pageSize;
+        private _scrollToPage;
+        constructor();
+        settotalpageInfo(count: number, size: number): void;
+        /**
+         * 总共将显示对象切割成几页
+         *
+         * @type {number}
+         */
+        readonly totalpageCount: number;
+        bindObj(content: egret.DisplayObject, scrollRect: egret.Rectangle, scrollbar?: ScrollBar): void;
+        protected onTargetTouchBegin(e: egret.TouchEvent): void;
+        protected endTouchContent(e: egret.TouchEvent): void;
+        private autoScrollToNextPage(e);
+    }
+}
+declare const enum ScrollDirection {
+    Vertical = 0,
+    Horizon = 1,
 }
 declare module junyou {
     /**
@@ -10143,148 +10091,37 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     * 翻页，一次手势翻一页
+     * 图片字字库
+     * Key为图片文字文件名（不带扩展名）
+     * Value为egret.Texture
      *
      * @export
-     * @class PageScroller
-     * @extends {Scroller}
-     */
-    class PageScroller extends Scroller {
-        /**
-         * 当前在第几页
-         *
-         * @type {number}
-         */
-        currentPage: number;
-        autoScrollSpeed: number;
-        minPageScrollSpeed: number;
-        /**
-         * 总共将显示对象切割成几页
-         *
-         * @type {number}
-         */
-        private _totalpageCount;
-        private _firstTouchPos;
-        private _pageSize;
-        private _scrollToPage;
-        constructor();
-        settotalpageInfo(count: number, size: number): void;
-        /**
-         * 总共将显示对象切割成几页
-         *
-         * @type {number}
-         */
-        readonly totalpageCount: number;
-        bindObj(content: egret.DisplayObject, scrollRect: egret.Rectangle, scrollbar?: ScrollBar): void;
-        protected onTargetTouchBegin(e: egret.TouchEvent): void;
-        protected endTouchContent(e: egret.TouchEvent): void;
-        private autoScrollToNextPage(e);
-    }
-}
-declare module junyou {
-    /**
-     * 进度条
+     * @class ArtWord
      * @author 3tion
-     *
      */
-    class ProgressBar extends Component {
-        static defaultLabelFunction: (value: number, maxValue: number) => string;
-        private _bg;
-        private _tf;
-        private _bar;
-        private _labelFunction;
-        private _value;
-        private _maxValue;
-        private _barWidth;
+    class ArtWord {
+        private _txs;
         /**
+         * 获取纹理数据
          *
-         * 进度条的bar是否按遮罩的方式控制
-         * @type {boolean}
-         */
-        useMask: boolean;
-        constructor();
-        private initComponent();
-        /**自定义文本显示方法*/
-        labelFunction: (value: number, maxValue: number) => string;
-        bg: egret.Bitmap;
-        bar: egret.Bitmap;
-        tf: egret.TextField;
-        progress(value: number, maxValue: number): void;
-        private updateLabelDisplay();
-        private updateBarDisplay();
-        private updateDisplayList();
-    }
-}
-declare module junyou {
-    /**
-     *
-     * 用于处理从Flash中导出的带九宫缩放的位图
-     * @export
-     * @class ScaleBitmap
-     * @extends {egret.Bitmap}
-     * @author gushuai
-     */
-    class ScaleBitmap extends egret.Bitmap {
-        width: number;
-        height: number;
-        constructor();
-        /**
-        * @private
-        *
-        * @param context
-        */
-        $render(): void;
-    }
-}
-declare module junyou {
-    class ScrollBar extends Component {
-        bar: egret.Sprite;
-        bg: egret.Sprite;
-        protected _barBmp: ScaleBitmap;
-        protected _bgBmp: ScaleBitmap;
-        protected _bgSize: number;
-        protected _barSize: number;
-        protected _scrollType: ScrollDirection;
-        protected _supportSize: number;
-        constructor();
-        protected initBaseContainer(): void;
-        /**滚动条方式 0：垂直，1：水平 defalut:0*/
-        /**滚动条方式 0：垂直，1：水平 defalut:0*/
-        scrollType: ScrollDirection;
-        /**
-         * 设置滚动条的底与默认尺寸
+         * @param {Key} key
+         * @returns
          *
-         * @value 背景底
-         * @bgSize 尺寸
+         * @memberOf ArtWord
          */
-        setBg(value: ScaleBitmap, bgSize?: number): void;
+        getTexture(key: Key): egret.Texture;
+        private _suiData;
         /**
-         * 设置滑块按钮的样式
+         * 字库名称
          *
-         * @value 滑块按钮
-         * @barSize 滑块的尺寸大小
+         *
+         * @memberOf ArtWord
+         * @readonly
          */
-        setBar(value: ScaleBitmap, barSize?: number): void;
-        /**
-         * 滚动条背景尺寸
-         */
-        bgSize: number;
-        /**
-         * 滑块的尺寸
-         */
-        barSize: number;
-        /**当垂直滚动时，此值为滑块的宽度，当水平滚动时，此值为滑块的高度 */
-        supportSize: number;
-        protected $setSupportSize(_supportSize: number): void;
-        protected $setBarSize(_barSize: number): void;
-        protected $setBgSize(_bgSize: number): void;
-        protected checkBgSize(): void;
-        protected checkBarSize(): void;
+        readonly name: string;
+        constructor(name: string);
+        parseData(data: any[][], suiData: SuiData): void;
     }
-}
-declare const enum ScrollDirection {
-    Vertical = 0,
-    Horizon = 1,
 }
 declare module junyou {
     /**
@@ -10332,171 +10169,6 @@ declare module junyou {
         }[];
         constructor();
         toURLString(): string;
-    }
-}
-declare module junyou {
-    class Slider extends Component {
-        private _width;
-        private _height;
-        private _value;
-        /***滑块 */
-        thumb: egret.Sprite;
-        /****底 */
-        bgline: egret.Sprite;
-        private _bgBmp;
-        private tipTxt;
-        private _lastThumbX;
-        private _maxVlaue;
-        private _minValue;
-        private _step;
-        /**每步step需要的像素 */
-        private _perStepPixel;
-        private _halfThumbWidth;
-        private _barEnabled;
-        constructor();
-        private addListener();
-        private onAddToStage(e);
-        barEnabled: boolean;
-        private bgClick(e);
-        private bgOut(e);
-        private onThumbBegin(e);
-        private onThumbEnd(e);
-        private mouseMove(e);
-        private calculatevalue(currentX);
-        private initBaseContainer();
-        /**
-         * 设置底条新式
-         *
-         * @param {ScaleBitmap} bg (description)
-         */
-        setBg(bg: ScaleBitmap): void;
-        /**
-         * 设置滑块样式
-         *
-         * @param {egret.Bitmap} tb (description)
-         */
-        setThumb(tb: egret.Bitmap): void;
-        value: number;
-        /**
-         * 设置底条宽度
-         */
-        width: number;
-        /**
-         * 设置底条高度
-         */
-        height: number;
-        maxVlaue: number;
-        minValue: number;
-        /**
-         * 滑块移动一个单位的值
-         */
-        step: number;
-        private checkStepPixel();
-    }
-}
-declare module junyou {
-    const enum SlotCountShow {
-        /**
-         * 不显示文本
-         */
-        NotShow = 0,
-        /**
-         * 显示文本
-         */
-        Show = 1,
-        /**
-         * 自定义显示
-         * 会调用 Slot.getCountString进行处理
-         */
-        Custom = 2,
-    }
-    /**
-     * 格位基本类
-     * @author 3tion
-     */
-    class Slot extends Component {
-        bg: egret.Bitmap;
-        protected icon: Image;
-        protected _countTxt: egret.TextField;
-        protected _rect: egret.Rectangle;
-        protected _uri: string;
-        protected _count: number;
-        protected _countShow: SlotCountShow;
-        protected _changed: boolean;
-        protected _data: any;
-        constructor();
-        /**
-         *
-         * 获取类型2的数量处理方法
-         * @static
-         */
-        static getCountString: (count: number) => any;
-        data: any;
-        /**
-         * 设置数据，只允许子类调用
-         * @protected
-         */
-        $setData<T>(value: T): void;
-        rect: egret.Rectangle;
-        countTxt: egret.TextField;
-        iconSource: string;
-        count: number;
-        /**
-         * 数量显示状态<br/>
-         * 0 不显示数值<br/>
-         * 1 默认显示大于1的数量<br/>
-         * 2 大于1的数量，显示数值，超过一万的，会以xxx万显示 默认为2<br/>
-         */
-        countShow: SlotCountShow;
-        refreshCount(): void;
-        getCount(): string;
-        invalidateDisplay(): void;
-        refreshDisplay(): boolean;
-        /**
-         * 皮肤添加到舞台
-         */
-        awake(): void;
-        /**
-         * 销毁
-         * to be override
-         */
-        dispose(): void;
-        readonly width: number;
-        readonly height: number;
-    }
-}
-declare module junyou {
-    /**
-     * 图片字字库
-     * Key为图片文字文件名（不带扩展名）
-     * Value为egret.Texture
-     *
-     * @export
-     * @class ArtWord
-     * @author 3tion
-     */
-    class ArtWord {
-        private _txs;
-        /**
-         * 获取纹理数据
-         *
-         * @param {Key} key
-         * @returns
-         *
-         * @memberOf ArtWord
-         */
-        getTexture(key: Key): egret.Texture;
-        private _suiData;
-        /**
-         * 字库名称
-         *
-         *
-         * @memberOf ArtWord
-         * @readonly
-         */
-        readonly name: string;
-        constructor(name: string);
-        parseData(data: any[][], suiData: SuiData): void;
     }
 }
 declare module junyou {
@@ -10635,6 +10307,10 @@ declare module junyou {
          * MC按钮
          */
         MCButton = 20,
+        /**
+         * MC版的进度条
+         */
+        MCProgress = 21,
     }
 }
 declare module junyou {
@@ -10791,6 +10467,7 @@ declare module junyou {
          */
         sourceComponentData: Object;
         createBmpLoader(ispng: boolean, textures: egret.Texture[]): void;
+        noRes(uri: string, file: string, textures: egret.Texture[]): SuiBmd;
         /**
          * 刷新位图
          *
@@ -11100,6 +10777,43 @@ declare module junyou {
 }
 declare module junyou {
     /**
+     * 艺术字
+     */
+    class ArtText extends Component {
+        suiData: SuiData;
+        /**
+         * 垂直对齐方式
+         *
+         * @private
+         * @type {LayoutTypeVertical}
+         */
+        private _align;
+        textures: {
+            [index: string]: egret.Texture;
+        };
+        protected _value: string | number;
+        /**
+         * 水平间距
+         *
+         */
+        hgap: number;
+        private artwidth;
+        private _maxHeight;
+        constructor();
+        refreshBMD(): void;
+        /**
+         * 设置垂直对齐规则
+         *
+         * @param {LayoutTypeVertical} value
+         */
+        setVerticalAlign(value: LayoutTypeVertical): void;
+        protected $setValue(val: string | number): void;
+        value: string | number;
+        $getWidth(): number;
+        protected checkAlign(): void;
+        dispose(): void;
+    }
+    /**
      *
      * @author gushuai
      *
@@ -11179,27 +10893,6 @@ interface ActiveXObject {
     new(key: "MSXML2.XMLHTTP"): XMLHttpRequest;
 }
 declare const ActiveXObject: ActiveXObject;
-declare module junyou {
-    /**
-     * 按钮创建器
-     * @author 3tion
-     *
-     */
-    class ButtonCreator extends BaseCreator<Button> {
-        parseSelfData(data: any): void;
-    }
-}
-declare module junyou {
-    /**
-     * 图标按鈕創建
-     * @author pb
-     */
-    class IconButtonCreator extends BaseCreator<IconButton> {
-        private _sData;
-        parseSelfData(data: any): void;
-        private createIconButton();
-    }
-}
 declare module junyou {
     /**
      *
@@ -11328,6 +11021,28 @@ declare module junyou {
     }
 }
 declare module junyou {
+    class NumericStepper extends Component {
+        minBtn: Button;
+        subBtn: Button;
+        addBtn: Button;
+        maxBtn: Button;
+        txtbg: ScaleBitmap;
+        txt: egret.TextField;
+        private _value;
+        private _width;
+        private _minValue;
+        private _maxValue;
+        constructor();
+        bindChildren(): void;
+        width: number;
+        private setMinValue(e);
+        private addValue(e);
+        private subValue(e);
+        private setMaxValue(e);
+        value: number;
+        minValue: number;
+        maxValue: number;
+    }
     class NumericStepperCreator extends BaseCreator<NumericStepper> {
         private uiData;
         private txtCreator;
@@ -11340,27 +11055,159 @@ declare module junyou {
     }
 }
 declare module junyou {
+    interface ProgressBarSkinDele {
+        /**
+         * 进度条的顶
+         *
+         * @type {egret.DisplayObject}
+         * @memberof ProgressBarSkin
+         */
+        bar: egret.DisplayObject;
+        /**
+         * 进度条背景
+         *
+         * @type {egret.DisplayObject}
+         * @memberof ProgressBarSkin
+         */
+        bg?: egret.DisplayObject;
+        /**
+         * 进度条文本框
+         *
+         * @type {egret.TextField}
+         * @memberof ProgressBarSkin
+         */
+        tf?: egret.TextField;
+    }
+    /**
+     * 进度条
+     * @author 3tion
+     *
+     */
+    class ProgressBar extends Component {
+        static defaultLabelFunction: (value: number, maxValue: number) => string;
+        bg: egret.DisplayObject;
+        tf: egret.TextField;
+        bar: egret.DisplayObject;
+        protected _labelFun: (value: number, maxValue: number) => string;
+        protected _value: number;
+        protected _maxValue: number;
+        /**
+         * 背景和bar的差值
+         *
+         * @protected
+         */
+        protected _delta: number;
+        protected _barWidth: number;
+        /**
+         *
+         * 进度条的bar是否按遮罩的方式控制
+         * @type {boolean}
+         */
+        useMask: boolean;
+        protected _skin: ProgressBarSkinDele;
+        constructor();
+        /**自定义文本显示方法*/
+        labelFun: (value: number, maxValue: number) => string;
+        /**
+         * 设置进度条宽度
+         *
+         * @param {number} width
+         */
+        setWidth(width: number): void;
+        skin: ProgressBarSkinDele;
+        progress(value: number, maxValue: number): void;
+        private updateLabel();
+        private updateBar();
+        private refresh();
+    }
     /**
      * 进度条创建
-     * @pb
      *
      */
     class ProgressBarCreator extends BaseCreator<ProgressBar> {
-        private _suiManager;
-        private _txtCreator;
-        private _sData;
-        constructor();
         parseSelfData(data: any): void;
-        private createProgressBar();
+    }
+    /**
+     * MC进度条创建
+     *
+     * @export
+     * @class MCProgressCreator
+     * @extends {BaseCreator<ProgressBar>}
+     */
+    class MCProgressCreator extends BaseCreator<ProgressBar> {
+        parseSelfData(data: any): void;
     }
 }
 declare module junyou {
+    /**
+     *
+     * 用于处理从Flash中导出的带九宫缩放的位图
+     * @export
+     * @class ScaleBitmap
+     * @extends {egret.Bitmap}
+     * @author gushuai
+     */
+    class ScaleBitmap extends egret.Bitmap {
+        width: number;
+        height: number;
+        constructor();
+        /**
+        * @private
+        *
+        * @param context
+        */
+        $render(): void;
+    }
     class ScaleBitmapCreator extends BitmapCreator<ScaleBitmap> {
         constructor();
         parseSelfData(data: any): void;
     }
 }
 declare module junyou {
+    class ScrollBar extends Component {
+        bar: egret.Sprite;
+        bg: egret.Sprite;
+        protected _barBmp: ScaleBitmap;
+        protected _bgBmp: ScaleBitmap;
+        protected _bgSize: number;
+        protected _barSize: number;
+        protected _scrollType: ScrollDirection;
+        protected _supportSize: number;
+        constructor();
+        protected initBaseContainer(): void;
+        /**滚动条方式 0：垂直，1：水平 defalut:0*/
+        /**滚动条方式 0：垂直，1：水平 defalut:0*/
+        scrollType: ScrollDirection;
+        /**
+         * 设置滚动条的底与默认尺寸
+         *
+         * @value 背景底
+         * @bgSize 尺寸
+         */
+        setBg(value: ScaleBitmap, bgSize?: number): void;
+        /**
+         * 设置滑块按钮的样式
+         *
+         * @value 滑块按钮
+         * @barSize 滑块的尺寸大小
+         */
+        setBar(value: ScaleBitmap, barSize?: number): void;
+        /**
+         * 滚动条背景尺寸
+         */
+        bgSize: number;
+        /**
+         * 滑块的尺寸
+         */
+        barSize: number;
+        /**当垂直滚动时，此值为滑块的宽度，当水平滚动时，此值为滑块的高度 */
+        supportSize: number;
+        protected $setSupportSize(_supportSize: number): void;
+        protected $setBarSize(_barSize: number): void;
+        protected $setBgSize(_bgSize: number): void;
+        protected checkBgSize(): void;
+        protected checkBarSize(): void;
+    }
     class ScrollBarCreator extends BaseCreator<ScrollBar> {
         private uiData;
         private suiManager;
@@ -11376,6 +11223,64 @@ declare module junyou {
     }
 }
 declare module junyou {
+    class Slider extends Component {
+        private _width;
+        private _height;
+        private _value;
+        /***滑块 */
+        thumb: egret.Sprite;
+        /****底 */
+        bgline: egret.Sprite;
+        private _bgBmp;
+        private tipTxt;
+        private _lastThumbX;
+        private _maxVlaue;
+        private _minValue;
+        private _step;
+        /**每步step需要的像素 */
+        private _perStepPixel;
+        private _halfThumbWidth;
+        private _barEnabled;
+        constructor();
+        private addListener();
+        private onAddToStage(e);
+        barEnabled: boolean;
+        private bgClick(e);
+        private bgOut(e);
+        private onThumbBegin(e);
+        private onThumbEnd(e);
+        private mouseMove(e);
+        private calculatevalue(currentX);
+        private initBaseContainer();
+        /**
+         * 设置底条新式
+         *
+         * @param {ScaleBitmap} bg (description)
+         */
+        setBg(bg: ScaleBitmap): void;
+        /**
+         * 设置滑块样式
+         *
+         * @param {egret.Bitmap} tb (description)
+         */
+        setThumb(tb: egret.Bitmap): void;
+        value: number;
+        /**
+         * 设置底条宽度
+         */
+        width: number;
+        /**
+         * 设置底条高度
+         */
+        height: number;
+        maxVlaue: number;
+        minValue: number;
+        /**
+         * 滑块移动一个单位的值
+         */
+        step: number;
+        private checkStepPixel();
+    }
     class SliderCreator extends BaseCreator<Slider> {
         private uiData;
         private txtCreator;
@@ -11388,6 +11293,75 @@ declare module junyou {
     }
 }
 declare module junyou {
+    const enum SlotCountShow {
+        /**
+         * 不显示文本
+         */
+        NotShow = 0,
+        /**
+         * 显示文本
+         */
+        Show = 1,
+        /**
+         * 自定义显示
+         * 会调用 Slot.getCountString进行处理
+         */
+        Custom = 2,
+    }
+    /**
+     * 格位基本类
+     * @author 3tion
+     */
+    class Slot extends Component {
+        bg: egret.Bitmap;
+        protected icon: Image;
+        protected _countTxt: egret.TextField;
+        protected _rect: egret.Rectangle;
+        protected _uri: string;
+        protected _count: number;
+        protected _countShow: SlotCountShow;
+        protected _changed: boolean;
+        protected _data: any;
+        constructor();
+        /**
+         *
+         * 获取类型2的数量处理方法
+         * @static
+         */
+        static getCountString: (count: number) => any;
+        data: any;
+        /**
+         * 设置数据，只允许子类调用
+         * @protected
+         */
+        $setData<T>(value: T): void;
+        rect: egret.Rectangle;
+        countTxt: egret.TextField;
+        iconSource: string;
+        count: number;
+        /**
+         * 数量显示状态<br/>
+         * 0 不显示数值<br/>
+         * 1 默认显示大于1的数量<br/>
+         * 2 大于1的数量，显示数值，超过一万的，会以xxx万显示 默认为2<br/>
+         */
+        countShow: SlotCountShow;
+        refreshCount(): void;
+        getCount(): string;
+        invalidateDisplay(): void;
+        refreshDisplay(): boolean;
+        /**
+         * 皮肤添加到舞台
+         */
+        awake(): void;
+        /**
+         * 销毁
+         * to be override
+         */
+        dispose(): void;
+        readonly width: number;
+        readonly height: number;
+    }
     /**
      * 格位创建器
      *
@@ -12878,35 +12852,43 @@ declare module junyou {
     }
 }
 declare module junyou {
-    class UnitSetting {
-        /**
-         * 是否添加UI层
-         */
-        hasUILayer: boolean;
-        /**
-         * 是否添加Buff容器
-         */
-        hasBuffLayer: boolean;
-        /**
-         * 是否添加光环容器
-         */
-        hasHaloLayer: boolean;
-        /**
-         * 是否添加到游戏场景中
-         */
-        addToEngine: boolean;
-        getDepth(): number;
-        /**
-         * 深度的参数A
-         */
-        depthA: number;
-        /**
-         * 深度的参数B
-         */
-        depthB: number;
-    }
     /**
-     * 默认的单位设置
+     *
+     *
+     * @export
+     * @class UModel
+     * @extends {egret.DisplayObjectContainer}
+     * @author 3tion
      */
-    const defaultUnitSetting: UnitSetting;
+    class UModel extends egret.DisplayObjectContainer {
+        /**
+         * 独立使用时，用于排序深度
+         *
+         * @type {number}
+         */
+        depth?: number;
+        /**
+         * 检查/重置资源列表
+         *
+         * @param {Key[]} resOrder 部位的排列顺序
+         * @param {{ [index: string]: UnitResource }} resDict 部位和资源的字典
+         */
+        checkResList(resOrder: Key[], resDict: {
+            [index: string]: UnitResource;
+        }): void;
+        /**
+         * 渲染指定帧
+         *
+         * @param {FrameInfo} frame
+         * @param {number} now
+         * @param {number} face
+         * @param {IDrawInfo} info
+         * @returns {boolean} true 表示此帧所有资源都正常完成渲染
+         *                    其他情况表示有些帧或者数据未加载，未完全渲染
+         * @memberof UModel
+         */
+        renderFrame(frame: FrameInfo, now: number, face: number, info: IDrawInfo): boolean;
+        clear(): void;
+        onRecycle(): void;
+    }
 }
