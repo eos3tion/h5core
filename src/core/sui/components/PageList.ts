@@ -741,6 +741,10 @@ module junyou {
             return this._list;
         }
 
+        public get length() {
+            return this._list.length;
+        }
+
         public dispose() {
             this.recycle();
         }

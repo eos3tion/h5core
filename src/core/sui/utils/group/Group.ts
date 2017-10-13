@@ -20,6 +20,12 @@ module junyou {
             }
         }
 
+        public getAllItems() {
+            return this._list;
+        }
+        public get length() {
+            return this._list.length;
+        }
         /**
          * 获取 IGroupItem
          * 
