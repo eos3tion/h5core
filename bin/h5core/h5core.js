@@ -2644,35 +2644,27 @@ var junyou;
             }
             return [item, i];
         };
-        /**
-         * 在index后插入一个或多个数据，如果要在首位插入传-1
-         *
-         * @param {number} index (description)
-         * @param {*} data (description)
-         */
-        PageList.prototype.insertItem = function (index) {
-            var data = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                data[_i - 1] = arguments[_i];
+        PageList.prototype.removeAt = function (idx) {
+            idx = idx >>> 0;
+            var list = this._list;
+            if (idx < list.length) {
+                var item = list[idx];
+                list.splice(idx, 1);
+                this._data.splice(idx, 1);
+                this._remoreRender(item);
             }
-            //todo
-        };
-        PageList.prototype.deleteItemByIndex = function (value) {
-            //todo
-        };
-        PageList.prototype.deleteItemByData = function (key, value) {
-            //todo
         };
         PageList.prototype.removeItem = function (item) {
             var index = this._list.indexOf(item);
             if (index != -1) {
-                this._list.splice(index, 1);
-                this._data.splice(index, 1);
-                this._remoreRender(item);
+                this.removeAt(index);
             }
         };
         PageList.prototype._remoreRender = function (item) {
+            item.data = undefined;
             junyou.removeDisplay(item.view);
+            item.off(-1999 /* Resize */, this.childSizeChange, this);
+            item.off(-1001 /* ITEM_TOUCH_TAP */, this.touchItemrender, this);
             item.dispose();
             if (!this.renderChange) {
                 this.renderChange = true;
@@ -2698,19 +2690,24 @@ var junyou;
             enumerable: true,
             configurable: true
         });
+        /**
+         * 销毁
+         *
+         */
         PageList.prototype.dispose = function () {
-            this.recycle();
+            this.clear();
         };
-        PageList.prototype.recycle = function () {
+        /**
+         * 清理
+         *
+         */
+        PageList.prototype.clear = function () {
             this.graphics.clear();
             this._selectedIndex = -1;
-            this._data = undefined;
+            this._data.length = 0;
             var list = this._list;
-            for (var _i = 0, list_1 = list; _i < list_1.length; _i++) {
-                var render = list_1[_i];
-                render.data = undefined;
-                junyou.removeDisplay(render.view);
-                render.dispose();
+            for (var i = 0; i < list.length; i++) {
+                this._remoreRender(list[i]);
             }
             list.length = 0;
             this._selectedItem = undefined;
@@ -4425,6 +4422,15 @@ var junyou;
             idx = idx >>> 0;
             return this._list[idx];
         };
+        Group.prototype.removeAt = function (idx) {
+            idx = idx >>> 0;
+            var list = this._list;
+            if (idx < list.length) {
+                var item = list[idx];
+                this.removeItem(item);
+                return item;
+            }
+        };
         Group.prototype.touchHandler = function (e) {
             this.$setSelectedItem(e.target);
         };
@@ -4440,6 +4446,7 @@ var junyou;
                 }
                 this._list.remove(item);
                 item.off("touchTap" /* TOUCH_TAP */, this.touchHandler, this);
+                return item;
             }
         };
         Group.prototype.addItems = function () {
@@ -10108,8 +10115,8 @@ var junyou;
                 args[_i - 3] = arguments[_i];
             }
             //检查是否有this和handle相同的callback
-            for (var _a = 0, list_2 = list; _a < list_2.length; _a++) {
-                var callback = list_2[_a];
+            for (var _a = 0, list_1 = list; _a < list_1.length; _a++) {
+                var callback = list_1[_a];
                 if (callback.checkHandle(handle, thisObj)) {
                     callback.args = args;
                     return callback;
@@ -17134,7 +17141,7 @@ var junyou;
             item.index = index == undefined ? idx : index;
             this._viewCount = list.length;
         };
-        MPageList.prototype.recycle = function () {
+        MPageList.prototype.clear = function () {
             this._dataLen = 0;
             this._data = undefined;
             for (var _i = 0, _a = this._list; _i < _a.length; _i++) {
@@ -21099,6 +21106,7 @@ var junyou;
                 this._list.remove(item);
                 this._selected.remove(item);
                 item.off("touchTap" /* TOUCH_TAP */, this.touchHandler, this);
+                return item;
             }
         };
         CheckBoxGroup.prototype.$setSelectedItem = function (item) {
@@ -22350,8 +22358,8 @@ var junyou;
             this.rotation = 0;
             this.alpha = 1;
             var list = this.$children;
-            for (var _i = 0, list_3 = list; _i < list_3.length; _i++) {
-                var bmp = list_3[_i];
+            for (var _i = 0, list_2 = list; _i < list_2.length; _i++) {
+                var bmp = list_2[_i];
                 bmp.recycle();
             }
         };

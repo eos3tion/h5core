@@ -2166,22 +2166,22 @@ declare module junyou {
          * @returns
          */
         getItemRenderData<K extends keyof T>(key: K, value: T[K]): [R, number];
-        /**
-         * 在index后插入一个或多个数据，如果要在首位插入传-1
-         *
-         * @param {number} index (description)
-         * @param {*} data (description)
-         */
-        insertItem(index: number, ...data: T[]): void;
-        deleteItemByIndex(value: any[]): void;
-        deleteItemByData<K extends keyof T>(key: K, value: T[K]): void;
+        removeAt(idx: number): void;
         removeItem(item: R): void;
         protected _remoreRender(item: R): void;
         private refreshByRemoveItem();
         getAllItems(): R[];
         readonly length: number;
+        /**
+         * 销毁
+         *
+         */
         dispose(): void;
-        recycle(): void;
+        /**
+         * 清理
+         *
+         */
+        clear(): void;
         /**
          * 在舞台之上的起始索引
          *
@@ -3038,13 +3038,14 @@ declare module junyou {
          * @returns
          */
         getItemAt(idx: number): IGroupItem;
+        removeAt(idx: number): IGroupItem;
         protected touchHandler(e: egret.TouchEvent): void;
         /**
          * 移除单个组件
          *
          * @param {IGroupItem} item
          */
-        removeItem(item: IGroupItem): void;
+        removeItem(item: IGroupItem): IGroupItem;
         /**
          * 添加多个组件
          *
@@ -9888,7 +9889,7 @@ declare module junyou {
         constructor();
         displayList(data?: T[]): void;
         addItem(item: R, index?: number): void;
-        recycle(): void;
+        clear(): void;
         protected childSizeChange(): void;
         protected reCalc(): void;
     }
@@ -12170,7 +12171,7 @@ declare module junyou {
          */
         protected _selected: IGroupItem[];
         constructor(maxSelected?: number);
-        removeItem(item: IGroupItem): void;
+        removeItem(item: IGroupItem): IGroupItem;
         protected $setSelectedItem(item?: IGroupItem): boolean;
         /**
          * 获取选中的选项
