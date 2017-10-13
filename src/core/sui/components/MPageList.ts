@@ -46,7 +46,7 @@ module junyou {
             this._viewCount = list.length;
         }
 
-        public recycle() {
+        public clear() {
             this._dataLen = 0;
             this._data = undefined;
             for (let render of this._list) {

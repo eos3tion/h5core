@@ -705,12 +705,15 @@ module junyou {
         public removeItem(item: R) {
             let index = this._list.indexOf(item);
             if (index != -1) {
-                this.removeItemAt(index);
+                this.removeAt(index);
             }
         }
 
         protected _remoreRender(item: R) {
+            item.data = undefined;
             removeDisplay(item.view);
+            item.off(EventConst.Resize, this.childSizeChange, this);
+            item.off(EventConst.ITEM_TOUCH_TAP, this.touchItemrender, this);
             item.dispose();
             if (!this.renderChange) {
                 this.renderChange = true;
@@ -736,19 +739,25 @@ module junyou {
             return this._list.length;
         }
 
+        /**
+         * 销毁
+         * 
+         */
         public dispose() {
-            this.recycle();
+            this.clear();
         }
 
-        public recycle() {
+        /**
+         * 清理
+         * 
+         */
+        public clear() {
             this.graphics.clear();
             this._selectedIndex = -1;
-            this._data = undefined;
+            this._data.length = 0;
             let list = this._list;
-            for (let render of list) {
-                render.data = undefined;
-                removeDisplay(render.view);
-                render.dispose();
+            for (let i = 0; i < list.length; i++) {
+                this._remoreRender(list[i]);
             }
             list.length = 0;
             this._selectedItem = undefined;
