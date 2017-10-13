@@ -2704,7 +2704,7 @@ var junyou;
         PageList.prototype.clear = function () {
             this.graphics.clear();
             this._selectedIndex = -1;
-            this._data.length = 0;
+            this._data = undefined;
             var list = this._list;
             for (var i = 0; i < list.length; i++) {
                 this._remoreRender(list[i]);
