@@ -691,30 +691,21 @@ module junyou {
             return [item, i];
         }
 
-        /**
-         * 在index后插入一个或多个数据，如果要在首位插入传-1
-         * 
-         * @param {number} index (description)
-         * @param {*} data (description)
-         */
-        public insertItem(index: number, ...data: T[]) {
-            //todo
-        }
-
-        public deleteItemByIndex(value: any[]) {
-            //todo
-        }
-
-        public deleteItemByData<K extends keyof T>(key: K, value: T[K]) {
-            //todo
+        public removeAt(idx: number) {
+            idx = idx >>> 0;
+            const list = this._list;
+            if (idx < list.length) {
+                let item = list[idx];
+                list.splice(idx, 1);
+                this._data.splice(idx, 1);
+                this._remoreRender(item);
+            }
         }
 
         public removeItem(item: R) {
             let index = this._list.indexOf(item);
             if (index != -1) {
-                this._list.splice(index, 1);
-                this._data.splice(index, 1);
-                this._remoreRender(item);
+                this.removeItemAt(index);
             }
         }
 

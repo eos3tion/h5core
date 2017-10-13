@@ -37,6 +37,16 @@ module junyou {
             return this._list[idx];
         }
 
+        public removeAt(idx: number) {
+            idx = idx >>> 0;
+            const list = this._list;
+            if (idx < list.length) {
+                let item = list[idx]
+                list.splice(idx, 1);
+                return item;
+            }
+        }
+
         protected touchHandler(e: egret.TouchEvent) {
             this.$setSelectedItem(e.target);
         }
