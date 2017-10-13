@@ -2159,7 +2159,7 @@ var junyou;
             _this._vgap = ~~vgap;
             _this.itemWidth = itemWidth;
             _this.itemHeight = itemHeight;
-            _this._renderList = [];
+            _this._list = [];
             _this._scrollType = columnCount < 9999 /* MaxColumnCount */ ? 0 /* Vertical */ : 1 /* Horizon */;
             return _this;
         }
@@ -2178,7 +2178,7 @@ var junyou;
             var nlen = data ? data.length : 0;
             if (this._data) {
                 //如果新赋值的数据长度比以前的短，就自动清理掉多出来的item
-                var list = this._renderList;
+                var list = this._list;
                 var llen = list.length;
                 if (nlen < llen) {
                     for (var i = nlen; i < list.length; i++) {
@@ -2289,7 +2289,7 @@ var junyou;
         PageList.prototype.changeRender = function (render, index) {
             var old = this._selectedItem;
             if (old != render) {
-                index == undefined && (index = this._renderList.indexOf(render));
+                index == undefined && (index = this._list.indexOf(render));
                 if (old) {
                     old.selected = false;
                 }
@@ -2308,7 +2308,7 @@ var junyou;
             this.changeRender(render);
         };
         PageList.prototype.getOrCreateItemRenderAt = function (index) {
-            var list = this._renderList;
+            var list = this._list;
             var render = list[index];
             if (!render) {
                 render = this._renderFactory.get();
@@ -2338,7 +2338,7 @@ var junyou;
                 return;
             }
             this._childSizeChanged = false;
-            var renderList = this._renderList;
+            var renderList = this._list;
             var len = renderList.length;
             var end = len - 1;
             // let lastrender: R;
@@ -2423,12 +2423,12 @@ var junyou;
                     return;
                 }
                 var render;
-                var renderList = this._renderList;
+                var renderList = this._list;
                 var len_1 = renderList.length - 1;
                 if (value > len_1) {
                     value = len_1;
                 }
-                render = this._renderList[value];
+                render = this._list[value];
                 this.changeRender(render, value);
                 var view = render.view;
                 if (view && view.stage) {
@@ -2590,7 +2590,7 @@ var junyou;
          * @param {*} data (description)
          */
         PageList.prototype.updateItembyIndex = function (index, data) {
-            var item = this.getItemRenderAt(index);
+            var item = this.getItemAt(index);
             if (item) {
                 this._data[index] = data;
                 if (index >= this._showStart && index <= this._showEnd) {
@@ -2614,11 +2614,12 @@ var junyou;
         /**
          *
          * 根据索引获得视图
-         * @param {number} index
+         * @param {number} idx
          * @returns
          */
-        PageList.prototype.getItemRenderAt = function (index) {
-            return this._renderList[index];
+        PageList.prototype.getItemAt = function (idx) {
+            idx = idx >>> 0;
+            return this._list[idx];
         };
         /**
          *
@@ -2636,7 +2637,7 @@ var junyou;
                 var dat = data[i];
                 if (key in dat) {
                     if (dat[key] === value) {
-                        item = this.getItemRenderAt(i);
+                        item = this.getItemAt(i);
                         break;
                     }
                 }
@@ -2663,9 +2664,9 @@ var junyou;
             //todo
         };
         PageList.prototype.removeItem = function (item) {
-            var index = this._renderList.indexOf(item);
+            var index = this._list.indexOf(item);
             if (index != -1) {
-                this._renderList.splice(index, 1);
+                this._list.splice(index, 1);
                 this._data.splice(index, 1);
                 this._remoreRender(item);
             }
@@ -2688,7 +2689,7 @@ var junyou;
             this.checkViewRect();
         };
         PageList.prototype.getAllItems = function () {
-            return this._renderList;
+            return this._list;
         };
         PageList.prototype.dispose = function () {
             this.recycle();
@@ -2697,7 +2698,7 @@ var junyou;
             this.graphics.clear();
             this._selectedIndex = -1;
             this._data = undefined;
-            var list = this._renderList;
+            var list = this._list;
             for (var _i = 0, list_1 = list; _i < list_1.length; _i++) {
                 var render = list_1[_i];
                 render.data = undefined;
@@ -2711,7 +2712,7 @@ var junyou;
         };
         PageList.prototype.checkViewRect = function () {
             var rect = this.$scrollRect;
-            var list = this._renderList;
+            var list = this._list;
             var len = list.length;
             var len_1 = len - 1;
             if (!rect) {
@@ -4377,7 +4378,6 @@ var junyou;
 (function (junyou) {
     /**
      * 单选按钮组
-     * @author pb
      */
     var Group = (function (_super) {
         __extends(Group, _super);
@@ -4398,6 +4398,16 @@ var junyou;
                 item.on("touchTap" /* TOUCH_TAP */, this.touchHandler, this);
             }
         };
+        /**
+         * 获取 IGroupItem
+         *
+         * @param {number} idx
+         * @returns
+         */
+        Group.prototype.getItemAt = function (idx) {
+            idx = idx >>> 0;
+            return this._list[idx];
+        };
         Group.prototype.touchHandler = function (e) {
             this.$setSelectedItem(e.target);
         };
@@ -4415,18 +4425,9 @@ var junyou;
                 item.off("touchTap" /* TOUCH_TAP */, this.touchHandler, this);
             }
         };
-        /**
-         * 添加多个组件
-         *
-         * @param {...IGroupItem[]} itemArr
-         */
         Group.prototype.addItems = function () {
-            var itemArr = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                itemArr[_i] = arguments[_i];
-            }
-            for (var i = 0; i < itemArr.length; i++) {
-                var item = itemArr[i];
+            for (var i = 0; i < arguments.length; i++) {
+                var item = arguments[i];
                 this.addItem(item);
             }
         };
@@ -17092,7 +17093,7 @@ var junyou;
             //如果新赋值的数据长度比以前的短，就自动清理掉多出来的item
             var olen = Math.max(this._dataLen, this._viewCount);
             while (olen > dataLen) {
-                var render = this.getItemRenderAt(olen - 1);
+                var render = this.getItemAt(olen - 1);
                 if (render) {
                     render.data = undefined;
                     if (render.handleView) {
@@ -17106,7 +17107,7 @@ var junyou;
             this.doRenderListItem(0, dataLen - 1);
         };
         MPageList.prototype.addItem = function (item, index) {
-            var list = this._renderList;
+            var list = this._list;
             var idx = list.indexOf(item);
             if (idx == -1) {
                 idx = list.length;
@@ -17119,7 +17120,7 @@ var junyou;
         MPageList.prototype.recycle = function () {
             this._dataLen = 0;
             this._data = undefined;
-            for (var _i = 0, _a = this._renderList; _i < _a.length; _i++) {
+            for (var _i = 0, _a = this._list; _i < _a.length; _i++) {
                 var render = _a[_i];
                 render.data = undefined;
             }

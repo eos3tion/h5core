@@ -2025,7 +2025,7 @@ declare module junyou {
          * @type {number}
          */
         protected _columncount: number;
-        protected _renderList: R[];
+        protected _list: R[];
         protected _data: T[];
         protected _childSizeChanged: boolean;
         protected _selectedIndex: number;
@@ -2154,10 +2154,10 @@ declare module junyou {
         /**
          *
          * 根据索引获得视图
-         * @param {number} index
+         * @param {number} idx
          * @returns
          */
-        getItemRenderAt(index: number): R;
+        getItemAt(idx: number): R;
         /**
          *
          * 通过搜索数据，获取Render
@@ -3017,7 +3017,6 @@ declare module junyou {
 declare module junyou {
     /**
      * 单选按钮组
-     * @author pb
      */
     class Group extends egret.EventDispatcher {
         protected _list: IGroupItem[];
@@ -3029,6 +3028,13 @@ declare module junyou {
          * @param {IGroupItem} item
          */
         addItem(item: IGroupItem): void;
+        /**
+         * 获取 IGroupItem
+         *
+         * @param {number} idx
+         * @returns
+         */
+        getItemAt(idx: number): IGroupItem;
         protected touchHandler(e: egret.TouchEvent): void;
         /**
          * 移除单个组件
@@ -3041,7 +3047,7 @@ declare module junyou {
          *
          * @param {...IGroupItem[]} itemArr
          */
-        addItems(...itemArr: IGroupItem[]): void;
+        addItems(...itemArr: IGroupItem[]): any;
         /**
          * 设置选中组件
          */
