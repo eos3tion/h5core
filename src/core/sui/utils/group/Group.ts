@@ -1,7 +1,6 @@
 module junyou {
     /**
      * 单选按钮组
-     * @author pb
      */
     export class Group extends egret.EventDispatcher {
 
@@ -19,6 +18,17 @@ module junyou {
                 this._list.pushOnce(item);
                 item.on(EgretEvent.TOUCH_TAP, this.touchHandler, this);
             }
+        }
+
+        /**
+         * 获取 IGroupItem
+         * 
+         * @param {number} idx 
+         * @returns 
+         */
+        public getItemAt(idx: number) {
+            idx = idx >>> 0;
+            return this._list[idx];
         }
 
         protected touchHandler(e: egret.TouchEvent) {
@@ -46,9 +56,10 @@ module junyou {
          * 
          * @param {...IGroupItem[]} itemArr
          */
-        public addItems(...itemArr: IGroupItem[]) {
-            for (let i = 0; i < itemArr.length; i++) {
-                let item = itemArr[i];
+        public addItems(...itemArr: IGroupItem[])
+        public addItems() {
+            for (let i = 0; i < arguments.length; i++) {
+                let item = arguments[i];
                 this.addItem(item);
             }
         }

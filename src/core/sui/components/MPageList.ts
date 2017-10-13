@@ -20,7 +20,7 @@ module junyou {
             //如果新赋值的数据长度比以前的短，就自动清理掉多出来的item
             let olen = Math.max(this._dataLen, this._viewCount);
             while (olen > dataLen) {
-                let render = this.getItemRenderAt(olen - 1);
+                let render = this.getItemAt(olen - 1);
                 if (render) {
                     render.data = undefined;
                     if (render.handleView) {
@@ -35,7 +35,7 @@ module junyou {
         }
 
         public addItem(item: R, index?: number) {
-            let list = this._renderList;
+            let list = this._list;
             let idx = list.indexOf(item);
             if (idx == -1) {
                 idx = list.length;
@@ -49,7 +49,7 @@ module junyou {
         public recycle() {
             this._dataLen = 0;
             this._data = undefined;
-            for (let render of this._renderList) {
+            for (let render of this._list) {
                 render.data = undefined;
             }
             this._selectedIndex = -1;
