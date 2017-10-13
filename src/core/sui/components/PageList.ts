@@ -96,7 +96,7 @@ module junyou {
          */
         protected _columncount: number;
 
-        protected _renderList: R[];
+        protected _list: R[];
 
         protected _data: T[];
 
@@ -207,7 +207,7 @@ module junyou {
             this._vgap = ~~vgap;
             this.itemWidth = itemWidth;
             this.itemHeight = itemHeight;
-            this._renderList = [];
+            this._list = [];
             this._scrollType = columnCount < PageConst.MaxColumnCount ? ScrollDirection.Vertical : ScrollDirection.Horizon;
         }
 
@@ -219,7 +219,7 @@ module junyou {
             let nlen = data ? data.length : 0;
             if (this._data) {
                 //如果新赋值的数据长度比以前的短，就自动清理掉多出来的item
-                let list = this._renderList;
+                let list = this._list;
                 let llen = list.length;
                 if (nlen < llen) {
                     for (let i = nlen; i < list.length; i++) {
@@ -332,7 +332,7 @@ module junyou {
         protected changeRender(render: R, index?: number) {
             let old = this._selectedItem;
             if (old != render) {
-                index == undefined && (index = this._renderList.indexOf(render));
+                index == undefined && (index = this._list.indexOf(render));
                 if (old) {
                     old.selected = false;
                 }
@@ -353,7 +353,7 @@ module junyou {
         }
 
         private getOrCreateItemRenderAt(index: number) {
-            let list = this._renderList;
+            let list = this._list;
             let render = list[index];
             if (!render) {
                 render = this._renderFactory.get();
@@ -385,7 +385,7 @@ module junyou {
                 return;
             }
             this._childSizeChanged = false;
-            let renderList = this._renderList;
+            let renderList = this._list;
             let len = renderList.length;
             let end = len - 1;
             // let lastrender: R;
@@ -471,12 +471,12 @@ module junyou {
                 return;
             }
             let render: R;
-            const renderList = this._renderList;
+            const renderList = this._list;
             let len_1 = renderList.length - 1;
             if (value > len_1) {//一般PageList控件，索引超过长度，取最后一个
                 value = len_1;
             }
-            render = this._renderList[value];
+            render = this._list[value];
             this.changeRender(render, value);
             let view = render.view;
             if (view && view.stage) {
@@ -631,7 +631,7 @@ module junyou {
          * @param {*} data (description)
          */
         public updateItembyIndex(index: number, data: T) {
-            let item = this.getItemRenderAt(index);
+            let item = this.getItemAt(index);
             if (item) {
                 this._data[index] = data;
                 if (index >= this._showStart && index <= this._showEnd) {
@@ -659,11 +659,12 @@ module junyou {
         /**
          * 
          * 根据索引获得视图
-         * @param {number} index
+         * @param {number} idx
          * @returns
          */
-        public getItemRenderAt(index: number) {
-            return this._renderList[index];
+        public getItemAt(idx: number) {
+            idx = idx >>> 0;
+            return this._list[idx];
         }
 
         /**
@@ -682,7 +683,7 @@ module junyou {
                 let dat = data[i];
                 if (key in dat) {
                     if (dat[key] === value) {
-                        item = this.getItemRenderAt(i);
+                        item = this.getItemAt(i);
                         break;
                     }
                 }
@@ -709,9 +710,9 @@ module junyou {
         }
 
         public removeItem(item: R) {
-            let index = this._renderList.indexOf(item);
+            let index = this._list.indexOf(item);
             if (index != -1) {
-                this._renderList.splice(index, 1);
+                this._list.splice(index, 1);
                 this._data.splice(index, 1);
                 this._remoreRender(item);
             }
@@ -737,7 +738,7 @@ module junyou {
         }
 
         public getAllItems() {
-            return this._renderList;
+            return this._list;
         }
 
         public dispose() {
@@ -748,7 +749,7 @@ module junyou {
             this.graphics.clear();
             this._selectedIndex = -1;
             this._data = undefined;
-            let list = this._renderList;
+            let list = this._list;
             for (let render of list) {
                 render.data = undefined;
                 removeDisplay(render.view);
@@ -780,7 +781,7 @@ module junyou {
 
         protected checkViewRect() {
             let rect = this.$scrollRect;
-            let list = this._renderList;
+            let list = this._list;
             let len = list.length;
             let len_1 = len - 1;
             if (!rect) {
