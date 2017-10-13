@@ -754,7 +754,7 @@ module junyou {
         public clear() {
             this.graphics.clear();
             this._selectedIndex = -1;
-            this._data.length = 0;
+            this._data = undefined;
             let list = this._list;
             for (let i = 0; i < list.length; i++) {
                 this._remoreRender(list[i]);
