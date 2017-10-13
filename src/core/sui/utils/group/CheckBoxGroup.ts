@@ -34,6 +34,7 @@ module junyou {
                 this._list.remove(item);
                 this._selected.remove(item);
                 item.off(EgretEvent.TOUCH_TAP, this.touchHandler, this);
+                return item;
             }
         }
 
