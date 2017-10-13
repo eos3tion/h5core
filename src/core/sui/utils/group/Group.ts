@@ -41,8 +41,8 @@ module junyou {
             idx = idx >>> 0;
             const list = this._list;
             if (idx < list.length) {
-                let item = list[idx]
-                list.splice(idx, 1);
+                let item = list[idx];
+                this.removeItem(item);
                 return item;
             }
         }
@@ -63,6 +63,7 @@ module junyou {
                 }
                 this._list.remove(item);
                 item.off(EgretEvent.TOUCH_TAP, this.touchHandler, this);
+                return item;
             }
         }
 
