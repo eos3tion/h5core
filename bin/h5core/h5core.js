@@ -2691,6 +2691,13 @@ var junyou;
         PageList.prototype.getAllItems = function () {
             return this._list;
         };
+        Object.defineProperty(PageList.prototype, "length", {
+            get: function () {
+                return this._list.length;
+            },
+            enumerable: true,
+            configurable: true
+        });
         PageList.prototype.dispose = function () {
             this.recycle();
         };
@@ -4398,6 +4405,16 @@ var junyou;
                 item.on("touchTap" /* TOUCH_TAP */, this.touchHandler, this);
             }
         };
+        Group.prototype.getAllItems = function () {
+            return this._list;
+        };
+        Object.defineProperty(Group.prototype, "length", {
+            get: function () {
+                return this._list.length;
+            },
+            enumerable: true,
+            configurable: true
+        });
         /**
          * 获取 IGroupItem
          *

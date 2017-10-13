@@ -2179,6 +2179,7 @@ declare module junyou {
         protected _remoreRender(item: R): void;
         private refreshByRemoveItem();
         getAllItems(): R[];
+        readonly length: number;
         dispose(): void;
         recycle(): void;
         /**
@@ -3028,6 +3029,8 @@ declare module junyou {
          * @param {IGroupItem} item
          */
         addItem(item: IGroupItem): void;
+        getAllItems(): IGroupItem[];
+        readonly length: number;
         /**
          * 获取 IGroupItem
          *
