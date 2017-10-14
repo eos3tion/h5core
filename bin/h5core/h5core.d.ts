@@ -2953,10 +2953,7 @@ declare module junyou {
         protected offStage(): void;
         abstract onResize(): any;
         readonly view: egret.Sprite;
-        addLayout(dis: egret.DisplayObject, type?: LayoutType, size?: {
-            width: number;
-            height: number;
-        }, hoffset?: number, voffset?: number, innerV?: boolean, innerH?: boolean): void;
+        addLayout(dis: egret.DisplayObject, type?: LayoutType, size?: Size, hoffset?: any, voffset?: any, outerV?: boolean, outerH?: boolean): void;
         protected onAdded(e: egret.Event): void;
         protected binLayout(bin: LayoutBin): void;
         protected $doLayout(): void;
@@ -2965,15 +2962,12 @@ declare module junyou {
     interface LayoutBin {
         dis: egret.DisplayObject;
         type: LayoutType;
-        hoffset: number;
-        voffset: number;
+        hoffset?: number;
+        voffset?: number;
         offsetType?: number;
-        innerV: boolean;
-        innerH: boolean;
-        size: {
-            width: number;
-            height: number;
-        };
+        outerV?: boolean;
+        outerH?: boolean;
+        size: Size;
     }
 }
 declare module junyou {
@@ -11312,8 +11306,8 @@ declare module junyou {
      * @author 3tion
      */
     class Slot extends Component {
-        bg: egret.Bitmap;
-        protected icon: Image;
+        bg: egret.DisplayObject;
+        icon: Image;
         protected _countTxt: egret.TextField;
         protected _rect: egret.Rectangle;
         protected _uri: string;

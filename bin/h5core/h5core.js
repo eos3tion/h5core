@@ -4224,12 +4224,8 @@ var junyou;
             enumerable: true,
             configurable: true
         });
-        LayoutContainer.prototype.addLayout = function (dis, type, size, hoffset, voffset, innerV, innerH) {
+        LayoutContainer.prototype.addLayout = function (dis, type, size, hoffset, voffset, outerV, outerH) {
             if (type === void 0) { type = 5 /* TOP_LEFT */; }
-            if (hoffset === void 0) { hoffset = 0; }
-            if (voffset === void 0) { voffset = 0; }
-            if (innerV === void 0) { innerV = true; }
-            if (innerH === void 0) { innerH = true; }
             var list = this.$layoutBins;
             size = size || dis;
             var key = dis.hashCode;
@@ -4237,7 +4233,7 @@ var junyou;
                 return;
             }
             this._host.addChild(dis);
-            var bin = { dis: dis, type: type, hoffset: hoffset, voffset: voffset, innerV: innerV, innerH: innerH, size: size };
+            var bin = { dis: dis, type: type, hoffset: hoffset, voffset: voffset, outerV: outerV, outerH: outerH, size: size };
             list.set(key, bin);
             var stage = dis.stage;
             if (stage) {
@@ -4261,9 +4257,9 @@ var junyou;
             }
         };
         LayoutContainer.prototype.binLayout = function (bin) {
-            var dis = bin.dis, type = bin.type, hoffset = bin.hoffset, voffset = bin.voffset, innerV = bin.innerV, innerH = bin.innerH, size = bin.size;
+            var dis = bin.dis, type = bin.type, hoffset = bin.hoffset, voffset = bin.voffset, outerV = bin.outerV, outerH = bin.outerH, size = bin.size;
             var pt = junyou.Temp.SharedPoint1;
-            junyou.Layout.getLayoutPos(size.width, size.height, this._lw, this._lh, type, pt, hoffset, voffset, innerV, innerH);
+            junyou.Layout.getLayoutPos(size.width, size.height, this._lw, this._lh, type, pt, hoffset, voffset, outerV, outerH);
             dis.x = pt.x;
             dis.y = pt.y;
         };
@@ -20591,7 +20587,7 @@ var junyou;
         ResizeManager.prototype.resize = function (dis) {
             var info = dis.$_resize;
             var container = info.container || egret.sys.$TempStage;
-            junyou.Layout.layout(dis, info.layout, info.hoffset, info.voffset, true, true, container);
+            junyou.Layout.layout(dis, info.layout, info.hoffset, info.voffset, false, false, container);
         };
         ResizeManager.prototype.onResize = function () {
             var list = this._list;
