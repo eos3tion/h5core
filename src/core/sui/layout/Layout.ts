@@ -235,22 +235,27 @@ module junyou {
             DEBUG && ThrowError(`执行tipLayout操作时没有设置可以显示的对象`);
             return;
         }
-        let size = layoutDis.$layoutSize;
+
         let parentWidth: number, parentHeight: number, par: egret.DisplayObjectContainer;
+
+        if (parent && parent instanceof egret.DisplayObjectContainer) {
+            par = parent;
+        }
+        if (!par) {
+            par = display.parent;
+        }
+        if (!par) {
+            par = egret.sys.$TempStage;
+        }
+        if (par instanceof egret.Stage) {
+            parentWidth = par.stageWidth;
+            parentHeight = par.stageHeight;
+        } else {
+            parentWidth = parent.width;
+            parentHeight = parent.height;
+        }
+        let size = layoutDis.$layoutSize;
         if (!size) {
-            if (parent && parent instanceof egret.DisplayObjectContainer) {
-                par = parent;
-            } else {
-                par = display.parent;
-                if (par) {
-                    parentWidth = parent.width;
-                    parentHeight = parent.height;
-                } else {
-                    par = egret.sys.$TempStage;
-                    parentWidth = (par as egret.Stage).stageWidth;
-                    parentHeight = (par as egret.Stage).stageHeight;
-                }
-            }
             display.getTransformedBounds(par, rect);
             size = rect;
         }
