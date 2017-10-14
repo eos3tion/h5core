@@ -21,8 +21,8 @@ module junyou {
      * @author 3tion
      */
     export class Slot extends Component {
-        public bg: egret.Bitmap;
-        protected icon: Image;
+        bg: egret.DisplayObject;
+        icon: Image;
         protected _countTxt: egret.TextField;
         protected _rect: egret.Rectangle;
 
