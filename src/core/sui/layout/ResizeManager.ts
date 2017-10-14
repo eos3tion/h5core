@@ -66,7 +66,7 @@ module junyou {
         protected resize(dis: ResizeDisplay) {
             let info = dis.$_resize;
             let container = info.container || egret.sys.$TempStage;
-            Layout.layout(dis, info.layout, info.hoffset, info.voffset, true, true, container);
+            Layout.layout(dis, info.layout, info.hoffset, info.voffset, false, false, container);
         }
 
         protected onResize() {
