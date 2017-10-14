@@ -68,7 +68,7 @@ module junyou {
             return this._host;
         }
 
-        public addLayout(dis: egret.DisplayObject, type = LayoutType.TOP_LEFT, size?: { width: number, height: number }, hoffset = 0, voffset = 0, innerV = true, innerH = true) {
+        public addLayout(dis: egret.DisplayObject, type = LayoutType.TOP_LEFT, size?: Size, hoffset?, voffset?, outerV?: boolean, outerH?: boolean) {
             let list = this.$layoutBins;
             size = size || dis;
             let key = dis.hashCode;
@@ -76,7 +76,7 @@ module junyou {
                 return;
             }
             this._host.addChild(dis);
-            let bin = { dis, type, hoffset, voffset, innerV, innerH, size } as LayoutBin;
+            let bin = { dis, type, hoffset, voffset, outerV, outerH, size } as LayoutBin;
             list.set(key, bin);
             let stage = dis.stage;
             if (stage) {
@@ -99,9 +99,9 @@ module junyou {
             }
         }
         protected binLayout(bin: LayoutBin) {
-            const { dis, type, hoffset, voffset, innerV, innerH, size } = bin;
+            const { dis, type, hoffset, voffset, outerV, outerH, size } = bin;
             let pt = Temp.SharedPoint1;
-            Layout.getLayoutPos(size.width, size.height, this._lw, this._lh, type, pt, hoffset, voffset, innerV, innerH);
+            Layout.getLayoutPos(size.width, size.height, this._lw, this._lh, type, pt, hoffset, voffset, outerV, outerH);
             dis.x = pt.x;
             dis.y = pt.y;
         }
@@ -125,14 +125,14 @@ module junyou {
         dis: egret.DisplayObject;
         type: LayoutType;
 
-        hoffset: number;
+        hoffset?: number;
 
-        voffset: number;
+        voffset?: number;
 
         offsetType?: number;
 
-        innerV: boolean;
-        innerH: boolean;
-        size: { width: number, height: number }
+        outerV?: boolean;
+        outerH?: boolean;
+        size: Size;
     }
 }
