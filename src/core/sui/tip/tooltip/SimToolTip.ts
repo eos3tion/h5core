@@ -34,11 +34,10 @@ module junyou {
             let tf = this.tf;
             if (msg != tf.text) {
                 tf.text = msg;
-                let bgW: number, bgH: number;
                 if (this._autoSize) {
                     let c2 = this._corner * 2;
-                    bgW = tf.textWidth + 2 * c2;
-                    bgH = tf.textHeight + 2 * c2;
+                    let bgW = tf.textWidth + 2 * c2;
+                    let bgH = tf.textHeight + 2 * c2;
                     this.drawRect(0, 0, bgW, bgH);
                 }
             }
@@ -60,8 +59,6 @@ module junyou {
                 container.addChild(this);
                 this.x = x;
                 this.y = y;
-            } else {
-                addTo(this, container);
             }
         }
 
