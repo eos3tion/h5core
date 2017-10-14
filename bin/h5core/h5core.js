@@ -20148,24 +20148,26 @@ var junyou;
             true && junyou.ThrowError("\u6267\u884CtipLayout\u64CD\u4F5C\u65F6\u6CA1\u6709\u8BBE\u7F6E\u53EF\u4EE5\u663E\u793A\u7684\u5BF9\u8C61");
             return;
         }
-        var size = layoutDis.$layoutSize;
         var parentWidth, parentHeight, par;
+        if (parent && parent instanceof egret.DisplayObjectContainer) {
+            par = parent;
+        }
+        if (!par) {
+            par = display.parent;
+        }
+        if (!par) {
+            par = egret.sys.$TempStage;
+        }
+        if (par instanceof egret.Stage) {
+            parentWidth = par.stageWidth;
+            parentHeight = par.stageHeight;
+        }
+        else {
+            parentWidth = parent.width;
+            parentHeight = parent.height;
+        }
+        var size = layoutDis.$layoutSize;
         if (!size) {
-            if (parent && parent instanceof egret.DisplayObjectContainer) {
-                par = parent;
-            }
-            else {
-                par = display.parent;
-                if (par) {
-                    parentWidth = parent.width;
-                    parentHeight = parent.height;
-                }
-                else {
-                    par = egret.sys.$TempStage;
-                    parentWidth = par.stageWidth;
-                    parentHeight = par.stageHeight;
-                }
-            }
             display.getTransformedBounds(par, rect);
             size = rect;
         }

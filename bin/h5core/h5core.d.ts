@@ -3596,7 +3596,10 @@ declare module junyou {
      *
      */
     const PBMessageUtils: {
-        regDef: (m: any, def: any) => void;
+        regDef: {
+            (msg: PBStruct, def: any): any;
+            (msgType: string | number, def: any): any;
+        };
         setPBDict(dict: PBStructDict): void;
         readFrom: (msgType: string | PBStruct, bytes: ByteArray, len?: number) => Object;
         writeTo: (msg: Object, msgType: string | PBStruct, bytes?: ByteArray, debugOutData?: Object) => ByteArray;
