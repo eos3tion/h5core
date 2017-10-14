@@ -396,24 +396,6 @@ var junyou;
         }
     }
     junyou.removeDisplay = removeDisplay;
-    /**
-     *
-     * 添加到容器中
-     * @export
-     * @param {egret.DisplayObject} dis 可视对象
-     * @param {egret.DisplayObjectContainer} container 容器
-     * @param {LayoutType} [layout=LayoutType.MIDDLE_CENTER]
-     * @param {number} [hoffset=0]
-     * @param {number} [voffset=0]
-     */
-    function addTo(dis, container, layout, hoffset, voffset) {
-        if (layout === void 0) { layout = 10 /* MIDDLE_CENTER */; }
-        if (hoffset === void 0) { hoffset = 0; }
-        if (voffset === void 0) { voffset = 0; }
-        junyou.Layout.layout(dis, layout, hoffset, voffset, true, true, container);
-        container.addChild(dis);
-    }
-    junyou.addTo = addTo;
 })(junyou || (junyou = {}));
 /****************************************Map********************************************/
 if (typeof window["Map"] == "undefined" || !window["Map"]) {
@@ -20072,120 +20054,177 @@ var junyou;
 (function (junyou) {
     ;
     /**
+     * 基于Point位置的布局方式，进行布局
+     *
+     * @param {number} disWidth
+     * @param {number} disHeight
+     * @param {number} parentWidth
+     * @param {number} parentHeight
+     * @param {Point} point
+     * @param {Point} [result]
+     * @param {number} [padx=0]
+     * @param {number} [pady=0]
+     * @returns
+     */
+    function getTipLayoutPos(disWidth, disHeight, parentWidth, parentHeight, point, result, padx, pady) {
+        if (padx === void 0) { padx = 0; }
+        if (pady === void 0) { pady = 0; }
+        var mx = point.x;
+        var my = point.y;
+        var x = mx + padx;
+        var y = my + pady;
+        if (disWidth + x + padx > parentWidth) {
+            x = parentWidth - disWidth - padx;
+            if (x < mx) {
+                x = mx - disWidth - padx;
+            }
+            if (x < 0) {
+                x = padx;
+            }
+        }
+        if (disHeight + my + pady > parentHeight) {
+            y = parentHeight - disHeight - pady;
+            if (y < 0) {
+                y = pady;
+            }
+        }
+        result.x = Math.round(x);
+        result.y = Math.round(y);
+        return result;
+    }
+    function getLayoutPos(disWidth, disHeight, parentWidth, parentHeight, layout, result, hoffset, voffset, outerV, outerH) {
+        if (hoffset === void 0) { hoffset = 0; }
+        if (voffset === void 0) { voffset = 0; }
+        result = result || {};
+        var vertical = layout & 12 /* VERTICAL_MASK */;
+        var horizon = layout & 3 /* HORIZON_MASK */;
+        var y = 0, x = 0;
+        switch (vertical) {
+            case 4 /* TOP */:
+                if (outerV) {
+                    y = -disHeight;
+                }
+                break;
+            case 8 /* MIDDLE */:// 不支持非innerV
+                y = parentHeight - disHeight >> 1;
+                break;
+            case 12 /* BOTTOM */:
+                if (outerV) {
+                    y = parentHeight;
+                }
+                else {
+                    y = parentHeight - disHeight;
+                }
+                break;
+        }
+        switch (horizon) {
+            case 1 /* LEFT */:
+                if (outerH) {
+                    x = -disWidth;
+                }
+                break;
+            case 2 /* CENTER */:// 不支持非innerH
+                x = parentWidth - disWidth >> 1;
+                break;
+            case 3 /* RIGHT */:
+                if (outerH) {
+                    x = parentWidth;
+                }
+                else {
+                    x = parentWidth - disWidth;
+                }
+                break;
+        }
+        result.x = Math.round(x + hoffset);
+        result.y = Math.round(y + voffset);
+        return result;
+    }
+    var rect = new egret.Rectangle();
+    function getLayoutParam(layoutDis, parent) {
+        var display;
+        if (layoutDis instanceof egret.DisplayObject) {
+            display = layoutDis;
+        }
+        else {
+            display = layoutDis.display;
+        }
+        if (!display) {
+            true && junyou.ThrowError("\u6267\u884CtipLayout\u64CD\u4F5C\u65F6\u6CA1\u6709\u8BBE\u7F6E\u53EF\u4EE5\u663E\u793A\u7684\u5BF9\u8C61");
+            return;
+        }
+        var size = layoutDis.$layoutSize;
+        var parentWidth, parentHeight, par;
+        if (!size) {
+            if (parent && parent instanceof egret.DisplayObjectContainer) {
+                par = parent;
+            }
+            else {
+                par = display.parent;
+                if (par) {
+                    parentWidth = parent.width;
+                    parentHeight = parent.height;
+                }
+                else {
+                    par = egret.sys.$TempStage;
+                    parentWidth = par.stageWidth;
+                    parentHeight = par.stageHeight;
+                }
+            }
+            display.getTransformedBounds(par, rect);
+            size = rect;
+        }
+        return [size.width, size.height, display, parentWidth, parentHeight, par];
+    }
+    /**
      *
      * @author 3tion
      *
      */
     junyou.Layout = {
-        getParentSize: function (dis, parent) {
-            if (!parent) {
-                parent = dis.parent;
-            }
-            if (!parent) {
-                parent = egret.sys.$TempStage;
-            }
-            if (parent instanceof egret.Stage) {
-                var parentWidth = parent.stageWidth;
-                var parentHeight = parent.stageHeight;
-            }
-            else {
-                parentWidth = parent.width;
-                parentHeight = parent.height;
-            }
-            return [parentWidth, parentHeight];
-        },
         /**
          * 对DisplayObject，基于父级进行排布
          *
          * @static
          * @param {LayoutDisplay} dis 要布局的可视对象
          * @param {LayoutType} layout 布局方式
-         * @param {number} hoffset 在原布局基础上，水平方向的再偏移量（内部运算是"+",向左传负）
-         * @param {number} voffset 在原布局基础上，垂直方向的再偏移量（内部运算是"+",向上传负）
-         * @param {boolean} [innerV=true] 垂直方向上基于父级内部
-         * @param {boolean} [innerH=true] 水平方向上基于父级内部
+         * @param {number} [hoffset=0] 在原布局基础上，水平方向的再偏移量（内部运算是"+",向左传负）
+         * @param {number} [voffset=0] 在原布局基础上，垂直方向的再偏移量（内部运算是"+",向上传负）
+         * @param {boolean} [outerV=false] 垂直方向上基于父级内部
+         * @param {boolean} [outerH=false] 水平方向上基于父级内部
          * @param {LayoutDisplayParent} [parent] 父级容器，默认取可视对象的父级
          */
-        layout: function (dis, layout, hoffset, voffset, innerV, innerH, parent) {
-            if (hoffset === void 0) { hoffset = 0; }
-            if (voffset === void 0) { voffset = 0; }
-            if (innerV === void 0) { innerV = true; }
-            if (innerH === void 0) { innerH = true; }
-            var _a = junyou.Layout.getParentSize(dis, parent), parentWidth = _a[0], parentHeight = _a[1];
-            junyou.Layout.getLayoutPos(dis.width, dis.height, parentWidth, parentHeight, layout, dis, hoffset, voffset, innerV, innerH);
+        layout: function (dis, layout, hoffset, voffset, outerV, outerH, parent) {
+            var result = getLayoutParam(dis, parent);
+            if (!result)
+                return;
+            var disWidth = result[0], disHeight = result[1], display = result[2], parentWidth = result[3], parentHeight = result[4];
+            getLayoutPos(disWidth, disHeight, parentWidth, parentHeight, layout, display, hoffset, voffset, outerV, outerH);
         },
         /**
+         * 基于百分比进行布局
          *
-         *
-         * @param {LayoutDisplay} dis  要布局的可视对象
-         * @param {number} [top=0]    百分比数值 `0.2` dis的顶距游戏边界顶部 20%
-         * @param {number} [left=0]    百分比数值 `0.2` dis的左边缘距游戏左边缘 20%
+         * @param {LayoutDisplay} dis
+         * @param {number} [top=0] 百分比数值 `0.2` dis的顶距游戏边界顶部 20%
+         * @param {number} [left=0] 百分比数值 `0.2` dis的左边缘距游戏左边缘 20%
          * @param {LayoutDisplayParent} [parent] 父级容器，默认取可视对象的父级
+         * @param {number} [padx=0]
+         * @param {number} [pady=0]
          * @returns
          */
-        layoutPercent: function (dis, top, left, parent) {
+        layoutPercent: function (dis, top, left, parent, padx, pady) {
             if (top === void 0) { top = 0; }
             if (left === void 0) { left = 0; }
-            var _a = junyou.Layout.getParentSize(dis, parent), parentWidth = _a[0], parentHeight = _a[1];
-            dis.x = Math.round((parentWidth - dis.width) * left);
-            dis.y = Math.round((parentHeight - dis.height) * top);
-            return dis;
+            if (padx === void 0) { padx = 0; }
+            if (pady === void 0) { pady = 0; }
+            var result = getLayoutParam(dis, parent);
+            if (!result)
+                return;
+            var disWidth = result[0], disHeight = result[1], display = result[2], parentWidth = result[3], parentHeight = result[4];
+            display.x = Math.round((parentWidth - disWidth) * left + padx);
+            display.y = Math.round((parentHeight - disHeight) * top + pady);
+            return display;
         },
-        getLayoutPos: function (disWidth, disHeight, parentWidth, parentHeight, layout, result, hoffset, voffset, innerV, innerH) {
-            if (hoffset === void 0) { hoffset = 0; }
-            if (voffset === void 0) { voffset = 0; }
-            if (innerV === void 0) { innerV = true; }
-            if (innerH === void 0) { innerH = true; }
-            result = result || {};
-            var vertical = layout & 12 /* VERTICAL_MASK */;
-            var horizon = layout & 3 /* HORIZON_MASK */;
-            var y = 0, x = 0;
-            switch (vertical) {
-                case 4 /* TOP */:
-                    if (innerV) {
-                        y = 0;
-                    }
-                    else {
-                        y = -disHeight;
-                    }
-                    break;
-                case 8 /* MIDDLE */:// 不支持非innerV
-                    y = parentHeight - disHeight >> 1;
-                    break;
-                case 12 /* BOTTOM */:
-                    if (innerV) {
-                        y = parentHeight - disHeight;
-                    }
-                    else {
-                        y = parentHeight;
-                    }
-                    break;
-            }
-            switch (horizon) {
-                case 1 /* LEFT */:
-                    if (innerH) {
-                        x = 0;
-                    }
-                    else {
-                        x = -disWidth;
-                    }
-                    break;
-                case 2 /* CENTER */:// 不支持非innerH
-                    x = parentWidth - disWidth >> 1;
-                    break;
-                case 3 /* RIGHT */:
-                    if (innerH) {
-                        x = parentWidth - disWidth;
-                    }
-                    else {
-                        x = parentWidth;
-                    }
-                    break;
-            }
-            result.x = Math.round(x + hoffset);
-            result.y = Math.round(y + voffset);
-            return result;
-        },
+        getLayoutPos: getLayoutPos,
         /**
          * 基于鼠标位置的tip的布局方式
          *
@@ -20196,60 +20235,27 @@ var junyou;
          * @param {number} [pady=0] 间隔y
          * @param {LayoutDisplayParent} [parent] 容器的大小
          */
-        tipLayout: function (dis, point, result, padx, pady, parent) {
-            if (padx === void 0) { padx = 0; }
-            if (pady === void 0) { pady = 0; }
-            junyou.Layout.getTipLayoutPos(dis, point, dis, padx, pady, parent);
+        tipLayout: function (layoutDis, point, padx, pady, parent) {
+            var result = getLayoutParam(layoutDis, parent);
+            if (!result)
+                return;
+            var disWidth = result[0], disHeight = result[1], display = result[2], parentWidth = result[3], parentHeight = result[4];
+            getTipLayoutPos(disWidth, disHeight, parentWidth, parentHeight, point, display, padx, pady);
         },
         /**
-         * 获取基于鼠标位置的tip的布局方式布局的坐标
+         * 基于point位置的布局方式，进行布局
          *
-         * @param {LayoutDisplay} dis 要被布局的可视对象
-         * @param {Point} point 传入的点
-         * @param {{ x: number, y: number }} [result]
-         * @param {number} [padx=0] 间隔x
-         * @param {number} [pady=0] 间隔y
-         * @param {LayoutDisplayParent} [parent] 容器的大小
-         * @returns {Point} 计算后的坐标
+         * @param {number} disWidth
+         * @param {number} disHeight
+         * @param {number} parentWidth
+         * @param {number} parentHeight
+         * @param {Point} point 基准点位置
+         * @param {Point} [result]
+         * @param {number} [padx=0] 偏移X
+         * @param {number} [pady=0] 偏移Y
+         * @returns
          */
-        getTipLayoutPos: function (dis, point, result, padx, pady, parent) {
-            if (padx === void 0) { padx = 0; }
-            if (pady === void 0) { pady = 0; }
-            var _a = junyou.Layout.getParentSize(dis, parent), parentWidth = _a[0], parentHeight = _a[1];
-            result = result || {};
-            var mx = point.x;
-            var my = point.y;
-            var x = mx + padx;
-            var y = my + pady;
-            var func = dis["getTransformedBounds"];
-            var rect;
-            if (func) {
-                rect = func.call(dis, parent || egret.sys.$TempStage);
-            }
-            else {
-                rect = new egret.Rectangle(dis.x, dis.y, dis.width, dis.height);
-            }
-            var w = rect.width;
-            var h = rect.height;
-            if (w + x + padx > parentWidth) {
-                x = parentWidth - w - padx;
-                if (x < mx) {
-                    x = mx - w - padx;
-                }
-                if (x < 0) {
-                    x = padx;
-                }
-            }
-            if (h + my + pady > parentHeight) {
-                y = parentHeight - h - pady;
-                if (y < 0) {
-                    y = pady;
-                }
-            }
-            result.x = Math.round(x);
-            result.y = Math.round(y);
-            return result;
-        },
+        getTipLayoutPos: getTipLayoutPos,
     };
 })(junyou || (junyou = {}));
 var junyou;
@@ -20882,11 +20888,10 @@ var junyou;
             var tf = this.tf;
             if (msg != tf.text) {
                 tf.text = msg;
-                var bgW = void 0, bgH = void 0;
                 if (this._autoSize) {
                     var c2 = this._corner * 2;
-                    bgW = tf.textWidth + 2 * c2;
-                    bgH = tf.textHeight + 2 * c2;
+                    var bgW = tf.textWidth + 2 * c2;
+                    var bgH = tf.textHeight + 2 * c2;
                     this.drawRect(0, 0, bgW, bgH);
                 }
             }
@@ -20904,9 +20909,6 @@ var junyou;
                 container.addChild(this);
                 this.x = x;
                 this.y = y;
-            }
-            else {
-                junyou.addTo(this, container);
             }
         };
         SimToolTip.prototype.hide = function () {

@@ -266,17 +266,6 @@ declare module junyou {
      * @param {egret.DisplayObject} display
      */
     function removeDisplay(display: egret.DisplayObject): void;
-    /**
-     *
-     * 添加到容器中
-     * @export
-     * @param {egret.DisplayObject} dis 可视对象
-     * @param {egret.DisplayObjectContainer} container 容器
-     * @param {LayoutType} [layout=LayoutType.MIDDLE_CENTER]
-     * @param {number} [hoffset=0]
-     * @param {number} [voffset=0]
-     */
-    function addTo(dis: egret.DisplayObject, container: egret.DisplayObjectContainer, layout?: LayoutType, hoffset?: number, voffset?: number): void;
 }
 interface Console {
     table(...args: any[]): any;
@@ -11620,11 +11609,13 @@ declare module junyou {
         RIGHT = 3,
     }
     interface LayoutDisplay {
-        x: number;
-        y: number;
-        width: number;
-        height: number;
+        width?: number;
+        height?: number;
+        x?: number;
+        y?: number;
         parent?: LayoutDisplayParent;
+        $layoutSize?: Size;
+        display?: egret.DisplayObject;
     }
     interface LayoutDisplayParent extends Size {
     }
@@ -11634,27 +11625,11 @@ declare module junyou {
      *
      */
     const Layout: {
-        getParentSize(dis: LayoutDisplay, parent?: LayoutDisplayParent): number[];
-        layout(dis: LayoutDisplay, layout: LayoutType, hoffset?: number, voffset?: number, innerV?: boolean, innerH?: boolean, parent?: LayoutDisplayParent): void;
-        layoutPercent(dis: LayoutDisplay, top?: number, left?: number, parent?: LayoutDisplayParent): LayoutDisplay;
-        getLayoutPos(disWidth: number, disHeight: number, parentWidth: number, parentHeight: number, layout: LayoutType, result?: {
-            x: number;
-            y: number;
-        }, hoffset?: number, voffset?: number, innerV?: boolean, innerH?: boolean): {
-                x: number;
-                y: number;
-            };
-        tipLayout(dis: LayoutDisplay, point: Point, result?: {
-            x: number;
-            y: number;
-        }, padx?: number, pady?: number, parent?: LayoutDisplayParent): void;
-        getTipLayoutPos(dis: LayoutDisplay, point: Point, result?: {
-            x: number;
-            y: number;
-        }, padx?: number, pady?: number, parent?: LayoutDisplayParent): {
-                x: number;
-                y: number;
-            };
+        layout(dis: LayoutDisplay, layout: LayoutType, hoffset?: number, voffset?: number, outerV?: boolean, outerH?: boolean, parent?: LayoutDisplayParent): void;
+        layoutPercent(dis: LayoutDisplay, top?: number, left?: number, parent?: LayoutDisplayParent, padx?: number, pady?: number): egret.DisplayObject;
+        getLayoutPos: (disWidth: number, disHeight: number, parentWidth: number, parentHeight: number, layout: LayoutType, result?: Point, hoffset?: number, voffset?: number, outerV?: boolean, outerH?: boolean) => Point;
+        tipLayout(layoutDis: LayoutDisplay, point: Point, padx?: number, pady?: number, parent?: LayoutDisplayParent): void;
+        getTipLayoutPos: (disWidth: number, disHeight: number, parentWidth: number, parentHeight: number, point: Point, result?: Point, padx?: number, pady?: number) => Point;
     };
 }
 declare module junyou {
