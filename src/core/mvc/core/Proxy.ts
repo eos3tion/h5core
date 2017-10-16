@@ -16,7 +16,7 @@ module junyou {
         /**
 		 * 默认当作同步数据，认为是已经处理好的
 		 */
-        protected _selfReady: boolean = true;
+        protected _selfReady: boolean;
 
         /**
          * 数据是否加载完毕
