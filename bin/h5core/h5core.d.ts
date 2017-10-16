@@ -7253,25 +7253,6 @@ declare module junyou {
         action: number;
     }
 }
-declare module junyou {
-    /**
-     * 带坐骑动作的UnitAction基类
-     * @author 3tion
-     */
-    class MUnitAction extends UnitAction {
-        /**
-         * 动作序列<br/>
-         * 如果没有对应动作，Unit，强制使用有动作的坐骑类型，并切换动作
-         * Key      MountType<br/>
-         * Value    动作的唯一标识<br/>
-         */
-        protected actions: {
-            [index: number]: IUnitActionInfo;
-        };
-        constructor();
-        getAction(mountType: MountType): IUnitActionInfo;
-    }
-}
 declare const enum StatsState {
     /**
      *游戏初始完成
@@ -7297,6 +7278,47 @@ declare const enum StatsState {
      *角色登陆完成
      */
     ROLE_LOGIN_COMPLETE = 9,
+}
+declare module junyou {
+    /**
+     *
+     *
+     * @export
+     * @class UModel
+     * @extends {egret.DisplayObjectContainer}
+     * @author 3tion
+     */
+    class UModel extends egret.DisplayObjectContainer {
+        /**
+         * 独立使用时，用于排序深度
+         *
+         * @type {number}
+         */
+        depth?: number;
+        /**
+         * 检查/重置资源列表
+         *
+         * @param {Key[]} resOrder 部位的排列顺序
+         * @param {{ [index: string]: UnitResource }} resDict 部位和资源的字典
+         */
+        checkResList(resOrder: Key[], resDict: {
+            [index: string]: UnitResource;
+        }): void;
+        /**
+         * 渲染指定帧
+         *
+         * @param {FrameInfo} frame
+         * @param {number} now
+         * @param {number} face
+         * @param {IDrawInfo} info
+         * @returns {boolean} true 表示此帧所有资源都正常完成渲染
+         *                    其他情况表示有些帧或者数据未加载，未完全渲染
+         * @memberof UModel
+         */
+        renderFrame(frame: FrameInfo, now: number, face: number, info: IDrawInfo): boolean;
+        clear(): void;
+        onRecycle(): void;
+    }
 }
 declare module junyou {
     /**
@@ -9222,6 +9244,18 @@ declare module junyou {
 }
 declare module junyou {
     /**
+     * 用于对通知进行检查
+     * @author 3tion
+     */
+    interface INCheck {
+        /**
+         *
+         * 对通知进行检查，如果是父级，可以直接检查子集
+         * @returns {any}    返回改变的消息
+         */
+        ncheck(): any;
+    }
+    /**
      * 角标信息
      * @author 3tion
      */
@@ -9242,62 +9276,14 @@ declare module junyou {
         parent?: BadgeInfo;
         sons?: BadgeInfo[];
     }
-}
-declare module junyou {
-    /**
-     * 用于对通知进行检查
-     * @author 3tion
-     */
-    interface INCheck {
-        /**
-         *
-         * 对通知进行检查，如果是父级，可以直接检查子集
-         * @returns {any}    返回改变的消息
-         */
-        ncheck(): any;
-    }
-}
-declare module junyou {
-    /**
-     * 通知管理器
-     * @author 3tion
-     */
-    class NotificationManager {
-        private _dict;
-        private _listen;
-        private _badges;
-        private _list;
-        private _needSort;
-        /**
-         * 检测总开关
-         *
-         * @private
-         * @type {boolean}
-         * @memberOf NotificationManager
-         */
-        private _needCheck;
-        constructor();
-        /**
-         * 从dic中取出一个角标
-         *
-         * param {(number | string)} id (标识)
-         *param {{[index:number]:egret.Shape}} dic (存放角标的字典)
-         *param {boolean} [create] (是否自动创建,如果要创建，dis参数必填)
-         *param {egret.DisplayObjectContainer} [dis] (关联的那个按钮)
-         *param {number} [x] (角标偏移X)
-         *param {number} [y] (角标偏移Y)
-         *returns shape
-         */
-        static getJiaoBiaoShape(id: number | string, dic: {
-            [index: number]: egret.Shape;
-        }, create?: boolean, dis?: egret.DisplayObjectContainer, offsetx?: number, offsety?: number): egret.Shape;
+    interface BadgeInstance {
         /**
          * 获取Badge数据
          *
          * @param {Key} id
          * @returns
          */
-        getBadge(id: Key): BadgeInfo;
+        get(id: Key): BadgeInfo;
         /**
          *
          * 绑定检查器和标识
@@ -9345,6 +9331,11 @@ declare module junyou {
          */
         check(): void;
     }
+    /**
+     * 通知管理器
+     * @author 3tion
+     */
+    const Badge: BadgeInstance;
 }
 declare module junyou {
     /**
@@ -12835,42 +12826,20 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     *
-     *
-     * @export
-     * @class UModel
-     * @extends {egret.DisplayObjectContainer}
+     * 带坐骑动作的UnitAction基类
      * @author 3tion
      */
-    class UModel extends egret.DisplayObjectContainer {
+    class MUnitAction extends UnitAction {
         /**
-         * 独立使用时，用于排序深度
-         *
-         * @type {number}
+         * 动作序列<br/>
+         * 如果没有对应动作，Unit，强制使用有动作的坐骑类型，并切换动作
+         * Key      MountType<br/>
+         * Value    动作的唯一标识<br/>
          */
-        depth?: number;
-        /**
-         * 检查/重置资源列表
-         *
-         * @param {Key[]} resOrder 部位的排列顺序
-         * @param {{ [index: string]: UnitResource }} resDict 部位和资源的字典
-         */
-        checkResList(resOrder: Key[], resDict: {
-            [index: string]: UnitResource;
-        }): void;
-        /**
-         * 渲染指定帧
-         *
-         * @param {FrameInfo} frame
-         * @param {number} now
-         * @param {number} face
-         * @param {IDrawInfo} info
-         * @returns {boolean} true 表示此帧所有资源都正常完成渲染
-         *                    其他情况表示有些帧或者数据未加载，未完全渲染
-         * @memberof UModel
-         */
-        renderFrame(frame: FrameInfo, now: number, face: number, info: IDrawInfo): boolean;
-        clear(): void;
-        onRecycle(): void;
+        protected actions: {
+            [index: number]: IUnitActionInfo;
+        };
+        constructor();
+        getAction(mountType: MountType): IUnitActionInfo;
     }
 }

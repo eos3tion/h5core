@@ -12334,24 +12334,105 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
-     * 带坐骑动作的UnitAction基类
+     *
+     *
+     * @export
+     * @class UModel
+     * @extends {egret.DisplayObjectContainer}
      * @author 3tion
      */
-    var MUnitAction = (function (_super) {
-        __extends(MUnitAction, _super);
-        function MUnitAction() {
-            return _super.call(this) || this;
+    var UModel = (function (_super) {
+        __extends(UModel, _super);
+        function UModel() {
+            return _super !== null && _super.apply(this, arguments) || this;
         }
-        MUnitAction.prototype.getAction = function (mountType) {
-            if (mountType in this.actions) {
-                return this.actions[mountType];
+        /**
+         * 检查/重置资源列表
+         *
+         * @param {Key[]} resOrder 部位的排列顺序
+         * @param {{ [index: string]: UnitResource }} resDict 部位和资源的字典
+         */
+        UModel.prototype.checkResList = function (resOrder, resDict) {
+            var children = this.$children;
+            var i = 0;
+            var len = children.length;
+            var part;
+            for (var _i = 0, resOrder_1 = resOrder; _i < resOrder_1.length; _i++) {
+                var key = resOrder_1[_i];
+                var res = resDict[key];
+                if (res) {
+                    if (i < len) {
+                        part = children[i++];
+                    }
+                    else {
+                        part = junyou.recyclable(junyou.ResourceBitmap);
+                        this.addChild(part);
+                    }
+                    part.res = res;
+                }
             }
-            return junyou.UnitAction.defaultAction;
+            //移除多余子对象
+            for (var j = len - 1; j >= i; j--) {
+                part = this.$doRemoveChild(j);
+                part.recycle();
+            }
         };
-        return MUnitAction;
-    }(junyou.UnitAction));
-    junyou.MUnitAction = MUnitAction;
-    __reflect(MUnitAction.prototype, "junyou.MUnitAction");
+        /**
+         * 渲染指定帧
+         *
+         * @param {FrameInfo} frame
+         * @param {number} now
+         * @param {number} face
+         * @param {IDrawInfo} info
+         * @returns {boolean} true 表示此帧所有资源都正常完成渲染
+         *                    其他情况表示有些帧或者数据未加载，未完全渲染
+         * @memberof UModel
+         */
+        UModel.prototype.renderFrame = function (frame, now, face, info) {
+            var ns = face > 4;
+            var d = ns ? 8 - face : face;
+            if (frame) {
+                var scale = face > 4 ? -1 : 1;
+                if (frame.d == -1) {
+                    this.scaleX = scale;
+                    info.d = d;
+                }
+                else {
+                    info.d = frame.d;
+                }
+                info.f = frame.f;
+                info.a = frame.a;
+            }
+            else {
+                info.d = d;
+            }
+            var flag = true;
+            //渲染
+            for (var _i = 0, _a = this.$children; _i < _a.length; _i++) {
+                var res = _a[_i];
+                flag = flag && res.draw(info, now);
+            }
+            return flag;
+        };
+        UModel.prototype.clear = function () {
+            this.scaleX = 1;
+            this.scaleY = 1;
+            this.rotation = 0;
+            this.alpha = 1;
+            var list = this.$children;
+            for (var _i = 0, list_2 = list; _i < list_2.length; _i++) {
+                var bmp = list_2[_i];
+                bmp.recycle();
+            }
+        };
+        UModel.prototype.onRecycle = function () {
+            junyou.removeDisplay(this);
+            this.clear();
+        };
+        return UModel;
+    }(egret.DisplayObjectContainer));
+    junyou.UModel = UModel;
+    __reflect(UModel.prototype, "junyou.UModel");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -15771,58 +15852,141 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
+    var _dict = {};
+    var _listen = {};
+    var _badges = {};
+    var _list = [];
+    var _needSort = false;
+    /**
+     * 检测总开关
+     *
+     * @private
+     * @type {boolean}
+     * @memberOf NotificationManager
+     */
+    var _needCheck = false;
+    /**
+     *
+     * 绑定关注对象
+     * @param {Key} mid    有ncheck实现的标识
+     * @param {Key} [lid]  关联的标识(上一级父模块id)，如果不填，则用主表示
+     */
+    function bindListner(mid, lid) {
+        // lid = lid === undefined ? mid : lid;
+        var b = _badges[mid];
+        if (!b) {
+            _badges[mid] = b = {};
+            b.mid = mid;
+        }
+        if (lid && lid != mid) {
+            var parent_3 = _badges[lid];
+            if (!parent_3) {
+                _badges[lid] = parent_3 = {};
+                parent_3.mid = lid;
+            }
+            b.parent = parent_3;
+            var sons = parent_3.sons;
+            if (!sons) {
+                parent_3.sons = sons = [];
+            }
+            sons.push(b);
+        }
+        var arr = _listen[mid];
+        if (!arr) {
+            _listen[mid] = arr = [];
+            arr.push(b);
+        }
+        else {
+            arr.pushOnce(b);
+        }
+        _listen[mid] = arr;
+    }
+    var temp = [];
+    /**
+     * 检查
+     */
+    function check() {
+        if (!_needCheck) {
+            return;
+        }
+        _needCheck = false;
+        if (_needSort) {
+            _list.doSort("proirity", true);
+            _needSort = false;
+        }
+        var changed = temp;
+        changed.length = 0;
+        for (var i = 0; i < _list.length; i++) {
+            var bin = _list[i];
+            if (bin.needCheck) {
+                var thisObj = bin.checker;
+                var handler = bin.checkHandler;
+                var msg = handler.call(thisObj);
+                var b = _badges[bin.id];
+                if (b) {
+                    if (changed.indexOf(b) == -1 || msg != b.msg) {
+                        b.msg = msg; //记录高优先级的消息
+                        changed.pushOnce(b);
+                        if (!msg) {
+                            b.show = false;
+                        }
+                        else {
+                            b.show = true;
+                        }
+                        var parent_4 = b.parent;
+                        while (parent_4) {
+                            changed.pushOnce(parent_4);
+                            parent_4 = parent_4.parent;
+                        }
+                    }
+                }
+                //已经检查过
+                bin.needCheck = false;
+            }
+        }
+        for (var i = 0; i < changed.length; i++) {
+            var badge = changed[i];
+            if (badge.show) {
+                var parent_5 = badge.parent;
+                while (parent_5) {
+                    parent_5.show = badge.show;
+                    parent_5 = parent_5.parent;
+                }
+            }
+            else {
+                var sons = badge.sons;
+                if (sons) {
+                    for (var j = 0; j < sons.length; j++) {
+                        var son = sons[j];
+                        if (son.show) {
+                            badge.show = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        if (junyou.hasListen(-999 /* Notification */)) {
+            for (var _i = 0, changed_1 = changed; _i < changed_1.length; _i++) {
+                var b = changed_1[_i];
+                junyou.dispatch(-999 /* Notification */, b);
+            }
+        }
+    }
     /**
      * 通知管理器
      * @author 3tion
      */
-    var NotificationManager = (function () {
-        function NotificationManager() {
-            this._dict = {};
-            this._listen = {};
-            this._badges = {};
-            this._list = [];
-        }
-        /**
-         * 从dic中取出一个角标
-         *
-         * param {(number | string)} id (标识)
-         *param {{[index:number]:egret.Shape}} dic (存放角标的字典)
-         *param {boolean} [create] (是否自动创建,如果要创建，dis参数必填)
-         *param {egret.DisplayObjectContainer} [dis] (关联的那个按钮)
-         *param {number} [x] (角标偏移X)
-         *param {number} [y] (角标偏移Y)
-         *returns shape
-         */
-        NotificationManager.getJiaoBiaoShape = function (id, dic, create, dis, offsetx, offsety) {
-            if (offsetx === void 0) { offsetx = 0; }
-            if (offsety === void 0) { offsety = 0; }
-            var shape = dic[id];
-            if (!shape) {
-                if (create) {
-                    shape = new egret.Shape();
-                    shape.graphics.beginFill(0xff0000);
-                    shape.graphics.drawCircle(0, 0, 10);
-                    shape.graphics.endFill();
-                    if (dis) {
-                        var con = dis.parent;
-                        shape.x = dis.x + dis.width - shape.width * 0.5 + offsetx;
-                        shape.y = dis.y + shape.height * 0.5 + offsety;
-                        con.addChild(shape);
-                        dic[id] = shape;
-                    }
-                }
-            }
-            return shape;
-        };
+    junyou.Badge = {
         /**
          * 获取Badge数据
          *
          * @param {Key} id
          * @returns
          */
-        NotificationManager.prototype.getBadge = function (id) {
-            return this._badges[id];
-        };
+        get: function (id) {
+            return _badges[id];
+        },
         /**
          *
          * 绑定检查器和标识
@@ -15849,8 +16013,8 @@ var junyou;
          * @param {string|number} mid               标识  绑定检查器的标识
          * @param {number} [proirity=0]             执行优先级
          */
-        NotificationManager.prototype.bind = function (checker, mid, parent, proirity) {
-            var bin = this._dict[mid];
+        bind: function (checker, mid, parent, proirity) {
+            var bin = _dict[mid];
             if (!bin) {
                 bin = {};
                 if (typeof checker.ncheck === "function") {
@@ -15866,73 +16030,35 @@ var junyou;
                 if (!parent) {
                     parent = mid;
                 }
-                this.bindListner(mid, parent);
-                this._list.push(bin);
-                this._needSort = true;
+                bindListner(mid, parent);
+                _list.push(bin);
+                _needSort = true;
             }
-            this._dict[mid] = bin;
-        };
-        /**
-         *
-         * 绑定关注对象
-         * @param {Key} mid    有ncheck实现的标识
-         * @param {Key} [lid]  关联的标识(上一级父模块id)，如果不填，则用主表示
-         */
-        NotificationManager.prototype.bindListner = function (mid, lid) {
-            // lid = lid === undefined ? mid : lid;
-            var b = this._badges[mid];
-            if (!b) {
-                this._badges[mid] = b = {};
-                b.mid = mid;
-            }
-            if (lid && lid != mid) {
-                var parent_3 = this._badges[lid];
-                if (!parent_3) {
-                    this._badges[lid] = parent_3 = {};
-                    parent_3.mid = lid;
-                }
-                b.parent = parent_3;
-                var sons = parent_3.sons;
-                if (!sons) {
-                    parent_3.sons = sons = [];
-                }
-                sons.push(b);
-            }
-            var arr = this._listen[mid];
-            // let arr = this._listen[lid];
-            if (!arr) {
-                // this._listen[lid] = arr = [];
-                this._listen[mid] = arr = [];
-                arr.push(b);
-            }
-            else {
-                arr.pushOnce(b);
-            }
-            // this._listen[lid] = arr;
-            this._listen[mid] = arr;
-        };
+            _dict[mid] = bin;
+        },
+        bindListner: bindListner,
         /**
          *
          * 需要检查的关联标识
          * @param {string} id
          */
-        NotificationManager.prototype.needCheck = function (id) {
-            this._needCheck = true;
-            var bin = this._dict[id];
+        needCheck: function (id) {
+            _needCheck = true;
+            var bin = _dict[id];
             if (bin) {
                 bin.needCheck = true;
                 //下一帧进行检查
-                junyou.Global.callLater(this.check, 0, this);
+                junyou.Global.callLater(check, 0, this);
             }
-            var badge = this.getBadge(id);
+            var badge = _badges[id];
             if (badge) {
                 //先将当前badge置为false，然后检查与badge并行的badge，如果都为false，就往上递归，如果都是false，就
                 //将顶部入口也置为false;
                 if (badge.show) {
                     badge.show = false;
-                    var parent_4 = badge.parent;
-                    while (parent_4) {
-                        var sons = parent_4.sons;
+                    var parent_6 = badge.parent;
+                    while (parent_6) {
+                        var sons = parent_6.sons;
                         if (sons) {
                             var allsonHide = true;
                             for (var i = 0; i < sons.length; i++) {
@@ -15943,106 +16069,19 @@ var junyou;
                                 }
                             }
                             if (allsonHide) {
-                                parent_4.show = false;
-                                parent_4 = parent_4.parent;
+                                parent_6.show = false;
+                                parent_6 = parent_6.parent;
                             }
                             else {
-                                parent_4 = undefined;
+                                parent_6 = null;
                             }
                         }
                     }
                 }
             }
-        };
-        /**
-         * 检查
-         */
-        NotificationManager.prototype.check = function () {
-            if (!this._needCheck) {
-                return;
-            }
-            this._needCheck = false;
-            if (this._needSort) {
-                this._list.doSort("proirity", true);
-                this._needSort = false;
-            }
-            // let listen = this._listen;
-            var changed = [];
-            for (var _i = 0, _a = this._list; _i < _a.length; _i++) {
-                var bin = _a[_i];
-                if (bin.needCheck) {
-                    var thisObj = bin.checker;
-                    var handler = bin.checkHandler;
-                    var msg = handler.call(thisObj);
-                    var b = this.getBadge(bin.id);
-                    if (b) {
-                        if (changed.indexOf(b) == -1 || msg != b.msg) {
-                            b.msg = msg; //记录高优先级的消息
-                            changed.pushOnce(b);
-                            if (!msg) {
-                                b.show = false;
-                            }
-                            else {
-                                b.show = true;
-                            }
-                            var parent_5 = b.parent;
-                            while (parent_5) {
-                                changed.pushOnce(parent_5);
-                                parent_5 = parent_5.parent;
-                            }
-                        }
-                    }
-                    // let larr = listen[bin.id];
-                    // if (larr) {
-                    //     for (let b of larr) {
-                    //         if (changed.indexOf(b) == -1 || msg != b.msg) {
-                    //             b.msg = msg;//记录高优先级的消息
-                    //             changed.pushOnce(b);
-                    //             if (!msg) {
-                    //                 b.show = false;
-                    //             } else {
-                    //                 b.show = true;
-                    //             }
-                    //         }
-                    //     }
-                    // }
-                    //已经检查过
-                    bin.needCheck = false;
-                }
-            }
-            for (var i = 0; i < changed.length; i++) {
-                var badge = changed[i];
-                if (badge.show) {
-                    var parent_6 = badge.parent;
-                    while (parent_6) {
-                        parent_6.show = badge.show;
-                        parent_6 = parent_6.parent;
-                    }
-                }
-                else {
-                    var sons = badge.sons;
-                    if (sons) {
-                        for (var j = 0; j < sons.length; j++) {
-                            var son = sons[j];
-                            if (son.show) {
-                                badge.show = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            if (junyou.hasListen(-999 /* Notification */)) {
-                for (var _b = 0, changed_1 = changed; _b < changed_1.length; _b++) {
-                    var b = changed_1[_b];
-                    junyou.dispatch(-999 /* Notification */, b);
-                }
-            }
-        };
-        return NotificationManager;
-    }());
-    junyou.NotificationManager = NotificationManager;
-    __reflect(NotificationManager.prototype, "junyou.NotificationManager");
+        },
+        check: check,
+    };
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -22266,103 +22305,22 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
-     *
-     *
-     * @export
-     * @class UModel
-     * @extends {egret.DisplayObjectContainer}
+     * 带坐骑动作的UnitAction基类
      * @author 3tion
      */
-    var UModel = (function (_super) {
-        __extends(UModel, _super);
-        function UModel() {
-            return _super !== null && _super.apply(this, arguments) || this;
+    var MUnitAction = (function (_super) {
+        __extends(MUnitAction, _super);
+        function MUnitAction() {
+            return _super.call(this) || this;
         }
-        /**
-         * 检查/重置资源列表
-         *
-         * @param {Key[]} resOrder 部位的排列顺序
-         * @param {{ [index: string]: UnitResource }} resDict 部位和资源的字典
-         */
-        UModel.prototype.checkResList = function (resOrder, resDict) {
-            var children = this.$children;
-            var i = 0;
-            var len = children.length;
-            var part;
-            for (var _i = 0, resOrder_1 = resOrder; _i < resOrder_1.length; _i++) {
-                var key = resOrder_1[_i];
-                var res = resDict[key];
-                if (res) {
-                    if (i < len) {
-                        part = children[i++];
-                    }
-                    else {
-                        part = junyou.recyclable(junyou.ResourceBitmap);
-                        this.addChild(part);
-                    }
-                    part.res = res;
-                }
+        MUnitAction.prototype.getAction = function (mountType) {
+            if (mountType in this.actions) {
+                return this.actions[mountType];
             }
-            //移除多余子对象
-            for (var j = len - 1; j >= i; j--) {
-                part = this.$doRemoveChild(j);
-                part.recycle();
-            }
+            return junyou.UnitAction.defaultAction;
         };
-        /**
-         * 渲染指定帧
-         *
-         * @param {FrameInfo} frame
-         * @param {number} now
-         * @param {number} face
-         * @param {IDrawInfo} info
-         * @returns {boolean} true 表示此帧所有资源都正常完成渲染
-         *                    其他情况表示有些帧或者数据未加载，未完全渲染
-         * @memberof UModel
-         */
-        UModel.prototype.renderFrame = function (frame, now, face, info) {
-            var ns = face > 4;
-            var d = ns ? 8 - face : face;
-            if (frame) {
-                var scale = face > 4 ? -1 : 1;
-                if (frame.d == -1) {
-                    this.scaleX = scale;
-                    info.d = d;
-                }
-                else {
-                    info.d = frame.d;
-                }
-                info.f = frame.f;
-                info.a = frame.a;
-            }
-            else {
-                info.d = d;
-            }
-            var flag = true;
-            //渲染
-            for (var _i = 0, _a = this.$children; _i < _a.length; _i++) {
-                var res = _a[_i];
-                flag = flag && res.draw(info, now);
-            }
-            return flag;
-        };
-        UModel.prototype.clear = function () {
-            this.scaleX = 1;
-            this.scaleY = 1;
-            this.rotation = 0;
-            this.alpha = 1;
-            var list = this.$children;
-            for (var _i = 0, list_2 = list; _i < list_2.length; _i++) {
-                var bmp = list_2[_i];
-                bmp.recycle();
-            }
-        };
-        UModel.prototype.onRecycle = function () {
-            junyou.removeDisplay(this);
-            this.clear();
-        };
-        return UModel;
-    }(egret.DisplayObjectContainer));
-    junyou.UModel = UModel;
-    __reflect(UModel.prototype, "junyou.UModel");
+        return MUnitAction;
+    }(junyou.UnitAction));
+    junyou.MUnitAction = MUnitAction;
+    __reflect(MUnitAction.prototype, "junyou.MUnitAction");
 })(junyou || (junyou = {}));
