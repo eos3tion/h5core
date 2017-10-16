@@ -4679,7 +4679,7 @@ declare module junyou {
          * @param {any} args 其他参数  替换字符串中{0}{1}{2}{a} {b}这样的数据，用obj对应key替换，或者是数组中对应key的数据替换
          * @returns 显示信息
          */
-        getMsg(code: number | string, ...args: any[]): any;
+        getMsg(code: number | string, ...args: any[]): string;
         /**
          *
          * 注册语言字典
@@ -4688,7 +4688,7 @@ declare module junyou {
          */
         regMsgDict(data: {
             [index: string]: string;
-        }): any;
+        }): void;
     }
     /**
      * 用于处理语言/文字显示
@@ -11324,7 +11324,7 @@ declare module junyou {
          * 获取类型2的数量处理方法
          * @static
          */
-        static getCountString: (count: number) => any;
+        static getCountString: (count: number) => string;
         data: any;
         /**
          * 设置数据，只允许子类调用

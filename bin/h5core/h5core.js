@@ -8170,41 +8170,39 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
+    var _msgDict = {};
     /**
      * 用于处理语言/文字显示
      */
-    junyou.LangUtil = (function () {
-        var _msgDict = {};
-        return {
-            /**
-             * 获取显示的信息
-             *
-             * @static
-             * @param {Key} code code码
-             * @param {any} args 其他参数  替换字符串中{0}{1}{2}{a} {b}这样的数据，用obj对应key替换，或者是数组中对应key的数据替换
-             * @returns 显示信息
-             */
-            getMsg: function (code) {
-                var args = [];
-                for (var _i = 1; _i < arguments.length; _i++) {
-                    args[_i - 1] = arguments[_i];
-                }
-                if (code in _msgDict) {
-                    return _msgDict[code].substitute(args);
-                }
-                return typeof code === "string" ? code.substitute.apply(code, args) : code + "";
-            },
-            /**
-             *
-             * 注册语言字典
-             * @static
-             * @param { { [index: string]: string }} data
-             */
-            regMsgDict: function (data) {
-                _msgDict = data;
+    junyou.LangUtil = {
+        /**
+         * 获取显示的信息
+         *
+         * @static
+         * @param {Key} code code码
+         * @param {any} args 其他参数  替换字符串中{0}{1}{2}{a} {b}这样的数据，用obj对应key替换，或者是数组中对应key的数据替换
+         * @returns 显示信息
+         */
+        getMsg: function (code) {
+            var args = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                args[_i - 1] = arguments[_i];
             }
-        };
-    })();
+            if (code in _msgDict) {
+                return _msgDict[code].substitute(args);
+            }
+            return typeof code === "string" ? code.substitute.apply(code, args) : code + "";
+        },
+        /**
+         *
+         * 注册语言字典
+         * @static
+         * @param { { [index: string]: string }} data
+         */
+        regMsgDict: function (data) {
+            _msgDict = data;
+        }
+    };
 })(junyou || (junyou = {}));
 var $nl_nc;
 var junyou;
