@@ -1921,10 +1921,6 @@ var junyou;
         function Proxy(name) {
             var _this = _super.call(this, name) || this;
             /**
-             * 默认当作同步数据，认为是已经处理好的
-             */
-            _this._selfReady = true;
-            /**
              * 数据是否加载完毕
              */
             _this._readyState = 0 /* UNREQUEST */;
