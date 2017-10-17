@@ -54,13 +54,7 @@ module junyou {
         protected _mm: ModuleManager;
 
         constructor() {
-            if (DEBUG) {
-                if (facade) {
-                    ThrowError("Facade重复赋值");
-                }
-            }
             super();
-            facade = this;
             this._mediators = {};
             this._scripts = {};
             this._proxys = {};
@@ -440,10 +434,10 @@ module junyou {
 
 
         /**
-         * 实际注入的代码，子类扩展
+         * 用于子项目扩展
          * @param obj
          */
-        protected doInject(obj: any) {
+        doInject(obj: any) {
             //to be override
         }
     }
@@ -506,7 +500,7 @@ module junyou {
         show?: boolean;
     }
 
-    export var facade: Facade;
+    export const facade = new Facade();
     /**
      * 等其他Proxy加载好后回调
      * 
