@@ -132,7 +132,7 @@ module junyou {
     }
 
 
-    const temp = [];
+    const temp: BadgeInfo[] = [];
     /**
      * 检查
      */
