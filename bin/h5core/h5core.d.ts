@@ -9322,6 +9322,14 @@ declare module junyou {
          */
         get(id: Key): BadgeInfo;
         /**
+         * 获取Badge的处理数据
+         *
+         * @param {Key} id
+         * @returns {BadgeBin}
+         * @memberof BadgeInstance
+         */
+        getBin(id: Key): BadgeBin;
+        /**
          *
          * 绑定检查器和标识
          * 一般用于注册子模块
@@ -9380,16 +9388,7 @@ declare module junyou {
      * 通知管理器
      * @author 3tion
      */
-    const Badge: {
-        get(id: string | number): BadgeInfo;
-        getBin(id: string | number): BadgeBin;
-        bind(checker: INCheck | (() => any), mid: string | number, parent?: string | number, proirity?: number): void;
-        bindListner: (mid: string | number, lid?: string | number) => void;
-        needCheck(id: string | number, doCheckAll?: boolean): void;
-        checkForBin: (bin: BadgeBin, changed: BadgeInfo[]) => void;
-        checkAll(): void;
-        checkChanged(changed: BadgeInfo[], fire?: boolean): void;
-    };
+    const Badge: BadgeInstance;
 }
 declare module junyou {
     /**
