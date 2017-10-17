@@ -8139,6 +8139,7 @@ declare module junyou {
     const enum EventConst {
         /**
          * 通知角标变更
+         * data {BadgeInfo}
          */
         Notification = -999,
         /**
@@ -8379,10 +8380,10 @@ declare module junyou {
          */
         inject(obj: any): void;
         /**
-         * 实际注入的代码，子类扩展
+         * 用于子项目扩展
          * @param obj
          */
-        protected doInject(obj: any): void;
+        doInject(obj: any): void;
     }
     interface ScriptHelper<T> {
         /**
@@ -8403,7 +8404,7 @@ declare module junyou {
         host: T;
         url?: string;
     }
-    var facade: Facade;
+    const facade: Facade;
     /**
      * 等其他Proxy加载好后回调
      *

@@ -14065,14 +14065,7 @@ var junyou;
     var Facade = (function (_super) {
         __extends(Facade, _super);
         function Facade() {
-            var _this = this;
-            if (true) {
-                if (junyou.facade) {
-                    junyou.ThrowError("Facade重复赋值");
-                }
-            }
-            _this = _super.call(this) || this;
-            junyou.facade = _this;
+            var _this = _super.call(this) || this;
             _this._mediators = {};
             _this._scripts = {};
             _this._proxys = {};
@@ -14477,7 +14470,7 @@ var junyou;
             }
         };
         /**
-         * 实际注入的代码，子类扩展
+         * 用于子项目扩展
          * @param obj
          */
         Facade.prototype.doInject = function (obj) {
@@ -14491,6 +14484,7 @@ var junyou;
     }(egret.EventDispatcher));
     junyou.Facade = Facade;
     __reflect(Facade.prototype, "junyou.Facade");
+    junyou.facade = new Facade();
     function proxyCall() {
         var f = junyou.facade;
         return f.getProxy.apply(f, arguments);
