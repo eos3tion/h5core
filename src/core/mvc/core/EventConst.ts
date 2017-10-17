@@ -8,7 +8,8 @@ module junyou {
      */
     export const enum EventConst {
         /**
-         * 通知角标变更
+         * 通知角标变更  
+         * data {BadgeInfo}
          */
         Notification = -999,
         /**
