@@ -143,6 +143,15 @@ module junyou {
          * @returns
          */
         get(id: Key): BadgeInfo;
+
+        /**
+         * 获取Badge的处理数据
+         * 
+         * @param {Key} id 
+         * @returns {BadgeBin} 
+         * @memberof BadgeInstance
+         */
+        getBin(id: Key): BadgeBin;
         /**
          *
          * 绑定检查器和标识
@@ -239,7 +248,7 @@ module junyou {
      * 通知管理器
      * @author 3tion
      */
-    export const Badge = {
+    export const Badge: BadgeInstance = {
 
         /**
          * 获取Badge数据
@@ -253,32 +262,7 @@ module junyou {
         getBin(id: Key) {
             return _dict[id];
         },
-        /**
-         * 
-         * 绑定检查器和标识  
-         * 一般用于注册子模块  
-         * ```
-         *       [父模块1]             [父模块2]
-         *  ┌────────┼────────┐          |
-         *  子　　　　子       子         子
-         *  模　　　　模       模         模
-         *  块　　　　块       块         块
-         *  a　　　　 b        c          d
-         * 
-         * ```
-         * 不是所有的标识都需要绑定检查器  
-         * 可以只需要绑定关注对象  
-         * 如上图所示，有`父模块1`，`父模块2`，一般对应主界面的按钮进行打开  
-         * `父模块1`下有3个子模块（`a`,`b`,`c`），一般对应父模块1的面板的3个页签  
-         * 常见的业务流程：任意子模块（`a`,`b`,`c`)有角标以后，父模块显示角标  
-         * 而子模块的角标一般会对应特定的检查代码  
-         *   
-         * 这种情况下，可以不对父模块1注册，只需注册子模块即可
-         * 
-         * @param {INCheck|{(): any }} checker      检查器，或者检查器的函数
-         * @param {string|number} mid               标识  绑定检查器的标识
-         * @param {number} [proirity=0]             执行优先级
-         */
+
         bind(checker: INCheck | { (): any }, mid: Key, parent?: Key, proirity?: number) {
             let bin = _dict[mid];
             if (!bin) {
