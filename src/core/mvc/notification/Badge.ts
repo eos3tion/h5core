@@ -58,10 +58,10 @@ module junyou {
         /**
          * 检查器对象
          * 
-         * @type {Object}
+         * @type {any}
          * @memberOf NotifyBin
          */
-        checker: Object;
+        checker: any;
         /**
          * 
          * 标识
@@ -133,75 +133,7 @@ module junyou {
 
 
     const temp: BadgeInfo[] = [];
-    /**
-     * 检查
-     */
-    function check() {
-        if (!_needCheck) {
-            return;
-        }
-        _needCheck = false;
-        if (_needSort) {//需要重新排序
-            _list.doSort("proirity", true);
-            _needSort = false;
-        }
-        let changed = temp;
-        changed.length = 0;
-        for (let i = 0; i < _list.length; i++) {
-            let bin = _list[i];
-            if (bin.needCheck) {
-                let thisObj = bin.checker;
-                let handler = bin.checkHandler;
-                let msg = handler.call(thisObj);
-                let b = _badges[bin.id];
-                if (b) {
-                    if (changed.indexOf(b) == -1 || msg != b.msg) {
-                        b.msg = msg;//记录高优先级的消息
-                        changed.pushOnce(b);
-                        if (!msg) {
-                            b.show = false;
-                        } else {
-                            b.show = true;
-                        }
-                        let parent = b.parent;
-                        while (parent) {
-                            changed.pushOnce(parent);
-                            parent = parent.parent;
-                        }
-                    }
-                }
-                //已经检查过
-                bin.needCheck = false;
-            }
-        }
-        for (let i = 0; i < changed.length; i++) {
-            let badge = changed[i];
-            if (badge.show) {
-                let parent = badge.parent;
-                while (parent) {
-                    parent.show = badge.show
-                    parent = parent.parent;
-                }
-            } else {
-                let sons = badge.sons;
-                if (sons) {
-                    for (let j = 0; j < sons.length; j++) {
-                        let son = sons[j];
-                        if (son.show) {
-                            badge.show = true;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
 
-        if (hasListen(EventConst.Notification)) { //用于处理角标
-            for (let b of changed) {
-                dispatch(EventConst.Notification, b);
-            }
-        }
-    }
 
     export interface BadgeInstance {
         /**
@@ -259,11 +191,38 @@ module junyou {
         check(): void;
     }
 
+    function checkForBin(bin: NotifyBin, changed: BadgeInfo[]) {
+        if (bin.needCheck) {
+            let thisObj = bin.checker;
+            let handler = bin.checkHandler;
+            let msg = handler.call(thisObj);
+            let b = _badges[bin.id];
+            if (b) {
+                if (changed.indexOf(b) == -1 || msg != b.msg) {
+                    b.msg = msg;//记录高优先级的消息
+                    changed.pushOnce(b);
+                    if (!msg) {
+                        b.show = false;
+                    } else {
+                        b.show = true;
+                    }
+                    let parent = b.parent;
+                    while (parent) {
+                        changed.pushOnce(parent);
+                        parent = parent.parent;
+                    }
+                }
+            }
+            //已经检查过
+            bin.needCheck = false;
+        }
+    }
+
     /**
      * 通知管理器
      * @author 3tion
      */
-    export const Badge: BadgeInstance = {
+    export const Badge = {
 
         /**
          * 获取Badge数据
@@ -323,7 +282,6 @@ module junyou {
             _dict[mid] = bin;
         },
         bindListner,
-
         /**
          * 
          * 需要检查的关联标识
@@ -334,39 +292,57 @@ module junyou {
             let bin = _dict[id];
             if (bin) {
                 bin.needCheck = true;
-                //下一帧进行检查
-                Global.callLater(check, 0, this);
             }
-            let badge = _badges[id];
-            if (badge) {
-                //先将当前badge置为false，然后检查与badge并行的badge，如果都为false，就往上递归，如果都是false，就
-                //将顶部入口也置为false;
+        },
+        checkForBin,
+        /**
+         * 检查全部
+         */
+        checkAll() {
+            if (!_needCheck) {
+                return;
+            }
+            _needCheck = false;
+            if (_needSort) {//需要重新排序
+                _list.doSort("proirity", true);
+                _needSort = false;
+            }
+            let changed = temp;
+            changed.length = 0;
+            for (let i = 0; i < _list.length; i++) {
+                let bin = _list[i];
+                checkForBin(bin, changed);
+            }
+            this.checkChanged(changed, true);
+        },
+        checkChanged(changed: BadgeInfo[], fire?: boolean) {
+            for (let i = 0; i < changed.length; i++) {
+                let badge = changed[i];
                 if (badge.show) {
-                    badge.show = false;
                     let parent = badge.parent;
                     while (parent) {
-                        let sons = parent.sons;
-                        if (sons) {
-                            let allsonHide = true;
-                            for (let i = 0; i < sons.length; i++) {
-                                let son = sons[i];
-                                if (son.show) {
-                                    allsonHide = false;
-                                    break;
-                                }
-                            }
-                            if (allsonHide) {
-                                parent.show = false;
-                                parent = parent.parent;
-                            } else {
-                                parent = null;
+                        parent.show = badge.show
+                        parent = parent.parent;
+                    }
+                } else {
+                    let sons = badge.sons;
+                    if (sons) {
+                        for (let j = 0; j < sons.length; j++) {
+                            let son = sons[j];
+                            if (son.show) {
+                                badge.show = true;
+                                break;
                             }
                         }
                     }
                 }
-
             }
-        },
-        check,
+
+            if (fire && hasListen(EventConst.Notification)) { //用于处理角标
+                for (let b of changed) {
+                    dispatch(EventConst.Notification, b);
+                }
+            }
+        }
     }
 }
