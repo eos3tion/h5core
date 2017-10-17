@@ -15897,74 +15897,36 @@ var junyou;
     }
     var temp = [];
     /**
-     * 检查
+     * 检查单个处理
+     *
+     * @param {BadgeBin} bin
+     * @param {BadgeInfo[]} changed
      */
-    function check() {
-        if (!_needCheck) {
-            return;
-        }
-        _needCheck = false;
-        if (_needSort) {
-            _list.doSort("proirity", true);
-            _needSort = false;
-        }
-        var changed = temp;
-        changed.length = 0;
-        for (var i = 0; i < _list.length; i++) {
-            var bin = _list[i];
-            if (bin.needCheck) {
-                var thisObj = bin.checker;
-                var handler = bin.checkHandler;
-                var msg = handler.call(thisObj);
-                var b = _badges[bin.id];
-                if (b) {
-                    if (changed.indexOf(b) == -1 || msg != b.msg) {
-                        b.msg = msg; //记录高优先级的消息
-                        changed.pushOnce(b);
-                        if (!msg) {
-                            b.show = false;
-                        }
-                        else {
-                            b.show = true;
-                        }
-                        var parent_4 = b.parent;
-                        while (parent_4) {
-                            changed.pushOnce(parent_4);
-                            parent_4 = parent_4.parent;
-                        }
+    function checkForBin(bin, changed) {
+        if (bin.needCheck) {
+            var thisObj = bin.checker;
+            var handler = bin.checkHandler;
+            var msg = handler.call(thisObj);
+            var b = _badges[bin.id];
+            if (b) {
+                if (changed.indexOf(b) == -1 || msg != b.msg) {
+                    b.msg = msg; //记录高优先级的消息
+                    changed.pushOnce(b);
+                    if (!msg) {
+                        b.show = false;
                     }
-                }
-                //已经检查过
-                bin.needCheck = false;
-            }
-        }
-        for (var i = 0; i < changed.length; i++) {
-            var badge = changed[i];
-            if (badge.show) {
-                var parent_5 = badge.parent;
-                while (parent_5) {
-                    parent_5.show = badge.show;
-                    parent_5 = parent_5.parent;
-                }
-            }
-            else {
-                var sons = badge.sons;
-                if (sons) {
-                    for (var j = 0; j < sons.length; j++) {
-                        var son = sons[j];
-                        if (son.show) {
-                            badge.show = true;
-                            break;
-                        }
+                    else {
+                        b.show = true;
+                    }
+                    var parent_4 = b.parent;
+                    while (parent_4) {
+                        changed.pushOnce(parent_4);
+                        parent_4 = parent_4.parent;
                     }
                 }
             }
-        }
-        if (junyou.hasListen(-999 /* Notification */)) {
-            for (var _i = 0, changed_1 = changed; _i < changed_1.length; _i++) {
-                var b = changed_1[_i];
-                junyou.dispatch(-999 /* Notification */, b);
-            }
+            //已经检查过
+            bin.needCheck = false;
         }
     }
     /**
@@ -15980,6 +15942,9 @@ var junyou;
          */
         get: function (id) {
             return _badges[id];
+        },
+        getBin: function (id) {
+            return _dict[id];
         },
         /**
          *
@@ -16036,45 +16001,67 @@ var junyou;
          * 需要检查的关联标识
          * @param {string} id
          */
-        needCheck: function (id) {
+        needCheck: function (id, doCheckAll) {
             _needCheck = true;
             var bin = _dict[id];
             if (bin) {
                 bin.needCheck = true;
-                //下一帧进行检查
-                junyou.Global.callLater(check, 0, this);
             }
-            var badge = _badges[id];
-            if (badge) {
-                //先将当前badge置为false，然后检查与badge并行的badge，如果都为false，就往上递归，如果都是false，就
-                //将顶部入口也置为false;
+            if (doCheckAll) {
+                junyou.Global.callLater(junyou.Badge.checkAll);
+            }
+        },
+        checkForBin: checkForBin,
+        /**
+         * 检查全部
+         */
+        checkAll: function () {
+            if (!_needCheck) {
+                return;
+            }
+            _needCheck = false;
+            if (_needSort) {
+                _list.doSort("proirity", true);
+                _needSort = false;
+            }
+            var changed = temp;
+            changed.length = 0;
+            for (var i = 0; i < _list.length; i++) {
+                var bin = _list[i];
+                checkForBin(bin, changed);
+            }
+            junyou.Badge.checkChanged(changed, true);
+        },
+        checkChanged: function (changed, fire) {
+            for (var i = 0; i < changed.length; i++) {
+                var badge = changed[i];
                 if (badge.show) {
-                    badge.show = false;
-                    var parent_6 = badge.parent;
-                    while (parent_6) {
-                        var sons = parent_6.sons;
-                        if (sons) {
-                            var allsonHide = true;
-                            for (var i = 0; i < sons.length; i++) {
-                                var son = sons[i];
-                                if (son.show) {
-                                    allsonHide = false;
-                                    break;
-                                }
-                            }
-                            if (allsonHide) {
-                                parent_6.show = false;
-                                parent_6 = parent_6.parent;
-                            }
-                            else {
-                                parent_6 = null;
+                    var parent_5 = badge.parent;
+                    while (parent_5) {
+                        parent_5.show = badge.show;
+                        parent_5 = parent_5.parent;
+                    }
+                }
+                else {
+                    var sons = badge.sons;
+                    if (sons) {
+                        for (var j = 0; j < sons.length; j++) {
+                            var son = sons[j];
+                            if (son.show) {
+                                badge.show = true;
+                                break;
                             }
                         }
                     }
                 }
             }
-        },
-        check: check,
+            if (fire && junyou.hasListen(-999 /* Notification */)) {
+                for (var _i = 0, changed_1 = changed; _i < changed_1.length; _i++) {
+                    var b = changed_1[_i];
+                    junyou.dispatch(-999 /* Notification */, b);
+                }
+            }
+        }
     };
 })(junyou || (junyou = {}));
 var junyou;

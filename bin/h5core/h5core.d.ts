@@ -9277,6 +9277,42 @@ declare module junyou {
         parent?: BadgeInfo;
         sons?: BadgeInfo[];
     }
+    interface BadgeBin {
+        /**
+         *
+         * 执行优先级
+         * @type {number}
+         */
+        proirity: number;
+        /**
+         * 检查器代码
+         *
+         * @type {{ (): any }}
+         * @memberOf NotifyBin
+         */
+        checkHandler: {
+            (): any;
+        };
+        /**
+         * 检查器对象
+         *
+         * @type {any}
+         * @memberOf NotifyBin
+         */
+        checker: any;
+        /**
+         *
+         * 标识
+         * @type {string}
+         */
+        id: string | number;
+        /**
+         *
+         * 需要发生改变
+         * @type {boolean}
+         */
+        needCheck: boolean;
+    }
     interface BadgeInstance {
         /**
          * 获取Badge数据
@@ -9330,13 +9366,30 @@ declare module junyou {
         /**
          * 检查
          */
-        check(): void;
+        checkAll(): void;
+        checkChanged(changed: BadgeInfo[], fire?: boolean): void;
+        /**
+         * 检查单个处理
+         *
+         * @param {BadgeBin} bin
+         * @param {BadgeInfo[]} changed
+         */
+        checkForBin(bin: BadgeBin, changed: BadgeInfo[]): any;
     }
     /**
      * 通知管理器
      * @author 3tion
      */
-    const Badge: BadgeInstance;
+    const Badge: {
+        get(id: string | number): BadgeInfo;
+        getBin(id: string | number): BadgeBin;
+        bind(checker: INCheck | (() => any), mid: string | number, parent?: string | number, proirity?: number): void;
+        bindListner: (mid: string | number, lid?: string | number) => void;
+        needCheck(id: string | number, doCheckAll?: boolean): void;
+        checkForBin: (bin: BadgeBin, changed: BadgeInfo[]) => void;
+        checkAll(): void;
+        checkChanged(changed: BadgeInfo[], fire?: boolean): void;
+    };
 }
 declare module junyou {
     /**
