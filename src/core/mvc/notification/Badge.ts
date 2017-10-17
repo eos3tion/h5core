@@ -38,7 +38,7 @@ module junyou {
     }
 
 
-    interface NotifyBin {
+    export interface BadgeBin {
 
         /**
          * 
@@ -77,10 +77,10 @@ module junyou {
         needCheck: boolean;
     }
 
-    const _dict: { [index: string]: NotifyBin } = {};
+    const _dict: { [index: string]: BadgeBin } = {};
     const _listen: { [index: string]: BadgeInfo[] } = {};
     const _badges: { [index: string]: BadgeInfo } = {};
-    const _list: NotifyBin[] = [];
+    const _list: BadgeBin[] = [];
     let _needSort = false;
 
     /**
@@ -188,10 +188,27 @@ module junyou {
         /**
          * 检查
          */
-        check(): void;
+        checkAll(): void;
+
+        checkChanged(changed: BadgeInfo[], fire?: boolean): void;
+
+
+        /**
+         * 检查单个处理
+         * 
+         * @param {BadgeBin} bin 
+         * @param {BadgeInfo[]} changed 
+         */
+        checkForBin(bin: BadgeBin, changed: BadgeInfo[])
     }
 
-    function checkForBin(bin: NotifyBin, changed: BadgeInfo[]) {
+    /**
+     * 检查单个处理
+     * 
+     * @param {BadgeBin} bin 
+     * @param {BadgeInfo[]} changed 
+     */
+    function checkForBin(bin: BadgeBin, changed: BadgeInfo[]) {
         if (bin.needCheck) {
             let thisObj = bin.checker;
             let handler = bin.checkHandler;
@@ -233,6 +250,9 @@ module junyou {
         get(id: Key) {
             return _badges[id];
         },
+        getBin(id: Key) {
+            return _dict[id];
+        },
         /**
          * 
          * 绑定检查器和标识  
@@ -262,7 +282,7 @@ module junyou {
         bind(checker: INCheck | { (): any }, mid: Key, parent?: Key, proirity?: number) {
             let bin = _dict[mid];
             if (!bin) {
-                bin = <NotifyBin>{};
+                bin = <BadgeBin>{};
                 if (typeof (checker as INCheck).ncheck === "function") {
                     bin.checker = checker;
                     bin.checkHandler = (checker as INCheck).ncheck;
@@ -287,11 +307,14 @@ module junyou {
          * 需要检查的关联标识
          * @param {string} id
          */
-        needCheck(id: Key) {
+        needCheck(id: Key, doCheckAll?: boolean) {
             _needCheck = true;
             let bin = _dict[id];
             if (bin) {
                 bin.needCheck = true;
+            }
+            if (doCheckAll) {
+                Global.callLater(Badge.checkAll);
             }
         },
         checkForBin,
@@ -313,7 +336,7 @@ module junyou {
                 let bin = _list[i];
                 checkForBin(bin, changed);
             }
-            this.checkChanged(changed, true);
+            Badge.checkChanged(changed, true);
         },
         checkChanged(changed: BadgeInfo[], fire?: boolean) {
             for (let i = 0; i < changed.length; i++) {
