@@ -1930,15 +1930,6 @@ declare module junyou {
     var d_interest: typeof interest;
 }
 declare module junyou {
-    /**
-     * PageList的常量
-     *
-     * @export
-     * @enum {number}
-     */
-    const enum PageConst {
-        MaxColumnCount = 9999,
-    }
     interface PageListOption {
         /**
          * 单元格之间的宽度
@@ -1982,9 +1973,16 @@ declare module junyou {
          * @memberof PageListOption
          */
         staticSize?: boolean;
+        /**
+         * pageList的方向
+         *
+         * @type {ScrollDirection}
+         * @memberof PageListOption
+         */
+        type: ScrollDirection;
     }
     class PageList<T, R extends ListItemRender<T>> extends egret.Sprite {
-        protected _renderFactory: ClassFactory<R>;
+        protected _factory: ClassFactory<R>;
         /**
          * 根据render的最右侧，得到的最大宽度
          */
@@ -2057,20 +2055,6 @@ declare module junyou {
          * @param {PageListOption} [option]
          */
         constructor(renderfactory: ClassFactory<R>, option?: PageListOption);
-        /**
-         * 列表
-         * 有固定宽、高值则用固定值
-         * 否则用itemrender宽、高布局
-         *
-         * @param renderfactory
-         * @param hgap 单元格之间的宽度
-         * @param vgap 单元格之间的高度
-         * @param viewCount 可视范围内有几个列表项
-         * @param columnCount 列表共有几列（最小1最大9999）
-         * @param itemWidth itemrender固定宽度
-         * @param itemHeight itemrender固定高度
-         */
-        constructor(renderfactory: ClassFactory<R>, hgap?: number, vgap?: number, viewCount?: number, columnCount?: number, itemWidth?: number, itemHeight?: number);
         displayList(data?: T[]): void;
         readonly data: T[];
         /**
