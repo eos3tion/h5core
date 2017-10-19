@@ -1,15 +1,5 @@
 module junyou {
 
-    /**
-     * PageList的常量
-     * 
-     * @export
-     * @enum {number}
-     */
-    export const enum PageConst {
-        MaxColumnCount = 9999
-    }
-
     export interface PageListOption {
         /**
          * 单元格之间的宽度
@@ -56,11 +46,19 @@ module junyou {
          * @memberof PageListOption
          */
         staticSize?: boolean;
+
+        /**
+         * pageList的方向
+         * 
+         * @type {ScrollDirection}
+         * @memberof PageListOption
+         */
+        type: ScrollDirection;
     }
 
     export class PageList<T, R extends ListItemRender<T>> extends egret.Sprite {
 
-        protected _renderFactory: ClassFactory<R>
+        protected _factory: ClassFactory<R>
 
         /**
          * 根据render的最右侧，得到的最大宽度
@@ -142,16 +140,6 @@ module junyou {
          */
         private itemHeight: number;
 
-        // /**
-        //  * 缓动用
-        //  */
-        // private tweenRect: egret.Rectangle;
-
-        // /**
-        //  * 记录最终数据
-        //  */
-        // private endRect: egret.Rectangle;
-
         private useTweenIndex: boolean;
 
 
@@ -169,35 +157,12 @@ module junyou {
          * @param {ClassFactory<R>} renderfactory 
          * @param {PageListOption} [option] 
          */
-        public constructor(renderfactory: ClassFactory<R>, option?: PageListOption)
-        /**
-         * 列表
-         * 有固定宽、高值则用固定值
-         * 否则用itemrender宽、高布局
-         * 
-         * @param renderfactory
-         * @param hgap 单元格之间的宽度
-         * @param vgap 单元格之间的高度
-         * @param viewCount 可视范围内有几个列表项
-         * @param columnCount 列表共有几列（最小1最大9999）
-         * @param itemWidth itemrender固定宽度
-         * @param itemHeight itemrender固定高度
-         */
-        public constructor(renderfactory: ClassFactory<R>, hgap?: number, vgap?: number, viewCount?: number, columnCount?: number, itemWidth?: number, itemHeight?: number)
-        public constructor(renderfactory: ClassFactory<R>, opt?: any, vgap?: number, viewCount?: number, columnCount?: number, itemWidth?: number, itemHeight?: number) {
+        constructor(renderfactory: ClassFactory<R>, option?: PageListOption) {
             super();
-            this._renderFactory = renderfactory;
-            let hgap: number;
-            if (typeof opt == "object") {
-                hgap = opt.hgap;
-                vgap = opt.vgap;
-                itemWidth = opt.itemWidth;
-                itemHeight = opt.itemHeight;
-                columnCount = opt.columnCount;
-                this.staticSize = opt.staticSize;
-            } else {
-                hgap = opt;
-            }
+            this._factory = renderfactory;
+            option = option || Temp.EmptyObject as PageListOption;
+            let { hgap, vgap, type, itemWidth, itemHeight, columnCount, staticSize } = option;
+            this.staticSize = staticSize;
             columnCount = ~~columnCount;
             if (columnCount < 1) {
                 columnCount = 1;
@@ -208,7 +173,7 @@ module junyou {
             this.itemWidth = itemWidth;
             this.itemHeight = itemHeight;
             this._list = [];
-            this._scrollType = columnCount < PageConst.MaxColumnCount ? ScrollDirection.Vertical : ScrollDirection.Horizon;
+            this._scrollType = ~~type;
         }
 
         public displayList(data?: T[]) {
@@ -356,7 +321,7 @@ module junyou {
             let list = this._list;
             let render = list[index];
             if (!render) {
-                render = this._renderFactory.get();
+                render = this._factory.get();
                 list[index] = render;
                 render.on(EventConst.Resize, this.childSizeChange, this);
                 render.on(EventConst.ITEM_TOUCH_TAP, this.touchItemrender, this);
