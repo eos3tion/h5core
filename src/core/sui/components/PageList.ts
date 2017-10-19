@@ -53,7 +53,7 @@ module junyou {
          * @type {ScrollDirection}
          * @memberof PageListOption
          */
-        type: ScrollDirection;
+        type?: ScrollDirection;
     }
 
     export class PageList<T, R extends ListItemRender<T>> extends egret.Sprite {
