@@ -17,6 +17,9 @@ module junyou {
          * 共享数组3
          */
         SharedArray3: [],
+
+        SharedRect1: { x: 0, y: 0, width: 0, height: 0 },
+        SharedRect2: { x: 0, y: 0, width: 0, height: 0 },
         /**
          * 白鹭的点
          */
