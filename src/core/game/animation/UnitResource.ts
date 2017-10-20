@@ -49,10 +49,12 @@ module junyou {
                 let dData: JTexture[][] = [];
                 _datas[action] = dData;
                 let actData = data[action];
+                if (!actData) continue;
                 for (let d = 0, len = actData.length; d < len; d++) {
                     let fData: JTexture[] = [];
                     dData[d] = fData;
                     let dirData: any[] = actData[d];
+                    if (!dirData) continue;
                     for (let f = 0, flen = dirData.length; f < flen; f++) {
                         if (dirData[f] !== 0) {
                             fData[f] = getTextureFromImageData(dirData[f]);
