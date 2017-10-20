@@ -246,11 +246,14 @@ if (DEBUG) {
     $gm.showNSLog = (filter?: any, ...args) => {
         let nsFilter = $gm.__getNSFilter(filter, ...args);
         let output = [];
+        let msg = "";
         $gm.nsLogs.forEach(log => {
             if ($gm.__nsLogCheck(log, nsFilter)) {
                 output.push({ type: log.type, time: log.time, cmd: log.cmd, data: log.data, json: JSON.stringify(log.data) });
+                msg += `${log.time}\t${log.type}\t${log.cmd}\t${log.data}\n`;
             }
         });
+        junyou.doCopy(msg);
         console.table(output);
         return output;
     }
