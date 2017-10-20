@@ -10290,10 +10290,14 @@ var junyou;
                 var dData = [];
                 _datas[action] = dData;
                 var actData = data[action];
+                if (!actData)
+                    continue;
                 for (var d = 0, len = actData.length; d < len; d++) {
                     var fData = [];
                     dData[d] = fData;
                     var dirData = actData[d];
+                    if (!dirData)
+                        continue;
                     for (var f = 0, flen = dirData.length; f < flen; f++) {
                         if (dirData[f] !== 0) {
                             fData[f] = getTextureFromImageData(dirData[f]);
