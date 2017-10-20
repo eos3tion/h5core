@@ -250,11 +250,11 @@ if (DEBUG) {
         $gm.nsLogs.forEach(log => {
             if ($gm.__nsLogCheck(log, nsFilter)) {
                 output.push({ type: log.type, time: log.time, cmd: log.cmd, data: log.data, json: JSON.stringify(log.data) });
-                msg += `${log.time}\t${log.type}\t${log.cmd}\t${log.data}\n`;
+                msg += `${log.time}\t${log.type}\t${log.cmd}\t${JSON.stringify(log.data)}\n`;
             }
         });
-        junyou.doCopy(msg);
         console.table(output);
+        junyou.doCopy(msg) && console.log("%c 已将网络数据复制到剪贴板", "color:red;font-size:50px;");
         return output;
     }
     $gm.__nsLogCheck = (log, nsFilter) => {
