@@ -1134,6 +1134,8 @@ var junyou;
          * 共享数组3
          */
         SharedArray3: [],
+        SharedRect1: { x: 0, y: 0, width: 0, height: 0 },
+        SharedRect2: { x: 0, y: 0, width: 0, height: 0 },
         /**
          * 白鹭的点
          */
@@ -3391,12 +3393,15 @@ if (true) {
         }
         var nsFilter = $gm.__getNSFilter.apply($gm, [filter].concat(args));
         var output = [];
+        var msg = "";
         $gm.nsLogs.forEach(function (log) {
             if ($gm.__nsLogCheck(log, nsFilter)) {
                 output.push({ type: log.type, time: log.time, cmd: log.cmd, data: log.data, json: JSON.stringify(log.data) });
+                msg += log.time + "\t" + log.type + "\t" + log.cmd + "\t" + JSON.stringify(log.data) + "\n";
             }
         });
         console.table(output);
+        junyou.doCopy(msg) && console.log("%c 已将网络数据复制到剪贴板", "color:red;font-size:50px;");
         return output;
     };
     $gm.__nsLogCheck = function (log, nsFilter) {
@@ -7939,80 +7944,105 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    junyou.DataUrlUtils = function () {
-        var _texture;
-        return {
-            /**
-             * 根据dataUrl获取 base64字符串
-             *
-             * @param {string} dataUrl
-             * @returns
-             */
-            getBase64: getBase64,
-            /**
-             * 根据dataUrl获取Uint8Array
-             *
-             * @param {string} dataUrl
-             * @returns
-             */
-            getBytes: getBytes,
-            /**
-             * 获取白鹭可视对象的dataUrl
-             *
-             * @param {egret.DisplayObject} dis
-             * @param {string} type
-             * @param {egret.Rectangle} [rect]
-             * @param {any} [encodeOptions]
-             * @returns
-             */
-            getDisplayDataURL: getDisplayDataURL,
-            /**
-             * 获取可视对象的Base64字符串
-             *
-             * @param {egret.DisplayObject} dis
-             * @param {string} type
-             * @param {egret.Rectangle} [rect]
-             * @param {any} [encodeOptions]
-             * @returns
-             */
-            getDisplayBase64: function (dis, type, rect, encodeOptions, scale) {
-                return getBase64(getDisplayDataURL(dis, type, rect, encodeOptions, scale));
-            },
-            /**
-             * 获取可视对象的Uint8字节流
-             *
-             * @param {egret.DisplayObject} dis
-             * @param {string} type
-             * @param {egret.Rectangle} [rect]
-             * @param {any} [encodeOptions]
-             * @returns
-             */
-            getDisplayBytes: function (dis, type, rect, encodeOptions, scale) {
-                return getBytes(getDisplayDataURL(dis, type, rect, encodeOptions, scale));
-            }
-        };
-        function getDisplayDataURL(dis, type, rect, encodeOptions, scale) {
-            if (!_texture) {
-                _texture = new egret.RenderTexture;
-            }
-            rect = rect || dis.getBounds();
-            _texture.drawToTexture(dis, rect, scale);
-            return _texture.toDataURL(type, null, encodeOptions);
+    var copyDiv = document.createElement("div");
+    var doc = document;
+    var de = doc.documentElement;
+    /**
+     * 拷贝到剪贴板中
+     *
+     * @author gushuai
+     * @export
+     * @param {string} str
+     * @returns
+     */
+    function doCopy(str) {
+        de.appendChild(copyDiv);
+        copyDiv.innerText = str;
+        var selection = getSelection();
+        var range = doc.createRange();
+        range.selectNodeContents(copyDiv);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        var val = doc.execCommand("copy");
+        de.removeChild(copyDiv);
+        return val;
+    }
+    junyou.doCopy = doCopy;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    var _texture;
+    junyou.DataUrlUtils = {
+        /**
+         * 根据dataUrl获取 base64字符串
+         *
+         * @param {string} dataUrl
+         * @returns
+         */
+        getBase64: getBase64,
+        /**
+         * 根据dataUrl获取Uint8Array
+         *
+         * @param {string} dataUrl
+         * @returns
+         */
+        getBytes: getBytes,
+        /**
+         * 获取白鹭可视对象的dataUrl
+         *
+         * @param {egret.DisplayObject} dis
+         * @param {string} type
+         * @param {egret.Rectangle} [rect]
+         * @param {any} [encodeOptions]
+         * @returns
+         */
+        getDisplayDataURL: getDisplayDataURL,
+        /**
+         * 获取可视对象的Base64字符串
+         *
+         * @param {egret.DisplayObject} dis
+         * @param {string} type
+         * @param {egret.Rectangle} [rect]
+         * @param {any} [encodeOptions]
+         * @returns
+         */
+        getDisplayBase64: function (dis, type, rect, encodeOptions, scale) {
+            return getBase64(getDisplayDataURL(dis, type, rect, encodeOptions, scale));
+        },
+        /**
+         * 获取可视对象的Uint8字节流
+         *
+         * @param {egret.DisplayObject} dis
+         * @param {string} type
+         * @param {egret.Rectangle} [rect]
+         * @param {any} [encodeOptions]
+         * @returns
+         */
+        getDisplayBytes: function (dis, type, rect, encodeOptions, scale) {
+            return getBytes(getDisplayDataURL(dis, type, rect, encodeOptions, scale));
         }
-        function getBase64(dataUrl) {
-            return dataUrl.substr(dataUrl.indexOf(",") + 1);
+    };
+    function getDisplayDataURL(dis, type, rect, encodeOptions, scale) {
+        if (!_texture) {
+            _texture = new egret.RenderTexture;
         }
-        function getBytes(dataUrl) {
-            var b64 = this.getBase64(dataUrl);
-            var binaryString = window.atob(b64);
-            var len = binaryString.length;
-            var bytes = new Uint8Array(len);
-            for (var i = 0; i < len; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-            }
-            return bytes;
+        rect = rect || dis.getBounds();
+        _texture.drawToTexture(dis, rect, scale);
+        return _texture.toDataURL(type, null, encodeOptions);
+    }
+    function getBase64(dataUrl) {
+        return dataUrl.substr(dataUrl.indexOf(",") + 1);
+    }
+    function getBytes(dataUrl) {
+        var b64 = this.getBase64(dataUrl);
+        var binaryString = window.atob(b64);
+        var len = binaryString.length;
+        var bytes = new Uint8Array(len);
+        for (var i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
         }
-    }();
+        return bytes;
+    }
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -8103,62 +8133,62 @@ var junyou;
      * HTML工具类
      * @author 3tion
      */
-    junyou.HTMLUtil = (function () {
-        var unescChars = { "&lt;": "<", "&gt;": ">", "&quot;": "\"", "&apos;": "\'", "&amp;": "&", "&nbsp;": " ", "&#x000A;": "\n" };
-        var escChars = { "<": "&lt;", ">": "&gt;", "'": "&apos;", "\"": "&quot;", "&": "&amp;" };
-        return {
-            /**
-             * 字符着色
-             *
-             * @param {string | number} value                内容
-             * @param {(string | number)} color     颜色
-             * @returns
-             */
-            createColorHtml: function (value, color) {
-                var c;
-                if (typeof color == "number") {
-                    c = junyou.ColorUtil.getColorString(color);
-                }
-                else if (color.charAt(0) != "#") {
-                    c = "#" + color;
-                }
-                else {
-                    c = color;
-                }
-                return "<font color=\'" + c + "\'>" + value + "</font>";
-            },
-            /**
-             * 清理html;
-             * @value value
-             * @return
-             *
-             */
-            clearHtml: function (value) {
-                return value.replace(/<[^><]*?>/g, "");
-            },
-            /**
-             * 将特殊字符串处理为HTML转义字符
-             *
-             * @param {string} content
-             */
-            escapeHTML: function (content) {
-                return content.replace(/<|>|"|'|&/g, function (substring) {
-                    return escChars[substring];
-                });
-            },
-            /**
-             * 将HTML特殊符号，恢复成正常字符串
-             *
-             * @param {string} content
-             * @returns
-             */
-            unescapeHTML: function (content) {
-                return content.replace(/&lt;|&gt;|&quot;|&apos;|&amp;|&nbsp;|&#x000A;/g, function (substring) {
-                    return unescChars[substring];
-                });
+    var unescChars = { "&lt;": "<", "&gt;": ">", "&quot;": "\"", "&apos;": "\'", "&amp;": "&", "&nbsp;": " ", "&#x000A;": "\n" };
+    var escChars = { "<": "&lt;", ">": "&gt;", "'": "&apos;", "\"": "&quot;", "&": "&amp;" };
+    function escFun(substring) {
+        return escChars[substring];
+    }
+    function unescFun(substring) {
+        return unescChars[substring];
+    }
+    junyou.HTMLUtil = {
+        /**
+         * 字符着色
+         *
+         * @param {string | number} value       内容
+         * @param {(string | number)} color     颜色
+         * @returns
+         */
+        createColorHtml: function (value, color) {
+            var c;
+            if (typeof color == "number") {
+                c = junyou.ColorUtil.getColorString(color);
             }
-        };
-    })();
+            else if (color.charAt(0) != "#") {
+                c = "#" + color;
+            }
+            else {
+                c = color;
+            }
+            return "<font color=\'" + c + "\'>" + value + "</font>";
+        },
+        /**
+         * 清理html;
+         * @value value
+         * @return
+         *
+         */
+        clearHtml: function (value) {
+            return value.replace(/<[^><]*?>/g, "");
+        },
+        /**
+         * 将特殊字符串处理为HTML转义字符
+         *
+         * @param {string} content
+         */
+        escHTML: function (content) {
+            return content.replace(/<|>|"|'|&/g, escFun);
+        },
+        /**
+         * 将HTML特殊符号，恢复成正常字符串
+         *
+         * @param {string} content
+         * @returns
+         */
+        unescHTML: function (content) {
+            return content.replace(/&lt;|&gt;|&quot;|&apos;|&amp;|&nbsp;|&#x000A;/g, unescFun);
+        }
+    };
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -8334,382 +8364,378 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    junyou.RPC = (function () {
-        var seed = 1;
-        var callbacks = {};
-        var Timeout = "RPCTimeout";
-        var count = 0;
-        var start;
-        var willDel = [];
-        return {
-            Timeout: Timeout,
-            callback: callback,
-            registerCallback: registerCallback,
-            /**
-             * 注册回调函数，成功和失败，均使用该方法
-             * 成功则data为返回的数据
-             * 失败则data为Error
-             * @param {{ (data?: any, ...args) }} callback
-             * @param {*} [thisObj]
-             * @param {any} any
-             */
-            registerCallbackFunc: function (callback, withError, timeout, thisObj) {
-                if (timeout === void 0) { timeout = 2000 /* DefaultTimeout */; }
-                var args = [];
-                for (var _i = 4; _i < arguments.length; _i++) {
-                    args[_i - 4] = arguments[_i];
-                }
-                var success = junyou.CallbackInfo.get.apply(junyou.CallbackInfo, [callback, thisObj].concat(args));
-                var error = junyou.CallbackInfo.get.apply(junyou.CallbackInfo, [withError ? callback : noErrorCallback(callback, thisObj), thisObj].concat(args));
-                return registerCallback(success, error, timeout);
-            },
-            /**
-            * 根据id移除回调函数
-            *
-            * @param {number} id
-            */
-            removeCallback: function (id) {
-                var callback = callbacks[id];
-                deleteCallback(id);
-                if (callback) {
-                    var success = callback.success, error = callback.error;
-                    if (success) {
-                        success.recycle();
-                    }
-                    if (error) {
-                        error.recycle();
-                    }
-                }
-            }
-        };
-        function noErrorCallback(callback, thisObj) {
-            return function (err) {
-                var args = [];
-                for (var _i = 1; _i < arguments.length; _i++) {
-                    args[_i - 1] = arguments[_i];
-                }
-                callback.call.apply(callback, [thisObj, undefined].concat(args));
-            };
-        }
+    var seed = 1;
+    var callbacks = {};
+    var Timeout = "RPCTimeout";
+    var count = 0;
+    var start;
+    var willDel = [];
+    junyou.RPC = {
+        Timeout: Timeout,
+        callback: callback,
+        registerCallback: registerCallback,
         /**
-         * 注册回调函数
-         *
-         * @param {Recyclable<CallbackInfo<{ (data?: any, ...args) }>>} success     成功的函数回调
-         * @param {Recyclable<CallbackInfo<{ (error?: Error, ...args) }>>} [error]    发生错误的函数回调
-         * @param {number} [timeout=2000] 超时时间，默认2000，实际超时时间会大于此时间，超时后，如果有错误回调，会执行错误回调，`Error(RPC.Timeout)`
-         * @returns
+         * 注册回调函数，成功和失败，均使用该方法
+         * 成功则data为返回的数据
+         * 失败则data为Error
+         * @param {{ (data?: any, ...args) }} callback
+         * @param {*} [thisObj]
+         * @param {any} any
          */
-        function registerCallback(success, error, timeout) {
+        registerCallbackFunc: function (callback, withError, timeout, thisObj) {
             if (timeout === void 0) { timeout = 2000 /* DefaultTimeout */; }
-            var id = seed++;
-            callbacks[id] = { id: id, expired: junyou.Global.now + timeout, success: success, error: error };
-            count++;
-            if (!start) {
-                junyou.TimerUtil.addCallback(1000 /* ONE_SECOND */, check);
-                start = true;
+            var args = [];
+            for (var _i = 4; _i < arguments.length; _i++) {
+                args[_i - 4] = arguments[_i];
             }
-            return id;
-        }
-        function deleteCallback(id) {
-            if (id in callbacks) {
-                delete callbacks[id];
-                count--;
-                if (count == 0) {
-                    junyou.TimerUtil.removeCallback(1000 /* ONE_SECOND */, check);
-                    start = false;
-                }
-            }
-        }
+            var success = junyou.CallbackInfo.get.apply(junyou.CallbackInfo, [callback, thisObj].concat(args));
+            var error = junyou.CallbackInfo.get.apply(junyou.CallbackInfo, [withError ? callback : noErrorCallback(callback, thisObj), thisObj].concat(args));
+            return registerCallback(success, error, timeout);
+        },
         /**
-           * 执行回调
-           *
-           * @param {number} id 执行回调的id
-           * @param {*} [data] 成功返回的数据
-           * @param {(Error | string)} [err] 错误
-           */
-        function callback(id, data, err) {
+        * 根据id移除回调函数
+        *
+        * @param {number} id
+        */
+        removeCallback: function (id) {
             var callback = callbacks[id];
-            if (!callback) {
-                return;
-            }
             deleteCallback(id);
-            var success = callback.success, error = callback.error;
-            var result;
-            if (err) {
-                if (typeof err === "string") {
-                    err = new Error(err);
-                }
-                if (error) {
-                    result = error.call(err);
-                    error.recycle();
-                }
+            if (callback) {
+                var success = callback.success, error = callback.error;
                 if (success) {
                     success.recycle();
                 }
-            }
-            else {
                 if (error) {
                     error.recycle();
                 }
-                if (success) {
-                    result = success.call(data);
-                    success.recycle();
-                }
-            }
-            return result;
-        }
-        function check() {
-            var del = willDel;
-            var i = 0;
-            var now = junyou.Global.now;
-            for (var id in callbacks) {
-                var callback_1 = callbacks[id];
-                if (now > callback_1.expired) {
-                    del[i++] = id;
-                }
-            }
-            for (var j = 0; j < i; j++) {
-                var id = del[j];
-                callback(id, null, Timeout);
             }
         }
-    })();
+    };
+    function noErrorCallback(callback, thisObj) {
+        return function (err) {
+            var args = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                args[_i - 1] = arguments[_i];
+            }
+            callback.call.apply(callback, [thisObj, undefined].concat(args));
+        };
+    }
+    /**
+     * 注册回调函数
+     *
+     * @param {Recyclable<CallbackInfo<{ (data?: any, ...args) }>>} success     成功的函数回调
+     * @param {Recyclable<CallbackInfo<{ (error?: Error, ...args) }>>} [error]    发生错误的函数回调
+     * @param {number} [timeout=2000] 超时时间，默认2000，实际超时时间会大于此时间，超时后，如果有错误回调，会执行错误回调，`Error(RPC.Timeout)`
+     * @returns
+     */
+    function registerCallback(success, error, timeout) {
+        if (timeout === void 0) { timeout = 2000 /* DefaultTimeout */; }
+        var id = seed++;
+        callbacks[id] = { id: id, expired: junyou.Global.now + timeout, success: success, error: error };
+        count++;
+        if (!start) {
+            junyou.TimerUtil.addCallback(1000 /* ONE_SECOND */, check);
+            start = true;
+        }
+        return id;
+    }
+    function deleteCallback(id) {
+        if (id in callbacks) {
+            delete callbacks[id];
+            count--;
+            if (count == 0) {
+                junyou.TimerUtil.removeCallback(1000 /* ONE_SECOND */, check);
+                start = false;
+            }
+        }
+    }
+    /**
+       * 执行回调
+       *
+       * @param {number} id 执行回调的id
+       * @param {*} [data] 成功返回的数据
+       * @param {(Error | string)} [err] 错误
+       */
+    function callback(id, data, err) {
+        var callback = callbacks[id];
+        if (!callback) {
+            return;
+        }
+        deleteCallback(id);
+        var success = callback.success, error = callback.error;
+        var result;
+        if (err) {
+            if (typeof err === "string") {
+                err = new Error(err);
+            }
+            if (error) {
+                result = error.call(err);
+                error.recycle();
+            }
+            if (success) {
+                success.recycle();
+            }
+        }
+        else {
+            if (error) {
+                error.recycle();
+            }
+            if (success) {
+                result = success.call(data);
+                success.recycle();
+            }
+        }
+        return result;
+    }
+    function check() {
+        var del = willDel;
+        var i = 0;
+        var now = junyou.Global.now;
+        for (var id in callbacks) {
+            var callback_1 = callbacks[id];
+            if (now > callback_1.expired) {
+                del[i++] = id;
+            }
+        }
+        for (var j = 0; j < i; j++) {
+            var id = del[j];
+            callback(id, null, Timeout);
+        }
+    }
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    junyou.SoundManager = (function () {
-        /**
-         * 正在播放中的声音
-         */
-        var playings = {};
-        var soundsDict = {};
-        var guid = 1;
-        return {
-            play: play,
-            preload: preload,
-            stopSound: stopSound,
-            stopSounds: stopSounds,
-            volume: volume
-        };
-        /**
-         * 根据id调整音量
-         *
-         * @param {number} volume
-         * @param {number} id
-         */
-        function volume(volume, id) {
-            var sound = playings[id];
-            if (sound) {
-                var ch = sound.channel;
-                if (ch) {
-                    ch.volume = volume;
-                }
-                else {
-                    pushChAction(sound, arguments);
-                }
-            }
-        }
-        function pushChAction(ch, arg) {
-            var actions = ch.actions;
-            if (!actions) {
-                ch.actions = actions = [];
-            }
-            var arr = [];
-            for (var i = 0; i < arg.length; i++) {
-                arr[i] = arg[i];
-            }
-            actions.push([arg.callee, arr]);
-        }
-        /**
-         * 停止整个domain的声音
-         *
-         * @param {number} domain
-         * @param {boolean} [useTween]
-         */
-        function stopSounds(domain, useTween) {
-            filterPlaying(function (ch) { return _stopFilter(ch, function (ch) { return ch.domain == domain; }, useTween); });
-        }
-        /**
-         * 停止某个声音
-         *
-         * @param {number} id
-         * @param {boolean} [useTween]
-         */
-        function stopSound(id, useTween) {
-            filterPlaying(function (ch) { return _stopFilter(ch, function (ch) { return ch.id == id; }, useTween); }, true);
-        }
-        function _stopFilter(ch, filter, useTween) {
-            var channel = ch.channel;
-            var flag = filter(ch);
-            if (flag) {
-                if (useTween) {
-                    junyou.Global.getTween(channel).to({ volume: 0 }).call(channel.stop);
-                }
-                else {
-                    channel.stop();
-                }
-            }
-            return !flag;
-        }
-        /**
-         * 预加载某个音频，后续改成使用res加载，得到base64的数据
-         *
-         * @param {string} url
-         */
-        function preload(url) {
-            getSound(url);
-        }
-        /**
-         * 播放一个声音
-         *
-         * @param {string} url 声音地址
-         * @param {SoundDomain} [domain] 声音加入的域
-         * @param {number} [loop] 循环次数，默认播放1次，0则表示无限循环播放
-         * @param {number} [startTime] 开始时间，默认从起点开始
-         * @returns 如果可以播放声音，则返回声音通道的唯一id
-         */
-        function play(url, domain, loop, timeout, startTime) {
-            if (loop === void 0) { loop = 1; }
-            if (timeout === void 0) { timeout = 500; }
-            //后续使用localRes处理
-            var sound = getSound(url);
-            var state = sound.state;
-            if (state == -1 /* FAILED */) {
-                return 0;
-            }
-            var id = guid++;
-            domain = ~~domain;
-            var ch = { id: id, url: url, domain: domain };
-            playings[id] = ch;
-            if (state == 2 /* COMPLETE */) {
-                startChannel(sound, ch, startTime, loop);
+    /**
+     * 正在播放中的声音
+     */
+    var playings = {};
+    var soundsDict = {};
+    var guid = 1;
+    junyou.SoundManager = {
+        play: play,
+        preload: preload,
+        stopSound: stopSound,
+        stopSounds: stopSounds,
+        volume: volume
+    };
+    /**
+     * 根据id调整音量
+     *
+     * @param {number} volume
+     * @param {number} id
+     */
+    function volume(volume, id) {
+        var sound = playings[id];
+        if (sound) {
+            var ch = sound.channel;
+            if (ch) {
+                ch.volume = volume;
             }
             else {
-                ch.option = { startTime: startTime, playStart: junyou.Global.now, timeout: timeout, loop: loop };
-                var promises = sound.promises;
-                if (!promises) {
-                    sound.promises = promises = [];
-                }
-                promises.push(id);
-            }
-            return id;
-        }
-        function startChannel(sound, ch, startTime, loop) {
-            var channel = sound.sound.play(startTime, loop);
-            channel.once("complete" /* COMPLETE */, onComplete, undefined);
-            ch.channel = channel;
-            var actions = ch.actions;
-            if (actions) {
-                for (var i = 0; i < actions.length; i++) {
-                    var action = actions[i];
-                    action[0].apply(null, action[1]);
-                }
-                delete ch.actions;
+                pushChAction(sound, arguments);
             }
         }
-        function onComplete(e) {
-            var channel = e.currentTarget;
-            filterPlaying(function (ch) { return ch.channel != channel; });
+    }
+    function pushChAction(ch, arg) {
+        var actions = ch.actions;
+        if (!actions) {
+            ch.actions = actions = [];
         }
-        function getSound(url) {
-            var sound = soundsDict[url];
-            if (!sound) {
-                soundsDict[url] = sound = { url: url, sound: undefined, state: 1 /* REQUESTING */ };
-                RES.getResByUrl(url, function (eSound) {
-                    if (eSound) {
-                        sound.sound = eSound;
-                        sound.state = 2 /* COMPLETE */;
-                        var promises = sound.promises;
-                        if (promises) {
-                            delete sound.promises;
-                            //检查所有启动的声音，是否已经达到超时时间
-                            var now = junyou.Global.now;
-                            for (var i = 0, len = promises.length; i < len; i++) {
-                                var id = promises[i];
-                                var ch = playings[id];
-                                if (ch) {
-                                    var option = ch.option;
-                                    if (option) {
-                                        delete ch.option;
-                                        var delta = now - option.playStart;
-                                        if (delta < option.timeout) {
-                                            var startTime = option.startTime + delta;
-                                            startChannel(sound, ch, startTime, option.loop);
-                                        }
-                                        else {
-                                            delete playings[id];
-                                        }
+        var arr = [];
+        for (var i = 0; i < arg.length; i++) {
+            arr[i] = arg[i];
+        }
+        actions.push([arg.callee, arr]);
+    }
+    /**
+     * 停止整个domain的声音
+     *
+     * @param {number} domain
+     * @param {boolean} [useTween]
+     */
+    function stopSounds(domain, useTween) {
+        filterPlaying(function (ch) { return _stopFilter(ch, function (ch) { return ch.domain == domain; }, useTween); });
+    }
+    /**
+     * 停止某个声音
+     *
+     * @param {number} id
+     * @param {boolean} [useTween]
+     */
+    function stopSound(id, useTween) {
+        filterPlaying(function (ch) { return _stopFilter(ch, function (ch) { return ch.id == id; }, useTween); }, true);
+    }
+    function _stopFilter(ch, filter, useTween) {
+        var channel = ch.channel;
+        var flag = filter(ch);
+        if (flag) {
+            if (useTween) {
+                junyou.Global.getTween(channel).to({ volume: 0 }).call(channel.stop);
+            }
+            else {
+                channel.stop();
+            }
+        }
+        return !flag;
+    }
+    /**
+     * 预加载某个音频，后续改成使用res加载，得到base64的数据
+     *
+     * @param {string} url
+     */
+    function preload(url) {
+        getSound(url);
+    }
+    /**
+     * 播放一个声音
+     *
+     * @param {string} url 声音地址
+     * @param {SoundDomain} [domain] 声音加入的域
+     * @param {number} [loop] 循环次数，默认播放1次，0则表示无限循环播放
+     * @param {number} [startTime] 开始时间，默认从起点开始
+     * @returns 如果可以播放声音，则返回声音通道的唯一id
+     */
+    function play(url, domain, loop, timeout, startTime) {
+        if (loop === void 0) { loop = 1; }
+        if (timeout === void 0) { timeout = 500; }
+        //后续使用localRes处理
+        var sound = getSound(url);
+        var state = sound.state;
+        if (state == -1 /* FAILED */) {
+            return 0;
+        }
+        var id = guid++;
+        domain = ~~domain;
+        var ch = { id: id, url: url, domain: domain };
+        playings[id] = ch;
+        if (state == 2 /* COMPLETE */) {
+            startChannel(sound, ch, startTime, loop);
+        }
+        else {
+            ch.option = { startTime: startTime, playStart: junyou.Global.now, timeout: timeout, loop: loop };
+            var promises = sound.promises;
+            if (!promises) {
+                sound.promises = promises = [];
+            }
+            promises.push(id);
+        }
+        return id;
+    }
+    function startChannel(sound, ch, startTime, loop) {
+        var channel = sound.sound.play(startTime, loop);
+        channel.once("complete" /* COMPLETE */, onComplete, undefined);
+        ch.channel = channel;
+        var actions = ch.actions;
+        if (actions) {
+            for (var i = 0; i < actions.length; i++) {
+                var action = actions[i];
+                action[0].apply(null, action[1]);
+            }
+            delete ch.actions;
+        }
+    }
+    function onComplete(e) {
+        var channel = e.currentTarget;
+        filterPlaying(function (ch) { return ch.channel != channel; });
+    }
+    function getSound(url) {
+        var sound = soundsDict[url];
+        if (!sound) {
+            soundsDict[url] = sound = { url: url, sound: undefined, state: 1 /* REQUESTING */ };
+            RES.getResByUrl(url, function (eSound) {
+                if (eSound) {
+                    sound.sound = eSound;
+                    sound.state = 2 /* COMPLETE */;
+                    var promises = sound.promises;
+                    if (promises) {
+                        delete sound.promises;
+                        //检查所有启动的声音，是否已经达到超时时间
+                        var now = junyou.Global.now;
+                        for (var i = 0, len = promises.length; i < len; i++) {
+                            var id = promises[i];
+                            var ch = playings[id];
+                            if (ch) {
+                                var option = ch.option;
+                                if (option) {
+                                    delete ch.option;
+                                    var delta = now - option.playStart;
+                                    if (delta < option.timeout) {
+                                        var startTime = option.startTime + delta;
+                                        startChannel(sound, ch, startTime, option.loop);
+                                    }
+                                    else {
+                                        delete playings[id];
                                     }
                                 }
                             }
                         }
                     }
-                    else {
-                        delete sound.promises;
-                        sound.state = -1 /* FAILED */;
-                        //销毁所有相同url，正在播放的channel
-                        filterPlaying(function (channel) { return channel.url != url; });
-                    }
-                }, null, "sound");
-                // let eSound = new egret.Sound();
-                // soundsDict[url] = sound = { url, sound: eSound, state: RequestState.REQUESTING };
-                // eSound.load(url);
-                // (eSound as egret.EventDispatcher).on(EgretEvent.COMPLETE, soundComplete);
-                // (eSound as egret.EventDispatcher).on(EgretEvent.IO_ERROR, soundError);
-            }
-            return sound;
+                }
+                else {
+                    delete sound.promises;
+                    sound.state = -1 /* FAILED */;
+                    //销毁所有相同url，正在播放的channel
+                    filterPlaying(function (channel) { return channel.url != url; });
+                }
+            }, null, "sound" /* TYPE_SOUND */);
+            // let eSound = new egret.Sound();
+            // soundsDict[url] = sound = { url, sound: eSound, state: RequestState.REQUESTING };
+            // eSound.load(url);
+            // (eSound as egret.EventDispatcher).on(EgretEvent.COMPLETE, soundComplete);
+            // (eSound as egret.EventDispatcher).on(EgretEvent.IO_ERROR, soundError);
         }
-        // function soundComplete(e: egret.Event) {
-        //     let eSound = e.currentTarget;
-        //     let sound = soundsDict[eSound.url];
-        //     if (sound) {
-        //         sound.state = RequestState.COMPLETE;
-        //         let promises = sound.promises;
-        //         if (promises) {
-        //             sound.promises = undefined;
-        //             //检查所有启动的声音，是否已经达到超时时间
-        //             let now = Global.now;
-        //             for (let i = 0, len = promises.length; i < len; i++) {
-        //                 let id = promises[i];
-        //                 let ch = playings[id];
-        //                 if (ch) {//没有id的说明已经被移除
-        //                     let option = ch.option;
-        //                     if (option) {
-        //                         ch.option = undefined;
-        //                         let delta = now - option.playStart;
-        //                         if (delta < option.timeout) {
-        //                             let startTime = option.startTime + delta;
-        //                             startChannel(sound, ch, startTime, option.loop);
-        //                         } else {
-        //                             delete playings[id];
-        //                         }
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
-        // function soundError(e: egret.Event) {
-        //     let eSound = e.currentTarget;
-        //     let url = eSound.url;
-        //     let sound = soundsDict[url];
-        //     if (sound) {
-        //         //销毁所有相同url，正在播放的channel
-        //         filterPlaying(channel => channel.url != url);
-        //     }
-        // }
-        function filterPlaying(filter, doBreak) {
-            for (var id in playings) {
-                var channel = playings[id];
-                if (!filter(channel)) {
-                    delete playings[id];
-                    if (doBreak) {
-                        break;
-                    }
+        return sound;
+    }
+    // function soundComplete(e: egret.Event) {
+    //     let eSound = e.currentTarget;
+    //     let sound = soundsDict[eSound.url];
+    //     if (sound) {
+    //         sound.state = RequestState.COMPLETE;
+    //         let promises = sound.promises;
+    //         if (promises) {
+    //             sound.promises = undefined;
+    //             //检查所有启动的声音，是否已经达到超时时间
+    //             let now = Global.now;
+    //             for (let i = 0, len = promises.length; i < len; i++) {
+    //                 let id = promises[i];
+    //                 let ch = playings[id];
+    //                 if (ch) {//没有id的说明已经被移除
+    //                     let option = ch.option;
+    //                     if (option) {
+    //                         ch.option = undefined;
+    //                         let delta = now - option.playStart;
+    //                         if (delta < option.timeout) {
+    //                             let startTime = option.startTime + delta;
+    //                             startChannel(sound, ch, startTime, option.loop);
+    //                         } else {
+    //                             delete playings[id];
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+    // function soundError(e: egret.Event) {
+    //     let eSound = e.currentTarget;
+    //     let url = eSound.url;
+    //     let sound = soundsDict[url];
+    //     if (sound) {
+    //         //销毁所有相同url，正在播放的channel
+    //         filterPlaying(channel => channel.url != url);
+    //     }
+    // }
+    function filterPlaying(filter, doBreak) {
+        for (var id in playings) {
+            var channel = playings[id];
+            if (!filter(channel)) {
+                delete playings[id];
+                if (doBreak) {
+                    break;
                 }
             }
         }
-    })();
+    }
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -8882,100 +8908,98 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    junyou.TimerUtil = (function () {
-        var _timeobj = {};
-        var tmpList = [];
-        var willDeleted = [];
-        return { addCallback: addCallback, removeCallback: removeCallback, tick: tick };
-        function tick(now) {
-            var d = 0;
-            for (var key in _timeobj) {
-                var timer = _timeobj[key];
-                if (timer.nt < now) {
-                    timer.nt = now + timer.tid;
-                    var list = timer.list;
-                    var len = list.length;
-                    if (len > 0) {
-                        for (var i = 0; i < len; i++) {
-                            tmpList[i] = list[i];
-                        }
-                        for (var i = 0; i < len; i++) {
-                            tmpList[i].execute(false);
-                        }
-                    }
-                    len = list.length;
-                    if (len == 0) {
-                        willDeleted[d++] = key;
-                    }
-                }
-            }
-            for (var i = 0; i < d; i++) {
-                delete _timeobj[willDeleted[i]];
-            }
-        }
-        function getInterval(time) {
-            return Math.ceil(time / 10) * 10;
-        }
-        /**
-         *
-         * 注册回调
-         * @static
-         * @param {number} time 回调的间隔时间，间隔时间会处理成30的倍数，向上取整，如 设置1ms，实际间隔为30ms，32ms，实际间隔会使用60ms
-         * @param {Function} callback 回调函数，没有加this指针是因为做移除回调的操作会比较繁琐，如果函数中需要使用this，请通过箭头表达式()=>{}，或者将this放arg中传入
-         * @param {any} [thisObj] 回调函数的`this`对象，不传值则使用全局上下文即window
-         * @param {any} args 回调函数的参数
-         */
-        function addCallback(time, callback, thisObj) {
-            var args = [];
-            for (var _i = 3; _i < arguments.length; _i++) {
-                args[_i - 3] = arguments[_i];
-            }
-            time = getInterval(time);
-            var timer = _timeobj[time];
-            if (!timer) {
-                timer = {};
-                timer.tid = time; //setInterval(check, time, timer);
-                timer.nt = junyou.Global.now + time;
-                var list = [];
-                timer.list = list;
-                _timeobj[time] = timer;
-                list.push(junyou.CallbackInfo.get.apply(junyou.CallbackInfo, [callback, thisObj].concat(args)));
-            }
-            else {
-                junyou.CallbackInfo.addToList.apply(junyou.CallbackInfo, [timer.list, callback, thisObj].concat(args));
-            }
-        }
-        /**
-         * 移除回调
-         *
-         * @static
-         * @param {number} time         回调的间隔时间，间隔时间会处理成30的倍数，向上取整，如 设置1ms，实际间隔为30ms，32ms，实际间隔会使用60ms
-         * @param {Function} callback   回调函数，没有加this指针是因为做移除回调的操作会比较繁琐，如果函数中需要使用this，请通过箭头表达式()=>{}，或者将this放arg中传入
-         * @param {*} [thisObj]         回调函数的`this`对象
-         */
-        function removeCallback(time, callback, thisObj) {
-            time = getInterval(time);
-            var timer = _timeobj[time];
-            if (timer) {
+    var _timeobj = {};
+    var tmpList = [];
+    var willDeleted = [];
+    function tick(now) {
+        var d = 0;
+        for (var key in _timeobj) {
+            var timer = _timeobj[key];
+            if (timer.nt < now) {
+                timer.nt = now + timer.tid;
                 var list = timer.list;
-                var j = -1;
-                for (var i = 0, len = list.length; i < len; i++) {
-                    var info = list[i];
-                    if (info.checkHandle(callback, thisObj)) {
-                        j = i;
-                        break;
+                var len = list.length;
+                if (len > 0) {
+                    for (var i = 0; i < len; i++) {
+                        tmpList[i] = list[i];
+                    }
+                    for (var i = 0; i < len; i++) {
+                        tmpList[i].execute(false);
                     }
                 }
-                if (~j) {
-                    list.splice(j, 1);
-                }
-                if (!list.length) {
-                    clearInterval(timer.tid);
-                    delete _timeobj[time];
+                len = list.length;
+                if (len == 0) {
+                    willDeleted[d++] = key;
                 }
             }
         }
-    })();
+        for (var i = 0; i < d; i++) {
+            delete _timeobj[willDeleted[i]];
+        }
+    }
+    function getInterval(time) {
+        return Math.ceil(time / 10) * 10;
+    }
+    /**
+     *
+     * 注册回调
+     * @static
+     * @param {number} time 回调的间隔时间，间隔时间会处理成30的倍数，向上取整，如 设置1ms，实际间隔为30ms，32ms，实际间隔会使用60ms
+     * @param {Function} callback 回调函数，没有加this指针是因为做移除回调的操作会比较繁琐，如果函数中需要使用this，请通过箭头表达式()=>{}，或者将this放arg中传入
+     * @param {any} [thisObj] 回调函数的`this`对象，不传值则使用全局上下文即window
+     * @param {any} args 回调函数的参数
+     */
+    function addCallback(time, callback, thisObj) {
+        var args = [];
+        for (var _i = 3; _i < arguments.length; _i++) {
+            args[_i - 3] = arguments[_i];
+        }
+        time = getInterval(time);
+        var timer = _timeobj[time];
+        if (!timer) {
+            timer = {};
+            timer.tid = time; //setInterval(check, time, timer);
+            timer.nt = junyou.Global.now + time;
+            var list = [];
+            timer.list = list;
+            _timeobj[time] = timer;
+            list.push(junyou.CallbackInfo.get.apply(junyou.CallbackInfo, [callback, thisObj].concat(args)));
+        }
+        else {
+            junyou.CallbackInfo.addToList.apply(junyou.CallbackInfo, [timer.list, callback, thisObj].concat(args));
+        }
+    }
+    /**
+     * 移除回调
+     *
+     * @static
+     * @param {number} time         回调的间隔时间，间隔时间会处理成30的倍数，向上取整，如 设置1ms，实际间隔为30ms，32ms，实际间隔会使用60ms
+     * @param {Function} callback   回调函数，没有加this指针是因为做移除回调的操作会比较繁琐，如果函数中需要使用this，请通过箭头表达式()=>{}，或者将this放arg中传入
+     * @param {*} [thisObj]         回调函数的`this`对象
+     */
+    function removeCallback(time, callback, thisObj) {
+        time = getInterval(time);
+        var timer = _timeobj[time];
+        if (timer) {
+            var list = timer.list;
+            var j = -1;
+            for (var i = 0, len = list.length; i < len; i++) {
+                var info = list[i];
+                if (info.checkHandle(callback, thisObj)) {
+                    j = i;
+                    break;
+                }
+            }
+            if (~j) {
+                list.splice(j, 1);
+            }
+            if (!list.length) {
+                clearInterval(timer.tid);
+                delete _timeobj[time];
+            }
+        }
+    }
+    junyou.TimerUtil = { addCallback: addCallback, removeCallback: removeCallback, tick: tick };
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -9015,136 +9039,152 @@ var $dirty;
 var junyou;
 (function (junyou) {
     /**
+     * 初始化屏蔽字
+     * @param str   使用特定符号分隔的脏字列表
+     * @param split 分隔符
+     *
+     */
+    function initFilterstring(str, split) {
+        var arr = str.split(split);
+        _len = arr.length;
+        //每个正则，至少会增加 (?: )|，如果出现  \/*().?|+\-$\^=:!@| 这些字符，还会增加[]，如果出现\还会增加更多
+        //按每个长度  5 + 2来处理
+        var guessedLength = str.length + _len * 7;
+        var p = /([\/*().?|+\-$\^=:!@])/g;
+        var p2 = /([\\\[\]])/g;
+        var t, i;
+        if (guessedLength < 32768) {
+            var l = _len - 1;
+            var s = "(?:"; //必须加?:作为非捕获分组，否则分组会超过99个上限，最终导致无法replace
+            for (i = 0; i < l; i++) {
+                t = arr[i];
+                if (t) {
+                    t = t.replace(p2, "[\\$1]");
+                    t = t.replace(p, "[$1]");
+                    s += t + ")|(?:";
+                }
+            }
+            t = arr[l];
+            t = t.replace(p2, "[\\$1]");
+            t = t.replace(p, "[$1]");
+            s += t + ")|[|]";
+            if (s.length < 32768) {
+                filterWords = new RegExp(s, "g");
+                junyou.WordFilter.wordCensor = wordCensor1;
+                junyou.WordFilter.checkWord = checkWord1;
+                return;
+            }
+        } //超过长度的采用方案2
+        _filterList = new Array(_len + 1);
+        for (i = 0; i < _len; i++) {
+            t = arr[i];
+            t = t.replace(p2, "[\\$1]");
+            t = t.replace(p, "[$1]");
+            _filterList[i] = new RegExp(t, "g");
+        }
+        //| 一般我们特殊用途，也加入屏蔽字符
+        _filterList[i] = new RegExp("[|]", "g");
+        _len = _len + 1;
+        junyou.WordFilter.wordCensor = wordCensor2;
+        junyou.WordFilter.checkWord = checkWord2;
+    }
+    //正常版
+    function wordCensor1(msg) {
+        return msg.replace(filterWords, replaceDirty);
+    }
+    function checkWord1(msg) {
+        return filterWords.test(msg);
+    }
+    //_filterList 版
+    function wordCensor2(msg) {
+        for (var i = 0; i < _len; i++) {
+            msg = msg.replace(_filterList[i], replaceDirty);
+        }
+        return msg;
+    }
+    function checkWord2(msg) {
+        for (var i = 0; i < _len; i++) {
+            _filterList[i].lastIndex = 0;
+            if (_filterList[i].test(msg)) {
+                return true;
+            }
+        }
+    }
+    /**
+     * 将字符替换成*
+     * @param substring 子字符串
+     * @return
+     *
+     */
+    var replaceDirty = function (substring) {
+        var len = substring.length;
+        var result = "";
+        while (len--) {
+            result += "*";
+        }
+        return result;
+    };
+    /**
+     * 如果超过正则表达式长度，使用的数组
+     */
+    var _filterList;
+    /**
+     * 昵称的过滤数组，没有加载到数据时使用
+     */
+    var filterWords = /卐|妓|婊|尻|屄|屌|睾|肏|[|]/g;
+    /**
+     * 长度
+     */
+    var _len;
+    /**
      * 文字过滤
      * @author 3tion
      */
-    var WordFilter = (function () {
-        function WordFilter() {
-        }
+    junyou.WordFilter = {
         /**
          * 由于脏字文件使用ajax读取，可能存在跨域问题，所以在H5中使用javascript方式加载
          */
-        WordFilter.loadDirtyWord = function (url) {
+        loadDirtyWord: function (url, split) {
+            if (split === void 0) { split = ";"; }
             junyou.loadScript(url, function () {
                 if ($dirty) {
-                    WordFilter.initFilterstring($dirty, ";");
+                    initFilterstring($dirty, split);
                     // 清理脏字原始数据
                     $dirty = undefined;
                 }
             });
-        };
+        },
         /**
          * 初始化屏蔽字
          * @param str   使用特定符号分隔的脏字列表
          * @param split 分隔符
          *
          */
-        WordFilter.initFilterstring = function (str, split) {
-            var arr = str.split(split);
-            var _len = arr.length;
-            WordFilter._len = _len;
-            //每个正则，至少会增加 (?: )|，如果出现  \/*().?|+\-$\^=:!@| 这些字符，还会增加[]，如果出现\还会增加更多
-            //按每个长度  5 + 2来处理
-            var guessedLength = str.length + _len * 7;
-            var p = /([\/*().?|+\-$\^=:!@])/g;
-            var p2 = /([\\\[\]])/g;
-            var t, i;
-            if (guessedLength < 32768) {
-                var l = _len - 1;
-                var s = "(?:"; //必须加?:作为非捕获分组，否则分组会超过99个上限，最终导致无法replace
-                for (i = 0; i < l; i++) {
-                    t = arr[i];
-                    if (t) {
-                        t = t.replace(p2, "[\\$1]");
-                        t = t.replace(p, "[$1]");
-                        s += t + ")|(?:";
-                    }
-                }
-                t = arr[l];
-                t = t.replace(p2, "[\\$1]");
-                t = t.replace(p, "[$1]");
-                s += t + ")|[|]";
-                if (s.length < 32768) {
-                    WordFilter.filterWords = new RegExp(s, "g");
-                    return;
-                }
-            } //超过长度的采用方案2
-            WordFilter._filterList = new Array(_len + 1);
-            var _filterList = WordFilter._filterList;
-            for (i = 0; i < _len; i++) {
-                t = arr[i];
-                t = t.replace(p2, "[\\$1]");
-                t = t.replace(p, "[$1]");
-                _filterList[i] = new RegExp(t, "g");
-            }
-            //| 一般我们特殊用途，也加入屏蔽字符
-            _filterList[i] = new RegExp("[|]", "g");
-            _len = _len + 1;
-        };
+        initFilterstring: initFilterstring,
         /**
          * 将敏感词替换为**
          * @param msg	要检测的文字
          * @return
          *
          */
-        WordFilter.wordCensor = function (msg) {
-            var _filterList = WordFilter._filterList;
-            var _len = WordFilter._len;
-            var replaceDirty = WordFilter.replaceDirty;
-            if (_filterList) {
-                for (var i = 0; i < _len; i++) {
-                    msg = msg.replace(_filterList[i], replaceDirty);
-                }
-                return msg;
-            }
-            //正常版
-            return msg.replace(WordFilter.filterWords, replaceDirty);
-        };
+        wordCensor: wordCensor1,
+        /**
+         * 设置 将字符替换成* 的函数
+         * @param substring 子字符串
+         * @return
+         *
+         */
+        setDirtyHandler: function (handler) {
+            replaceDirty = handler;
+        },
         /**
          * 是否有敏感词
          * @param msg	要检测的文字
          * @return 		true为有敏感词，false为没有敏感词
          *
          */
-        WordFilter.checkWord = function (msg) {
-            var _filterList = WordFilter._filterList;
-            if (_filterList) {
-                var _len = WordFilter._len;
-                for (var i = 0; i < _len; i++) {
-                    _filterList[i].lastIndex = 0;
-                    if (_filterList[i].test(msg)) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-            var filterWords = WordFilter.filterWords;
-            filterWords.lastIndex = 0;
-            //正常版
-            return filterWords.test(msg);
-        };
-        /**
-         * 昵称的过滤数组，没有加载到数据时使用
-         */
-        WordFilter.filterWords = /卐|妓|婊|尻|屄|屌|睾|肏|[|]/g;
-        /**
-         * 将字符替换成*
-         * @param substring 子字符串
-         * @return
-         *
-         */
-        WordFilter.replaceDirty = function (substring) {
-            var len = substring.length;
-            var result = "";
-            while (len--) {
-                result += "*";
-            }
-            return result;
-        };
-        return WordFilter;
-    }());
-    junyou.WordFilter = WordFilter;
-    __reflect(WordFilter.prototype, "junyou.WordFilter");
+        checkWord: checkWord1,
+    };
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -12330,6 +12370,28 @@ var junyou;
     }());
     junyou.ScreenShakeManager = ScreenShakeManager;
     __reflect(ScreenShakeManager.prototype, "junyou.ScreenShakeManager");
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 带坐骑动作的UnitAction基类
+     * @author 3tion
+     */
+    var MUnitAction = (function (_super) {
+        __extends(MUnitAction, _super);
+        function MUnitAction() {
+            return _super.call(this) || this;
+        }
+        MUnitAction.prototype.getAction = function (mountType) {
+            if (mountType in this.actions) {
+                return this.actions[mountType];
+            }
+            return junyou.UnitAction.defaultAction;
+        };
+        return MUnitAction;
+    }(junyou.UnitAction));
+    junyou.MUnitAction = MUnitAction;
+    __reflect(MUnitAction.prototype, "junyou.MUnitAction");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -22256,26 +22318,4 @@ var junyou;
     }());
     junyou.TweenManager = TweenManager;
     __reflect(TweenManager.prototype, "junyou.TweenManager");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * 带坐骑动作的UnitAction基类
-     * @author 3tion
-     */
-    var MUnitAction = (function (_super) {
-        __extends(MUnitAction, _super);
-        function MUnitAction() {
-            return _super.call(this) || this;
-        }
-        MUnitAction.prototype.getAction = function (mountType) {
-            if (mountType in this.actions) {
-                return this.actions[mountType];
-            }
-            return junyou.UnitAction.defaultAction;
-        };
-        return MUnitAction;
-    }(junyou.UnitAction));
-    junyou.MUnitAction = MUnitAction;
-    __reflect(MUnitAction.prototype, "junyou.MUnitAction");
 })(junyou || (junyou = {}));

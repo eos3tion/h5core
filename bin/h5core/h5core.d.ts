@@ -811,6 +811,18 @@ declare module junyou {
         SharedArray1: any[];
         SharedArray2: any[];
         SharedArray3: any[];
+        SharedRect1: {
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+        };
+        SharedRect2: {
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+        };
         EgretPoint: egret.Point;
         EgretRectangle: egret.Rectangle;
         SharedPoint1: {
@@ -4591,6 +4603,17 @@ declare module junyou {
     };
 }
 declare module junyou {
+    /**
+     * 拷贝到剪贴板中
+     *
+     * @author gushuai
+     * @export
+     * @param {string} str
+     * @returns
+     */
+    function doCopy(str: string): boolean;
+}
+declare module junyou {
     const DataUrlUtils: {
         getBase64: (dataUrl: string) => string;
         getBytes: (dataUrl: string) => Uint8Array;
@@ -4642,15 +4665,11 @@ declare module junyou {
     function getArea(points: Point[]): number;
 }
 declare module junyou {
-    /**
-     * HTML工具类
-     * @author 3tion
-     */
     const HTMLUtil: {
         createColorHtml(value: string | number, color: string | number): string;
         clearHtml(value: string): string;
-        escapeHTML(content: string): string;
-        unescapeHTML(content: string): string;
+        escHTML(content: string): string;
+        unescHTML(content: string): string;
     };
 }
 declare module junyou {
@@ -4929,52 +4948,13 @@ declare module junyou {
      * 文字过滤
      * @author 3tion
      */
-    class WordFilter {
-        /**
-         * 由于脏字文件使用ajax读取，可能存在跨域问题，所以在H5中使用javascript方式加载
-         */
-        static loadDirtyWord(url: string): void;
-        /**
-         * 初始化屏蔽字
-         * @param str   使用特定符号分隔的脏字列表
-         * @param split 分隔符
-         *
-         */
-        static initFilterstring(str: string, split: string): void;
-        /**
-         * 昵称的过滤数组，没有加载到数据时使用
-         */
-        static filterWords: RegExp;
-        /**
-         * 如果超过正则表达式长度，使用的数组
-         */
-        private static _filterList;
-        /**
-         * 长度
-         */
-        private static _len;
-        /**
-         * 将敏感词替换为**
-         * @param msg	要检测的文字
-         * @return
-         *
-         */
-        static wordCensor(msg: string): string;
-        /**
-         * 将字符替换成*
-         * @param substring 子字符串
-         * @return
-         *
-         */
-        static replaceDirty: (substring: any) => string;
-        /**
-         * 是否有敏感词
-         * @param msg	要检测的文字
-         * @return 		true为有敏感词，false为没有敏感词
-         *
-         */
-        static checkWord(msg: string): boolean;
-    }
+    const WordFilter: {
+        loadDirtyWord(url: string, split?: string): void;
+        initFilterstring: (str: string, split: string) => void;
+        wordCensor: (msg: string) => string;
+        setDirtyHandler(handler: (substring: string) => string): void;
+        checkWord: (msg: string) => boolean;
+    };
 }
 declare module junyou {
     /**
@@ -7221,22 +7201,6 @@ declare module junyou {
         y: number;
     }
 }
-declare module junyou {
-    /**
-     * 动作状态的结果
-     * @author 3tion
-     */
-    interface IUnitActionInfo {
-        /**
-         * 坐骑序列
-         */
-        mountType: MountType;
-        /**
-         * 动作参数
-         */
-        action: number;
-    }
-}
 declare const enum StatsState {
     /**
      *游戏初始完成
@@ -7262,6 +7226,25 @@ declare const enum StatsState {
      *角色登陆完成
      */
     ROLE_LOGIN_COMPLETE = 9,
+}
+declare module junyou {
+    /**
+     * 带坐骑动作的UnitAction基类
+     * @author 3tion
+     */
+    class MUnitAction extends UnitAction {
+        /**
+         * 动作序列<br/>
+         * 如果没有对应动作，Unit，强制使用有动作的坐骑类型，并切换动作
+         * Key      MountType<br/>
+         * Value    动作的唯一标识<br/>
+         */
+        protected actions: {
+            [index: number]: IUnitActionInfo;
+        };
+        constructor();
+        getAction(mountType: MountType): IUnitActionInfo;
+    }
 }
 declare module junyou {
     /**
@@ -12863,20 +12846,17 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     * 带坐骑动作的UnitAction基类
+     * 动作状态的结果
      * @author 3tion
      */
-    class MUnitAction extends UnitAction {
+    interface IUnitActionInfo {
         /**
-         * 动作序列<br/>
-         * 如果没有对应动作，Unit，强制使用有动作的坐骑类型，并切换动作
-         * Key      MountType<br/>
-         * Value    动作的唯一标识<br/>
+         * 坐骑序列
          */
-        protected actions: {
-            [index: number]: IUnitActionInfo;
-        };
-        constructor();
-        getAction(mountType: MountType): IUnitActionInfo;
+        mountType: MountType;
+        /**
+         * 动作参数
+         */
+        action: number;
     }
 }
