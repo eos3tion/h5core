@@ -144,6 +144,16 @@ interface Math {
      * 从最小值到最大值之间随机[min,max)
      */
     random2(min: number, max: number): number;
+
+    /**
+     * 从中间值的正负差值 之间随机 [center-delta,center+delta) 
+     * 
+     * @param {number} center 
+     * @param {number} delta 
+     * @returns {number} 
+     * @memberof Math
+     */
+    random3(center: number, delta: number): number;
     /**
      * 角度转弧度的乘数  
      * Math.PI / 180
@@ -189,6 +199,10 @@ Math.clamp = (value, min, max) => {
 
 Math.random2 = (min, max) => {
     return min + Math.random() * (max - min);
+}
+
+Math.random3 = (center, delta) => {
+    return center - delta + Math.random() * 2 * delta;
 }
 
 /****************************************扩展Number********************************************/
