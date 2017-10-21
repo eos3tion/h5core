@@ -421,7 +421,7 @@ module junyou {
         }
 
         public set selectedIndex(value: number) {
-            if (this._selectedIndex == value) return;
+            if (this._selectedIndex == value && value >= 0) return;
             if (value < 0) {
                 if (this._selectedItem) {
                     this._selectedItem.selected = false;

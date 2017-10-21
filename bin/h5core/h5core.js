@@ -2383,7 +2383,7 @@ var junyou;
                 return this._selectedIndex;
             },
             set: function (value) {
-                if (this._selectedIndex == value)
+                if (this._selectedIndex == value && value >= 0)
                     return;
                 if (value < 0) {
                     if (this._selectedItem) {
