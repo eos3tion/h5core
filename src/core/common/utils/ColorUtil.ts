@@ -9,7 +9,24 @@ module junyou {
         Red = 0xff0000,
         Green = 0xff00,
         Yellow = 0xffff00,
-        White = 0xffffff
+        White = 0xffffff,
+
+        Gray = 0xcccccc,
+    }
+    /**
+     * 常用的颜色字符串常量
+     * 
+     * @export
+     * @enum {string}
+     */
+    export const enum ColorString {
+        Red = "#ff0000",
+        Green = "#00ff00",
+
+        Yellow = "#ffff00",
+        White = "#ffffff",
+
+        Gray = "#cccccc",
     }
 	/**
 	 * 颜色工具
