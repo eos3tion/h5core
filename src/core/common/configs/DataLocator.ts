@@ -98,12 +98,14 @@ module junyou {
             delete junyou.DataLocator;
         },
         /**
+         * 
          * 注册通过H5ExcelTool导出的数据并且有唯一标识的使用此方法注册
-         * @param {string}              key             数据的标识
-         * @param {{ new (): ICfg }}    CfgCreator      配置的类名
-         * @param {string}              [idkey="id"]    唯一标识
+         * @param {keyof CfgData} key 数据的标识
+         * @param {(Creator<any> | 0)} CfgCreator 配置的类名
+         * @param {(string | 0)} [idkey="id"] 唯一标识 0用于标识数组
+         * @param {CfgDataType} [type] 
          */
-        regCommonParser(key: keyof CfgData, CfgCreator: Creator<any> | 0, idkey = "id", type?: CfgDataType) {
+        regCommonParser(key: keyof CfgData, CfgCreator: Creator<any> | 0, idkey: string | 0 = "id", type?: CfgDataType) {
             regParser(key, (data: any[]): any => {
                 if (!data) return;
                 let dict, forEach: { (t: any, idx: number, key: string, dict: any, idkey: string) };
@@ -115,7 +117,7 @@ module junyou {
                         hasLocal = 1;
                     }
                 }
-                if (idkey == "") {
+                if (idkey == "" || idkey == 0) {
                     type = CfgDataType.Array;
                 } else if (!type) {
                     type = CfgDataType.Dictionary;
@@ -149,7 +151,7 @@ module junyou {
                                 ins[name] = v;
                             }
                         }
-                        forEach(ins, i - 1, key, dict, idkey);
+                        forEach(ins, i - 1, key, dict, idkey as string);
                         if (typeof ins.decode === "function") {
                             ins.decode(local);
                         }
@@ -237,17 +239,15 @@ module junyou {
             let id = t[idKey];
             if (DEBUG) {
                 if (typeof id === "object") {
-                    ThrowError(`配置${key}的数据有误，唯一标识${idKey}不能为对象`);
+                    Log(`配置${key}的数据有误，唯一标识${idKey}不能为对象`);
                 }
                 if (id in dict) {
-                    ThrowError(`配置${key}的数据有误，唯一标识${idKey}有重复值：${id}`);
+                    Log(`配置${key}的数据有误，唯一标识${idKey}有重复值：${id}`);
                 }
             }
             dict[id] = t;
-        } else {
-            if (DEBUG) {
-                ThrowError(`配置${key}解析有误，无法找到指定的唯一标示：${idKey}，数据索引：${idx}`);
-            }
+        } else if (DEBUG) {
+            Log(`配置${key}解析有误，无法找到指定的唯一标示：${idKey}，数据索引：${idx}`);
         }
     }
 
