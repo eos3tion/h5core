@@ -126,7 +126,7 @@ module junyou {
                 return def;
             }
         }
-        let f: FrameInfo = DataParseUtil.getData(data, keys, def);
+        let f: FrameInfo = DataUtils.getData(data, keys, def);
         if (+f.e == 0) {
             f.e = undefined;
         }
@@ -160,6 +160,7 @@ module junyou {
         return aInfo;
     }
 
+    let customActionKey = -0.5;// 使用0.5 防止和手动加的key重复
     /**
      * 获取自定义动作
      * 如果无法获取对应属性的数据，会使用默认值代替  
@@ -169,18 +170,15 @@ module junyou {
      * @param {number} [key] 动作标识，需要使用整数
      * @return {CustomAction}   自定义动作
      */
-    export const getCustomAction = (function () {
-        let _key: number = -0.5;// 使用0.5 防止和手动加的key重复
-        return function (actions: any[], key?: number): ActionInfo {
-            key = key || _key--;
-            let frames = [];
-            let totalTime = 0;
-            for (let i = 0; i < actions.length; i++) {
-                let frame = getFrameInfo(actions[i]);
-                frames[i++] = frame;
-                totalTime += frame.t;
-            }
-            return { key, frames, totalTime };
+    export function getCustomAction(actions: any[], key?: number): ActionInfo {
+        key = key || customActionKey--;
+        let frames = [];
+        let totalTime = 0;
+        for (let i = 0; i < actions.length; i++) {
+            let frame = getFrameInfo(actions[i]);
+            frames[i++] = frame;
+            totalTime += frame.t;
         }
-    })();
+        return { key, frames, totalTime };
+    }
 }

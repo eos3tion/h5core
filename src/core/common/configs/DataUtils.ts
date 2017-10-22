@@ -1,11 +1,28 @@
 module junyou {
 
+
+    /**
+     * 从数据集中获取key-value的数据
+     * @param valueList 数据集合
+     * @param keyList   属性列表
+     */
+    function getData(valueList: any[], keyList: string[], o?: Object): any {
+        o = o || {};
+        for (let i = 0, len = keyList.length; i < len; i++) {
+            let key = keyList[i];
+            let v = valueList[i];
+            if (v != undefined) {
+                o[key] = valueList[i];
+            }
+        }
+        return o;
+    }
     /**
      *
      * @author 君游项目解析工具
      *
      */
-    export const DataParseUtil = {
+    export const DataUtils = {
 
         /**
         * 将配置from中 type		data1	data2	data3	data4...这些配置，解析存储到<br/>
@@ -33,7 +50,7 @@ module junyou {
         * @param toDatasKey		      配置的数值存储的数据的数组属性名，上例为 <b><font color="#ff0000">datas</font></b>
         *
         */
-        parseDatas: function (to: Object, from: Object, checkStart: number, checkEnd: number, dataKey: string, typeKey: string, toDatasKey: string): void {
+        parseDatas(to: Object, from: Object, checkStart: number, checkEnd: number, dataKey: string, typeKey: string, toDatasKey: string): void {
             var arr: any[];
             for (var i = checkStart; i <= checkEnd; i++) {
                 var key: string = dataKey + i;
@@ -82,7 +99,7 @@ module junyou {
         * @param {string} typeKey      数据源/配置的 类型 上例为 <b><font color="#ff0000">type</font></b>
         * @param {string} toDatasKey   配置的数值存储的数据的数组属性名，上例为 <b><font color="#ff0000">datas</font></b>
         */
-        parseDatas2: function (to: any, valueList: any[], keyList: string[], checkStart: number, checkEnd: number, dataKey: string, typeKey: string, toDatasKey: string): void {
+        parseDatas2(to: any, valueList: any[], keyList: string[], checkStart: number, checkEnd: number, dataKey: string, typeKey: string, toDatasKey: string): void {
             let arr: any[];
             for (var i = checkStart; i <= checkEnd; i++) {
                 var key: string = dataKey + i;
@@ -106,24 +123,7 @@ module junyou {
                 to[toDatasKey] = arr;
             }
         },
-
-
-        /**
-         * 从数据集中获取key-value的数据
-         * @param valueList 数据集合
-         * @param keyList   属性列表
-         */
-        getData: function (valueList: any[], keyList: string[], o?: Object): any {
-            o = o || {};
-            for (let i = 0, len = keyList.length; i < len; i++) {
-                let key = keyList[i];
-                let v = valueList[i];
-                if (v != undefined) {
-                    o[key] = valueList[i];
-                }
-            }
-            return o;
-        },
+        getData,
 
 
         /**
@@ -131,12 +131,12 @@ module junyou {
          * @param dataList  数据集合
          * @param keyList   属性列表
          */
-        getDataList: function (dataList: any[][], keyList: string[]): any[] {
+        getDataList(dataList: any[][], keyList: string[]): any[] {
             let list = [];
             if (dataList) {
                 for (let i = 0, len = dataList.length; i < len; i++) {
                     let valueList = dataList[i];
-                    list.push(this.getData(valueList, keyList));
+                    list.push(getData(valueList, keyList));
                 }
             }
             return list;
@@ -151,11 +151,11 @@ module junyou {
          * @param thisObj
          * @param args
          */
-        parseDataList: function (dataList: any[][], keyList: string[], forEach: { (t: Object, args: any[], idx?: number) }, thisObj: any, ...args) {
+        parseDataList(dataList: any[][], keyList: string[], forEach: { (t: Object, args: any[], idx?: number) }, thisObj: any, ...args) {
             if (dataList) {
                 for (let i = 0, len = dataList.length; i < len; i++) {
                     let valueList = dataList[i];
-                    let to = this.getData(valueList, keyList);
+                    let to = getData(valueList, keyList);
                     forEach.call(thisObj, to, args, i);
                 }
             }
@@ -167,7 +167,7 @@ module junyou {
          * @param valueList     值列表
          * @param keyList       属性列表
          */
-        copyData: function <T>(to: T, valueList: any[], keyList: string[]) {
+        copyData<T>(to: T, valueList: any[], keyList: string[]) {
             for (let i = 0, len = keyList.length; i < len; i++) {
                 let key = keyList[i];
                 to[key] = valueList[i];
@@ -185,7 +185,7 @@ module junyou {
          * @param thisObj
          * @param args
          */
-        copyDataList: function <T>(creator: { new (): T }, dataList: any[][], keyList: string[], forEach: { (t: T, args: any[], idx?: number) }, thisObj: any, ...args) {
+        copyDataList<T>(creator: { new(): T }, dataList: any[][], keyList: string[], forEach: { (t: T, args: any[], idx?: number) }, thisObj: any, ...args) {
             if (dataList) {
                 for (let i = 0, len = dataList.length; i < len; i++) {
                     let valueList = dataList[i];
@@ -195,33 +195,6 @@ module junyou {
                 }
             }
         },
-
-        // /**
-        //  * 从H5ExcelTool生成的配置使用此方法解析
-        //  * 
-        //  * @static
-        //  * @template T
-        //  * @param {{ new (): T }} creator 配置实例的创建器
-        //  * @param {any[][]} dataList 数据集
-        //  * @param {{ (t: T, args: any?[], idx?: number):boolean }} [forEach] 如果返回false将不会继续后续的数据解析
-        //  * @param {*} [thisObj] this指针
-        //  * @param args 其他参数
-        //  * @return true 没有数据，或者数据解析完成
-        //  *         false forEach函数有返回false的时候，会跳出循环并返回false
-        //  */
-        // copyDataListForCfg: function <T extends Cfg>(creator: { new (): T }, dataList: any[][], forEach?: { (t: T, args?: any[], idx?: number): boolean }, thisObj?: any, args?: any[]) {
-        //     if (dataList) {
-        //         for (let i = 0, len = dataList.length; i < len; i++) {
-        //             let valueList = dataList[i];
-        //             let to = new creator();
-        //             to.decode(valueList);
-        //             if (forEach && !forEach.call(thisObj, to, args, i)) {
-        //                 return false;
-        //             }
-        //         }
-        //     }
-        //     return true;
-        // }
 
     }
 }

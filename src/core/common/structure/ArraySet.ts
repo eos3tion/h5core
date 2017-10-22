@@ -8,7 +8,7 @@ module junyou {
      * @class ArraySet
      * @template V
      */
-    export class ArraySet<V> {
+    export class ArraySet<V>{
         private _list: V[];
         private _dict: { [index: string]: V };
 
@@ -54,6 +54,7 @@ module junyou {
                 list[i++] = dict[key];
             }
             list.length = i;
+            return this;
         }
 
         /**
@@ -82,18 +83,19 @@ module junyou {
                 }
             }
             rawList.length = i;
+            return this;
         }
 
         /**
          * 
          * 设置数据
          * 
-         * @param {(string | number)} key
+         * @param {Key} key
          * @param {V} value
          * @return {number} 返回值加入到数据中的索引
          * @memberOf ArraySet
          */
-        public set(key: string | number, value: V) {
+        public set(key: Key, value: V) {
             let list = this._list;
             let idx = list.indexOf(value);
             if (idx == -1) {
@@ -107,23 +109,23 @@ module junyou {
         /**
          * 获取数据
          * 
-         * @param {(string | number)} key
+         * @param {Key} key
          * @returns
          * 
          * @memberOf ArraySet
          */
-        public get(key: string | number) {
+        public get(key: Key) {
             return this._dict[key];
         }
 
         /**
          * 根据key移除数据
          * 
-         * @param {(string | number)} key
+         * @param {Key} key
          * 
          * @memberOf ArraySet
          */
-        public delete(key: string | number) {
+        public delete(key: Key) {
             let old = this._dict[key];
             delete this._dict[key];
             if (old) {
