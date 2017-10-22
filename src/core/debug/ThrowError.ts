@@ -31,7 +31,16 @@ module junyou {
             return msg;
         }
     }
-
+    export declare var Log: { (...msg): void }
+    if (DEBUG) {
+        Log = function () {
+            let msg = "%c";
+            for (let i = 0; i < arguments.length; i++) {
+                msg += arguments[i];
+            }
+            console.log(msg, "color:red");
+        }
+    }
 
     /**
     * 在内存中存储报错数据
