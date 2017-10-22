@@ -103,7 +103,7 @@ module junyou {
          * @param {{ new (): ICfg }}    CfgCreator      配置的类名
          * @param {string}              [idkey="id"]    唯一标识
          */
-        regCommonParser(key: keyof CfgData, CfgCreator: Creator<Cfg> | 0, idkey = "id", type?: CfgDataType) {
+        regCommonParser(key: keyof CfgData, CfgCreator: Creator<any> | 0, idkey = "id", type?: CfgDataType) {
             regParser(key, (data: any[]): any => {
                 if (!data) return;
                 let dict, forEach: { (t: any, idx: number, key: string, dict: any, idkey: string) };
@@ -336,24 +336,6 @@ module junyou {
          * 局部变量有数据
          */
         LocalhasData = Local | HasData
-    }
-
-    /**
-     * 通过H5ExcelTool生成的数据
-     * 
-     * @export
-     */
-    export interface Cfg {
-
-        /**
-         * 解析配置
-         * 
-         * @param {*} data
-         * @param {*} [local]   没有接口，但是需要本地赋值的数据
-         * 
-         * @memberOf ICfg
-         */
-        decode?: { (local?: any) };
     }
     /**
      * 附加数据
