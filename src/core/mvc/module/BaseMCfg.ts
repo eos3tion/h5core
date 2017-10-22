@@ -38,9 +38,9 @@ module junyou {
         protected init(from?: any) {
             from = from || this;
             //解析显示限制
-            DataParseUtil.parseDatas(this, from, 0, 3, "showlimit", "showtype", "showlimits");
+            DataUtils.parseDatas(this, from, 0, 3, "showlimit", "showtype", "showlimits");
             //解析功能使用限制
-            DataParseUtil.parseDatas(this, from, 0, 3, "limit", "limittype", "limits");
+            DataUtils.parseDatas(this, from, 0, 3, "limit", "limittype", "limits");
         }
     }
 }
