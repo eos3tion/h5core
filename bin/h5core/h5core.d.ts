@@ -5064,6 +5064,9 @@ declare module junyou {
         MaxCount?: number;
         errorMsg?: string[];
     }
+    var Log: {
+        (...msg): void;
+    };
     /**
      * 抛错
      * @param {string | Error}  msg 描述
@@ -8184,31 +8187,13 @@ declare module junyou {
     let DataLocator: {
         regParser: (key: keyof CfgData, parser: ConfigDataParser) => void;
         parsePakedDatas(): void;
-        regCommonParser(key: keyof CfgData, CfgCreator: 0 | (new () => Cfg) | (() => Cfg), idkey?: string, type?: CfgDataType): void;
+        regCommonParser(key: keyof CfgData, CfgCreator: 0 | Creator<any>, idkey?: string | 0, type?: CfgDataType): void;
     };
     /**
      * 配置数据解析函数
      */
     interface ConfigDataParser {
         (data: any): any;
-    }
-    /**
-     * 通过H5ExcelTool生成的数据
-     *
-     * @export
-     */
-    interface Cfg {
-        /**
-         * 解析配置
-         *
-         * @param {*} data
-         * @param {*} [local]   没有接口，但是需要本地赋值的数据
-         *
-         * @memberOf ICfg
-         */
-        decode?: {
-            (local?: any);
-        };
     }
     /**
      * 附加数据

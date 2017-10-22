@@ -9177,6 +9177,15 @@ var junyou;
             return msg;
         }
     }
+    if (true) {
+        junyou.Log = function () {
+            var msg = "%c";
+            for (var i = 0; i < arguments.length; i++) {
+                msg += arguments[i];
+            }
+            console.log(msg, "color:red");
+        };
+    }
     /**
     * 在内存中存储报错数据
     * @param msg
@@ -14062,10 +14071,12 @@ var junyou;
             delete junyou.DataLocator;
         },
         /**
+         *
          * 注册通过H5ExcelTool导出的数据并且有唯一标识的使用此方法注册
-         * @param {string}              key             数据的标识
-         * @param {{ new (): ICfg }}    CfgCreator      配置的类名
-         * @param {string}              [idkey="id"]    唯一标识
+         * @param {keyof CfgData} key 数据的标识
+         * @param {(Creator<any> | 0)} CfgCreator 配置的类名
+         * @param {(string | 0)} [idkey="id"] 唯一标识 0用于标识数组
+         * @param {CfgDataType} [type]
          */
         regCommonParser: function (key, CfgCreator, idkey, type) {
             if (idkey === void 0) { idkey = "id"; }
@@ -14081,7 +14092,7 @@ var junyou;
                         hasLocal = 1;
                     }
                 }
-                if (idkey == "") {
+                if (idkey == "" || idkey == 0) {
                     type = 2 /* Array */;
                 }
                 else if (!type) {
@@ -14199,18 +14210,16 @@ var junyou;
             var id = t[idKey];
             if (true) {
                 if (typeof id === "object") {
-                    junyou.ThrowError("\u914D\u7F6E" + key + "\u7684\u6570\u636E\u6709\u8BEF\uFF0C\u552F\u4E00\u6807\u8BC6" + idKey + "\u4E0D\u80FD\u4E3A\u5BF9\u8C61");
+                    junyou.Log("\u914D\u7F6E" + key + "\u7684\u6570\u636E\u6709\u8BEF\uFF0C\u552F\u4E00\u6807\u8BC6" + idKey + "\u4E0D\u80FD\u4E3A\u5BF9\u8C61");
                 }
                 if (id in dict) {
-                    junyou.ThrowError("\u914D\u7F6E" + key + "\u7684\u6570\u636E\u6709\u8BEF\uFF0C\u552F\u4E00\u6807\u8BC6" + idKey + "\u6709\u91CD\u590D\u503C\uFF1A" + id);
+                    junyou.Log("\u914D\u7F6E" + key + "\u7684\u6570\u636E\u6709\u8BEF\uFF0C\u552F\u4E00\u6807\u8BC6" + idKey + "\u6709\u91CD\u590D\u503C\uFF1A" + id);
                 }
             }
             dict[id] = t;
         }
-        else {
-            if (true) {
-                junyou.ThrowError("\u914D\u7F6E" + key + "\u89E3\u6790\u6709\u8BEF\uFF0C\u65E0\u6CD5\u627E\u5230\u6307\u5B9A\u7684\u552F\u4E00\u6807\u793A\uFF1A" + idKey + "\uFF0C\u6570\u636E\u7D22\u5F15\uFF1A" + idx);
-            }
+        else if (true) {
+            junyou.Log("\u914D\u7F6E" + key + "\u89E3\u6790\u6709\u8BEF\uFF0C\u65E0\u6CD5\u627E\u5230\u6307\u5B9A\u7684\u552F\u4E00\u6807\u793A\uFF1A" + idKey + "\uFF0C\u6570\u636E\u7D22\u5F15\uFF1A" + idx);
         }
     }
 })(junyou || (junyou = {}));
