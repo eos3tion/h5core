@@ -135,7 +135,7 @@ module junyou {
      * @author 君游项目解析工具
      *
      */
-    export const DataUtils: DataUtilsType = {
+    export const DataUtils = {
 
 
         parseDatas(to: Object, from: Object, checkStart: number, checkEnd: number, dataKey: string, typeKey: string, toDatasKey: string) {
@@ -215,5 +215,6 @@ module junyou {
             }
         },
 
-    }
+
+    } as DataUtilsType;
 }
