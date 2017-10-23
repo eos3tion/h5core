@@ -382,7 +382,7 @@ module junyou {
 
         }
     }
-    expand(ListItemRenderer, ViewController, "addReadyExecute", "addDepend", "stageHandler");
+    expand(ListItemRenderer, ViewController, "addReadyExecute", "addDepend", "stageHandler", "interest");
 
     // export abstract class AListItemRenderer<T, S extends egret.DisplayObject> extends ListItemRenderer<T, S> implements SuiDataCallback {
     //     /**
