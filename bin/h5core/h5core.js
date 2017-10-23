@@ -2378,6 +2378,21 @@ var junyou;
         function ViewController() {
             return _super !== null && _super.apply(this, arguments) || this;
         }
+        /**
+         * 用于内部增加关注
+         *
+         * @param {Key} eventType
+         * @param {{ (e?: egret.Event): void }} handler
+         * @param {boolean} [triggerOnStage]
+         * @param {number} [priority]
+         */
+        ViewController.prototype.interest = function (eventType, handler, triggerOnStage, priority) {
+            var ins = {};
+            ins.handler = handler;
+            ins.priority = priority || 0;
+            ins.trigger = triggerOnStage;
+            this._interests[eventType] = ins;
+        };
         ViewController.prototype.removeSkinListener = function (skin) {
             if (skin) {
                 skin.off("removedFromStage" /* REMOVED_FROM_STAGE */, this.stageHandler, this);
@@ -15631,7 +15646,7 @@ var junyou;
     }(egret.EventDispatcher));
     junyou.ListItemRenderer = ListItemRenderer;
     __reflect(ListItemRenderer.prototype, "junyou.ListItemRenderer", ["junyou.ListItemRender", "egret.EventDispatcher", "junyou.SelectableComponents"]);
-    junyou.expand(ListItemRenderer, junyou.ViewController, "addReadyExecute", "addDepend", "stageHandler");
+    junyou.expand(ListItemRenderer, junyou.ViewController, "addReadyExecute", "addDepend", "stageHandler", "interest");
     // export abstract class AListItemRenderer<T, S extends egret.DisplayObject> extends ListItemRenderer<T, S> implements SuiDataCallback {
     //     /**
     //      * 子类重写设置皮肤

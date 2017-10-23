@@ -2221,6 +2221,17 @@ declare module junyou {
         protected _interests: {
             [index: string]: Interest;
         };
+        /**
+         * 用于内部增加关注
+         *
+         * @param {Key} eventType
+         * @param {{ (e?: egret.Event): void }} handler
+         * @param {boolean} [triggerOnStage]
+         * @param {number} [priority]
+         */
+        interest(eventType: Key, handler: {
+            (e?: egret.Event): void;
+        }, triggerOnStage?: boolean, priority?: number): void;
         removeSkinListener(skin: egret.DisplayObject): void;
         addSkinListener(skin: egret.DisplayObject): void;
         readonly isReady: boolean;
