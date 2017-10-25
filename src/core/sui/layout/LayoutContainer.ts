@@ -68,22 +68,36 @@ module junyou {
             return this._host;
         }
 
-        public addLayout(dis: egret.DisplayObject, type = LayoutType.TOP_LEFT, size?: Size, hoffset?, voffset?, outerV?: boolean, outerH?: boolean) {
+        /**
+         * 移除视图
+         * 
+         * @param {egret.DisplayObject} dis 
+         * @returns 
+         */
+        public remove(dis: egret.DisplayObject) {
+            return this.$layoutBins.delete(dis.hashCode);
+        }
+
+        public addLayout(dis: egret.DisplayObject, type = LayoutType.TOP_LEFT, size?: Size, hoffset?, voffset?, outerV?: boolean, outerH?: boolean, hide?: boolean) {
             let list = this.$layoutBins;
             size = size || dis;
             let key = dis.hashCode;
             if (list.get(key)) {
                 return;
             }
-            this._host.addChild(dis);
             let bin = { dis, type, hoffset, voffset, outerV, outerH, size } as LayoutBin;
             list.set(key, bin);
+            if (hide) {
+                removeDisplay(dis);
+            } else {
+                this._host.addChild(dis);
+            }
             let stage = dis.stage;
             if (stage) {
                 this.binLayout(bin);
-            } else {
-                dis.on(EgretEvent.ADDED_TO_STAGE, this.onAdded, this);
             }
+            //不管在不在舞台上，都应该监听
+            dis.on(EgretEvent.ADDED_TO_STAGE, this.onAdded, this);
         }
         protected onAdded(e: egret.Event) {
             let dis = e.currentTarget as egret.DisplayObject;
@@ -91,7 +105,7 @@ module junyou {
             if (host) {
                 let set = host.$layoutBins;
                 if (set) {
-                    let bin = set.get(dis.$hashCode);
+                    let bin = set.get(dis.hashCode);
                     if (bin) {
                         this.binLayout(bin);
                     }
