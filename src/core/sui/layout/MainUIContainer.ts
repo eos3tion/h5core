@@ -54,14 +54,14 @@ module junyou {
             this.layoutAll();
         }
 
-        public add(d: egret.DisplayObject, type: LayoutType, offsetRect: egret.Rectangle) {
+        public add(d: egret.DisplayObject, type: LayoutType, offsetRect: egret.Rectangle, hide?: boolean) {
             let raw = d.suiRawRect;
             let result = Layout.getLayoutPos(raw.width, raw.height, offsetRect.width, offsetRect.height, type);
             let dx = raw.x - offsetRect.x;
             let dy = raw.y - offsetRect.y;
             let oh = dx - result.x;
             let ov = dy - result.y;
-            this.addLayout(d, type, raw, oh, ov);
+            this.addLayout(d, type, raw, oh, ov, false, false, hide);
         }
 
         protected binLayout(bin: LayoutBin) {
