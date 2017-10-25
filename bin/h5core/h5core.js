@@ -4161,7 +4161,16 @@ var junyou;
             enumerable: true,
             configurable: true
         });
-        LayoutContainer.prototype.addLayout = function (dis, type, size, hoffset, voffset, outerV, outerH) {
+        /**
+         * 移除视图
+         *
+         * @param {egret.DisplayObject} dis
+         * @returns
+         */
+        LayoutContainer.prototype.remove = function (dis) {
+            return this.$layoutBins.delete(dis.hashCode);
+        };
+        LayoutContainer.prototype.addLayout = function (dis, type, size, hoffset, voffset, outerV, outerH, hide) {
             if (type === void 0) { type = 5 /* TOP_LEFT */; }
             var list = this.$layoutBins;
             size = size || dis;
@@ -4169,16 +4178,20 @@ var junyou;
             if (list.get(key)) {
                 return;
             }
-            this._host.addChild(dis);
             var bin = { dis: dis, type: type, hoffset: hoffset, voffset: voffset, outerV: outerV, outerH: outerH, size: size };
             list.set(key, bin);
+            if (hide) {
+                junyou.removeDisplay(dis);
+            }
+            else {
+                this._host.addChild(dis);
+            }
             var stage = dis.stage;
             if (stage) {
                 this.binLayout(bin);
             }
-            else {
-                dis.on("addedToStage" /* ADDED_TO_STAGE */, this.onAdded, this);
-            }
+            //不管在不在舞台上，都应该监听
+            dis.on("addedToStage" /* ADDED_TO_STAGE */, this.onAdded, this);
         };
         LayoutContainer.prototype.onAdded = function (e) {
             var dis = e.currentTarget;
@@ -4186,7 +4199,7 @@ var junyou;
             if (host) {
                 var set = host.$layoutBins;
                 if (set) {
-                    var bin = set.get(dis.$hashCode);
+                    var bin = set.get(dis.hashCode);
                     if (bin) {
                         this.binLayout(bin);
                     }
@@ -19075,14 +19088,14 @@ var junyou;
             host.scaleY = host.scaleX = scale;
             this.layoutAll();
         };
-        MainUIContainer.prototype.add = function (d, type, offsetRect) {
+        MainUIContainer.prototype.add = function (d, type, offsetRect, hide) {
             var raw = d.suiRawRect;
             var result = junyou.Layout.getLayoutPos(raw.width, raw.height, offsetRect.width, offsetRect.height, type);
             var dx = raw.x - offsetRect.x;
             var dy = raw.y - offsetRect.y;
             var oh = dx - result.x;
             var ov = dy - result.y;
-            this.addLayout(d, type, raw, oh, ov);
+            this.addLayout(d, type, raw, oh, ov, false, false, hide);
         };
         MainUIContainer.prototype.binLayout = function (bin) {
             if (bin.type == 0 /* FullScreen */) {

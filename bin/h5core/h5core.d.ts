@@ -2940,7 +2940,14 @@ declare module junyou {
         protected offStage(): void;
         abstract onResize(): any;
         readonly view: egret.Sprite;
-        addLayout(dis: egret.DisplayObject, type?: LayoutType, size?: Size, hoffset?: any, voffset?: any, outerV?: boolean, outerH?: boolean): void;
+        /**
+         * 移除视图
+         *
+         * @param {egret.DisplayObject} dis
+         * @returns
+         */
+        remove(dis: egret.DisplayObject): LayoutBin;
+        addLayout(dis: egret.DisplayObject, type?: LayoutType, size?: Size, hoffset?: any, voffset?: any, outerV?: boolean, outerH?: boolean, hide?: boolean): void;
         protected onAdded(e: egret.Event): void;
         protected binLayout(bin: LayoutBin): void;
         protected $doLayout(): void;
@@ -11074,7 +11081,7 @@ declare module junyou {
      */
     class MainUIContainer extends LayoutContainer {
         onResize(): void;
-        add(d: egret.DisplayObject, type: LayoutType, offsetRect: egret.Rectangle): void;
+        add(d: egret.DisplayObject, type: LayoutType, offsetRect: egret.Rectangle, hide?: boolean): void;
         protected binLayout(bin: LayoutBin): void;
     }
 }
