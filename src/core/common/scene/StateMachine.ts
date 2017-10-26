@@ -16,6 +16,14 @@ module junyou {
         protected liss: IStateListener[];
 
         /**
+         * 状态列表
+         * 
+         * @protected
+         * @type {Key[]}
+         */
+        protected _stas: Key[];
+
+        /**
          * 是否做上一个进入睡眠状态前的检查
          * 
          * @type {boolean}
@@ -26,6 +34,16 @@ module junyou {
         constructor() {
             this.swis = {};
             this.liss = [];
+            this._stas = [];
+        }
+
+        /**
+         * 获取当前已有的状态列表
+         * 
+         * @readonly
+         */
+        public get states() {
+            return this._stas;
         }
 
         public add(value: IStateListener) {
@@ -66,11 +84,9 @@ module junyou {
             if (!value) {
                 return;
             }
-            let switchers = this.swis;
-            if (switchers) {
-                for (let type in switchers) {
-                    this.removeFromState(type, value);
-                }
+            let states = this._stas;
+            for (let i = 0; i < states.length; i++) {
+                this.removeFromState(states[i], value);
             }
         }
 
@@ -102,6 +118,7 @@ module junyou {
                 if (~list.indexOf(value)) return;
             } else {
                 this.swis[state] = list = [];
+                this._stas.push(state);
             }
             list.push(value);
             if (this.current == state) {
