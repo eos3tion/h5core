@@ -17,6 +17,7 @@ module junyou {
 
         constructor() {
             this._queue = [];
+            this.listener = new StateMachine();
         }
 
         public addLimiter(item: ILimit) {
