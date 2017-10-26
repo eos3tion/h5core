@@ -16,6 +16,15 @@ module junyou {
          * @memberof LangUtilInterface
          */
         regMsgDict(data: { [index: string]: string }): void;
+
+        /**
+         * 检查语言包中，是否有对应的code码
+         * 
+         * @param {Key} code 
+         * @returns {boolean} 
+         * @memberof LangUtilInterface
+         */
+        has(code: Key): boolean;
     }
 
     let _msgDict: { [index: string]: string } = {};
@@ -37,7 +46,9 @@ module junyou {
             }
             return typeof code === "string" ? code.substitute(...args) : code + "";
         },
-
+        has(code: Key) {
+            return code in _msgDict;
+        },
         /**
          * 
          * 注册语言字典
