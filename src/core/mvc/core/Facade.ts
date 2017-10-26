@@ -514,8 +514,7 @@ module junyou {
      */
     export function proxyCall(proxyName: Key, callback?: { (proxy: Proxy, ...args: any[]) }, thisObj?: any, ...args): Proxy
     export function proxyCall(): Proxy {
-        let f = facade;
-        return f.getProxy.apply(f, arguments);
+        return facade.getProxy.apply(facade, arguments);
     }
     /**
      * 执行Proxy的方法
@@ -525,8 +524,7 @@ module junyou {
      */
     export function proxyExec(proxyName: Key, handlerName: string, ...args): Proxy
     export function proxyExec(): Proxy {
-        let f = facade;
-        return f.executeProxy.apply(f, arguments);
+        return facade.executeProxy.apply(facade, arguments);
     }
 
     /**
@@ -542,8 +540,7 @@ module junyou {
      */
     export function mediatorCall(mediatorName: Key, callback?: { (mediator: Mediator, ...args: any[]) }, thisObj?: any, ...args): Mediator
     export function mediatorCall(): Mediator {
-        let f = facade;
-        return f.getMediator.apply(f, arguments);
+        return facade.getMediator.apply(facade, arguments);
     }
     /**
      * 
@@ -557,8 +554,7 @@ module junyou {
      */
     export function mediatorExec(moduleID: Key, showTip: boolean, handlerName: string, show?: boolean, ...args): Mediator
     export function mediatorExec(): Mediator {
-        let f = facade;
-        return f.executeMediator.apply(f, arguments);
+        return facade.executeMediator.apply(facade, arguments);
     }
 
     /**
@@ -624,6 +620,13 @@ module junyou {
         facade.off(type, listener, thisObject, false);
     }
 
+    /**
+     * 检查是否有全局监听
+     * 
+     * @export
+     * @param {Key} type 
+     * @returns 
+     */
     export function hasListen(type: Key) {
         return facade.hasListen(type);
     }
