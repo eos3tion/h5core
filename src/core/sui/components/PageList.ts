@@ -154,11 +154,14 @@ module junyou {
 
         /**
          * Creates an instance of PageList.
-         * @param {ClassFactory<R>} renderfactory 
+         * @param {ClassFactory<R> | Creator<R>} renderfactory 
          * @param {PageListOption} [option] 
          */
-        constructor(renderfactory: ClassFactory<R>, option?: PageListOption) {
+        constructor(renderfactory: ClassFactory<R> | Creator<R>, option?: PageListOption) {
             super();
+            if (!(renderfactory instanceof ClassFactory)) {
+                renderfactory = new ClassFactory(renderfactory);
+            }
             this._factory = renderfactory;
             option = option || Temp.EmptyObject as PageListOption;
             let { hgap, vgap, type, itemWidth, itemHeight, columnCount, staticSize } = option;
