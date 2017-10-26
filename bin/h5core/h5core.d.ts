@@ -2401,10 +2401,10 @@ declare module junyou {
         staticSize: boolean;
         /**
          * Creates an instance of PageList.
-         * @param {ClassFactory<R>} renderfactory
+         * @param {ClassFactory<R> | Creator<R>} renderfactory
          * @param {PageListOption} [option]
          */
-        constructor(renderfactory: ClassFactory<R>, option?: PageListOption);
+        constructor(renderfactory: ClassFactory<R> | Creator<R>, option?: PageListOption);
         displayList(data?: T[]): void;
         readonly data: T[];
         /**
@@ -7877,6 +7877,13 @@ declare module junyou {
      * @param {*} [thisObject]
      */
     function off(type: Key, listener: Function, thisObject?: any): void;
+    /**
+     * 检查是否有全局监听
+     *
+     * @export
+     * @param {Key} type
+     * @returns
+     */
     function hasListen(type: Key): any;
     const enum ToggleState {
         HIDE = -1,

@@ -2485,7 +2485,7 @@ var junyou;
         __extends(PageList, _super);
         /**
          * Creates an instance of PageList.
-         * @param {ClassFactory<R>} renderfactory
+         * @param {ClassFactory<R> | Creator<R>} renderfactory
          * @param {PageListOption} [option]
          */
         function PageList(renderfactory, option) {
@@ -2498,6 +2498,9 @@ var junyou;
             // private endIndex: number;
             _this.renderChange = false;
             _this._dataLen = 0;
+            if (!(renderfactory instanceof junyou.ClassFactory)) {
+                renderfactory = new junyou.ClassFactory(renderfactory);
+            }
             _this._factory = renderfactory;
             option = option || junyou.Temp.EmptyObject;
             var hgap = option.hgap, vgap = option.vgap, type = option.type, itemWidth = option.itemWidth, itemHeight = option.itemHeight, columnCount = option.columnCount, staticSize = option.staticSize;
@@ -13287,23 +13290,19 @@ var junyou;
     __reflect(Facade.prototype, "junyou.Facade");
     junyou.facade = new Facade();
     function proxyCall() {
-        var f = junyou.facade;
-        return f.getProxy.apply(f, arguments);
+        return junyou.facade.getProxy.apply(junyou.facade, arguments);
     }
     junyou.proxyCall = proxyCall;
     function proxyExec() {
-        var f = junyou.facade;
-        return f.executeProxy.apply(f, arguments);
+        return junyou.facade.executeProxy.apply(junyou.facade, arguments);
     }
     junyou.proxyExec = proxyExec;
     function mediatorCall() {
-        var f = junyou.facade;
-        return f.getMediator.apply(f, arguments);
+        return junyou.facade.getMediator.apply(junyou.facade, arguments);
     }
     junyou.mediatorCall = mediatorCall;
     function mediatorExec() {
-        var f = junyou.facade;
-        return f.executeMediator.apply(f, arguments);
+        return junyou.facade.executeMediator.apply(junyou.facade, arguments);
     }
     junyou.mediatorExec = mediatorExec;
     /**
@@ -13371,6 +13370,13 @@ var junyou;
         junyou.facade.off(type, listener, thisObject, false);
     }
     junyou.off = off;
+    /**
+     * 检查是否有全局监听
+     *
+     * @export
+     * @param {Key} type
+     * @returns
+     */
     function hasListen(type) {
         return junyou.facade.hasListen(type);
     }
