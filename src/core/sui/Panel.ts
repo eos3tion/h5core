@@ -219,6 +219,7 @@ module junyou {
                 let m = this.modal;
                 if (!m) {
                     this.modal = m = new egret.Shape();
+                    m.touchEnabled = true;
                 }
                 if (value) {
                     m.on(EgretEvent.TOUCH_TAP, this.hide, this);
