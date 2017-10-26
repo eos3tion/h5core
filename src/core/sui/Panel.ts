@@ -194,6 +194,7 @@ module junyou {
             if (this._isModal != value) {
                 this._isModal = value;
                 if (value) {
+                    this.setModalTouchClose(true);//默认为true
                     if (this.stage) {
                         this.addModal();
                     } else {
@@ -202,6 +203,27 @@ module junyou {
                 } else {
                     this.removeModal();
                     this.off(EgretEvent.ADDED_TO_STAGE, this.modalToStage, this);
+                }
+            }
+        }
+
+        protected _mTouchClose: boolean;
+        /**
+         * 设置模式窗口的灰色区域是否可以点击关闭面板
+         * 
+         * @param {boolean} value 
+         */
+        public setModalTouchClose(value: boolean) {
+            if (this._mTouchClose != value) {
+                this._mTouchClose = value;
+                let m = this.modal;
+                if (!m) {
+                    this.modal = m = new egret.Shape();
+                }
+                if (value) {
+                    m.on(EgretEvent.TOUCH_TAP, this.hide, this);
+                } else {
+                    m.off(EgretEvent.TOUCH_TAP, this.hide, this);
                 }
             }
         }
@@ -229,10 +251,12 @@ module junyou {
             let sy = rect.y - (height - rect.height >> 1);
             g.drawRect(sx, sy, width, height);
             g.endFill();
-            m.on(EgretEvent.TOUCH_TAP, this.hide, this);
             this.addChildAt(m, 0);
             this.x = -sx;
             this.y = -sy;
+            if (this._mTouchClose) {
+                m.on(EgretEvent.TOUCH_TAP, this.hide, this);
+            }
         }
 
         private onModalResize() {
