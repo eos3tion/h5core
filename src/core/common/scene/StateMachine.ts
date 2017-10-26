@@ -150,9 +150,9 @@ module junyou {
             let states = this.swis;
             let oldList = states[old];
             let newList = states[value];
-            let newLen = newList.length;
+            let newLen = newList && newList.length || 0;
             //新的开启
-            if (this.checkBeforeSleep && newList) {
+            if (this.checkBeforeSleep) {
                 for (let i = 0; i < newLen; i++) {
                     let item = newList[i];
                     item.beforeLastSleep && item.beforeLastSleep(value);
@@ -168,12 +168,11 @@ module junyou {
                 }
             }
             //新的开启
-            if (newList) {
-                for (let i = 0; i < newLen; i++) {
-                    let item = newList[i];
-                    item.awakeBy && item.awakeBy(value);
-                }
+            for (let i = 0; i < newLen; i++) {
+                let item = newList[i];
+                item.awakeBy && item.awakeBy(value);
             }
+
             let aways = this.liss;
             if (aways) {
                 for (let i = 0; i < aways.length; i++) {
