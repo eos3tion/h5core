@@ -4798,6 +4798,14 @@ declare module junyou {
         regMsgDict(data: {
             [index: string]: string;
         }): void;
+        /**
+         * 检查语言包中，是否有对应的code码
+         *
+         * @param {Key} code
+         * @returns {boolean}
+         * @memberof LangUtilInterface
+         */
+        has(code: Key): boolean;
     }
     /**
      * 用于处理语言/文字显示
@@ -8893,6 +8901,13 @@ declare module junyou {
         skinDataComplete(): void;
         protected modalToStage(): void;
         isModal: boolean;
+        protected _mTouchClose: boolean;
+        /**
+         * 设置模式窗口的灰色区域是否可以点击关闭面板
+         *
+         * @param {boolean} value
+         */
+        setModalTouchClose(value: boolean): void;
         /**
          * 加模态
          *

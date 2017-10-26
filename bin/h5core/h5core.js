@@ -8344,6 +8344,9 @@ var junyou;
             }
             return typeof code === "string" ? code.substitute.apply(code, args) : code + "";
         },
+        has: function (code) {
+            return code in _msgDict;
+        },
         /**
          *
          * 注册语言字典
@@ -14967,6 +14970,7 @@ var junyou;
                 if (this._isModal != value) {
                     this._isModal = value;
                     if (value) {
+                        this.setModalTouchClose(true); //默认为true
                         if (this.stage) {
                             this.addModal();
                         }
@@ -14983,6 +14987,27 @@ var junyou;
             enumerable: true,
             configurable: true
         });
+        /**
+         * 设置模式窗口的灰色区域是否可以点击关闭面板
+         *
+         * @param {boolean} value
+         */
+        Panel.prototype.setModalTouchClose = function (value) {
+            if (this._mTouchClose != value) {
+                this._mTouchClose = value;
+                var m = this.modal;
+                if (!m) {
+                    this.modal = m = new egret.Shape();
+                    m.touchEnabled = true;
+                }
+                if (value) {
+                    m.on("touchTap" /* TOUCH_TAP */, this.hide, this);
+                }
+                else {
+                    m.off("touchTap" /* TOUCH_TAP */, this.hide, this);
+                }
+            }
+        };
         /**
          * 加模态
          *
@@ -15006,10 +15031,12 @@ var junyou;
             var sy = rect.y - (height - rect.height >> 1);
             g.drawRect(sx, sy, width, height);
             g.endFill();
-            m.on("touchTap" /* TOUCH_TAP */, this.hide, this);
             this.addChildAt(m, 0);
             this.x = -sx;
             this.y = -sy;
+            if (this._mTouchClose) {
+                m.on("touchTap" /* TOUCH_TAP */, this.hide, this);
+            }
         };
         Panel.prototype.onModalResize = function () {
             this.addModal();
