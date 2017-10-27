@@ -3721,7 +3721,7 @@ var junyou;
         NetService.prototype._register = function (cmd, handler, priotity, once) {
             if (cmd > 32767 || cmd < -32768) {
                 if (true) {
-                    junyou.ThrowError("\u534F\u8BAE\u53F7\u7684\u8303\u56F4\u5FC5\u987B\u662F-32768~32767\u4E4B\u95F4\uFF0C\u5F53\u524Dcmd:" + cmd);
+                    junyou.Log("\u534F\u8BAE\u53F7\u7684\u8303\u56F4\u5FC5\u987B\u662F-32768~32767\u4E4B\u95F4\uFF0C\u5F53\u524Dcmd:" + cmd);
                 }
                 return false;
             }
@@ -3873,8 +3873,8 @@ var junyou;
                     if (len > 0) {
                         if (type in junyou.NSBytesLen) {
                             var blen = junyou.NSBytesLen[type];
-                            if (blen != len) {
-                                junyou.ThrowError("\u89E3\u6790\u6307\u4EE4\u65F6\uFF0C\u7C7B\u578B[" + type + "]\u7684\u6307\u4EE4\u957F\u5EA6[" + len + "]\u548C\u9884\u8BBE\u7684\u957F\u5EA6[" + blen + "]\u4E0D\u5339\u914D");
+                            if (true && blen != len) {
+                                junyou.Log("\u89E3\u6790\u6307\u4EE4\u65F6\uFF0C\u7C7B\u578B[" + type + "]\u7684\u6307\u4EE4\u957F\u5EA6[" + len + "]\u548C\u9884\u8BBE\u7684\u957F\u5EA6[" + blen + "]\u4E0D\u5339\u914D");
                             }
                             if (len < blen) {
                                 flag = false;
@@ -3919,8 +3919,8 @@ var junyou;
                         tmpList[idx++] = nData;
                     }
                 }
-                else {
-                    junyou.ThrowError("\u901A\u4FE1\u6D88\u606F\u89E3\u6790\u65F6cmd[" + cmd + "]\uFF0C\u51FA\u73B0\u672A\u6CE8\u518C\u7684\u7C7B\u578B");
+                else if (true) {
+                    junyou.Log("\u901A\u4FE1\u6D88\u606F\u89E3\u6790\u65F6cmd[" + cmd + "]\uFF0C\u51FA\u73B0\u672A\u6CE8\u518C\u7684\u7C7B\u578B");
                 }
                 bytes.position = endPos;
             }
@@ -4722,21 +4722,33 @@ var junyou;
             for (; idx < len; idx++) {
                 dispatchList[idx] = list[idx];
             }
-            for (var i = 0; i < idx; i++) {
-                var bin = dispatchList[i];
-                try {
+            if (true) {
+                for (var i = 0; i < idx; i++) {
+                    var bin = dispatchList[i];
                     bin.handler(data);
-                }
-                catch (e) {
-                    if (true) {
-                        junyou.ThrowError("\u6267\u884C\u7F51\u7EDC\u56DE\u8C03\u65B9\u6CD5\u51FA\u9519" + JSON.stringify(data), e);
+                    if (bin.once) {
+                        this.remove(cmd, bin.handler);
+                    }
+                    if (data.stopPropagation) {
+                        break;
                     }
                 }
-                if (bin.once) {
-                    this.remove(cmd, bin.handler);
-                }
-                if (data.stopPropagation) {
-                    break;
+            }
+            else {
+                for (var i = 0; i < idx; i++) {
+                    var bin = dispatchList[i];
+                    try {
+                        bin.handler(data);
+                    }
+                    catch (e) {
+                        junyou.ThrowError("NetHander Error:" + JSON.stringify(data), e);
+                    }
+                    if (bin.once) {
+                        this.remove(cmd, bin.handler);
+                    }
+                    if (data.stopPropagation) {
+                        break;
+                    }
                 }
             }
             data.recycle();
