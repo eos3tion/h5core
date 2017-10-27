@@ -582,7 +582,7 @@ module junyou {
         protected _register(cmd: number, handler: INetHandler, priotity: number, once: boolean): boolean {
             if (cmd > 32767 || cmd < -32768) {
                 if (DEBUG) {
-                    ThrowError(`协议号的范围必须是-32768~32767之间，当前cmd:${cmd}`);
+                    Log(`协议号的范围必须是-32768~32767之间，当前cmd:${cmd}`);
                 }
                 return false;
             }
@@ -745,8 +745,8 @@ module junyou {
                     if (len > 0) {
                         if (type in NSBytesLen) {
                             let blen = NSBytesLen[type];
-                            if (blen != len) {
-                                ThrowError(`解析指令时，类型[${type}]的指令长度[${len}]和预设的长度[${blen}]不匹配`);
+                            if (DEBUG && blen != len) {
+                                Log(`解析指令时，类型[${type}]的指令长度[${len}]和预设的长度[${blen}]不匹配`);
                             }
                             if (len < blen) {
                                 flag = false;
@@ -790,8 +790,8 @@ module junyou {
                         nData.data = data;
                         tmpList[idx++] = nData;
                     }
-                } else {
-                    ThrowError(`通信消息解析时cmd[${cmd}]，出现未注册的类型`);
+                } else if (DEBUG) {
+                    Log(`通信消息解析时cmd[${cmd}]，出现未注册的类型`);
                 }
                 bytes.position = endPos;
             }
