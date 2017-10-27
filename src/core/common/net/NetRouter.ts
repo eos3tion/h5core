@@ -108,20 +108,31 @@ module junyou {
             for (; idx < len; idx++) {
                 dispatchList[idx] = list[idx];
             }
-            for (let i = 0; i < idx; i++) {
-                let bin = dispatchList[i];
-                try {
+            if (DEBUG) {//DEBUG的直接报错，方便调试
+                for (let i = 0; i < idx; i++) {
+                    let bin = dispatchList[i];
                     bin.handler(data);
-                } catch (e) {
-                    if (DEBUG) {
-                        ThrowError(`执行网络回调方法出错${JSON.stringify(data)}`, e);
+                    if (bin.once) {//如果只执行一次的，就移除
+                        this.remove(cmd, bin.handler);
+                    }
+                    if (data.stopPropagation) {
+                        break;
                     }
                 }
-                if (bin.once) {//如果只执行一次的，就移除
-                    this.remove(cmd, bin.handler);
-                }
-                if (data.stopPropagation) {
-                    break;
+            } else {//正式版的进行try catch，防止因为一个指令影响后续指令
+                for (let i = 0; i < idx; i++) {
+                    let bin = dispatchList[i];
+                    try {
+                        bin.handler(data);
+                    } catch (e) {
+                        ThrowError(`NetHander Error:${JSON.stringify(data)}`, e);
+                    }
+                    if (bin.once) {//如果只执行一次的，就移除
+                        this.remove(cmd, bin.handler);
+                    }
+                    if (data.stopPropagation) {
+                        break;
+                    }
                 }
             }
             data.recycle();
