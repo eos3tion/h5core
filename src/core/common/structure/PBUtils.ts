@@ -48,9 +48,9 @@ module junyou {
         /**
          * 
          * 必有 required optional repeated
-         * @type {number}
+         * @type {PBFieldType}
          */
-        1: number;
+        1: PBFieldType;
         /**
          * 
          * 必有 数据类型
@@ -296,7 +296,8 @@ module junyou {
             let type = body[2];
             let subMsgType = body[3];
             let value;
-            if (label != 3 || (tag & 0b111) != 7) {//自定义  tag & 0b111 == 7 为 数组中 undefined的情况
+            let isRepeated = label == PBFieldType.repeated;
+            if (!isRepeated || (tag & 0b111) != 7) {//自定义  tag & 0b111 == 7 为 数组中 undefined的情况
                 switch (type) {
                     case PBType.Double:
                         value = bytes.readDouble();
@@ -351,7 +352,7 @@ module junyou {
                         value = readValue(tag, bytes);
                 }
             }
-            if (label == 3) {//repeated
+            if (isRepeated) {//repeated
                 let arr = msg[name];
                 if (!arr) msg[name] = arr = [];
                 arr.push(value);
