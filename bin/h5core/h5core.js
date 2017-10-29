@@ -11,6 +11,147 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var junyou;
+(function (junyou) {
+    /**
+     * Mediator和Proxy的基类
+     * @author 3tion
+     *
+     */
+    var FHost = (function () {
+        function FHost(name) {
+            this._name = name;
+            this.checkInject();
+            if (true) {
+                var classes = $gm.$;
+                if (!classes) {
+                    $gm.$ = classes = {};
+                }
+                classes[this["constructor"]["name"]] = this;
+            }
+        }
+        Object.defineProperty(FHost.prototype, "name", {
+            /**
+             * 唯一标识
+             */
+            get: function () {
+                return this._name;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         * 检查依赖注入的数据
+         *
+         * @protected
+         *
+         * @memberOf FHost
+         */
+        FHost.prototype.checkInject = function () {
+            //此注入是对原型进行的注入，无法直接删除，也不要直接做清理
+            var idp = this._injectProxys;
+            if (idp) {
+                var proxyName = void 0;
+                //检查Proxy
+                for (var key in idp) {
+                    var ref = idp[key];
+                    if (typeof ref === "object") {
+                        proxyName = junyou.Facade.getNameOfInline(ref);
+                    }
+                    else {
+                        proxyName = ref;
+                    }
+                    var proxy = junyou.proxyCall(proxyName);
+                    this[key] = proxy;
+                    proxy._$isDep = true;
+                    this.addDepend(proxy);
+                }
+            }
+        };
+        FHost.prototype.addReadyExecute = function (handle, thisObj) {
+            var args = [];
+            for (var _i = 2; _i < arguments.length; _i++) {
+                args[_i - 2] = arguments[_i];
+            }
+            var _asyncHelper = this._asyncHelper;
+            if (!_asyncHelper) {
+                this._asyncHelper = _asyncHelper = new junyou.AsyncHelper();
+                _asyncHelper._ready = this.isReady;
+            }
+            _asyncHelper.addReadyExecute.apply(_asyncHelper, [handle, thisObj].concat(args));
+        };
+        Object.defineProperty(FHost.prototype, "isReady", {
+            get: function () {
+                return false;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        FHost.prototype.startSync = function () {
+        };
+        /**
+         * 添加依赖项
+         */
+        FHost.prototype.addDepend = function (async) {
+            if (!this._dependerHelper) {
+                this._dependerHelper = new junyou.DependerHelper(this, this.dependerReadyCheck);
+            }
+            this._dependerHelper.addDepend(async);
+        };
+        /**
+         * 依赖项，加载完成后的检查
+         */
+        FHost.prototype.dependerReadyCheck = function () {
+        };
+        /**
+         * 模块在Facade注册时执行
+         */
+        FHost.prototype.onRegister = function () {
+        };
+        /**
+         * 模块从Facade注销时
+         */
+        FHost.prototype.onRemove = function () {
+        };
+        /**
+         * 全部加载好以后要处理的事情<br/>
+         * 包括依赖项加载完毕
+         */
+        FHost.prototype.afterAllReady = function () {
+            // to be override
+        };
+        return FHost;
+    }());
+    junyou.FHost = FHost;
+    __reflect(FHost.prototype, "junyou.FHost", ["junyou.IDepender", "junyou.IAsync"]);
+    /**
+     *
+     * 附加依赖的Proxy
+     * @export
+     * @param {({ new (): IAsync } | string)} ref 如果注册的是Class，必须是Inline方式注册的Proxy
+     * @returns
+     */
+    function __dependProxy(ref) {
+        return function (target, key) {
+            var _injectProxys = target._injectProxys;
+            if (!_injectProxys) {
+                target._injectProxys = _injectProxys = {};
+            }
+            _injectProxys[key] = ref;
+        };
+    }
+    junyou.__dependProxy = __dependProxy;
+})(junyou || (junyou = {}));
+(function (junyou) {
+    /**
+     *
+     * 附加依赖的Proxy
+     * @export
+     * @param {({ new (): IAsync } | string)} ref
+     * @returns
+     */
+    junyou.d_dependProxy = junyou.__dependProxy;
+})(junyou || (junyou = {}));
 /**
  * 对数字进行补0操作
  * @param value 要补0的数值
@@ -552,147 +693,6 @@ var egret;
 var junyou;
 (function (junyou) {
     /**
-     * Mediator和Proxy的基类
-     * @author 3tion
-     *
-     */
-    var FHost = (function () {
-        function FHost(name) {
-            this._name = name;
-            this.checkInject();
-            if (true) {
-                var classes = $gm.$;
-                if (!classes) {
-                    $gm.$ = classes = {};
-                }
-                classes[this["constructor"]["name"]] = this;
-            }
-        }
-        Object.defineProperty(FHost.prototype, "name", {
-            /**
-             * 唯一标识
-             */
-            get: function () {
-                return this._name;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        /**
-         * 检查依赖注入的数据
-         *
-         * @protected
-         *
-         * @memberOf FHost
-         */
-        FHost.prototype.checkInject = function () {
-            //此注入是对原型进行的注入，无法直接删除，也不要直接做清理
-            var idp = this._injectProxys;
-            if (idp) {
-                var proxyName = void 0;
-                //检查Proxy
-                for (var key in idp) {
-                    var ref = idp[key];
-                    if (typeof ref === "object") {
-                        proxyName = junyou.Facade.getNameOfInline(ref);
-                    }
-                    else {
-                        proxyName = ref;
-                    }
-                    var proxy = junyou.proxyCall(proxyName);
-                    this[key] = proxy;
-                    proxy._$isDep = true;
-                    this.addDepend(proxy);
-                }
-            }
-        };
-        FHost.prototype.addReadyExecute = function (handle, thisObj) {
-            var args = [];
-            for (var _i = 2; _i < arguments.length; _i++) {
-                args[_i - 2] = arguments[_i];
-            }
-            var _asyncHelper = this._asyncHelper;
-            if (!_asyncHelper) {
-                this._asyncHelper = _asyncHelper = new junyou.AsyncHelper();
-                _asyncHelper._ready = this.isReady;
-            }
-            _asyncHelper.addReadyExecute.apply(_asyncHelper, [handle, thisObj].concat(args));
-        };
-        Object.defineProperty(FHost.prototype, "isReady", {
-            get: function () {
-                return false;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        FHost.prototype.startSync = function () {
-        };
-        /**
-         * 添加依赖项
-         */
-        FHost.prototype.addDepend = function (async) {
-            if (!this._dependerHelper) {
-                this._dependerHelper = new junyou.DependerHelper(this, this.dependerReadyCheck);
-            }
-            this._dependerHelper.addDepend(async);
-        };
-        /**
-         * 依赖项，加载完成后的检查
-         */
-        FHost.prototype.dependerReadyCheck = function () {
-        };
-        /**
-         * 模块在Facade注册时执行
-         */
-        FHost.prototype.onRegister = function () {
-        };
-        /**
-         * 模块从Facade注销时
-         */
-        FHost.prototype.onRemove = function () {
-        };
-        /**
-         * 全部加载好以后要处理的事情<br/>
-         * 包括依赖项加载完毕
-         */
-        FHost.prototype.afterAllReady = function () {
-            // to be override
-        };
-        return FHost;
-    }());
-    junyou.FHost = FHost;
-    __reflect(FHost.prototype, "junyou.FHost", ["junyou.IDepender", "junyou.IAsync"]);
-    /**
-     *
-     * 附加依赖的Proxy
-     * @export
-     * @param {({ new (): IAsync } | string)} ref 如果注册的是Class，必须是Inline方式注册的Proxy
-     * @returns
-     */
-    function __dependProxy(ref) {
-        return function (target, key) {
-            var _injectProxys = target._injectProxys;
-            if (!_injectProxys) {
-                target._injectProxys = _injectProxys = {};
-            }
-            _injectProxys[key] = ref;
-        };
-    }
-    junyou.__dependProxy = __dependProxy;
-})(junyou || (junyou = {}));
-(function (junyou) {
-    /**
-     *
-     * 附加依赖的Proxy
-     * @export
-     * @param {({ new (): IAsync } | string)} ref
-     * @returns
-     */
-    junyou.d_dependProxy = junyou.__dependProxy;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
      * 基础创建器
      * @author 3tion
      *
@@ -937,107 +937,564 @@ var junyou;
     junyou.Component = Component;
     __reflect(Component.prototype, "junyou.Component");
 })(junyou || (junyou = {}));
+if (true) {
+    var $gm = $gm || {};
+    $gm.__getNSFilter = function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        var nsFilter = {};
+        if (args.length) {
+            var filter = args[0];
+            if (filter != undefined) {
+                var tof = typeof filter;
+                if (tof === "function") {
+                    nsFilter.filter = filter;
+                    nsFilter.filterParams = args.slice(1);
+                }
+                else {
+                    if (tof === "boolean") {
+                        nsFilter.isWhite = filter;
+                        nsFilter.cmds = args.slice(1);
+                    }
+                    else if (tof === "number") {
+                        nsFilter.cmds = args;
+                    }
+                }
+            }
+        }
+        return nsFilter;
+    };
+    $gm.print = function () {
+        $gm.printSend();
+        $gm.printReceive();
+    };
+    $gm.printSend = function (filter) {
+        var args = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            args[_i - 1] = arguments[_i];
+        }
+        if (arguments.length == 0 && $gm.printSendFilter) {
+            $gm.printSendFilter = undefined;
+        }
+        else {
+            $gm.printSendFilter = $gm.__getNSFilter.apply($gm, [filter].concat(args));
+        }
+    };
+    $gm.printReceive = function (filter) {
+        var args = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            args[_i - 1] = arguments[_i];
+        }
+        if (arguments.length == 0 && $gm.printReceiveFilter) {
+            $gm.printReceiveFilter = undefined;
+        }
+        else {
+            $gm.printReceiveFilter = $gm.__getNSFilter.apply($gm, [filter].concat(args));
+        }
+    };
+    $gm.showNSLog = function (filter) {
+        var args = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            args[_i - 1] = arguments[_i];
+        }
+        var nsFilter = $gm.__getNSFilter.apply($gm, [filter].concat(args));
+        var output = [];
+        var msg = "";
+        $gm.nsLogs.forEach(function (log) {
+            if ($gm.__nsLogCheck(log, nsFilter)) {
+                output.push({ type: log.type, time: log.time, cmd: log.cmd, data: log.data, json: JSON.stringify(log.data) });
+                msg += log.time + "\t" + log.type + "\t" + log.cmd + "\t" + JSON.stringify(log.data) + "\n";
+            }
+        });
+        console.table(output);
+        junyou.doCopy(msg) && console.log("%c 已将网络数据复制到剪贴板", "color:red;font-size:50px;");
+        return output;
+    };
+    $gm.__nsLogCheck = function (log, nsFilter) {
+        var cmd = log.cmd;
+        if (nsFilter) {
+            var filter = nsFilter.filter, cmds = nsFilter.cmds, filterParams = nsFilter.filterParams, isWhite = nsFilter.isWhite;
+            if (cmds) {
+                var idx = cmds.indexOf(cmd);
+                if (isWhite && ~idx || !isWhite && !~idx) {
+                    return true;
+                }
+            }
+            else if (filter) {
+                return filter.apply(void 0, [log].concat(filterParams));
+            }
+            else {
+                return true;
+            }
+        }
+    };
+    $gm.maxNSLogCount = 1000;
+    $gm.nsLogs = [];
+    $gm.route = function (cmd, data) {
+        junyou.NetService.get().route(cmd, data);
+    };
+    $gm.batchRoute = function (logs) {
+        //过滤send
+        logs = logs.filter(function (log) {
+            return log.type != "send";
+        });
+        if (logs.length) {
+            var time_1 = logs[0].time | 0;
+            logs.forEach(function (log) {
+                setTimeout($gm.route, (log.time | 0) - time_1, log.cmd, log.data);
+            });
+        }
+    };
+}
 var junyou;
 (function (junyou) {
+    junyou.NSBytesLen = {
+        /**NSType.Null */ 0: 0,
+        /**NSType.Boolean */ 1: 1,
+        /**NSType.Double */ 5: 8,
+        /**NSType.Int32 */ 6: 4,
+        /**NSType.Uint32 */ 7: 4,
+        /**NSType.Int64 */ 8: 8
+    };
     /**
-     * 单位动作
+     * 用于存储头部的临时变量
+     */
+    junyou.nsHeader = { cmd: 0, len: 0 };
+    function send2(cmd, data, msgType, limit) {
+        if (junyou.RequestLimit.check(cmd, limit)) {
+            this._send(cmd, data, msgType);
+        }
+        else {
+            junyou.dispatch(-189 /* NetServiceSendLimit */, cmd);
+        }
+    }
+    /**
+     * 通信服务
+     * 收发的协议结构：
+     * 2字节协议号 2字节包长度(n) n字节包
      * @author 3tion
      *
      */
-    var UnitAction = (function () {
-        function UnitAction() {
+    var NetService = (function () {
+        function NetService() {
+            var _this = this;
+            this.netChange = function () {
+                if (navigator.onLine) {
+                    junyou.dispatch(-192 /* Online */);
+                    _this.showReconnect();
+                }
+                else {
+                    junyou.dispatch(-191 /* Offline */);
+                }
+            };
+            /**
+             * 基础连接时间
+             *
+             *
+             * @memberOf NetService
+             */
+            this.baseConTime = 10000;
+            /**
+             * 最大连接时间
+             *
+             *
+             * @memberOf NetService
+             */
+            this.maxConTime = 60000 /* ONE_MINUTE */;
+            /**
+             * 重连次数
+             *
+             * @private
+             * @type {number}
+             * @memberOf NetService
+             */
+            this._reconCount = 0;
+            /**
+             * 下次自动拉取请求的时间戳
+             */
+            this._nextAutoTime = 0;
+            this._router = new junyou.NetRouter();
+            this._pcmdList = [];
+            this._tmpList = [];
+            this._readBuffer = new junyou.ByteArray();
+            this._sendBuffer = new junyou.ByteArray();
+            this._tempBytes = new junyou.ByteArray();
+            this._receiveMSG = {};
+            if (true) {
+                this.$writeNSLog = function (time, type, cmd, data) {
+                    data = data == undefined ? undefined : JSON.parse(JSON.stringify(data));
+                    var log = doFreeze({ time: time, type: type, cmd: cmd, data: data });
+                    var nsLogs = $gm.nsLogs;
+                    //清理多余的日志
+                    while (nsLogs.length > $gm.maxNSLogCount) {
+                        nsLogs.shift();
+                    }
+                    nsLogs.push(log);
+                    var nsFilter = type == "send" ? $gm.printSendFilter : $gm.printReceiveFilter;
+                    if ($gm.__nsLogCheck(log, nsFilter)) {
+                        console.log(type, time, cmd, data);
+                    }
+                    function doFreeze(obj) {
+                        if (typeof obj == "object" && obj) {
+                            var pool = [obj];
+                            while (pool.length) {
+                                var tmp = pool.pop();
+                                Object.freeze(tmp);
+                                for (var key in tmp) {
+                                    var x = tmp[key];
+                                    if (typeof x == "object" && x) {
+                                        pool.push(x);
+                                    }
+                                }
+                            }
+                        }
+                        return obj;
+                    }
+                };
+            }
+            if (window.addEventListener) {
+                addEventListener("online", this.netChange);
+                addEventListener("offline", this.netChange);
+            }
+            junyou.on(-190 /* Awake */, this.onawake, this);
         }
-        /**
-         * 根据坐骑状态，获取人物动作序列的配置
-         *
-         * @param {MountType} mountType 坐骑状态
-         * @returns {IUnitActionInfo} 动作结果
-         */
-        UnitAction.prototype.getAction = function (mountType) {
-            return UnitAction.defaultAction;
-        };
-        /**
-         * 单位播放动作
-         * 如果子类要制作动态的自定义动作，重写此方法
-         * @param {Unit} unit               单位
-         * @param {MountType} mountType     骑乘状态
-         * @param {number} now              时间戳
-         */
-        UnitAction.prototype.playAction = function (unit, mountType, now) {
-            var aData = this.getAction(mountType);
-            if (aData) {
-                unit.setMountType(aData.mountType);
-                unit.doAction(now, aData.action);
+        NetService.prototype.setLimitEventEmitable = function (emit) {
+            if (emit) {
+                this.send = send2;
             }
             else {
-                junyou.ThrowError("\u672A\u5B9E\u73B0\u52A8\u4F5C{mountType:" + mountType + "}");
+                delete this.send;
+            }
+        };
+        NetService.get = function () {
+            return this._ins;
+        };
+        NetService.prototype.showReconnect = function () {
+            this._reconCount += 1;
+            var time = this._reconCount * this.baseConTime;
+            var maxConTime = this.maxConTime;
+            if (time > maxConTime) {
+                time = maxConTime;
+            }
+            this._nextAutoTime = junyou.Global.now + time;
+            junyou.dispatch(-194 /* ShowReconnect */, this._reconCount);
+        };
+        NetService.prototype.onawake = function () {
+            this._reconCount = 0;
+            this._nextAutoTime = junyou.Global.now + this._autoTimeDelay;
+        };
+        /**
+         * 基础类型消息
+         */
+        NetService.prototype.regReceiveMSGRef = function (cmd, ref) {
+            this._receiveMSG[cmd] = ref;
+        };
+        /**
+         * 注册处理器
+         * @param {number} cmd 协议号
+         * @param {INetHandler} handler 处理网络数据的处理器
+         * @param {number} [priority=0] 处理优先级
+         */
+        NetService.prototype.register = function (cmd, handler, priotity) {
+            if (priotity === void 0) { priotity = 0; }
+            return this._register(cmd, handler, priotity, false);
+        };
+        /**
+         * 注册单次执行的处理器
+         * @param {number} cmd 协议号
+         * @param {INetHandler} handler 处理网络数据的处理器
+         * @param {number} [priority=0] 处理优先级
+         */
+        NetService.prototype.regOnce = function (cmd, handler, priotity) {
+            if (priotity === void 0) { priotity = 0; }
+            return this._register(cmd, handler, priotity, true);
+        };
+        /**
+         * 移除协议号和处理器的监听
+         *
+         * @param {number} cmd 协议号
+         * @param {INetHandler} handler 处理网络数据的处理器
+         */
+        NetService.prototype.remove = function (cmd, handler) {
+            this._router.remove(cmd, handler);
+        };
+        NetService.prototype._register = function (cmd, handler, priotity, once) {
+            if (cmd > 32767 || cmd < -32768) {
+                if (true) {
+                    junyou.Log("\u534F\u8BAE\u53F7\u7684\u8303\u56F4\u5FC5\u987B\u662F-32768~32767\u4E4B\u95F4\uFF0C\u5F53\u524Dcmd:" + cmd);
+                }
+                return false;
+            }
+            this._router.register(cmd, handler, priotity, once);
+            return true;
+        };
+        /**
+         * 即时发送指令<br/>
+         * 用于处理角色主动操作的请求，如点击合成道具，使用物品等
+         * @param {number} cmd 协议号
+         * @param {any} [data] 数据，简单数据(number,boolean,string)复合数据
+         * @param {string} [msgType] 如果是复合数据，必须有此值
+         * @param {number} [limit] 客户端发送时间限制，默认500毫秒
+         */
+        NetService.prototype.send = function (cmd, data, msgType, limit) {
+            if (junyou.RequestLimit.check(cmd, limit)) {
+                this._send(cmd, data, msgType);
             }
         };
         /**
-         * 播放动作
+         * 断开连接
          */
-        UnitAction.prototype.start = function (unit, now) {
-            this._isEnd = false;
+        NetService.prototype.disconnect = function () {
+            // TODO
         };
         /**
-         * 动作执行数据计算<br/>
-         * 如更新单位坐标等
+         * 消极发送指令
+         * 如果使用通协议的指令，有堆积的指令，先合并，新的替换旧的
+         * __`请勿将一些用户操作使用此指令发送`__
+         * 处理一些实时性要求不高的指令，这些指令先缓存堆积，等到用户主动发指令的时候，一起发送
+         * @param {number} cmd 协议号
+         * @param {any} [data] 数据，简单数据(number,boolean,string)复合数据
+         * @param {string} [msgType] 如果是复合数据，必须有此值
          */
-        UnitAction.prototype.doData = function (unit, now) {
-        };
-        Object.defineProperty(UnitAction.prototype, "canStop", {
-            /**
-             * 检查当前动作是否可以结束<br/>
-             * @return true 可以结束<br/>
-             *         false 不可结束
-             */
-            get: function () {
-                return true;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        /**
-         * 强制结束
-         */
-        UnitAction.prototype.terminate = function () {
-        };
-        /**
-         * 动画播放结束的回调
-         */
-        UnitAction.prototype.playComplete = function (unit, now) {
-            this._isEnd = true;
-        };
-        Object.defineProperty(UnitAction.prototype, "isEnd", {
-            /**
-             * 动作是否已经结束
-             * @return true，动作已经结束，可以做下一个动作<br/>
-             *         false, 动作未结束，
-             */
-            get: function () {
-                return this._isEnd;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        /**
-         * 执行事件
-         */
-        UnitAction.prototype.dispatchEvent = function (unit, eventType, now) {
+        NetService.prototype.sendPassive = function (cmd, data, msgType) {
+            //合并同协议的指令
+            var pcmdList = this._pcmdList;
+            var len = pcmdList.length;
+            for (var _i = 0, pcmdList_1 = pcmdList; _i < pcmdList_1.length; _i++) {
+                var temp = pcmdList_1[_i];
+                if (temp.cmd == cmd) {
+                    temp.data = data;
+                    return;
+                }
+            }
+            //没有同协议的指令，新增数据
+            var pdata = junyou.recyclable(junyou.NetSendData);
+            pdata.cmd = cmd;
+            pdata.data = data;
+            pdata.msgType = msgType;
+            //将数据缓存在pcmdList中，等到下次send的时候发送
+            this._pcmdList[len] = pdata;
         };
         /**
-         * 渲染时执行
+         * 向缓冲数组中写入数据
          */
-        UnitAction.prototype.doRender = function (unit, now) {
+        NetService.prototype.writeToBuffer = function (bytes, data) {
+            var cmd = data.cmd;
+            var dat = data.data;
+            var type = data.msgType;
+            bytes.writeShort(cmd);
+            if (dat == undefined) {
+                this.writeBytesLength(bytes, 0);
+                if (true) {
+                    var outdata = undefined;
+                }
+            }
+            else {
+                if (type in junyou.NSBytesLen) {
+                    this.writeBytesLength(bytes, junyou.NSBytesLen[type]);
+                }
+                if (true) {
+                    outdata = dat;
+                }
+                switch (type) {
+                    case 0 /* Null */:
+                        if (true) {
+                            outdata = undefined;
+                        }
+                        break;
+                    case 1 /* Boolean */:
+                        bytes.writeBoolean(dat);
+                        break;
+                    case 5 /* Double */:
+                        bytes.writeDouble(dat);
+                        break;
+                    case 6 /* Int32 */:
+                        bytes.writeInt(dat);
+                        break;
+                    case 7 /* Uint32 */:
+                        bytes.writeUnsignedInt(dat);
+                        break;
+                    case 8 /* Int64 */:
+                        bytes.writeInt64(dat);
+                        break;
+                    case 2 /* String */:
+                        bytes.writeUTF(dat);
+                        break;
+                    case 4 /* Bytes */:
+                        var b = dat;
+                        bytes.writeUnsignedShort(b.length);
+                        bytes.writeBytes(b);
+                        if (true) {
+                            outdata = Uint8Array.from(b.bytes);
+                        }
+                        break;
+                    default:
+                        var tempBytes = this._tempBytes;
+                        tempBytes.clear();
+                        if (true) {
+                            outdata = {};
+                            junyou.PBUtils.writeTo(dat, data.msgType, tempBytes, outdata);
+                        }
+                        else {
+                            junyou.PBUtils.writeTo(dat, data.msgType, tempBytes);
+                        }
+                        this.writeBytesLength(bytes, tempBytes.length);
+                        bytes.writeBytes(tempBytes);
+                        break;
+                }
+            }
+            if (true) {
+                this.$writeNSLog(junyou.Global.now, "send", cmd, outdata);
+            }
         };
-        UnitAction.prototype.recycle = function () {
-            this._isEnd = true;
+        /**
+         * @private
+         * @param bytes
+         * @param out
+         */
+        NetService.prototype.decodeBytes = function (bytes) {
+            var receiveMSG = this._receiveMSG;
+            var tmpList = this._tmpList;
+            var idx = 0;
+            var header = junyou.nsHeader;
+            var decodeHeader = this.decodeHeader;
+            while (true) {
+                if (!decodeHeader(bytes, header)) {
+                    //回滚
+                    break;
+                }
+                var cmd = header.cmd, len = header.len;
+                //尝试读取结束后，应该在的索引
+                var endPos = bytes.position + len;
+                var type = receiveMSG[cmd];
+                if (type !== undefined) {
+                    var flag = true;
+                    var data = undefined;
+                    if (len > 0) {
+                        if (type in junyou.NSBytesLen) {
+                            var blen = junyou.NSBytesLen[type];
+                            if (true && blen != len) {
+                                junyou.Log("\u89E3\u6790\u6307\u4EE4\u65F6\uFF0C\u7C7B\u578B[" + type + "]\u7684\u6307\u4EE4\u957F\u5EA6[" + len + "]\u548C\u9884\u8BBE\u7684\u957F\u5EA6[" + blen + "]\u4E0D\u5339\u914D");
+                            }
+                            if (len < blen) {
+                                flag = false;
+                            }
+                        }
+                        if (flag) {
+                            switch (type) {
+                                case 0 /* Null */:
+                                    break;
+                                case 1 /* Boolean */:
+                                    data = bytes.readBoolean();
+                                    break;
+                                case 5 /* Double */:
+                                    data = bytes.readDouble();
+                                    break;
+                                case 6 /* Int32 */:
+                                    data = bytes.readInt();
+                                    break;
+                                case 7 /* Uint32 */:
+                                    data = bytes.readUnsignedInt();
+                                    break;
+                                case 8 /* Int64 */:
+                                    data = bytes.readInt64();
+                                    break;
+                                case 2 /* String */:
+                                    data = bytes.readUTFBytes(len);
+                                    break;
+                                case 4 /* Bytes */:
+                                    data = bytes.readByteArray(len);
+                                    break;
+                                default:
+                                    data = junyou.PBUtils.readFrom(type, bytes, len);
+                                    break;
+                            }
+                        }
+                    }
+                    if (flag) {
+                        //容错用，不管数据解析成功或者失败，将索引移至结束索引
+                        var nData = junyou.recyclable(junyou.NetData);
+                        nData.cmd = cmd;
+                        nData.data = data;
+                        tmpList[idx++] = nData;
+                    }
+                }
+                else if (true) {
+                    junyou.Log("\u901A\u4FE1\u6D88\u606F\u89E3\u6790\u65F6cmd[" + cmd + "]\uFF0C\u51FA\u73B0\u672A\u6CE8\u518C\u7684\u7C7B\u578B");
+                }
+                bytes.position = endPos;
+            }
+            //调试时,显示接收的数据
+            if (true) {
+                var now = junyou.Global.now;
+                //分发数据
+                for (var i = 0; i < idx; i++) {
+                    var ndata = tmpList[i];
+                    this.$writeNSLog(now, "receive", ndata.cmd, ndata.data);
+                }
+            }
+            var router = this._router;
+            //分发数据
+            for (var i = 0; i < idx; i++) {
+                var nData = tmpList[i];
+                router.dispatch(nData);
+            }
         };
-        UnitAction.defaultAction = { mountType: 0 /* ground */, action: 0 };
-        return UnitAction;
+        /**
+         * 解析头部信息
+         *
+         * @protected
+         * @param {ByteArray} bytes
+         * @param {NSHeader} header
+         * @returns 是否可以继续  true    继续后续解析
+         *                       false   取消后续解析
+         * @memberof NetService
+         */
+        NetService.prototype.decodeHeader = function (bytes, header) {
+            if (bytes.readAvailable < 4) {
+                return false;
+            }
+            //先读取2字节协议号
+            header.cmd = bytes.readShort();
+            //增加2字节的数据长度读取(这2字节是用于增加容错的，方便即便没有读到type，也能跳过指定长度的数据，让下一个指令能正常处理)
+            var len = bytes.readUnsignedShort();
+            if (bytes.readAvailable < len) {
+                // 回滚
+                bytes.position -= 4;
+                return false;
+            }
+            header.len = len;
+            return true;
+        };
+        /**
+         * 存储数据长度
+         *
+         * @protected
+         * @param {ByteArray} bytes
+         * @param {number} val
+         * @memberof NetService
+         */
+        NetService.prototype.writeBytesLength = function (bytes, val) {
+            bytes.writeUnsignedShort(val);
+        };
+        /**
+         *
+         * 模拟服务端
+         * @param {number} cmd
+         * @param {*} [data]
+         */
+        NetService.prototype.route = function (cmd, data) {
+            var nData = junyou.recyclable(junyou.NetData);
+            nData.cmd = cmd;
+            nData.data = data;
+            this._router.dispatch(nData);
+        };
+        return NetService;
     }());
-    junyou.UnitAction = UnitAction;
-    __reflect(UnitAction.prototype, "junyou.UnitAction");
+    junyou.NetService = NetService;
+    __reflect(NetService.prototype, "junyou.NetService");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -1201,72 +1658,6 @@ var junyou;
     }());
     junyou.StateMachine = StateMachine;
     __reflect(StateMachine.prototype, "junyou.StateMachine", ["junyou.IStateListener"]);
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * 临时对象
-     * @author 3tion
-     *
-     */
-    junyou.Temp = {
-        /**
-         * 共享数组1
-         */
-        SharedArray1: [],
-        /**
-         * 共享数组2
-         */
-        SharedArray2: [],
-        /**
-         * 共享数组3
-         */
-        SharedArray3: [],
-        SharedRect1: { x: 0, y: 0, width: 0, height: 0 },
-        SharedRect2: { x: 0, y: 0, width: 0, height: 0 },
-        /**
-         * 白鹭的点
-         */
-        EgretPoint: new egret.Point(),
-        /**
-         * 白鹭的矩形
-         */
-        EgretRectangle: new egret.Rectangle(),
-        /**
-         * 共享点1
-         */
-        SharedPoint1: { x: 0, y: 0, z: 0 },
-        /**
-         * 共享点2
-         */
-        SharedPoint2: { x: 0, y: 0, z: 0 },
-        /**
-         * 不做任何事情的空方法，接收任意长度的数据，返回空
-         */
-        voidFunction: function () { },
-        /**
-         * 用于替换的方法,接收任意长度的数据，返回null
-         */
-        willReplacedFunction: function () {
-            if (true) {
-                junyou.ThrowError("\u9700\u8981\u88AB\u66FF\u6362\u7684\u65B9\u6CD5\uFF0C\u6CA1\u6709\u88AB\u66FF\u6362\uFF0C\u5806\u6808\u4FE1\u606F\uFF1A" + new Error().stack);
-            }
-        },
-        /**
-         * 空对象
-         */
-        EmptyObject: Object.freeze({}),
-        /**
-         * 空数组
-         */
-        EmptyArray: Object.freeze([]),
-        /**
-         * 管线方法，用于符合函数的结构，并将数值传递下去
-         */
-        pipeFunction: function (arg) {
-            return arg;
-        }
-    };
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -1878,125 +2269,104 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
-     * 扩展一个实例，如果A类型实例本身并没有B类型的方法，则直接对实例的属性进行赋值，否则将不会赋值
+     * 单位动作
+     * @author 3tion
      *
-     * @export
-     * @template A
-     * @template B
-     * @param {A} instance                  要扩展的实例
-     * @param {{ prototype: B }} clazzB     需要扩展的对象方法
-     * @param {boolean} override            是否强制覆盖原有方法
-     * @returns {(A & B)}
      */
-    function expandInstance(instance, clazzB) {
-        var keys = [];
-        for (var _i = 2; _i < arguments.length; _i++) {
-            keys[_i - 2] = arguments[_i];
+    var UnitAction = (function () {
+        function UnitAction() {
         }
-        var bpt = clazzB.prototype;
-        for (var _a = 0, _b = Object.getOwnPropertyNames(bpt); _a < _b.length; _a++) {
-            var name_1 = _b[_a];
-            if (!keys || ~keys.indexOf(name_1)) {
-                var define = bpt.getPropertyDescriptor(name_1);
-                if (define) {
-                    Object.defineProperty(instance, name_1, define);
-                }
-                else {
-                    instance[name_1] = bpt[name_1];
-                }
+        /**
+         * 根据坐骑状态，获取人物动作序列的配置
+         *
+         * @param {MountType} mountType 坐骑状态
+         * @returns {IUnitActionInfo} 动作结果
+         */
+        UnitAction.prototype.getAction = function (mountType) {
+            return UnitAction.defaultAction;
+        };
+        /**
+         * 单位播放动作
+         * 如果子类要制作动态的自定义动作，重写此方法
+         * @param {Unit} unit               单位
+         * @param {MountType} mountType     骑乘状态
+         * @param {number} now              时间戳
+         */
+        UnitAction.prototype.playAction = function (unit, mountType, now) {
+            var aData = this.getAction(mountType);
+            if (aData) {
+                unit.setMountType(aData.mountType);
+                unit.doAction(now, aData.action);
             }
-        }
-        return instance;
-    }
-    junyou.expandInstance = expandInstance;
-    /**
-     * 将类型A扩展类型B的指定属性，并返回引用
-     *
-     * @export
-     * @template A
-     * @template B
-     * @template K
-     * @template B
-     * @param {{ prototype: A }} clazzA     要被扩展的类型
-     * @param {{ prototype: B }} clazzB     扩展的模板
-     * @param {...K[]} keys      如果没有参数，则将B的全部属性复制给类型A
-     * @returns {(A & Record<K, B>)}
-     */
-    function expand(clazzA, clazzB) {
-        var keys = [];
-        for (var _i = 2; _i < arguments.length; _i++) {
-            keys[_i - 2] = arguments[_i];
-        }
-        var pt = clazzA.prototype;
-        var bpt = clazzB.prototype;
-        for (var _a = 0, _b = Object.getOwnPropertyNames(bpt); _a < _b.length; _a++) {
-            var name_2 = _b[_a];
-            if (!keys || ~keys.indexOf(name_2)) {
-                if (!(name_2 in pt)) {
-                    pt[name_2] = bpt[name_2];
-                }
+            else {
+                junyou.ThrowError("\u672A\u5B9E\u73B0\u52A8\u4F5C{mountType:" + mountType + "}");
             }
-        }
-        return clazzA;
-    }
-    junyou.expand = expand;
-    /**
-     * 获取一个复合类型
-     *
-     * @export
-     * @template A
-     * @template B
-     * @param {{ prototype: A }} clazzA     类型A
-     * @param {{ prototype: B }} clazzB     类型B
-     * @returns
-     */
-    function getMixin(clazzA, clazzB) {
-        var merged = function () { };
-        if (Object.assign) {
-            Object.assign(merged.prototype, clazzA.prototype, clazzB.prototype);
-        }
-        else {
-            merged = expand(merged, clazzA);
-            merged = expand(merged, clazzB);
-        }
-        return merged;
-    }
-    junyou.getMixin = getMixin;
-    /**
-     * 拷贝属性
-     *
-     * @export
-     * @template To
-     * @template From
-     * @param {To} to
-     * @param {From} from
-     * @param {keyof B} key
-     */
-    function copyProperty(to, from, key) {
-        Object.defineProperty(to, key, Object.getOwnPropertyDescriptor(from, key));
-    }
-    junyou.copyProperty = copyProperty;
-    /**
-     * 批量拷贝属性
-     *
-     * @export
-     * @template To
-     * @template From
-     * @param {To} to
-     * @param {From} from
-     * @param {...(keyof From)[]} keys
-     */
-    function copyProperties(to, from) {
-        var keys = [];
-        for (var _i = 2; _i < arguments.length; _i++) {
-            keys[_i - 2] = arguments[_i];
-        }
-        for (var i = 0; i < keys.length; i++) {
-            var key = keys[i];
-            copyProperty(to, from, key);
-        }
-    }
-    junyou.copyProperties = copyProperties;
+        };
+        /**
+         * 播放动作
+         */
+        UnitAction.prototype.start = function (unit, now) {
+            this._isEnd = false;
+        };
+        /**
+         * 动作执行数据计算<br/>
+         * 如更新单位坐标等
+         */
+        UnitAction.prototype.doData = function (unit, now) {
+        };
+        Object.defineProperty(UnitAction.prototype, "canStop", {
+            /**
+             * 检查当前动作是否可以结束<br/>
+             * @return true 可以结束<br/>
+             *         false 不可结束
+             */
+            get: function () {
+                return true;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         * 强制结束
+         */
+        UnitAction.prototype.terminate = function () {
+        };
+        /**
+         * 动画播放结束的回调
+         */
+        UnitAction.prototype.playComplete = function (unit, now) {
+            this._isEnd = true;
+        };
+        Object.defineProperty(UnitAction.prototype, "isEnd", {
+            /**
+             * 动作是否已经结束
+             * @return true，动作已经结束，可以做下一个动作<br/>
+             *         false, 动作未结束，
+             */
+            get: function () {
+                return this._isEnd;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         * 执行事件
+         */
+        UnitAction.prototype.dispatchEvent = function (unit, eventType, now) {
+        };
+        /**
+         * 渲染时执行
+         */
+        UnitAction.prototype.doRender = function (unit, now) {
+        };
+        UnitAction.prototype.recycle = function () {
+            this._isEnd = true;
+        };
+        UnitAction.defaultAction = { mountType: 0 /* ground */, action: 0 };
+        return UnitAction;
+    }());
+    junyou.UnitAction = UnitAction;
+    __reflect(UnitAction.prototype, "junyou.UnitAction");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -3435,564 +3805,128 @@ var junyou;
     junyou.Scroller = Scroller;
     __reflect(Scroller.prototype, "junyou.Scroller");
 })(junyou || (junyou = {}));
-if (true) {
-    var $gm = $gm || {};
-    $gm.__getNSFilter = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
-        var nsFilter = {};
-        if (args.length) {
-            var filter = args[0];
-            if (filter != undefined) {
-                var tof = typeof filter;
-                if (tof === "function") {
-                    nsFilter.filter = filter;
-                    nsFilter.filterParams = args.slice(1);
-                }
-                else {
-                    if (tof === "boolean") {
-                        nsFilter.isWhite = filter;
-                        nsFilter.cmds = args.slice(1);
-                    }
-                    else if (tof === "number") {
-                        nsFilter.cmds = args;
-                    }
-                }
-            }
-        }
-        return nsFilter;
-    };
-    $gm.print = function () {
-        $gm.printSend();
-        $gm.printReceive();
-    };
-    $gm.printSend = function (filter) {
-        var args = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            args[_i - 1] = arguments[_i];
-        }
-        if (arguments.length == 0 && $gm.printSendFilter) {
-            $gm.printSendFilter = undefined;
-        }
-        else {
-            $gm.printSendFilter = $gm.__getNSFilter.apply($gm, [filter].concat(args));
-        }
-    };
-    $gm.printReceive = function (filter) {
-        var args = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            args[_i - 1] = arguments[_i];
-        }
-        if (arguments.length == 0 && $gm.printReceiveFilter) {
-            $gm.printReceiveFilter = undefined;
-        }
-        else {
-            $gm.printReceiveFilter = $gm.__getNSFilter.apply($gm, [filter].concat(args));
-        }
-    };
-    $gm.showNSLog = function (filter) {
-        var args = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            args[_i - 1] = arguments[_i];
-        }
-        var nsFilter = $gm.__getNSFilter.apply($gm, [filter].concat(args));
-        var output = [];
-        var msg = "";
-        $gm.nsLogs.forEach(function (log) {
-            if ($gm.__nsLogCheck(log, nsFilter)) {
-                output.push({ type: log.type, time: log.time, cmd: log.cmd, data: log.data, json: JSON.stringify(log.data) });
-                msg += log.time + "\t" + log.type + "\t" + log.cmd + "\t" + JSON.stringify(log.data) + "\n";
-            }
-        });
-        console.table(output);
-        junyou.doCopy(msg) && console.log("%c 已将网络数据复制到剪贴板", "color:red;font-size:50px;");
-        return output;
-    };
-    $gm.__nsLogCheck = function (log, nsFilter) {
-        var cmd = log.cmd;
-        if (nsFilter) {
-            var filter = nsFilter.filter, cmds = nsFilter.cmds, filterParams = nsFilter.filterParams, isWhite = nsFilter.isWhite;
-            if (cmds) {
-                var idx = cmds.indexOf(cmd);
-                if (isWhite && ~idx || !isWhite && !~idx) {
-                    return true;
-                }
-            }
-            else if (filter) {
-                return filter.apply(void 0, [log].concat(filterParams));
-            }
-            else {
-                return true;
-            }
-        }
-    };
-    $gm.maxNSLogCount = 1000;
-    $gm.nsLogs = [];
-    $gm.route = function (cmd, data) {
-        junyou.NetService.get().route(cmd, data);
-    };
-    $gm.batchRoute = function (logs) {
-        //过滤send
-        logs = logs.filter(function (log) {
-            return log.type != "send";
-        });
-        if (logs.length) {
-            var time_1 = logs[0].time | 0;
-            logs.forEach(function (log) {
-                setTimeout($gm.route, (log.time | 0) - time_1, log.cmd, log.data);
-            });
-        }
-    };
-}
 var junyou;
 (function (junyou) {
-    junyou.NSBytesLen = {
-        /**NSType.Null */ 0: 0,
-        /**NSType.Boolean */ 1: 1,
-        /**NSType.Double */ 5: 8,
-        /**NSType.Int32 */ 6: 4,
-        /**NSType.Uint32 */ 7: 4,
-        /**NSType.Int64 */ 8: 8
-    };
     /**
-     * 用于存储头部的临时变量
-     */
-    junyou.nsHeader = { cmd: 0, len: 0 };
-    function send2(cmd, data, msgType, limit) {
-        if (junyou.RequestLimit.check(cmd, limit)) {
-            this._send(cmd, data, msgType);
-        }
-        else {
-            junyou.dispatch(-189 /* NetServiceSendLimit */, cmd);
-        }
-    }
-    /**
-     * 通信服务
-     * 收发的协议结构：
-     * 2字节协议号 2字节包长度(n) n字节包
-     * @author 3tion
+     * 扩展一个实例，如果A类型实例本身并没有B类型的方法，则直接对实例的属性进行赋值，否则将不会赋值
      *
+     * @export
+     * @template A
+     * @template B
+     * @param {A} instance                  要扩展的实例
+     * @param {{ prototype: B }} clazzB     需要扩展的对象方法
+     * @param {boolean} override            是否强制覆盖原有方法
+     * @returns {(A & B)}
      */
-    var NetService = (function () {
-        function NetService() {
-            var _this = this;
-            this.netChange = function () {
-                if (navigator.onLine) {
-                    junyou.dispatch(-192 /* Online */);
-                    _this.showReconnect();
+    function expandInstance(instance, clazzB) {
+        var keys = [];
+        for (var _i = 2; _i < arguments.length; _i++) {
+            keys[_i - 2] = arguments[_i];
+        }
+        var bpt = clazzB.prototype;
+        for (var _a = 0, _b = Object.getOwnPropertyNames(bpt); _a < _b.length; _a++) {
+            var name_1 = _b[_a];
+            if (!keys || ~keys.indexOf(name_1)) {
+                var define = bpt.getPropertyDescriptor(name_1);
+                if (define) {
+                    Object.defineProperty(instance, name_1, define);
                 }
                 else {
-                    junyou.dispatch(-191 /* Offline */);
+                    instance[name_1] = bpt[name_1];
                 }
-            };
-            /**
-             * 基础连接时间
-             *
-             *
-             * @memberOf NetService
-             */
-            this.baseConTime = 10000;
-            /**
-             * 最大连接时间
-             *
-             *
-             * @memberOf NetService
-             */
-            this.maxConTime = 60000 /* ONE_MINUTE */;
-            /**
-             * 重连次数
-             *
-             * @private
-             * @type {number}
-             * @memberOf NetService
-             */
-            this._reconCount = 0;
-            /**
-             * 下次自动拉取请求的时间戳
-             */
-            this._nextAutoTime = 0;
-            this._router = new junyou.NetRouter();
-            this._pcmdList = [];
-            this._tmpList = [];
-            this._readBuffer = new junyou.ByteArray();
-            this._sendBuffer = new junyou.ByteArray();
-            this._tempBytes = new junyou.ByteArray();
-            this._receiveMSG = {};
-            if (true) {
-                this.$writeNSLog = function (time, type, cmd, data) {
-                    data = data == undefined ? undefined : JSON.parse(JSON.stringify(data));
-                    var log = doFreeze({ time: time, type: type, cmd: cmd, data: data });
-                    var nsLogs = $gm.nsLogs;
-                    //清理多余的日志
-                    while (nsLogs.length > $gm.maxNSLogCount) {
-                        nsLogs.shift();
-                    }
-                    nsLogs.push(log);
-                    var nsFilter = type == "send" ? $gm.printSendFilter : $gm.printReceiveFilter;
-                    if ($gm.__nsLogCheck(log, nsFilter)) {
-                        console.log(type, time, cmd, data);
-                    }
-                    function doFreeze(obj) {
-                        if (typeof obj == "object" && obj) {
-                            var pool = [obj];
-                            while (pool.length) {
-                                var tmp = pool.pop();
-                                Object.freeze(tmp);
-                                for (var key in tmp) {
-                                    var x = tmp[key];
-                                    if (typeof x == "object" && x) {
-                                        pool.push(x);
-                                    }
-                                }
-                            }
-                        }
-                        return obj;
-                    }
-                };
             }
-            if (window.addEventListener) {
-                addEventListener("online", this.netChange);
-                addEventListener("offline", this.netChange);
-            }
-            junyou.on(-190 /* Awake */, this.onawake, this);
         }
-        NetService.prototype.setLimitEventEmitable = function (emit) {
-            if (emit) {
-                this.send = send2;
-            }
-            else {
-                delete this.send;
-            }
-        };
-        NetService.get = function () {
-            return this._ins;
-        };
-        NetService.prototype.showReconnect = function () {
-            this._reconCount += 1;
-            var time = this._reconCount * this.baseConTime;
-            var maxConTime = this.maxConTime;
-            if (time > maxConTime) {
-                time = maxConTime;
-            }
-            this._nextAutoTime = junyou.Global.now + time;
-            junyou.dispatch(-194 /* ShowReconnect */, this._reconCount);
-        };
-        NetService.prototype.onawake = function () {
-            this._reconCount = 0;
-            this._nextAutoTime = junyou.Global.now + this._autoTimeDelay;
-        };
-        /**
-         * 基础类型消息
-         */
-        NetService.prototype.regReceiveMSGRef = function (cmd, ref) {
-            this._receiveMSG[cmd] = ref;
-        };
-        /**
-         * 注册处理器
-         * @param {number} cmd 协议号
-         * @param {INetHandler} handler 处理网络数据的处理器
-         * @param {number} [priority=0] 处理优先级
-         */
-        NetService.prototype.register = function (cmd, handler, priotity) {
-            if (priotity === void 0) { priotity = 0; }
-            return this._register(cmd, handler, priotity, false);
-        };
-        /**
-         * 注册单次执行的处理器
-         * @param {number} cmd 协议号
-         * @param {INetHandler} handler 处理网络数据的处理器
-         * @param {number} [priority=0] 处理优先级
-         */
-        NetService.prototype.regOnce = function (cmd, handler, priotity) {
-            if (priotity === void 0) { priotity = 0; }
-            return this._register(cmd, handler, priotity, true);
-        };
-        /**
-         * 移除协议号和处理器的监听
-         *
-         * @param {number} cmd 协议号
-         * @param {INetHandler} handler 处理网络数据的处理器
-         */
-        NetService.prototype.remove = function (cmd, handler) {
-            this._router.remove(cmd, handler);
-        };
-        NetService.prototype._register = function (cmd, handler, priotity, once) {
-            if (cmd > 32767 || cmd < -32768) {
-                if (true) {
-                    junyou.Log("\u534F\u8BAE\u53F7\u7684\u8303\u56F4\u5FC5\u987B\u662F-32768~32767\u4E4B\u95F4\uFF0C\u5F53\u524Dcmd:" + cmd);
-                }
-                return false;
-            }
-            this._router.register(cmd, handler, priotity, once);
-            return true;
-        };
-        /**
-         * 即时发送指令<br/>
-         * 用于处理角色主动操作的请求，如点击合成道具，使用物品等
-         * @param {number} cmd 协议号
-         * @param {any} [data] 数据，简单数据(number,boolean,string)复合数据
-         * @param {string} [msgType] 如果是复合数据，必须有此值
-         * @param {number} [limit] 客户端发送时间限制，默认500毫秒
-         */
-        NetService.prototype.send = function (cmd, data, msgType, limit) {
-            if (junyou.RequestLimit.check(cmd, limit)) {
-                this._send(cmd, data, msgType);
-            }
-        };
-        /**
-         * 断开连接
-         */
-        NetService.prototype.disconnect = function () {
-            // TODO
-        };
-        /**
-         * 消极发送指令
-         * 如果使用通协议的指令，有堆积的指令，先合并，新的替换旧的
-         * __`请勿将一些用户操作使用此指令发送`__
-         * 处理一些实时性要求不高的指令，这些指令先缓存堆积，等到用户主动发指令的时候，一起发送
-         * @param {number} cmd 协议号
-         * @param {any} [data] 数据，简单数据(number,boolean,string)复合数据
-         * @param {string} [msgType] 如果是复合数据，必须有此值
-         */
-        NetService.prototype.sendPassive = function (cmd, data, msgType) {
-            //合并同协议的指令
-            var pcmdList = this._pcmdList;
-            var len = pcmdList.length;
-            for (var _i = 0, pcmdList_1 = pcmdList; _i < pcmdList_1.length; _i++) {
-                var temp = pcmdList_1[_i];
-                if (temp.cmd == cmd) {
-                    temp.data = data;
-                    return;
+        return instance;
+    }
+    junyou.expandInstance = expandInstance;
+    /**
+     * 将类型A扩展类型B的指定属性，并返回引用
+     *
+     * @export
+     * @template A
+     * @template B
+     * @template K
+     * @template B
+     * @param {{ prototype: A }} clazzA     要被扩展的类型
+     * @param {{ prototype: B }} clazzB     扩展的模板
+     * @param {...K[]} keys      如果没有参数，则将B的全部属性复制给类型A
+     * @returns {(A & Record<K, B>)}
+     */
+    function expand(clazzA, clazzB) {
+        var keys = [];
+        for (var _i = 2; _i < arguments.length; _i++) {
+            keys[_i - 2] = arguments[_i];
+        }
+        var pt = clazzA.prototype;
+        var bpt = clazzB.prototype;
+        for (var _a = 0, _b = Object.getOwnPropertyNames(bpt); _a < _b.length; _a++) {
+            var name_2 = _b[_a];
+            if (!keys || ~keys.indexOf(name_2)) {
+                if (!(name_2 in pt)) {
+                    pt[name_2] = bpt[name_2];
                 }
             }
-            //没有同协议的指令，新增数据
-            var pdata = junyou.recyclable(junyou.NetSendData);
-            pdata.cmd = cmd;
-            pdata.data = data;
-            pdata.msgType = msgType;
-            //将数据缓存在pcmdList中，等到下次send的时候发送
-            this._pcmdList[len] = pdata;
-        };
-        /**
-         * 向缓冲数组中写入数据
-         */
-        NetService.prototype.writeToBuffer = function (bytes, data) {
-            var cmd = data.cmd;
-            var dat = data.data;
-            var type = data.msgType;
-            bytes.writeShort(cmd);
-            if (dat == undefined) {
-                this.writeBytesLength(bytes, 0);
-                if (true) {
-                    var outdata = undefined;
-                }
-            }
-            else {
-                if (type in junyou.NSBytesLen) {
-                    this.writeBytesLength(bytes, junyou.NSBytesLen[type]);
-                }
-                if (true) {
-                    outdata = dat;
-                }
-                switch (type) {
-                    case 0 /* Null */:
-                        if (true) {
-                            outdata = undefined;
-                        }
-                        break;
-                    case 1 /* Boolean */:
-                        bytes.writeBoolean(dat);
-                        break;
-                    case 5 /* Double */:
-                        bytes.writeDouble(dat);
-                        break;
-                    case 6 /* Int32 */:
-                        bytes.writeInt(dat);
-                        break;
-                    case 7 /* Uint32 */:
-                        bytes.writeUnsignedInt(dat);
-                        break;
-                    case 8 /* Int64 */:
-                        bytes.writeInt64(dat);
-                        break;
-                    case 2 /* String */:
-                        bytes.writeUTF(dat);
-                        break;
-                    case 4 /* Bytes */:
-                        var b = dat;
-                        bytes.writeUnsignedShort(b.length);
-                        bytes.writeBytes(b);
-                        if (true) {
-                            outdata = Uint8Array.from(b.bytes);
-                        }
-                        break;
-                    default:
-                        var tempBytes = this._tempBytes;
-                        tempBytes.clear();
-                        if (true) {
-                            outdata = {};
-                            junyou.PBMessageUtils.writeTo(dat, data.msgType, tempBytes, outdata);
-                        }
-                        else {
-                            junyou.PBMessageUtils.writeTo(dat, data.msgType, tempBytes);
-                        }
-                        this.writeBytesLength(bytes, tempBytes.length);
-                        bytes.writeBytes(tempBytes);
-                        break;
-                }
-            }
-            if (true) {
-                this.$writeNSLog(junyou.Global.now, "send", cmd, outdata);
-            }
-        };
-        /**
-         * @private
-         * @param bytes
-         * @param out
-         */
-        NetService.prototype.decodeBytes = function (bytes) {
-            var receiveMSG = this._receiveMSG;
-            var tmpList = this._tmpList;
-            var idx = 0;
-            var header = junyou.nsHeader;
-            var decodeHeader = this.decodeHeader;
-            while (true) {
-                if (!decodeHeader(bytes, header)) {
-                    //回滚
-                    break;
-                }
-                var cmd = header.cmd, len = header.len;
-                //尝试读取结束后，应该在的索引
-                var endPos = bytes.position + len;
-                var type = receiveMSG[cmd];
-                if (type !== undefined) {
-                    var flag = true;
-                    var data = undefined;
-                    if (len > 0) {
-                        if (type in junyou.NSBytesLen) {
-                            var blen = junyou.NSBytesLen[type];
-                            if (true && blen != len) {
-                                junyou.Log("\u89E3\u6790\u6307\u4EE4\u65F6\uFF0C\u7C7B\u578B[" + type + "]\u7684\u6307\u4EE4\u957F\u5EA6[" + len + "]\u548C\u9884\u8BBE\u7684\u957F\u5EA6[" + blen + "]\u4E0D\u5339\u914D");
-                            }
-                            if (len < blen) {
-                                flag = false;
-                            }
-                        }
-                        if (flag) {
-                            switch (type) {
-                                case 0 /* Null */:
-                                    break;
-                                case 1 /* Boolean */:
-                                    data = bytes.readBoolean();
-                                    break;
-                                case 5 /* Double */:
-                                    data = bytes.readDouble();
-                                    break;
-                                case 6 /* Int32 */:
-                                    data = bytes.readInt();
-                                    break;
-                                case 7 /* Uint32 */:
-                                    data = bytes.readUnsignedInt();
-                                    break;
-                                case 8 /* Int64 */:
-                                    data = bytes.readInt64();
-                                    break;
-                                case 2 /* String */:
-                                    data = bytes.readUTFBytes(len);
-                                    break;
-                                case 4 /* Bytes */:
-                                    data = bytes.readByteArray(len);
-                                    break;
-                                default:
-                                    data = junyou.PBMessageUtils.readFrom(type, bytes, len);
-                                    break;
-                            }
-                        }
-                    }
-                    if (flag) {
-                        //容错用，不管数据解析成功或者失败，将索引移至结束索引
-                        var nData = junyou.recyclable(junyou.NetData);
-                        nData.cmd = cmd;
-                        nData.data = data;
-                        tmpList[idx++] = nData;
-                    }
-                }
-                else if (true) {
-                    junyou.Log("\u901A\u4FE1\u6D88\u606F\u89E3\u6790\u65F6cmd[" + cmd + "]\uFF0C\u51FA\u73B0\u672A\u6CE8\u518C\u7684\u7C7B\u578B");
-                }
-                bytes.position = endPos;
-            }
-            //调试时,显示接收的数据
-            if (true) {
-                var now = junyou.Global.now;
-                //分发数据
-                for (var i = 0; i < idx; i++) {
-                    var ndata = tmpList[i];
-                    this.$writeNSLog(now, "receive", ndata.cmd, ndata.data);
-                }
-            }
-            var router = this._router;
-            //分发数据
-            for (var i = 0; i < idx; i++) {
-                var nData = tmpList[i];
-                router.dispatch(nData);
-            }
-        };
-        /**
-         * 解析头部信息
-         *
-         * @protected
-         * @param {ByteArray} bytes
-         * @param {NSHeader} header
-         * @returns 是否可以继续  true    继续后续解析
-         *                       false   取消后续解析
-         * @memberof NetService
-         */
-        NetService.prototype.decodeHeader = function (bytes, header) {
-            if (bytes.readAvailable < 4) {
-                return false;
-            }
-            //先读取2字节协议号
-            header.cmd = bytes.readShort();
-            //增加2字节的数据长度读取(这2字节是用于增加容错的，方便即便没有读到type，也能跳过指定长度的数据，让下一个指令能正常处理)
-            var len = bytes.readUnsignedShort();
-            if (bytes.readAvailable < len) {
-                // 回滚
-                bytes.position -= 4;
-                return false;
-            }
-            header.len = len;
-            return true;
-        };
-        /**
-         * 存储数据长度
-         *
-         * @protected
-         * @param {ByteArray} bytes
-         * @param {number} val
-         * @memberof NetService
-         */
-        NetService.prototype.writeBytesLength = function (bytes, val) {
-            bytes.writeUnsignedShort(val);
-        };
-        /**
-         *
-         * 模拟服务端
-         * @param {number} cmd
-         * @param {*} [data]
-         */
-        NetService.prototype.route = function (cmd, data) {
-            var nData = junyou.recyclable(junyou.NetData);
-            nData.cmd = cmd;
-            nData.data = data;
-            this._router.dispatch(nData);
-        };
-        return NetService;
-    }());
-    junyou.NetService = NetService;
-    __reflect(NetService.prototype, "junyou.NetService");
+        }
+        return clazzA;
+    }
+    junyou.expand = expand;
+    /**
+     * 获取一个复合类型
+     *
+     * @export
+     * @template A
+     * @template B
+     * @param {{ prototype: A }} clazzA     类型A
+     * @param {{ prototype: B }} clazzB     类型B
+     * @returns
+     */
+    function getMixin(clazzA, clazzB) {
+        var merged = function () { };
+        if (Object.assign) {
+            Object.assign(merged.prototype, clazzA.prototype, clazzB.prototype);
+        }
+        else {
+            merged = expand(merged, clazzA);
+            merged = expand(merged, clazzB);
+        }
+        return merged;
+    }
+    junyou.getMixin = getMixin;
+    /**
+     * 拷贝属性
+     *
+     * @export
+     * @template To
+     * @template From
+     * @param {To} to
+     * @param {From} from
+     * @param {keyof B} key
+     */
+    function copyProperty(to, from, key) {
+        Object.defineProperty(to, key, Object.getOwnPropertyDescriptor(from, key));
+    }
+    junyou.copyProperty = copyProperty;
+    /**
+     * 批量拷贝属性
+     *
+     * @export
+     * @template To
+     * @template From
+     * @param {To} to
+     * @param {From} from
+     * @param {...(keyof From)[]} keys
+     */
+    function copyProperties(to, from) {
+        var keys = [];
+        for (var _i = 2; _i < arguments.length; _i++) {
+            keys[_i - 2] = arguments[_i];
+        }
+        for (var i = 0; i < keys.length; i++) {
+            var key = keys[i];
+            copyProperty(to, from, key);
+        }
+    }
+    junyou.copyProperties = copyProperties;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -4619,6 +4553,38 @@ var junyou;
     }(egret.EventDispatcher));
     junyou.Group = Group;
     __reflect(Group.prototype, "junyou.Group");
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 用于发送的网络数据<br/>
+     * @author 3tion
+     */
+    var NetSendData = (function () {
+        function NetSendData() {
+        }
+        NetSendData.prototype.onRecycle = function () {
+            this.data = undefined;
+            this.msgType = undefined;
+        };
+        return NetSendData;
+    }());
+    junyou.NetSendData = NetSendData;
+    __reflect(NetSendData.prototype, "junyou.NetSendData", ["junyou.IRecyclable"]);
+    /**
+     * 网络数据，类似AS3项目中Stream<br/>
+     * @author 3tion
+     *
+     */
+    var NetData = (function (_super) {
+        __extends(NetData, _super);
+        function NetData() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        return NetData;
+    }(NetSendData));
+    junyou.NetData = NetData;
+    __reflect(NetData.prototype, "junyou.NetData");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -5725,437 +5691,6 @@ var junyou;
     }(junyou.NetService));
     junyou.WSNetService = WSNetService;
     __reflect(WSNetService.prototype, "junyou.WSNetService");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    var structDict = junyou.Temp.EmptyObject;
-    /**
-     * protobuf wiretype的字典
-     * key  {number}    ProtoBuf的类型
-     * Value {number}   WireType
-     *
-     * @private
-     * @static
-     * @type {{ [index: number]: number }}
-     */
-    var wireTypeMap = [
-        /* 无 */ ,
-        /* PBType.Double */ 1,
-        /* PBType.Float */ 5,
-        /* PBType.Int64 */ 0,
-        /* PBType.UInt64 */ 0,
-        /* PBType.Int32 */ 0,
-        /* PBType.Fixed64 */ 1,
-        /* PBType.Fixed32 */ 5,
-        /* PBType.Bool */ 0,
-        /* PBType.String */ 2,
-        /* PBType.Group */ ,
-        /* PBType.Message */ 2,
-        /* PBType.Bytes */ 2,
-        /* PBType.Uint32 */ 0,
-        /* PBType.Enum */ 0,
-        /* PBType.SFixed32 */ 5,
-        /* PBType.SFixed64 */ 1,
-        /* PBType.SInt32 */ 0,
-        /* PBType.SInt64 */ 0
-    ];
-    /**
-     * 消息定义的字典
-     */
-    var defDict = {};
-    function regDef(m, def) {
-        var msg;
-        if (typeof m != "object") {
-            msg = structDict[m];
-            if (!msg) {
-                defDict[m] = def;
-                return;
-            }
-        }
-        else {
-            msg = m;
-        }
-        Object.defineProperty(msg, "def" /* defKey */, {
-            value: def
-        });
-    }
-    /**
-     *
-     * @author 3tion
-     * javascript 只会使用到 varint32->number string boolean
-     *
-     */
-    junyou.PBMessageUtils = {
-        /**
-         * 注册定义
-         */
-        regDef: regDef,
-        /**
-         * 设置ProtoBuf的消息定义字典
-         *
-         * @static
-         * @param {PBStructDict} dict
-         *
-         * @memberOf PBMessageUtils
-         */
-        setPBDict: function (dict) {
-            //对默认值做预处理，减少后期遍历次数
-            if (dict) {
-                structDict = dict;
-                var defD = defDict;
-                if (!dict.$$inted) {
-                    for (var name_3 in dict) {
-                        var encode = dict[name_3];
-                        var def = defD[name_3];
-                        if (def) {
-                            regDef(encode, def);
-                        }
-                        //检查处理默认值
-                        for (var idx in encode) {
-                            var body = encode[idx];
-                            //0 key
-                            //1 required optional repeated
-                            //2 数据类型
-                            //3 Message
-                            //4 默认值
-                            if (4 in body) {
-                                var def_1 = encode.def;
-                                if (!def_1) {
-                                    //不使用encode.def=def=[]; 是为了防止def被遍历
-                                    Object.defineProperty(encode, "def" /* defKey */, {
-                                        value: {}
-                                    });
-                                    def_1 = encode.def;
-                                }
-                                var key = body[0];
-                                //消息中没有对应key的数据，先赋值成默认值，等待后续处理
-                                def_1[key] = body[4];
-                            }
-                        }
-                        if (!encode.def) {
-                            Object.defineProperty(encode, "def" /* defKey */, {
-                                value: Object.prototype
-                            });
-                        }
-                    }
-                    dict.$$inted = 1;
-                }
-            }
-        },
-        readFrom: readFrom,
-        writeTo: writeTo
-    };
-    /**
-     * 读取消息
-     *
-     * @param {(string | PBStruct)} msgType
-     * @param {ByteArray} bytes
-     * @param {number} [len]
-     * @returns {Object}
-     */
-    function readFrom(msgType, bytes, len) {
-        if (len === undefined)
-            len = -1;
-        var afterLen = 0;
-        if (len > -1) {
-            afterLen = bytes.bytesAvailable - len;
-        }
-        var encode = typeof msgType === "string" ? structDict[msgType] : msgType;
-        if (!encode) {
-            junyou.ThrowError("\u975E\u6CD5\u7684\u901A\u4FE1\u7C7B\u578B[" + msgType + "]");
-            return;
-        }
-        //检查处理默认值
-        var msg = Object.create(encode.def);
-        while (bytes.bytesAvailable > afterLen) {
-            var tag = bytes.readVarint();
-            if (tag == 0)
-                continue;
-            var idx = tag >>> 3;
-            var body = encode[idx];
-            if (!body) {
-                junyou.ThrowError("\u8BFB\u53D6\u6D88\u606F\u7C7B\u578B\u4E3A\uFF1A" + msgType + "\uFF0C\u7D22\u5F15" + idx + "\u65F6\u6570\u636E\u51FA\u73B0\u9519\u8BEF\uFF0C\u627E\u4E0D\u5230\u5BF9\u5E94\u7684\u6570\u636E\u7ED3\u6784\u914D\u7F6E");
-                // 使用默认读取
-                readValue(tag, bytes);
-                continue;
-            }
-            var name_4 = body[0];
-            var label = body[1];
-            var type = body[2];
-            var subMsgType = body[3];
-            var value = void 0;
-            if (label != 3 || (tag & 7) != 7) {
-                switch (type) {
-                    case 1 /* Double */:
-                        value = bytes.readDouble();
-                        break;
-                    case 2 /* Float */:
-                        value = bytes.readFloat();
-                        break;
-                    case 3 /* Int64 */:
-                    case 4 /* UInt64 */:
-                    case 18 /* SInt64 */:
-                        value = bytes.readVarint64(); //理论上项目不使用
-                        break;
-                    case 5 /* Int32 */:
-                        value = bytes.readVarint();
-                        break;
-                    case 17 /* SInt32 */:
-                        value = decodeZigzag32(bytes.readVarint());
-                        break;
-                    case 13 /* Uint32 */:
-                    case 14 /* Enum */:
-                        value = bytes.readVarint();
-                        break;
-                    case 6 /* Fixed64 */:
-                    case 16 /* SFixed64 */:
-                        value = bytes.readFix64(); //理论上项目不使用
-                        break;
-                    case 7 /* Fixed32 */:
-                        value = bytes.readFix32();
-                        break;
-                    case 8 /* Bool */:
-                        value = bytes.readBoolean();
-                        break;
-                    case 9 /* String */:
-                        value = readString(bytes);
-                        break;
-                    case 10 /* Group */://(protobuf 已弃用)
-                        value = undefined;
-                        if (true) {
-                            junyou.ThrowError("\u8BFB\u53D6\u6D88\u606F\u7C7B\u578B\u4E3A\uFF1A" + msgType + "\uFF0C\u7D22\u5F15" + idx + "\u65F6\u6570\u636E\u51FA\u73B0\u5DF2\u5F03\u7528\u7684GROUP\u5206\u7EC4\u7C7B\u578B");
-                        }
-                        break;
-                    case 11 /* Message */://消息
-                        value = readMessage(bytes, subMsgType);
-                        break;
-                    case 12 /* Bytes */:
-                        value = readBytes(bytes);
-                        break;
-                    case 15 /* SFixed32 */:
-                        value = bytes.readSFix32();
-                        break;
-                    default:
-                        value = readValue(tag, bytes);
-                }
-            }
-            if (label == 3) {
-                var arr = msg[name_4];
-                if (!arr)
-                    msg[name_4] = arr = [];
-                arr.push(value);
-            }
-            else {
-                msg[name_4] = value;
-            }
-        }
-        return msg;
-    }
-    function readValue(tag, bytes) {
-        var wireType = tag & 7;
-        var value;
-        switch (wireType) {
-            case 0://Varint	int32, int64, uint32, uint64, sint32, sint64, bool, enum
-                value = bytes.readVarint();
-                break;
-            case 2://Length-delimi	string, bytes, embedded messages, packed repeated fields
-                value = readString(bytes);
-                break;
-            case 5://32-bit	fixed32, sfixed32, float
-                value = bytes.readInt();
-                break;
-            case 1://64-bit	fixed64, sfixed64, double
-                value = bytes.readDouble();
-                break;
-            default:
-                junyou.ThrowError("protobuf的wireType未知");
-        }
-        return value;
-    }
-    function readString(bytes) {
-        var blen = bytes.readVarint();
-        if (blen > 0) {
-            return bytes.readUTFBytes(blen);
-        }
-        return "";
-    }
-    /**
-     *
-     * 读取消息
-     * @private
-     * @static
-     * @param {number} tag          标签
-     * @param {ByteArray} bytes     被处理的字节数组
-     * @param {string} subMsgType   类型标识
-     * @returns {Object}
-     */
-    function readMessage(bytes, msgType) {
-        var blen = bytes.readVarint();
-        return readFrom(msgType, bytes, blen);
-    }
-    function readBytes(bytes) {
-        var blen = bytes.readVarint();
-        return bytes.readByteArray(blen);
-    }
-    /**
-     * 写入消息
-     *
-     * @param {Object} msg
-     * @param {(string | PBStruct)} msgType
-     * @param {ByteArray} [bytes]
-     * @returns {ByteArray}
-     */
-    function writeTo(msg, msgType, bytes, debugOutData) {
-        if (msg == undefined) {
-            return;
-        }
-        var messageEncode = typeof msgType === "string" ? structDict[msgType] : msgType;
-        if (!messageEncode) {
-            junyou.ThrowError("\u975E\u6CD5\u7684\u901A\u4FE1\u7C7B\u578B[" + msgType + "]\uFF0C\u5806\u6808\u4FE1\u606F:" + new Error());
-            return;
-        }
-        if (!bytes) {
-            bytes = new junyou.ByteArray;
-        }
-        for (var numberStr in messageEncode) {
-            var num = +numberStr;
-            var body = messageEncode[num];
-            var label = body[1];
-            var name_5 = body[0];
-            if (label == 1 /* optional */ && !(name_5 in msg)) {
-                continue;
-            }
-            var value = msg[name_5];
-            if (value == undefined || value === body[4] /* 默认值 */) {
-                continue;
-            }
-            var type = body[2];
-            var subMsgType = body[3];
-            var wireType = wireTypeMap[type];
-            var tag = (num << 3) | wireType;
-            if (label == 3 /* repeated */) {
-                if (true && debugOutData) {
-                    var arr = [];
-                    debugOutData[name_5] = arr;
-                }
-                for (var key in value) {
-                    var element = value[key];
-                    // 针对repeated中无法处理空的占位数组做处理，Protobuf 2 中不支持undefined进行占位  由于 wireType 只使用 0 1 2 3 4 5
-                    // 现在使用 7 作为  undefined 占位使用
-                    if (true && debugOutData) {
-                        arr.push(writeElementTo(element, type, element == undefined ? ((num << 3) | 7) : tag, bytes, subMsgType));
-                    }
-                    else {
-                        writeElementTo(element, type, element == undefined ? ((num << 3) | 7) : tag, bytes, subMsgType);
-                    }
-                }
-            }
-            else {
-                if (true && debugOutData) {
-                    debugOutData[name_5] = writeElementTo(value, type, tag, bytes, subMsgType);
-                }
-                else {
-                    writeElementTo(value, type, tag, bytes, subMsgType);
-                }
-            }
-        }
-        return bytes;
-    }
-    function writeElementTo(value, type, tag, bytes, subMsgType) {
-        if (true) {
-            var out = value;
-        }
-        bytes.writeVarint(tag);
-        switch (type) {
-            case 7 /* Fixed32 */:
-                bytes.writeFix32(checkUInt32(value, type));
-                break;
-            case 15 /* SFixed32 */:
-                bytes.writeSFix32(checkInt32(value, type));
-                break;
-            case 2 /* Float */:
-                bytes.writeFloat(value);
-                break;
-            case 1 /* Double */:
-                bytes.writeDouble(value);
-                break;
-            case 6 /* Fixed64 */: //理论上项目不使用
-            case 16 /* SFixed64 */://理论上项目不使用
-                bytes.writeFix64(value);
-                break;
-            case 5 /* Int32 */:
-                bytes.writeVarint(checkInt32(value, type));
-                break;
-            case 17 /* SInt32 */:
-                bytes.writeVarint(zigzag32(checkInt32(value, type)));
-                break;
-            case 14 /* Enum */:
-            case 13 /* Uint32 */:
-                bytes.writeVarint(checkUInt32(value, type));
-                break;
-            case 3 /* Int64 */:
-            case 18 /* SInt64 */:
-            case 4 /* UInt64 */:
-                bytes.writeVarint64(value);
-                break;
-            case 8 /* Bool */:
-                bytes.writeVarint(value ? 1 : 0);
-                break;
-            case 9 /* String */:
-            case 12 /* Bytes */:
-            case 11 /* Message */:
-                if (type == 11 /* Message */) {
-                    if (true) {
-                        out = {};
-                        temp = writeTo(value, subMsgType, null, out);
-                    }
-                    else {
-                        var temp = writeTo(value, subMsgType);
-                    }
-                }
-                else if (type == 12 /* Bytes */) {
-                    temp = value;
-                    if (true) {
-                        out = Uint8Array.from(temp.bytes);
-                    }
-                }
-                else {
-                    temp = new junyou.ByteArray;
-                    temp.writeUTFBytes(value);
-                }
-                length = temp ? temp.length : 0;
-                bytes.writeVarint(length);
-                if (length > 0) {
-                    bytes.writeBytes(temp, 0, length);
-                }
-                break;
-        }
-        if (true) {
-            return out;
-        }
-        function checkUInt32(value, type) {
-            value = +value || 0;
-            if (value > 4294967295 || value < 0) {
-                junyou.ThrowError("PBMessageUtils\u5199\u5165\u6570\u636E\u65F6\u5019\uFF0C\u4F7F\u7528\u7684\u7C7B\u578B\uFF1A" + type + "\uFF0C\u503C\u4E3A\uFF1A" + value + "\uFF0C\u4F46\u8D85\u51FA\u6574\u578B\u8303\u56F4\u3002");
-                value >>> 0;
-            }
-            return value;
-        }
-        function checkInt32(value, type) {
-            value = +value || 0;
-            if (value > 2147483647 || value < -2147483648) {
-                junyou.ThrowError("PBMessageUtils\u5199\u5165\u6570\u636E\u65F6\u5019\uFF0C\u4F7F\u7528\u7684\u7C7B\u578B\uFF1A" + type + "\uFF0C\u503C\u4E3A\uFF1A" + value + "\uFF0C\u4F46\u8D85\u51FA\u6574\u578B\u8303\u56F4\u3002");
-                value >> 0;
-            }
-            return value;
-        }
-    }
-    function zigzag32(n) {
-        return (n << 1) ^ (n >> 31);
-    }
-    function decodeZigzag32(n) {
-        return n >> 1 ^ (((n & 1) << 31) >> 31);
-    }
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -7497,6 +7032,445 @@ var junyou;
             return Math.asin(Math.sqrt(Math.pow(Math.sin(a * .5), 2) + Math.cos(radlat1) * Math.cos(radlat2) * (Math.pow(Math.sin(b * .5), 2)))) * 12756274;
         }
     };
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    var structDict = {};
+    /**
+     * protobuf wiretype的字典
+     * key  {number}    ProtoBuf的类型
+     * Value {number}   WireType
+     *
+     * @private
+     * @static
+     * @type {{ [index: number]: number }}
+     */
+    var wireTypeMap = [
+        /* 无 */ ,
+        /* PBType.Double */ 1,
+        /* PBType.Float */ 5,
+        /* PBType.Int64 */ 0,
+        /* PBType.UInt64 */ 0,
+        /* PBType.Int32 */ 0,
+        /* PBType.Fixed64 */ 1,
+        /* PBType.Fixed32 */ 5,
+        /* PBType.Bool */ 0,
+        /* PBType.String */ 2,
+        /* PBType.Group */ ,
+        /* PBType.Message */ 2,
+        /* PBType.Bytes */ 2,
+        /* PBType.Uint32 */ 0,
+        /* PBType.Enum */ 0,
+        /* PBType.SFixed32 */ 5,
+        /* PBType.SFixed64 */ 1,
+        /* PBType.SInt32 */ 0,
+        /* PBType.SInt64 */ 0
+    ];
+    /**
+     * 消息定义的字典
+     */
+    var defDict = {};
+    function regDef(m, def) {
+        var msg;
+        if (typeof m != "object") {
+            msg = structDict[m];
+            if (!msg) {
+                defDict[m] = def;
+                return;
+            }
+        }
+        else {
+            msg = m;
+        }
+        Object.defineProperty(msg, "def" /* defKey */, {
+            value: def
+        });
+    }
+    /**
+     *
+     * @author 3tion
+     * ProtoBuf工具集
+     *
+     */
+    junyou.PBUtils = {
+        /**
+         * 注册定义
+         */
+        regDef: regDef,
+        /**
+         * 设置ProtoBuf的消息定义字典
+         *
+         * @static
+         * @param {PBStructDict} dict
+         *
+         * @memberOf PBMessageUtils
+         */
+        add: function (dict) {
+            //对默认值做预处理，减少后期遍历次数
+            if (dict) {
+                var defD = defDict;
+                if (!dict.$$inted) {
+                    for (var name_3 in dict) {
+                        if (true) {
+                            if (name_3 in structDict) {
+                                junyou.ThrowError("PB\u7684\u7ED3\u6784\u5B9A\u4E49\u7684key[" + name_3 + "]\u6CE8\u518C\u91CD\u590D");
+                            }
+                        }
+                        var encode = dict[name_3];
+                        if (typeof encode != "object") {
+                            encode = dict[encode];
+                        }
+                        var def = defD[name_3];
+                        if (def) {
+                            regDef(encode, def);
+                        }
+                        //检查处理默认值
+                        for (var idx in encode) {
+                            var body = encode[idx];
+                            //0 key
+                            //1 required optional repeated
+                            //2 数据类型
+                            //3 Message
+                            //4 默认值
+                            if (4 in body) {
+                                var def_1 = encode.def;
+                                if (!def_1) {
+                                    //不使用encode.def=def=[]; 是为了防止def被遍历
+                                    Object.defineProperty(encode, "def" /* defKey */, {
+                                        value: {}
+                                    });
+                                    def_1 = encode.def;
+                                }
+                                var key = body[0];
+                                //消息中没有对应key的数据，先赋值成默认值，等待后续处理
+                                def_1[key] = body[4];
+                            }
+                        }
+                        if (!encode.def) {
+                            Object.defineProperty(encode, "def" /* defKey */, {
+                                value: Object.prototype
+                            });
+                        }
+                        structDict[name_3] = encode;
+                    }
+                    dict.$$inted = 1;
+                }
+            }
+        },
+        readFrom: readFrom,
+        writeTo: writeTo
+    };
+    /**
+     * 读取消息
+     *
+     * @param {(string | PBStruct)} msgType
+     * @param {ByteArray} bytes
+     * @param {number} [len]
+     * @returns {Object}
+     */
+    function readFrom(msgType, bytes, len) {
+        if (len === undefined)
+            len = -1;
+        var afterLen = 0;
+        if (len > -1) {
+            afterLen = bytes.bytesAvailable - len;
+        }
+        var encode = typeof msgType == "object" ? msgType : structDict[msgType];
+        if (!encode) {
+            junyou.ThrowError("\u975E\u6CD5\u7684\u901A\u4FE1\u7C7B\u578B[" + msgType + "]");
+            return;
+        }
+        //检查处理默认值
+        var msg = Object.create(encode.def);
+        while (bytes.bytesAvailable > afterLen) {
+            var tag = bytes.readVarint();
+            if (tag == 0)
+                continue;
+            var idx = tag >>> 3;
+            var body = encode[idx];
+            if (!body) {
+                junyou.ThrowError("\u8BFB\u53D6\u6D88\u606F\u7C7B\u578B\u4E3A\uFF1A" + msgType + "\uFF0C\u7D22\u5F15" + idx + "\u65F6\u6570\u636E\u51FA\u73B0\u9519\u8BEF\uFF0C\u627E\u4E0D\u5230\u5BF9\u5E94\u7684\u6570\u636E\u7ED3\u6784\u914D\u7F6E");
+                // 使用默认读取
+                readValue(tag, bytes);
+                continue;
+            }
+            var name_4 = body[0];
+            var label = body[1];
+            var type = body[2];
+            var subMsgType = body[3];
+            var value = void 0;
+            var isRepeated = label == 3 /* repeated */;
+            if (!isRepeated || (tag & 7) != 7) {
+                switch (type) {
+                    case 1 /* Double */:
+                        value = bytes.readDouble();
+                        break;
+                    case 2 /* Float */:
+                        value = bytes.readFloat();
+                        break;
+                    case 3 /* Int64 */:
+                    case 4 /* UInt64 */:
+                    case 18 /* SInt64 */:
+                        value = bytes.readVarint64(); //理论上项目不使用
+                        break;
+                    case 5 /* Int32 */:
+                        value = bytes.readVarint();
+                        break;
+                    case 17 /* SInt32 */:
+                        value = decodeZigzag32(bytes.readVarint());
+                        break;
+                    case 13 /* Uint32 */:
+                    case 14 /* Enum */:
+                        value = bytes.readVarint();
+                        break;
+                    case 6 /* Fixed64 */:
+                    case 16 /* SFixed64 */:
+                        value = bytes.readFix64(); //理论上项目不使用
+                        break;
+                    case 7 /* Fixed32 */:
+                        value = bytes.readFix32();
+                        break;
+                    case 8 /* Bool */:
+                        value = bytes.readBoolean();
+                        break;
+                    case 9 /* String */:
+                        value = readString(bytes);
+                        break;
+                    case 10 /* Group */://(protobuf 已弃用)
+                        value = undefined;
+                        if (true) {
+                            junyou.ThrowError("\u8BFB\u53D6\u6D88\u606F\u7C7B\u578B\u4E3A\uFF1A" + msgType + "\uFF0C\u7D22\u5F15" + idx + "\u65F6\u6570\u636E\u51FA\u73B0\u5DF2\u5F03\u7528\u7684GROUP\u5206\u7EC4\u7C7B\u578B");
+                        }
+                        break;
+                    case 11 /* Message */://消息
+                        value = readMessage(bytes, subMsgType);
+                        break;
+                    case 12 /* Bytes */:
+                        value = readBytes(bytes);
+                        break;
+                    case 15 /* SFixed32 */:
+                        value = bytes.readSFix32();
+                        break;
+                    default:
+                        value = readValue(tag, bytes);
+                }
+            }
+            if (isRepeated) {
+                var arr = msg[name_4];
+                if (!arr)
+                    msg[name_4] = arr = [];
+                arr.push(value);
+            }
+            else {
+                msg[name_4] = value;
+            }
+        }
+        return msg;
+    }
+    function readValue(tag, bytes) {
+        var wireType = tag & 7;
+        var value;
+        switch (wireType) {
+            case 0://Varint	int32, int64, uint32, uint64, sint32, sint64, bool, enum
+                value = bytes.readVarint();
+                break;
+            case 2://Length-delimi	string, bytes, embedded messages, packed repeated fields
+                value = readString(bytes);
+                break;
+            case 5://32-bit	fixed32, sfixed32, float
+                value = bytes.readInt();
+                break;
+            case 1://64-bit	fixed64, sfixed64, double
+                value = bytes.readDouble();
+                break;
+            default:
+                junyou.ThrowError("protobuf的wireType未知");
+        }
+        return value;
+    }
+    function readString(bytes) {
+        var blen = bytes.readVarint();
+        if (blen > 0) {
+            return bytes.readUTFBytes(blen);
+        }
+        return "";
+    }
+    /**
+     *
+     * 读取消息
+     * @private
+     * @static
+     * @param {number} tag          标签
+     * @param {ByteArray} bytes     被处理的字节数组
+     * @param {string} subMsgType   类型标识
+     * @returns {Object}
+     */
+    function readMessage(bytes, msgType) {
+        var blen = bytes.readVarint();
+        return readFrom(msgType, bytes, blen);
+    }
+    function readBytes(bytes) {
+        var blen = bytes.readVarint();
+        return bytes.readByteArray(blen);
+    }
+    /**
+     * 写入消息
+     *
+     * @param {object} msg
+     * @param {(string | PBStruct)} msgType
+     * @param {ByteArray} [bytes]
+     * @returns {ByteArray}
+     */
+    function writeTo(msg, msgType, bytes, debugOutData) {
+        if (msg == undefined) {
+            return;
+        }
+        var messageEncode = typeof msgType == "string" ? structDict[msgType] : msgType;
+        if (!messageEncode) {
+            junyou.ThrowError("\u975E\u6CD5\u7684\u901A\u4FE1\u7C7B\u578B[" + msgType + "]\uFF0C\u5806\u6808\u4FE1\u606F:" + new Error());
+            return;
+        }
+        if (!bytes) {
+            bytes = new junyou.ByteArray;
+        }
+        for (var numberStr in messageEncode) {
+            var num = +numberStr;
+            var body = messageEncode[num];
+            var name_5 = body[0], label = body[1];
+            if (label == 1 /* optional */ && !(name_5 in msg)) {
+                continue;
+            }
+            var value = msg[name_5];
+            if (value == undefined || value === body[4] /* 默认值 */) {
+                continue;
+            }
+            var type = body[2];
+            var subMsgType = body[3];
+            var wireType = wireTypeMap[type];
+            var tag = (num << 3) | wireType;
+            if (label == 3 /* repeated */) {
+                if (true && debugOutData) {
+                    var arr = [];
+                    debugOutData[name_5] = arr;
+                }
+                for (var key in value) {
+                    var element = value[key];
+                    // 针对repeated中无法处理空的占位数组做处理，Protobuf 2 中不支持undefined进行占位  由于 wireType 只使用 0 1 2 3 4 5
+                    // 现在使用 7 作为  undefined 占位使用
+                    if (true && debugOutData) {
+                        arr.push(writeElementTo(element, type, element == undefined ? ((num << 3) | 7) : tag, bytes, subMsgType));
+                    }
+                    else {
+                        writeElementTo(element, type, element == undefined ? ((num << 3) | 7) : tag, bytes, subMsgType);
+                    }
+                }
+            }
+            else {
+                if (true && debugOutData) {
+                    debugOutData[name_5] = writeElementTo(value, type, tag, bytes, subMsgType);
+                }
+                else {
+                    writeElementTo(value, type, tag, bytes, subMsgType);
+                }
+            }
+        }
+        return bytes;
+    }
+    function writeElementTo(value, type, tag, bytes, subMsgType) {
+        if (true) {
+            var out = value;
+        }
+        bytes.writeVarint(tag);
+        switch (type) {
+            case 7 /* Fixed32 */:
+                bytes.writeFix32(checkUInt32(value, type));
+                break;
+            case 15 /* SFixed32 */:
+                bytes.writeSFix32(checkInt32(value, type));
+                break;
+            case 2 /* Float */:
+                bytes.writeFloat(value);
+                break;
+            case 1 /* Double */:
+                bytes.writeDouble(value);
+                break;
+            case 6 /* Fixed64 */: //理论上项目不使用
+            case 16 /* SFixed64 */://理论上项目不使用
+                bytes.writeFix64(value);
+                break;
+            case 5 /* Int32 */:
+                bytes.writeVarint(checkInt32(value, type));
+                break;
+            case 17 /* SInt32 */:
+                bytes.writeVarint(zigzag32(checkInt32(value, type)));
+                break;
+            case 14 /* Enum */:
+            case 13 /* Uint32 */:
+                bytes.writeVarint(checkUInt32(value, type));
+                break;
+            case 3 /* Int64 */:
+            case 18 /* SInt64 */:
+            case 4 /* UInt64 */:
+                bytes.writeVarint64(value);
+                break;
+            case 8 /* Bool */:
+                bytes.writeVarint(value ? 1 : 0);
+                break;
+            case 9 /* String */:
+            case 12 /* Bytes */:
+            case 11 /* Message */:
+                if (type == 11 /* Message */) {
+                    if (true) {
+                        out = {};
+                        temp = writeTo(value, subMsgType, null, out);
+                    }
+                    else {
+                        var temp = writeTo(value, subMsgType);
+                    }
+                }
+                else if (type == 12 /* Bytes */) {
+                    temp = value;
+                    if (true) {
+                        out = Uint8Array.from(temp.bytes);
+                    }
+                }
+                else {
+                    temp = new junyou.ByteArray;
+                    temp.writeUTFBytes(value);
+                }
+                length = temp ? temp.length : 0;
+                bytes.writeVarint(length);
+                if (length > 0) {
+                    bytes.writeBytes(temp, 0, length);
+                }
+                break;
+        }
+        if (true) {
+            return out;
+        }
+        function checkUInt32(value, type) {
+            value = +value || 0;
+            if (value > 4294967295 || value < 0) {
+                junyou.ThrowError("PBMessageUtils\u5199\u5165\u6570\u636E\u65F6\u5019\uFF0C\u4F7F\u7528\u7684\u7C7B\u578B\uFF1A" + type + "\uFF0C\u503C\u4E3A\uFF1A" + value + "\uFF0C\u4F46\u8D85\u51FA\u6574\u578B\u8303\u56F4\u3002");
+                value >>> 0;
+            }
+            return value;
+        }
+        function checkInt32(value, type) {
+            value = +value || 0;
+            if (value > 2147483647 || value < -2147483648) {
+                junyou.ThrowError("PBMessageUtils\u5199\u5165\u6570\u636E\u65F6\u5019\uFF0C\u4F7F\u7528\u7684\u7C7B\u578B\uFF1A" + type + "\uFF0C\u503C\u4E3A\uFF1A" + value + "\uFF0C\u4F46\u8D85\u51FA\u6574\u578B\u8303\u56F4\u3002");
+                value >> 0;
+            }
+            return value;
+        }
+    }
+    function zigzag32(n) {
+        return (n << 1) ^ (n >> 31);
+    }
+    function decodeZigzag32(n) {
+        return n >> 1 ^ (((n & 1) << 31) >> 31);
+    }
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -8884,171 +8858,68 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
-     * 动画的全局对象
-     * @author
+     * 临时对象
+     * @author 3tion
      *
      */
-    junyou.Global = (function () {
-        try {
-            var supportWebp = document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') == 0;
-        }
-        catch (err) {
-        }
-        var _webp = supportWebp ? ".webp" /* WEBP */ : "";
-        var _isNative = egret.Capabilities.supportVersion != "Unknown";
+    junyou.Temp = {
         /**
-         *  当前这一帧的时间
+         * 共享数组1
          */
-        var now = 0;
+        SharedArray1: [],
         /**
-         * 按照帧，应该走的时间
-         * 每帧根据帧率加固定时间
-         * 用于处理逐帧同步用
+         * 共享数组2
          */
-        var frameNow = 0;
-        var _callLater;
-        var _tweenManager;
-        var _nextTicks = [];
-        return {
-            initTick: initTick, nextTick: nextTick, callLater: callLater, clearCallLater: clearCallLater, getTween: getTween, removeTween: removeTween, removeTweens: removeTweens,
-            get isNative() {
-                return _isNative;
-            },
-            get tweenManager() {
-                return _tweenManager || (_tweenManager = new junyou.TweenManager());
-            },
-            /**
-             *  当前这一帧的时间
-             */
-            get now() {
-                return now;
-            },
-            /**
-             * 按照帧，应该走的时间
-             * 每帧根据帧率加固定时间
-             * 用于处理逐帧同步用
-             */
-            get frameNow() {
-                return frameNow;
-            },
-            /**
-             * 是否支持webp
-             */
-            get webp() {
-                return _webp;
+        SharedArray2: [],
+        /**
+         * 共享数组3
+         */
+        SharedArray3: [],
+        SharedRect1: { x: 0, y: 0, width: 0, height: 0 },
+        SharedRect2: { x: 0, y: 0, width: 0, height: 0 },
+        /**
+         * 白鹭的点
+         */
+        EgretPoint: new egret.Point(),
+        /**
+         * 白鹭的矩形
+         */
+        EgretRectangle: new egret.Rectangle(),
+        /**
+         * 共享点1
+         */
+        SharedPoint1: { x: 0, y: 0, z: 0 },
+        /**
+         * 共享点2
+         */
+        SharedPoint2: { x: 0, y: 0, z: 0 },
+        /**
+         * 不做任何事情的空方法，接收任意长度的数据，返回空
+         */
+        voidFunction: function () { },
+        /**
+         * 用于替换的方法,接收任意长度的数据，返回null
+         */
+        willReplacedFunction: function () {
+            if (true) {
+                junyou.ThrowError("\u9700\u8981\u88AB\u66FF\u6362\u7684\u65B9\u6CD5\uFF0C\u6CA1\u6709\u88AB\u66FF\u6362\uFF0C\u5806\u6808\u4FE1\u606F\uFF1A" + new Error().stack);
             }
-        };
+        },
         /**
-         * 注入白鹭的全局Ticker
+         * 空对象
          */
-        function initTick() {
-            var ticker = egret.ticker || egret.sys.$ticker;
-            var update = ticker.render;
-            var delta = 0 | 1000 / ticker.$frameRate;
-            var temp = [];
-            _callLater = new junyou.CallLater();
-            _tweenManager || (_tweenManager = new junyou.TweenManager());
-            ticker.render = function () {
-                var _now = Date.now();
-                var dis = _now - now;
-                now = _now;
-                if (dis > 2000) {
-                    //有2秒钟大概就是进入过休眠了
-                    junyou.dispatch(-190 /* Awake */);
-                    frameNow = _now;
-                }
-                else {
-                    frameNow += delta;
-                }
-                //执行顺序  nextTick  callLater TimerUtil  tween  最后是白鹭的更新
-                var len = _nextTicks.length;
-                var tmp = temp;
-                for (var i = 0; i < len; i++) {
-                    tmp[i] = _nextTicks[i];
-                }
-                _nextTicks.length = 0;
-                //先复制再操作是为了防止回调过程中，有新增的nextTick
-                for (var i = 0; i < len; i++) {
-                    tmp[i].execute();
-                }
-                _callLater.tick(_now);
-                junyou.TimerUtil.tick(_now);
-                _tweenManager.tick(dis);
-                update.call(ticker);
-            };
-        }
-        function nextTick(callback, thisObj) {
-            var args = [];
-            for (var _i = 2; _i < arguments.length; _i++) {
-                args[_i - 2] = arguments[_i];
-            }
-            _nextTicks.push(junyou.CallbackInfo.get.apply(junyou.CallbackInfo, [callback, thisObj].concat(args)));
-        }
+        EmptyObject: Object.freeze({}),
         /**
-         * 延迟执行
-         *
-         * @static
-         * @param {Function} callback (description)
-         * @param {number} [time] 延迟执行的时间
-         * @param {*} [thisObj] (description)
-         * @param args (description)
+         * 空数组
          */
-        function callLater(callback, time, thisObj) {
-            var args = [];
-            for (var _i = 3; _i < arguments.length; _i++) {
-                args[_i - 3] = arguments[_i];
-            }
-            return _callLater.callLater.apply(_callLater, [callback, now, time, thisObj].concat(args));
-        }
+        EmptyArray: Object.freeze([]),
         /**
-         * 清理延迟
-         *
-         * @static
-         * @param {Function} callback (description)
-         * @param {*} [thisObj] (description)
-         * @returns (description)
+         * 管线方法，用于符合函数的结构，并将数值传递下去
          */
-        function clearCallLater(callback, thisObj) {
-            return _callLater.clearCallLater(callback, thisObj);
+        pipeFunction: function (arg) {
+            return arg;
         }
-        /**
-         * 获取Tween
-         *
-         * @static
-         * @param {*} target 要对那个对象做Tween处理
-         * @param {TweenOption} props Tween的附加属性 (如： `{loop:true, paused:true}`).
-         * All properties default to `false`. Supported props are:
-         * <UL>
-         *    <LI> loop: sets the loop property on this tween.</LI>
-         *    <LI> useTicks: uses ticks for all durations instead of milliseconds.</LI>
-         *    <LI> ignoreGlobalPause: sets the {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}} property on
-         *    this tween.</LI>
-         *    <LI> override: if true, `createjs. this.removeTweens(target)` will be called to remove any other tweens with
-         *    the same target.
-         *    <LI> paused: indicates whether to start the tween paused.</LI>
-         *    <LI> position: indicates the initial position for this tween.</LI>
-         *    <LI> onChange: specifies a listener for the {{#crossLink "Tween/change:event"}}{{/crossLink}} event.</LI>
-         * </UL>
-         * @param {*} pluginData 插件数据
-         * @param {boolean} override 是否覆盖
-         * @returns {Tween} tween的实例
-         */
-        function getTween(target, props, pluginData, override) {
-            return _tweenManager.get(target, props, pluginData, override);
-        }
-        /**
-         * 移除指定的Tween
-         *
-         * @param {Tween} tween
-         * @returns
-         */
-        function removeTween(tween) {
-            return _tweenManager.removeTween(tween);
-        }
-        function removeTweens(target) {
-            return _tweenManager.removeTweens(target);
-        }
-    })();
+    };
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -9539,6 +9410,175 @@ var junyou;
     }(egret.EventDispatcher));
     junyou.GameEngine = GameEngine;
     __reflect(GameEngine.prototype, "junyou.GameEngine");
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 动画的全局对象
+     * @author
+     *
+     */
+    junyou.Global = (function () {
+        try {
+            var supportWebp = document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') == 0;
+        }
+        catch (err) {
+        }
+        var _webp = supportWebp ? ".webp" /* WEBP */ : "";
+        var _isNative = egret.Capabilities.supportVersion != "Unknown";
+        /**
+         *  当前这一帧的时间
+         */
+        var now = 0;
+        /**
+         * 按照帧，应该走的时间
+         * 每帧根据帧率加固定时间
+         * 用于处理逐帧同步用
+         */
+        var frameNow = 0;
+        var _callLater;
+        var _tweenManager;
+        var _nextTicks = [];
+        return {
+            initTick: initTick, nextTick: nextTick, callLater: callLater, clearCallLater: clearCallLater, getTween: getTween, removeTween: removeTween, removeTweens: removeTweens,
+            get isNative() {
+                return _isNative;
+            },
+            get tweenManager() {
+                return _tweenManager || (_tweenManager = new junyou.TweenManager());
+            },
+            /**
+             *  当前这一帧的时间
+             */
+            get now() {
+                return now;
+            },
+            /**
+             * 按照帧，应该走的时间
+             * 每帧根据帧率加固定时间
+             * 用于处理逐帧同步用
+             */
+            get frameNow() {
+                return frameNow;
+            },
+            /**
+             * 是否支持webp
+             */
+            get webp() {
+                return _webp;
+            }
+        };
+        /**
+         * 注入白鹭的全局Ticker
+         */
+        function initTick() {
+            var ticker = egret.ticker || egret.sys.$ticker;
+            var update = ticker.render;
+            var delta = 0 | 1000 / ticker.$frameRate;
+            var temp = [];
+            _callLater = new junyou.CallLater();
+            _tweenManager || (_tweenManager = new junyou.TweenManager());
+            ticker.render = function () {
+                var _now = Date.now();
+                var dis = _now - now;
+                now = _now;
+                if (dis > 2000) {
+                    //有2秒钟大概就是进入过休眠了
+                    junyou.dispatch(-190 /* Awake */);
+                    frameNow = _now;
+                }
+                else {
+                    frameNow += delta;
+                }
+                //执行顺序  nextTick  callLater TimerUtil  tween  最后是白鹭的更新
+                var len = _nextTicks.length;
+                var tmp = temp;
+                for (var i = 0; i < len; i++) {
+                    tmp[i] = _nextTicks[i];
+                }
+                _nextTicks.length = 0;
+                //先复制再操作是为了防止回调过程中，有新增的nextTick
+                for (var i = 0; i < len; i++) {
+                    tmp[i].execute();
+                }
+                _callLater.tick(_now);
+                junyou.TimerUtil.tick(_now);
+                _tweenManager.tick(dis);
+                update.call(ticker);
+            };
+        }
+        function nextTick(callback, thisObj) {
+            var args = [];
+            for (var _i = 2; _i < arguments.length; _i++) {
+                args[_i - 2] = arguments[_i];
+            }
+            _nextTicks.push(junyou.CallbackInfo.get.apply(junyou.CallbackInfo, [callback, thisObj].concat(args)));
+        }
+        /**
+         * 延迟执行
+         *
+         * @static
+         * @param {Function} callback (description)
+         * @param {number} [time] 延迟执行的时间
+         * @param {*} [thisObj] (description)
+         * @param args (description)
+         */
+        function callLater(callback, time, thisObj) {
+            var args = [];
+            for (var _i = 3; _i < arguments.length; _i++) {
+                args[_i - 3] = arguments[_i];
+            }
+            return _callLater.callLater.apply(_callLater, [callback, now, time, thisObj].concat(args));
+        }
+        /**
+         * 清理延迟
+         *
+         * @static
+         * @param {Function} callback (description)
+         * @param {*} [thisObj] (description)
+         * @returns (description)
+         */
+        function clearCallLater(callback, thisObj) {
+            return _callLater.clearCallLater(callback, thisObj);
+        }
+        /**
+         * 获取Tween
+         *
+         * @static
+         * @param {*} target 要对那个对象做Tween处理
+         * @param {TweenOption} props Tween的附加属性 (如： `{loop:true, paused:true}`).
+         * All properties default to `false`. Supported props are:
+         * <UL>
+         *    <LI> loop: sets the loop property on this tween.</LI>
+         *    <LI> useTicks: uses ticks for all durations instead of milliseconds.</LI>
+         *    <LI> ignoreGlobalPause: sets the {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}} property on
+         *    this tween.</LI>
+         *    <LI> override: if true, `createjs. this.removeTweens(target)` will be called to remove any other tweens with
+         *    the same target.
+         *    <LI> paused: indicates whether to start the tween paused.</LI>
+         *    <LI> position: indicates the initial position for this tween.</LI>
+         *    <LI> onChange: specifies a listener for the {{#crossLink "Tween/change:event"}}{{/crossLink}} event.</LI>
+         * </UL>
+         * @param {*} pluginData 插件数据
+         * @param {boolean} override 是否覆盖
+         * @returns {Tween} tween的实例
+         */
+        function getTween(target, props, pluginData, override) {
+            return _tweenManager.get(target, props, pluginData, override);
+        }
+        /**
+         * 移除指定的Tween
+         *
+         * @param {Tween} tween
+         * @returns
+         */
+        function removeTween(tween) {
+            return _tweenManager.removeTween(tween);
+        }
+        function removeTweens(target) {
+            return _tweenManager.removeTweens(target);
+        }
+    })();
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -10101,6 +10141,21 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
+     * 存储锚点信息
+     */
+    var JTexture = (function (_super) {
+        __extends(JTexture, _super);
+        function JTexture() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        return JTexture;
+    }(egret.Texture));
+    junyou.JTexture = JTexture;
+    __reflect(JTexture.prototype, "junyou.JTexture");
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
       * 加载脚本
       * @param url
       * @param callback
@@ -10136,160 +10191,6 @@ var junyou;
         document.documentElement.appendChild(script);
     }
     junyou.loadScript = loadScript;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * 存储锚点信息
-     */
-    var JTexture = (function (_super) {
-        __extends(JTexture, _super);
-        function JTexture() {
-            return _super !== null && _super.apply(this, arguments) || this;
-        }
-        return JTexture;
-    }(egret.Texture));
-    junyou.JTexture = JTexture;
-    __reflect(JTexture.prototype, "junyou.JTexture");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    function call(info, ars) {
-        var args = [];
-        var i = 0;
-        if (ars) {
-            for (; i < ars.length; i++) {
-                args[i] = ars[i];
-            }
-        }
-        var argus = info.args;
-        if (argus) {
-            for (var j = 0; j < argus.length; j++) {
-                args[i++] = argus[j];
-            }
-        }
-        var callback = info.callback;
-        var result;
-        if (callback != undefined) {
-            try {
-                result = callback.apply(info.thisObj, args);
-            }
-            catch (e) {
-                if (true) {
-                    var debug = info["_debug"];
-                    junyou.ThrowError("CallbackInfo\u6267\u884C\u62A5\u9519\uFF0C\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n}==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + e.stack);
-                    console.log.apply(console, ["参数列表"].concat(this.args));
-                }
-            }
-        }
-        else if (true) {
-            var debug = info["_debug"];
-            junyou.ThrowError("\u5BF9\u5DF2\u56DE\u6536\u7684CallbackInfo\u6267\u884C\u4E86\u56DE\u8C03\uFF0C\u6700\u540E\u4E00\u6B21\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + new Error().stack);
-        }
-        return result;
-    }
-    /**
-     * 回调信息，用于存储回调数据
-     * @author 3tion
-     *
-     */
-    var CallbackInfo = (function () {
-        function CallbackInfo() {
-            if (true) {
-                var data = { enumerable: true, configurable: true };
-                data.get = function () {
-                    return this._cb;
-                };
-                data.set = function (value) {
-                    if (this._cb != value) {
-                        this._cb = value;
-                        if (value != undefined) {
-                            this._debug = { handle: value.toString(), stack: new Error().stack };
-                        }
-                    }
-                };
-                Object.defineProperty(this, "callback", data);
-            }
-        }
-        CallbackInfo.prototype.init = function (callback, thisObj, args) {
-            this.callback = callback;
-            this.args = args;
-            this.thisObj = thisObj;
-        };
-        /**
-         * 检查回调是否一致，只检查参数和this对象,不检查参数
-         */
-        CallbackInfo.prototype.checkHandle = function (callback, thisObj) {
-            return this.callback === callback && this.thisObj == thisObj /* 允许null==undefined */;
-        };
-        /**
-         * 执行回调
-         * 回调函数，将以args作为参数，callback作为函数执行
-         * @param {boolean} [doRecycle=true] 是否回收CallbackInfo，默认为true
-         */
-        CallbackInfo.prototype.execute = function (doRecycle) {
-            if (doRecycle === void 0) { doRecycle = true; }
-            var callback = this.callback;
-            var result = call(this);
-            if (doRecycle) {
-                this.recycle();
-            }
-            return result;
-        };
-        CallbackInfo.prototype.call = function () {
-            return call(this, arguments);
-        };
-        CallbackInfo.prototype.callAndRecycle = function () {
-            var result = call(this, arguments);
-            this.recycle();
-            return result;
-        };
-        CallbackInfo.prototype.onRecycle = function () {
-            this.callback = undefined;
-            this.args = undefined;
-            this.thisObj = undefined;
-        };
-        /**
-         * 获取CallbackInfo的实例
-         */
-        CallbackInfo.get = function (callback, thisObj) {
-            var args = [];
-            for (var _i = 2; _i < arguments.length; _i++) {
-                args[_i - 2] = arguments[_i];
-            }
-            var info = junyou.recyclable(CallbackInfo);
-            info.init(callback, thisObj, args);
-            return info;
-        };
-        /**
-         * 加入到数组
-         * 检查是否有this和handle相同的callback，如果有，就用新的参数替换旧参数
-         * @param list
-         * @param handle
-         * @param args
-         * @param thisObj
-         */
-        CallbackInfo.addToList = function (list, handle, thisObj) {
-            var args = [];
-            for (var _i = 3; _i < arguments.length; _i++) {
-                args[_i - 3] = arguments[_i];
-            }
-            //检查是否有this和handle相同的callback
-            for (var _a = 0, list_1 = list; _a < list_1.length; _a++) {
-                var callback = list_1[_a];
-                if (callback.checkHandle(handle, thisObj)) {
-                    callback.args = args;
-                    return callback;
-                }
-            }
-            callback = this.get.apply(this, [handle, thisObj].concat(args));
-            list.push(callback);
-            return callback;
-        };
-        return CallbackInfo;
-    }());
-    junyou.CallbackInfo = CallbackInfo;
-    __reflect(CallbackInfo.prototype, "junyou.CallbackInfo", ["junyou.IRecyclable"]);
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -11633,45 +11534,142 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    /**
-     * 用于像统计接口发送步骤信息
-     * @author pb
-     */
-    junyou.Stats = (function () {
-        var _actionUrl, _ip, _sign, _pid, _uid, _sid;
-        return {
-            setUrl: function (url) {
-                if (url.charAt(url.length - 1) != "?") {
-                    url += "?";
-                }
-                _actionUrl = url;
-                return this;
-            },
-            setParams: function (params) {
-                _ip = getData(params.ip);
-                _pid = getData(params.pid);
-                _uid = getData(params.uid);
-                _sid = getData(params.sid);
-                return this;
-            },
-            setSign: function (sign) {
-                _sign = getData(sign);
-                return this;
-            },
-            postData: function (step) {
-                junyou.sendToUrl(_actionUrl + this.getParamUrl(step));
-            },
-            getParamUrl: function (step) {
-                return "step=" + getData(step) + "&ip=" + _ip
-                    + "&sign=" + _sign + "&pid=" + _pid
-                    + "&sid=" + _sid + "&uid=" + _uid
-                    + "&client_time=" + junyou.Global.now;
+    function call(info, ars) {
+        var args = [];
+        var i = 0;
+        if (ars) {
+            for (; i < ars.length; i++) {
+                args[i] = ars[i];
             }
-        };
-        function getData(value) {
-            return value === undefined ? "" : encodeURIComponent(value);
         }
-    })();
+        var argus = info.args;
+        if (argus) {
+            for (var j = 0; j < argus.length; j++) {
+                args[i++] = argus[j];
+            }
+        }
+        var callback = info.callback;
+        var result;
+        if (callback != undefined) {
+            try {
+                result = callback.apply(info.thisObj, args);
+            }
+            catch (e) {
+                if (true) {
+                    var debug = info["_debug"];
+                    junyou.ThrowError("CallbackInfo\u6267\u884C\u62A5\u9519\uFF0C\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n}==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + e.stack);
+                    console.log.apply(console, ["参数列表"].concat(this.args));
+                }
+            }
+        }
+        else if (true) {
+            var debug = info["_debug"];
+            junyou.ThrowError("\u5BF9\u5DF2\u56DE\u6536\u7684CallbackInfo\u6267\u884C\u4E86\u56DE\u8C03\uFF0C\u6700\u540E\u4E00\u6B21\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + new Error().stack);
+        }
+        return result;
+    }
+    /**
+     * 回调信息，用于存储回调数据
+     * @author 3tion
+     *
+     */
+    var CallbackInfo = (function () {
+        function CallbackInfo() {
+            if (true) {
+                var data = { enumerable: true, configurable: true };
+                data.get = function () {
+                    return this._cb;
+                };
+                data.set = function (value) {
+                    if (this._cb != value) {
+                        this._cb = value;
+                        if (value != undefined) {
+                            this._debug = { handle: value.toString(), stack: new Error().stack };
+                        }
+                    }
+                };
+                Object.defineProperty(this, "callback", data);
+            }
+        }
+        CallbackInfo.prototype.init = function (callback, thisObj, args) {
+            this.callback = callback;
+            this.args = args;
+            this.thisObj = thisObj;
+        };
+        /**
+         * 检查回调是否一致，只检查参数和this对象,不检查参数
+         */
+        CallbackInfo.prototype.checkHandle = function (callback, thisObj) {
+            return this.callback === callback && this.thisObj == thisObj /* 允许null==undefined */;
+        };
+        /**
+         * 执行回调
+         * 回调函数，将以args作为参数，callback作为函数执行
+         * @param {boolean} [doRecycle=true] 是否回收CallbackInfo，默认为true
+         */
+        CallbackInfo.prototype.execute = function (doRecycle) {
+            if (doRecycle === void 0) { doRecycle = true; }
+            var callback = this.callback;
+            var result = call(this);
+            if (doRecycle) {
+                this.recycle();
+            }
+            return result;
+        };
+        CallbackInfo.prototype.call = function () {
+            return call(this, arguments);
+        };
+        CallbackInfo.prototype.callAndRecycle = function () {
+            var result = call(this, arguments);
+            this.recycle();
+            return result;
+        };
+        CallbackInfo.prototype.onRecycle = function () {
+            this.callback = undefined;
+            this.args = undefined;
+            this.thisObj = undefined;
+        };
+        /**
+         * 获取CallbackInfo的实例
+         */
+        CallbackInfo.get = function (callback, thisObj) {
+            var args = [];
+            for (var _i = 2; _i < arguments.length; _i++) {
+                args[_i - 2] = arguments[_i];
+            }
+            var info = junyou.recyclable(CallbackInfo);
+            info.init(callback, thisObj, args);
+            return info;
+        };
+        /**
+         * 加入到数组
+         * 检查是否有this和handle相同的callback，如果有，就用新的参数替换旧参数
+         * @param list
+         * @param handle
+         * @param args
+         * @param thisObj
+         */
+        CallbackInfo.addToList = function (list, handle, thisObj) {
+            var args = [];
+            for (var _i = 3; _i < arguments.length; _i++) {
+                args[_i - 3] = arguments[_i];
+            }
+            //检查是否有this和handle相同的callback
+            for (var _a = 0, list_1 = list; _a < list_1.length; _a++) {
+                var callback = list_1[_a];
+                if (callback.checkHandle(handle, thisObj)) {
+                    callback.args = args;
+                    return callback;
+                }
+            }
+            callback = this.get.apply(this, [handle, thisObj].concat(args));
+            list.push(callback);
+            return callback;
+        };
+        return CallbackInfo;
+    }());
+    junyou.CallbackInfo = CallbackInfo;
+    __reflect(CallbackInfo.prototype, "junyou.CallbackInfo", ["junyou.IRecyclable"]);
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -12107,200 +12105,44 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
-     * 基于4个顶点变形的纹理
-     *
-     * @export
-     * @class QuadTransform
+     * 用于像统计接口发送步骤信息
+     * @author pb
      */
-    var QuadTransform = (function () {
-        function QuadTransform() {
-            this._tex = new egret.RenderTexture();
-            this._canvas = document.createElement("canvas");
-            this._content = this._canvas.getContext("2d");
-        }
-        /**
-         * 绘制白鹭的可视对象，并且进行变形
-         *
-         * @param {egret.DisplayObject} display
-         * @param {{ x: number, y: number }} ptl
-         * @param {{ x: number, y: number }} ptr
-         * @param {{ x: number, y: number }} pbl
-         * @param {{ x: number, y: number }} pbr
-         *
-         * @memberOf QuadTransform
-         */
-        QuadTransform.prototype.drawDisplay = function (display, ptl, ptr, pbl, pbr) {
-            var rawWidth = display.width;
-            var rawHeight = display.height;
-            ptl = ptl || { x: 0, y: 0 };
-            ptr = ptr || { x: rawWidth, y: 0 };
-            pbl = pbl || { x: 0, y: rawHeight };
-            pbr = pbr || { x: rawWidth, y: rawHeight };
-            //获取新的位图大小
-            var ptlx = ptl.x, ptly = ptl.y, ptrx = ptr.x, ptry = ptr.y, pblx = pbl.x, pbly = pbl.y, pbrx = pbr.x, pbry = pbr.y;
-            var minX = Math.min(ptlx, ptrx, pblx, pbrx);
-            var maxX = Math.max(ptlx, ptrx, pblx, pbrx);
-            var minY = Math.min(ptly, ptry, pbly, pbry);
-            var maxY = Math.max(ptly, ptry, pbly, pbry);
-            var width = maxX - minX;
-            var height = maxY - minY;
-            // let bytes = new Uint8ClampedArray(width * height * 4);
-            var canvas = this._canvas;
-            canvas.width = width;
-            canvas.height = height;
-            var content = this._content;
-            var imgData = content.createImageData(width, height);
-            var bytes = imgData.data;
-            //获取原始位图数据
-            var tex = this._tex;
-            tex.drawToTexture(display);
-            var source = tex.getPixels(0, 0, rawWidth, rawHeight);
-            // top left
-            ptl.Rx = ptl.Rx || 0;
-            ptl.Ry = ptl.Ry || 0;
-            //top right
-            ptr.Rx = ptr.Rx || rawWidth;
-            ptr.Ry = ptr.Ry || 0;
-            //bottom right
-            pbr.Rx = pbr.Rx || rawWidth;
-            pbr.Ry = pbr.Ry || rawHeight;
-            //bottom left
-            pbl.Rx = pbl.Rx || 0;
-            pbl.Ry = pbl.Ry || rawHeight;
-            //使用 向辉 寿标《真实感图像的颜色插值及其应用》计算机世界月刊，1992年10月 的方案进行计算
-            var dict = [];
-            var edges = 0;
-            edges += makeEdge(ptl, ptr, dict);
-            edges += makeEdge(ptr, pbr, dict);
-            edges += makeEdge(pbr, pbl, dict);
-            edges += makeEdge(pbl, ptl, dict);
-            if (edges > 0) {
-                var ael = [];
-                var tael = [];
-                for (var y = 0; y < maxY; y++) {
-                    var edges_1 = dict[y];
-                    if (edges_1 && edges_1.length) {
-                        edges_1.appendTo(ael);
-                        ael.doSort("dx");
-                    }
-                    var len = ael.length - 1;
-                    if (len > 0) {
-                        for (var i = 0; i < len; i++) {
-                            var edgeA = ael[i];
-                            var xLeft = edgeA.x;
-                            //let pLeft = { x: xLeft, y };
-                            var lRx = edgeA.Rx;
-                            var lRy = edgeA.Ry;
-                            var edgeB = ael[i + 1];
-                            //得到区段
-                            var xRight = edgeB.x;
-                            var rRx = edgeB.Rx;
-                            var rRy = edgeB.Ry;
-                            var xWidth = xLeft - xRight;
-                            var dRxx = 0, dRyx = 0;
-                            if (xWidth) {
-                                dRxx = (lRx - rRx) / xWidth;
-                                dRyx = (lRy - rRy) / xWidth;
-                            }
-                            for (var x = xLeft; x <= xRight; x++) {
-                                var ix = lRx | 0;
-                                var u = lRx - ix;
-                                var iy = lRy | 0;
-                                var v = lRy - iy;
-                                //得到像素，做双线性插值
-                                var pos00 = (iy * rawWidth + ix) * 4;
-                                var r00 = source[pos00];
-                                var g00 = source[pos00 + 1];
-                                var b00 = source[pos00 + 2];
-                                var a00 = source[pos00 + 3];
-                                var pos10 = pos00 + 4;
-                                var r10 = source[pos10];
-                                var g10 = source[pos10 + 1];
-                                var b10 = source[pos10 + 2];
-                                var a10 = source[pos10 + 3];
-                                var pos01 = ((iy + 1) * rawWidth + ix) * 4;
-                                var r01 = source[pos01];
-                                var g01 = source[pos01 + 1];
-                                var b01 = source[pos01 + 2];
-                                var a01 = source[pos01 + 3];
-                                var pos11 = pos01 + 4;
-                                var r11 = source[pos11];
-                                var g11 = source[pos11 + 1];
-                                var b11 = source[pos11 + 2];
-                                var a11 = source[pos11 + 3];
-                                var u1 = 1 - u;
-                                var v1 = 1 - v;
-                                var pm00 = u1 * v1;
-                                var pm10 = u * v1;
-                                var pm01 = u1 * v;
-                                var pm11 = u * v;
-                                var pos = (y * width + x) * 4;
-                                bytes[pos] = r00 * pm00 + r10 * pm10 + r01 * pm01 + r11 * pm11;
-                                bytes[pos + 1] = g00 * pm00 + g10 * pm10 + g01 * pm01 + g11 * pm11;
-                                bytes[pos + 2] = b00 * pm00 + b10 * pm10 + b01 * pm01 + b11 * pm11;
-                                bytes[pos + 3] = a00 * pm00 + a10 * pm10 + a01 * pm01 + a11 * pm11;
-                                lRx += dRxx;
-                                lRy += dRyx;
-                            }
-                        }
-                        var l = 0;
-                        for (var i = 0; i <= len; i++) {
-                            l = edgeCheckAndInc(ael[i], tael, l, y);
-                        }
-                        tael.length = l;
-                        var tmp = ael;
-                        ael = tael;
-                        tael = tmp;
-                    }
+    junyou.Stats = (function () {
+        var _actionUrl, _ip, _sign, _pid, _uid, _sid;
+        return {
+            setUrl: function (url) {
+                if (url.charAt(url.length - 1) != "?") {
+                    url += "?";
                 }
-            }
-            content.putImageData(imgData, 0, 0);
-            return egret.BitmapData.create("base64", canvas.toDataURL());
-            function edgeCheckAndInc(edge, list, l, y) {
-                if (edge.ymax > y) {
-                    list[l++] = edge;
-                    edge.Rx += edge.dRx;
-                    edge.Ry += edge.dRy;
-                    edge.x = Math.round(edge.x + edge.dx);
-                }
-                return l;
-            }
-            function makeEdge(p0, p1, dict) {
-                var x, Rx, Ry, ymax, ymin;
-                if (p0.y == p1.y) {
-                    return 0;
-                }
-                if (p0.y < p1.y) {
-                    x = p0.x;
-                    Rx = p0.Rx;
-                    Ry = p0.Ry;
-                    ymax = p1.y;
-                    ymin = p0.y;
-                }
-                else {
-                    x = p1.x;
-                    Rx = p1.Rx;
-                    Ry = p1.Ry;
-                    ymax = p0.y;
-                    ymin = p1.y;
-                }
-                var deltaY = p0.y - p1.y;
-                var dx = (p0.x - p1.x) / deltaY;
-                var dRx = (p0.Rx - p1.Rx) / deltaY;
-                var dRy = (p0.Ry - p1.Ry) / deltaY;
-                var edges = dict[ymin];
-                if (!edges) {
-                    dict[ymin] = edges = [];
-                    edges.minY = ymin;
-                }
-                edges.push({ x: x, Rx: Rx, Ry: Ry, ymax: ymax, dx: dx, dRx: dRx, dRy: dRy });
-                return 1;
+                _actionUrl = url;
+                return this;
+            },
+            setParams: function (params) {
+                _ip = getData(params.ip);
+                _pid = getData(params.pid);
+                _uid = getData(params.uid);
+                _sid = getData(params.sid);
+                return this;
+            },
+            setSign: function (sign) {
+                _sign = getData(sign);
+                return this;
+            },
+            postData: function (step) {
+                junyou.sendToUrl(_actionUrl + this.getParamUrl(step));
+            },
+            getParamUrl: function (step) {
+                return "step=" + getData(step) + "&ip=" + _ip
+                    + "&sign=" + _sign + "&pid=" + _pid
+                    + "&sid=" + _sid + "&uid=" + _uid
+                    + "&client_time=" + junyou.Global.now;
             }
         };
-        return QuadTransform;
-    }());
-    junyou.QuadTransform = QuadTransform;
-    __reflect(QuadTransform.prototype, "junyou.QuadTransform");
+        function getData(value) {
+            return value === undefined ? "" : encodeURIComponent(value);
+        }
+    })();
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -13577,6 +13419,349 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
+     * 基于4个顶点变形的纹理
+     *
+     * @export
+     * @class QuadTransform
+     */
+    var QuadTransform = (function () {
+        function QuadTransform() {
+            this._tex = new egret.RenderTexture();
+            this._canvas = document.createElement("canvas");
+            this._content = this._canvas.getContext("2d");
+        }
+        /**
+         * 绘制白鹭的可视对象，并且进行变形
+         *
+         * @param {egret.DisplayObject} display
+         * @param {{ x: number, y: number }} ptl
+         * @param {{ x: number, y: number }} ptr
+         * @param {{ x: number, y: number }} pbl
+         * @param {{ x: number, y: number }} pbr
+         *
+         * @memberOf QuadTransform
+         */
+        QuadTransform.prototype.drawDisplay = function (display, ptl, ptr, pbl, pbr) {
+            var rawWidth = display.width;
+            var rawHeight = display.height;
+            ptl = ptl || { x: 0, y: 0 };
+            ptr = ptr || { x: rawWidth, y: 0 };
+            pbl = pbl || { x: 0, y: rawHeight };
+            pbr = pbr || { x: rawWidth, y: rawHeight };
+            //获取新的位图大小
+            var ptlx = ptl.x, ptly = ptl.y, ptrx = ptr.x, ptry = ptr.y, pblx = pbl.x, pbly = pbl.y, pbrx = pbr.x, pbry = pbr.y;
+            var minX = Math.min(ptlx, ptrx, pblx, pbrx);
+            var maxX = Math.max(ptlx, ptrx, pblx, pbrx);
+            var minY = Math.min(ptly, ptry, pbly, pbry);
+            var maxY = Math.max(ptly, ptry, pbly, pbry);
+            var width = maxX - minX;
+            var height = maxY - minY;
+            // let bytes = new Uint8ClampedArray(width * height * 4);
+            var canvas = this._canvas;
+            canvas.width = width;
+            canvas.height = height;
+            var content = this._content;
+            var imgData = content.createImageData(width, height);
+            var bytes = imgData.data;
+            //获取原始位图数据
+            var tex = this._tex;
+            tex.drawToTexture(display);
+            var source = tex.getPixels(0, 0, rawWidth, rawHeight);
+            // top left
+            ptl.Rx = ptl.Rx || 0;
+            ptl.Ry = ptl.Ry || 0;
+            //top right
+            ptr.Rx = ptr.Rx || rawWidth;
+            ptr.Ry = ptr.Ry || 0;
+            //bottom right
+            pbr.Rx = pbr.Rx || rawWidth;
+            pbr.Ry = pbr.Ry || rawHeight;
+            //bottom left
+            pbl.Rx = pbl.Rx || 0;
+            pbl.Ry = pbl.Ry || rawHeight;
+            //使用 向辉 寿标《真实感图像的颜色插值及其应用》计算机世界月刊，1992年10月 的方案进行计算
+            var dict = [];
+            var edges = 0;
+            edges += makeEdge(ptl, ptr, dict);
+            edges += makeEdge(ptr, pbr, dict);
+            edges += makeEdge(pbr, pbl, dict);
+            edges += makeEdge(pbl, ptl, dict);
+            if (edges > 0) {
+                var ael = [];
+                var tael = [];
+                for (var y = 0; y < maxY; y++) {
+                    var edges_1 = dict[y];
+                    if (edges_1 && edges_1.length) {
+                        edges_1.appendTo(ael);
+                        ael.doSort("dx");
+                    }
+                    var len = ael.length - 1;
+                    if (len > 0) {
+                        for (var i = 0; i < len; i++) {
+                            var edgeA = ael[i];
+                            var xLeft = edgeA.x;
+                            //let pLeft = { x: xLeft, y };
+                            var lRx = edgeA.Rx;
+                            var lRy = edgeA.Ry;
+                            var edgeB = ael[i + 1];
+                            //得到区段
+                            var xRight = edgeB.x;
+                            var rRx = edgeB.Rx;
+                            var rRy = edgeB.Ry;
+                            var xWidth = xLeft - xRight;
+                            var dRxx = 0, dRyx = 0;
+                            if (xWidth) {
+                                dRxx = (lRx - rRx) / xWidth;
+                                dRyx = (lRy - rRy) / xWidth;
+                            }
+                            for (var x = xLeft; x <= xRight; x++) {
+                                var ix = lRx | 0;
+                                var u = lRx - ix;
+                                var iy = lRy | 0;
+                                var v = lRy - iy;
+                                //得到像素，做双线性插值
+                                var pos00 = (iy * rawWidth + ix) * 4;
+                                var r00 = source[pos00];
+                                var g00 = source[pos00 + 1];
+                                var b00 = source[pos00 + 2];
+                                var a00 = source[pos00 + 3];
+                                var pos10 = pos00 + 4;
+                                var r10 = source[pos10];
+                                var g10 = source[pos10 + 1];
+                                var b10 = source[pos10 + 2];
+                                var a10 = source[pos10 + 3];
+                                var pos01 = ((iy + 1) * rawWidth + ix) * 4;
+                                var r01 = source[pos01];
+                                var g01 = source[pos01 + 1];
+                                var b01 = source[pos01 + 2];
+                                var a01 = source[pos01 + 3];
+                                var pos11 = pos01 + 4;
+                                var r11 = source[pos11];
+                                var g11 = source[pos11 + 1];
+                                var b11 = source[pos11 + 2];
+                                var a11 = source[pos11 + 3];
+                                var u1 = 1 - u;
+                                var v1 = 1 - v;
+                                var pm00 = u1 * v1;
+                                var pm10 = u * v1;
+                                var pm01 = u1 * v;
+                                var pm11 = u * v;
+                                var pos = (y * width + x) * 4;
+                                bytes[pos] = r00 * pm00 + r10 * pm10 + r01 * pm01 + r11 * pm11;
+                                bytes[pos + 1] = g00 * pm00 + g10 * pm10 + g01 * pm01 + g11 * pm11;
+                                bytes[pos + 2] = b00 * pm00 + b10 * pm10 + b01 * pm01 + b11 * pm11;
+                                bytes[pos + 3] = a00 * pm00 + a10 * pm10 + a01 * pm01 + a11 * pm11;
+                                lRx += dRxx;
+                                lRy += dRyx;
+                            }
+                        }
+                        var l = 0;
+                        for (var i = 0; i <= len; i++) {
+                            l = edgeCheckAndInc(ael[i], tael, l, y);
+                        }
+                        tael.length = l;
+                        var tmp = ael;
+                        ael = tael;
+                        tael = tmp;
+                    }
+                }
+            }
+            content.putImageData(imgData, 0, 0);
+            return egret.BitmapData.create("base64", canvas.toDataURL());
+            function edgeCheckAndInc(edge, list, l, y) {
+                if (edge.ymax > y) {
+                    list[l++] = edge;
+                    edge.Rx += edge.dRx;
+                    edge.Ry += edge.dRy;
+                    edge.x = Math.round(edge.x + edge.dx);
+                }
+                return l;
+            }
+            function makeEdge(p0, p1, dict) {
+                var x, Rx, Ry, ymax, ymin;
+                if (p0.y == p1.y) {
+                    return 0;
+                }
+                if (p0.y < p1.y) {
+                    x = p0.x;
+                    Rx = p0.Rx;
+                    Ry = p0.Ry;
+                    ymax = p1.y;
+                    ymin = p0.y;
+                }
+                else {
+                    x = p1.x;
+                    Rx = p1.Rx;
+                    Ry = p1.Ry;
+                    ymax = p0.y;
+                    ymin = p1.y;
+                }
+                var deltaY = p0.y - p1.y;
+                var dx = (p0.x - p1.x) / deltaY;
+                var dRx = (p0.Rx - p1.Rx) / deltaY;
+                var dRy = (p0.Ry - p1.Ry) / deltaY;
+                var edges = dict[ymin];
+                if (!edges) {
+                    dict[ymin] = edges = [];
+                    edges.minY = ymin;
+                }
+                edges.push({ x: x, Rx: Rx, Ry: Ry, ymax: ymax, dx: dx, dRx: dRx, dRy: dRy });
+                return 1;
+            }
+        };
+        return QuadTransform;
+    }());
+    junyou.QuadTransform = QuadTransform;
+    __reflect(QuadTransform.prototype, "junyou.QuadTransform");
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 视图控制器，持有视图<br/>
+     * 持有Proxy，主要监听视图和Proxy的事件，变更面板状态<br/>
+     * @author 3tion
+     *
+     */
+    var Mediator = (function (_super) {
+        __extends(Mediator, _super);
+        /**
+         * Creates an instance of Mediator.
+         *
+         * @param {string | number} moduleID 模块ID
+         */
+        function Mediator(moduleID) {
+            var _this = _super.call(this, moduleID) || this;
+            _this.init && _this.init();
+            return _this;
+        }
+        Object.defineProperty(Mediator.prototype, "view", {
+            /**
+             *  获取视图
+             */
+            get: function () {
+                return this.$view;
+            },
+            set: function (value) {
+                var old = this.$view;
+                if (old != value) {
+                    this.removeSkinListener(old);
+                    this.$view = value;
+                    this.addSkinListener(value);
+                    value.moduleID = this._name;
+                    if (junyou.isIAsync(value)) {
+                        value.addReadyExecute(this.viewComplete, this);
+                    }
+                    else {
+                        this.viewComplete();
+                    }
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         * 开始尝试同步
+         */
+        Mediator.prototype.startSync = function () {
+            if (junyou.isIAsync(this.$view)) {
+                var async = this.$view;
+                if (async.isReady) {
+                    this.viewComplete();
+                }
+                else {
+                    async.addReadyExecute(this.viewComplete, this);
+                    async.startSync();
+                }
+            }
+        };
+        /**
+         *
+         * 视图加载完毕
+         * @protected
+         */
+        Mediator.prototype.viewComplete = function () {
+            this._preViewReady = true;
+            if (this._dependerHelper) {
+                this._dependerHelper.check();
+            }
+            else {
+                this.dependerReadyCheck();
+            }
+        };
+        /**
+         *
+         * 依赖项完毕后检查
+         * @protected
+         * @returns
+         */
+        Mediator.prototype.dependerReadyCheck = function () {
+            if (!this._preViewReady) {
+                return;
+            }
+            if (!this._ready) {
+                this._ready = true;
+                this.afterAllReady();
+                if (this._asyncHelper) {
+                    this._asyncHelper.readyNow();
+                }
+            }
+        };
+        Mediator.prototype.hide = function () {
+            junyou.toggle(this._name, -1 /* HIDE */);
+        };
+        return Mediator;
+    }(junyou.ViewController));
+    junyou.Mediator = Mediator;
+    __reflect(Mediator.prototype, "junyou.Mediator");
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 模块脚本，后续开发模块，分成多个模块文件
+     * @author 3tion
+     *
+     */
+    var ModuleScript = (function () {
+        function ModuleScript() {
+            /**
+             * 加载状态
+             */
+            this.state = 0 /* UNREQUEST */;
+            /**
+             * 回调列表
+             */
+            this.callbacks = [];
+        }
+        /**
+         * 已异步方式加载
+         */
+        ModuleScript.prototype.load = function () {
+            if (this.state == 0 /* UNREQUEST */) {
+                var url = this.url || junyou.Facade.Script.substitute(this.id);
+                junyou.loadScript(url, this.onScriptLoaded, this);
+                this.state = 1 /* REQUESTING */;
+            }
+        };
+        /**
+         * 配置加载完成之后
+         */
+        ModuleScript.prototype.onScriptLoaded = function () {
+            this.state = 2 /* COMPLETE */;
+            var callbacks = this.callbacks.concat();
+            this.callbacks.length = 0;
+            for (var _i = 0, callbacks_1 = callbacks; _i < callbacks_1.length; _i++) {
+                var callback = callbacks_1[_i];
+                callback.execute();
+            }
+        };
+        return ModuleScript;
+    }());
+    junyou.ModuleScript = ModuleScript;
+    __reflect(ModuleScript.prototype, "junyou.ModuleScript");
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
      * 配置工具
      * @author 3tion
      * @export
@@ -13754,147 +13939,134 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
-     * 视图控制器，持有视图<br/>
-     * 持有Proxy，主要监听视图和Proxy的事件，变更面板状态<br/>
+     * 用于和服务端通信的数据
      * @author 3tion
-     *
      */
-    var Mediator = (function (_super) {
-        __extends(Mediator, _super);
-        /**
-         * Creates an instance of Mediator.
-         *
-         * @param {string | number} moduleID 模块ID
-         */
-        function Mediator(moduleID) {
-            var _this = _super.call(this, moduleID) || this;
-            _this.init && _this.init();
-            return _this;
+    var Service = (function (_super) {
+        __extends(Service, _super);
+        function Service(name) {
+            return _super.call(this, name) || this;
         }
-        Object.defineProperty(Mediator.prototype, "view", {
-            /**
-             *  获取视图
-             */
-            get: function () {
-                return this.$view;
-            },
-            set: function (value) {
-                var old = this.$view;
-                if (old != value) {
-                    this.removeSkinListener(old);
-                    this.$view = value;
-                    this.addSkinListener(value);
-                    value.moduleID = this._name;
-                    if (junyou.isIAsync(value)) {
-                        value.addReadyExecute(this.viewComplete, this);
+        Service.prototype.onRegister = function () {
+            this._ns = junyou.NetService.get();
+        };
+        Service.prototype._startSync = function () {
+            // Service默认为同步，如果需要收到服务端数据的，重写此方法
+            this.selfReady();
+        };
+        Service.prototype.reg = function () {
+            var ns = this._ns;
+            var args = arguments;
+            for (var i = 0; i < args.length; i += 3) {
+                var cmd = args[i];
+                var ref = args[i + 1];
+                var handler = args[i + 2];
+                if (Array.isArray(cmd)) {
+                    for (var i_1 = 0; i_1 < cmd.length; i_1++) {
+                        doReg(cmd[i_1], handler, ref);
                     }
-                    else {
-                        this.viewComplete();
-                    }
-                }
-            },
-            enumerable: true,
-            configurable: true
-        });
-        /**
-         * 开始尝试同步
-         */
-        Mediator.prototype.startSync = function () {
-            if (junyou.isIAsync(this.$view)) {
-                var async = this.$view;
-                if (async.isReady) {
-                    this.viewComplete();
                 }
                 else {
-                    async.addReadyExecute(this.viewComplete, this);
-                    async.startSync();
+                    doReg(cmd, handler, ref);
                 }
+            }
+            function doReg(cmd, handler, ref) {
+                ns.register(cmd, handler);
+                ns.regReceiveMSGRef(cmd, ref);
             }
         };
         /**
+         * 注册消息引用
          *
-         * 视图加载完毕
          * @protected
+         * @param {string | number} ref 消息实例的引用
+         * @param cmds 注册的指令
          */
-        Mediator.prototype.viewComplete = function () {
-            this._preViewReady = true;
-            if (this._dependerHelper) {
-                this._dependerHelper.check();
+        Service.prototype.regMsg = function (ref) {
+            var cmds = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                cmds[_i - 1] = arguments[_i];
             }
-            else {
-                this.dependerReadyCheck();
+            var ns = this._ns;
+            for (var _a = 0, cmds_1 = cmds; _a < cmds_1.length; _a++) {
+                var cmd = cmds_1[_a];
+                ns.regReceiveMSGRef(cmd, ref);
             }
         };
         /**
+         * 注册消息处理函数
          *
-         * 依赖项完毕后检查
          * @protected
-         * @returns
+         * @param {{ (data: NetData): void }} handler   消息处理函数
+         * @param {number[]} cmds 注册的指令
          */
-        Mediator.prototype.dependerReadyCheck = function () {
-            if (!this._preViewReady) {
-                return;
+        Service.prototype.regHandler = function (handler) {
+            var cmds = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                cmds[_i - 1] = arguments[_i];
             }
-            if (!this._ready) {
-                this._ready = true;
-                this.afterAllReady();
-                if (this._asyncHelper) {
-                    this._asyncHelper.readyNow();
-                }
+            var ns = this._ns;
+            for (var _a = 0, cmds_2 = cmds; _a < cmds_2.length; _a++) {
+                var cmd = cmds_2[_a];
+                ns.register(cmd, handler);
             }
         };
-        Mediator.prototype.hide = function () {
-            junyou.toggle(this._name, -1 /* HIDE */);
+        Service.prototype.removeHandler = function (cmd, handler) {
+            this._ns.remove(cmd, handler);
         };
-        return Mediator;
-    }(junyou.ViewController));
-    junyou.Mediator = Mediator;
-    __reflect(Mediator.prototype, "junyou.Mediator");
+        /**
+         * 发送消息
+         *
+         * @protected
+         * @param {number} cmd 指令
+         * @param {any} [data] 数据，简单数据(number,boolean,string)复合数据
+         * @param {string} [msgType] 如果是复合数据，必须有此值
+         * @param {number} [limit=200] 最短发送时间
+         */
+        Service.prototype.send = function (cmd, data, msgType, limit) {
+            if (limit === void 0) { limit = 200; }
+            this._ns.send(cmd, data, msgType, limit);
+        };
+        return Service;
+    }(junyou.Proxy));
+    junyou.Service = Service;
+    __reflect(Service.prototype, "junyou.Service");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
     /**
-     * 模块脚本，后续开发模块，分成多个模块文件
-     * @author 3tion
+     * 将Mediator转换为IStateSwitcher
      *
+     * @export
+     * @param {Mediator} mediator
+     * @returns {(Mediator & IStateSwitcher & AwakeCheck)}
      */
-    var ModuleScript = (function () {
-        function ModuleScript() {
-            /**
-             * 加载状态
-             */
-            this.state = 0 /* UNREQUEST */;
-            /**
-             * 回调列表
-             */
-            this.callbacks = [];
+    function transformToStateMediator(mediator, awakeBy, sleepBy) {
+        var stateMed = mediator;
+        if (stateMed.awakeBy === undefined) {
+            stateMed.awakeBy = awakeBy || function (id) {
+                if (typeof stateMed.awakeCheck === "function") {
+                    if (!stateMed.awakeCheck()) {
+                        return;
+                    }
+                }
+                var view = this._view;
+                if (view instanceof junyou.Panel) {
+                    view.show();
+                }
+            };
         }
-        /**
-         * 已异步方式加载
-         */
-        ModuleScript.prototype.load = function () {
-            if (this.state == 0 /* UNREQUEST */) {
-                var url = this.url || junyou.Facade.Script.substitute(this.id);
-                junyou.loadScript(url, this.onScriptLoaded, this);
-                this.state = 1 /* REQUESTING */;
-            }
-        };
-        /**
-         * 配置加载完成之后
-         */
-        ModuleScript.prototype.onScriptLoaded = function () {
-            this.state = 2 /* COMPLETE */;
-            var callbacks = this.callbacks.concat();
-            this.callbacks.length = 0;
-            for (var _i = 0, callbacks_1 = callbacks; _i < callbacks_1.length; _i++) {
-                var callback = callbacks_1[_i];
-                callback.execute();
-            }
-        };
-        return ModuleScript;
-    }());
-    junyou.ModuleScript = ModuleScript;
-    __reflect(ModuleScript.prototype, "junyou.ModuleScript");
+        if (stateMed.sleepBy === undefined) {
+            stateMed.sleepBy = sleepBy || function (id) {
+                var view = this._view;
+                if (view instanceof junyou.Panel) {
+                    view.hide();
+                }
+            };
+        }
+        return stateMed;
+    }
+    junyou.transformToStateMediator = transformToStateMediator;
 })(junyou || (junyou = {}));
 /**
  * DataLocator的主数据
@@ -14119,248 +14291,6 @@ var junyou;
             junyou.Log("\u914D\u7F6E" + key + "\u89E3\u6790\u6709\u8BEF\uFF0C\u65E0\u6CD5\u627E\u5230\u6307\u5B9A\u7684\u552F\u4E00\u6807\u793A\uFF1A" + idKey + "\uFF0C\u6570\u636E\u7D22\u5F15\uFF1A" + idx);
         }
     }
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * 用于和服务端通信的数据
-     * @author 3tion
-     */
-    var Service = (function (_super) {
-        __extends(Service, _super);
-        function Service(name) {
-            return _super.call(this, name) || this;
-        }
-        Service.prototype.onRegister = function () {
-            this._ns = junyou.NetService.get();
-        };
-        Service.prototype._startSync = function () {
-            // Service默认为同步，如果需要收到服务端数据的，重写此方法
-            this.selfReady();
-        };
-        /**
-         * 用于新版本的自动生成代码的注册
-         * [cmd,msgType,handler,cmd1,msgType1,handler1,cmd2,msgType2,handler2,....cmdN,msgTypeN,handlerN]
-         * @protected
-         * @param {any} args
-         */
-        Service.prototype.reg = function () {
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
-            }
-            var ns = this._ns;
-            for (var i = 0; i < args.length; i += 3) {
-                var cmd = args[i];
-                var ref = args[i + 1];
-                var handler = args[i + 2];
-                ns.register(cmd, handler);
-                ns.regReceiveMSGRef(cmd, ref);
-            }
-        };
-        /**
-         * 注册消息引用
-         *
-         * @protected
-         * @param {string | number} ref 消息实例的引用
-         * @param cmds 注册的指令
-         */
-        Service.prototype.regMsg = function (ref) {
-            var cmds = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                cmds[_i - 1] = arguments[_i];
-            }
-            var ns = this._ns;
-            for (var _a = 0, cmds_1 = cmds; _a < cmds_1.length; _a++) {
-                var cmd = cmds_1[_a];
-                ns.regReceiveMSGRef(cmd, ref);
-            }
-        };
-        /**
-         * 注册消息处理函数
-         *
-         * @protected
-         * @param {{ (data: NetData): void }} handler   消息处理函数
-         * @param {number[]} cmds 注册的指令
-         */
-        Service.prototype.regHandler = function (handler) {
-            var cmds = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                cmds[_i - 1] = arguments[_i];
-            }
-            var ns = this._ns;
-            for (var _a = 0, cmds_2 = cmds; _a < cmds_2.length; _a++) {
-                var cmd = cmds_2[_a];
-                ns.register(cmd, handler);
-            }
-        };
-        Service.prototype.removeHandler = function (cmd, handler) {
-            this._ns.remove(cmd, handler);
-        };
-        /**
-         * 发送消息
-         *
-         * @protected
-         * @param {number} cmd 指令
-         * @param {any} [data] 数据，简单数据(number,boolean,string)复合数据
-         * @param {string} [msgType] 如果是复合数据，必须有此值
-         * @param {number} [limit=200] 最短发送时间
-         */
-        Service.prototype.send = function (cmd, data, msgType, limit) {
-            if (limit === void 0) { limit = 200; }
-            this._ns.send(cmd, data, msgType, limit);
-        };
-        return Service;
-    }(junyou.Proxy));
-    junyou.Service = Service;
-    __reflect(Service.prototype, "junyou.Service");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * 将Mediator转换为IStateSwitcher
-     *
-     * @export
-     * @param {Mediator} mediator
-     * @returns {(Mediator & IStateSwitcher & AwakeCheck)}
-     */
-    function transformToStateMediator(mediator, awakeBy, sleepBy) {
-        var stateMed = mediator;
-        if (stateMed.awakeBy === undefined) {
-            stateMed.awakeBy = awakeBy || function (id) {
-                if (typeof stateMed.awakeCheck === "function") {
-                    if (!stateMed.awakeCheck()) {
-                        return;
-                    }
-                }
-                var view = this._view;
-                if (view instanceof junyou.Panel) {
-                    view.show();
-                }
-            };
-        }
-        if (stateMed.sleepBy === undefined) {
-            stateMed.sleepBy = sleepBy || function (id) {
-                var view = this._view;
-                if (view instanceof junyou.Panel) {
-                    view.hide();
-                }
-            };
-        }
-        return stateMed;
-    }
-    junyou.transformToStateMediator = transformToStateMediator;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    function getData(valueList, keyList, o) {
-        o = o || {};
-        for (var i = 0, len = keyList.length; i < len; i++) {
-            var key = keyList[i];
-            var v = valueList[i];
-            if (v != undefined) {
-                o[key] = valueList[i];
-            }
-        }
-        return o;
-    }
-    function copyData(to, valueList, keyList) {
-        for (var i = 0, len = keyList.length; i < len; i++) {
-            var key = keyList[i];
-            to[key] = valueList[i];
-        }
-    }
-    /**
-     *
-     * @author 君游项目解析工具
-     *
-     */
-    junyou.DataUtils = {
-        parseDatas: function (to, from, checkStart, checkEnd, dataKey, typeKey, toDatasKey) {
-            var arr;
-            for (var i = checkStart; i <= checkEnd; i++) {
-                var key = dataKey + i;
-                if (key in from) {
-                    if (!arr) {
-                        arr = [];
-                    }
-                    arr[i] = from[key];
-                }
-            }
-            if (!arr) {
-                if (typeKey in from) {
-                    arr = [];
-                    to[typeKey] = from[typeKey];
-                }
-            }
-            if (arr) {
-                to[toDatasKey] = arr;
-            }
-        },
-        parseDatas2: function (to, valueList, keyList, checkStart, checkEnd, dataKey, typeKey, toDatasKey) {
-            var arr;
-            for (var i = checkStart; i <= checkEnd; i++) {
-                var key = dataKey + i;
-                var idx = keyList.indexOf(key);
-                if (~idx) {
-                    if (!arr) {
-                        arr = [];
-                    }
-                    arr[i] = valueList[idx];
-                }
-            }
-            if (!arr) {
-                // 数据中有列表值
-                var idx = keyList.indexOf(typeKey);
-                if (~idx) {
-                    arr = [];
-                    to[typeKey] = valueList[idx];
-                }
-            }
-            if (arr) {
-                to[toDatasKey] = arr;
-            }
-        },
-        getData: getData,
-        getDataList: function (dataList, keyList) {
-            var list = [];
-            if (dataList) {
-                for (var i = 0, len = dataList.length; i < len; i++) {
-                    var valueList = dataList[i];
-                    list.push(getData(valueList, keyList));
-                }
-            }
-            return list;
-        },
-        parseDataList: function (dataList, keyList, forEach, thisObj) {
-            var args = [];
-            for (var _i = 4; _i < arguments.length; _i++) {
-                args[_i - 4] = arguments[_i];
-            }
-            if (dataList) {
-                for (var i = 0, len = dataList.length; i < len; i++) {
-                    var valueList = dataList[i];
-                    var to = getData(valueList, keyList);
-                    forEach.call(thisObj, to, args, i);
-                }
-            }
-        },
-        copyData: copyData,
-        copyDataList: function (creator, dataList, keyList, forEach, thisObj) {
-            var args = [];
-            for (var _i = 5; _i < arguments.length; _i++) {
-                args[_i - 5] = arguments[_i];
-            }
-            if (dataList) {
-                for (var i = 0, len = dataList.length; i < len; i++) {
-                    var valueList = dataList[i];
-                    var to = new creator();
-                    copyData(to, valueList, keyList);
-                    forEach.call(thisObj, to, args, i);
-                }
-            }
-        },
-    };
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -15881,70 +15811,113 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    function getZuobiao(data) {
-        return { x: data[0], y: data[1] };
+    function getData(valueList, keyList, o) {
+        o = o || {};
+        for (var i = 0, len = keyList.length; i < len; i++) {
+            var key = keyList[i];
+            var v = valueList[i];
+            if (v != undefined) {
+                o[key] = valueList[i];
+            }
+        }
+        return o;
     }
-    junyou.DataUtils.getZuobiao = getZuobiao;
-    junyou.DataUtils.getZuobiaos = function (data, out) {
-        out = out || [];
-        for (var i = 0; i < data.length; i++) {
-            out.push(getZuobiao(data[i]));
+    function copyData(to, valueList, keyList) {
+        for (var i = 0, len = keyList.length; i < len; i++) {
+            var key = keyList[i];
+            to[key] = valueList[i];
         }
-    };
-    junyou.DataUtils.parseXAttr = function (from, xattr, delOriginKey, xReg) {
-        if (delOriginKey === void 0) { delOriginKey = true; }
-        if (xReg === void 0) { xReg = /^x\d+$/; }
-        var keyCount = 0;
-        for (var key in from) {
-            if (xReg.test(key)) {
-                var value = +(from[key]);
-                if (value > 0) {
-                    keyCount++;
-                    xattr[key] = value;
-                }
-                if (delOriginKey) {
-                    delete from[key];
-                }
-            }
-        }
-        return keyCount;
-    };
-    junyou.DataUtils.parseXAttr2 = function (from, xattr, keyPrefix, valuePrefix, delOriginKey) {
-        if (keyPrefix === void 0) { keyPrefix = "pro"; }
-        if (valuePrefix === void 0) { valuePrefix = "provalue"; }
-        if (delOriginKey === void 0) { delOriginKey = true; }
-        var xReg = new RegExp("^" + keyPrefix + "(\\d+)$");
-        if (true) {
-            var repeatedErr = "";
-        }
-        var keyCount = 0;
-        for (var key in from) {
-            var obj = xReg.exec(key);
-            if (obj) {
-                var idx = +(obj[1]) || 0;
-                var valueKey = valuePrefix + idx;
-                if (true) {
-                    if (key in xattr) {
-                        repeatedErr += key + " ";
+    }
+    /**
+     *
+     * @author 君游项目解析工具
+     *
+     */
+    junyou.DataUtils = {
+        parseDatas: function (to, from, checkStart, checkEnd, dataKey, typeKey, toDatasKey) {
+            var arr;
+            for (var i = checkStart; i <= checkEnd; i++) {
+                var key = dataKey + i;
+                if (key in from) {
+                    if (!arr) {
+                        arr = [];
                     }
-                }
-                var value = +(from[valueKey]);
-                if (value > 0) {
-                    keyCount++;
-                    xattr[from[key]] = value;
-                }
-                if (delOriginKey) {
-                    delete from[key];
-                    delete from[valueKey];
+                    arr[i] = from[key];
                 }
             }
-        }
-        if (true) {
-            if (repeatedErr) {
-                junyou.ThrowError("有重复的属性值:" + repeatedErr);
+            if (!arr) {
+                if (typeKey in from) {
+                    arr = [];
+                    to[typeKey] = from[typeKey];
+                }
             }
-        }
-        return keyCount;
+            if (arr) {
+                to[toDatasKey] = arr;
+            }
+        },
+        parseDatas2: function (to, valueList, keyList, checkStart, checkEnd, dataKey, typeKey, toDatasKey) {
+            var arr;
+            for (var i = checkStart; i <= checkEnd; i++) {
+                var key = dataKey + i;
+                var idx = keyList.indexOf(key);
+                if (~idx) {
+                    if (!arr) {
+                        arr = [];
+                    }
+                    arr[i] = valueList[idx];
+                }
+            }
+            if (!arr) {
+                // 数据中有列表值
+                var idx = keyList.indexOf(typeKey);
+                if (~idx) {
+                    arr = [];
+                    to[typeKey] = valueList[idx];
+                }
+            }
+            if (arr) {
+                to[toDatasKey] = arr;
+            }
+        },
+        getData: getData,
+        getDataList: function (dataList, keyList) {
+            var list = [];
+            if (dataList) {
+                for (var i = 0, len = dataList.length; i < len; i++) {
+                    var valueList = dataList[i];
+                    list.push(getData(valueList, keyList));
+                }
+            }
+            return list;
+        },
+        parseDataList: function (dataList, keyList, forEach, thisObj) {
+            var args = [];
+            for (var _i = 4; _i < arguments.length; _i++) {
+                args[_i - 4] = arguments[_i];
+            }
+            if (dataList) {
+                for (var i = 0, len = dataList.length; i < len; i++) {
+                    var valueList = dataList[i];
+                    var to = getData(valueList, keyList);
+                    forEach.call(thisObj, to, args, i);
+                }
+            }
+        },
+        copyData: copyData,
+        copyDataList: function (creator, dataList, keyList, forEach, thisObj) {
+            var args = [];
+            for (var _i = 5; _i < arguments.length; _i++) {
+                args[_i - 5] = arguments[_i];
+            }
+            if (dataList) {
+                for (var i = 0, len = dataList.length; i < len; i++) {
+                    var valueList = dataList[i];
+                    var to = new creator();
+                    copyData(to, valueList, keyList);
+                    forEach.call(thisObj, to, args, i);
+                }
+            }
+        },
     };
 })(junyou || (junyou = {}));
 var junyou;
@@ -16120,6 +16093,74 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
+    function getZuobiao(data) {
+        return { x: data[0], y: data[1] };
+    }
+    junyou.DataUtils.getZuobiao = getZuobiao;
+    junyou.DataUtils.getZuobiaos = function (data, out) {
+        out = out || [];
+        for (var i = 0; i < data.length; i++) {
+            out.push(getZuobiao(data[i]));
+        }
+    };
+    junyou.DataUtils.parseXAttr = function (from, xattr, delOriginKey, xReg) {
+        if (delOriginKey === void 0) { delOriginKey = true; }
+        if (xReg === void 0) { xReg = /^x\d+$/; }
+        var keyCount = 0;
+        for (var key in from) {
+            if (xReg.test(key)) {
+                var value = +(from[key]);
+                if (value > 0) {
+                    keyCount++;
+                    xattr[key] = value;
+                }
+                if (delOriginKey) {
+                    delete from[key];
+                }
+            }
+        }
+        return keyCount;
+    };
+    junyou.DataUtils.parseXAttr2 = function (from, xattr, keyPrefix, valuePrefix, delOriginKey) {
+        if (keyPrefix === void 0) { keyPrefix = "pro"; }
+        if (valuePrefix === void 0) { valuePrefix = "provalue"; }
+        if (delOriginKey === void 0) { delOriginKey = true; }
+        var xReg = new RegExp("^" + keyPrefix + "(\\d+)$");
+        if (true) {
+            var repeatedErr = "";
+        }
+        var keyCount = 0;
+        for (var key in from) {
+            var obj = xReg.exec(key);
+            if (obj) {
+                var idx = +(obj[1]) || 0;
+                var valueKey = valuePrefix + idx;
+                if (true) {
+                    if (key in xattr) {
+                        repeatedErr += key + " ";
+                    }
+                }
+                var value = +(from[valueKey]);
+                if (value > 0) {
+                    keyCount++;
+                    xattr[from[key]] = value;
+                }
+                if (delOriginKey) {
+                    delete from[key];
+                    delete from[valueKey];
+                }
+            }
+        }
+        if (true) {
+            if (repeatedErr) {
+                junyou.ThrowError("有重复的属性值:" + repeatedErr);
+            }
+        }
+        return keyCount;
+    };
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
     /**
      * 图片字字库
      * Key为图片文字文件名（不带扩展名）
@@ -16160,6 +16201,36 @@ var junyou;
     }());
     junyou.ArtWord = ArtWord;
     __reflect(ArtWord.prototype, "junyou.ArtWord");
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 用于固定一些组件的宽度和高度，让其等于取出的值
+     *
+     * @export
+     * @param {Object} define                       定义
+     * @param {{ size: egret.Rectangle }} view
+     * @returns
+     */
+    function bindSize(define, view) {
+        Object.defineProperties(define, {
+            width: {
+                get: function () {
+                    return view.size.width;
+                },
+                enumerable: true,
+                configurable: true
+            },
+            height: {
+                get: function () {
+                    return view.size.height;
+                },
+                enumerable: true,
+                configurable: true
+            }
+        });
+    }
+    junyou.bindSize = bindSize;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -16290,62 +16361,6 @@ var junyou;
         return instance;
     }
     junyou.singleton = singleton;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * 用于固定一些组件的宽度和高度，让其等于取出的值
-     *
-     * @export
-     * @param {Object} define                       定义
-     * @param {{ size: egret.Rectangle }} view
-     * @returns
-     */
-    function bindSize(define, view) {
-        Object.defineProperties(define, {
-            width: {
-                get: function () {
-                    return view.size.width;
-                },
-                enumerable: true,
-                configurable: true
-            },
-            height: {
-                get: function () {
-                    return view.size.height;
-                },
-                enumerable: true,
-                configurable: true
-            }
-        });
-    }
-    junyou.bindSize = bindSize;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * 平台数据
-     * @author 3tion
-     *
-     */
-    var AuthData = (function () {
-        function AuthData() {
-            /**
-             * 认证次数
-             *
-             * @type {number}
-             * @memberOf AuthData
-             */
-            this.count = 0;
-        }
-        AuthData.prototype.toURLString = function () {
-            return "pid=" + encodeURIComponent(this.pid) + "&puid=" + encodeURIComponent(this.puid) +
-                "&sid=" + this.sid + "&sign=" + encodeURIComponent(this.sign);
-        };
-        return AuthData;
-    }());
-    junyou.AuthData = AuthData;
-    __reflect(AuthData.prototype, "junyou.AuthData");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -17333,6 +17348,32 @@ var junyou;
     }(junyou.BaseCreator));
     junyou.ArtTextCreator = ArtTextCreator;
     __reflect(ArtTextCreator.prototype, "junyou.ArtTextCreator");
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 平台数据
+     * @author 3tion
+     *
+     */
+    var AuthData = (function () {
+        function AuthData() {
+            /**
+             * 认证次数
+             *
+             * @type {number}
+             * @memberOf AuthData
+             */
+            this.count = 0;
+        }
+        AuthData.prototype.toURLString = function () {
+            return "pid=" + encodeURIComponent(this.pid) + "&puid=" + encodeURIComponent(this.puid) +
+                "&sid=" + this.sid + "&sign=" + encodeURIComponent(this.sign);
+        };
+        return AuthData;
+    }());
+    junyou.AuthData = AuthData;
+    __reflect(AuthData.prototype, "junyou.AuthData");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -19053,20 +19094,6 @@ var junyou;
         getTipLayoutPos: getTipLayoutPos,
     };
 })(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * 获取XMLHttpRequest对象
-     *
-     * @export
-     * @returns
-     */
-    function getXHR() {
-        junyou.getXHR = window.XMLHttpRequest ? function () { return new XMLHttpRequest; } : function () { return new ActiveXObject("MSXML2.XMLHTTP"); };
-        return junyou.getXHR();
-    }
-    junyou.getXHR = getXHR;
-})(junyou || (junyou = {}));
 var $useDPR = true;
 var dpr = 1;
 if (window.$useDPR) {
@@ -19399,192 +19426,16 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
-     * 使用http进行通信的网络服务
-     * @author 3tion
+     * 获取XMLHttpRequest对象
      *
+     * @export
+     * @returns
      */
-    var HttpNetService = (function (_super) {
-        __extends(HttpNetService, _super);
-        function HttpNetService() {
-            var _this = _super.call(this) || this;
-            _this._state = 0 /* UNREQUEST */;
-            /**
-             * 请求发送成功的次数
-             */
-            _this._success = 0;
-            /**
-             * 请求连续发送失败的次数
-             */
-            _this._cerror = 0;
-            /**
-             * 请求失败次数
-             */
-            _this._error = 0;
-            //覆盖instance
-            junyou.NetService._ins = _this;
-            _this._unsendRequest = [];
-            _this._sendingList = [];
-            _this._loader = junyou.getXHR();
-            return _this;
-        }
-        /**
-         * 重置
-         * @param actionUrl             请求地址
-         * @param autoTimeDelay         自动发送的最短延迟时间
-         */
-        HttpNetService.prototype.setUrl = function (actionUrl, autoTimeDelay) {
-            if (autoTimeDelay === void 0) { autoTimeDelay = 5000; }
-            this._actionUrl = actionUrl;
-            if (autoTimeDelay != this._autoTimeDelay) {
-                this._autoTimeDelay = autoTimeDelay;
-            }
-            // 200毫秒检查一次，是否可以自动拉数据了
-            junyou.TimerUtil.addCallback(200, this.checkUnsend, this);
-            var loader = this._loader;
-            loader.onreadystatechange = this.onReadyStateChange.bind(this);
-            loader.ontimeout = this.errorHandler.bind(this);
-        };
-        /**
-        * @protected
-        */
-        HttpNetService.prototype.onReadyStateChange = function () {
-            var xhr = this._loader;
-            if (xhr.readyState == 4) {
-                var ioError = (xhr.status >= 400 || xhr.status == 0);
-                // var url = this._actionUrl;
-                var self = this;
-                setTimeout(function () {
-                    if (ioError) {
-                        self.errorHandler();
-                    }
-                    else {
-                        self.complete();
-                    }
-                }, 0);
-            }
-        };
-        /**
-         * 发生错误
-         */
-        HttpNetService.prototype.errorHandler = function () {
-            this._error++;
-            this._cerror++;
-            this._state = -1 /* FAILED */;
-            if (this._cerror > 1) {
-                this.showReconnect();
-                return;
-            }
-            //曾经成功过
-            //数据未发送成功
-            var sending = this._sendingList;
-            var idx = sending.length;
-            var unrequest = this._unsendRequest;
-            for (var _i = 0, unrequest_1 = unrequest; _i < unrequest_1.length; _i++) {
-                var pdata = unrequest_1[_i];
-                sending[idx++] = pdata;
-            }
-            //交互未发送的请求和发送中的请求列表
-            unrequest.length = 0;
-            this._unsendRequest = sending;
-            this._sendingList = unrequest;
-            //尝试重新发送请求
-            this.checkUnsend();
-        };
-        HttpNetService.prototype.complete = function () {
-            this._state = 2 /* COMPLETE */;
-            this._reconCount = 0;
-            //处理Response
-            var readBuffer = this._readBuffer;
-            readBuffer.replaceBuffer(this._loader.response);
-            readBuffer.position = 0;
-            //成功一次清零连续失败次数
-            this._cerror = 0;
-            this._success++;
-            //清理正在发送的数据            
-            for (var _i = 0, _a = this._sendingList; _i < _a.length; _i++) {
-                var pdata = _a[_i];
-                pdata.recycle();
-            }
-            //数据发送成功
-            this._sendingList.length = 0;
-            this.onBeforeSolveData();
-            this.decodeBytes(readBuffer);
-            this.checkUnsend();
-        };
-        /**
-         * 检查在发送过程中的请求
-         */
-        HttpNetService.prototype.checkUnsend = function () {
-            //有在发送过程中，主动发送的数据
-            if (this._unsendRequest.length || junyou.Global.now > this._nextAutoTime) {
-                this.trySend();
-            }
-        };
-        HttpNetService.prototype._send = function (cmd, data, msgType) {
-            //没有同协议的指令，新增数据
-            var pdata = junyou.recyclable(junyou.NetData);
-            pdata.cmd = cmd;
-            pdata.data = data;
-            pdata.msgType = msgType;
-            this._unsendRequest.push(pdata);
-            this.trySend();
-        };
-        /**
-         * 发送消息之前，用于预处理一些http头信息等
-         *
-         * @protected
-         */
-        HttpNetService.prototype.onBeforeSend = function () {
-        };
-        /**
-         * 接收到服务端Response，用于预处理一些信息
-         *
-         * @protected
-         */
-        HttpNetService.prototype.onBeforeSolveData = function () {
-        };
-        /**
-         * 尝试发送
-         */
-        HttpNetService.prototype.trySend = function () {
-            if (this._state == 1 /* REQUESTING */) {
-                return;
-            }
-            this._state = 1 /* REQUESTING */;
-            var loader = this._loader;
-            loader.open("POST", this._actionUrl, true);
-            loader.responseType = "arraybuffer";
-            this.onBeforeSend();
-            var sendBuffer = this._sendBuffer;
-            sendBuffer.reset();
-            // var sendPool = this._sendDataPool;
-            var unsend = this._unsendRequest;
-            var sending = this._sendingList;
-            // sendBuffer.writeUTFBytes(this._authData.sessionID);
-            // sendBuffer.writeDouble(this._lastMid);
-            for (var i = 0, len = unsend.length; i < len; i++) {
-                var pdata = unsend[i];
-                this.writeToBuffer(sendBuffer, pdata);
-                sending[i] = pdata;
-            }
-            var pcmdList = this._pcmdList;
-            for (var _i = 0, pcmdList_3 = pcmdList; _i < pcmdList_3.length; _i++) {
-                var pdata = pcmdList_3[_i];
-                this.writeToBuffer(sendBuffer, pdata);
-                sending[i++] = pdata;
-            }
-            //清空被动数据
-            pcmdList.length = 0;
-            //清空未发送的数据
-            unsend.length = 0;
-            loader.send(sendBuffer.outBytes);
-            //重置自动发送的时间
-            this._nextAutoTime = junyou.Global.now + this._autoTimeDelay;
-        };
-        return HttpNetService;
-    }(junyou.NetService));
-    junyou.HttpNetService = HttpNetService;
-    __reflect(HttpNetService.prototype, "junyou.HttpNetService");
+    function getXHR() {
+        junyou.getXHR = window.XMLHttpRequest ? function () { return new XMLHttpRequest; } : function () { return new ActiveXObject("MSXML2.XMLHTTP"); };
+        return junyou.getXHR();
+    }
+    junyou.getXHR = getXHR;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -19943,34 +19794,192 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
-     * 用于发送的网络数据<br/>
-     * @author 3tion
-     */
-    var NetSendData = (function () {
-        function NetSendData() {
-        }
-        NetSendData.prototype.onRecycle = function () {
-            this.data = undefined;
-            this.msgType = undefined;
-        };
-        return NetSendData;
-    }());
-    junyou.NetSendData = NetSendData;
-    __reflect(NetSendData.prototype, "junyou.NetSendData", ["junyou.IRecyclable"]);
-    /**
-     * 网络数据，类似AS3项目中Stream<br/>
+     * 使用http进行通信的网络服务
      * @author 3tion
      *
      */
-    var NetData = (function (_super) {
-        __extends(NetData, _super);
-        function NetData() {
-            return _super !== null && _super.apply(this, arguments) || this;
+    var HttpNetService = (function (_super) {
+        __extends(HttpNetService, _super);
+        function HttpNetService() {
+            var _this = _super.call(this) || this;
+            _this._state = 0 /* UNREQUEST */;
+            /**
+             * 请求发送成功的次数
+             */
+            _this._success = 0;
+            /**
+             * 请求连续发送失败的次数
+             */
+            _this._cerror = 0;
+            /**
+             * 请求失败次数
+             */
+            _this._error = 0;
+            //覆盖instance
+            junyou.NetService._ins = _this;
+            _this._unsendRequest = [];
+            _this._sendingList = [];
+            _this._loader = junyou.getXHR();
+            return _this;
         }
-        return NetData;
-    }(NetSendData));
-    junyou.NetData = NetData;
-    __reflect(NetData.prototype, "junyou.NetData");
+        /**
+         * 重置
+         * @param actionUrl             请求地址
+         * @param autoTimeDelay         自动发送的最短延迟时间
+         */
+        HttpNetService.prototype.setUrl = function (actionUrl, autoTimeDelay) {
+            if (autoTimeDelay === void 0) { autoTimeDelay = 5000; }
+            this._actionUrl = actionUrl;
+            if (autoTimeDelay != this._autoTimeDelay) {
+                this._autoTimeDelay = autoTimeDelay;
+            }
+            // 200毫秒检查一次，是否可以自动拉数据了
+            junyou.TimerUtil.addCallback(200, this.checkUnsend, this);
+            var loader = this._loader;
+            loader.onreadystatechange = this.onReadyStateChange.bind(this);
+            loader.ontimeout = this.errorHandler.bind(this);
+        };
+        /**
+        * @protected
+        */
+        HttpNetService.prototype.onReadyStateChange = function () {
+            var xhr = this._loader;
+            if (xhr.readyState == 4) {
+                var ioError = (xhr.status >= 400 || xhr.status == 0);
+                // var url = this._actionUrl;
+                var self = this;
+                setTimeout(function () {
+                    if (ioError) {
+                        self.errorHandler();
+                    }
+                    else {
+                        self.complete();
+                    }
+                }, 0);
+            }
+        };
+        /**
+         * 发生错误
+         */
+        HttpNetService.prototype.errorHandler = function () {
+            this._error++;
+            this._cerror++;
+            this._state = -1 /* FAILED */;
+            if (this._cerror > 1) {
+                this.showReconnect();
+                return;
+            }
+            //曾经成功过
+            //数据未发送成功
+            var sending = this._sendingList;
+            var idx = sending.length;
+            var unrequest = this._unsendRequest;
+            for (var _i = 0, unrequest_1 = unrequest; _i < unrequest_1.length; _i++) {
+                var pdata = unrequest_1[_i];
+                sending[idx++] = pdata;
+            }
+            //交互未发送的请求和发送中的请求列表
+            unrequest.length = 0;
+            this._unsendRequest = sending;
+            this._sendingList = unrequest;
+            //尝试重新发送请求
+            this.checkUnsend();
+        };
+        HttpNetService.prototype.complete = function () {
+            this._state = 2 /* COMPLETE */;
+            this._reconCount = 0;
+            //处理Response
+            var readBuffer = this._readBuffer;
+            readBuffer.replaceBuffer(this._loader.response);
+            readBuffer.position = 0;
+            //成功一次清零连续失败次数
+            this._cerror = 0;
+            this._success++;
+            //清理正在发送的数据            
+            for (var _i = 0, _a = this._sendingList; _i < _a.length; _i++) {
+                var pdata = _a[_i];
+                pdata.recycle();
+            }
+            //数据发送成功
+            this._sendingList.length = 0;
+            this.onBeforeSolveData();
+            this.decodeBytes(readBuffer);
+            this.checkUnsend();
+        };
+        /**
+         * 检查在发送过程中的请求
+         */
+        HttpNetService.prototype.checkUnsend = function () {
+            //有在发送过程中，主动发送的数据
+            if (this._unsendRequest.length || junyou.Global.now > this._nextAutoTime) {
+                this.trySend();
+            }
+        };
+        HttpNetService.prototype._send = function (cmd, data, msgType) {
+            //没有同协议的指令，新增数据
+            var pdata = junyou.recyclable(junyou.NetData);
+            pdata.cmd = cmd;
+            pdata.data = data;
+            pdata.msgType = msgType;
+            this._unsendRequest.push(pdata);
+            this.trySend();
+        };
+        /**
+         * 发送消息之前，用于预处理一些http头信息等
+         *
+         * @protected
+         */
+        HttpNetService.prototype.onBeforeSend = function () {
+        };
+        /**
+         * 接收到服务端Response，用于预处理一些信息
+         *
+         * @protected
+         */
+        HttpNetService.prototype.onBeforeSolveData = function () {
+        };
+        /**
+         * 尝试发送
+         */
+        HttpNetService.prototype.trySend = function () {
+            if (this._state == 1 /* REQUESTING */) {
+                return;
+            }
+            this._state = 1 /* REQUESTING */;
+            var loader = this._loader;
+            loader.open("POST", this._actionUrl, true);
+            loader.responseType = "arraybuffer";
+            this.onBeforeSend();
+            var sendBuffer = this._sendBuffer;
+            sendBuffer.reset();
+            // var sendPool = this._sendDataPool;
+            var unsend = this._unsendRequest;
+            var sending = this._sendingList;
+            // sendBuffer.writeUTFBytes(this._authData.sessionID);
+            // sendBuffer.writeDouble(this._lastMid);
+            for (var i = 0, len = unsend.length; i < len; i++) {
+                var pdata = unsend[i];
+                this.writeToBuffer(sendBuffer, pdata);
+                sending[i] = pdata;
+            }
+            var pcmdList = this._pcmdList;
+            for (var _i = 0, pcmdList_3 = pcmdList; _i < pcmdList_3.length; _i++) {
+                var pdata = pcmdList_3[_i];
+                this.writeToBuffer(sendBuffer, pdata);
+                sending[i++] = pdata;
+            }
+            //清空被动数据
+            pcmdList.length = 0;
+            //清空未发送的数据
+            unsend.length = 0;
+            loader.send(sendBuffer.outBytes);
+            //重置自动发送的时间
+            this._nextAutoTime = junyou.Global.now + this._autoTimeDelay;
+        };
+        return HttpNetService;
+    }(junyou.NetService));
+    junyou.HttpNetService = HttpNetService;
+    __reflect(HttpNetService.prototype, "junyou.HttpNetService");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
