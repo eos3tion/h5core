@@ -26,12 +26,23 @@ module junyou {
          * @protected
          * @param {any} args 
          */
-        protected reg(...args) {
+        protected reg(...args)
+        protected reg() {
             let ns = this._ns;
+            let args = arguments;
             for (let i = 0; i < args.length; i += 3) {
                 let cmd = args[i];
                 let ref = args[i + 1];
                 let handler = args[i + 2];
+                if (Array.isArray(cmd)) {
+                    for (let i = 0; i < cmd.length; i++) {
+                        doReg(cmd[i], handler, ref);
+                    }
+                } else {
+                    doReg(cmd, handler, ref);
+                }
+            }
+            function doReg(cmd, handler, ref) {
                 ns.register(cmd, handler);
                 ns.regReceiveMSGRef(cmd, ref);
             }
