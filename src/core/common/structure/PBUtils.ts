@@ -94,7 +94,11 @@ module junyou {
      * 
      * @interface PBStructDict
      */
-    export interface PBStructDict {
+    declare type PBStructDict = {
+        [index: string]: PBStruct;
+    }
+
+    export interface PBStructDictInput {
         /**
          * 是否初始化过
          * 
@@ -102,11 +106,11 @@ module junyou {
          * @memberOf PBStructDict
          */
         $$inted?: any;
-    /**消息名称*/[index: string]: PBStruct;
+        [index: string]: PBStruct | Key;
     }
 
 
-    let structDict: PBStructDict = Temp.EmptyObject;
+    const structDict: PBStructDict = {};
 
     /**
      * protobuf wiretype的字典  
@@ -176,16 +180,15 @@ module junyou {
         Object.defineProperty(msg, StringConst.defKey, {
             value: def
         })
-
     }
 
     /**
      *
      * @author 3tion
-     * javascript 只会使用到 varint32->number string boolean
+     * ProtoBuf工具集
      *
      */
-    export const PBMessageUtils = {
+    export const PBUtils = {
         /**
          * 注册定义
          */
@@ -198,14 +201,21 @@ module junyou {
          * 
          * @memberOf PBMessageUtils
          */
-        setPBDict(dict: PBStructDict) {
+        add(dict: PBStructDictInput) {
             //对默认值做预处理，减少后期遍历次数
             if (dict) {
-                structDict = dict;
                 let defD = defDict;
                 if (!dict.$$inted) {//检查字典是否初始化过
                     for (let name in dict) {
+                        if (DEBUG) {
+                            if (name in structDict) {
+                                ThrowError(`PB的结构定义的key[${name}]注册重复`);
+                            }
+                        }
                         let encode = dict[name];
+                        if (typeof encode != "object") {//用于支持索引式的结构 http://192.168.0.205:1234/h5ToolsForJava/ProtoTools/issues/2
+                            encode = dict[encode] as PBStruct;
+                        }
                         let def = defD[name];
                         if (def) {
                             regDef(encode, def);
@@ -237,6 +247,7 @@ module junyou {
                                 value: Object.prototype
                             });
                         }
+                        structDict[name] = encode;
                     }
                     dict.$$inted = 1;
                 }
@@ -261,7 +272,7 @@ module junyou {
         if (len > -1) {
             afterLen = bytes.bytesAvailable - len;
         }
-        let encode = typeof msgType === "string" ? structDict[msgType] : msgType;
+        let encode = typeof msgType == "string" ? structDict[msgType] : msgType;
         if (!encode) {
             ThrowError(`非法的通信类型[${msgType}]`);
             return;
@@ -344,8 +355,7 @@ module junyou {
                 let arr = msg[name];
                 if (!arr) msg[name] = arr = [];
                 arr.push(value);
-            }
-            else {
+            } else {
                 msg[name] = value;
             }
         }
@@ -376,7 +386,7 @@ module junyou {
 
 
     function readString(bytes: ByteArray) {
-        let blen: number = bytes.readVarint();
+        let blen = bytes.readVarint();
         if (blen > 0) {
             return bytes.readUTFBytes(blen);
         }
@@ -400,23 +410,23 @@ module junyou {
     }
 
     function readBytes(bytes: ByteArray) {
-        let blen: number = bytes.readVarint();
+        let blen = bytes.readVarint();
         return bytes.readByteArray(blen);
     }
 
     /**
      * 写入消息
      * 
-     * @param {Object} msg 
+     * @param {object} msg 
      * @param {(string | PBStruct)} msgType 
      * @param {ByteArray} [bytes] 
      * @returns {ByteArray} 
      */
-    function writeTo(msg: Object, msgType: string | PBStruct, bytes?: ByteArray, debugOutData?: Object): ByteArray {
+    function writeTo(msg: object, msgType: string | PBStruct, bytes?: ByteArray, debugOutData?: Object): ByteArray {
         if (msg == undefined) {
             return;
         }
-        let messageEncode = typeof msgType === "string" ? structDict[msgType] : msgType;
+        let messageEncode = typeof msgType == "string" ? structDict[msgType] : msgType;
         if (!messageEncode) {
             ThrowError(`非法的通信类型[${msgType}]，堆栈信息:${new Error()}`);
             return;
@@ -427,12 +437,11 @@ module junyou {
         for (let numberStr in messageEncode) {
             let num = +numberStr;
             let body = messageEncode[num];
-            let label = body[1];
-            let name = body[0];
+            let [name, label] = body;
             if (label == PBFieldType.optional && !(name in msg)) {
                 continue;
             }
-            let value: Object = msg[name];
+            let value = msg[name];
             if (value == undefined || value === body[4]/* 默认值 */) {
                 continue;
             }
@@ -528,7 +537,7 @@ module junyou {
                 }
                 else {
                     temp = new ByteArray;
-                    temp.writeUTFBytes(value as string);
+                    temp.writeUTFBytes(value);
                 }
                 length = temp ? temp.length : 0;
                 bytes.writeVarint(length);
