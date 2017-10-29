@@ -704,9 +704,9 @@ module junyou {
                         tempBytes.clear();
                         if (DEBUG) {
                             outdata = {};
-                            PBMessageUtils.writeTo(dat, <string>data.msgType, tempBytes, outdata);
+                            PBUtils.writeTo(dat, <string>data.msgType, tempBytes, outdata);
                         } else {
-                            PBMessageUtils.writeTo(dat, <string>data.msgType, tempBytes);
+                            PBUtils.writeTo(dat, <string>data.msgType, tempBytes);
                         }
                         this.writeBytesLength(bytes, tempBytes.length)
                         bytes.writeBytes(tempBytes);
@@ -778,7 +778,7 @@ module junyou {
                                     data = bytes.readByteArray(len);
                                     break;
                                 default:
-                                    data = PBMessageUtils.readFrom(<string>type, bytes, len);
+                                    data = PBUtils.readFrom(<string>type, bytes, len);
                                     break;
                             }
                         }
