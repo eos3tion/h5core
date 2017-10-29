@@ -272,7 +272,7 @@ module junyou {
         if (len > -1) {
             afterLen = bytes.bytesAvailable - len;
         }
-        let encode = typeof msgType == "string" ? structDict[msgType] : msgType;
+        let encode = typeof msgType == "object" ? msgType : structDict[msgType];
         if (!encode) {
             ThrowError(`非法的通信类型[${msgType}]`);
             return;
