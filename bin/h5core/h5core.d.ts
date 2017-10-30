@@ -4251,8 +4251,8 @@ declare module junyou {
             (msgType: string | number, def: any): any;
         };
         add(dict: PBStructDictInput): void;
-        readFrom: (msgType: string | PBStruct, bytes: ByteArray, len?: number) => Object;
-        writeTo: (msg: object, msgType: string | PBStruct, bytes?: ByteArray, debugOutData?: Object) => ByteArray;
+        readFrom: (msgType: string | number | PBStruct, bytes: ByteArray, len?: number) => Object;
+        writeTo: (msg: object, msgType: string | number | PBStruct, bytes?: ByteArray, debugOutData?: Object) => ByteArray;
     };
 }
 declare const enum Time {

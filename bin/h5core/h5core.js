@@ -7163,7 +7163,7 @@ var junyou;
     /**
      * 读取消息
      *
-     * @param {(string | PBStruct)} msgType
+     * @param {(Key | PBStruct)} msgType
      * @param {ByteArray} bytes
      * @param {number} [len]
      * @returns {Object}
@@ -7317,7 +7317,7 @@ var junyou;
      * 写入消息
      *
      * @param {object} msg
-     * @param {(string | PBStruct)} msgType
+     * @param {(Key | PBStruct)} msgType
      * @param {ByteArray} [bytes]
      * @returns {ByteArray}
      */
@@ -7325,7 +7325,7 @@ var junyou;
         if (msg == undefined) {
             return;
         }
-        var messageEncode = typeof msgType == "string" ? structDict[msgType] : msgType;
+        var messageEncode = typeof msgType == "object" ? msgType : structDict[msgType];
         if (!messageEncode) {
             junyou.ThrowError("\u975E\u6CD5\u7684\u901A\u4FE1\u7C7B\u578B[" + msgType + "]\uFF0C\u5806\u6808\u4FE1\u606F:" + new Error());
             return;
