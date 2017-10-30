@@ -261,12 +261,12 @@ module junyou {
     /**
      * 读取消息
      * 
-     * @param {(string | PBStruct)} msgType 
+     * @param {(Key | PBStruct)} msgType 
      * @param {ByteArray} bytes 
      * @param {number} [len] 
      * @returns {Object} 
      */
-    function readFrom(msgType: string | PBStruct, bytes: ByteArray, len?: number): Object {
+    function readFrom(msgType: Key | PBStruct, bytes: ByteArray, len?: number): Object {
         if (len === undefined) len = -1;
         let afterLen = 0;
         if (len > -1) {
@@ -419,15 +419,15 @@ module junyou {
      * 写入消息
      * 
      * @param {object} msg 
-     * @param {(string | PBStruct)} msgType 
+     * @param {(Key | PBStruct)} msgType 
      * @param {ByteArray} [bytes] 
      * @returns {ByteArray} 
      */
-    function writeTo(msg: object, msgType: string | PBStruct, bytes?: ByteArray, debugOutData?: Object): ByteArray {
+    function writeTo(msg: object, msgType: Key | PBStruct, bytes?: ByteArray, debugOutData?: Object): ByteArray {
         if (msg == undefined) {
             return;
         }
-        let messageEncode = typeof msgType == "string" ? structDict[msgType] : msgType;
+        let messageEncode = typeof msgType == "object" ? msgType : structDict[msgType];
         if (!messageEncode) {
             ThrowError(`非法的通信类型[${msgType}]，堆栈信息:${new Error()}`);
             return;
