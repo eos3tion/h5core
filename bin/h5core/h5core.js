@@ -1677,6 +1677,36 @@ var junyou;
     junyou.GameLayer = GameLayer;
     __reflect(GameLayer.prototype, "junyou.GameLayer");
     /**
+     * UI使用的层级，宽度和高度设定为和stage一致
+     *
+     * @export
+     * @class UILayer
+     * @extends {GameLayer}
+     */
+    var UILayer = (function (_super) {
+        __extends(UILayer, _super);
+        function UILayer() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        Object.defineProperty(UILayer.prototype, "width", {
+            get: function () {
+                return egret.sys.$TempStage.stageWidth;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(UILayer.prototype, "height", {
+            get: function () {
+                return egret.sys.$TempStage.stageHeight;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return UILayer;
+    }(GameLayer));
+    junyou.UILayer = UILayer;
+    __reflect(UILayer.prototype, "junyou.UILayer");
+    /**
      * 需要对子对象排序的层
      */
     var SortedLayer = (function (_super) {

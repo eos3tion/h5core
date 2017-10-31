@@ -1229,6 +1229,17 @@ declare module junyou {
         constructor(id: number);
     }
     /**
+     * UI使用的层级，宽度和高度设定为和stage一致
+     *
+     * @export
+     * @class UILayer
+     * @extends {GameLayer}
+     */
+    class UILayer extends GameLayer {
+        readonly width: number;
+        readonly height: number;
+    }
+    /**
      * 需要对子对象排序的层
      */
     class SortedLayer extends GameLayer {
