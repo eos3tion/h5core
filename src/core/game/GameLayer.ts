@@ -17,6 +17,23 @@ module junyou {
         }
     }
 
+    /**
+     * UI使用的层级，宽度和高度设定为和stage一致
+     * 
+     * @export
+     * @class UILayer
+     * @extends {GameLayer}
+     */
+    export class UILayer extends GameLayer {
+        get width() {
+            return egret.sys.$TempStage.stageWidth;
+        }
+
+        get height() {
+            return egret.sys.$TempStage.stageHeight;
+        }
+    }
+
 
     /**
      * 需要对子对象排序的层
