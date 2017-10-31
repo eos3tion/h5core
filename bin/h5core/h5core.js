@@ -15491,6 +15491,20 @@ var junyou;
             _this._visible = true;
             return _this;
         }
+        Object.defineProperty(ListItemRenderer.prototype, "index", {
+            get: function () {
+                return this._idx;
+            },
+            set: function (value) {
+                this._idx = value;
+                var v = this._skin;
+                if (v) {
+                    v.$_rndIdx = value;
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
         Object.defineProperty(ListItemRenderer.prototype, "dataChange", {
             get: function () {
                 return this._noCheckSame || this._dataChange;
@@ -15582,9 +15596,14 @@ var junyou;
             configurable: true
         });
         ListItemRenderer.prototype.$setSkin = function (value) {
-            //移除之前的事件监听
-            this.removeSkinListener(this._skin);
+            var old = this._skin;
+            if (old) {
+                old.$_rndIdx = undefined; //置空
+                //移除之前的事件监听
+                this.removeSkinListener(old);
+            }
             this._skin = value;
+            value.$_rndIdx = this._idx;
             this.$setVisible(value.visible);
             value.touchEnabled = true;
             this.addSkinListener(this._skin);

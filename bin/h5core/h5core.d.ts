@@ -9019,6 +9019,9 @@ declare module junyou {
     }
 }
 declare module junyou {
+    interface ListItemRenderSkin extends egret.DisplayObject {
+        $_rndIdx?: number;
+    }
     interface ListItemRender<T> extends egret.EventDispatcher {
         handleView(): void;
         dispose(): void;
@@ -9063,9 +9066,10 @@ declare module junyou {
          */
         index?: number;
     }
-    interface ListItemRenderer<T, S extends egret.DisplayObject> extends ViewController {
+    interface ListItemRenderer<T, S extends ListItemRenderSkin> extends ViewController {
     }
-    class ListItemRenderer<T, S extends egret.DisplayObject> extends egret.EventDispatcher implements ListItemRender<T>, SelectableComponents {
+    class ListItemRenderer<T, S extends ListItemRenderSkin> extends egret.EventDispatcher implements ListItemRender<T>, SelectableComponents {
+        private _idx;
         index: number;
         protected _data: T;
         private _dataChange;
