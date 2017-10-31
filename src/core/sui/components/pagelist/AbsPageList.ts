@@ -45,7 +45,7 @@ module junyou {
                     continue;
                 }
                 if (render.inited === false) {
-                    if (typeof render.bindComponent === "function") {
+                    if (render.bindComponent) {
                         render.bindComponent();
                     }
                     render.inited = true;
@@ -53,7 +53,7 @@ module junyou {
                 let tmp = render.data;
                 if (!tmp || tmp != data[i] || render.dataChange) {
                     render.data = data[i];
-                    if (typeof render.handleView === "function") {
+                    if (render.handleView) {
                         render.handleView();
                     }
                     if (render.dataChange) {
@@ -156,13 +156,7 @@ module junyou {
          * @param {number} index (description)
          * @param {*} data (description)
          */
-        public updateByIdx(index: number, data: T) {
-            let item = this.getItemAt(index);
-            if (item) {
-                this._data[index] = data;
-                return true;
-            }
-        }
+        abstract updateByIdx(index: number, data: T);
 
         /**
          * 根据key value获取item,将item的data重新赋值为data
@@ -171,10 +165,10 @@ module junyou {
          * @param {*} value (description)
          * @param {T} data (description)
          */
-        public updateByKey<K extends keyof T>(key: K, value: T[K], data: T) {
-            this.find((data, render, idx) => {
-                if (data[key] == value) {
-                    this.updateByIdx(idx, data);
+        public updateByKey<K extends keyof T>(key: K, value: T[K], data?: T) {
+            this.find((dat, render, idx) => {
+                if (dat[key] == value) {
+                    this.updateByIdx(idx, data === undefined ? dat : data);
                     return true;
                 }
             });
