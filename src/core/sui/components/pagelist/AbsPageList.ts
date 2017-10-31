@@ -45,7 +45,7 @@ module junyou {
                     continue;
                 }
                 if (render.inited === false) {
-                    if (typeof render.bindComponent === "function") {
+                    if (render.bindComponent) {
                         render.bindComponent();
                     }
                     render.inited = true;
@@ -53,7 +53,7 @@ module junyou {
                 let tmp = render.data;
                 if (!tmp || tmp != data[i] || render.dataChange) {
                     render.data = data[i];
-                    if (typeof render.handleView === "function") {
+                    if (render.handleView) {
                         render.handleView();
                     }
                     if (render.dataChange) {
@@ -156,13 +156,7 @@ module junyou {
          * @param {number} index (description)
          * @param {*} data (description)
          */
-        public updateByIdx(index: number, data: T) {
-            let item = this.getItemAt(index);
-            if (item) {
-                this._data[index] = data;
-                return true;
-            }
-        }
+        abstract updateByIdx(index: number, data: T);
 
         /**
          * 根据key value获取item,将item的data重新赋值为data

@@ -574,11 +574,12 @@ module junyou {
          * @param {*} data (description)
          */
         public updateByIdx(index: number, data: T) {
-            if (super.updateByIdx(index, data)) {
+            let item = this.getItemAt(index);
+            if (item) {
+                this._data[index] = data;
                 if (index >= this._showStart && index <= this._showEnd) {
                     this.doRender(index);
                 }
-                return true;
             }
         }
 

@@ -33,6 +33,23 @@ module junyou {
             this._dataLen = dataLen;
             this.doRender(0, dataLen - 1);
         }
+        /**
+         * 更新item数据
+         * 
+         * @param {number} index (description)
+         * @param {*} data (description)
+         */
+        public updateByIdx(index: number, data: T) {
+            let item = this.getItemAt(index);
+            if (item) {
+                this._data[index] = data;
+                item.data = data;
+                if (item.handleView) {
+                    item.handleView();
+                }
+            }
+        }
+
 
         public addItem(item: R, index?: number) {
             let list = this._list;
@@ -49,7 +66,7 @@ module junyou {
         protected _get(index: number) {
             let list = this._list;
             let render = list[index];
-            if(render){
+            if (render) {
                 render.index = index;
                 return render;
             }
@@ -65,9 +82,9 @@ module junyou {
             this._selectedItem = undefined;
         }
 
-        public dispose(){
+        public dispose() {
             for (let render of this._list) {
-                render.off(EgretEvent.TOUCH_TAP,this.onTouchItem,this);
+                render.off(EgretEvent.TOUCH_TAP, this.onTouchItem, this);
             }
             this.clear();
         }
