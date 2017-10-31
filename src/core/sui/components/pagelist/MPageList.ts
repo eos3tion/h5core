@@ -7,7 +7,7 @@ module junyou {
      * @class MPageList
      * @extends {PageList}
      */
-    export class MPageList<T, R extends ListItemRender<T>> extends PageList<T, R>{
+    export class MPageList<T, R extends ListItemRender<T>> extends AbsPageList<T, R>{
 
         protected _viewCount = 0;
         public constructor() {
@@ -31,7 +31,7 @@ module junyou {
             }
             this._data = data;
             this._dataLen = dataLen;
-            this.doRenderListItem(0, dataLen - 1);
+            this.doRender(0, dataLen - 1);
         }
 
         public addItem(item: R, index?: number) {
@@ -40,10 +40,19 @@ module junyou {
             if (idx == -1) {
                 idx = list.length;
                 list[idx] = item;
-                item.on(EventConst.ITEM_TOUCH_TAP, this.touchItemrender, this);
+                item.on(EventConst.ITEM_TOUCH_TAP, this.onTouchItem, this);
             }
             item.index = index == undefined ? idx : index;
             this._viewCount = list.length;
+        }
+
+        protected _get(index: number) {
+            let list = this._list;
+            let render = list[index];
+            if(render){
+                render.index = index;
+                return render;
+            }
         }
 
         public clear() {
@@ -55,7 +64,13 @@ module junyou {
             this._selectedIndex = -1;
             this._selectedItem = undefined;
         }
-        protected childSizeChange() { }
-        protected reCalc() { }
+
+        public dispose(){
+            for (let render of this._list) {
+                render.off(EgretEvent.TOUCH_TAP,this.onTouchItem,this);
+            }
+            this.clear();
+        }
+
     }
 }

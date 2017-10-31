@@ -54,9 +54,16 @@ module junyou {
          * @memberof PageListOption
          */
         type?: ScrollDirection;
+        /**
+         * 容器
+         * 
+         * @type {egret.Sprite}
+         * @memberof PageListOption
+         */
+        con?: egret.Sprite;
     }
 
-    export class PageList<T, R extends ListItemRender<T>> extends egret.Sprite {
+    export class PageList<T, R extends ListItemRender<T>> extends AbsPageList<T, R> {
 
         protected _factory: ClassFactory<R>
 
@@ -94,15 +101,7 @@ module junyou {
          */
         protected _columncount: number;
 
-        protected _list: R[];
-
-        protected _data: T[];
-
-        protected _childSizeChanged: boolean = false;
-
-        protected _selectedIndex: number = -1;
-
-        protected _selectedItem: R;
+        protected _sizeChanged: boolean = false;
 
         public scroller: Scroller = null;//站位用，便于对Scroller的绑定
         /**0纵向，1横向 */
@@ -111,17 +110,8 @@ module junyou {
         private _waitForSetIndex: boolean = false;
         private _waitIndex: number;
 
-        // private startIndex: number;
 
-        // private endIndex: number;
-
-        private renderChange: boolean = false;
-
-        protected _dataLen = 0;
-
-        public get dataLen() {
-            return this._dataLen;
-        }
+        private renderChange = false;
 
         /**
          * itemrender固定宽度
@@ -152,6 +142,16 @@ module junyou {
          */
         staticSize: boolean;
 
+        private _con: egret.Sprite;
+        /**
+         * 容器
+         * 
+         * @readonly
+         */
+        public get container() {
+            return this._con;
+        }
+
         /**
          * Creates an instance of PageList.
          * @param {ClassFactory<R> | Creator<R>} renderfactory 
@@ -163,6 +163,10 @@ module junyou {
                 renderfactory = new ClassFactory(renderfactory);
             }
             this._factory = renderfactory;
+            this.init(option);
+        }
+
+        protected init(option: PageListOption) {
             option = option || Temp.EmptyObject as PageListOption;
             let { hgap, vgap, type, itemWidth, itemHeight, columnCount, staticSize } = option;
             this.staticSize = staticSize;
@@ -175,8 +179,25 @@ module junyou {
             this._vgap = ~~vgap;
             this.itemWidth = itemWidth;
             this.itemHeight = itemHeight;
-            this._list = [];
             this._scrollType = ~~type;
+            this.container = option.con || new egret.Sprite();
+        }
+
+        public set container(con: egret.Sprite) {
+            if (!con) {
+                DEBUG && ThrowError(`容器不允许设置空值`)
+                return;
+            }
+            let old = this._con as any;
+            if (old != con) {
+                if (old) {
+                    delete old.$_page;
+                    delete old.scrollRect;
+                }
+                this._con = con;
+                (con as any).$_page = this;
+                Object.defineProperty(con, "scrollRect", define);
+            }
         }
 
         public displayList(data?: T[]) {
@@ -192,7 +213,7 @@ module junyou {
                 if (nlen < llen) {
                     for (let i = nlen; i < list.length; i++) {
                         let render = list[i];
-                        this._remoreRender(render);
+                        this._removeRender(render);
                     }
                     list.length = nlen;
                 }
@@ -225,7 +246,7 @@ module junyou {
          * @memberOf PageList
          */
         public validateItemByIdx(idx: number, force?: boolean) {
-            let renderer = this.getOrCreateItemRenderAt(idx);
+            let renderer = this._get(idx);
             if (force || renderer.view.stage) {
                 renderer.data = this._data[idx];
                 if (typeof renderer.handleView === "function") {
@@ -259,83 +280,35 @@ module junyou {
          */
         private initItems() {
             let len: number = this._data.length;
-            this.doRenderListItem(0, len - 1);
-            this._childSizeChanged = true;
+            this.doRender(0, len - 1);
+            this._sizeChanged = true;
             this.reCalc();
             this.checkViewRect();
         }
 
-        /**
-         * 渲染指定位置的render
-         * 
-         * @ private
-         * @ param {number} start (起始索引)
-         * @ param {number} end (结束索引)
-         */
-        protected doRenderListItem(start: number, end?: number) {
-            let render: R;
-            let data = this._data;
-            end == undefined && (end = start);
-            for (let i = start; i <= end; i++) {
-                render = this.getOrCreateItemRenderAt(i);
-                if (render.inited === false) {
-                    if (typeof render.bindComponent === "function") {
-                        render.bindComponent();
-                    }
-                    render.inited = true;
-                }
-                let tmp = render.data;
-                if (!tmp || tmp != data[i] || render.dataChange) {
-                    render.data = data[i];
-                    if (typeof render.handleView === "function") {
-                        render.handleView();
-                    }
-                    if (render.dataChange) {
-                        render.dataChange = false;
-                    }
-                }
+        protected onChange() {
+            if (!this.itemWidth || !this.itemHeight) {//并未设置固定的宽度高度，需要重新计算坐标
+                this._sizeChanged = true;
+                this.reCalc();
             }
         }
 
-        protected changeRender(render: R, index?: number) {
-            let old = this._selectedItem;
-            if (old != render) {
-                index == undefined && (index = this._list.indexOf(render));
-                if (old) {
-                    old.selected = false;
-                }
-                this._selectedItem = render;
-                this._selectedIndex = index;
-                render.selected = true;
-                if (!this.itemWidth || !this.itemHeight) {//并未设置固定的宽度高度，需要重新计算坐标
-                    this._childSizeChanged = true;
-                    this.reCalc();
-                }
-                this.dispatch(EventConst.ITEM_SELECTED);
-            }
-        }
-
-        protected touchItemrender(e: egret.TouchEvent) {
-            let render = <R>e.target;
-            this.changeRender(render);
-        }
-
-        private getOrCreateItemRenderAt(index: number) {
+        protected _get(index: number) {
             let list = this._list;
             let render = list[index];
             if (!render) {
                 render = this._factory.get();
                 list[index] = render;
-                render.on(EventConst.Resize, this.childSizeChange, this);
-                render.on(EventConst.ITEM_TOUCH_TAP, this.touchItemrender, this);
+                render.on(EventConst.Resize, this.onSizeChange, this);
+                render.on(EventConst.ITEM_TOUCH_TAP, this.onTouchItem, this);
             }
             render.index = index;
             return render;
         }
 
-        protected childSizeChange() {
-            if (!this._childSizeChanged) {
-                this._childSizeChanged = true;
+        protected onSizeChange() {
+            if (!this._sizeChanged) {
+                this._sizeChanged = true;
                 this.once(EgretEvent.ENTER_FRAME, this.reCalc, this);
             }
         }
@@ -349,10 +322,10 @@ module junyou {
          * @returns
          */
         protected reCalc() {
-            if (!this._childSizeChanged) {
+            if (!this._sizeChanged) {
                 return;
             }
-            this._childSizeChanged = false;
+            this._sizeChanged = false;
             let renderList = this._list;
             let len = renderList.length;
             let end = len - 1;
@@ -413,8 +386,7 @@ module junyou {
             if (maxWidth != this._w || maxHeight != this._h) {
                 this._w = maxWidth;
                 this._h = maxHeight;
-
-                let g = this.graphics;
+                let g = this._con.graphics;
                 g.clear();
                 g.beginFill(0, 0);
                 g.drawRect(0, 0, maxWidth, maxHeight);
@@ -464,7 +436,8 @@ module junyou {
         }
 
         private moveScroll(render: R) {
-            let rect = this.scrollRect;
+            let con = this._con;
+            let rect = con.scrollRect;
             if (!rect) return;
             let v = render.view;
             if (!v) {
@@ -522,15 +495,16 @@ module junyou {
                 } else {
                     rect.x = endPos;
                 }
-                this.scrollRect = rect;
+                con.scrollRect = rect;
             }
         }
         public get tweenX() {
-            let rect = this.scrollRect;
+            let rect = this._con.scrollRect;
             return rect ? rect.x : 0;
         }
         public set tweenX(value: number) {
-            let rect = this.scrollRect || new egret.Rectangle(NaN);
+            let con = this._con;
+            let rect = con.scrollRect || new egret.Rectangle(NaN);
             if (value != rect.x) {
                 let delta = value - rect.x;
                 rect.x = value;
@@ -538,16 +512,17 @@ module junyou {
                 if (scroller) {
                     scroller.doMoveScrollBar(delta)
                 }
-                this.scrollRect = rect;
+                con.scrollRect = rect;
             }
         }
 
         public get tweenY() {
-            let rect = this.scrollRect;
+            let rect = this._con.scrollRect;
             return rect ? rect.y : 0;
         }
         public set tweenY(value: number) {
-            let rect = this.scrollRect || new egret.Rectangle(0, NaN);
+            let con = this._con;
+            let rect = con.scrollRect || new egret.Rectangle(0, NaN);
             if (value != rect.y) {
                 let delta = value - rect.y;
                 rect.y = value;
@@ -555,7 +530,7 @@ module junyou {
                 if (scroller) {
                     scroller.doMoveScrollBar(delta)
                 }
-                this.scrollRect = rect;
+                con.scrollRect = rect;
             }
         }
 
@@ -598,66 +573,15 @@ module junyou {
          * @param {number} index (description)
          * @param {*} data (description)
          */
-        public updateItembyIndex(index: number, data: T) {
-            let item = this.getItemAt(index);
-            if (item) {
-                this._data[index] = data;
+        public updateByIdx(index: number, data: T) {
+            if (super.updateByIdx(index, data)) {
                 if (index >= this._showStart && index <= this._showEnd) {
-                    this.doRenderListItem(index);
+                    this.doRender(index);
                 }
+                return true;
             }
-
         }
 
-        /**
-         * 根据key value获取item,将item的data重新赋值为data
-         * 
-         * @param {string} key (description)
-         * @param {*} value (description)
-         * @param {T} data (description)
-         */
-        public updateItemByKey<K extends keyof T>(key: K, value: T[K], data: T) {
-            let [item, index] = this.getItemRenderData(key, value);
-            if (item) {
-                this.updateItembyIndex(index, data);
-            }
-
-        }
-
-        /**
-         * 
-         * 根据索引获得视图
-         * @param {number} idx
-         * @returns
-         */
-        public getItemAt(idx: number) {
-            idx = idx >>> 0;
-            return this._list[idx];
-        }
-
-        /**
-         * 
-         * 通过搜索数据，获取Render
-         * @param {string} key
-         * @param {*} value
-         * @returns
-         */
-        public getItemRenderData<K extends keyof T>(key: K, value: T[K]): [R, number] {
-            let data = this._data;
-            let len = data.length;
-            let item: R;
-            let i = 0;
-            for (; i < len; i++) {
-                let dat = data[i];
-                if (key in dat) {
-                    if (dat[key] === value) {
-                        item = this.getItemAt(i);
-                        break;
-                    }
-                }
-            }
-            return [item, i];
-        }
 
         public removeAt(idx: number) {
             idx = idx >>> 0;
@@ -666,7 +590,7 @@ module junyou {
                 let item = list[idx];
                 list.splice(idx, 1);
                 this._data.splice(idx, 1);
-                this._remoreRender(item);
+                this._removeRender(item);
             }
         }
 
@@ -677,11 +601,11 @@ module junyou {
             }
         }
 
-        protected _remoreRender(item: R) {
+        protected _removeRender(item: R) {
             item.data = undefined;
             removeDisplay(item.view);
-            item.off(EventConst.Resize, this.childSizeChange, this);
-            item.off(EventConst.ITEM_TOUCH_TAP, this.touchItemrender, this);
+            item.off(EventConst.Resize, this.onSizeChange, this);
+            item.off(EventConst.ITEM_TOUCH_TAP, this.onTouchItem, this);
             item.dispose();
             if (!this.renderChange) {
                 this.renderChange = true;
@@ -694,17 +618,9 @@ module junyou {
                 return;
             }
             this.renderChange = false;
-            this._childSizeChanged = true;
+            this._sizeChanged = true;
             this.reCalc();
             this.checkViewRect();
-        }
-
-        public getAllItems() {
-            return this._list;
-        }
-
-        public get length() {
-            return this._list.length;
         }
 
         /**
@@ -720,12 +636,12 @@ module junyou {
          * 
          */
         public clear() {
-            this.graphics.clear();
+            this._con.graphics.clear();
             this._selectedIndex = -1;
             this._data = undefined;
             let list = this._list;
             for (let i = 0; i < list.length; i++) {
-                this._remoreRender(list[i]);
+                this._removeRender(list[i]);
             }
             list.length = 0;
             this._selectedItem = undefined;
@@ -752,7 +668,8 @@ module junyou {
         protected _lastRect: egret.Rectangle;
 
         protected checkViewRect() {
-            let rect = this.$scrollRect;
+            const _con = this._con;
+            let rect = _con.scrollRect;
             let list = this._list;
             let len = list.length;
             let len_1 = len - 1;
@@ -762,7 +679,7 @@ module junyou {
                     let render = list[i];
                     let v = render.view;
                     if (v) {
-                        this.addChild(v);
+                        _con.addChild(v);
                     }
                 }
                 this._showStart = 0;
@@ -841,7 +758,7 @@ module junyou {
                 }
                 for (let i = 0, tlen = tmp.length; i < tlen; i++) {
                     let v = tmp[i];
-                    this.addChild(v);
+                    _con.addChild(v);
                 }
                 this._showStart = fIdx;
                 this._showEnd = lIdx;
@@ -855,7 +772,7 @@ module junyou {
                 }
                 for (let i = tmp.length - 1; i >= 0; i--) {
                     let v = tmp[i];
-                    this.addChild(v);
+                    _con.addChild(v);
                 }
                 this._showStart = lIdx;
                 this._showEnd = fIdx;
@@ -882,14 +799,16 @@ module junyou {
                 }
             }
         }
+    }
 
-        public get scrollRect() {
+    const define = {
+        set(rect: egret.Rectangle) {
+            egret.Sprite.prototype.$setScrollRect.call(this, rect);
+            this.$_page.checkViewRect();
+        },
+        get() {
             return this.$scrollRect;
-        }
-
-        public set scrollRect(rect: egret.Rectangle) {
-            super.$setScrollRect(rect);
-            this.checkViewRect();
-        }
+        },
+        configurable: true
     }
 }
