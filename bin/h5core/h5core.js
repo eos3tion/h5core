@@ -13772,6 +13772,9 @@ var junyou;
                 }
                 break;
             case 3 /* Bool */:
+                if (value == undefined) {
+                    value = def;
+                }
                 value = !!value;
                 break;
             case 4 /* Array */:
