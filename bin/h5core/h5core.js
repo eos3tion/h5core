@@ -3150,7 +3150,7 @@ var junyou;
                     continue;
                 }
                 if (render.inited === false) {
-                    if (typeof render.bindComponent === "function") {
+                    if (render.bindComponent) {
                         render.bindComponent();
                     }
                     render.inited = true;
@@ -3158,7 +3158,7 @@ var junyou;
                 var tmp = render.data;
                 if (!tmp || tmp != data[i] || render.dataChange) {
                     render.data = data[i];
-                    if (typeof render.handleView === "function") {
+                    if (render.handleView) {
                         render.handleView();
                     }
                     if (render.dataChange) {
@@ -3268,19 +3268,6 @@ var junyou;
             configurable: true
         });
         /**
-         * 更新item数据
-         *
-         * @param {number} index (description)
-         * @param {*} data (description)
-         */
-        AbsPageList.prototype.updateByIdx = function (index, data) {
-            var item = this.getItemAt(index);
-            if (item) {
-                this._data[index] = data;
-                return true;
-            }
-        };
-        /**
          * 根据key value获取item,将item的data重新赋值为data
          *
          * @param {string} key (description)
@@ -3289,9 +3276,9 @@ var junyou;
          */
         AbsPageList.prototype.updateByKey = function (key, value, data) {
             var _this = this;
-            this.find(function (data, render, idx) {
-                if (data[key] == value) {
-                    _this.updateByIdx(idx, data);
+            this.find(function (dat, render, idx) {
+                if (dat[key] == value) {
+                    _this.updateByIdx(idx, data === undefined ? dat : data);
                     return true;
                 }
             });
@@ -15683,6 +15670,22 @@ var junyou;
             this._dataLen = dataLen;
             this.doRender(0, dataLen - 1);
         };
+        /**
+         * 更新item数据
+         *
+         * @param {number} index (description)
+         * @param {*} data (description)
+         */
+        MPageList.prototype.updateByIdx = function (index, data) {
+            var item = this.getItemAt(index);
+            if (item) {
+                this._data[index] = data;
+                item.data = data;
+                if (item.handleView) {
+                    item.handleView();
+                }
+            }
+        };
         MPageList.prototype.addItem = function (item, index) {
             var list = this._list;
             var idx = list.indexOf(item);
@@ -16167,11 +16170,12 @@ var junyou;
          * @param {*} data (description)
          */
         PageList.prototype.updateByIdx = function (index, data) {
-            if (_super.prototype.updateByIdx.call(this, index, data)) {
+            var item = this.getItemAt(index);
+            if (item) {
+                this._data[index] = data;
                 if (index >= this._showStart && index <= this._showEnd) {
                     this.doRender(index);
                 }
-                return true;
             }
         };
         PageList.prototype.removeAt = function (idx) {

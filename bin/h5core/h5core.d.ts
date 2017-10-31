@@ -2492,7 +2492,7 @@ declare module junyou {
          * @param {number} index (description)
          * @param {*} data (description)
          */
-        updateByIdx(index: number, data: T): boolean;
+        abstract updateByIdx(index: number, data: T): any;
         /**
          * 根据key value获取item,将item的data重新赋值为data
          *
@@ -2500,7 +2500,7 @@ declare module junyou {
          * @param {*} value (description)
          * @param {T} data (description)
          */
-        updateByKey<K extends keyof T>(key: K, value: T[K], data: T): void;
+        updateByKey<K extends keyof T>(key: K, value: T[K], data?: T): void;
         protected abstract _get(index: number): R;
         /**
          * 清理数据
@@ -9264,6 +9264,13 @@ declare module junyou {
         protected _viewCount: number;
         constructor();
         displayList(data?: T[]): void;
+        /**
+         * 更新item数据
+         *
+         * @param {number} index (description)
+         * @param {*} data (description)
+         */
+        updateByIdx(index: number, data: T): void;
         addItem(item: R, index?: number): void;
         protected _get(index: number): R;
         clear(): void;
@@ -9456,7 +9463,7 @@ declare module junyou {
          * @param {number} index (description)
          * @param {*} data (description)
          */
-        updateByIdx(index: number, data: T): boolean;
+        updateByIdx(index: number, data: T): void;
         removeAt(idx: number): void;
         removeItem(item: R): void;
         protected _removeRender(item: R): void;
