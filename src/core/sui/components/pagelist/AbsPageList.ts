@@ -171,10 +171,10 @@ module junyou {
          * @param {*} value (description)
          * @param {T} data (description)
          */
-        public updateByKey<K extends keyof T>(key: K, value: T[K], data: T) {
-            this.find((data, render, idx) => {
-                if (data[key] == value) {
-                    this.updateByIdx(idx, data);
+        public updateByKey<K extends keyof T>(key: K, value: T[K], data?: T) {
+            this.find((dat, render, idx) => {
+                if (dat[key] == value) {
+                    this.updateByIdx(idx, data === undefined ? dat : data);
                     return true;
                 }
             });
