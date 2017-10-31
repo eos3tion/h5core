@@ -2339,251 +2339,6 @@ declare module junyou {
     var d_interest: typeof interest;
 }
 declare module junyou {
-    interface PageListOption {
-        /**
-         * 单元格之间的宽度
-         *
-         * @type {number}
-         * @memberof PageListOption
-         */
-        hgap?: number;
-        /**
-         * 单元格之间的高度
-         *
-         * @type {number}
-         * @memberof PageListOption
-         */
-        vgap?: number;
-        /**
-         * 列表共有几列（最小1最大9999）
-         *
-         * @type {number}
-         * @memberof PageListOption
-         */
-        columnCount?: number;
-        /**
-         * itemrender固定宽度
-         *
-         * @type {number}
-         * @memberof PageListOption
-         */
-        itemWidth?: number;
-        /**
-         * itemrender固定高度
-         *
-         * @type {number}
-         * @memberof PageListOption
-         */
-        itemHeight?: number;
-        /**
-         * 是否为固定尺寸
-         *
-         * @type {boolean}
-         * @memberof PageListOption
-         */
-        staticSize?: boolean;
-        /**
-         * pageList的方向
-         *
-         * @type {ScrollDirection}
-         * @memberof PageListOption
-         */
-        type?: ScrollDirection;
-    }
-    class PageList<T, R extends ListItemRender<T>> extends egret.Sprite {
-        protected _factory: ClassFactory<R>;
-        /**
-         * 根据render的最右侧，得到的最大宽度
-         */
-        protected _w: number;
-        /**
-         * 根据render的最下方，得到的最大高度
-         */
-        protected _h: number;
-        /**
-         * 水平间距
-         *
-         * @protected
-         * @type {number}
-         */
-        protected _hgap: number;
-        /**
-         * 垂直间距
-         *
-         * @protected
-         * @type {number}
-         */
-        protected _vgap: number;
-        /**
-         * 列数
-         *
-         * @protected
-         * @type {number}
-         */
-        protected _columncount: number;
-        protected _list: R[];
-        protected _data: T[];
-        protected _childSizeChanged: boolean;
-        protected _selectedIndex: number;
-        protected _selectedItem: R;
-        scroller: Scroller;
-        /**0纵向，1横向 */
-        private _scrollType;
-        private _waitForSetIndex;
-        private _waitIndex;
-        private renderChange;
-        protected _dataLen: number;
-        readonly dataLen: number;
-        /**
-         * itemrender固定宽度
-         *
-         * @private
-         * @type {number}
-         * @memberOf PageList
-         */
-        private itemWidth;
-        /**
-         * itemrender固定高度
-         *
-         * @private
-         * @type {number}
-         * @memberOf PageList
-         */
-        private itemHeight;
-        private useTweenIndex;
-        private rawDataChanged;
-        /**
-         * 是否为固定尺寸
-         *
-         * @type {boolean}
-         */
-        staticSize: boolean;
-        /**
-         * Creates an instance of PageList.
-         * @param {ClassFactory<R> | Creator<R>} renderfactory
-         * @param {PageListOption} [option]
-         */
-        constructor(renderfactory: ClassFactory<R> | Creator<R>, option?: PageListOption);
-        displayList(data?: T[]): void;
-        readonly data: T[];
-        /**
-         * 根据index使某renderer显示生效
-         *
-         * @param {number}  idx
-         * @param {boolean} [force]     是否强制执行setData和handleView
-         * @memberOf PageList
-         */
-        validateItemByIdx(idx: number, force?: boolean): void;
-        /**
-         * 使所有renderer显示生效
-         *
-         *
-         * @memberOf PageList
-         */
-        validateAll(): void;
-        /**
-         * 初始化render占据array，不做任何初始化容器操作
-         *
-         * @private
-         */
-        private initItems();
-        /**
-         * 渲染指定位置的render
-         *
-         * @ private
-         * @ param {number} start (起始索引)
-         * @ param {number} end (结束索引)
-         */
-        protected doRenderListItem(start: number, end?: number): void;
-        protected changeRender(render: R, index?: number): void;
-        protected touchItemrender(e: egret.TouchEvent): void;
-        private getOrCreateItemRenderAt(index);
-        protected childSizeChange(): void;
-        /**
-         * 重新计算Render的坐标
-         *
-         * @private
-         * @param {number} [start]
-         * @param {number} [end]
-         * @returns
-         */
-        protected reCalc(): void;
-        selectedIndex: number;
-        private moveScroll(render);
-        tweenX: number;
-        tweenY: number;
-        /**
-         * 滚动到指定index
-         */
-        tweenToIndex(index: number): void;
-        selectItemByData<K extends keyof T>(key: K, value: T[K], useTween?: boolean): void;
-        readonly selectedItem: R;
-        /**
-         * 更新item数据
-         *
-         * @param {number} index (description)
-         * @param {*} data (description)
-         */
-        updateItembyIndex(index: number, data: T): void;
-        /**
-         * 根据key value获取item,将item的data重新赋值为data
-         *
-         * @param {string} key (description)
-         * @param {*} value (description)
-         * @param {T} data (description)
-         */
-        updateItemByKey<K extends keyof T>(key: K, value: T[K], data: T): void;
-        /**
-         *
-         * 根据索引获得视图
-         * @param {number} idx
-         * @returns
-         */
-        getItemAt(idx: number): R;
-        /**
-         *
-         * 通过搜索数据，获取Render
-         * @param {string} key
-         * @param {*} value
-         * @returns
-         */
-        getItemRenderData<K extends keyof T>(key: K, value: T[K]): [R, number];
-        removeAt(idx: number): void;
-        removeItem(item: R): void;
-        protected _remoreRender(item: R): void;
-        private refreshByRemoveItem();
-        getAllItems(): R[];
-        readonly length: number;
-        /**
-         * 销毁
-         *
-         */
-        dispose(): void;
-        /**
-         * 清理
-         *
-         */
-        clear(): void;
-        /**
-         * 在舞台之上的起始索引
-         *
-         * @protected
-         * @type {number}
-         */
-        protected _showStart: number;
-        /**
-         * 在舞台之上的结束索引
-         *
-         * @protected
-         * @type {number}
-         */
-        protected _showEnd: number;
-        protected _lastRect: egret.Rectangle;
-        protected checkViewRect(): void;
-        scrollRect: egret.Rectangle;
-    }
-}
-declare module junyou {
     class Scroller extends egret.EventDispatcher {
         /**
          * touchdown的起始时间
@@ -2673,6 +2428,103 @@ declare module junyou {
          */
         protected readonly scrollEndPos: number;
         protected checkAndResetBarPos(): void;
+    }
+}
+declare module junyou {
+    abstract class AbsPageList<T, R extends ListItemRender<T>> extends egret.EventDispatcher {
+        protected _list: R[];
+        protected _data: T[];
+        protected _selectedIndex: number;
+        protected _selectedItem: R;
+        protected _dataLen: number;
+        /**
+         * 获取数据长度
+         *
+         * @readonly
+         */
+        readonly dataLen: number;
+        /**
+         * 获取数据集
+         *
+         * @readonly
+         */
+        readonly data: T[];
+        /**
+         * 渲染指定位置的render
+         *
+         * @ private
+         * @ param {number} start (起始索引)
+         * @ param {number} end (结束索引)
+         */
+        protected doRender(start: number, end?: number): void;
+        selectedIndex: number;
+        /**
+         *
+         * 根据索引获得视图
+         * @param {number} idx
+         * @returns
+         */
+        getItemAt(idx: number): R;
+        selectItemByData<K extends keyof T>(key: K, value: T[K], useTween?: boolean): void;
+        /**
+         * 遍历列表
+         *
+         * @param {{(data:T,render:R,idx:number,...args)}} handle
+         * @param {any} otherParams
+         */
+        forEach(handle: {
+            (data: T, render: R, idx: number, ...args);
+        }, ...otherParams: any[]): void;
+        /**
+         * 找到第一个符合要求的render
+         *
+         * @param {{(data:T,render:R,idx:number,...args):boolean}} handle
+         * @param {any} otherParams
+         * @returns
+         */
+        find(handle: {
+            (data: T, render: R, idx: number, ...args): boolean;
+        }, ...otherParams: any[]): R;
+        readonly selectedItem: R;
+        /**
+         * 更新item数据
+         *
+         * @param {number} index (description)
+         * @param {*} data (description)
+         */
+        updateByIdx(index: number, data: T): boolean;
+        /**
+         * 根据key value获取item,将item的data重新赋值为data
+         *
+         * @param {string} key (description)
+         * @param {*} value (description)
+         * @param {T} data (description)
+         */
+        updateByKey<K extends keyof T>(key: K, value: T[K], data: T): void;
+        protected abstract _get(index: number): R;
+        /**
+         * 清理数据
+         *
+         * @abstract
+         */
+        abstract clear(): any;
+        /**
+         * 销毁
+         *
+         * @abstract
+         */
+        abstract dispose(): any;
+        abstract displayList(data?: T[]): any;
+        protected onTouchItem(e: egret.TouchEvent): void;
+        protected changeRender(render: R, index?: number): void;
+        getAllItems(): R[];
+        readonly length: number;
+        /**
+         * render进行切换
+         *
+         * @protected
+         */
+        protected onChange(): void;
     }
 }
 declare module junyou {
@@ -9199,21 +9051,47 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     * 为已布局好的render提供List功能
+     * 翻页，一次手势翻一页
      *
      * @export
-     * @class MPageList
-     * @extends {PageList}
+     * @class PageScroller
+     * @extends {Scroller}
      */
-    class MPageList<T, R extends ListItemRender<T>> extends PageList<T, R> {
-        protected _viewCount: number;
+    class PageScroller extends Scroller {
+        /**
+         * 当前在第几页
+         *
+         * @type {number}
+         */
+        currentPage: number;
+        autoScrollSpeed: number;
+        minPageScrollSpeed: number;
+        /**
+         * 总共将显示对象切割成几页
+         *
+         * @type {number}
+         */
+        private _totalpageCount;
+        private _firstTouchPos;
+        private _pageSize;
+        private _scrollToPage;
         constructor();
-        displayList(data?: T[]): void;
-        addItem(item: R, index?: number): void;
-        clear(): void;
-        protected childSizeChange(): void;
-        protected reCalc(): void;
+        settotalpageInfo(count: number, size: number): void;
+        /**
+         * 总共将显示对象切割成几页
+         *
+         * @type {number}
+         */
+        readonly totalpageCount: number;
+        bindObj(content: egret.DisplayObject, scrollRect: egret.Rectangle, scrollbar?: ScrollBar): void;
+        protected onTargetTouchBegin(e: egret.TouchEvent): void;
+        protected endTouchContent(e: egret.TouchEvent): void;
+        private autoScrollToNextPage(e);
     }
+}
+declare const enum ScrollDirection {
+    Vertical = 0,
+    Horizon = 1,
 }
 declare module junyou {
     interface DataUtilsType {
@@ -9332,50 +9210,6 @@ declare module junyou {
     const DataUtils: DataUtilsType;
 }
 declare module junyou {
-    /**
-     * 翻页，一次手势翻一页
-     *
-     * @export
-     * @class PageScroller
-     * @extends {Scroller}
-     */
-    class PageScroller extends Scroller {
-        /**
-         * 当前在第几页
-         *
-         * @type {number}
-         */
-        currentPage: number;
-        autoScrollSpeed: number;
-        minPageScrollSpeed: number;
-        /**
-         * 总共将显示对象切割成几页
-         *
-         * @type {number}
-         */
-        private _totalpageCount;
-        private _firstTouchPos;
-        private _pageSize;
-        private _scrollToPage;
-        constructor();
-        settotalpageInfo(count: number, size: number): void;
-        /**
-         * 总共将显示对象切割成几页
-         *
-         * @type {number}
-         */
-        readonly totalpageCount: number;
-        bindObj(content: egret.DisplayObject, scrollRect: egret.Rectangle, scrollbar?: ScrollBar): void;
-        protected onTargetTouchBegin(e: egret.TouchEvent): void;
-        protected endTouchContent(e: egret.TouchEvent): void;
-        private autoScrollToNextPage(e);
-    }
-}
-declare const enum ScrollDirection {
-    Vertical = 0,
-    Horizon = 1,
-}
-declare module junyou {
     interface DataUtilsType {
         /**
          * 获取一组坐标
@@ -9416,6 +9250,243 @@ declare module junyou {
          * @returns {number} 成功解析到的key的数量
          */
         parseXAttr2(from: object, xattr: object, keyPrefix?: string, valuePrefix?: string, delOriginKey?: boolean): number;
+    }
+}
+declare module junyou {
+    /**
+     * 为已布局好的render提供List功能
+     *
+     * @export
+     * @class MPageList
+     * @extends {PageList}
+     */
+    class MPageList<T, R extends ListItemRender<T>> extends AbsPageList<T, R> {
+        protected _viewCount: number;
+        constructor();
+        displayList(data?: T[]): void;
+        addItem(item: R, index?: number): void;
+        protected _get(index: number): R;
+        clear(): void;
+        dispose(): void;
+    }
+}
+declare module junyou {
+    interface PageListOption {
+        /**
+         * 单元格之间的宽度
+         *
+         * @type {number}
+         * @memberof PageListOption
+         */
+        hgap?: number;
+        /**
+         * 单元格之间的高度
+         *
+         * @type {number}
+         * @memberof PageListOption
+         */
+        vgap?: number;
+        /**
+         * 列表共有几列（最小1最大9999）
+         *
+         * @type {number}
+         * @memberof PageListOption
+         */
+        columnCount?: number;
+        /**
+         * itemrender固定宽度
+         *
+         * @type {number}
+         * @memberof PageListOption
+         */
+        itemWidth?: number;
+        /**
+         * itemrender固定高度
+         *
+         * @type {number}
+         * @memberof PageListOption
+         */
+        itemHeight?: number;
+        /**
+         * 是否为固定尺寸
+         *
+         * @type {boolean}
+         * @memberof PageListOption
+         */
+        staticSize?: boolean;
+        /**
+         * pageList的方向
+         *
+         * @type {ScrollDirection}
+         * @memberof PageListOption
+         */
+        type?: ScrollDirection;
+        /**
+         * 容器
+         *
+         * @type {egret.Sprite}
+         * @memberof PageListOption
+         */
+        con?: egret.Sprite;
+    }
+    class PageList<T, R extends ListItemRender<T>> extends AbsPageList<T, R> {
+        protected _factory: ClassFactory<R>;
+        /**
+         * 根据render的最右侧，得到的最大宽度
+         */
+        protected _w: number;
+        /**
+         * 根据render的最下方，得到的最大高度
+         */
+        protected _h: number;
+        /**
+         * 水平间距
+         *
+         * @protected
+         * @type {number}
+         */
+        protected _hgap: number;
+        /**
+         * 垂直间距
+         *
+         * @protected
+         * @type {number}
+         */
+        protected _vgap: number;
+        /**
+         * 列数
+         *
+         * @protected
+         * @type {number}
+         */
+        protected _columncount: number;
+        protected _sizeChanged: boolean;
+        scroller: Scroller;
+        /**0纵向，1横向 */
+        private _scrollType;
+        private _waitForSetIndex;
+        private _waitIndex;
+        private renderChange;
+        /**
+         * itemrender固定宽度
+         *
+         * @private
+         * @type {number}
+         * @memberOf PageList
+         */
+        private itemWidth;
+        /**
+         * itemrender固定高度
+         *
+         * @private
+         * @type {number}
+         * @memberOf PageList
+         */
+        private itemHeight;
+        private useTweenIndex;
+        private rawDataChanged;
+        /**
+         * 是否为固定尺寸
+         *
+         * @type {boolean}
+         */
+        staticSize: boolean;
+        private _con;
+        /**
+         * 容器
+         *
+         * @readonly
+         */
+        container: egret.Sprite;
+        /**
+         * Creates an instance of PageList.
+         * @param {ClassFactory<R> | Creator<R>} renderfactory
+         * @param {PageListOption} [option]
+         */
+        constructor(renderfactory: ClassFactory<R> | Creator<R>, option?: PageListOption);
+        protected init(option: PageListOption): void;
+        displayList(data?: T[]): void;
+        readonly data: T[];
+        /**
+         * 根据index使某renderer显示生效
+         *
+         * @param {number}  idx
+         * @param {boolean} [force]     是否强制执行setData和handleView
+         * @memberOf PageList
+         */
+        validateItemByIdx(idx: number, force?: boolean): void;
+        /**
+         * 使所有renderer显示生效
+         *
+         *
+         * @memberOf PageList
+         */
+        validateAll(): void;
+        /**
+         * 初始化render占据array，不做任何初始化容器操作
+         *
+         * @private
+         */
+        private initItems();
+        protected onChange(): void;
+        protected _get(index: number): R;
+        protected onSizeChange(): void;
+        /**
+         * 重新计算Render的坐标
+         *
+         * @private
+         * @param {number} [start]
+         * @param {number} [end]
+         * @returns
+         */
+        protected reCalc(): void;
+        selectedIndex: number;
+        private moveScroll(render);
+        tweenX: number;
+        tweenY: number;
+        /**
+         * 滚动到指定index
+         */
+        tweenToIndex(index: number): void;
+        selectItemByData<K extends keyof T>(key: K, value: T[K], useTween?: boolean): void;
+        readonly selectedItem: R;
+        /**
+         * 更新item数据
+         *
+         * @param {number} index (description)
+         * @param {*} data (description)
+         */
+        updateByIdx(index: number, data: T): boolean;
+        removeAt(idx: number): void;
+        removeItem(item: R): void;
+        protected _removeRender(item: R): void;
+        private refreshByRemoveItem();
+        /**
+         * 销毁
+         *
+         */
+        dispose(): void;
+        /**
+         * 清理
+         *
+         */
+        clear(): void;
+        /**
+         * 在舞台之上的起始索引
+         *
+         * @protected
+         * @type {number}
+         */
+        protected _showStart: number;
+        /**
+         * 在舞台之上的结束索引
+         *
+         * @protected
+         * @type {number}
+         */
+        protected _showEnd: number;
+        protected _lastRect: egret.Rectangle;
+        protected checkViewRect(): void;
     }
 }
 declare module junyou {

@@ -1801,14 +1801,16 @@ var junyou;
                 var renderedTime = this.renderedTime;
                 var delta = now - nextRenderTime;
                 if (delta > 2000) {
+                    if (nextRenderTime != 0) {
+                        if (true) {
+                            console.log("Render\u4E0A\u6B21\u6267\u884C\u65F6\u95F4\u548C\u5F53\u524D\u65F6\u95F4\u5DEE\u503C\u8FC7\u957F[" + delta + "]\uFF0C\u53EF\u4EE5\u6267\u884C[" + delta / actionInfo.totalTime + "\u6B21\u603B\u5E8F\u5217]");
+                        }
+                        if (BaseRender.dispatchSlowRender) {
+                            junyou.Global.callLater(BaseRender.onSlowRender);
+                        }
+                    }
                     nextRenderTime = now;
                     renderedTime = now;
-                    if (true) {
-                        console.log("Render\u4E0A\u6B21\u6267\u884C\u65F6\u95F4\u548C\u5F53\u524D\u65F6\u95F4\u5DEE\u503C\u8FC7\u957F[" + delta + "]\uFF0C\u53EF\u4EE5\u6267\u884C[" + delta / actionInfo.totalTime + "\u6B21\u603B\u5E8F\u5217]");
-                    }
-                    if (BaseRender.dispatchSlowRender) {
-                        junyou.Global.callLater(BaseRender.onSlowRender);
-                    }
                 }
                 var frames_1 = actionInfo.frames;
                 //当前帧
@@ -2608,745 +2610,6 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    var PageList = (function (_super) {
-        __extends(PageList, _super);
-        /**
-         * Creates an instance of PageList.
-         * @param {ClassFactory<R> | Creator<R>} renderfactory
-         * @param {PageListOption} [option]
-         */
-        function PageList(renderfactory, option) {
-            var _this = _super.call(this) || this;
-            _this._childSizeChanged = false;
-            _this._selectedIndex = -1;
-            _this.scroller = null; //站位用，便于对Scroller的绑定
-            _this._waitForSetIndex = false;
-            // private startIndex: number;
-            // private endIndex: number;
-            _this.renderChange = false;
-            _this._dataLen = 0;
-            if (!(renderfactory instanceof junyou.ClassFactory)) {
-                renderfactory = new junyou.ClassFactory(renderfactory);
-            }
-            _this._factory = renderfactory;
-            option = option || junyou.Temp.EmptyObject;
-            var hgap = option.hgap, vgap = option.vgap, type = option.type, itemWidth = option.itemWidth, itemHeight = option.itemHeight, columnCount = option.columnCount, staticSize = option.staticSize;
-            _this.staticSize = staticSize;
-            columnCount = ~~columnCount;
-            if (columnCount < 1) {
-                columnCount = 1;
-            }
-            _this._columncount = columnCount;
-            _this._hgap = ~~hgap;
-            _this._vgap = ~~vgap;
-            _this.itemWidth = itemWidth;
-            _this.itemHeight = itemHeight;
-            _this._list = [];
-            _this._scrollType = ~~type;
-            return _this;
-        }
-        Object.defineProperty(PageList.prototype, "dataLen", {
-            get: function () {
-                return this._dataLen;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        PageList.prototype.displayList = function (data) {
-            this._selectedIndex = -1;
-            if (this._data != data) {
-                this.rawDataChanged = true;
-            }
-            var nlen = data ? data.length : 0;
-            if (this._data) {
-                //如果新赋值的数据长度比以前的短，就自动清理掉多出来的item
-                var list = this._list;
-                var llen = list.length;
-                if (nlen < llen) {
-                    for (var i = nlen; i < list.length; i++) {
-                        var render = list[i];
-                        this._remoreRender(render);
-                    }
-                    list.length = nlen;
-                }
-            }
-            this._data = data;
-            this._lastRect = undefined;
-            if (!nlen) {
-                this.dispose();
-                this._dataLen = 0;
-                this.rawDataChanged = false;
-                return;
-            }
-            this._dataLen = nlen;
-            this.initItems();
-            if (this.scroller) {
-                this.scroller.scrollToHead();
-            }
-            this.rawDataChanged = false;
-        };
-        Object.defineProperty(PageList.prototype, "data", {
-            get: function () {
-                return this._data;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        /**
-         * 根据index使某renderer显示生效
-         *
-         * @param {number}  idx
-         * @param {boolean} [force]     是否强制执行setData和handleView
-         * @memberOf PageList
-         */
-        PageList.prototype.validateItemByIdx = function (idx, force) {
-            var renderer = this.getOrCreateItemRenderAt(idx);
-            if (force || renderer.view.stage) {
-                renderer.data = this._data[idx];
-                if (typeof renderer.handleView === "function") {
-                    renderer.handleView();
-                }
-                if (renderer.dataChange) {
-                    renderer.dataChange = false;
-                }
-            }
-        };
-        /**
-         * 使所有renderer显示生效
-         *
-         *
-         * @memberOf PageList
-         */
-        PageList.prototype.validateAll = function () {
-            if (this._data) {
-                var len = this._data.length;
-                for (var i = 0; i < len; i++) {
-                    this.validateItemByIdx(i);
-                }
-            }
-        };
-        /**
-         * 初始化render占据array，不做任何初始化容器操作
-         *
-         * @private
-         */
-        PageList.prototype.initItems = function () {
-            var len = this._data.length;
-            this.doRenderListItem(0, len - 1);
-            this._childSizeChanged = true;
-            this.reCalc();
-            this.checkViewRect();
-        };
-        /**
-         * 渲染指定位置的render
-         *
-         * @ private
-         * @ param {number} start (起始索引)
-         * @ param {number} end (结束索引)
-         */
-        PageList.prototype.doRenderListItem = function (start, end) {
-            var render;
-            var data = this._data;
-            end == undefined && (end = start);
-            for (var i = start; i <= end; i++) {
-                render = this.getOrCreateItemRenderAt(i);
-                if (render.inited === false) {
-                    if (typeof render.bindComponent === "function") {
-                        render.bindComponent();
-                    }
-                    render.inited = true;
-                }
-                var tmp = render.data;
-                if (!tmp || tmp != data[i] || render.dataChange) {
-                    render.data = data[i];
-                    if (typeof render.handleView === "function") {
-                        render.handleView();
-                    }
-                    if (render.dataChange) {
-                        render.dataChange = false;
-                    }
-                }
-            }
-        };
-        PageList.prototype.changeRender = function (render, index) {
-            var old = this._selectedItem;
-            if (old != render) {
-                index == undefined && (index = this._list.indexOf(render));
-                if (old) {
-                    old.selected = false;
-                }
-                this._selectedItem = render;
-                this._selectedIndex = index;
-                render.selected = true;
-                if (!this.itemWidth || !this.itemHeight) {
-                    this._childSizeChanged = true;
-                    this.reCalc();
-                }
-                this.dispatch(-1052 /* ITEM_SELECTED */);
-            }
-        };
-        PageList.prototype.touchItemrender = function (e) {
-            var render = e.target;
-            this.changeRender(render);
-        };
-        PageList.prototype.getOrCreateItemRenderAt = function (index) {
-            var list = this._list;
-            var render = list[index];
-            if (!render) {
-                render = this._factory.get();
-                list[index] = render;
-                render.on(-1999 /* Resize */, this.childSizeChange, this);
-                render.on(-1001 /* ITEM_TOUCH_TAP */, this.touchItemrender, this);
-            }
-            render.index = index;
-            return render;
-        };
-        PageList.prototype.childSizeChange = function () {
-            if (!this._childSizeChanged) {
-                this._childSizeChanged = true;
-                this.once("enterFrame" /* ENTER_FRAME */, this.reCalc, this);
-            }
-        };
-        /**
-         * 重新计算Render的坐标
-         *
-         * @private
-         * @param {number} [start]
-         * @param {number} [end]
-         * @returns
-         */
-        PageList.prototype.reCalc = function () {
-            if (!this._childSizeChanged) {
-                return;
-            }
-            this._childSizeChanged = false;
-            var renderList = this._list;
-            var len = renderList.length;
-            var end = len - 1;
-            // let lastrender: R;
-            //得到单行/单列最大索引数
-            var _a = this, itemWidth = _a.itemWidth, itemHeight = _a.itemHeight, _columncount = _a._columncount, _hgap = _a._hgap, _vgap = _a._vgap, staticSize = _a.staticSize;
-            var rowCount = len / _columncount;
-            var oy = 0, ox = 0;
-            var maxWidth = 0, maxHeight = 0;
-            var i = 0;
-            for (var r = 0; r <= rowCount; r++) {
-                //单行的最大高度
-                var lineMaxHeight = 0;
-                for (var c = 0; c < _columncount; c++) {
-                    if (i > end) {
-                        break;
-                    }
-                    var render = renderList[i++];
-                    var v = render.view;
-                    var w = 0;
-                    if (v) {
-                        var size = v;
-                        if (staticSize) {
-                            var rect = v.suiRawRect;
-                            if (rect) {
-                                size = rect;
-                            }
-                        }
-                        w = size.width;
-                        var vh = size.height;
-                        v.x = ox;
-                        v.y = oy;
-                        var rright = v.x + w;
-                        if (maxWidth < rright) {
-                            maxWidth = rright;
-                        }
-                        if (lineMaxHeight < vh) {
-                            lineMaxHeight = vh;
-                        }
-                    }
-                    ox += _hgap + (itemWidth || w);
-                }
-                var mh = oy + lineMaxHeight;
-                if (maxHeight < mh) {
-                    maxHeight = mh;
-                }
-                if (i > end) {
-                    break;
-                }
-                ox = 0;
-                //偏移量，优先使用itemHeight
-                oy += _vgap + (itemHeight || lineMaxHeight);
-            }
-            if (maxWidth != this._w || maxHeight != this._h) {
-                this._w = maxWidth;
-                this._h = maxHeight;
-                var g = this.graphics;
-                g.clear();
-                g.beginFill(0, 0);
-                g.drawRect(0, 0, maxWidth, maxHeight);
-                g.endFill();
-                this.dispatch(-1999 /* Resize */);
-            }
-        };
-        Object.defineProperty(PageList.prototype, "selectedIndex", {
-            get: function () {
-                return this._selectedIndex;
-            },
-            set: function (value) {
-                if (this._selectedIndex == value && value >= 0)
-                    return;
-                if (value < 0) {
-                    if (this._selectedItem) {
-                        this._selectedItem.selected = false;
-                        this._selectedItem = undefined;
-                    }
-                    this._selectedIndex = value;
-                    return;
-                }
-                this._waitIndex = value;
-                if (!this._data) {
-                    this._waitForSetIndex = true;
-                    return;
-                }
-                var render;
-                var renderList = this._list;
-                var len_1 = renderList.length - 1;
-                if (value > len_1) {
-                    value = len_1;
-                }
-                render = this._list[value];
-                this.changeRender(render, value);
-                var view = render.view;
-                if (view && view.stage) {
-                    this._waitForSetIndex = false;
-                    this.moveScroll(render);
-                }
-                else {
-                    this._waitForSetIndex = true;
-                }
-                if (this._waitForSetIndex) {
-                    this.moveScroll(render);
-                    //假如列表里有30个项，选中第20个，所以前20个都没有渲染，这边自己设置的rect，并不能引发scroller抛CHANGE事件
-                    //所以自己抛一下
-                    //如果已经渲染过，可不用抛
-                    // this.dispatchEventWith(EventConst.SCROLL_POSITION_CHANGE);
-                }
-            },
-            enumerable: true,
-            configurable: true
-        });
-        PageList.prototype.moveScroll = function (render) {
-            var rect = this.scrollRect;
-            if (!rect)
-                return;
-            var v = render.view;
-            if (!v) {
-                if (true) {
-                    junyou.ThrowError("render[" + egret.getQualifiedClassName(render) + "]\u6CA1\u6709renderView");
-                }
-                return;
-            }
-            var oldPos, endPos, max;
-            if (this._scrollType == 0 /* Vertical */) {
-                oldPos = rect.y;
-                endPos = v.y;
-                max = this._h - v.height;
-            }
-            else {
-                oldPos = rect.x;
-                endPos = v.x;
-                max = this._w - v.width;
-            }
-            if (endPos > max) {
-                endPos = max;
-            }
-            if (rect) {
-                if (this._scrollType == 0 /* Vertical */) {
-                    endPos = endPos - rect.height;
-                }
-                else {
-                    endPos = endPos - rect.width;
-                }
-                if (endPos < 0) {
-                    endPos = 0;
-                }
-            }
-            var scroller = this.scroller;
-            if (scroller) {
-                scroller.stopTouchTween();
-            }
-            if (this.useTweenIndex) {
-                var tween = junyou.Global.getTween(this, null, null, true);
-                var result = this._scrollType == 1 /* Horizon */ ? { tweenX: endPos } : { tweenY: endPos };
-                tween.to(result, 500, junyou.Ease.quadOut);
-                if (scroller) {
-                    scroller.showBar();
-                    tween.call(scroller.hideBar, scroller);
-                }
-            }
-            else {
-                if (scroller) {
-                    scroller.doMoveScrollBar(oldPos - endPos);
-                }
-                if (this._scrollType == 0 /* Vertical */) {
-                    rect.y = endPos;
-                }
-                else {
-                    rect.x = endPos;
-                }
-                this.scrollRect = rect;
-            }
-        };
-        Object.defineProperty(PageList.prototype, "tweenX", {
-            get: function () {
-                var rect = this.scrollRect;
-                return rect ? rect.x : 0;
-            },
-            set: function (value) {
-                var rect = this.scrollRect || new egret.Rectangle(NaN);
-                if (value != rect.x) {
-                    var delta = value - rect.x;
-                    rect.x = value;
-                    var scroller = this.scroller;
-                    if (scroller) {
-                        scroller.doMoveScrollBar(delta);
-                    }
-                    this.scrollRect = rect;
-                }
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(PageList.prototype, "tweenY", {
-            get: function () {
-                var rect = this.scrollRect;
-                return rect ? rect.y : 0;
-            },
-            set: function (value) {
-                var rect = this.scrollRect || new egret.Rectangle(0, NaN);
-                if (value != rect.y) {
-                    var delta = value - rect.y;
-                    rect.y = value;
-                    var scroller = this.scroller;
-                    if (scroller) {
-                        scroller.doMoveScrollBar(delta);
-                    }
-                    this.scrollRect = rect;
-                }
-            },
-            enumerable: true,
-            configurable: true
-        });
-        /**
-         * 滚动到指定index
-         */
-        PageList.prototype.tweenToIndex = function (index) {
-            this.useTweenIndex = true;
-            this.selectedIndex = index;
-        };
-        PageList.prototype.selectItemByData = function (key, value, useTween) {
-            if (useTween === void 0) { useTween = false; }
-            var data = this._data;
-            var len = data.length;
-            for (var i = 0; i < len; i++) {
-                if (key in data[i]) {
-                    if (data[i][key] == value) {
-                        if (useTween) {
-                            this.tweenToIndex(i);
-                        }
-                        else {
-                            this.selectedIndex = i;
-                        }
-                        break;
-                    }
-                }
-            }
-        };
-        Object.defineProperty(PageList.prototype, "selectedItem", {
-            get: function () {
-                return this._selectedItem;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        /**
-         * 更新item数据
-         *
-         * @param {number} index (description)
-         * @param {*} data (description)
-         */
-        PageList.prototype.updateItembyIndex = function (index, data) {
-            var item = this.getItemAt(index);
-            if (item) {
-                this._data[index] = data;
-                if (index >= this._showStart && index <= this._showEnd) {
-                    this.doRenderListItem(index);
-                }
-            }
-        };
-        /**
-         * 根据key value获取item,将item的data重新赋值为data
-         *
-         * @param {string} key (description)
-         * @param {*} value (description)
-         * @param {T} data (description)
-         */
-        PageList.prototype.updateItemByKey = function (key, value, data) {
-            var _a = this.getItemRenderData(key, value), item = _a[0], index = _a[1];
-            if (item) {
-                this.updateItembyIndex(index, data);
-            }
-        };
-        /**
-         *
-         * 根据索引获得视图
-         * @param {number} idx
-         * @returns
-         */
-        PageList.prototype.getItemAt = function (idx) {
-            idx = idx >>> 0;
-            return this._list[idx];
-        };
-        /**
-         *
-         * 通过搜索数据，获取Render
-         * @param {string} key
-         * @param {*} value
-         * @returns
-         */
-        PageList.prototype.getItemRenderData = function (key, value) {
-            var data = this._data;
-            var len = data.length;
-            var item;
-            var i = 0;
-            for (; i < len; i++) {
-                var dat = data[i];
-                if (key in dat) {
-                    if (dat[key] === value) {
-                        item = this.getItemAt(i);
-                        break;
-                    }
-                }
-            }
-            return [item, i];
-        };
-        PageList.prototype.removeAt = function (idx) {
-            idx = idx >>> 0;
-            var list = this._list;
-            if (idx < list.length) {
-                var item = list[idx];
-                list.splice(idx, 1);
-                this._data.splice(idx, 1);
-                this._remoreRender(item);
-            }
-        };
-        PageList.prototype.removeItem = function (item) {
-            var index = this._list.indexOf(item);
-            if (index != -1) {
-                this.removeAt(index);
-            }
-        };
-        PageList.prototype._remoreRender = function (item) {
-            item.data = undefined;
-            junyou.removeDisplay(item.view);
-            item.off(-1999 /* Resize */, this.childSizeChange, this);
-            item.off(-1001 /* ITEM_TOUCH_TAP */, this.touchItemrender, this);
-            item.dispose();
-            if (!this.renderChange) {
-                this.renderChange = true;
-                this.once("enterFrame" /* ENTER_FRAME */, this.refreshByRemoveItem, this);
-            }
-        };
-        PageList.prototype.refreshByRemoveItem = function () {
-            if (!this.renderChange) {
-                return;
-            }
-            this.renderChange = false;
-            this._childSizeChanged = true;
-            this.reCalc();
-            this.checkViewRect();
-        };
-        PageList.prototype.getAllItems = function () {
-            return this._list;
-        };
-        Object.defineProperty(PageList.prototype, "length", {
-            get: function () {
-                return this._list.length;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        /**
-         * 销毁
-         *
-         */
-        PageList.prototype.dispose = function () {
-            this.clear();
-        };
-        /**
-         * 清理
-         *
-         */
-        PageList.prototype.clear = function () {
-            this.graphics.clear();
-            this._selectedIndex = -1;
-            this._data = undefined;
-            var list = this._list;
-            for (var i = 0; i < list.length; i++) {
-                this._remoreRender(list[i]);
-            }
-            list.length = 0;
-            this._selectedItem = undefined;
-            this._waitForSetIndex = false;
-            this._waitIndex = -1;
-        };
-        PageList.prototype.checkViewRect = function () {
-            var rect = this.$scrollRect;
-            var list = this._list;
-            var len = list.length;
-            var len_1 = len - 1;
-            if (!rect) {
-                // 应该为全部添加到舞台
-                for (var i = 0; i < len; i++) {
-                    var render = list[i];
-                    var v = render.view;
-                    if (v) {
-                        this.addChild(v);
-                    }
-                }
-                this._showStart = 0;
-                this._showEnd = len - 1;
-                return;
-            }
-            //设置rect时，检查哪些Render应该在舞台上
-            var lastRect = this._lastRect;
-            var checkStart, inc;
-            if (lastRect) {
-                //检查滚动方向
-                var key1 = "x", key2 = "width";
-                if (this._scrollType == 0 /* Vertical */) {
-                    key1 = "y";
-                    key2 = "height";
-                }
-                var delta = rect[key1] - lastRect[key1];
-                if (delta == 0 && rect[key2] == lastRect[key2]) {
-                    if (!this.rawDataChanged) {
-                        return;
-                    }
-                }
-                var showStart = this._showStart;
-                var showEnd = this._showEnd;
-                //先全部从舞台移除
-                for (var i = showStart; i <= showEnd; i++) {
-                    var render = list[i];
-                    if (render) {
-                        junyou.removeDisplay(render.view);
-                    }
-                }
-                if (delta > 0) {
-                    checkStart = showStart;
-                    inc = true;
-                }
-                else {
-                    checkStart = showEnd;
-                    inc = false;
-                }
-                lastRect[key1] = rect[key1];
-                lastRect[key2] = rect[key2];
-            }
-            else {
-                if (!len) {
-                    return;
-                }
-                lastRect = rect.clone();
-                this._lastRect = lastRect;
-                checkStart = 0;
-                inc = true;
-            }
-            var first, last, fIdx, lIdx;
-            var tmp = junyou.Temp.SharedArray3;
-            tmp.length = 0;
-            if (inc) {
-                fIdx = 0;
-                lIdx = len_1;
-                /**
-                 *
-                 *
-                 *   ├────────┤
-                 *   │render0 │                         以前和scrollRect相交的render0，现在不再相交，从舞台移除
-                 *  ┌├────────┤┐───
-                 *  ││render1 ││ ↑ scrollRect           以前和scrollRect相交的render1，现在还相交
-                 *  │├────────┤│ ↓
-                 *  └│render2 │┘───                     以前不和scrollRect相交的render2，现在相交
-                 *   ├────────┤
-                 *
-                 *  需要从起始点开始找，找到第一个和当前rect相交的render
-                 *  直到找到最后一个和rect相交的render，再往后则无需检测
-                 */
-                for (var i = checkStart; i < len; i++) {
-                    if (check(i)) {
-                        break;
-                    }
-                }
-                for (var i = 0, tlen = tmp.length; i < tlen; i++) {
-                    var v = tmp[i];
-                    this.addChild(v);
-                }
-                this._showStart = fIdx;
-                this._showEnd = lIdx;
-            }
-            else {
-                fIdx = len_1;
-                lIdx = 0;
-                for (var i = checkStart; i >= 0; i--) {
-                    if (check(i)) {
-                        break;
-                    }
-                }
-                for (var i = tmp.length - 1; i >= 0; i--) {
-                    var v = tmp[i];
-                    this.addChild(v);
-                }
-                this._showStart = lIdx;
-                this._showEnd = fIdx;
-            }
-            tmp.length = 0;
-            return;
-            function check(i) {
-                var render = list[i];
-                var v = render.view;
-                if (v) {
-                    if (junyou.intersects(v, rect)) {
-                        if (!first) {
-                            first = render;
-                            fIdx = i;
-                        }
-                        tmp.push(v);
-                    }
-                    else {
-                        if (first) {
-                            last = render;
-                            lIdx = i;
-                            return true;
-                        }
-                    }
-                }
-            }
-        };
-        Object.defineProperty(PageList.prototype, "scrollRect", {
-            get: function () {
-                return this.$scrollRect;
-            },
-            set: function (rect) {
-                _super.prototype.$setScrollRect.call(this, rect);
-                this.checkViewRect();
-            },
-            enumerable: true,
-            configurable: true
-        });
-        return PageList;
-    }(egret.Sprite));
-    junyou.PageList = PageList;
-    __reflect(PageList.prototype, "junyou.PageList");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
     var Scroller = (function (_super) {
         __extends(Scroller, _super);
         function Scroller() {
@@ -3834,6 +3097,243 @@ var junyou;
     }(egret.EventDispatcher));
     junyou.Scroller = Scroller;
     __reflect(Scroller.prototype, "junyou.Scroller");
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    var AbsPageList = (function (_super) {
+        __extends(AbsPageList, _super);
+        function AbsPageList() {
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this._list = [];
+            _this._selectedIndex = -1;
+            _this._dataLen = 0;
+            return _this;
+        }
+        Object.defineProperty(AbsPageList.prototype, "dataLen", {
+            /**
+             * 获取数据长度
+             *
+             * @readonly
+             */
+            get: function () {
+                return this._dataLen;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(AbsPageList.prototype, "data", {
+            /**
+             * 获取数据集
+             *
+             * @readonly
+             */
+            get: function () {
+                return this._data;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         * 渲染指定位置的render
+         *
+         * @ private
+         * @ param {number} start (起始索引)
+         * @ param {number} end (结束索引)
+         */
+        AbsPageList.prototype.doRender = function (start, end) {
+            var render;
+            var data = this._data;
+            end == undefined && (end = start);
+            for (var i = start; i <= end; i++) {
+                render = this._get(i);
+                if (!render) {
+                    continue;
+                }
+                if (render.inited === false) {
+                    if (typeof render.bindComponent === "function") {
+                        render.bindComponent();
+                    }
+                    render.inited = true;
+                }
+                var tmp = render.data;
+                if (!tmp || tmp != data[i] || render.dataChange) {
+                    render.data = data[i];
+                    if (typeof render.handleView === "function") {
+                        render.handleView();
+                    }
+                    if (render.dataChange) {
+                        render.dataChange = false;
+                    }
+                }
+            }
+        };
+        Object.defineProperty(AbsPageList.prototype, "selectedIndex", {
+            get: function () {
+                return this._selectedIndex;
+            },
+            set: function (value) {
+                if (this._selectedIndex == value && value >= 0)
+                    return;
+                if (value < 0) {
+                    if (this._selectedItem) {
+                        this._selectedItem.selected = false;
+                        this._selectedItem = undefined;
+                    }
+                    this._selectedIndex = value;
+                    return;
+                }
+                var render;
+                var renderList = this._list;
+                var len_1 = renderList.length - 1;
+                if (value > len_1) {
+                    value = len_1;
+                }
+                render = this._list[value];
+                this.changeRender(render, value);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         *
+         * 根据索引获得视图
+         * @param {number} idx
+         * @returns
+         */
+        AbsPageList.prototype.getItemAt = function (idx) {
+            idx = idx >>> 0;
+            return this._list[idx];
+        };
+        AbsPageList.prototype.selectItemByData = function (key, value, useTween) {
+            if (useTween === void 0) { useTween = false; }
+            var data = this._data;
+            var len = data.length;
+            for (var i = 0; i < len; i++) {
+                if (key in data[i]) {
+                    if (data[i][key] == value) {
+                        this.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+        };
+        /**
+         * 遍历列表
+         *
+         * @param {{(data:T,render:R,idx:number,...args)}} handle
+         * @param {any} otherParams
+         */
+        AbsPageList.prototype.forEach = function (handle) {
+            var otherParams = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                otherParams[_i - 1] = arguments[_i];
+            }
+            var datas = this._data;
+            var renders = this._list;
+            var len = this._dataLen;
+            for (var i = 0; i < len; i++) {
+                var data = datas[i];
+                var render = renders[i];
+                handle.apply(void 0, [data, render, i].concat(otherParams));
+            }
+        };
+        /**
+         * 找到第一个符合要求的render
+         *
+         * @param {{(data:T,render:R,idx:number,...args):boolean}} handle
+         * @param {any} otherParams
+         * @returns
+         */
+        AbsPageList.prototype.find = function (handle) {
+            var otherParams = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                otherParams[_i - 1] = arguments[_i];
+            }
+            var datas = this._data;
+            var renders = this._list;
+            var len = this._dataLen;
+            for (var i = 0; i < len; i++) {
+                var data = datas[i];
+                var render = renders[i];
+                if (handle.apply(void 0, [data, render, i].concat(otherParams))) {
+                    return render;
+                }
+            }
+        };
+        Object.defineProperty(AbsPageList.prototype, "selectedItem", {
+            get: function () {
+                return this._selectedItem;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         * 更新item数据
+         *
+         * @param {number} index (description)
+         * @param {*} data (description)
+         */
+        AbsPageList.prototype.updateByIdx = function (index, data) {
+            var item = this.getItemAt(index);
+            if (item) {
+                this._data[index] = data;
+                return true;
+            }
+        };
+        /**
+         * 根据key value获取item,将item的data重新赋值为data
+         *
+         * @param {string} key (description)
+         * @param {*} value (description)
+         * @param {T} data (description)
+         */
+        AbsPageList.prototype.updateByKey = function (key, value, data) {
+            var _this = this;
+            this.find(function (data, render, idx) {
+                if (data[key] == value) {
+                    _this.updateByIdx(idx, data);
+                    return true;
+                }
+            });
+        };
+        AbsPageList.prototype.onTouchItem = function (e) {
+            var render = e.target;
+            this.changeRender(render);
+        };
+        AbsPageList.prototype.changeRender = function (render, index) {
+            var old = this._selectedItem;
+            if (old != render) {
+                index == undefined && (index = this._list.indexOf(render));
+                if (old) {
+                    old.selected = false;
+                }
+                this._selectedItem = render;
+                this._selectedIndex = index;
+                render.selected = true;
+                this.onChange();
+                this.dispatch(-1052 /* ITEM_SELECTED */);
+            }
+        };
+        AbsPageList.prototype.getAllItems = function () {
+            return this._list;
+        };
+        Object.defineProperty(AbsPageList.prototype, "length", {
+            get: function () {
+                return this._list.length;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         * render进行切换
+         *
+         * @protected
+         */
+        AbsPageList.prototype.onChange = function () { };
+        return AbsPageList;
+    }(egret.EventDispatcher));
+    junyou.AbsPageList = AbsPageList;
+    __reflect(AbsPageList.prototype, "junyou.AbsPageList");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -15798,180 +15298,6 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
-     * 为已布局好的render提供List功能
-     *
-     * @export
-     * @class MPageList
-     * @extends {PageList}
-     */
-    var MPageList = (function (_super) {
-        __extends(MPageList, _super);
-        function MPageList() {
-            var _this = _super.call(this, null) || this;
-            _this._viewCount = 0;
-            return _this;
-        }
-        MPageList.prototype.displayList = function (data) {
-            this._selectedIndex = -1;
-            var dataLen = data && data.length || 0;
-            //如果新赋值的数据长度比以前的短，就自动清理掉多出来的item
-            var olen = Math.max(this._dataLen, this._viewCount);
-            while (olen > dataLen) {
-                var render = this.getItemAt(olen - 1);
-                if (render) {
-                    render.data = undefined;
-                    if (render.handleView) {
-                        render.handleView();
-                    }
-                }
-                olen--;
-            }
-            this._data = data;
-            this._dataLen = dataLen;
-            this.doRenderListItem(0, dataLen - 1);
-        };
-        MPageList.prototype.addItem = function (item, index) {
-            var list = this._list;
-            var idx = list.indexOf(item);
-            if (idx == -1) {
-                idx = list.length;
-                list[idx] = item;
-                item.on(-1001 /* ITEM_TOUCH_TAP */, this.touchItemrender, this);
-            }
-            item.index = index == undefined ? idx : index;
-            this._viewCount = list.length;
-        };
-        MPageList.prototype.clear = function () {
-            this._dataLen = 0;
-            this._data = undefined;
-            for (var _i = 0, _a = this._list; _i < _a.length; _i++) {
-                var render = _a[_i];
-                render.data = undefined;
-            }
-            this._selectedIndex = -1;
-            this._selectedItem = undefined;
-        };
-        MPageList.prototype.childSizeChange = function () { };
-        MPageList.prototype.reCalc = function () { };
-        return MPageList;
-    }(junyou.PageList));
-    junyou.MPageList = MPageList;
-    __reflect(MPageList.prototype, "junyou.MPageList");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    function getData(valueList, keyList, o) {
-        o = o || {};
-        for (var i = 0, len = keyList.length; i < len; i++) {
-            var key = keyList[i];
-            var v = valueList[i];
-            if (v != undefined) {
-                o[key] = valueList[i];
-            }
-        }
-        return o;
-    }
-    function copyData(to, valueList, keyList) {
-        for (var i = 0, len = keyList.length; i < len; i++) {
-            var key = keyList[i];
-            to[key] = valueList[i];
-        }
-    }
-    /**
-     *
-     * @author 君游项目解析工具
-     *
-     */
-    junyou.DataUtils = {
-        parseDatas: function (to, from, checkStart, checkEnd, dataKey, typeKey, toDatasKey) {
-            var arr;
-            for (var i = checkStart; i <= checkEnd; i++) {
-                var key = dataKey + i;
-                if (key in from) {
-                    if (!arr) {
-                        arr = [];
-                    }
-                    arr[i] = from[key];
-                }
-            }
-            if (!arr) {
-                if (typeKey in from) {
-                    arr = [];
-                    to[typeKey] = from[typeKey];
-                }
-            }
-            if (arr) {
-                to[toDatasKey] = arr;
-            }
-        },
-        parseDatas2: function (to, valueList, keyList, checkStart, checkEnd, dataKey, typeKey, toDatasKey) {
-            var arr;
-            for (var i = checkStart; i <= checkEnd; i++) {
-                var key = dataKey + i;
-                var idx = keyList.indexOf(key);
-                if (~idx) {
-                    if (!arr) {
-                        arr = [];
-                    }
-                    arr[i] = valueList[idx];
-                }
-            }
-            if (!arr) {
-                // 数据中有列表值
-                var idx = keyList.indexOf(typeKey);
-                if (~idx) {
-                    arr = [];
-                    to[typeKey] = valueList[idx];
-                }
-            }
-            if (arr) {
-                to[toDatasKey] = arr;
-            }
-        },
-        getData: getData,
-        getDataList: function (dataList, keyList) {
-            var list = [];
-            if (dataList) {
-                for (var i = 0, len = dataList.length; i < len; i++) {
-                    var valueList = dataList[i];
-                    list.push(getData(valueList, keyList));
-                }
-            }
-            return list;
-        },
-        parseDataList: function (dataList, keyList, forEach, thisObj) {
-            var args = [];
-            for (var _i = 4; _i < arguments.length; _i++) {
-                args[_i - 4] = arguments[_i];
-            }
-            if (dataList) {
-                for (var i = 0, len = dataList.length; i < len; i++) {
-                    var valueList = dataList[i];
-                    var to = getData(valueList, keyList);
-                    forEach.call(thisObj, to, args, i);
-                }
-            }
-        },
-        copyData: copyData,
-        copyDataList: function (creator, dataList, keyList, forEach, thisObj) {
-            var args = [];
-            for (var _i = 5; _i < arguments.length; _i++) {
-                args[_i - 5] = arguments[_i];
-            }
-            if (dataList) {
-                for (var i = 0, len = dataList.length; i < len; i++) {
-                    var valueList = dataList[i];
-                    var to = new creator();
-                    copyData(to, valueList, keyList);
-                    forEach.call(thisObj, to, args, i);
-                }
-            }
-        },
-    };
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
      * 翻页，一次手势翻一页
      *
      * @export
@@ -16142,6 +15468,117 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
+    function getData(valueList, keyList, o) {
+        o = o || {};
+        for (var i = 0, len = keyList.length; i < len; i++) {
+            var key = keyList[i];
+            var v = valueList[i];
+            if (v != undefined) {
+                o[key] = valueList[i];
+            }
+        }
+        return o;
+    }
+    function copyData(to, valueList, keyList) {
+        for (var i = 0, len = keyList.length; i < len; i++) {
+            var key = keyList[i];
+            to[key] = valueList[i];
+        }
+    }
+    /**
+     *
+     * @author 君游项目解析工具
+     *
+     */
+    junyou.DataUtils = {
+        parseDatas: function (to, from, checkStart, checkEnd, dataKey, typeKey, toDatasKey) {
+            var arr;
+            for (var i = checkStart; i <= checkEnd; i++) {
+                var key = dataKey + i;
+                if (key in from) {
+                    if (!arr) {
+                        arr = [];
+                    }
+                    arr[i] = from[key];
+                }
+            }
+            if (!arr) {
+                if (typeKey in from) {
+                    arr = [];
+                    to[typeKey] = from[typeKey];
+                }
+            }
+            if (arr) {
+                to[toDatasKey] = arr;
+            }
+        },
+        parseDatas2: function (to, valueList, keyList, checkStart, checkEnd, dataKey, typeKey, toDatasKey) {
+            var arr;
+            for (var i = checkStart; i <= checkEnd; i++) {
+                var key = dataKey + i;
+                var idx = keyList.indexOf(key);
+                if (~idx) {
+                    if (!arr) {
+                        arr = [];
+                    }
+                    arr[i] = valueList[idx];
+                }
+            }
+            if (!arr) {
+                // 数据中有列表值
+                var idx = keyList.indexOf(typeKey);
+                if (~idx) {
+                    arr = [];
+                    to[typeKey] = valueList[idx];
+                }
+            }
+            if (arr) {
+                to[toDatasKey] = arr;
+            }
+        },
+        getData: getData,
+        getDataList: function (dataList, keyList) {
+            var list = [];
+            if (dataList) {
+                for (var i = 0, len = dataList.length; i < len; i++) {
+                    var valueList = dataList[i];
+                    list.push(getData(valueList, keyList));
+                }
+            }
+            return list;
+        },
+        parseDataList: function (dataList, keyList, forEach, thisObj) {
+            var args = [];
+            for (var _i = 4; _i < arguments.length; _i++) {
+                args[_i - 4] = arguments[_i];
+            }
+            if (dataList) {
+                for (var i = 0, len = dataList.length; i < len; i++) {
+                    var valueList = dataList[i];
+                    var to = getData(valueList, keyList);
+                    forEach.call(thisObj, to, args, i);
+                }
+            }
+        },
+        copyData: copyData,
+        copyDataList: function (creator, dataList, keyList, forEach, thisObj) {
+            var args = [];
+            for (var _i = 5; _i < arguments.length; _i++) {
+                args[_i - 5] = arguments[_i];
+            }
+            if (dataList) {
+                for (var i = 0, len = dataList.length; i < len; i++) {
+                    var valueList = dataList[i];
+                    var to = new creator();
+                    copyData(to, valueList, keyList);
+                    forEach.call(thisObj, to, args, i);
+                }
+            }
+        },
+    };
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
     function getZuobiao(data) {
         return { x: data[0], y: data[1] };
     }
@@ -16206,6 +15643,741 @@ var junyou;
             }
         }
         return keyCount;
+    };
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 为已布局好的render提供List功能
+     *
+     * @export
+     * @class MPageList
+     * @extends {PageList}
+     */
+    var MPageList = (function (_super) {
+        __extends(MPageList, _super);
+        function MPageList() {
+            var _this = _super.call(this, null) || this;
+            _this._viewCount = 0;
+            return _this;
+        }
+        MPageList.prototype.displayList = function (data) {
+            this._selectedIndex = -1;
+            var dataLen = data && data.length || 0;
+            //如果新赋值的数据长度比以前的短，就自动清理掉多出来的item
+            var olen = Math.max(this._dataLen, this._viewCount);
+            while (olen > dataLen) {
+                var render = this.getItemAt(olen - 1);
+                if (render) {
+                    render.data = undefined;
+                    if (render.handleView) {
+                        render.handleView();
+                    }
+                }
+                olen--;
+            }
+            this._data = data;
+            this._dataLen = dataLen;
+            this.doRender(0, dataLen - 1);
+        };
+        MPageList.prototype.addItem = function (item, index) {
+            var list = this._list;
+            var idx = list.indexOf(item);
+            if (idx == -1) {
+                idx = list.length;
+                list[idx] = item;
+                item.on(-1001 /* ITEM_TOUCH_TAP */, this.onTouchItem, this);
+            }
+            item.index = index == undefined ? idx : index;
+            this._viewCount = list.length;
+        };
+        MPageList.prototype._get = function (index) {
+            var list = this._list;
+            var render = list[index];
+            if (render) {
+                render.index = index;
+                return render;
+            }
+        };
+        MPageList.prototype.clear = function () {
+            this._dataLen = 0;
+            this._data = undefined;
+            for (var _i = 0, _a = this._list; _i < _a.length; _i++) {
+                var render = _a[_i];
+                render.data = undefined;
+            }
+            this._selectedIndex = -1;
+            this._selectedItem = undefined;
+        };
+        MPageList.prototype.dispose = function () {
+            for (var _i = 0, _a = this._list; _i < _a.length; _i++) {
+                var render = _a[_i];
+                render.off("touchTap" /* TOUCH_TAP */, this.onTouchItem, this);
+            }
+            this.clear();
+        };
+        return MPageList;
+    }(junyou.AbsPageList));
+    junyou.MPageList = MPageList;
+    __reflect(MPageList.prototype, "junyou.MPageList");
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    var PageList = (function (_super) {
+        __extends(PageList, _super);
+        /**
+         * Creates an instance of PageList.
+         * @param {ClassFactory<R> | Creator<R>} renderfactory
+         * @param {PageListOption} [option]
+         */
+        function PageList(renderfactory, option) {
+            var _this = _super.call(this) || this;
+            _this._sizeChanged = false;
+            _this.scroller = null; //站位用，便于对Scroller的绑定
+            _this._waitForSetIndex = false;
+            _this.renderChange = false;
+            if (!(renderfactory instanceof junyou.ClassFactory)) {
+                renderfactory = new junyou.ClassFactory(renderfactory);
+            }
+            _this._factory = renderfactory;
+            _this.init(option);
+            return _this;
+        }
+        Object.defineProperty(PageList.prototype, "container", {
+            /**
+             * 容器
+             *
+             * @readonly
+             */
+            get: function () {
+                return this._con;
+            },
+            set: function (con) {
+                if (!con) {
+                    true && junyou.ThrowError("\u5BB9\u5668\u4E0D\u5141\u8BB8\u8BBE\u7F6E\u7A7A\u503C");
+                    return;
+                }
+                var old = this._con;
+                if (old != con) {
+                    if (old) {
+                        delete old.$_page;
+                        delete old.scrollRect;
+                    }
+                    this._con = con;
+                    con.$_page = this;
+                    Object.defineProperty(con, "scrollRect", define);
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        PageList.prototype.init = function (option) {
+            option = option || junyou.Temp.EmptyObject;
+            var hgap = option.hgap, vgap = option.vgap, type = option.type, itemWidth = option.itemWidth, itemHeight = option.itemHeight, columnCount = option.columnCount, staticSize = option.staticSize;
+            this.staticSize = staticSize;
+            columnCount = ~~columnCount;
+            if (columnCount < 1) {
+                columnCount = 1;
+            }
+            this._columncount = columnCount;
+            this._hgap = ~~hgap;
+            this._vgap = ~~vgap;
+            this.itemWidth = itemWidth;
+            this.itemHeight = itemHeight;
+            this._scrollType = ~~type;
+            this.container = option.con || new egret.Sprite();
+        };
+        PageList.prototype.displayList = function (data) {
+            this._selectedIndex = -1;
+            if (this._data != data) {
+                this.rawDataChanged = true;
+            }
+            var nlen = data ? data.length : 0;
+            if (this._data) {
+                //如果新赋值的数据长度比以前的短，就自动清理掉多出来的item
+                var list = this._list;
+                var llen = list.length;
+                if (nlen < llen) {
+                    for (var i = nlen; i < list.length; i++) {
+                        var render = list[i];
+                        this._removeRender(render);
+                    }
+                    list.length = nlen;
+                }
+            }
+            this._data = data;
+            this._lastRect = undefined;
+            if (!nlen) {
+                this.dispose();
+                this._dataLen = 0;
+                this.rawDataChanged = false;
+                return;
+            }
+            this._dataLen = nlen;
+            this.initItems();
+            if (this.scroller) {
+                this.scroller.scrollToHead();
+            }
+            this.rawDataChanged = false;
+        };
+        Object.defineProperty(PageList.prototype, "data", {
+            get: function () {
+                return this._data;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         * 根据index使某renderer显示生效
+         *
+         * @param {number}  idx
+         * @param {boolean} [force]     是否强制执行setData和handleView
+         * @memberOf PageList
+         */
+        PageList.prototype.validateItemByIdx = function (idx, force) {
+            var renderer = this._get(idx);
+            if (force || renderer.view.stage) {
+                renderer.data = this._data[idx];
+                if (typeof renderer.handleView === "function") {
+                    renderer.handleView();
+                }
+                if (renderer.dataChange) {
+                    renderer.dataChange = false;
+                }
+            }
+        };
+        /**
+         * 使所有renderer显示生效
+         *
+         *
+         * @memberOf PageList
+         */
+        PageList.prototype.validateAll = function () {
+            if (this._data) {
+                var len = this._data.length;
+                for (var i = 0; i < len; i++) {
+                    this.validateItemByIdx(i);
+                }
+            }
+        };
+        /**
+         * 初始化render占据array，不做任何初始化容器操作
+         *
+         * @private
+         */
+        PageList.prototype.initItems = function () {
+            var len = this._data.length;
+            this.doRender(0, len - 1);
+            this._sizeChanged = true;
+            this.reCalc();
+            this.checkViewRect();
+        };
+        PageList.prototype.onChange = function () {
+            if (!this.itemWidth || !this.itemHeight) {
+                this._sizeChanged = true;
+                this.reCalc();
+            }
+        };
+        PageList.prototype._get = function (index) {
+            var list = this._list;
+            var render = list[index];
+            if (!render) {
+                render = this._factory.get();
+                list[index] = render;
+                render.on(-1999 /* Resize */, this.onSizeChange, this);
+                render.on(-1001 /* ITEM_TOUCH_TAP */, this.onTouchItem, this);
+            }
+            render.index = index;
+            return render;
+        };
+        PageList.prototype.onSizeChange = function () {
+            if (!this._sizeChanged) {
+                this._sizeChanged = true;
+                this.once("enterFrame" /* ENTER_FRAME */, this.reCalc, this);
+            }
+        };
+        /**
+         * 重新计算Render的坐标
+         *
+         * @private
+         * @param {number} [start]
+         * @param {number} [end]
+         * @returns
+         */
+        PageList.prototype.reCalc = function () {
+            if (!this._sizeChanged) {
+                return;
+            }
+            this._sizeChanged = false;
+            var renderList = this._list;
+            var len = renderList.length;
+            var end = len - 1;
+            // let lastrender: R;
+            //得到单行/单列最大索引数
+            var _a = this, itemWidth = _a.itemWidth, itemHeight = _a.itemHeight, _columncount = _a._columncount, _hgap = _a._hgap, _vgap = _a._vgap, staticSize = _a.staticSize;
+            var rowCount = len / _columncount;
+            var oy = 0, ox = 0;
+            var maxWidth = 0, maxHeight = 0;
+            var i = 0;
+            for (var r = 0; r <= rowCount; r++) {
+                //单行的最大高度
+                var lineMaxHeight = 0;
+                for (var c = 0; c < _columncount; c++) {
+                    if (i > end) {
+                        break;
+                    }
+                    var render = renderList[i++];
+                    var v = render.view;
+                    var w = 0;
+                    if (v) {
+                        var size = v;
+                        if (staticSize) {
+                            var rect = v.suiRawRect;
+                            if (rect) {
+                                size = rect;
+                            }
+                        }
+                        w = size.width;
+                        var vh = size.height;
+                        v.x = ox;
+                        v.y = oy;
+                        var rright = v.x + w;
+                        if (maxWidth < rright) {
+                            maxWidth = rright;
+                        }
+                        if (lineMaxHeight < vh) {
+                            lineMaxHeight = vh;
+                        }
+                    }
+                    ox += _hgap + (itemWidth || w);
+                }
+                var mh = oy + lineMaxHeight;
+                if (maxHeight < mh) {
+                    maxHeight = mh;
+                }
+                if (i > end) {
+                    break;
+                }
+                ox = 0;
+                //偏移量，优先使用itemHeight
+                oy += _vgap + (itemHeight || lineMaxHeight);
+            }
+            if (maxWidth != this._w || maxHeight != this._h) {
+                this._w = maxWidth;
+                this._h = maxHeight;
+                var g = this._con.graphics;
+                g.clear();
+                g.beginFill(0, 0);
+                g.drawRect(0, 0, maxWidth, maxHeight);
+                g.endFill();
+                this.dispatch(-1999 /* Resize */);
+            }
+        };
+        Object.defineProperty(PageList.prototype, "selectedIndex", {
+            get: function () {
+                return this._selectedIndex;
+            },
+            set: function (value) {
+                if (this._selectedIndex == value && value >= 0)
+                    return;
+                if (value < 0) {
+                    if (this._selectedItem) {
+                        this._selectedItem.selected = false;
+                        this._selectedItem = undefined;
+                    }
+                    this._selectedIndex = value;
+                    return;
+                }
+                this._waitIndex = value;
+                if (!this._data) {
+                    this._waitForSetIndex = true;
+                    return;
+                }
+                var render;
+                var renderList = this._list;
+                var len_1 = renderList.length - 1;
+                if (value > len_1) {
+                    value = len_1;
+                }
+                render = this._list[value];
+                this.changeRender(render, value);
+                var view = render.view;
+                if (view && view.stage) {
+                    this._waitForSetIndex = false;
+                    this.moveScroll(render);
+                }
+                else {
+                    this._waitForSetIndex = true;
+                }
+                if (this._waitForSetIndex) {
+                    this.moveScroll(render);
+                    //假如列表里有30个项，选中第20个，所以前20个都没有渲染，这边自己设置的rect，并不能引发scroller抛CHANGE事件
+                    //所以自己抛一下
+                    //如果已经渲染过，可不用抛
+                    // this.dispatchEventWith(EventConst.SCROLL_POSITION_CHANGE);
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        PageList.prototype.moveScroll = function (render) {
+            var con = this._con;
+            var rect = con.scrollRect;
+            if (!rect)
+                return;
+            var v = render.view;
+            if (!v) {
+                if (true) {
+                    junyou.ThrowError("render[" + egret.getQualifiedClassName(render) + "]\u6CA1\u6709renderView");
+                }
+                return;
+            }
+            var oldPos, endPos, max;
+            if (this._scrollType == 0 /* Vertical */) {
+                oldPos = rect.y;
+                endPos = v.y;
+                max = this._h - v.height;
+            }
+            else {
+                oldPos = rect.x;
+                endPos = v.x;
+                max = this._w - v.width;
+            }
+            if (endPos > max) {
+                endPos = max;
+            }
+            if (rect) {
+                if (this._scrollType == 0 /* Vertical */) {
+                    endPos = endPos - rect.height;
+                }
+                else {
+                    endPos = endPos - rect.width;
+                }
+                if (endPos < 0) {
+                    endPos = 0;
+                }
+            }
+            var scroller = this.scroller;
+            if (scroller) {
+                scroller.stopTouchTween();
+            }
+            if (this.useTweenIndex) {
+                var tween = junyou.Global.getTween(this, null, null, true);
+                var result = this._scrollType == 1 /* Horizon */ ? { tweenX: endPos } : { tweenY: endPos };
+                tween.to(result, 500, junyou.Ease.quadOut);
+                if (scroller) {
+                    scroller.showBar();
+                    tween.call(scroller.hideBar, scroller);
+                }
+            }
+            else {
+                if (scroller) {
+                    scroller.doMoveScrollBar(oldPos - endPos);
+                }
+                if (this._scrollType == 0 /* Vertical */) {
+                    rect.y = endPos;
+                }
+                else {
+                    rect.x = endPos;
+                }
+                con.scrollRect = rect;
+            }
+        };
+        Object.defineProperty(PageList.prototype, "tweenX", {
+            get: function () {
+                var rect = this._con.scrollRect;
+                return rect ? rect.x : 0;
+            },
+            set: function (value) {
+                var con = this._con;
+                var rect = con.scrollRect || new egret.Rectangle(NaN);
+                if (value != rect.x) {
+                    var delta = value - rect.x;
+                    rect.x = value;
+                    var scroller = this.scroller;
+                    if (scroller) {
+                        scroller.doMoveScrollBar(delta);
+                    }
+                    con.scrollRect = rect;
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(PageList.prototype, "tweenY", {
+            get: function () {
+                var rect = this._con.scrollRect;
+                return rect ? rect.y : 0;
+            },
+            set: function (value) {
+                var con = this._con;
+                var rect = con.scrollRect || new egret.Rectangle(0, NaN);
+                if (value != rect.y) {
+                    var delta = value - rect.y;
+                    rect.y = value;
+                    var scroller = this.scroller;
+                    if (scroller) {
+                        scroller.doMoveScrollBar(delta);
+                    }
+                    con.scrollRect = rect;
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         * 滚动到指定index
+         */
+        PageList.prototype.tweenToIndex = function (index) {
+            this.useTweenIndex = true;
+            this.selectedIndex = index;
+        };
+        PageList.prototype.selectItemByData = function (key, value, useTween) {
+            if (useTween === void 0) { useTween = false; }
+            var data = this._data;
+            var len = data.length;
+            for (var i = 0; i < len; i++) {
+                if (key in data[i]) {
+                    if (data[i][key] == value) {
+                        if (useTween) {
+                            this.tweenToIndex(i);
+                        }
+                        else {
+                            this.selectedIndex = i;
+                        }
+                        break;
+                    }
+                }
+            }
+        };
+        Object.defineProperty(PageList.prototype, "selectedItem", {
+            get: function () {
+                return this._selectedItem;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         * 更新item数据
+         *
+         * @param {number} index (description)
+         * @param {*} data (description)
+         */
+        PageList.prototype.updateByIdx = function (index, data) {
+            if (_super.prototype.updateByIdx.call(this, index, data)) {
+                if (index >= this._showStart && index <= this._showEnd) {
+                    this.doRender(index);
+                }
+                return true;
+            }
+        };
+        PageList.prototype.removeAt = function (idx) {
+            idx = idx >>> 0;
+            var list = this._list;
+            if (idx < list.length) {
+                var item = list[idx];
+                list.splice(idx, 1);
+                this._data.splice(idx, 1);
+                this._removeRender(item);
+            }
+        };
+        PageList.prototype.removeItem = function (item) {
+            var index = this._list.indexOf(item);
+            if (index != -1) {
+                this.removeAt(index);
+            }
+        };
+        PageList.prototype._removeRender = function (item) {
+            item.data = undefined;
+            junyou.removeDisplay(item.view);
+            item.off(-1999 /* Resize */, this.onSizeChange, this);
+            item.off(-1001 /* ITEM_TOUCH_TAP */, this.onTouchItem, this);
+            item.dispose();
+            if (!this.renderChange) {
+                this.renderChange = true;
+                this.once("enterFrame" /* ENTER_FRAME */, this.refreshByRemoveItem, this);
+            }
+        };
+        PageList.prototype.refreshByRemoveItem = function () {
+            if (!this.renderChange) {
+                return;
+            }
+            this.renderChange = false;
+            this._sizeChanged = true;
+            this.reCalc();
+            this.checkViewRect();
+        };
+        /**
+         * 销毁
+         *
+         */
+        PageList.prototype.dispose = function () {
+            this.clear();
+        };
+        /**
+         * 清理
+         *
+         */
+        PageList.prototype.clear = function () {
+            this._con.graphics.clear();
+            this._selectedIndex = -1;
+            this._data = undefined;
+            var list = this._list;
+            for (var i = 0; i < list.length; i++) {
+                this._removeRender(list[i]);
+            }
+            list.length = 0;
+            this._selectedItem = undefined;
+            this._waitForSetIndex = false;
+            this._waitIndex = -1;
+        };
+        PageList.prototype.checkViewRect = function () {
+            var _con = this._con;
+            var rect = _con.scrollRect;
+            var list = this._list;
+            var len = list.length;
+            var len_1 = len - 1;
+            if (!rect) {
+                // 应该为全部添加到舞台
+                for (var i = 0; i < len; i++) {
+                    var render = list[i];
+                    var v = render.view;
+                    if (v) {
+                        _con.addChild(v);
+                    }
+                }
+                this._showStart = 0;
+                this._showEnd = len - 1;
+                return;
+            }
+            //设置rect时，检查哪些Render应该在舞台上
+            var lastRect = this._lastRect;
+            var checkStart, inc;
+            if (lastRect) {
+                //检查滚动方向
+                var key1 = "x", key2 = "width";
+                if (this._scrollType == 0 /* Vertical */) {
+                    key1 = "y";
+                    key2 = "height";
+                }
+                var delta = rect[key1] - lastRect[key1];
+                if (delta == 0 && rect[key2] == lastRect[key2]) {
+                    if (!this.rawDataChanged) {
+                        return;
+                    }
+                }
+                var showStart = this._showStart;
+                var showEnd = this._showEnd;
+                //先全部从舞台移除
+                for (var i = showStart; i <= showEnd; i++) {
+                    var render = list[i];
+                    if (render) {
+                        junyou.removeDisplay(render.view);
+                    }
+                }
+                if (delta > 0) {
+                    checkStart = showStart;
+                    inc = true;
+                }
+                else {
+                    checkStart = showEnd;
+                    inc = false;
+                }
+                lastRect[key1] = rect[key1];
+                lastRect[key2] = rect[key2];
+            }
+            else {
+                if (!len) {
+                    return;
+                }
+                lastRect = rect.clone();
+                this._lastRect = lastRect;
+                checkStart = 0;
+                inc = true;
+            }
+            var first, last, fIdx, lIdx;
+            var tmp = junyou.Temp.SharedArray3;
+            tmp.length = 0;
+            if (inc) {
+                fIdx = 0;
+                lIdx = len_1;
+                /**
+                 *
+                 *
+                 *   ├────────┤
+                 *   │render0 │                         以前和scrollRect相交的render0，现在不再相交，从舞台移除
+                 *  ┌├────────┤┐───
+                 *  ││render1 ││ ↑ scrollRect           以前和scrollRect相交的render1，现在还相交
+                 *  │├────────┤│ ↓
+                 *  └│render2 │┘───                     以前不和scrollRect相交的render2，现在相交
+                 *   ├────────┤
+                 *
+                 *  需要从起始点开始找，找到第一个和当前rect相交的render
+                 *  直到找到最后一个和rect相交的render，再往后则无需检测
+                 */
+                for (var i = checkStart; i < len; i++) {
+                    if (check(i)) {
+                        break;
+                    }
+                }
+                for (var i = 0, tlen = tmp.length; i < tlen; i++) {
+                    var v = tmp[i];
+                    _con.addChild(v);
+                }
+                this._showStart = fIdx;
+                this._showEnd = lIdx;
+            }
+            else {
+                fIdx = len_1;
+                lIdx = 0;
+                for (var i = checkStart; i >= 0; i--) {
+                    if (check(i)) {
+                        break;
+                    }
+                }
+                for (var i = tmp.length - 1; i >= 0; i--) {
+                    var v = tmp[i];
+                    _con.addChild(v);
+                }
+                this._showStart = lIdx;
+                this._showEnd = fIdx;
+            }
+            tmp.length = 0;
+            return;
+            function check(i) {
+                var render = list[i];
+                var v = render.view;
+                if (v) {
+                    if (junyou.intersects(v, rect)) {
+                        if (!first) {
+                            first = render;
+                            fIdx = i;
+                        }
+                        tmp.push(v);
+                    }
+                    else {
+                        if (first) {
+                            last = render;
+                            lIdx = i;
+                            return true;
+                        }
+                    }
+                }
+            }
+        };
+        return PageList;
+    }(junyou.AbsPageList));
+    junyou.PageList = PageList;
+    __reflect(PageList.prototype, "junyou.PageList");
+    var define = {
+        set: function (rect) {
+            egret.Sprite.prototype.$setScrollRect.call(this, rect);
+            this.$_page.checkViewRect();
+        },
+        get: function () {
+            return this.$scrollRect;
+        },
+        configurable: true
     };
 })(junyou || (junyou = {}));
 var junyou;
