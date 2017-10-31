@@ -200,6 +200,9 @@ module junyou {
                 }
                 break;
             case JSONHeadType.Bool:
+                if (value == undefined) {
+                    value = def;
+                }
                 value = !!value;
                 break;
             case JSONHeadType.Array:
