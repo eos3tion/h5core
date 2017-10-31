@@ -83,14 +83,16 @@ module junyou {
                 let renderedTime = this.renderedTime;
                 let delta = now - nextRenderTime;
                 if (delta > 2000) {//被暂停过程时间，直接执行会导致循环次数过多，舍弃结果
+                    if (nextRenderTime != 0) {
+                        if (DEBUG) {
+                            console.log(`Render上次执行时间和当前时间差值过长[${delta}]，可以执行[${delta / actionInfo.totalTime}次总序列]`);
+                        }
+                        if (BaseRender.dispatchSlowRender) {
+                            Global.callLater(BaseRender.onSlowRender);
+                        }
+                    }
                     nextRenderTime = now;
                     renderedTime = now;
-                    if (DEBUG) {
-                        console.log(`Render上次执行时间和当前时间差值过长[${delta}]，可以执行[${delta / actionInfo.totalTime}次总序列]`);
-                    }
-                    if (BaseRender.dispatchSlowRender) {
-                        Global.callLater(BaseRender.onSlowRender);
-                    }
                 }
                 let frames = actionInfo.frames;
                 //当前帧
@@ -167,7 +169,7 @@ module junyou {
             if (this.willRenderFrame) {
                 this.clearRes();
                 this.renderFrame(this.willRenderFrame, now);
-            }           
+            }
         }
 
 
