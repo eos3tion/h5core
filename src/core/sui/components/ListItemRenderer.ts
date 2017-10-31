@@ -1,4 +1,9 @@
 module junyou {
+
+    export interface ListItemRenderSkin extends egret.DisplayObject {
+        $_rndIdx?: number;
+    }
+
     export interface ListItemRender<T> extends egret.EventDispatcher {
 
         handleView(): void;
@@ -51,12 +56,22 @@ module junyou {
         index?: number;
     }
 
-    export interface ListItemRenderer<T, S extends egret.DisplayObject> extends ViewController {
+    export interface ListItemRenderer<T, S extends ListItemRenderSkin> extends ViewController {
     }
 
-    export class ListItemRenderer<T, S extends egret.DisplayObject> extends egret.EventDispatcher implements ListItemRender<T>, SelectableComponents {
+    export class ListItemRenderer<T, S extends ListItemRenderSkin> extends egret.EventDispatcher implements ListItemRender<T>, SelectableComponents {
 
-        public index: number;
+        private _idx: number;
+        public get index(): number {
+            return this._idx;
+        }
+        public set index(value: number) {
+            this._idx = value;
+            let v = this._skin;
+            if (v) {
+                v.$_rndIdx = value;
+            }
+        }
 
         protected _data: T;
 
@@ -185,9 +200,14 @@ module junyou {
         }
 
         protected $setSkin(value: S) {
-            //移除之前的事件监听
-            this.removeSkinListener(this._skin);
+            let old = this._skin;
+            if (old) {
+                old.$_rndIdx = undefined;//置空
+                //移除之前的事件监听
+                this.removeSkinListener(old);
+            }
             this._skin = value;
+            value.$_rndIdx = this._idx;
             this.$setVisible(value.visible);
             value.touchEnabled = true;
             this.addSkinListener(this._skin);
