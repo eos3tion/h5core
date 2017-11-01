@@ -43,21 +43,40 @@ module junyou {
 
         protected _useScrollBar: boolean;
 
-        protected _deriction = 1;
 
         protected _moveSpeed = 0;
 
         protected _lastFrameTime: number;
 
+        protected _deriction = ScrollDirection.Vertical;
+        protected _key: PosKey = "y";
+        protected _sizeKey: SizeKey = "height";
+
         public constructor() {
             super();
         }
-        /**滚动条方式 0：垂直，1：水平 defalut:0*/
+        /**
+         * 滚动条方式 0：垂直，1：水平 defalut:0
+         */
         public set scrollType(value: ScrollDirection) {
-            this._scrollType = value;
-            this.checkScrollBarView();
+            if (this._scrollType != value) {
+                this._scrollType = value;
+                let key: PosKey, sizeKey: SizeKey;
+                if (value == ScrollDirection.Vertical) {
+                    key = "y";
+                    sizeKey = "height";
+                } else {
+                    key = "x";
+                    sizeKey = "width";
+                }
+                this._sizeKey = sizeKey;
+                this._key = key;
+                this.checkScrollBarView();
+            }
         }
-        /**滚动条方式 0：垂直，1：水平 defalut:0*/
+        /**
+         * 滚动条方式 0：垂直，1：水平 defalut:0
+         */
         public get scrollType() {
             return this._scrollType;
         }
@@ -71,17 +90,11 @@ module junyou {
             if (!scrollbar) {
                 return;
             }
-            let scrollType = this._scrollType;
-            scrollbar.scrollType = scrollType;
+            let { _key, _sizeKey, _scrollType } = this;
+            scrollbar.scrollType = _scrollType;
             let rect = content.scrollRect;
-            if (scrollType == ScrollDirection.Vertical) {
-                scrollbar.bgSize = rect.height;
-                scrollbar.y = content.y;
-            } else {
-                scrollbar.bgSize = rect.width;
-                scrollbar.x = content.x;
-            }
-
+            scrollbar.bgSize = rect[_sizeKey];
+            scrollbar[_key] = content[_key];
         }
 
         protected onScrollBarAdded() {
@@ -305,33 +318,24 @@ module junyou {
                 return;
             }
             let rect = content.scrollRect;
-            let oldx = rect.x;
-            let oldy = rect.y;
+            let key = this._key;
+            let old = rect[key];
+            let pos = old;
             let scrollEnd = this.scrollEndPos;
-            if (this._scrollType == ScrollDirection.Vertical) {
-                rect.y -= sub;
-                if (rect.y <= 0) {
-                    rect.y = 0;
-                    this._moveSpeed = 0;
-                }
-                if (rect.y >= scrollEnd) {
-                    rect.y = scrollEnd;
-                    this._moveSpeed = 0;
-                }
+            pos -= sub;
+            let speed = this._moveSpeed;
+            if (pos < 0) {
+                pos = 0;
+                speed = 0;
+            } else if (pos > scrollEnd) {
+                pos = scrollEnd;
+                speed = 0;
             }
-            else {
-                rect.x -= sub;
-                if (rect.x <= 0) {
-                    rect.x = 0;
-                    this._moveSpeed = 0;
-                }
-                if (rect.x >= scrollEnd) {
-                    rect.x = scrollEnd;
-                    this._moveSpeed = 0;
-                }
-            }
-            content.scrollRect = rect;
-            if (oldx != rect.x || oldy != rect.y) {
+            this._moveSpeed = speed;
+
+            if (old != pos) {
+                rect[key] = pos;
+                content.scrollRect = rect;
                 content.dispatch(EventConst.SCROLL_POSITION_CHANGE);
             }
             this.doMoveScrollBar(sub);
@@ -343,16 +347,9 @@ module junyou {
                 return;
             }
             let bar = scrollbar.bar;
-
-            let barPos: number;
-            let subPos: number = sub / this._piexlDistance;
-            let flag = this._scrollType == ScrollDirection.Vertical;
-            if (flag) {
-                barPos = bar.y;
-            } else {
-                barPos = bar.x;
-            }
-            barPos = barPos - subPos;
+            let subPos = sub / this._piexlDistance;
+            let key = this._key;
+            let barPos = bar[key] - subPos;
             if (barPos <= 0) {
                 barPos = 0;
             } else {
@@ -361,11 +358,7 @@ module junyou {
                     barPos = delta;
                 }
             }
-            if (flag) {
-                bar.y = barPos;
-            } else {
-                bar.x = barPos;
-            }
+            bar[key] = barPos;
         }
 
         /**
@@ -378,18 +371,10 @@ module junyou {
                 this.scrollToHead();
             } else if (pos >= this.scrollEndPos) {
                 this.scrollToEnd();
-            }
-            else {
-                let rect = this._content.scrollRect;
-                let curpos: number;
-                if (this._scrollType == ScrollDirection.Vertical) {
-                    curpos = rect.y;
-                } else {
-                    curpos = rect.x;
-                }
+            } else {
+                let curpos = this._content.scrollRect[this._key];
                 this.doScrollContent(pos - curpos);
             }
-
         }
 
         /**移动至头 */
@@ -400,7 +385,7 @@ module junyou {
             }
             if (this._moveSpeed > 0) {
                 this._moveSpeed = 0;
-                this._content.off(EgretEvent.ENTER_FRAME, this.onEnterFrame, this);
+                content.off(EgretEvent.ENTER_FRAME, this.onEnterFrame, this);
             }
 
             let rect = content.scrollRect;
@@ -409,16 +394,10 @@ module junyou {
             if (scrollbar) {
                 bar = scrollbar.bar;
             }
-            if (this._scrollType == ScrollDirection.Vertical) {
-                rect.y = 0;
-                if (bar) {
-                    bar.y = 0;
-                }
-            } else {
-                rect.x = 0;
-                if (bar) {
-                    bar.x = 0;
-                }
+            let key = this._key;
+            rect[key] = 0;
+            if (bar) {
+                bar[key] = 0;
             }
             content.scrollRect = rect;
         }
@@ -436,17 +415,10 @@ module junyou {
                 delta = scrollbar.bgSize - scrollbar.barSize;
                 bar = scrollbar.bar;
             }
-            if (this._scrollType == ScrollDirection.Vertical) {
-                rect.y = end;
-                if (bar) {
-                    bar.y = delta;
-                }
-            }
-            else {
-                rect.x = end;
-                if (bar) {
-                    bar.x = delta;
-                }
+            let key = this._key;
+            rect[key] = end;
+            if (bar) {
+                bar[key] = delta;
             }
             content.scrollRect = rect;
         }
@@ -503,23 +475,14 @@ module junyou {
             let scrollbar = this._scrollbar;
             let bar = scrollbar.bar;
             let scrollEnd = this.scrollEndPos;
-            if (this._scrollType == ScrollDirection.Vertical) {
-                let tmp = rect.y / scrollEnd;
-                if (tmp <= 0) {
-                    bar.y = 0;
-                } else {
-                    bar.y = scrollbar.bgSize * tmp - scrollbar.barSize;
-                }
-
+            let key = this._key;
+            let tmp = rect[key] / scrollEnd;
+            if (tmp <= 0) {
+                tmp = 0;
+            } else {
+                tmp = scrollbar.bgSize * tmp - scrollbar.barSize;
             }
-            else {
-                let tmp = rect.x / scrollEnd;
-                if (tmp <= 0) {
-                    bar.x = 0;
-                } else {
-                    bar.x = scrollbar.bgSize * tmp - scrollbar.barSize;
-                }
-            }
+            bar[key] = tmp;
         }
     }
 }
