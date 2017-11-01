@@ -221,6 +221,41 @@ module junyou {
         }
 
         /**
+         * 让所有在舞台上的render重新刷新一次数据
+         * 
+         * 
+         * @memberOf PageList
+         */
+        public refresh() {
+            let data = this._data;
+            if (data) {
+                let len = data.length;
+                for (let i = 0; i < len; i++) {
+                    this.refreshAt(i);
+                }
+            }
+        }
+        /**
+         * 根据index使某个在舞台上的render刷新
+         * 
+         * @param {number}  idx
+         * @param {boolean} [force]     是否强制执行setData和handleView 
+         * @memberOf PageList
+         */
+        public refreshAt(idx: number, force?: boolean) {
+            let renderer = this._get(idx);
+            if (force || renderer.view.stage) {
+                renderer.data = this._data[idx];
+                if (typeof renderer.handleView === "function") {
+                    renderer.handleView();
+                }
+                if (renderer.dataChange) {
+                    renderer.dataChange = false;
+                }
+            }
+        }
+
+        /**
          * render进行切换
          * 
          * @protected

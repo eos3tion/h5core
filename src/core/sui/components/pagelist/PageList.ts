@@ -234,44 +234,6 @@ module junyou {
             this.rawDataChanged = false;
         }
 
-        public get data() {
-            return this._data;
-        }
-
-        /**
-         * 根据index使某renderer显示生效
-         * 
-         * @param {number}  idx
-         * @param {boolean} [force]     是否强制执行setData和handleView 
-         * @memberOf PageList
-         */
-        public validateItemByIdx(idx: number, force?: boolean) {
-            let renderer = this._get(idx);
-            if (force || renderer.view.stage) {
-                renderer.data = this._data[idx];
-                if (typeof renderer.handleView === "function") {
-                    renderer.handleView();
-                }
-                if (renderer.dataChange) {
-                    renderer.dataChange = false;
-                }
-            }
-        }
-
-        /**
-         * 使所有renderer显示生效
-         * 
-         * 
-         * @memberOf PageList
-         */
-        public validateAll() {
-            if (this._data) {
-                let len = this._data.length;
-                for (let i = 0; i < len; i++) {
-                    this.validateItemByIdx(i);
-                }
-            }
-        }
 
         /**
          * 初始化render占据array，不做任何初始化容器操作
@@ -534,10 +496,6 @@ module junyou {
             }
         }
 
-        public get selectedIndex(): number {
-            return this._selectedIndex;
-        }
-
         /**
          * 滚动到指定index
          */
@@ -561,10 +519,6 @@ module junyou {
                     }
                 }
             }
-        }
-
-        public get selectedItem() {
-            return this._selectedItem;
         }
 
         /**
@@ -734,6 +688,8 @@ module junyou {
             }
             let first: R, last: R, fIdx: number, lIdx: number;
             let tmp = Temp.SharedArray3;
+            let tmpRect = Temp.SharedRect1;
+            let staticSize = this.staticSize;
             tmp.length = 0;
             if (inc) {
                 fIdx = 0;
@@ -784,7 +740,18 @@ module junyou {
                 let render = list[i];
                 let v = render.view;
                 if (v) {
-                    if (intersects(v, rect)) {
+                    let rec: Rect;
+                    if (staticSize) {
+                        rec = tmpRect;
+                        rec.x = v.x;
+                        rec.y = v.y;
+                        let suiRect = v.suiRawRect;
+                        rec.width = suiRect.width;
+                        rec.height = suiRect.height;
+                    } else {
+                        rec = v;
+                    }
+                    if (intersects(rec, rect)) {
                         if (!first) {
                             first = render;
                             fIdx = i;
@@ -794,7 +761,9 @@ module junyou {
                         if (first) {
                             last = render;
                             lIdx = i;
-                            return true;
+                            if (staticSize) {//固定大小的允许 return，非固定大小的遍历全部数据
+                                return true;
+                            }
                         }
                     }
                 }
