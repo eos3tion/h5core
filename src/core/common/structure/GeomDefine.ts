@@ -1,4 +1,6 @@
 module junyou {
+    export declare type PosKey = "x" | "y";
+    export declare type SizeKey = "width" | "height";
     /**
      * 有`width` `height` 2个属性
      * 
