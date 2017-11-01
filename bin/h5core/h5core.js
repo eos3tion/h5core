@@ -2626,19 +2626,38 @@ var junyou;
             _this.minEndSpeed = 0.0001;
             /**速度递减速率 */
             _this.blockSpeed = 0.98;
-            _this._deriction = 1;
             _this._moveSpeed = 0;
+            _this._deriction = 0 /* Vertical */;
+            _this._key = "y";
+            _this._sizeKey = "height";
             return _this;
         }
         Object.defineProperty(Scroller.prototype, "scrollType", {
-            /**滚动条方式 0：垂直，1：水平 defalut:0*/
+            /**
+             * 滚动条方式 0：垂直，1：水平 defalut:0
+             */
             get: function () {
                 return this._scrollType;
             },
-            /**滚动条方式 0：垂直，1：水平 defalut:0*/
+            /**
+             * 滚动条方式 0：垂直，1：水平 defalut:0
+             */
             set: function (value) {
-                this._scrollType = value;
-                this.checkScrollBarView();
+                if (this._scrollType != value) {
+                    this._scrollType = value;
+                    var key = void 0, sizeKey = void 0;
+                    if (value == 0 /* Vertical */) {
+                        key = "y";
+                        sizeKey = "height";
+                    }
+                    else {
+                        key = "x";
+                        sizeKey = "width";
+                    }
+                    this._sizeKey = sizeKey;
+                    this._key = key;
+                    this.checkScrollBarView();
+                }
             },
             enumerable: true,
             configurable: true
@@ -2652,17 +2671,11 @@ var junyou;
             if (!scrollbar) {
                 return;
             }
-            var scrollType = this._scrollType;
-            scrollbar.scrollType = scrollType;
+            var _a = this, _key = _a._key, _sizeKey = _a._sizeKey, _scrollType = _a._scrollType;
+            scrollbar.scrollType = _scrollType;
             var rect = content.scrollRect;
-            if (scrollType == 0 /* Vertical */) {
-                scrollbar.bgSize = rect.height;
-                scrollbar.y = content.y;
-            }
-            else {
-                scrollbar.bgSize = rect.width;
-                scrollbar.x = content.x;
-            }
+            scrollbar.bgSize = rect[_sizeKey];
+            scrollbar[_key] = content[_key];
         };
         Scroller.prototype.onScrollBarAdded = function () {
             if (this.alwaysShowBar) {
@@ -2875,33 +2888,24 @@ var junyou;
                 return;
             }
             var rect = content.scrollRect;
-            var oldx = rect.x;
-            var oldy = rect.y;
+            var key = this._key;
+            var old = rect[key];
+            var pos = old;
             var scrollEnd = this.scrollEndPos;
-            if (this._scrollType == 0 /* Vertical */) {
-                rect.y -= sub;
-                if (rect.y <= 0) {
-                    rect.y = 0;
-                    this._moveSpeed = 0;
-                }
-                if (rect.y >= scrollEnd) {
-                    rect.y = scrollEnd;
-                    this._moveSpeed = 0;
-                }
+            pos -= sub;
+            var speed = this._moveSpeed;
+            if (pos < 0) {
+                pos = 0;
+                speed = 0;
             }
-            else {
-                rect.x -= sub;
-                if (rect.x <= 0) {
-                    rect.x = 0;
-                    this._moveSpeed = 0;
-                }
-                if (rect.x >= scrollEnd) {
-                    rect.x = scrollEnd;
-                    this._moveSpeed = 0;
-                }
+            else if (pos > scrollEnd) {
+                pos = scrollEnd;
+                speed = 0;
             }
-            content.scrollRect = rect;
-            if (oldx != rect.x || oldy != rect.y) {
+            this._moveSpeed = speed;
+            if (old != pos) {
+                rect[key] = pos;
+                content.scrollRect = rect;
                 content.dispatch(-1051 /* SCROLL_POSITION_CHANGE */);
             }
             this.doMoveScrollBar(sub);
@@ -2912,16 +2916,9 @@ var junyou;
                 return;
             }
             var bar = scrollbar.bar;
-            var barPos;
             var subPos = sub / this._piexlDistance;
-            var flag = this._scrollType == 0 /* Vertical */;
-            if (flag) {
-                barPos = bar.y;
-            }
-            else {
-                barPos = bar.x;
-            }
-            barPos = barPos - subPos;
+            var key = this._key;
+            var barPos = bar[key] - subPos;
             if (barPos <= 0) {
                 barPos = 0;
             }
@@ -2931,12 +2928,7 @@ var junyou;
                     barPos = delta;
                 }
             }
-            if (flag) {
-                bar.y = barPos;
-            }
-            else {
-                bar.x = barPos;
-            }
+            bar[key] = barPos;
         };
         /**
          * 移动到指定位置
@@ -2951,14 +2943,7 @@ var junyou;
                 this.scrollToEnd();
             }
             else {
-                var rect = this._content.scrollRect;
-                var curpos = void 0;
-                if (this._scrollType == 0 /* Vertical */) {
-                    curpos = rect.y;
-                }
-                else {
-                    curpos = rect.x;
-                }
+                var curpos = this._content.scrollRect[this._key];
                 this.doScrollContent(pos - curpos);
             }
         };
@@ -2970,7 +2955,7 @@ var junyou;
             }
             if (this._moveSpeed > 0) {
                 this._moveSpeed = 0;
-                this._content.off("enterFrame" /* ENTER_FRAME */, this.onEnterFrame, this);
+                content.off("enterFrame" /* ENTER_FRAME */, this.onEnterFrame, this);
             }
             var rect = content.scrollRect;
             var scrollbar = this._scrollbar;
@@ -2978,17 +2963,10 @@ var junyou;
             if (scrollbar) {
                 bar = scrollbar.bar;
             }
-            if (this._scrollType == 0 /* Vertical */) {
-                rect.y = 0;
-                if (bar) {
-                    bar.y = 0;
-                }
-            }
-            else {
-                rect.x = 0;
-                if (bar) {
-                    bar.x = 0;
-                }
+            var key = this._key;
+            rect[key] = 0;
+            if (bar) {
+                bar[key] = 0;
             }
             content.scrollRect = rect;
         };
@@ -3006,17 +2984,10 @@ var junyou;
                 delta = scrollbar.bgSize - scrollbar.barSize;
                 bar = scrollbar.bar;
             }
-            if (this._scrollType == 0 /* Vertical */) {
-                rect.y = end;
-                if (bar) {
-                    bar.y = delta;
-                }
-            }
-            else {
-                rect.x = end;
-                if (bar) {
-                    bar.x = delta;
-                }
+            var key = this._key;
+            rect[key] = end;
+            if (bar) {
+                bar[key] = delta;
             }
             content.scrollRect = rect;
         };
@@ -3074,24 +3045,15 @@ var junyou;
             var scrollbar = this._scrollbar;
             var bar = scrollbar.bar;
             var scrollEnd = this.scrollEndPos;
-            if (this._scrollType == 0 /* Vertical */) {
-                var tmp = rect.y / scrollEnd;
-                if (tmp <= 0) {
-                    bar.y = 0;
-                }
-                else {
-                    bar.y = scrollbar.bgSize * tmp - scrollbar.barSize;
-                }
+            var key = this._key;
+            var tmp = rect[key] / scrollEnd;
+            if (tmp <= 0) {
+                tmp = 0;
             }
             else {
-                var tmp = rect.x / scrollEnd;
-                if (tmp <= 0) {
-                    bar.x = 0;
-                }
-                else {
-                    bar.x = scrollbar.bgSize * tmp - scrollbar.barSize;
-                }
+                tmp = scrollbar.bgSize * tmp - scrollbar.barSize;
             }
+            bar[key] = tmp;
         };
         return Scroller;
     }(egret.EventDispatcher));
@@ -3311,6 +3273,40 @@ var junyou;
             enumerable: true,
             configurable: true
         });
+        /**
+         * 让所有在舞台上的render重新刷新一次数据
+         *
+         *
+         * @memberOf PageList
+         */
+        AbsPageList.prototype.refresh = function () {
+            var data = this._data;
+            if (data) {
+                var len = data.length;
+                for (var i = 0; i < len; i++) {
+                    this.refreshAt(i);
+                }
+            }
+        };
+        /**
+         * 根据index使某个在舞台上的render刷新
+         *
+         * @param {number}  idx
+         * @param {boolean} [force]     是否强制执行setData和handleView
+         * @memberOf PageList
+         */
+        AbsPageList.prototype.refreshAt = function (idx, force) {
+            var renderer = this._get(idx);
+            if (force || renderer.view.stage) {
+                renderer.data = this._data[idx];
+                if (typeof renderer.handleView === "function") {
+                    renderer.handleView();
+                }
+                if (renderer.dataChange) {
+                    renderer.dataChange = false;
+                }
+            }
+        };
         /**
          * render进行切换
          *
@@ -15826,46 +15822,6 @@ var junyou;
             }
             this.rawDataChanged = false;
         };
-        Object.defineProperty(PageList.prototype, "data", {
-            get: function () {
-                return this._data;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        /**
-         * 根据index使某renderer显示生效
-         *
-         * @param {number}  idx
-         * @param {boolean} [force]     是否强制执行setData和handleView
-         * @memberOf PageList
-         */
-        PageList.prototype.validateItemByIdx = function (idx, force) {
-            var renderer = this._get(idx);
-            if (force || renderer.view.stage) {
-                renderer.data = this._data[idx];
-                if (typeof renderer.handleView === "function") {
-                    renderer.handleView();
-                }
-                if (renderer.dataChange) {
-                    renderer.dataChange = false;
-                }
-            }
-        };
-        /**
-         * 使所有renderer显示生效
-         *
-         *
-         * @memberOf PageList
-         */
-        PageList.prototype.validateAll = function () {
-            if (this._data) {
-                var len = this._data.length;
-                for (var i = 0; i < len; i++) {
-                    this.validateItemByIdx(i);
-                }
-            }
-        };
         /**
          * 初始化render占据array，不做任何初始化容器操作
          *
@@ -15980,9 +15936,6 @@ var junyou;
             }
         };
         Object.defineProperty(PageList.prototype, "selectedIndex", {
-            get: function () {
-                return this._selectedIndex;
-            },
             set: function (value) {
                 if (this._selectedIndex == value && value >= 0)
                     return;
@@ -16156,13 +16109,6 @@ var junyou;
                 }
             }
         };
-        Object.defineProperty(PageList.prototype, "selectedItem", {
-            get: function () {
-                return this._selectedItem;
-            },
-            enumerable: true,
-            configurable: true
-        });
         /**
          * 更新item数据
          *
@@ -16304,6 +16250,8 @@ var junyou;
             }
             var first, last, fIdx, lIdx;
             var tmp = junyou.Temp.SharedArray3;
+            var tmpRect = junyou.Temp.SharedRect1;
+            var staticSize = this.staticSize;
             tmp.length = 0;
             if (inc) {
                 fIdx = 0;
@@ -16355,7 +16303,19 @@ var junyou;
                 var render = list[i];
                 var v = render.view;
                 if (v) {
-                    if (junyou.intersects(v, rect)) {
+                    var rec = void 0;
+                    if (staticSize) {
+                        rec = tmpRect;
+                        rec.x = v.x;
+                        rec.y = v.y;
+                        var suiRect = v.suiRawRect;
+                        rec.width = suiRect.width;
+                        rec.height = suiRect.height;
+                    }
+                    else {
+                        rec = v;
+                    }
+                    if (junyou.intersects(rec, rect)) {
                         if (!first) {
                             first = render;
                             fIdx = i;
@@ -16366,7 +16326,9 @@ var junyou;
                         if (first) {
                             last = render;
                             lIdx = i;
-                            return true;
+                            if (staticSize) {
+                                return true;
+                            }
                         }
                     }
                 }

@@ -2369,12 +2369,18 @@ declare module junyou {
         /**速度递减速率 */
         blockSpeed: number;
         protected _useScrollBar: boolean;
-        protected _deriction: number;
         protected _moveSpeed: number;
         protected _lastFrameTime: number;
+        protected _deriction: ScrollDirection;
+        protected _key: PosKey;
+        protected _sizeKey: SizeKey;
         constructor();
-        /**滚动条方式 0：垂直，1：水平 defalut:0*/
-        /**滚动条方式 0：垂直，1：水平 defalut:0*/
+        /**
+         * 滚动条方式 0：垂直，1：水平 defalut:0
+         */
+        /**
+         * 滚动条方式 0：垂直，1：水平 defalut:0
+         */
         scrollType: ScrollDirection;
         protected checkScrollBarView(): void;
         protected onScrollBarAdded(): void;
@@ -2519,6 +2525,21 @@ declare module junyou {
         protected changeRender(render: R, index?: number): void;
         getAllItems(): R[];
         readonly length: number;
+        /**
+         * 让所有在舞台上的render重新刷新一次数据
+         *
+         *
+         * @memberOf PageList
+         */
+        refresh(): void;
+        /**
+         * 根据index使某个在舞台上的render刷新
+         *
+         * @param {number}  idx
+         * @param {boolean} [force]     是否强制执行setData和handleView
+         * @memberOf PageList
+         */
+        refreshAt(idx: number, force?: boolean): void;
         /**
          * render进行切换
          *
@@ -3937,6 +3958,8 @@ declare module junyou {
     }
 }
 declare module junyou {
+    type PosKey = "x" | "y";
+    type SizeKey = "width" | "height";
     /**
      * 有`width` `height` 2个属性
      *
@@ -9413,22 +9436,6 @@ declare module junyou {
         constructor(renderfactory: ClassFactory<R> | Creator<R>, option?: PageListOption);
         protected init(option: PageListOption): void;
         displayList(data?: T[]): void;
-        readonly data: T[];
-        /**
-         * 根据index使某renderer显示生效
-         *
-         * @param {number}  idx
-         * @param {boolean} [force]     是否强制执行setData和handleView
-         * @memberOf PageList
-         */
-        validateItemByIdx(idx: number, force?: boolean): void;
-        /**
-         * 使所有renderer显示生效
-         *
-         *
-         * @memberOf PageList
-         */
-        validateAll(): void;
         /**
          * 初始化render占据array，不做任何初始化容器操作
          *
@@ -9456,7 +9463,6 @@ declare module junyou {
          */
         tweenToIndex(index: number): void;
         selectItemByData<K extends keyof T>(key: K, value: T[K], useTween?: boolean): void;
-        readonly selectedItem: R;
         /**
          * 更新item数据
          *
