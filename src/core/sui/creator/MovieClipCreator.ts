@@ -139,7 +139,14 @@ module junyou {
             let comps: egret.DisplayObject[];
             if (compsData) {
                 let sm = singleton(SuiResManager);
-                comps = compsData.map(compData => sm.createComponent(compData, suiData, this));
+                let j = 0;
+                for (let i = 0; i < compsData.length; i++) {
+                    let dis = sm.createComponent(compsData[i], suiData, this);
+                    if (dis instanceof egret.DisplayObject) {
+                        compsData[j++] = dis;
+                    }
+                }
+                comps = compsData;
             } else {
                 comps = Temp.EmptyArray;
             }
@@ -222,15 +229,17 @@ module junyou {
                         comp = sm.createComponent(pData, suiData, this);
                     } else {
                         comp = dict[idx];
-                        this.addChild(comp);
-                        if (pData) {//调整基础属性
-                            SuiResManager.initBaseData(comp, pData);
-                        }
-                        if (comp instanceof egret.TextField) {//如果是文本框，特殊处理
-                            if (!textData) {
-                                textData = comp.rawTextData;
+                        if (comp instanceof egret.DisplayObject) {
+                            this.addChild(comp);
+                            if (pData) {//调整基础属性
+                                SuiResManager.initBaseData(comp, pData);
                             }
-                            sm.sharedTFCreator.initTextData(comp, textData);
+                            if (comp instanceof egret.TextField) {//如果是文本框，特殊处理
+                                if (!textData) {
+                                    textData = comp.rawTextData;
+                                }
+                                sm.sharedTFCreator.initTextData(comp, textData);
+                            }
                         }
                     }
                 }
