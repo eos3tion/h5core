@@ -140,13 +140,13 @@ module junyou {
             if (compsData) {
                 let sm = singleton(SuiResManager);
                 let j = 0;
+                comps = [];
                 for (let i = 0; i < compsData.length; i++) {
                     let dis = sm.createComponent(compsData[i], suiData, this);
                     if (dis instanceof egret.DisplayObject) {
-                        compsData[j++] = dis;
+                        comps[j++] = dis;
                     }
                 }
-                comps = compsData;
             } else {
                 comps = Temp.EmptyArray;
             }
