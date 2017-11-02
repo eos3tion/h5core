@@ -17657,8 +17657,15 @@ var junyou;
              */
             var comps;
             if (compsData) {
-                var sm_1 = junyou.singleton(junyou.SuiResManager);
-                comps = compsData.map(function (compData) { return sm_1.createComponent(compData, suiData, _this); });
+                var sm = junyou.singleton(junyou.SuiResManager);
+                var j = 0;
+                for (var i = 0; i < compsData.length; i++) {
+                    var dis = sm.createComponent(compsData[i], suiData, _this);
+                    if (dis instanceof egret.DisplayObject) {
+                        compsData[j++] = dis;
+                    }
+                }
+                comps = compsData;
             }
             else {
                 comps = junyou.Temp.EmptyArray;
@@ -17742,15 +17749,17 @@ var junyou;
                     }
                     else {
                         comp = dict[idx];
-                        this.addChild(comp);
-                        if (pData) {
-                            junyou.SuiResManager.initBaseData(comp, pData);
-                        }
-                        if (comp instanceof egret.TextField) {
-                            if (!textData) {
-                                textData = comp.rawTextData;
+                        if (comp instanceof egret.DisplayObject) {
+                            this.addChild(comp);
+                            if (pData) {
+                                junyou.SuiResManager.initBaseData(comp, pData);
                             }
-                            sm.sharedTFCreator.initTextData(comp, textData);
+                            if (comp instanceof egret.TextField) {
+                                if (!textData) {
+                                    textData = comp.rawTextData;
+                                }
+                                sm.sharedTFCreator.initTextData(comp, textData);
+                            }
                         }
                     }
                 }
