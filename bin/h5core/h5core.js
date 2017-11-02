@@ -17659,13 +17659,13 @@ var junyou;
             if (compsData) {
                 var sm = junyou.singleton(junyou.SuiResManager);
                 var j = 0;
+                comps = [];
                 for (var i = 0; i < compsData.length; i++) {
                     var dis = sm.createComponent(compsData[i], suiData, _this);
                     if (dis instanceof egret.DisplayObject) {
-                        compsData[j++] = dis;
+                        comps[j++] = dis;
                     }
                 }
-                comps = compsData;
             }
             else {
                 comps = junyou.Temp.EmptyArray;
