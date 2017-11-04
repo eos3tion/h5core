@@ -12432,7 +12432,7 @@ declare module junyou {
         protected abstract pstInfoChange(): any;
         protected abstract getPstInfo(pst: string): PstInfo;
         init(pst: string, setting: UnitSetting): this;
-        onSpwan(): void;
+        onSpawn(): void;
         /**
          * 重置渲染器时间
          *

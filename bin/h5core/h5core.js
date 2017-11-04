@@ -21243,10 +21243,10 @@ var junyou;
             this.pst = pst;
             this.initDefaultAction();
             this.startUnitAction();
-            this.onSpwan();
+            this.onSpawn();
             return this;
         };
-        Unit.prototype.onSpwan = function () {
+        Unit.prototype.onSpawn = function () {
             this.state = 0 /* Init */;
             this.dispatch(-1998 /* UnitCreate */);
         };
