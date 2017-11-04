@@ -134,11 +134,11 @@ module junyou {
             this.pst = pst;
             this.initDefaultAction();
             this.startUnitAction();
-            this.onSpwan();
+            this.onSpawn();
             return this;
         }
 
-        public onSpwan() {
+        public onSpawn() {
             this.state = UnitState.Init;
             this.dispatch(EventConst.UnitCreate);
         }
