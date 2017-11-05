@@ -10021,9 +10021,27 @@ var junyou;
     var Camera = (function (_super) {
         __extends(Camera, _super);
         function Camera(width, height) {
-            if (width === void 0) { width = 0; }
-            if (height === void 0) { height = 0; }
             var _this = _super.call(this) || this;
+            //限制范围
+            _this._lx = 0;
+            _this._ly = 0;
+            _this._lw = Infinity;
+            _this._lh = Infinity;
+            /**
+             * 是否需要横向滚动
+             *
+             * @protected
+             * @memberof Camera
+             */
+            _this._hScroll = true;
+            /**
+             *
+             * 是否需要纵向滚动
+             *
+             * @protected
+             * @memberof Camera
+             */
+            _this._vScroll = true;
             _this._rect = new egret.Rectangle();
             var stage = egret.sys.$TempStage;
             if (!width) {
@@ -10079,46 +10097,77 @@ var junyou;
          */
         Camera.prototype.setSize = function (width, height) {
             var rect = this._rect;
+            var changed;
             if (width != rect.width) {
                 rect.width = width;
-                this._changed = true;
+                changed = true;
             }
             if (height != rect.height) {
                 rect.height = height;
-                this._changed = true;
+                changed = true;
+            }
+            if (changed) {
+                this._changed = changed;
+                this.check();
             }
             return this;
         };
+        /**
+         * 设置限制范围
+         *
+         * @param {number} [width=Infinity]
+         * @param {number} [height=Infinity]
+         * @param {number} [x=0]
+         * @param {number} [y=0]
+         * @returns
+         * @memberof Camera
+         */
         Camera.prototype.setLimits = function (width, height, x, y) {
-            if (width === void 0) { width = Infinity; }
-            if (height === void 0) { height = Infinity; }
-            if (x === void 0) { x = 0; }
-            if (y === void 0) { y = 0; }
-            this._limits = new egret.Rectangle(x, y, width, height);
+            this._lx = x || 0;
+            this._ly = y || 0;
+            this._lw = width || Infinity;
+            this._lh = height || Infinity;
+            this.check();
             return this;
+        };
+        Camera.prototype.check = function () {
+            var _a = this, _lx = _a._lx, _ly = _a._ly, _lw = _a._lw, _lh = _a._lh, _rect = _a._rect;
+            var w = _rect.width, h = _rect.height;
+            var flag = w < _lw;
+            this._hScroll = flag;
+            if (!flag) {
+                _rect.x = 0;
+            }
+            flag = h < _lh;
+            this._vScroll = flag;
+            if (!flag) {
+                _rect.y = 0;
+            }
         };
         /**
          * 将相机移动到指定坐标
          */
         Camera.prototype.moveTo = function (x, y) {
-            var rect = this._rect;
-            var rw = rect.width;
-            var rh = rect.height;
-            x = x - (rw >> 1);
-            y = y - (rh >> 1);
-            var limits = this._limits;
-            if (limits) {
-                x = Math.clamp(x, limits.x, limits.width - rw);
-                y = Math.clamp(y, limits.y, limits.height - rh);
+            var _a = this, _hScroll = _a._hScroll, _vScroll = _a._vScroll, _rect = _a._rect, _lx = _a._lx, _ly = _a._ly, _lw = _a._lw, _lh = _a._lh;
+            var rw = _rect.width, rh = _rect.height, rx = _rect.x, ry = _rect.y;
+            var changed;
+            if (_hScroll) {
+                x = x - (rw >> 1);
+                x = Math.clamp(x, _lx, _lw - rw);
+                if (x != rx) {
+                    _rect.x = x;
+                    changed = true;
+                }
             }
-            if (x != rect.x) {
-                rect.x = x;
-                this._changed = true;
+            if (_vScroll) {
+                y = y - (rh >> 1);
+                y = Math.clamp(y, _ly, _lh - rh);
+                if (y != ry) {
+                    _rect.y = y;
+                    changed = true;
+                }
             }
-            if (y != rect.y) {
-                rect.y = y;
-                this._changed = true;
-            }
+            this._changed = changed;
             return this;
         };
         Object.defineProperty(Camera.prototype, "rect", {
@@ -10741,6 +10790,8 @@ var junyou;
             var sr = y / pH | 0;
             var ec = (x + w) / pW | 0;
             var er = (y + h) / pH | 0;
+            sc = Math.max(sc, 0);
+            sr = Math.max(sr, 0);
             ec = Math.min(ec, cM.maxPicX);
             er = Math.min(er, cM.maxPicY);
             if (true) {

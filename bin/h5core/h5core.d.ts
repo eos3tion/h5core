@@ -5868,14 +5868,25 @@ declare module junyou {
          * 可视区域大小
          */
         protected _rect: egret.Rectangle;
+        protected _lx: number;
+        protected _ly: number;
+        protected _lw: number;
+        protected _lh: number;
         /**
-         * 设置范围限制
+         * 是否需要横向滚动
          *
          * @protected
-         * @type {egret.Rectangle}
-         * @memberOf Camera
+         * @memberof Camera
          */
-        protected _limits: egret.Rectangle;
+        protected _hScroll: boolean;
+        /**
+         *
+         * 是否需要纵向滚动
+         *
+         * @protected
+         * @memberof Camera
+         */
+        protected _vScroll: boolean;
         /**
          * 镜头要跟随的目标
          */
@@ -5901,17 +5912,25 @@ declare module junyou {
          * 相机跟随一个可视对象
          * @param target 镜头要跟随的目标
          */
-        lookat(target: {
-            x: number;
-            y: number;
-        }): Boolean;
+        lookat(target: Point): Boolean;
         /**
          * 设置相机的可视区域宽度和高度
          * @param width 可视区宽
          * @param height 可视区高
          */
         setSize(width: number, height: number): this;
+        /**
+         * 设置限制范围
+         *
+         * @param {number} [width=Infinity]
+         * @param {number} [height=Infinity]
+         * @param {number} [x=0]
+         * @param {number} [y=0]
+         * @returns
+         * @memberof Camera
+         */
         setLimits(width?: number, height?: number, x?: number, y?: number): this;
+        protected check(): void;
         /**
          * 将相机移动到指定坐标
          */
