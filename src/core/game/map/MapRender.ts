@@ -87,6 +87,8 @@ module junyou {
             let sr = y / pH | 0;
             let ec = (x + w) / pW | 0;
             let er = (y + h) / pH | 0;
+            sc = Math.max(sc, 0);
+            sr = Math.max(sr, 0);
             ec = Math.min(ec, cM.maxPicX);
             er = Math.min(er, cM.maxPicY);
             if (DEBUG) {
