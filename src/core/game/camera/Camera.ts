@@ -11,14 +11,27 @@ module junyou {
          */
         protected _rect: egret.Rectangle;
 
+        //限制范围
+        protected _lx = 0;
+        protected _ly = 0;
+        protected _lw = Infinity;
+        protected _lh = Infinity;
+
         /**
-         * 设置范围限制
+         * 是否需要横向滚动
          * 
          * @protected
-         * @type {egret.Rectangle}
-         * @memberOf Camera
+         * @memberof Camera
          */
-        protected _limits: egret.Rectangle;
+        protected _hScroll = true;
+        /**
+         * 
+         * 是否需要纵向滚动
+         * 
+         * @protected
+         * @memberof Camera
+         */
+        protected _vScroll = true;
 
         /**
          * 镜头要跟随的目标
@@ -47,7 +60,7 @@ module junyou {
             this._changed = false;
         }
 
-        constructor(width: number = 0, height: number = 0) {
+        constructor(width?: number, height?: number) {
             super();
             this._rect = new egret.Rectangle();
             let stage = egret.sys.$TempStage;
@@ -73,7 +86,7 @@ module junyou {
          * 相机跟随一个可视对象          
          * @param target 镜头要跟随的目标          
          */
-        public lookat(target: { x: number, y: number }): Boolean {
+        public lookat(target: Point): Boolean {
             this._target = target;
             return !!target;
         }
@@ -85,45 +98,80 @@ module junyou {
          */
         public setSize(width: number, height: number) {
             let rect = this._rect;
+            let changed: boolean;
             if (width != rect.width) {
                 rect.width = width;
-                this._changed = true;
+                changed = true;
             }
             if (height != rect.height) {
                 rect.height = height;
-                this._changed = true;
+                changed = true;
+            }
+            if (changed) {
+                this._changed = changed;
+                this.check();
             }
             return this;
         }
 
-        public setLimits(width = Infinity, height = Infinity, x = 0, y = 0) {
-            this._limits = new egret.Rectangle(x, y, width, height);
+        /**
+         * 设置限制范围
+         * 
+         * @param {number} [width=Infinity] 
+         * @param {number} [height=Infinity] 
+         * @param {number} [x=0] 
+         * @param {number} [y=0] 
+         * @returns 
+         * @memberof Camera
+         */
+        public setLimits(width?: number, height?: number, x?: number, y?: number) {
+            this._lx = x || 0;
+            this._ly = y || 0;
+            this._lw = width || Infinity;
+            this._lh = height || Infinity;
+            this.check();
             return this;
+        }
+
+        protected check() {
+            let { _lx, _ly, _lw, _lh, _rect } = this;
+            let { width: w, height: h } = _rect;
+            let flag = w < _lw;
+            this._hScroll = flag;
+            if (!flag) {//可视范围比限制范围还要大，则直接居中显示
+                _rect.x = 0;
+            }
+            flag = h < _lh;
+            this._vScroll = flag;
+            if (!flag) {
+                _rect.y = 0;
+            }
         }
 
         /**
          * 将相机移动到指定坐标
          */
         public moveTo(x: number, y: number) {
-            let rect = this._rect;
-            let rw = rect.width;
-            let rh = rect.height;
-            x = x - (rw >> 1);
-            y = y - (rh >> 1);
-            let limits = this._limits;
-            if (limits) {
-                x = Math.clamp(x, limits.x, limits.width - rw);
-                y = Math.clamp(y, limits.y, limits.height - rh);
+            let { _hScroll, _vScroll, _rect, _lx, _ly, _lw, _lh, } = this;
+            let { width: rw, height: rh, x: rx, y: ry } = _rect;
+            let changed: boolean;
+            if (_hScroll) {
+                x = x - (rw >> 1);
+                x = Math.clamp(x, _lx, _lw - rw);
+                if (x != rx) {
+                    _rect.x = x;
+                    changed = true;
+                }
             }
-
-            if (x != rect.x) {
-                rect.x = x;
-                this._changed = true;
+            if (_vScroll) {
+                y = y - (rh >> 1);
+                y = Math.clamp(y, _ly, _lh - rh);
+                if (y != ry) {
+                    _rect.y = y;
+                    changed = true;
+                }
             }
-            if (y != rect.y) {
-                rect.y = y;
-                this._changed = true;
-            }
+            this._changed = changed;
             return this;
         }
 
