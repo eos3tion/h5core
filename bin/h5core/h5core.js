@@ -11113,10 +11113,9 @@ var junyou;
             }
         }
         var callback = info.callback;
-        var result;
         if (callback != undefined) {
             try {
-                result = callback.apply(info.thisObj, args);
+                return callback.apply(info.thisObj, args);
             }
             catch (e) {
                 if (true) {
@@ -11130,7 +11129,6 @@ var junyou;
             var debug = info["_debug"];
             junyou.ThrowError("\u5BF9\u5DF2\u56DE\u6536\u7684CallbackInfo\u6267\u884C\u4E86\u56DE\u8C03\uFF0C\u6700\u540E\u4E00\u6B21\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + new Error().stack);
         }
-        return result;
     }
     /**
      * 回调信息，用于存储回调数据
