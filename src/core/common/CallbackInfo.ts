@@ -20,10 +20,9 @@ module junyou {
             }
         }
         let callback = info.callback;
-        let result;
         if (callback != undefined) {
             try {
-                result = callback.apply(info.thisObj, args);
+                return callback.apply(info.thisObj, args);
             } catch (e) {
                 if (DEBUG) {
                     let debug = <DebugInfo>info["_debug"];
@@ -35,7 +34,6 @@ module junyou {
             let debug = info["_debug"];
             ThrowError(`对已回收的CallbackInfo执行了回调，最后一次赋值内容：============Function=============:\n${debug.handle}\n==============Stack============:\n${debug.stack}\n当前堆栈：${new Error().stack}`)
         }
-        return result;
     }
 
     export type $CallbackInfo = CallbackInfo<Function>;
