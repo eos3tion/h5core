@@ -131,7 +131,7 @@ module junyou {
      * @template T 
      * @param {({ new(): T & { _pool?: RecyclablePool<T> } })} clazz 
      */
-    export function recyclable<T>(clazz: { new(): T & { _pool?: RecyclablePool<T> } })
+    export function recyclable<T>(clazz: { new(): T & { _pool?: RecyclablePool<T> } }): Recyclable<T>
     /**
      * 使用创建函数进行创建
      * 
@@ -140,7 +140,7 @@ module junyou {
      * @param {({ (): T & { _pool?: RecyclablePool<T> } })} clazz 
      * @param {true} addInstanceRecycle
      */
-    export function recyclable<T>(clazz: { (): T & { _pool?: RecyclablePool<T> } }, addInstanceRecycle?: boolean)
+    export function recyclable<T>(clazz: { (): T & { _pool?: RecyclablePool<T> } }, addInstanceRecycle?: boolean): Recyclable<T>
     export function recyclable<T>(clazz: Creator<T> & { _pool?: RecyclablePool<T> }, addInstanceRecycle?: boolean): Recyclable<T> {
         let pool = clazz._pool;
         if (!pool) {
