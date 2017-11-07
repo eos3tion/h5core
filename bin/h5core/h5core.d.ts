@@ -5593,7 +5593,7 @@ declare module junyou {
          * @param {AniOption} [option] 动画的参数
          * @returns (description)
          */
-        static getAni(uri: string, option?: AniOption): any;
+        static getAni(uri: string, option?: AniOption): Recyclable<AniRender>;
         /**
          * 获取正在运行的AniRender
          * @param guid  唯一标识
@@ -9746,7 +9746,7 @@ declare module junyou {
         new(): T & {
             _pool?: RecyclablePool<T>;
         };
-    }): any;
+    }): Recyclable<T>;
     /**
      * 使用创建函数进行创建
      *
@@ -9759,7 +9759,7 @@ declare module junyou {
         (): T & {
             _pool?: RecyclablePool<T>;
         };
-    }, addInstanceRecycle?: boolean): any;
+    }, addInstanceRecycle?: boolean): Recyclable<T>;
     /**
      * 单例工具
      * @param clazz 要做单例的类型
