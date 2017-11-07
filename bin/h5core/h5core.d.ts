@@ -7298,6 +7298,45 @@ declare module junyou {
  */
 declare module junyou {
     /**
+     * 任务朝向
+     *
+     * @enum {number}
+     */
+    const enum FaceTo {
+        /**
+       * 人物方向 ↓
+       */
+        face0 = 0,
+        /**
+         * 人物方向 ↘
+         */
+        face1 = 1,
+        /**
+         * 人物方向 →
+         */
+        face2 = 2,
+        /**
+         * 人物方向 ↗
+         */
+        face3 = 3,
+        /**
+         * 人物方向 ↑
+         */
+        face4 = 4,
+        /**
+         * 人物方向 ↖
+         */
+        face5 = 5,
+        /**
+         * 人物方向 ←
+         */
+        face6 = 6,
+        /**
+         * 人物方向 ↙
+         */
+        face7 = 7,
+    }
+    /**
      * 朝向工具，用于处理斜45°人物朝向
      * @author 3tion
      *
@@ -7305,6 +7344,7 @@ declare module junyou {
     const FaceToUtils: {
         FacePos: number[][];
         FaceToRad: number[];
+        FaceToDeg: number[];
         FaceToRadSin: number[];
         FaceToRadCos: number[];
         OPPS: number[];
