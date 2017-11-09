@@ -409,6 +409,9 @@ module junyou {
          * @returns (description)
          */
         public static getAni(uri: string, option?: AniOption) {
+            if (DEBUG && !uri) {
+                DEBUG && ThrowError(`创建了没有uri的AniRender`);
+            }
             let aniDict = $DD.ani;
             let aniInfo: AniInfo = aniDict[uri];
             if (!aniInfo) {
