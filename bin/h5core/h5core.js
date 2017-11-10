@@ -3137,25 +3137,29 @@ var junyou;
                 if (this._selectedIndex == value && value >= 0)
                     return;
                 if (value < 0) {
-                    if (this._selectedItem) {
-                        this._selectedItem.selected = false;
+                    var selectedItem = this._selectedItem;
+                    if (selectedItem) {
+                        selectedItem.selected = false;
                         this._selectedItem = undefined;
                     }
                     this._selectedIndex = value;
                     return;
                 }
-                var render;
-                var renderList = this._list;
-                var len_1 = renderList.length - 1;
-                if (value > len_1) {
-                    value = len_1;
-                }
-                render = this._list[value];
-                this.changeRender(render, value);
+                this.$setSelectedIndex(value);
             },
             enumerable: true,
             configurable: true
         });
+        AbsPageList.prototype.$setSelectedIndex = function (value) {
+            var render;
+            var renderList = this._list;
+            var len_1 = renderList.length - 1;
+            if (value > len_1) {
+                value = len_1;
+            }
+            render = this._list[value];
+            this.changeRender(render, value);
+        };
         /**
          *
          * 根据索引获得视图
@@ -9741,9 +9745,10 @@ var junyou;
          * @memberof ResourceBitmap
          */
         ResourceBitmap.prototype.draw = function (drawInfo, now) {
-            if (!this.res)
-                return;
-            return this.res.draw(this, drawInfo, now);
+            var res = this.res;
+            if (res) {
+                return res.draw(this, drawInfo, now);
+            }
         };
         Object.defineProperty(ResourceBitmap.prototype, "rotation", {
             set: function (value) {
@@ -9762,6 +9767,8 @@ var junyou;
             this.z = 0;
             this.scaleX = 1;
             this.scaleY = 1;
+            this.anchorOffsetX = 0;
+            this.anchorOffsetY = 0;
             this.texture = undefined;
         };
         return ResourceBitmap;
@@ -16000,50 +16007,36 @@ var junyou;
                 this.dispatch(-1999 /* Resize */);
             }
         };
-        Object.defineProperty(PageList.prototype, "selectedIndex", {
-            set: function (value) {
-                if (this._selectedIndex == value && value >= 0)
-                    return;
-                if (value < 0) {
-                    if (this._selectedItem) {
-                        this._selectedItem.selected = false;
-                        this._selectedItem = undefined;
-                    }
-                    this._selectedIndex = value;
-                    return;
-                }
-                this._waitIndex = value;
-                if (!this._data) {
-                    this._waitForSetIndex = true;
-                    return;
-                }
-                var render;
-                var renderList = this._list;
-                var len_1 = renderList.length - 1;
-                if (value > len_1) {
-                    value = len_1;
-                }
-                render = this._list[value];
-                this.changeRender(render, value);
-                var view = render.view;
-                if (view && view.stage) {
-                    this._waitForSetIndex = false;
-                    this.moveScroll(render);
-                }
-                else {
-                    this._waitForSetIndex = true;
-                }
-                if (this._waitForSetIndex) {
-                    this.moveScroll(render);
-                    //假如列表里有30个项，选中第20个，所以前20个都没有渲染，这边自己设置的rect，并不能引发scroller抛CHANGE事件
-                    //所以自己抛一下
-                    //如果已经渲染过，可不用抛
-                    // this.dispatchEventWith(EventConst.SCROLL_POSITION_CHANGE);
-                }
-            },
-            enumerable: true,
-            configurable: true
-        });
+        PageList.prototype.$setSelectedIndex = function (value) {
+            this._waitIndex = value;
+            if (!this._data) {
+                this._waitForSetIndex = true;
+                return;
+            }
+            var render;
+            var renderList = this._list;
+            var len_1 = renderList.length - 1;
+            if (value > len_1) {
+                value = len_1;
+            }
+            render = this._list[value];
+            this.changeRender(render, value);
+            var view = render.view;
+            if (view && view.stage) {
+                this._waitForSetIndex = false;
+                this.moveScroll(render);
+            }
+            else {
+                this._waitForSetIndex = true;
+            }
+            if (this._waitForSetIndex) {
+                this.moveScroll(render);
+                //假如列表里有30个项，选中第20个，所以前20个都没有渲染，这边自己设置的rect，并不能引发scroller抛CHANGE事件
+                //所以自己抛一下
+                //如果已经渲染过，可不用抛
+                // this.dispatchEventWith(EventConst.SCROLL_POSITION_CHANGE);
+            }
+        };
         PageList.prototype.moveScroll = function (render) {
             var con = this._con;
             var rect = con.scrollRect;

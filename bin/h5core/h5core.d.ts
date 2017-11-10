@@ -2464,6 +2464,7 @@ declare module junyou {
          */
         protected doRender(start: number, end?: number): void;
         selectedIndex: number;
+        protected $setSelectedIndex(value: number): void;
         /**
          *
          * 根据索引获得视图
@@ -9513,7 +9514,7 @@ declare module junyou {
          * @returns
          */
         protected reCalc(): void;
-        selectedIndex: number;
+        $setSelectedIndex(value: number): void;
         private moveScroll(render);
         tweenX: number;
         tweenY: number;
