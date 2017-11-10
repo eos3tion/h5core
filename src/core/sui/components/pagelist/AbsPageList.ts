@@ -62,17 +62,22 @@ module junyou {
                 }
             }
         }
+
         public set selectedIndex(value: number) {
             if (this._selectedIndex == value && value >= 0) return;
             if (value < 0) {
-                if (this._selectedItem) {
-                    this._selectedItem.selected = false;
+                let selectedItem = this._selectedItem;
+                if (selectedItem) {
+                    selectedItem.selected = false;
                     this._selectedItem = undefined;
                 }
                 this._selectedIndex = value;
                 return;
             }
+            this.$setSelectedIndex(value);
+        }
 
+        protected $setSelectedIndex(value: number) {
             let render: R;
             const renderList = this._list;
             let len_1 = renderList.length - 1;

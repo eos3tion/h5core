@@ -26,8 +26,8 @@ module junyou {
          * @memberof ResourceBitmap
          */
         public draw(drawInfo: IDrawInfo, now: number) {
-            if(!this.res)return;
-            return this.res.draw(this, drawInfo, now);
+            if (!this.res) return;
+            this.res.draw(this, drawInfo, now);
         }
 
         public set rotation(value: number) {
@@ -44,6 +44,8 @@ module junyou {
             this.z = 0;
             this.scaleX = 1;
             this.scaleY = 1;
+            this.anchorOffsetX = 0;
+            this.anchorOffsetY = 0;
             this.texture = undefined;
         }
     }
