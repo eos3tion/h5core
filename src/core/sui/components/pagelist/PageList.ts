@@ -602,6 +602,8 @@ module junyou {
             this._selectedItem = undefined;
             this._waitForSetIndex = false;
             this._waitIndex = -1;
+            this._w = 0;
+            this._h = 0;
         }
 
         /**
