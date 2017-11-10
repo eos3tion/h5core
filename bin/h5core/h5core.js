@@ -9573,6 +9573,9 @@ var junyou;
          * @returns (description)
          */
         AniRender.getAni = function (uri, option) {
+            if (true && !uri) {
+                true && junyou.ThrowError("\u521B\u5EFA\u4E86\u6CA1\u6709uri\u7684AniRender");
+            }
             var aniDict = $DD.ani;
             var aniInfo = aniDict[uri];
             if (!aniInfo) {
@@ -16245,6 +16248,8 @@ var junyou;
             this._selectedItem = undefined;
             this._waitForSetIndex = false;
             this._waitIndex = -1;
+            this._w = 0;
+            this._h = 0;
         };
         PageList.prototype.checkViewRect = function () {
             var _con = this._con;
