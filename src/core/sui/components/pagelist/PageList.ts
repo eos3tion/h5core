@@ -357,16 +357,7 @@ module junyou {
             }
         }
 
-        public set selectedIndex(value: number) {
-            if (this._selectedIndex == value && value >= 0) return;
-            if (value < 0) {
-                if (this._selectedItem) {
-                    this._selectedItem.selected = false;
-                    this._selectedItem = undefined;
-                }
-                this._selectedIndex = value;
-                return;
-            }
+        public $setSelectedIndex(value: number) {
             this._waitIndex = value;
             if (!this._data) {
                 this._waitForSetIndex = true;
