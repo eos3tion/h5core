@@ -26,8 +26,10 @@ module junyou {
          * @memberof ResourceBitmap
          */
         public draw(drawInfo: IDrawInfo, now: number) {
-            if (!this.res) return;
-            this.res.draw(this, drawInfo, now);
+            let res = this.res;
+            if (res) {
+                return res.draw(this, drawInfo, now);
+            }
         }
 
         public set rotation(value: number) {
