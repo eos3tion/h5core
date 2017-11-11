@@ -86,6 +86,8 @@ module junyou {
             this.scaleY = 1;
             this.rotation = 0;
             this.alpha = 1;
+            this.x = 0;
+            this.y = 0;
             let list = this.$children as Recyclable<ResourceBitmap>[];
             for (let bmp of list) {
                 bmp.recycle();
