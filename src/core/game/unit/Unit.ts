@@ -642,6 +642,23 @@ module junyou {
             }
         }
 
+
+
+        /**
+         * 根据 resKey 获取纹理
+         * @param {Key} resKey resDict的key
+         * @param {IDrawInfo} [drawInfo] 动作，方向，帧数信息
+         */
+        getTexture(resKey: Key, drawInfo?: IDrawInfo) {
+            drawInfo = drawInfo || this._render;
+            if (drawInfo) {
+                let res = this._resDict[resKey];
+                if (res) {
+                    return res.getTexture(drawInfo);
+                }
+            }
+        }
+
         /**
          * 获得模型的旋转角度
          */
