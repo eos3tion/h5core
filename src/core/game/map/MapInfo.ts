@@ -120,14 +120,14 @@ module junyou {
         getMapUri: { (col: number, row: number) };
     }
 
-    if (DEBUG) {
-        MapInfo.prototype.getMapUri = function (col: number, row: number): string {
-            return "m/" + this.path + "/" + row.zeroize(3) + col.zeroize(3) + Ext.JPG;
-        }
+    // if (DEBUG) {
+    MapInfo.prototype.getMapUri = function (col: number, row: number): string {
+        return "m/" + this.path + "/" + row.zeroize(3) + col.zeroize(3) + Ext.JPG;
     }
-    if (RELEASE) {
-        MapInfo.prototype.getMapUri = function (col: number, row: number) {
-            return `m2/${this.path}/${row}_${col}${ext}`;
-        }
-    }
+    // }
+    // if (RELEASE) {
+    //     MapInfo.prototype.getMapUri = function (col: number, row: number) {
+    //         return `m2/${this.path}/${row}_${col}${ext}`;
+    //     }
+    // }
 }
