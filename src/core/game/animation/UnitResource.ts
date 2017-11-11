@@ -114,31 +114,41 @@ module junyou {
          * @memberof UnitResource
          */
         draw(bitmap: egret.Bitmap, drawInfo: IDrawInfo, now: number) {
-            const datas = this._datas;
-            if (!datas) {
-                return;
+            let frame = this.getTexture(drawInfo);
+            if (frame) {
+                let res = this.loadRes(drawInfo.d, drawInfo.a);
+                res.lastUseTime = Global.now;
+                if (frame.bitmapData) {
+                    bitmap.texture = frame;
+                    bitmap.anchorOffsetX = frame.tx;
+                    bitmap.anchorOffsetY = frame.ty;
+                    return true;
+                } else {
+                    bitmap.texture = undefined;
+                }
             }
-            const { a, f, d } = drawInfo;
-            let dDatas = datas[a];
-            if (dDatas) {
-                let frames = dDatas[d];
-                if (frames) {
-                    var frame = frames[f];
-                    if (frame) {
-                        let res = this.loadRes(d, a);
-                        res.lastUseTime = Global.now;
-                        if (frame.bitmapData) {
-                            bitmap.texture = frame;
-                            bitmap.anchorOffsetX = frame.tx;
-                            bitmap.anchorOffsetY = frame.ty;
-                            return true;
-                        } else {
-                            bitmap.texture = undefined;
+            //TODO 绘制未加载的代理图片
+        }
+
+        /**
+         * 根据 `动作``方向``帧数`获取纹理数据
+         * @param info 
+         */
+        getTexture(info: IDrawInfo) {
+            const datas = this._datas;
+            if (datas) {
+                const { a, f, d } = info;
+                let dDatas = datas[a];
+                if (dDatas) {
+                    let frames = dDatas[d];
+                    if (frames) {
+                        var frame = frames[f];
+                        if (frame) {
+                            return frame;
                         }
                     }
                 }
             }
-            //TODO 绘制未加载的代理图片
         }
 
         loadRes(d: number, a: number) {
