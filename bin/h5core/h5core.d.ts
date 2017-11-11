@@ -5853,6 +5853,11 @@ declare module junyou {
          * @memberof UnitResource
          */
         draw(bitmap: egret.Bitmap, drawInfo: IDrawInfo, now: number): boolean;
+        /**
+         * 根据 `动作``方向``帧数`获取纹理数据
+         * @param info
+         */
+        getTexture(info: IDrawInfo): JTexture;
         loadRes(d: number, a: number): SplitUnitResource;
         noRes(uri: string, r: string): SplitUnitResource;
         isResOK(d: number, a: number): boolean;
@@ -12659,5 +12664,11 @@ declare module junyou {
          * 例如，myDisplayObject.rotation = 450语句与 myDisplayObject.rotation = 90 是相同的
          */
         rotation: number;
+        /**
+         * 根据 resKey 获取纹理
+         * @param {Key} resKey resDict的key
+         * @param {IDrawInfo} [drawInfo] 动作，方向，帧数信息
+         */
+        getTexture(resKey: Key, drawInfo?: IDrawInfo): JTexture;
     }
 }

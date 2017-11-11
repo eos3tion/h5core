@@ -9970,32 +9970,41 @@ var junyou;
          * @memberof UnitResource
          */
         UnitResource.prototype.draw = function (bitmap, drawInfo, now) {
-            var datas = this._datas;
-            if (!datas) {
-                return;
+            var frame = this.getTexture(drawInfo);
+            if (frame) {
+                var res = this.loadRes(drawInfo.d, drawInfo.a);
+                res.lastUseTime = junyou.Global.now;
+                if (frame.bitmapData) {
+                    bitmap.texture = frame;
+                    bitmap.anchorOffsetX = frame.tx;
+                    bitmap.anchorOffsetY = frame.ty;
+                    return true;
+                }
+                else {
+                    bitmap.texture = undefined;
+                }
             }
-            var a = drawInfo.a, f = drawInfo.f, d = drawInfo.d;
-            var dDatas = datas[a];
-            if (dDatas) {
-                var frames_2 = dDatas[d];
-                if (frames_2) {
-                    var frame = frames_2[f];
-                    if (frame) {
-                        var res = this.loadRes(d, a);
-                        res.lastUseTime = junyou.Global.now;
-                        if (frame.bitmapData) {
-                            bitmap.texture = frame;
-                            bitmap.anchorOffsetX = frame.tx;
-                            bitmap.anchorOffsetY = frame.ty;
-                            return true;
-                        }
-                        else {
-                            bitmap.texture = undefined;
+            //TODO 绘制未加载的代理图片
+        };
+        /**
+         * 根据 `动作``方向``帧数`获取纹理数据
+         * @param info
+         */
+        UnitResource.prototype.getTexture = function (info) {
+            var datas = this._datas;
+            if (datas) {
+                var a = info.a, f = info.f, d = info.d;
+                var dDatas = datas[a];
+                if (dDatas) {
+                    var frames_2 = dDatas[d];
+                    if (frames_2) {
+                        var frame = frames_2[f];
+                        if (frame) {
+                            return frame;
                         }
                     }
                 }
             }
-            //TODO 绘制未加载的代理图片
         };
         UnitResource.prototype.loadRes = function (d, a) {
             var r = this._splitInfo.getResource(d, a);
@@ -10717,16 +10726,16 @@ var junyou;
     }(egret.HashObject));
     junyou.MapInfo = MapInfo;
     __reflect(MapInfo.prototype, "junyou.MapInfo");
-    if (true) {
-        MapInfo.prototype.getMapUri = function (col, row) {
-            return "m/" + this.path + "/" + row.zeroize(3) + col.zeroize(3) + ".jpg" /* JPG */;
-        };
-    }
-    if (false) {
-        MapInfo.prototype.getMapUri = function (col, row) {
-            return "m2/" + this.path + "/" + row + "_" + col + ext;
-        };
-    }
+    // if (DEBUG) {
+    MapInfo.prototype.getMapUri = function (col, row) {
+        return "m/" + this.path + "/" + row.zeroize(3) + col.zeroize(3) + ".jpg" /* JPG */;
+    };
+    // }
+    // if (RELEASE) {
+    //     MapInfo.prototype.getMapUri = function (col: number, row: number) {
+    //         return `m2/${this.path}/${row}_${col}${ext}`;
+    //     }
+    // }
 })(junyou || (junyou = {}));
 if (true) {
     var $gm = $gm || {};
@@ -11659,6 +11668,8 @@ var junyou;
             this.scaleY = 1;
             this.rotation = 0;
             this.alpha = 1;
+            this.x = 0;
+            this.y = 0;
             var list = this.$children;
             for (var _i = 0, list_2 = list; _i < list_2.length; _i++) {
                 var bmp = list_2[_i];
@@ -21772,6 +21783,20 @@ var junyou;
             enumerable: true,
             configurable: true
         });
+        /**
+         * 根据 resKey 获取纹理
+         * @param {Key} resKey resDict的key
+         * @param {IDrawInfo} [drawInfo] 动作，方向，帧数信息
+         */
+        Unit.prototype.getTexture = function (resKey, drawInfo) {
+            drawInfo = drawInfo || this._render;
+            if (drawInfo) {
+                var res = this._resDict[resKey];
+                if (res) {
+                    return res.getTexture(drawInfo);
+                }
+            }
+        };
         return Unit;
     }(egret.EventDispatcher));
     junyou.Unit = Unit;
