@@ -11447,7 +11447,6 @@ var junyou;
      */
     var ScreenShakeManager = (function () {
         function ScreenShakeManager() {
-            var _this = this;
             /**
              * 释放可震动
              *
@@ -11456,22 +11455,9 @@ var junyou;
             this.shakable = true;
             this._pt = { x: 0, y: 0 };
             this._tmp = new egret.Rectangle();
-            this.checkViewRect = function (rect) {
-                var limits = _this._limits;
-                var tmp = _this._tmp;
-                var x = rect.x - 50;
-                var y = rect.y - 50;
-                var width = rect.width + 100;
-                var height = rect.height + 100;
-                if (limits) {
-                    tmp.setTo(Math.clamp(x, limits.x, limits.width), Math.clamp(y, limits.y, limits.height), Math.clamp(width, limits.x, limits.width), Math.clamp(height, limits.y, limits.height));
-                }
-                else {
-                    tmp.setTo(x, y, width, height);
-                }
-                return tmp;
-                // return this._tmp.setTo(rect.x - 50, rect.y - 50, rect.width + 100, rect.height + 100);
-            };
+            // private clearShakeRect() {
+            //     GameEngine.instance.checkViewRect = undefined;
+            // }
         }
         ScreenShakeManager.prototype.setLimits = function (width, height, x, y) {
             if (width === void 0) { width = Infinity; }
@@ -11503,11 +11489,26 @@ var junyou;
                 shake.start();
                 this._st = junyou.Global.now;
                 egret.startTick(this.tick, this);
-                engine.checkViewRect = this.checkViewRect;
-                junyou.Global.clearCallLater(this.clearShakeRect);
+                // engine.checkViewRect = this.checkViewRect;
+                // Global.clearCallLater(this.clearShakeRect);
             }
             return shake;
         };
+        // private checkViewRect = (rect: egret.Rectangle) => {
+        //     let limits = this._limits;
+        //     let tmp = this._tmp;
+        //     let x = rect.x - 50;
+        //     let y = rect.y - 50;
+        //     let width = rect.width + 100;
+        //     let height = rect.height + 100;
+        //     if (limits) {
+        //         tmp.setTo(Math.clamp(x, limits.x, limits.width), Math.clamp(y, limits.y, limits.height), Math.clamp(width, limits.x, limits.width), Math.clamp(height, limits.y, limits.height));
+        //     } else {
+        //         tmp.setTo(x, y, width, height);
+        //     }
+        //     return tmp;
+        //     // return this._tmp.setTo(rect.x - 50, rect.y - 50, rect.width + 100, rect.height + 100);
+        // }
         ScreenShakeManager.prototype.tick = function () {
             var shake = this._cur;
             var duration = junyou.Global.now - this._st;
@@ -11546,12 +11547,9 @@ var junyou;
             }
             else {
                 shake.end();
-                junyou.Global.callLater(this.clearShakeRect, 30000);
+                // Global.callLater(this.clearShakeRect, 30000);
             }
             return true;
-        };
-        ScreenShakeManager.prototype.clearShakeRect = function () {
-            junyou.GameEngine.instance.checkViewRect = undefined;
         };
         return ScreenShakeManager;
     }());
