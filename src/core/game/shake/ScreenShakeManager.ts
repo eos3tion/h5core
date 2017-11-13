@@ -66,27 +66,27 @@ module junyou {
                 shake.start();
                 this._st = Global.now;
                 egret.startTick(this.tick, this);
-                engine.checkViewRect = this.checkViewRect;
-                Global.clearCallLater(this.clearShakeRect);
+                // engine.checkViewRect = this.checkViewRect;
+                // Global.clearCallLater(this.clearShakeRect);
             }
             return shake;
         }
 
-        private checkViewRect = (rect: egret.Rectangle) => {
-            let limits = this._limits;
-            let tmp = this._tmp;
-            let x = rect.x - 50;
-            let y = rect.y - 50;
-            let width = rect.width + 100;
-            let height = rect.height + 100;
-            if (limits) {
-                tmp.setTo(Math.clamp(x, limits.x, limits.width), Math.clamp(y, limits.y, limits.height), Math.clamp(width, limits.x, limits.width), Math.clamp(height, limits.y, limits.height));
-            } else {
-                tmp.setTo(x, y, width, height);
-            }
-            return tmp;
-            // return this._tmp.setTo(rect.x - 50, rect.y - 50, rect.width + 100, rect.height + 100);
-        }
+        // private checkViewRect = (rect: egret.Rectangle) => {
+        //     let limits = this._limits;
+        //     let tmp = this._tmp;
+        //     let x = rect.x - 50;
+        //     let y = rect.y - 50;
+        //     let width = rect.width + 100;
+        //     let height = rect.height + 100;
+        //     if (limits) {
+        //         tmp.setTo(Math.clamp(x, limits.x, limits.width), Math.clamp(y, limits.y, limits.height), Math.clamp(width, limits.x, limits.width), Math.clamp(height, limits.y, limits.height));
+        //     } else {
+        //         tmp.setTo(x, y, width, height);
+        //     }
+        //     return tmp;
+        //     // return this._tmp.setTo(rect.x - 50, rect.y - 50, rect.width + 100, rect.height + 100);
+        // }
 
 
         public tick() {
@@ -124,13 +124,13 @@ module junyou {
                 }
             } else {
                 shake.end();
-                Global.callLater(this.clearShakeRect, 30000);
+                // Global.callLater(this.clearShakeRect, 30000);
             }
             return true;
         }
 
-        private clearShakeRect() {
-            GameEngine.instance.checkViewRect = undefined;
-        }
+        // private clearShakeRect() {
+        //     GameEngine.instance.checkViewRect = undefined;
+        // }
     }
 }
