@@ -319,7 +319,7 @@ Object.defineProperties(String.prototype, {
             for (var i = 0; i < len; i++) {
                 hash += (hash << 5) + this.charCodeAt(i);
             }
-            return hash & 0x7fffffff;
+            return hash & 0xffffffff;
         },
         writable: true
     },
