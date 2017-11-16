@@ -11,7 +11,7 @@ interface $gmType {
 }
 declare module junyou {
     type InjectProxy = {
-        new (): IAsync;
+        new(): IAsync;
     } | string | number;
     /**
      * Mediator和Proxy的基类
@@ -84,7 +84,7 @@ declare module junyou {
      * @returns
      */
     function __dependProxy(ref: {
-        new (): IAsync;
+        new(): IAsync;
     } | string | number): (target: any, key: string) => void;
 }
 declare module junyou {
@@ -365,7 +365,7 @@ interface Array<T> {
 }
 declare module junyou {
     function is(instance: any, ref: {
-        new (): any;
+        new(): any;
     }): boolean;
     /**
      * 移除可视对象
@@ -2565,7 +2565,7 @@ declare module junyou {
          * @memberOf MixinOption
          */
         clazz: {
-            new (): T;
+            new(): T;
         };
         /**
          *
@@ -3542,6 +3542,12 @@ declare module junyou {
     }
 }
 declare module junyou {
+    const enum LocalResConst {
+        /**
+         * hash资源存储的key
+         */
+        ResHashKey = "$$hash$$",
+    }
     /**
      *  尝试启用本地资源缓存
      * @author 3tion(https://github.com/eos3tion/)
@@ -3565,6 +3571,11 @@ declare namespace RES {
          * @memberOf ResourceItem
          */
         local?: any;
+        uri?: string;
+        /**
+         * 版本号
+         */
+        version?: number;
     }
 }
 declare module junyou {
@@ -3890,6 +3901,8 @@ declare module junyou {
         SIZE_OF_INT64 = 8,
         SIZE_OF_FIX32 = 4,
         SIZE_OF_SFIX32 = 4,
+        SIZE_OF_UINT16 = 2,
+        SIZE_OF_INT16 = 2,
     }
     /**
      * 方便后续调整
@@ -5083,7 +5096,7 @@ declare module junyou {
         };
         static instance: GameEngine;
         static init(stage: egret.Stage, ref?: {
-            new (stage: egret.Stage): GameEngine;
+            new(stage: egret.Stage): GameEngine;
         }): void;
         static addLayerConfig(id: number, parentid?: number, ref?: new (id: number) => GameLayer): void;
         /**
@@ -6283,7 +6296,7 @@ declare module junyou {
         pathdata?: Uint8Array;
         constructor();
         static decodeFromArray(arr: any[], ref?: {
-            new (): MapInfo;
+            new(): MapInfo;
         }): MapInfo;
         /**
         * 获取资源路径
@@ -6525,8 +6538,8 @@ declare module junyou {
         getPath(fx: number, fy: number, tx: number, ty: number, callback: CallbackInfo<{
             (path: PathNode[], ...args);
         }>): {
-            stop: boolean;
-        };
+                stop: boolean;
+            };
     }
 }
 declare module junyou {
@@ -7540,7 +7553,7 @@ declare module junyou {
          * @memberOf Facade
          */
         static getNameOfInline(inlineRef: {
-            new (): any;
+            new(): any;
         }, className?: string): string;
         /**
          * 存储的数据Proxy
@@ -7597,7 +7610,7 @@ declare module junyou {
          * @param {boolean} [async=false] 是否异步初始化，默认直接初始化
          */
         registerInlineProxy(ref: {
-            new (): Proxy;
+            new(): Proxy;
         }, proxyName?: Key, async?: boolean): void;
         /**
          *
@@ -7606,7 +7619,7 @@ declare module junyou {
          * @param {string} [mediatorName]   注册的模块名字
          */
         registerInlineMediator(ref: {
-            new (): Mediator;
+            new(): Mediator;
         }, mediatorName?: Key): void;
         /**
          * 注册Proxy的配置
@@ -8060,7 +8073,13 @@ declare module junyou {
      */
     const ConfigUtils: {
         setData(data: JConfig): void;
-        getResUrl(uri: string, sameDomain?: boolean): string;
+        parseHash(uint8: Uint8Array): void;
+        setHash(hash: {
+            [index: string]: number;
+        }): void;
+        getResVer: (uri: string) => number;
+        getResUrl(uri: string): string;
+        getResUri(url: string): string;
         getParam(key: string): any;
         getSkinPath: (key: string, fileName: string) => string;
         getSkinFile(key: string, fileName: string): string;
@@ -9647,6 +9666,10 @@ declare module junyou {
          * 频繁发送协议提示
          */
         NetServiceSendLimit = -189,
+        /**
+         * 解析资源版本hash的时候派发
+         */
+        ParseResHash = -188,
     }
 }
 declare module junyou {
@@ -9667,10 +9690,10 @@ declare module junyou {
      * 创建器
      */
     type Creator<T> = {
-        new (): T;
+        new(): T;
     } | {
-        (): T;
-    };
+            (): T;
+        };
     /**
      *
      * 调整ClassFactory
@@ -9747,7 +9770,7 @@ declare module junyou {
      * @param {({ new(): T & { _pool?: RecyclablePool<T> } })} clazz
      */
     function recyclable<T>(clazz: {
-        new (): T & {
+        new(): T & {
             _pool?: RecyclablePool<T>;
         };
     }): Recyclable<T>;
@@ -9769,7 +9792,7 @@ declare module junyou {
      * @param clazz 要做单例的类型
      */
     function singleton<T>(clazz: {
-        new (): T;
+        new(): T;
         _instance?: T;
     }): T;
 }
@@ -10087,7 +10110,7 @@ declare module junyou {
          */
         protected _creators: {
             [index: string]: {
-                new (): BaseCreator<egret.DisplayObject>;
+                new(): BaseCreator<egret.DisplayObject>;
             };
         };
         /**
@@ -11409,7 +11432,7 @@ interface Window {
     XMLHttpRequest?: XMLHttpRequest;
 }
 interface ActiveXObject {
-    new (key: "MSXML2.XMLHTTP"): XMLHttpRequest;
+    new(key: "MSXML2.XMLHTTP"): XMLHttpRequest;
 }
 declare const ActiveXObject: ActiveXObject;
 declare module junyou {
@@ -11452,7 +11475,7 @@ declare module junyou {
          * @type {{new():T}}
          */
         renderClass: {
-            new (): T;
+            new(): T;
         };
         /**
          * 背景

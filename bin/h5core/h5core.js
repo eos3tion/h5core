@@ -5246,7 +5246,7 @@ var junyou;
          * 本地数据库操作
          */
         var db = (function (version) {
-            var keyPath = "url";
+            var keyPath = "uri";
             var RW = "readwrite";
             var R = "readonly";
             var storeName = 'res';
@@ -5260,7 +5260,7 @@ var junyou;
                 save: function (data, callback) {
                     open(function (result) {
                         var store = getObjectStore(result, RW);
-                        var request = data.url ? store.put(data) : store.add(data);
+                        var request = data.uri ? store.put(data) : store.add(data);
                         request.onsuccess = callback;
                     });
                 },
@@ -5303,14 +5303,14 @@ var junyou;
                         var request = store.clear();
                         request.onsuccess = callback;
                     });
-                }
+                },
             };
             function open(callback, onError) {
                 try {
                     var request = indexedDB.open(storeName, version);
                 }
                 catch (e) {
-                    junyou.ThrowError("indexedDB error", e);
+                    true && junyou.ThrowError("indexedDB error", e);
                     return onError && onError(e);
                 }
                 request.onerror = function (e) {
@@ -5339,117 +5339,193 @@ var junyou;
         })(version);
         var canvas = document.createElement("canvas");
         var context = canvas.getContext("2d");
-        //注入
-        var ImageAnalyzer = (function (_super) {
-            __extends(ImageAnalyzer, _super);
-            function ImageAnalyzer() {
-                return _super !== null && _super.apply(this, arguments) || this;
+        var BAPt = RES.BinAnalyzer.prototype;
+        BAPt.loadFile = function (resItem, compFunc, thisObject) {
+            var _this = this;
+            var name = resItem.name;
+            if (this.fileDic[name]) {
+                return compFunc.call(thisObject, resItem);
             }
-            ImageAnalyzer.prototype.loadFile = function (resItem, compFunc, thisObject) {
-                var _this = this;
-                // 检查内存中是否有本地资源
-                if (this.fileDic[resItem.name]) {
-                    compFunc.call(thisObject, resItem);
-                    return;
-                }
-                var url = RES.$getVirtualUrl(resItem.url);
-                db.get(url, function (data) {
-                    var loader = _this.getLoader();
-                    _this.resItemDic[loader.$hashCode] = { item: resItem, func: compFunc, thisObject: thisObject };
+            var url = resItem.url;
+            var uri = junyou.ConfigUtils.getResUri(url);
+            if (uri) {
+                resItem.uri = uri;
+                return db.get(uri, function (data) {
                     if (data) {
-                        var rawData = data.local;
-                        if (rawData instanceof Blob) {
-                            url = URL.createObjectURL(rawData);
-                        }
-                        else if (typeof rawData === "string") {
-                            url = rawData;
-                        }
-                        else {
-                            if (true) {
-                                junyou.ThrowError("出现ImageAnalyzer本地缓存不支持的情况");
+                        var local = data.local;
+                        if (local) {
+                            var ver = junyou.ConfigUtils.getResVer(data.uri);
+                            if (ver == data.version) {
+                                resItem.data = local;
+                                resItem.loaded = true;
+                                _this.fileDic[name] = local;
+                                return compFunc.call(thisObject, resItem);
                             }
                         }
-                        resItem.local = rawData;
                     }
-                    loader.load(url); //走原流程
+                    _this.tryLoad(url, resItem, compFunc, thisObject);
                 });
-            };
-            ImageAnalyzer.prototype.onLoadFinish = function (event) {
-                var request = event.$target;
-                var data = this.resItemDic[request.$hashCode];
-                delete this.resItemDic[request.$hashCode];
-                var item = data.item;
-                var local = item.local;
-                if (!local) {
-                    var url = item.url;
-                    var req = request.request;
-                    if (req && req._url == url) {
-                        var type = req.responseType;
-                        if (type == "blob") {
-                            // 将数据存到本地缓存
-                            local = req.response;
-                        }
-                    }
-                    else {
-                        // 普通图片
-                        // 尝试转换成DataURL，此方法为同步方法，可能会影响性能
-                        var dat = request.data;
-                        if (dat instanceof egret.BitmapData) {
-                            var img = dat.source;
-                            var w_1 = img.width;
-                            var h = img.height;
-                            var type = "image/" + url.substring(url.lastIndexOf(".") + 1);
-                            canvas.width = w_1;
-                            canvas.height = h;
-                            context.clearRect(0, 0, w_1, h);
-                            context.drawImage(img, 0, 0);
-                            try {
-                                if (canUseBlob && url.indexOf("wxLocalResource:") != 0) {
-                                    canvas.toBlob(function (blob) {
-                                        item.local = blob;
-                                        //存储数据
-                                        db.save(item);
-                                    }, type);
-                                }
-                                else {
-                                    local = canvas.toDataURL(type);
+            }
+            else {
+                this.tryLoad(url, resItem, compFunc, thisObject);
+            }
+        };
+        BAPt.tryLoad = function (url, resItem, compFunc, thisObject) {
+            var request = this.getRequest();
+            this.resItemDic[request.hashCode] = { item: resItem, func: compFunc, thisObject: thisObject };
+            request.open(url);
+            request.send();
+        };
+        BAPt.onLoadFinish = function (event) {
+            var req = event.target;
+            var hashCode = req.hashCode;
+            var resItemDic = this.resItemDic;
+            var data = resItemDic[hashCode];
+            delete resItemDic[hashCode];
+            var item = data.item;
+            var local = item.local;
+            var loaded = event.type == "complete" /* COMPLETE */;
+            if (loaded) {
+                this.analyzeData(item, req.response);
+            }
+            item.loaded = loaded;
+            var uri = item.uri;
+            if (!local && uri) {
+                local = this.fileDic[item.name];
+                if (local) {
+                    item.local = local;
+                    item.version = junyou.ConfigUtils.getResVer(uri);
+                    //存储数据
+                    db.save(item);
+                }
+            }
+            this.recycler.push(req);
+            return data.func.call(data.thisObject, item);
+        };
+        //注入
+        var IApt = RES.ImageAnalyzer.prototype;
+        IApt.loadFile = function (resItem, compFunc, thisObject) {
+            var _this = this;
+            // 检查内存中是否有本地资源
+            if (this.fileDic[resItem.name]) {
+                return compFunc.call(thisObject, resItem);
+            }
+            var url = resItem.url;
+            var uri = junyou.ConfigUtils.getResUri(url);
+            if (uri) {
+                resItem.uri = uri;
+                db.get(uri, function (data) {
+                    if (data) {
+                        var ver = junyou.ConfigUtils.getResVer(data.uri);
+                        if (ver == data.version) {
+                            var rawData = data.local;
+                            if (rawData instanceof Blob) {
+                                url = URL.createObjectURL(rawData);
+                            }
+                            else if (typeof rawData === "string") {
+                                url = rawData;
+                            }
+                            else {
+                                if (true) {
+                                    junyou.ThrowError("出现ImageAnalyzer本地缓存不支持的情况");
                                 }
                             }
-                            catch (e) {
-                                //一般跨域并且没有权限的时候，会参数错误
-                            }
-                        }
-                    }
-                    if (local) {
-                        if (!canUseBlob && typeof local !== "string") {
-                            var a = new FileReader();
-                            a.onload = function (e) {
-                                item.local = this.result;
-                                //存储数据
-                                db.save(item);
-                            };
-                            a.readAsDataURL(local);
+                            resItem.local = rawData;
                         }
                         else {
-                            item.local = local;
+                            //清除原始数据
+                            resItem.local = undefined;
+                        }
+                    }
+                    _this.tryLoad(url, resItem, compFunc, thisObject);
+                });
+            }
+            else {
+                this.tryLoad(url, resItem, compFunc, thisObject);
+            }
+        };
+        IApt.tryLoad = function (url, resItem, compFunc, thisObject) {
+            var loader = this.getLoader();
+            this.resItemDic[loader.$hashCode] = { item: resItem, func: compFunc, thisObject: thisObject };
+            loader.load(url); //走原流程
+        };
+        IApt.onLoadFinish = function (event) {
+            var request = event.$target;
+            var hashCode = request.$hashCode;
+            var resItemDic = this.resItemDic;
+            var data = resItemDic[hashCode];
+            delete resItemDic[hashCode];
+            var item = data.item;
+            var local = item.local;
+            var uri = item.uri;
+            if (!local && uri) {
+                var url = item.url;
+                item.version = junyou.ConfigUtils.getResVer(item.uri);
+                var req = request.request;
+                if (req && req._url == url) {
+                    var type = req.responseType;
+                    if (type == "blob") {
+                        // 将数据存到本地缓存
+                        local = req.response;
+                    }
+                }
+                else {
+                    // 普通图片
+                    // 尝试转换成DataURL，此方法为同步方法，可能会影响性能
+                    var dat = request.data;
+                    if (dat instanceof egret.BitmapData) {
+                        var img = dat.source;
+                        var w_1 = img.width;
+                        var h = img.height;
+                        var type = "image/" + url.substring(url.lastIndexOf(".") + 1);
+                        canvas.width = w_1;
+                        canvas.height = h;
+                        context.clearRect(0, 0, w_1, h);
+                        context.drawImage(img, 0, 0);
+                        try {
+                            if (canUseBlob && url.indexOf("wxLocalResource:") != 0) {
+                                canvas.toBlob(function (blob) {
+                                    item.local = blob;
+                                    //存储数据
+                                    db.save(item);
+                                }, type);
+                            }
+                            else {
+                                local = canvas.toDataURL(type);
+                            }
+                        }
+                        catch (e) {
+                            //一般跨域并且没有权限的时候，会参数错误
+                        }
+                    }
+                }
+                if (!local) {
+                    if (!canUseBlob && typeof local !== "string") {
+                        var a = new FileReader();
+                        a.onload = function (e) {
+                            item.local = this.result;
                             //存储数据
                             db.save(item);
-                        }
+                        };
+                        a.readAsDataURL(local);
+                    }
+                    else {
+                        item.local = local;
+                        //存储数据
+                        db.save(item);
                     }
                 }
-                item.loaded = (event.$type == "complete" /* COMPLETE */);
-                if (item.loaded) {
-                    var texture = new egret.Texture();
-                    texture._setBitmapData(request.data);
-                    this.analyzeData(item, texture);
-                }
-                delete request.request;
-                this.recycler.push(request);
-                return data.func.call(data.thisObject, item);
-            };
-            return ImageAnalyzer;
-        }(RES.ImageAnalyzer));
-        RES.registerAnalyzer("image" /* TYPE_IMAGE */, ImageAnalyzer);
+            }
+            item.loaded = (event.$type == "complete" /* COMPLETE */);
+            if (item.loaded) {
+                var texture = new egret.Texture();
+                texture._setBitmapData(request.data);
+                this.analyzeData(item, texture);
+            }
+            delete request.request;
+            this.recycler.push(request);
+            return data.func.call(data.thisObject, item);
+        };
         return db;
     }
     junyou.tryLocalRes = tryLocalRes;
@@ -13356,179 +13432,222 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
+     * 资源的 版本字典
+     */
+    var _hash = {};
+    /**
+     * 配置数据
+     */
+    var _data;
+    /**
+     * 注册的皮肤路径
+     * key      {string}   皮肤的key
+     * value    {Path}    皮肤实际路径地址
+     */
+    var _regedSkinPath = {};
+    var getPrefix;
+    var _res;
+    /**
+     * 获取皮肤路径
+     *
+     * @param {string} key
+     * @param {string} fileName
+     * @returns
+     */
+    function getSkinPath(key, fileName) {
+        return key + "/" + fileName;
+    }
+    /**
+     * 通过Path获取完整url
+     *
+     * @private
+     * @static
+     * @param {string} uri 路径标识
+     * @param {Path} path Path对象
+     * @returns
+     */
+    function getUrlWithPath(uri, path) {
+        if (/^((http|https):)?\/\//.test(uri)) {
+            return uri;
+        }
+        uri = path.tPath + uri;
+        var prefix = path.iPrefix ? "" : getPrefix(uri);
+        return prefix + uri;
+    }
+    /**
+     * 根据uri缓存url的字典
+     */
+    var uriDict = {};
+    /**
+     * 根据url缓存uri的字典
+     */
+    var urlDict = {};
+    /**
+     * 获取资源版本号
+     * @param uri
+     */
+    function getResVer(uri) {
+        return ~~(_hash && _hash[uri.hash()]);
+    }
+    /**
      * 配置工具
      * @author 3tion
      * @export
      * @class ConfigUtils
      */
-    junyou.ConfigUtils = (function () {
+    junyou.ConfigUtils = {
+        setData: function (data) {
+            _data = data;
+            !_data.params && (_data.params = {});
+            //检查路径是否存在有路径有父路径的，如果有，进行预处理
+            var paths = _data.paths;
+            for (var key in paths) {
+                var p = paths[key];
+                p.tPath = getPath(p);
+            }
+            _res = _data.paths.res;
+            //检查前缀
+            getPrefix = (function (prefixes) {
+                var len = 0;
+                if (prefixes) {
+                    len = prefixes.length;
+                }
+                switch (len) {
+                    case 0:
+                        return function (uri) { return ""; };
+                    case 1: {
+                        var prefix_1 = prefixes[0];
+                        return function (uri) { return prefix_1; };
+                    }
+                    default:
+                        return function (uri) {
+                            var idx = uri.hash() % prefixes.length;
+                            return prefixes[idx] || "";
+                        };
+                }
+            })(_data.prefixes);
+            function getPath(p) {
+                var parentKey = p.parent;
+                if (parentKey) {
+                    var parent_2 = paths[parentKey];
+                    if (parent_2) {
+                        return getPath(parent_2) + p.path;
+                    }
+                    else if (true) {
+                        junyou.ThrowError("\u8DEF\u5F84[" + p.path + "]\u914D\u7F6E\u4E86\u7236\u7EA7(parent)\uFF0C\u4F46\u662F\u627E\u4E0D\u5230\u5BF9\u5E94\u7684\u7236\u7EA7");
+                    }
+                }
+                return p.path;
+            }
+        },
         /**
-         * 配置数据
+         * 解析版本控制文件
+         * @param uint8
          */
-        var _data;
+        parseHash: function (uint8) {
+            var dv = new DataView(uint8);
+            var pos = 0;
+            var len = dv.byteLength;
+            _hash = {};
+            while (pos < len) {
+                var hash = dv.getUint32(pos);
+                pos += 4 /* SIZE_OF_UINT32 */;
+                var version = dv.getUint16(pos);
+                pos += 2 /* SIZE_OF_UINT16 */;
+                _hash[hash] = version;
+            }
+            junyou.dispatch(-188 /* ParseResHash */);
+        },
         /**
-         * 资源的hash配置
+         * 设置版本控制文件
+         * @param hash
          */
-        var _hash;
+        setHash: function (hash) {
+            _hash = hash;
+        },
+        getResVer: getResVer,
         /**
-         * 注册的皮肤路径
-         * key      {string}   皮肤的key
-         * value    {Path}    皮肤实际路径地址
-         */
-        var _regedSkinPath = {};
-        var getPrefix;
-        /**
-         * 设置配置数据
+         * 获取资源完整路径
          *
          * @static
-         * @param {JConfig} data 配置
+         * @param {string} uri                  路径标识
+         * @returns {string}
          */
-        return {
-            setData: function (data) {
-                _data = data;
-                !_data.params && (_data.params = {});
-                //检查路径是否存在有路径有父路径的，如果有，进行预处理
-                var paths = _data.paths;
-                for (var key in paths) {
-                    var p = paths[key];
-                    p.tPath = getPath(p);
-                }
-                //检查前缀
-                getPrefix = (function (prefixes) {
-                    var len = 0;
-                    if (prefixes) {
-                        len = prefixes.length;
+        getResUrl: function (uri) {
+            var url = uriDict[uri];
+            if (!url) {
+                var ver = getResVer(uri);
+                if (ver) {
+                    if (uri.indexOf("?") == -1) {
+                        uri = uri + "?" + ver;
                     }
-                    switch (len) {
-                        case 0:
-                            return function (uri) { return ""; };
-                        case 1: {
-                            var prefix_1 = prefixes[0];
-                            return function (uri) { return prefix_1; };
-                        }
-                        default:
-                            return function (uri) {
-                                var idx = uri.hash() % prefixes.length;
-                                return prefixes[idx] || "";
-                            };
-                    }
-                })(_data.prefixes);
-                function getPath(p) {
-                    var parentKey = p.parent;
-                    if (parentKey) {
-                        var parent_2 = paths[parentKey];
-                        if (parent_2) {
-                            return getPath(parent_2) + p.path;
-                        }
-                        else if (true) {
-                            junyou.ThrowError("\u8DEF\u5F84[" + p.path + "]\u914D\u7F6E\u4E86\u7236\u7EA7(parent)\uFF0C\u4F46\u662F\u627E\u4E0D\u5230\u5BF9\u5E94\u7684\u7236\u7EA7");
-                        }
-                    }
-                    return p.path;
-                }
-            },
-            /**
-             * 获取资源完整路径
-             *
-             * @static
-             * @param {string} uri                  路径标识
-             * @param {Boolean} [sameDomain=false]  是否为同域，同域的话，资源从resource中获取
-             * @returns {string}
-             */
-            getResUrl: function (uri, sameDomain) {
-                if (sameDomain) {
-                    return "resource/" + uri;
-                }
-                if (_hash) {
-                    var ver = _hash[uri];
-                    if (ver) {
-                        if (uri.indexOf("?") == -1) {
-                            uri = uri + "?" + ver;
-                        }
-                        else {
-                            uri = uri + "&jyver=" + ver;
-                        }
+                    else {
+                        uri = uri + "&jyver=" + ver;
                     }
                 }
-                return getUrlWithPath(uri, _data.paths.res);
-            },
-            /**
-             * 获取参数
-             */
-            getParam: function (key) {
-                return _data.params[key];
-            },
-            getSkinPath: getSkinPath,
-            /**
-             * 获取皮肤文件地址
-             */
-            getSkinFile: function (key, fileName) {
-                return getUrlWithPath(getSkinPath(key, fileName), _regedSkinPath[key] || _data.paths.skin);
-            },
-            /**
-             * 设置皮肤路径
-             * 如 `lib` 原本应该放在当前项目  resource/skin/ 目录下
-             * 现在要将`lib`的指向改到  a/ 目录下
-             * 则使用下列代码
-             * ```typescript
-             * ConfigUtils.regSkinPath("lib","a/");
-             * ```
-             * 如果要将`lib`的指向改到 http://www.xxx.com/a/下
-             * 则使用下列代码
-             * ```typescript
-             * ConfigUtils.regSkinPath("lib","http://www.xxx.com/a/",true);
-             * ```
-             * 如果域名不同，`自行做好跨域策略CROS`
-             *
-             * @param {string} key
-             * @param {string} path
-             * @param {boolean} [iPrefix] 是否忽略皮肤前缀
-             */
-            regSkinPath: function (key, path, iPrefix) {
-                _regedSkinPath[key] = { tPath: path, path: path, iPrefix: iPrefix };
-            },
-            /**
-             * 获取路径
-             *
-             * @param {string} uri
-             * @param {string} pathKey
-             * @returns
-             */
-            getUrl: function (uri, pathKey) {
-                var path = _data.paths[pathKey];
-                if (path) {
-                    return getUrlWithPath(uri, path);
-                }
+                url = getUrlWithPath(uri, _res);
+                uriDict[uri] = url;
+                urlDict[url] = uri;
             }
-        };
+            return url;
+        },
         /**
-         * 获取皮肤路径
+         * 根据res的url获取uri
+         * @param {string} url
+         * @returns {string}
+         */
+        getResUri: function (url) {
+            return urlDict[url];
+        },
+        /**
+         * 获取参数
+         */
+        getParam: function (key) {
+            return _data.params[key];
+        },
+        getSkinPath: getSkinPath,
+        /**
+         * 获取皮肤文件地址
+         */
+        getSkinFile: function (key, fileName) {
+            return getUrlWithPath(getSkinPath(key, fileName), _regedSkinPath[key] || _data.paths.skin);
+        },
+        /**
+         * 设置皮肤路径
+         * 如 `lib` 原本应该放在当前项目  resource/skin/ 目录下
+         * 现在要将`lib`的指向改到  a/ 目录下
+         * 则使用下列代码
+         * ```typescript
+         * ConfigUtils.regSkinPath("lib","a/");
+         * ```
+         * 如果要将`lib`的指向改到 http://www.xxx.com/a/下
+         * 则使用下列代码
+         * ```typescript
+         * ConfigUtils.regSkinPath("lib","http://www.xxx.com/a/",true);
+         * ```
+         * 如果域名不同，`自行做好跨域策略CROS`
          *
          * @param {string} key
-         * @param {string} fileName
-         * @returns
+         * @param {string} path
+         * @param {boolean} [iPrefix] 是否忽略皮肤前缀
          */
-        function getSkinPath(key, fileName) {
-            return key + "/" + fileName;
-        }
+        regSkinPath: function (key, path, iPrefix) {
+            _regedSkinPath[key] = { tPath: path, path: path, iPrefix: iPrefix };
+        },
         /**
-         * 通过Path获取完整url
+         * 获取路径
          *
-         * @private
-         * @static
-         * @param {string} uri 路径标识
-         * @param {Path} path Path对象
+         * @param {string} uri
+         * @param {string} pathKey
          * @returns
          */
-        function getUrlWithPath(uri, path) {
-            if (/^((http|https):)?\/\//.test(uri)) {
-                return uri;
+        getUrl: function (uri, pathKey) {
+            var path = _data.paths[pathKey];
+            if (path) {
+                return getUrlWithPath(uri, path);
             }
-            uri = path.tPath + uri;
-            var prefix = path.iPrefix ? "" : getPrefix(uri);
-            return prefix + uri;
         }
-    })();
+    };
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
