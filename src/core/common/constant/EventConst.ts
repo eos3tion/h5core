@@ -50,5 +50,9 @@ module junyou {
 		 * 频繁发送协议提示
 		 */
 		NetServiceSendLimit,
+		/**
+		 * 解析资源版本hash的时候派发
+		 */
+		ParseResHash,
 	}
 }
