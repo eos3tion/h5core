@@ -4,7 +4,10 @@ module junyou {
         SIZE_OF_FIX64 = 8,
         SIZE_OF_INT64 = 8,
         SIZE_OF_FIX32 = 4,
-        SIZE_OF_SFIX32 = 4
+        SIZE_OF_SFIX32 = 4,
+
+        SIZE_OF_UINT16 = 2,
+        SIZE_OF_INT16 = 2
     }
 	/**
 	 * 方便后续调整
