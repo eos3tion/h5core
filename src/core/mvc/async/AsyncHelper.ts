@@ -28,7 +28,7 @@ module junyou {
                 this._ready = true;
                 var _readyExecutes = this._readyExecutes;
                 if (_readyExecutes) {
-                    var temp = Temp.SharedArray1;
+                    var temp = [];
                     for (var i = 0, len = _readyExecutes.length; i < len; i++) {
                         temp[i] = _readyExecutes[i];
                     }
