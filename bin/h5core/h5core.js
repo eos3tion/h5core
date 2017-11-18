@@ -11733,7 +11733,7 @@ var junyou;
             //渲染
             for (var _i = 0, _a = this.$children; _i < _a.length; _i++) {
                 var res = _a[_i];
-                flag = flag && res.draw(info, now);
+                flag = res.draw(info, now) && flag;
             }
             return flag;
         };
