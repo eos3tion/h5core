@@ -76,7 +76,7 @@ module junyou {
             let flag = true;
             //渲染
             for (let res of <ResourceBitmap[]>this.$children) {
-                flag = flag && res.draw(info, now);
+                flag = res.draw(info, now) && flag;
             }
             return flag;
         }
