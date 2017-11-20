@@ -8073,7 +8073,7 @@ declare module junyou {
      */
     const ConfigUtils: {
         setData(data: JConfig): void;
-        parseHash(uint8: Uint8Array): void;
+        parseHash(hash: ArrayBuffer): void;
         setHash(hash: {
             [index: string]: number;
         }): void;
