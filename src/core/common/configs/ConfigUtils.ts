@@ -190,10 +190,10 @@ module junyou {
         },
         /**
          * 解析版本控制文件
-         * @param uint8 
+         * @param {ArrayBufferLike} hash 
          */
-        parseHash(uint8: Uint8Array) {
-            let dv = new DataView(uint8);
+        parseHash(hash: ArrayBufferLike) {
+            let dv = new DataView(hash);
             let pos = 0;
             let len = dv.byteLength;
             _hash = {};
