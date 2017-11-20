@@ -6495,7 +6495,7 @@ var junyou;
              * @memberof ByteArray
              */
             get: function () {
-                return new Uint8Array(this._bytes, 0, this.write_position);
+                return new Uint8Array(this._bytes.buffer, 0, this.write_position);
             },
             enumerable: true,
             configurable: true
@@ -13542,19 +13542,19 @@ var junyou;
         },
         /**
          * 解析版本控制文件
-         * @param uint8
+         * @param {ArrayBufferLike} hash
          */
-        parseHash: function (uint8) {
-            var dv = new DataView(uint8);
+        parseHash: function (hash) {
+            var dv = new DataView(hash);
             var pos = 0;
             var len = dv.byteLength;
             _hash = {};
             while (pos < len) {
-                var hash = dv.getUint32(pos);
+                var hash_1 = dv.getUint32(pos);
                 pos += 4 /* SIZE_OF_UINT32 */;
                 var version = dv.getUint16(pos);
                 pos += 2 /* SIZE_OF_UINT16 */;
-                _hash[hash] = version;
+                _hash[hash_1] = version;
             }
             junyou.dispatch(-188 /* ParseResHash */);
         },
