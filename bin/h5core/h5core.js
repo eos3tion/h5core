@@ -10802,16 +10802,16 @@ var junyou;
     }(egret.HashObject));
     junyou.MapInfo = MapInfo;
     __reflect(MapInfo.prototype, "junyou.MapInfo");
-    // if (DEBUG) {
-    MapInfo.prototype.getMapUri = function (col, row) {
-        return "m/" + this.path + "/" + row.zeroize(3) + col.zeroize(3) + ".jpg" /* JPG */;
-    };
-    // }
-    // if (RELEASE) {
-    //     MapInfo.prototype.getMapUri = function (col: number, row: number) {
-    //         return `m2/${this.path}/${row}_${col}${ext}`;
-    //     }
-    // }
+    if (true) {
+        MapInfo.prototype.getMapUri = function (col, row) {
+            return "m/" + this.path + "/" + row.zeroize(3) + col.zeroize(3) + ".jpg" /* JPG */;
+        };
+    }
+    if (false) {
+        MapInfo.prototype.getMapUri = function (col, row) {
+            return "m2/" + this.path + "/" + row + "_" + col + ext;
+        };
+    }
 })(junyou || (junyou = {}));
 if (true) {
     var $gm = $gm || {};
