@@ -253,7 +253,7 @@ module junyou {
          * @memberof ByteArray
          */
         public get outBytes() {
-            return new Uint8Array(this._bytes, 0, this.write_position);
+            return new Uint8Array(this._bytes.buffer, 0, this.write_position);
         }
 
         /**
