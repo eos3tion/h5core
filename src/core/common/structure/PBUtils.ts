@@ -42,9 +42,9 @@ module junyou {
         /**
          * 
          * 必有 属性名字
-         * @type {string}
+         * @type {Key}
          */
-        0: string;
+        0: Key;
         /**
          * 
          * 必有 required optional repeated
@@ -60,10 +60,10 @@ module junyou {
         /**
          * 
          * 可选 消息类型名称
-         * @type {(string | PBStruct)}
+         * @type {(Key | PBStruct)}
          * @memberOf PBField
          */
-        3?: string | PBStruct;
+        3?: Key | PBStruct;
         /**
          * 可选 默认值
          * 
@@ -405,7 +405,7 @@ module junyou {
      * @param {string} subMsgType   类型标识
      * @returns {Object}
      */
-    function readMessage(bytes: ByteArray, msgType: string | PBStruct) {
+    function readMessage(bytes: ByteArray, msgType: Key | PBStruct) {
         let blen = bytes.readVarint();
         return readFrom(msgType, bytes, blen);
     }
@@ -479,7 +479,7 @@ module junyou {
         return bytes;
     }
 
-    function writeElementTo(value: any, type: number, tag: number, bytes: ByteArray, subMsgType?: string | PBStruct) {
+    function writeElementTo(value: any, type: number, tag: number, bytes: ByteArray, subMsgType?: Key | PBStruct) {
         if (DEBUG) {
             var out = value;
         }

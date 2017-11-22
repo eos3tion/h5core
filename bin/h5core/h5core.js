@@ -13674,6 +13674,7 @@ var junyou;
                 var cmd = args[i];
                 var ref = args[i + 1];
                 var handler = args[i + 2];
+                handler = handler.bind(this);
                 if (Array.isArray(cmd)) {
                     for (var i_1 = 0; i_1 < cmd.length; i_1++) {
                         doReg(cmd[i_1], handler, ref);

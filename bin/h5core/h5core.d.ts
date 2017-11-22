@@ -4084,9 +4084,9 @@ declare module junyou {
         /**
          *
          * 必有 属性名字
-         * @type {string}
+         * @type {Key}
          */
-        0: string;
+        0: Key;
         /**
          *
          * 必有 required optional repeated
@@ -4102,10 +4102,10 @@ declare module junyou {
         /**
          *
          * 可选 消息类型名称
-         * @type {(string | PBStruct)}
+         * @type {(Key | PBStruct)}
          * @memberOf PBField
          */
-        3?: string | PBStruct;
+        3?: Key | PBStruct;
         /**
          * 可选 默认值
          *
