@@ -90,30 +90,6 @@ module junyou {
         public constructor() {
             super();
         }
-
-        // const KEYS=["id", "path", "columns", "rows", "width", "height", "gridWidth", "gridHeight"];
-        static decodeFromArray(arr: any[], ref?: { new(): MapInfo }): MapInfo {
-            ref = ref || MapInfo;
-            let m = new ref();
-            m.id = arr[0];
-            m.path = arr[1];
-            m.columns = arr[2];
-            m.rows = arr[3];
-            m.width = arr[4];
-            m.height = arr[5];
-            m.gridWidth = arr[6];
-            m.gridHeight = arr[7];
-            m.maxPicX = m.width / m.pWidth - 1 >> 0;
-            m.maxPicY = m.height / m.pHeight - 1 >> 0;
-            // 地图的base64数据
-            // 项目部使用路径点信息
-            let b64: string = arr[8];
-            if (b64) {
-                m.pathdata = new Uint8Array(egret.Base64Util.decode(b64));
-            }
-            return m;
-        }
-
         /**
         * 获取资源路径
         */

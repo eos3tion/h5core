@@ -6295,9 +6295,6 @@ declare module junyou {
          */
         pathdata?: Uint8Array;
         constructor();
-        static decodeFromArray(arr: any[], ref?: {
-            new(): MapInfo;
-        }): MapInfo;
         /**
         * 获取资源路径
         */
