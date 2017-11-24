@@ -6473,40 +6473,6 @@ declare module junyou {
         loadComplete(res: egret.Texture, key: string): void;
         dispose(): void;
     }
-    /**
-     * 地图特效
-     */
-    interface MapEff extends Point {
-        /**
-         * 特效uri
-         */
-        uri: string;
-        /**
-         * 所在图层ID
-         */
-        layerID: GameLayerID;
-        /**
-         * 缩放X
-         */
-        sX: number;
-        /**
-         * 缩放Y
-         */
-        sY: number;
-        /**
-         * 旋转
-         */
-        rotation: number;
-    }
-    interface MovableMapEff extends MapEff {
-        duration: number;
-        /**
-         * 种子
-         */
-        seed: number;
-        speedX: number;
-        speedY: number;
-    }
 }
 declare module junyou {
     /**
@@ -7267,22 +7233,6 @@ declare module junyou {
          * 从舞台销毁，回收资源
          */
         Disposed = 7,
-    }
-}
-declare module junyou {
-    interface UnitVO {
-        /**
-         * 单位的唯一标识
-         */
-        guid: number | string;
-        /**
-         * 单位的坐标X
-         */
-        x: number;
-        /**
-         * 单位的坐标Y
-         */
-        y: number;
     }
 }
 declare module junyou {
