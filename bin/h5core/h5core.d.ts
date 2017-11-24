@@ -1547,17 +1547,6 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     * 扩展名常量
-     * @author 3tion
-     */
-    const enum Ext {
-        JPG = ".jpg",
-        PNG = ".png",
-        WEBP = ".webp",
-    }
-}
-declare module junyou {
-    /**
      * 骑乘状态
      */
     const enum MountType {
@@ -2974,6 +2963,74 @@ declare module junyou {
         protected $setSelectedIndex(idx: number): void;
         clear(): void;
         onRecycle(): void;
+    }
+}
+declare module junyou {
+    /**
+     * 使用http进行通信的网络服务
+     * @author 3tion
+     *
+     */
+    class HttpNetService extends NetService {
+        protected _loader: XMLHttpRequest;
+        protected _state: RequestState;
+        /**
+         * 未发送的请求
+         */
+        protected _unsendRequest: Recyclable<NetSendData>[];
+        /**
+         * 正在发送的数据
+         */
+        protected _sendingList: Recyclable<NetSendData>[];
+        /**
+         * 请求发送成功的次数
+         */
+        protected _success: number;
+        /**
+         * 请求连续发送失败的次数
+         */
+        protected _cerror: number;
+        /**
+         * 请求失败次数
+         */
+        protected _error: number;
+        constructor();
+        /**
+         * 重置
+         * @param actionUrl             请求地址
+         * @param autoTimeDelay         自动发送的最短延迟时间
+         */
+        setUrl(actionUrl: string, autoTimeDelay?: number): void;
+        /**
+        * @protected
+        */
+        protected onReadyStateChange(): void;
+        /**
+         * 发生错误
+         */
+        protected errorHandler(): void;
+        protected complete(): void;
+        /**
+         * 检查在发送过程中的请求
+         */
+        protected checkUnsend(): void;
+        protected _send(cmd: number, data: any, msgType: string): void;
+        /**
+         * 发送消息之前，用于预处理一些http头信息等
+         *
+         * @protected
+         */
+        protected onBeforeSend(): void;
+        /**
+         * 接收到服务端Response，用于预处理一些信息
+         *
+         * @protected
+         */
+        protected onBeforeSolveData(): void;
+        /**
+         * 尝试发送
+         */
+        protected trySend(): void;
     }
 }
 declare module junyou {
@@ -6296,11 +6353,21 @@ declare module junyou {
         pathdata?: Uint8Array;
         constructor();
         /**
-        * 获取资源路径
+        * 获取地图图块资源路径
         */
         getMapUri: {
             (col: number, row: number);
         };
+        /**
+         * 获取图片路径
+         */
+        getImgUri: {
+            (uri: string): string;
+        };
+        /**
+         * 地图前缀路径
+         */
+        static readonly prefix: string;
     }
 }
 interface $gmType {
@@ -6405,6 +6472,40 @@ declare module junyou {
          */
         loadComplete(res: egret.Texture, key: string): void;
         dispose(): void;
+    }
+    /**
+     * 地图特效
+     */
+    interface MapEff extends Point {
+        /**
+         * 特效uri
+         */
+        uri: string;
+        /**
+         * 所在图层ID
+         */
+        layerID: GameLayerID;
+        /**
+         * 缩放X
+         */
+        sX: number;
+        /**
+         * 缩放Y
+         */
+        sY: number;
+        /**
+         * 旋转
+         */
+        rotation: number;
+    }
+    interface MovableMapEff extends MapEff {
+        duration: number;
+        /**
+         * 种子
+         */
+        seed: number;
+        speedX: number;
+        speedY: number;
     }
 }
 declare module junyou {
@@ -6944,6 +7045,17 @@ declare module junyou {
 }
 declare module junyou {
     /**
+     * 扩展名常量
+     * @author 3tion
+     */
+    const enum Ext {
+        JPG = ".jpg",
+        PNG = ".png",
+        WEBP = ".webp",
+    }
+}
+declare module junyou {
+    /**
      * 用于像统计接口发送步骤信息
      * @author pb
      */
@@ -6954,32 +7066,6 @@ declare module junyou {
         postData(step: number): void;
         getParamUrl(step: number): string;
     };
-}
-declare const enum StatsState {
-    /**
-     *游戏初始完成
-    */
-    GAME_INIT_COMPLETE = 4,
-    /**
-     *配置完成
-     */
-    CONFIG_COMPLETE = 5,
-    /**
-     *资源完成
-     */
-    RES_COMPLETE = 6,
-    /**
-     *帐号登录完成
-     */
-    GAME_LOGIN_COMPLETE = 7,
-    /**
-     *创建角色
-     */
-    ROLE_CREATE = 8,
-    /**
-     *角色登陆完成
-     */
-    ROLE_LOGIN_COMPLETE = 9,
 }
 declare module junyou {
     /**
@@ -7866,35 +7952,31 @@ declare module junyou {
         SHOW = 1,
     }
 }
-declare module junyou {
+declare const enum StatsState {
     /**
-     * 基于4个顶点变形的纹理
-     *
-     * @export
-     * @class QuadTransform
+     *游戏初始完成
+    */
+    GAME_INIT_COMPLETE = 4,
+    /**
+     *配置完成
      */
-    class QuadTransform {
-        private _tex;
-        private _canvas;
-        private _content;
-        constructor();
-        /**
-         * 绘制白鹭的可视对象，并且进行变形
-         *
-         * @param {egret.DisplayObject} display
-         * @param {{ x: number, y: number }} ptl
-         * @param {{ x: number, y: number }} ptr
-         * @param {{ x: number, y: number }} pbl
-         * @param {{ x: number, y: number }} pbr
-         *
-         * @memberOf QuadTransform
-         */
-        drawDisplay(display: egret.DisplayObject, ptl?: QuadTransformPoint, ptr?: QuadTransformPoint, pbl?: QuadTransformPoint, pbr?: QuadTransformPoint): egret.BitmapData;
-    }
-    interface QuadTransformPoint extends Point {
-        Rx?: number;
-        Ry?: number;
-    }
+    CONFIG_COMPLETE = 5,
+    /**
+     *资源完成
+     */
+    RES_COMPLETE = 6,
+    /**
+     *帐号登录完成
+     */
+    GAME_LOGIN_COMPLETE = 7,
+    /**
+     *创建角色
+     */
+    ROLE_CREATE = 8,
+    /**
+     *角色登陆完成
+     */
+    ROLE_LOGIN_COMPLETE = 9,
 }
 declare module junyou {
     /**
@@ -7999,6 +8081,101 @@ declare module junyou {
     }
 }
 declare module junyou {
+    /**
+     * 基于4个顶点变形的纹理
+     *
+     * @export
+     * @class QuadTransform
+     */
+    class QuadTransform {
+        private _tex;
+        private _canvas;
+        private _content;
+        constructor();
+        /**
+         * 绘制白鹭的可视对象，并且进行变形
+         *
+         * @param {egret.DisplayObject} display
+         * @param {{ x: number, y: number }} ptl
+         * @param {{ x: number, y: number }} ptr
+         * @param {{ x: number, y: number }} pbl
+         * @param {{ x: number, y: number }} pbr
+         *
+         * @memberOf QuadTransform
+         */
+        drawDisplay(display: egret.DisplayObject, ptl?: QuadTransformPoint, ptr?: QuadTransformPoint, pbl?: QuadTransformPoint, pbr?: QuadTransformPoint): egret.BitmapData;
+    }
+    interface QuadTransformPoint extends Point {
+        Rx?: number;
+        Ry?: number;
+    }
+}
+declare module junyou {
+    /**
+     * 用于和服务端通信的数据
+     * @author 3tion
+     */
+    abstract class Service extends Proxy {
+        protected _ns: NetService;
+        constructor(name: string | number);
+        onRegister(): void;
+        _startSync(): void;
+        /**
+         * 用于新版本的自动生成代码的注册
+         * [cmd,msgType,handler,cmd1,msgType1,handler1,cmd2,msgType2,handler2,....cmdN,msgTypeN,handlerN]
+         * @protected
+         * @param {any} args
+         */
+        protected reg(...args: any[]): any;
+        /**
+         * 注册消息引用
+         *
+         * @protected
+         * @param {string | number} ref 消息实例的引用
+         * @param cmds 注册的指令
+         */
+        protected regMsg(ref: string | number, ...cmds: any[]): void;
+        /**
+         * 注册消息处理函数
+         *
+         * @protected
+         * @param {{ (data: NetData): void }} handler   消息处理函数
+         * @param {number[]} cmds 注册的指令
+         */
+        protected regHandler(handler: {
+            (data: NetData): void;
+        }, ...cmds: number[]): void;
+        protected removeHandler(cmd: number, handler: any): void;
+        /**
+         * 发送消息
+         *
+         * @protected
+         * @param {number} cmd 指令
+         * @param {any} [data] 数据，简单数据(number,boolean,string)复合数据
+         * @param {string} [msgType] 如果是复合数据，必须有此值
+         * @param {number} [limit=200] 最短发送时间
+         */
+        protected send(cmd: number, data?: any, msgType?: string | number, limit?: number): void;
+    }
+}
+declare module junyou {
+    interface AwakeCheck {
+        awakeCheck?: () => boolean;
+    }
+    /**
+     * 将Mediator转换为IStateSwitcher
+     *
+     * @export
+     * @param {Mediator} mediator
+     * @returns {(Mediator & IStateSwitcher & AwakeCheck)}
+     */
+    function transformToStateMediator(mediator: Mediator, awakeBy?: {
+        (id: number): void;
+    }, sleepBy?: {
+        (id: number): void;
+    }): Mediator & IStateSwitcher & AwakeCheck;
+}
+declare module junyou {
     interface Path {
         /**
          * 路径
@@ -8083,139 +8260,6 @@ declare module junyou {
         regSkinPath(key: string, path: string, iPrefix?: boolean): void;
         getUrl(uri: string, pathKey: string): string;
     };
-}
-declare module junyou {
-    /**
-     * 用于和服务端通信的数据
-     * @author 3tion
-     */
-    abstract class Service extends Proxy {
-        protected _ns: NetService;
-        constructor(name: string | number);
-        onRegister(): void;
-        _startSync(): void;
-        /**
-         * 用于新版本的自动生成代码的注册
-         * [cmd,msgType,handler,cmd1,msgType1,handler1,cmd2,msgType2,handler2,....cmdN,msgTypeN,handlerN]
-         * @protected
-         * @param {any} args
-         */
-        protected reg(...args: any[]): any;
-        /**
-         * 注册消息引用
-         *
-         * @protected
-         * @param {string | number} ref 消息实例的引用
-         * @param cmds 注册的指令
-         */
-        protected regMsg(ref: string | number, ...cmds: any[]): void;
-        /**
-         * 注册消息处理函数
-         *
-         * @protected
-         * @param {{ (data: NetData): void }} handler   消息处理函数
-         * @param {number[]} cmds 注册的指令
-         */
-        protected regHandler(handler: {
-            (data: NetData): void;
-        }, ...cmds: number[]): void;
-        protected removeHandler(cmd: number, handler: any): void;
-        /**
-         * 发送消息
-         *
-         * @protected
-         * @param {number} cmd 指令
-         * @param {any} [data] 数据，简单数据(number,boolean,string)复合数据
-         * @param {string} [msgType] 如果是复合数据，必须有此值
-         * @param {number} [limit=200] 最短发送时间
-         */
-        protected send(cmd: number, data?: any, msgType?: string | number, limit?: number): void;
-    }
-}
-declare module junyou {
-    interface AwakeCheck {
-        awakeCheck?: () => boolean;
-    }
-    /**
-     * 将Mediator转换为IStateSwitcher
-     *
-     * @export
-     * @param {Mediator} mediator
-     * @returns {(Mediator & IStateSwitcher & AwakeCheck)}
-     */
-    function transformToStateMediator(mediator: Mediator, awakeBy?: {
-        (id: number): void;
-    }, sleepBy?: {
-        (id: number): void;
-    }): Mediator & IStateSwitcher & AwakeCheck;
-}
-/**
- * DataLocator的主数据
- * 原 junyou.DataLocator.data  的全局别名简写
- */
-declare const $DD: junyou.CfgData;
-/**
- * DataLocator的附加数据
- * 原junyou.DataLocator.extra 的全局别名简写
- */
-declare var $DE: junyou.ExtraData;
-declare module junyou {
-    /**
-     * 表单最终被解析成的类型
-     *
-     * @export
-     * @enum {number}
-     */
-    const enum CfgDataType {
-        /**
-         * 自动解析
-         */
-        Auto = 0,
-        /**
-         * 按ArraySet解析
-         */
-        ArraySet = 1,
-        /**
-         * 按数组解析
-         */
-        Array = 2,
-        /**
-         * 按字典解析
-         */
-        Dictionary = 3,
-    }
-    /**
-     * 配置加载器<br/>
-     * 用于预加载数据的解析
-     * @author 3tion
-     *
-     */
-    let DataLocator: {
-        regParser: (key: keyof CfgData, parser: ConfigDataParser) => void;
-        parsePakedDatas(): void;
-        regCommonParser(key: keyof CfgData, CfgCreator: 0 | (new () => any) | (() => any), idkey?: string | 0, type?: CfgDataType): void;
-    };
-    /**
-     * 配置数据解析函数
-     */
-    interface ConfigDataParser {
-        (data: any): any;
-    }
-    /**
-     * 附加数据
-     *
-     * @interface ExtraData
-     */
-    interface ExtraData {
-    }
-    /**
-     * 配置数据
-     *
-     * @export
-     * @interface CfgData
-     */
-    interface CfgData {
-    }
 }
 declare module junyou {
     /**
@@ -9195,6 +9239,74 @@ declare const enum ScrollDirection {
     Vertical = 0,
     Horizon = 1,
 }
+/**
+ * DataLocator的主数据
+ * 原 junyou.DataLocator.data  的全局别名简写
+ */
+declare const $DD: junyou.CfgData;
+/**
+ * DataLocator的附加数据
+ * 原junyou.DataLocator.extra 的全局别名简写
+ */
+declare var $DE: junyou.ExtraData;
+declare module junyou {
+    /**
+     * 表单最终被解析成的类型
+     *
+     * @export
+     * @enum {number}
+     */
+    const enum CfgDataType {
+        /**
+         * 自动解析
+         */
+        Auto = 0,
+        /**
+         * 按ArraySet解析
+         */
+        ArraySet = 1,
+        /**
+         * 按数组解析
+         */
+        Array = 2,
+        /**
+         * 按字典解析
+         */
+        Dictionary = 3,
+    }
+    /**
+     * 配置加载器<br/>
+     * 用于预加载数据的解析
+     * @author 3tion
+     *
+     */
+    let DataLocator: {
+        regParser: (key: keyof CfgData, parser: ConfigDataParser) => void;
+        parsePakedDatas(): void;
+        regCommonParser(key: keyof CfgData, CfgCreator: 0 | (new () => any) | (() => any), idkey?: string | 0, type?: CfgDataType): void;
+    };
+    /**
+     * 配置数据解析函数
+     */
+    interface ConfigDataParser {
+        (data: any): any;
+    }
+    /**
+     * 附加数据
+     *
+     * @interface ExtraData
+     */
+    interface ExtraData {
+    }
+    /**
+     * 配置数据
+     *
+     * @export
+     * @interface CfgData
+     */
+    interface CfgData {
+    }
+}
 declare module junyou {
     interface DataUtilsType {
         /**
@@ -9310,49 +9422,6 @@ declare module junyou {
      *
      */
     const DataUtils: DataUtilsType;
-}
-declare module junyou {
-    interface DataUtilsType {
-        /**
-         * 获取一组坐标
-         *
-         * @param {any[][]} data
-         * @param {Point[]} out
-         * @memberof DataUtilsType
-         */
-        getZuobiaos(data: any[][], out: Point[]): any;
-        /**
-         * 根据 [x,y] 这样的数组，获取点Point
-         *
-         * @param {number[]} data
-         * @memberof DataUtilsType
-         */
-        getZuobiao(data: number[]): Point;
-        /**
-         *
-         * 解析配置为"x1""x2"....."x100"这样的属性  横向配置
-         * @static
-         * @param {object} from 被解析的配置数据
-         * @param {object} xattr 最终会变成  xattr.x1=100  xattr.x2=123这样的数据
-         * @param {boolean} [delOriginKey=true]  是否删除原始数据中的key
-         * @param {RegExp} [xReg=/^x\d+$/] 测试用字段，必须经过 test成功，才会进行处理
-         * @returns {number} 成功解析到的key的数量
-         */
-        parseXAttr(from: object, xattr: object, delOriginKey?: boolean, xReg?: RegExp): number;
-        /**
-         *
-         * 解析配置为 pro1  provalue1   pro2  provalue2 ..... pro100 provalue100  这样的纵向配置属性的配置
-         * @static
-         * @param {Object} from 被解析的配置数据
-         * @param {Object} xattr 最终会变成  xattr.x1=100  xattr.x2=123这样的数据
-         * @param {string} errPrefix
-         * @param {string} [keyPrefix="pro"]
-         * @param {string} [valuePrefix="provalue"]
-         * @param {boolean} [delOriginKey=true] 是否删除原始数据中的key
-         * @returns {number} 成功解析到的key的数量
-         */
-        parseXAttr2(from: object, xattr: object, keyPrefix?: string, valuePrefix?: string, delOriginKey?: boolean): number;
-    }
 }
 declare module junyou {
     /**
@@ -9616,6 +9685,62 @@ declare module junyou {
     }
 }
 declare module junyou {
+    interface DataUtilsType {
+        /**
+         * 获取一组坐标
+         *
+         * @param {any[][]} data
+         * @param {Point[]} out
+         * @memberof DataUtilsType
+         */
+        getZuobiaos(data: any[][], out: Point[]): any;
+        /**
+         * 根据 [x,y] 这样的数组，获取点Point
+         *
+         * @param {number[]} data
+         * @memberof DataUtilsType
+         */
+        getZuobiao(data: number[]): Point;
+        /**
+         *
+         * 解析配置为"x1""x2"....."x100"这样的属性  横向配置
+         * @static
+         * @param {object} from 被解析的配置数据
+         * @param {object} xattr 最终会变成  xattr.x1=100  xattr.x2=123这样的数据
+         * @param {boolean} [delOriginKey=true]  是否删除原始数据中的key
+         * @param {RegExp} [xReg=/^x\d+$/] 测试用字段，必须经过 test成功，才会进行处理
+         * @returns {number} 成功解析到的key的数量
+         */
+        parseXAttr(from: object, xattr: object, delOriginKey?: boolean, xReg?: RegExp): number;
+        /**
+         *
+         * 解析配置为 pro1  provalue1   pro2  provalue2 ..... pro100 provalue100  这样的纵向配置属性的配置
+         * @static
+         * @param {Object} from 被解析的配置数据
+         * @param {Object} xattr 最终会变成  xattr.x1=100  xattr.x2=123这样的数据
+         * @param {string} errPrefix
+         * @param {string} [keyPrefix="pro"]
+         * @param {string} [valuePrefix="provalue"]
+         * @param {boolean} [delOriginKey=true] 是否删除原始数据中的key
+         * @returns {number} 成功解析到的key的数量
+         */
+        parseXAttr2(from: object, xattr: object, keyPrefix?: string, valuePrefix?: string, delOriginKey?: boolean): number;
+    }
+}
+declare module junyou {
+    /**
+     * 用于固定一些组件的宽度和高度，让其等于取出的值
+     *
+     * @export
+     * @param {Object} define                       定义
+     * @param {{ size: egret.Rectangle }} view
+     * @returns
+     */
+    function bindSize(define: Object, view: {
+        size: egret.Rectangle;
+    }): void;
+}
+declare module junyou {
     /**
      * 网络事件的常量集
      * @author
@@ -9668,130 +9793,6 @@ declare module junyou {
          */
         ParseResHash = -188,
     }
-}
-declare module junyou {
-    /**
-     * 用于固定一些组件的宽度和高度，让其等于取出的值
-     *
-     * @export
-     * @param {Object} define                       定义
-     * @param {{ size: egret.Rectangle }} view
-     * @returns
-     */
-    function bindSize(define: Object, view: {
-        size: egret.Rectangle;
-    }): void;
-}
-declare module junyou {
-    /**
-     * 创建器
-     */
-    type Creator<T> = {
-        new(): T;
-    } | {
-            (): T;
-        };
-    /**
-     *
-     * 调整ClassFactory
-     * @export
-     * @class ClassFactory
-     * @template T
-     */
-    class ClassFactory<T> {
-        private _creator;
-        private _props;
-        /**
-         * @param {Creator<T>} creator
-         * @param {Partial<T>} [props] 属性模板
-         * @memberof ClassFactory
-         */
-        constructor(creator: Creator<T>, props?: Partial<T>);
-        /**
-         * 获取实例
-         *
-         * @returns
-         */
-        get(): any;
-    }
-    /**
-     * 可回收的对象
-     *
-     * @export
-     * @interface IRecyclable
-     */
-    interface IRecyclable {
-        /**
-         * 回收时触发
-         */
-        onRecycle?: {
-            ();
-        };
-        /**
-         * 启用时触发
-         */
-        onSpawn?: {
-            ();
-        };
-        /**
-         * 回收对象的唯一自增标识
-         * 从回收池取出后，会变化
-         * 此属性只有在`DEBUG`时有效
-         */
-        _insid?: number;
-    }
-    /**
-     * 回收池
-     * @author 3tion
-     *
-     */
-    class RecyclablePool<T> {
-        private _pool;
-        private _max;
-        private _creator;
-        get(): T;
-        /**
-         * 回收
-         */
-        recycle(t: T): void;
-        constructor(TCreator: Creator<T>, max?: number);
-    }
-    type Recyclable<T> = T & {
-        recycle(): void;
-    };
-    /**
-     * 获取一个recyclable的对象
-     *
-     * @export
-     * @template T
-     * @param {({ new(): T & { _pool?: RecyclablePool<T> } })} clazz
-     */
-    function recyclable<T>(clazz: {
-        new(): T & {
-            _pool?: RecyclablePool<T>;
-        };
-    }): Recyclable<T>;
-    /**
-     * 使用创建函数进行创建
-     *
-     * @export
-     * @template T
-     * @param {({ (): T & { _pool?: RecyclablePool<T> } })} clazz
-     * @param {true} addInstanceRecycle
-     */
-    function recyclable<T>(clazz: {
-        (): T & {
-            _pool?: RecyclablePool<T>;
-        };
-    }, addInstanceRecycle?: boolean): Recyclable<T>;
-    /**
-     * 单例工具
-     * @param clazz 要做单例的类型
-     */
-    function singleton<T>(clazz: {
-        new(): T;
-        _instance?: T;
-    }): T;
 }
 declare module junyou {
     /**
@@ -10416,6 +10417,117 @@ declare module junyou {
 }
 declare module junyou {
     /**
+     * 创建器
+     */
+    type Creator<T> = {
+        new(): T;
+    } | {
+            (): T;
+        };
+    /**
+     *
+     * 调整ClassFactory
+     * @export
+     * @class ClassFactory
+     * @template T
+     */
+    class ClassFactory<T> {
+        private _creator;
+        private _props;
+        /**
+         * @param {Creator<T>} creator
+         * @param {Partial<T>} [props] 属性模板
+         * @memberof ClassFactory
+         */
+        constructor(creator: Creator<T>, props?: Partial<T>);
+        /**
+         * 获取实例
+         *
+         * @returns
+         */
+        get(): any;
+    }
+    /**
+     * 可回收的对象
+     *
+     * @export
+     * @interface IRecyclable
+     */
+    interface IRecyclable {
+        /**
+         * 回收时触发
+         */
+        onRecycle?: {
+            ();
+        };
+        /**
+         * 启用时触发
+         */
+        onSpawn?: {
+            ();
+        };
+        /**
+         * 回收对象的唯一自增标识
+         * 从回收池取出后，会变化
+         * 此属性只有在`DEBUG`时有效
+         */
+        _insid?: number;
+    }
+    /**
+     * 回收池
+     * @author 3tion
+     *
+     */
+    class RecyclablePool<T> {
+        private _pool;
+        private _max;
+        private _creator;
+        get(): T;
+        /**
+         * 回收
+         */
+        recycle(t: T): void;
+        constructor(TCreator: Creator<T>, max?: number);
+    }
+    type Recyclable<T> = T & {
+        recycle(): void;
+    };
+    /**
+     * 获取一个recyclable的对象
+     *
+     * @export
+     * @template T
+     * @param {({ new(): T & { _pool?: RecyclablePool<T> } })} clazz
+     */
+    function recyclable<T>(clazz: {
+        new(): T & {
+            _pool?: RecyclablePool<T>;
+        };
+    }): Recyclable<T>;
+    /**
+     * 使用创建函数进行创建
+     *
+     * @export
+     * @template T
+     * @param {({ (): T & { _pool?: RecyclablePool<T> } })} clazz
+     * @param {true} addInstanceRecycle
+     */
+    function recyclable<T>(clazz: {
+        (): T & {
+            _pool?: RecyclablePool<T>;
+        };
+    }, addInstanceRecycle?: boolean): Recyclable<T>;
+    /**
+     * 单例工具
+     * @param clazz 要做单例的类型
+     */
+    function singleton<T>(clazz: {
+        new(): T;
+        _instance?: T;
+    }): T;
+}
+declare module junyou {
+    /**
      * 平台数据
      * @author 3tion
      *
@@ -10460,27 +10572,6 @@ declare module junyou {
         }[];
         constructor();
         toURLString(): string;
-    }
-}
-declare module junyou {
-    /**
-     * 用户认证
-     * @author 3tion
-     *
-     */
-    const enum AuthState {
-        /**
-         * 认证成功
-         */
-        AUTH_SUCCESS = 0,
-        /**
-         * 票据验证失败，要求客户端重新登录
-         */
-        AUTH_FAILED = 1,
-        /**
-         * 认证服务器忙
-         */
-        AUTH_SERVER_BUSY = 2,
     }
 }
 declare module junyou {
@@ -11223,56 +11314,26 @@ declare module junyou {
         getTipLayoutPos: (disWidth: number, disHeight: number, parentWidth: number, parentHeight: number, point: Point, result?: Point, padx?: number, pady?: number) => Point;
     };
 }
-interface ExternalParam {
+declare module junyou {
     /**
-     * 用户标识
+     * 用户认证
+     * @author 3tion
      *
-     * @type {string}
-     * @memberOf $ep
      */
-    uid: string;
-    /**
-     * 服务器id
-     *
-     * @type {string}
-     * @memberOf $ep
-     */
-    sid: string;
-    /**
-     * 服务器ip
-     *
-     * @type {string}
-     * @memberOf $ep
-     */
-    ip: string;
-    /**
-     * 端口号
-     *
-     * @type {number}
-     * @memberOf $ep
-     */
-    port: number;
-    /**
-     * 平台标识
-     *
-     * @type {string}
-     * @memberOf $ep
-     */
-    pid: string;
-    /**
-     * 验证标识
-     *
-     * @type {string}
-     * @memberOf $ep
-     */
-    sign?: string;
-    /**
-     * 其他参数
-     *
-     * @type {*}
-     * @memberOf $ep
-     */
-    other?: any;
+    const enum AuthState {
+        /**
+         * 认证成功
+         */
+        AUTH_SUCCESS = 0,
+        /**
+         * 票据验证失败，要求客户端重新登录
+         */
+        AUTH_FAILED = 1,
+        /**
+         * 认证服务器忙
+         */
+        AUTH_SERVER_BUSY = 2,
+    }
 }
 declare var $useDPR: boolean;
 declare var dpr: number;
@@ -11416,22 +11477,57 @@ declare module junyou {
         displayMenuDatas(vos: MenuBaseVO[]): void;
     }
 }
-declare module junyou {
+interface ExternalParam {
     /**
-     * 获取XMLHttpRequest对象
+     * 用户标识
      *
-     * @export
-     * @returns
+     * @type {string}
+     * @memberOf $ep
      */
-    function getXHR(): XMLHttpRequest;
+    uid: string;
+    /**
+     * 服务器id
+     *
+     * @type {string}
+     * @memberOf $ep
+     */
+    sid: string;
+    /**
+     * 服务器ip
+     *
+     * @type {string}
+     * @memberOf $ep
+     */
+    ip: string;
+    /**
+     * 端口号
+     *
+     * @type {number}
+     * @memberOf $ep
+     */
+    port: number;
+    /**
+     * 平台标识
+     *
+     * @type {string}
+     * @memberOf $ep
+     */
+    pid: string;
+    /**
+     * 验证标识
+     *
+     * @type {string}
+     * @memberOf $ep
+     */
+    sign?: string;
+    /**
+     * 其他参数
+     *
+     * @type {*}
+     * @memberOf $ep
+     */
+    other?: any;
 }
-interface Window {
-    XMLHttpRequest?: XMLHttpRequest;
-}
-interface ActiveXObject {
-    new(key: "MSXML2.XMLHTTP"): XMLHttpRequest;
-}
-declare const ActiveXObject: ActiveXObject;
 declare module junyou {
     /**
      * @author gushuai
@@ -11715,72 +11811,20 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     * 使用http进行通信的网络服务
-     * @author 3tion
+     * 获取XMLHttpRequest对象
      *
+     * @export
+     * @returns
      */
-    class HttpNetService extends NetService {
-        protected _loader: XMLHttpRequest;
-        protected _state: RequestState;
-        /**
-         * 未发送的请求
-         */
-        protected _unsendRequest: Recyclable<NetSendData>[];
-        /**
-         * 正在发送的数据
-         */
-        protected _sendingList: Recyclable<NetSendData>[];
-        /**
-         * 请求发送成功的次数
-         */
-        protected _success: number;
-        /**
-         * 请求连续发送失败的次数
-         */
-        protected _cerror: number;
-        /**
-         * 请求失败次数
-         */
-        protected _error: number;
-        constructor();
-        /**
-         * 重置
-         * @param actionUrl             请求地址
-         * @param autoTimeDelay         自动发送的最短延迟时间
-         */
-        setUrl(actionUrl: string, autoTimeDelay?: number): void;
-        /**
-        * @protected
-        */
-        protected onReadyStateChange(): void;
-        /**
-         * 发生错误
-         */
-        protected errorHandler(): void;
-        protected complete(): void;
-        /**
-         * 检查在发送过程中的请求
-         */
-        protected checkUnsend(): void;
-        protected _send(cmd: number, data: any, msgType: string): void;
-        /**
-         * 发送消息之前，用于预处理一些http头信息等
-         *
-         * @protected
-         */
-        protected onBeforeSend(): void;
-        /**
-         * 接收到服务端Response，用于预处理一些信息
-         *
-         * @protected
-         */
-        protected onBeforeSolveData(): void;
-        /**
-         * 尝试发送
-         */
-        protected trySend(): void;
-    }
+    function getXHR(): XMLHttpRequest;
 }
+interface Window {
+    XMLHttpRequest?: XMLHttpRequest;
+}
+interface ActiveXObject {
+    new(key: "MSXML2.XMLHTTP"): XMLHttpRequest;
+}
+declare const ActiveXObject: ActiveXObject;
 declare module junyou {
     /**
      * 绑定按钮和文本框，让文本框的点击，可以触发按钮的选中事件
