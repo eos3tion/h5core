@@ -4,11 +4,13 @@ module junyou {
      * 默认地图宽/高
      */
     const enum MapConst {
-        DefaultSize = 256
+        DefaultSize = 256,
+
+        DebugMapPath = "m/",
+
+        ReleaseMapPath = "m2/",
     }
-
-    const ext = Ext.JPG + (Global.webp ? Ext.WEBP : "");
-
+    const webp = Global.webp ? Ext.WEBP : "";
 
 	/**
 	 * 地图基础信息<br/>
@@ -91,19 +93,36 @@ module junyou {
             super();
         }
         /**
-        * 获取资源路径
+        * 获取地图图块资源路径
         */
         getMapUri: { (col: number, row: number) };
+
+        /**
+         * 获取图片路径
+         */
+        getImgUri: { (uri: string): string };
+
+        /**
+         * 地图前缀路径
+         */
+        static readonly prefix: string = DEBUG ? MapConst.DebugMapPath : MapConst.ReleaseMapPath;
     }
 
+    let mpt = MapInfo.prototype;
     if (DEBUG) {
-        MapInfo.prototype.getMapUri = function (col: number, row: number): string {
-            return "m/" + this.path + "/" + row.zeroize(3) + col.zeroize(3) + Ext.JPG;
+        mpt.getImgUri = function (uri: string) {
+            return MapConst.DebugMapPath + this.path + "/" + uri;
+        }
+        mpt.getMapUri = function (col: number, row: number): string {
+            return MapConst.DebugMapPath + this.path + "/" + row.zeroize(3) + col.zeroize(3) + Ext.JPG;
         }
     }
     if (RELEASE) {
-        MapInfo.prototype.getMapUri = function (col: number, row: number) {
-            return `m2/${this.path}/${row}_${col}${ext}`;
+        mpt.getImgUri = function (uri: string) {
+            return `${MapConst.ReleaseMapPath}/${this.path}/${uri}`;
+        }
+        mpt.getMapUri = function (col: number, row: number) {
+            return `${MapConst.ReleaseMapPath}/${this.path}/${row}_${col}${Ext.JPG}${webp}`;
         }
     }
 }
