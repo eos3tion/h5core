@@ -1532,7 +1532,7 @@ declare module junyou {
          * @param {number} [cx]
          * @param {number} [cy]
          */
-        setTargetPos(cx?: number, cy?: number): void;
+        setTargetPos(cx?: number, cy?: number): this;
         start(): void;
         abstract tick(duration: number, outPt: {
             x: number;
@@ -5120,6 +5120,11 @@ declare module junyou {
          * 检查最末尾
          */
         MsgRenderCheckEnd = -1990,
+        /**
+         * 震动结束
+         * data {Point} 开始震动时的原始坐标
+         */
+        ShakeEnd = -1989,
     }
 }
 declare module junyou {
@@ -6926,6 +6931,12 @@ declare module junyou {
     interface ShakeTarget {
         x: number;
         y: number;
+        /**
+         * 可派发事件
+         */
+        dispatch?: {
+            (type: string | number, ...any): boolean;
+        };
     }
 }
 declare module junyou {
