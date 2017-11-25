@@ -3747,23 +3747,6 @@ var junyou;
         LayoutContainer.prototype.resetBasis = function (basis) {
             this._basis = basis;
         };
-        LayoutContainer.prototype.getFixedNarrow = function (sw, sh, bw, bh, ySmall) {
-            var dw = sw, dh = sh;
-            var scaleX = sw / bw;
-            var scaleY = sh / bh;
-            var lw = bw;
-            var lh = bh;
-            if (scaleX < scaleY == !ySmall) {
-                dh = sw * bh / bw;
-                lh = bh * sh / dh;
-            }
-            else {
-                dw = sh * bw / bh;
-                lw = bw * sw / dw;
-            }
-            var scale = dw / bw;
-            return { dw: dw, dh: dh, scale: scale, lw: lw, lh: lh };
-        };
         LayoutContainer.prototype.onStage = function () {
             this._host.stage.on("resize" /* RESIZE */, this.onResize, this);
             this.onResize();
@@ -3847,6 +3830,31 @@ var junyou;
     }());
     junyou.LayoutContainer = LayoutContainer;
     __reflect(LayoutContainer.prototype, "junyou.LayoutContainer");
+    /**
+     * @param sw 舞台宽度
+     * @param sh 舞台高度
+     * @param bw 要调整的可视对象宽度
+     * @param bh 要调整的可视对象高度
+     * @param {boolean} [isWide=false] fixedNarrow 还是 fixedWide，默认按fixedNarrow布局
+     */
+    function getFixedLayout(sw, sh, bw, bh, isWide) {
+        var dw = sw, dh = sh;
+        var scaleX = sw / bw;
+        var scaleY = sh / bh;
+        var lw = bw;
+        var lh = bh;
+        if (scaleX < scaleY == !isWide) {
+            dh = sw * bh / bw;
+            lh = bh * sh / dh;
+        }
+        else {
+            dw = sh * bw / bh;
+            lw = bw * sw / dw;
+        }
+        var scale = dw / bw;
+        return { dw: dw, dh: dh, scale: scale, lw: lw, lh: lh };
+    }
+    junyou.getFixedLayout = getFixedLayout;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -19426,7 +19434,7 @@ var junyou;
             var dw = sw, dh = sh, lw = sw, lh = sh;
             var scale = 1;
             if (sw > bw || sh > bh) {
-                var result = this.getFixedNarrow(sw, sh, bw, bh, true);
+                var result = junyou.getFixedLayout(sw, sh, bw, bh, true);
                 dh = result.dh;
                 dw = result.dw;
                 lw = result.lw;
@@ -19706,7 +19714,7 @@ var junyou;
             var dw = sw, dh = sh, lw = sw, lh = sh;
             var scale = 1;
             if (dpr != 1 || sw < bw * dpr || sh < bh * dpr) {
-                var result = this.getFixedNarrow(sw, sh, bw, bh);
+                var result = junyou.getFixedLayout(sw, sh, bw, bh);
                 dh = result.dh;
                 dw = result.dw;
                 lw = result.lw;

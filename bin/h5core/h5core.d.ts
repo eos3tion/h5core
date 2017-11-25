@@ -2851,13 +2851,6 @@ declare module junyou {
          * @memberOf LayoutContainer
          */
         resetBasis(basis: Size): void;
-        protected getFixedNarrow(sw: number, sh: number, bw: number, bh: number, ySmall?: boolean): {
-            dw: number;
-            dh: number;
-            scale: number;
-            lw: number;
-            lh: number;
-        };
         protected onStage(): void;
         protected offStage(): void;
         abstract onResize(): any;
@@ -2885,6 +2878,20 @@ declare module junyou {
         outerH?: boolean;
         size: Size;
     }
+    /**
+     * @param sw 舞台宽度
+     * @param sh 舞台高度
+     * @param bw 要调整的可视对象宽度
+     * @param bh 要调整的可视对象高度
+     * @param {boolean} [isWide=false] fixedNarrow 还是 fixedWide，默认按fixedNarrow布局
+     */
+    function getFixedLayout(sw: number, sh: number, bw: number, bh: number, isWide?: boolean): {
+        dw: number;
+        dh: number;
+        scale: number;
+        lw: number;
+        lh: number;
+    };
 }
 declare module junyou {
     /**
