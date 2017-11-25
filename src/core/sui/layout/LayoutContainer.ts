@@ -37,23 +37,6 @@ module junyou {
             this._basis = basis;
         }
 
-        protected getFixedNarrow(sw: number, sh: number, bw: number, bh: number, ySmall?: boolean) {
-            let dw = sw, dh = sh;
-            let scaleX = sw / bw;
-            let scaleY = sh / bh;
-            let lw = bw;
-            let lh = bh;
-            if (scaleX < scaleY == !ySmall) {
-                dh = sw * bh / bw;
-                lh = bh * sh / dh;
-            } else {
-                dw = sh * bw / bh;
-                lw = bw * sw / dw;
-            }
-            let scale = dw / bw;
-            return { dw, dh, scale, lw, lh };
-        }
-
         protected onStage() {
             this._host.stage.on(EgretEvent.RESIZE, this.onResize, this);
             this.onResize();
@@ -148,5 +131,29 @@ module junyou {
         outerV?: boolean;
         outerH?: boolean;
         size: Size;
+    }
+
+    /**
+     * @param sw 舞台宽度
+     * @param sh 舞台高度
+     * @param bw 要调整的可视对象宽度
+     * @param bh 要调整的可视对象高度
+     * @param {boolean} [isWide=false] fixedNarrow 还是 fixedWide，默认按fixedNarrow布局
+     */
+    export function getFixedLayout(sw: number, sh: number, bw: number, bh: number, isWide?: boolean) {
+        let dw = sw, dh = sh;
+        let scaleX = sw / bw;
+        let scaleY = sh / bh;
+        let lw = bw;
+        let lh = bh;
+        if (scaleX < scaleY == !isWide) {
+            dh = sw * bh / bw;
+            lh = bh * sh / dh;
+        } else {
+            dw = sh * bw / bh;
+            lw = bw * sw / dw;
+        }
+        let scale = dw / bw;
+        return { dw, dh, scale, lw, lh };
     }
 }

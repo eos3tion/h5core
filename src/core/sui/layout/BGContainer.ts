@@ -28,7 +28,7 @@ module junyou {
             let dw = sw, dh = sh, lw = sw, lh = sh;
             let scale = 1;
             if (sw > bw || sh > bh) { //屏幕宽高，任意一边大于基准宽高
-                let result = this.getFixedNarrow(sw, sh, bw, bh, true);
+                let result = getFixedLayout(sw, sh, bw, bh, true);
                 dh = result.dh;
                 dw = result.dw;
                 lw = result.lw;
