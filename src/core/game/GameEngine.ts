@@ -64,19 +64,6 @@ module junyou {
         protected _sortedLayers: SortedLayer[] = [];
 
         /**
-         * 游戏主场景容器
-         */
-        protected _gameScene: GameLayer;
-
-
-        /**
-         * 
-         * 执行视图对象的调用
-         * @type {{ (rect: egret.Rectangle): egret.Rectangle }}
-         */
-        public checkViewRect: { (rect: egret.Rectangle): egret.Rectangle };
-
-        /**
          * 获取或创建容器
          */
         public getLayer(id: GameLayerID): GameLayer {
