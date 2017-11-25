@@ -23,7 +23,7 @@ module junyou {
     	/**
     	 * 地图唯一标识
     	 */
-        public id: string;
+        public id: Key;
 
         /**
          * 地图路径
