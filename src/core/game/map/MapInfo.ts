@@ -110,18 +110,18 @@ module junyou {
 
     let mpt = MapInfo.prototype;
     if (DEBUG) {
-        mpt.getImgUri = function (uri: string) {
+        mpt.getImgUri = function (this: MapInfo, uri: string) {
             return MapConst.DebugMapPath + this.path + "/" + uri;
         }
-        mpt.getMapUri = function (col: number, row: number): string {
+        mpt.getMapUri = function (this: MapInfo, col: number, row: number): string {
             return MapConst.DebugMapPath + this.path + "/" + row.zeroize(3) + col.zeroize(3) + Ext.JPG;
         }
     }
     if (RELEASE) {
-        mpt.getImgUri = function (uri: string) {
+        mpt.getImgUri = function (this: MapInfo, uri: string) {
             return `${MapConst.ReleaseMapPath}/${this.path}/${uri}`;
         }
-        mpt.getMapUri = function (col: number, row: number) {
+        mpt.getMapUri = function (this: MapInfo, col: number, row: number) {
             return `${MapConst.ReleaseMapPath}/${this.path}/${row}_${col}${Ext.JPG}${webp}`;
         }
     }
