@@ -58,5 +58,9 @@ module junyou {
     export interface ShakeTarget {
         x: number;
         y: number;
+        /**
+         * 可派发事件
+         */
+        dispatch?: { (type: string | number, ...any): boolean }
     }
 }

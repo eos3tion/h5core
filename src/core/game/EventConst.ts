@@ -54,5 +54,10 @@ module junyou {
          * 检查最末尾
          */
         MsgRenderCheckEnd,
+        /**
+         * 震动结束  
+         * data {Point} 开始震动时的原始坐标
+         */
+        ShakeEnd,
     }
 }
