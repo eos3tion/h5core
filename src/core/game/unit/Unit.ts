@@ -448,6 +448,7 @@ module junyou {
          * @param {number} [now] 
          */
         public stopUnitAction(now?: number) {
+            this._nextAction = undefined;
             this.startUnitAction(null, now, true);
         }
 
