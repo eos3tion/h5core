@@ -21705,6 +21705,7 @@ var junyou;
          * @param {number} [now]
          */
         Unit.prototype.stopUnitAction = function (now) {
+            this._nextAction = undefined;
             this.startUnitAction(null, now, true);
         };
         Unit.prototype.setMountType = function (value) {
