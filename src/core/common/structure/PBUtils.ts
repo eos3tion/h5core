@@ -1,6 +1,6 @@
 module junyou {
 
-    const enum PBType {
+    export const enum PBType {
         Double = 1,
         Float,
         Int64,
@@ -28,9 +28,9 @@ module junyou {
      * @enum {number}
      */
     export const enum PBFieldType {
-        optional = 1,
-        required,
-        repeated
+        Optional = 1,
+        Required,
+        Repeated
     }
 
     /**
@@ -183,6 +183,50 @@ module junyou {
     }
 
     /**
+     * 注册消息的结构
+     * @param msgType 消息类型标识
+     * @param struct 结构
+     */
+    function regStruct(msgType: Key, struct: PBStruct) {
+        if (DEBUG) {
+            if (msgType in structDict) {
+                ThrowError(`PB的结构定义的key[${msgType}]注册重复`);
+            }
+            let def = defDict[msgType];
+            if (def) {
+                regDef(struct, def);
+            }
+            //检查处理默认值
+            for (let idx in struct) {
+                let body = struct[idx];
+                //0 key
+                //1 required optional repeated
+                //2 数据类型
+                //3 Message
+                //4 默认值
+                if (4 in body) {//有默认值
+                    let def = struct.def;
+                    if (!def) {
+                        def = {};
+                        //不使用encode.def=def=[]; 是为了防止def被遍历
+                        Object.defineProperty(struct, StringConst.defKey, {
+                            value: def
+                        });
+                    }
+                    //消息中没有对应key的数据，先赋值成默认值，等待后续处理
+                    def[body[0]] = body[4];
+                }
+            }
+            if (!struct.def) {
+                Object.defineProperty(struct, StringConst.defKey, {
+                    value: Object.prototype
+                });
+            }
+            structDict[msgType] = struct;
+        }
+    }
+
+    /**
      *
      * @author 3tion
      * ProtoBuf工具集
@@ -193,8 +237,9 @@ module junyou {
          * 注册定义
          */
         regDef,
+        regStruct,
         /**
-         * 设置ProtoBuf的消息定义字典
+         * 增加ProtoBuf的消息的结构字典
          * 
          * @static
          * @param {PBStructDict} dict
@@ -207,47 +252,11 @@ module junyou {
                 let defD = defDict;
                 if (!dict.$$inted) {//检查字典是否初始化过
                     for (let name in dict) {
-                        if (DEBUG) {
-                            if (name in structDict) {
-                                ThrowError(`PB的结构定义的key[${name}]注册重复`);
-                            }
+                        let struct = dict[name];
+                        if (typeof struct != "object") {//用于支持索引式的结构 http://192.168.0.205:1234/h5ToolsForJava/ProtoTools/issues/2
+                            struct = dict[struct] as PBStruct;
                         }
-                        let encode = dict[name];
-                        if (typeof encode != "object") {//用于支持索引式的结构 http://192.168.0.205:1234/h5ToolsForJava/ProtoTools/issues/2
-                            encode = dict[encode] as PBStruct;
-                        }
-                        let def = defD[name];
-                        if (def) {
-                            regDef(encode, def);
-                        }
-                        //检查处理默认值
-                        for (let idx in encode) {
-                            let body = encode[idx];
-                            //0 key
-                            //1 required optional repeated
-                            //2 数据类型
-                            //3 Message
-                            //4 默认值
-                            if (4 in body) {//有默认值
-                                let def = encode.def;
-                                if (!def) {
-                                    //不使用encode.def=def=[]; 是为了防止def被遍历
-                                    Object.defineProperty(encode, StringConst.defKey, {
-                                        value: {}
-                                    });
-                                    def = encode.def;
-                                }
-                                let key = body[0];
-                                //消息中没有对应key的数据，先赋值成默认值，等待后续处理
-                                def[key] = body[4];
-                            }
-                        }
-                        if (!encode.def) {
-                            Object.defineProperty(encode, StringConst.defKey, {
-                                value: Object.prototype
-                            });
-                        }
-                        structDict[name] = encode;
+                        regStruct(name, struct);
                     }
                     dict.$$inted = 1;
                 }
@@ -272,19 +281,19 @@ module junyou {
         if (len > -1) {
             afterLen = bytes.bytesAvailable - len;
         }
-        let encode = typeof msgType == "object" ? msgType : structDict[msgType];
-        if (!encode) {
+        let struct = typeof msgType == "object" ? msgType : structDict[msgType];
+        if (!struct) {
             ThrowError(`非法的通信类型[${msgType}]`);
             return;
         }
         //检查处理默认值
-        let msg = Object.create(encode.def);
+        let msg = Object.create(struct.def);
         while (bytes.bytesAvailable > afterLen) {
             let tag = bytes.readVarint();
             if (tag == 0)
                 continue;
             let idx = tag >>> 3;
-            let body = encode[idx];
+            let body = struct[idx];
             if (!body) {
                 ThrowError(`读取消息类型为：${msgType}，索引${idx}时数据出现错误，找不到对应的数据结构配置`);
                 // 使用默认读取
@@ -296,7 +305,7 @@ module junyou {
             let type = body[2];
             let subMsgType = body[3];
             let value;
-            let isRepeated = label == PBFieldType.repeated;
+            let isRepeated = label == PBFieldType.Repeated;
             if (!isRepeated || (tag & 0b111) != 7) {//自定义  tag & 0b111 == 7 为 数组中 undefined的情况
                 switch (type) {
                     case PBType.Double:
@@ -381,6 +390,7 @@ module junyou {
                 break;
             default:
                 ThrowError("protobuf的wireType未知");
+                break;
         }
         return value;
     }
@@ -388,10 +398,7 @@ module junyou {
 
     function readString(bytes: ByteArray) {
         let blen = bytes.readVarint();
-        if (blen > 0) {
-            return bytes.readUTFBytes(blen);
-        }
-        return "";
+        return blen > 0 ? bytes.readUTFBytes(blen) : "";
     }
 
 
@@ -427,19 +434,19 @@ module junyou {
         if (msg == undefined) {
             return;
         }
-        let messageEncode = typeof msgType == "object" ? msgType : structDict[msgType];
-        if (!messageEncode) {
+        let struct = typeof msgType == "object" ? msgType : structDict[msgType];
+        if (!struct) {
             ThrowError(`非法的通信类型[${msgType}]，堆栈信息:${new Error()}`);
             return;
         }
         if (!bytes) {
             bytes = new ByteArray;
         }
-        for (let numberStr in messageEncode) {
+        for (let numberStr in struct) {
             let num = +numberStr;
-            let body = messageEncode[num];
+            let body = struct[num];
             let [name, label] = body;
-            if (label == PBFieldType.optional && !(name in msg)) {
+            if (label == PBFieldType.Optional && !(name in msg)) {
                 continue;
             }
             let value = msg[name];
@@ -451,7 +458,7 @@ module junyou {
             let subMsgType = body[3];
             let wireType = wireTypeMap[type];
             let tag = (num << 3) | wireType;
-            if (label == PBFieldType.repeated) {
+            if (label == PBFieldType.Repeated) {
                 if (DEBUG && debugOutData) {
                     var arr = [];
                     debugOutData[name] = arr;
