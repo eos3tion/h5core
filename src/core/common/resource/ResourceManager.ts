@@ -14,15 +14,22 @@ module junyou {
      */
 
     const _resources: { [index: string]: IResource } = {};
-    export const ResourceManager = {
-        get<T extends IResource>(resid: string, noResHandler: { (...args): T }, thisObj?: any, ...args) {
-            let res = getResource(resid) as T;
-            if (!res) {
-                res = noResHandler.apply(thisObj, args);
-                regResource(resid, res);
+
+    function get<T extends IResource>(resid: string, noResHandler: { (...args): T }, thisObj?: any, ...args)
+    function get<T extends IResource>(resid: string, noResHandler: { (...args): T }, thisObj?: any) {
+        let res = getResource(resid) as T;
+        if (!res) {
+            let args = [];
+            for (let i = 3; i < arguments.length; i++) {
+                args[i - 3] = arguments[i];
             }
-            return res;
-        },
+            res = noResHandler.apply(thisObj, args);
+            regResource(resid, res);
+        }
+        return res;
+    }
+    export const ResourceManager = {
+        get,
         // addChecker(checker: ResourceChecker) {
         //     _checkers.pushOnce(checker);
         // },
