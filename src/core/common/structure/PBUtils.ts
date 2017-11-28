@@ -60,10 +60,10 @@ module junyou {
         /**
          * 
          * 可选 消息类型名称
-         * @type {(string | PBStruct)}
+         * @type {(Key | PBStruct)}
          * @memberOf PBField
          */
-        3?: string | PBStruct;
+        3?: Key | PBStruct;
         /**
          * 可选 默认值
          * 
@@ -197,32 +197,37 @@ module junyou {
                 regDef(struct, def);
             }
             //检查处理默认值
-            for (let idx in struct) {
-                let body = struct[idx];
-                //0 key
-                //1 required optional repeated
-                //2 数据类型
-                //3 Message
-                //4 默认值
-                if (4 in body) {//有默认值
-                    let def = struct.def;
-                    if (!def) {
-                        def = {};
-                        //不使用encode.def=def=[]; 是为了防止def被遍历
-                        Object.defineProperty(struct, StringConst.defKey, {
-                            value: def
-                        });
-                    }
-                    //消息中没有对应key的数据，先赋值成默认值，等待后续处理
-                    def[body[0]] = body[4];
-                }
-            }
-            if (!struct.def) {
-                Object.defineProperty(struct, StringConst.defKey, {
-                    value: Object.prototype
-                });
-            }
+            initDefault(struct);
             structDict[msgType] = struct;
+        }
+    }
+
+    function initDefault(struct: PBStruct, prototype?) {
+        //检查处理默认值
+        for (let idx in struct) {
+            let body = struct[idx];
+            //0 key
+            //1 required optional repeated
+            //2 数据类型
+            //3 Message
+            //4 默认值
+            if (4 in body) {//有默认值
+                let def = struct.def;
+                if (!def) {
+                    def = prototype || {};
+                    //不使用encode.def=def=[]; 是为了防止def被遍历
+                    Object.defineProperty(struct, StringConst.defKey, {
+                        value: def
+                    });
+                }
+                //消息中没有对应key的数据，先赋值成默认值，等待后续处理
+                def[body[0]] = body[4];
+            }
+        }
+        if (!struct.def) {
+            Object.defineProperty(struct, StringConst.defKey, {
+                value: prototype || Object.prototype
+            });
         }
     }
 
@@ -238,6 +243,10 @@ module junyou {
          */
         regDef,
         regStruct,
+        /**
+         * 初始化默认值
+         */
+        initDefault,
         /**
          * 增加ProtoBuf的消息的结构字典
          * 
@@ -273,9 +282,9 @@ module junyou {
      * @param {(Key | PBStruct)} msgType 
      * @param {ByteArray} bytes 
      * @param {number} [len] 
-     * @returns {Object} 
+     * @returns {any} 
      */
-    function readFrom(msgType: Key | PBStruct, bytes: ByteArray, len?: number): Object {
+    function readFrom(msgType: Key | PBStruct, bytes: ByteArray, len?: number) {
         if (len === undefined) len = -1;
         let afterLen = 0;
         if (len > -1) {
@@ -412,7 +421,7 @@ module junyou {
      * @param {string} subMsgType   类型标识
      * @returns {Object}
      */
-    function readMessage(bytes: ByteArray, msgType: string | PBStruct) {
+    function readMessage(bytes: ByteArray, msgType: Key | PBStruct) {
         let blen = bytes.readVarint();
         return readFrom(msgType, bytes, blen);
     }
@@ -486,7 +495,7 @@ module junyou {
         return bytes;
     }
 
-    function writeElementTo(value: any, type: number, tag: number, bytes: ByteArray, subMsgType?: string | PBStruct) {
+    function writeElementTo(value: any, type: number, tag: number, bytes: ByteArray, subMsgType?: Key | PBStruct) {
         if (DEBUG) {
             var out = value;
         }
@@ -557,22 +566,22 @@ module junyou {
         if (DEBUG) {
             return out;
         }
-        function checkUInt32(value: any, type: PBType): number {
-            value = +value || 0;
-            if (value > 4294967295 || value < 0) {
-                ThrowError(`PBMessageUtils写入数据时候，使用的类型：${type}，值为：${value}，但超出整型范围。`);
-                value >>> 0;
-            }
-            return value;
+    }
+    function checkUInt32(value: any, type: PBType): number {
+        value = +value || 0;
+        if (value > 4294967295 || value < 0) {
+            ThrowError(`PBMessageUtils写入数据时候，使用的类型：${type}，值为：${value}，但超出整型范围。`);
+            value >>> 0;
         }
-        function checkInt32(value: any, type: PBType): number {
-            value = +value || 0;
-            if (value > 2147483647 || value < -2147483648) {
-                ThrowError(`PBMessageUtils写入数据时候，使用的类型：${type}，值为：${value}，但超出整型范围。`);
-                value >> 0;
-            }
-            return value;
+        return value;
+    }
+    function checkInt32(value: any, type: PBType): number {
+        value = +value || 0;
+        if (value > 2147483647 || value < -2147483648) {
+            ThrowError(`PBMessageUtils写入数据时候，使用的类型：${type}，值为：${value}，但超出整型范围。`);
+            value >> 0;
         }
+        return value;
     }
     function zigzag32(n: number) {
         return (n << 1) ^ (n >> 31);
