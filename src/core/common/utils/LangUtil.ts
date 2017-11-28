@@ -27,7 +27,7 @@ module junyou {
         has(code: Key): boolean;
     }
 
-    let _msgDict: { [index: string]: string } = {};
+    let _msgDict: { [index: string]: string } = (window as any).$lang || {};
     /**
      * 用于处理语言/文字显示
      */
