@@ -57,9 +57,12 @@ module junyou {
         /**
          * 解析打包的配置
          */
-        parsePakedDatas() {
+        parsePakedDatas(type?: number) {
             let configs = RES.getRes("cfgs");
             RES.destroyRes("cfgs");
+            if (type == 1) {
+                configs = decodePakCfgs(new ByteArray(configs as ArrayBuffer));
+            }
             // 按顺序解析
             for (let key of _plist) {
                 let parser = parsers[key];
@@ -117,24 +120,7 @@ module junyou {
                         hasLocal = 1;
                     }
                 }
-                if (idkey == "" || idkey == 0) {
-                    type = CfgDataType.Array;
-                } else if (!type) {
-                    type = CfgDataType.Dictionary;
-                }
-
-                switch (type) {
-                    case CfgDataType.Array:
-                    case CfgDataType.ArraySet:
-                        dict = [];
-                        forEach = arrayParserForEach;
-                        break;
-                    case CfgDataType.Dictionary:
-                        dict = {};
-                        forEach = commonParserForEach;
-                        break;
-                }
-
+                ([type, dict, forEach] = getParserOption(idkey, type));
                 try {
                     let ref = CfgCreator || Object;
                     for (let i = 1; i < data.length; i++) {
@@ -166,7 +152,8 @@ module junyou {
                 }
                 return dict;
             });
-        }
+        },
+        regBytesParser
     };
 
     /**
@@ -184,23 +171,24 @@ module junyou {
         // 特殊类型数据
         switch (type) {
             case JSONHeadType.Any:
-                if (value == null || value == undefined) {
+                if (value == null) {//value == null 同时判断 null 和 undefined 并且字符串较少
                     value = def;
                 }
                 break;
             case JSONHeadType.String:
-                if (value === 0 || value == undefined) {
+                if (value === 0 || value == null) {
                     value = def || "";
                 }
                 break;
             case JSONHeadType.Number:
+            case JSONHeadType.Int32:
                 // 0 == "" // true
-                if (value === "" || value == undefined) {
+                if (value === "" || value == null) {
                     value = +def || 0;
                 }
                 break;
             case JSONHeadType.Bool:
-                if (value == undefined) {
+                if (value == null) {
                     value = def;
                 }
                 value = !!value;
@@ -312,7 +300,8 @@ module junyou {
         Array2D = 5,
         Date = 6,
         Time = 7,
-        DateTime = 8
+        DateTime = 8,
+        Int32 = 9
     }
 
 
@@ -354,4 +343,179 @@ module junyou {
      * @interface CfgData
      */
     export interface CfgData { }
+
+    const CfgHeadStruct: PBStruct = {
+        1: [0, PBFieldType.Required, PBType.String]/*必有 属性名字*/,
+        2: [1, PBFieldType.Required, PBType.Enum]/*必有 数值的数据类型*/,
+        3: [2, PBFieldType.Optional, PBType.Enum]/*可选 此列的状态*/,
+        4: [3, PBFieldType.Optional, PBType.SInt32]/*可选 bool / int32 型默认值 */,
+        5: [4, PBFieldType.Optional, PBType.Double]/*可选 double 型默认值 */,
+        6: [5, PBFieldType.Optional, PBType.String]/*可选 字符串型默认值 */
+    }
+
+    PBUtils.initDefault(CfgHeadStruct);
+
+    interface CfgHead extends JSONHeadItem {
+        /** 
+         * 可选 bool / int32 型默认值 
+         */
+        3?: number;
+        /** 
+         * 可选 double 型默认值 
+         */
+        4?: number;
+        /**
+         * 可选 字符串 型默认值
+         */
+        5?: string;
+    }
+
+    //配置数据 打包的文件结构数据
+    //readUnsignedByte 字符串长度 readString 表名字 readUnsignedByte 配置类型(0 PBBytes 1 JSON字符串) readVarint 数据长度
+
+    function decodePakCfgs(buffer: ByteArray) {
+        let cfgs = {};
+        while (buffer.readAvailable) {
+            let len = buffer.readUnsignedByte();
+            let key = buffer.readUTFBytes(len);//得到表名
+            let type = buffer.readUnsignedByte();
+            let value: any;
+            len = buffer.readVarint();
+            switch (type) {
+                case 0://JSON字符串
+                    let str = buffer.readUTFBytes(len);
+                    value = JSON.parse(str);
+                    break;
+                case 1://PBBytes
+                    value = buffer.readByteArray(len);
+                    break;
+            }
+            cfgs[key] = value;
+        }
+        return cfgs;
+    }
+
+    function getParserOption(idkey: string | 0 = "id", type?: CfgDataType) {
+        let dict, forEach: { (t: any, idx: number, key: string, dict: any, idkey: string) };
+        if (idkey == "" || idkey == 0) {
+            type = CfgDataType.Array;
+        } else if (!type) {
+            type = CfgDataType.Dictionary;
+        }
+        switch (type) {
+            case CfgDataType.Array:
+            case CfgDataType.ArraySet:
+                dict = [];
+                forEach = arrayParserForEach;
+                break;
+            case CfgDataType.Dictionary:
+                dict = {};
+                forEach = commonParserForEach;
+                break;
+        }
+        return [type, dict, forEach];
+    }
+
+    /**
+     * 通用的Bytes版本的配置解析器
+     * @param buffer 
+     */
+    function regBytesParser(key: keyof CfgData, CfgCreator: Creator<any> | 0, idkey: string | 0 = "id", type?: CfgDataType) {
+        regParser(key, (bytes: ByteArray) => {
+            if (!bytes) {
+                return;
+            }
+            let dict, forEach: { (t: any, idx: number, key: string, dict: any, idkey: string) };
+            ([type, dict, forEach] = getParserOption(idkey, type));
+            try {
+                let struct = {} as PBStruct;
+                let headersRaw = [] as (JSONHeadItem & { 4?: number })[];
+                let i = 0;
+                let count = bytes.readVarint();//头的数量
+                let hasLocal;
+                while (bytes.readAvailable && count--) {
+                    let len = bytes.readVarint();
+                    let head = PBUtils.readFrom(CfgHeadStruct, bytes, len) as CfgHead;
+                    const [name, headType, headState, i32Def, dblDef, strDef] = head;
+                    let def, isJSON = 0, pbType: PBType;
+                    switch (headType) {
+                        case JSONHeadType.Any:
+                        case JSONHeadType.String:
+                            def = strDef;
+                            pbType = PBType.String;
+                            break;
+                        case JSONHeadType.Number:
+                            def = dblDef;
+                            pbType = PBType.Double;
+                            break;
+                        case JSONHeadType.Bool:
+                        case JSONHeadType.Int32:
+                        case JSONHeadType.Date:
+                        case JSONHeadType.Time:
+                        case JSONHeadType.DateTime:
+                            def = i32Def;
+                            pbType = PBType.SInt32;
+                            break;
+                        case JSONHeadType.Array:
+                        case JSONHeadType.Array2D:
+                            if (strDef) {
+                                def = JSON.parse(strDef);
+                            }
+                            pbType = PBType.String;
+                            isJSON = 1;
+                            break;
+                    }
+                    struct[i + 1] = [name, PBFieldType.Optional, pbType, def];
+                    head.length = 5;
+                    head[3] = def;
+                    head[4] = isJSON;
+                    headersRaw[i++] = head;
+                    if ((headState & JSONHeadState.Local) == JSONHeadState.Local) {
+                        hasLocal = 1;
+                    }
+                }
+                PBUtils.initDefault(struct, (CfgCreator as any).prototype);
+                let headLen = i;
+                i = 0;
+                count = bytes.readVarint();//行的数量
+                while (bytes.readAvailable && count--) {
+                    let len = bytes.readVarint();
+                    let obj = PBUtils.readFrom(struct, bytes, len);
+                    if (!obj) {
+                        continue;
+                    }
+                    if (CfgCreator) {
+                        CfgCreator.call(obj);
+                    }
+                    let local = hasLocal && {};
+                    for (let j = 0; j < headLen; j++) {
+                        let head = headersRaw[j];
+                        let [name, test, type, def, isJSON] = head;
+                        let value = obj[name];
+                        if (value && isJSON) {
+                            value = JSON.parse(value);
+                        }
+                        let v = getJSONValue(value, test, def);
+                        if ((type & JSONHeadState.Local) == JSONHeadState.Local) {
+                            local[name] = v;
+                        } else {
+                            obj[name] = v;
+                        }
+                    }
+                    forEach(obj, i++, key, dict, idkey as string);
+                    if (typeof obj.decode === "function") {
+                        obj.decode(local);
+                    }
+                }
+                if (type == CfgDataType.ArraySet) {
+                    dict = new ArraySet().setRawList(dict, idkey as never);
+                }
+            } catch (e) {
+                if (DEBUG) {
+                    ThrowError(`解析配置:${key}出错`, e);
+                }
+            }
+            return dict;
+        })
+    }
 }

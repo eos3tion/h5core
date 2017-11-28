@@ -115,8 +115,9 @@ module junyou {
          */
         draw(bitmap: egret.Bitmap, drawInfo: IDrawInfo, now: number) {
             let frame = this.getTexture(drawInfo);
+            let { a, d } = drawInfo;
             if (frame) {
-                let res = this.loadRes(drawInfo.d, drawInfo.a);
+                let res = this.loadRes(d, a);
                 res.lastUseTime = Global.now;
                 if (frame.bitmapData) {
                     bitmap.texture = frame;
@@ -124,6 +125,9 @@ module junyou {
                     bitmap.anchorOffsetY = frame.ty;
                     return true;
                 } else {
+                    if (res.state == RequestState.COMPLETE) {
+                        res.bindTexture(frame);
+                    }
                     bitmap.texture = undefined;
                 }
             }
@@ -155,7 +159,7 @@ module junyou {
             let r = this._splitInfo.getResource(d, a);
             let uri = this.key + "/" + r + Ext.PNG;
             let datas = this._datas;
-            return ResourceManager.get(uri, this.noRes, this, uri, r);
+            return ResourceManager.get(uri, this.noRes, this, uri, r) as SplitUnitResource;
         }
 
         noRes(uri: string, r: string) {
