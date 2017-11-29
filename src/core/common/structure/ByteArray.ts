@@ -16,8 +16,8 @@ module junyou {
 	 *
 	 */
     export class ByteArray extends egret.ByteArray {
-        public constructor(buffer?: ArrayBuffer) {
-            super(buffer);
+        public constructor(buffer?: ArrayBuffer, ext?: number) {
+            super(buffer, ext);
         }
 
         /**
@@ -132,10 +132,11 @@ module junyou {
          * 
          * 读取指定长度的ByteArray
          * @param {number} length       指定的长度
+         * @param {number} [ext=0]      ByteArray扩展长度参数
          * @returns {ByteArray}
          */
-        public readByteArray(length: number): ByteArray {
-            return new junyou.ByteArray(this.readBuffer(length));
+        public readByteArray(length: number, ext = 0): ByteArray {
+            return new junyou.ByteArray(this.readBuffer(length), ext);
         }
 		/**
 		 * 向字节流中写入64位的可变长度的整数(Protobuf)
