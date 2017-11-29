@@ -328,12 +328,10 @@ module junyou {
                     case PBType.SInt64:
                         value = bytes.readVarint64();//理论上项目不使用
                         break;
-                    case PBType.Int32:
-                        value = bytes.readVarint();
-                        break;
                     case PBType.SInt32:
                         value = decodeZigzag32(bytes.readVarint());
                         break;
+                    case PBType.Int32:
                     case PBType.Uint32:
                     case PBType.Enum:
                         value = bytes.readVarint();
@@ -518,7 +516,12 @@ module junyou {
                 bytes.writeFix64(value as number);
                 break;
             case PBType.Int32:
-                bytes.writeVarint(checkInt32(value, type));
+                value = checkInt32(value, type);
+                if (value < 0) {
+                    bytes.writeVarint64(value);
+                } else {
+                    bytes.writeVarint(value);
+                }
                 break;
             case PBType.SInt32:
                 bytes.writeVarint(zigzag32(checkInt32(value, type)));
