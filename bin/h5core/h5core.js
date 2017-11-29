@@ -1855,12 +1855,10 @@ var junyou;
                     case 18 /* SInt64 */:
                         value = bytes.readVarint64(); //理论上项目不使用
                         break;
-                    case 5 /* Int32 */:
-                        value = bytes.readVarint();
-                        break;
                     case 17 /* SInt32 */:
                         value = decodeZigzag32(bytes.readVarint());
                         break;
+                    case 5 /* Int32 */:
                     case 13 /* Uint32 */:
                     case 14 /* Enum */:
                         value = bytes.readVarint();
@@ -2039,7 +2037,13 @@ var junyou;
                 bytes.writeFix64(value);
                 break;
             case 5 /* Int32 */:
-                bytes.writeVarint(checkInt32(value, type));
+                value = checkInt32(value, type);
+                if (value < 0) {
+                    bytes.writeVarint64(value);
+                }
+                else {
+                    bytes.writeVarint(value);
+                }
                 break;
             case 17 /* SInt32 */:
                 bytes.writeVarint(zigzag32(checkInt32(value, type)));
@@ -6736,8 +6740,8 @@ var junyou;
      */
     var ByteArray = (function (_super) {
         __extends(ByteArray, _super);
-        function ByteArray(buffer) {
-            return _super.call(this, buffer) || this;
+        function ByteArray(buffer, ext) {
+            return _super.call(this, buffer, ext) || this;
         }
         /**
          * 替换缓冲区
@@ -6844,10 +6848,12 @@ var junyou;
          *
          * 读取指定长度的ByteArray
          * @param {number} length       指定的长度
+         * @param {number} [ext=0]      ByteArray扩展长度参数
          * @returns {ByteArray}
          */
-        ByteArray.prototype.readByteArray = function (length) {
-            return new junyou.ByteArray(this.readBuffer(length));
+        ByteArray.prototype.readByteArray = function (length, ext) {
+            if (ext === void 0) { ext = 0; }
+            return new junyou.ByteArray(this.readBuffer(length), ext);
         };
         /**
          * 向字节流中写入64位的可变长度的整数(Protobuf)

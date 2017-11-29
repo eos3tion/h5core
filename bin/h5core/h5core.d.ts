@@ -4021,7 +4021,7 @@ declare module junyou {
      *
      */
     class ByteArray extends egret.ByteArray {
-        constructor(buffer?: ArrayBuffer);
+        constructor(buffer?: ArrayBuffer, ext?: number);
         /**
          * 替换缓冲区
          *
@@ -4047,9 +4047,10 @@ declare module junyou {
          *
          * 读取指定长度的ByteArray
          * @param {number} length       指定的长度
+         * @param {number} [ext=0]      ByteArray扩展长度参数
          * @returns {ByteArray}
          */
-        readByteArray(length: number): ByteArray;
+        readByteArray(length: number, ext?: number): ByteArray;
         /**
          * 向字节流中写入64位的可变长度的整数(Protobuf)
          */
