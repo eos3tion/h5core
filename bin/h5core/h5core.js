@@ -1718,18 +1718,16 @@ var junyou;
      * @param struct 结构
      */
     function regStruct(msgType, struct) {
-        if (true) {
-            if (msgType in structDict) {
-                junyou.ThrowError("PB\u7684\u7ED3\u6784\u5B9A\u4E49\u7684key[" + msgType + "]\u6CE8\u518C\u91CD\u590D");
-            }
-            var def = defDict[msgType];
-            if (def) {
-                regDef(struct, def);
-            }
-            //检查处理默认值
-            initDefault(struct);
-            structDict[msgType] = struct;
+        if (true && (msgType in structDict)) {
+            junyou.ThrowError("PB\u7684\u7ED3\u6784\u5B9A\u4E49\u7684key[" + msgType + "]\u6CE8\u518C\u91CD\u590D");
         }
+        var def = defDict[msgType];
+        if (def) {
+            regDef(struct, def);
+        }
+        //检查处理默认值
+        initDefault(struct);
+        structDict[msgType] = struct;
     }
     function initDefault(struct, prototype) {
         //检查处理默认值
