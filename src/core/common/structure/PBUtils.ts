@@ -188,18 +188,16 @@ module junyou {
      * @param struct 结构
      */
     function regStruct(msgType: Key, struct: PBStruct) {
-        if (DEBUG) {
-            if (msgType in structDict) {
-                ThrowError(`PB的结构定义的key[${msgType}]注册重复`);
-            }
-            let def = defDict[msgType];
-            if (def) {
-                regDef(struct, def);
-            }
-            //检查处理默认值
-            initDefault(struct);
-            structDict[msgType] = struct;
+        if (DEBUG && (msgType in structDict)) {
+            ThrowError(`PB的结构定义的key[${msgType}]注册重复`);
         }
+        let def = defDict[msgType];
+        if (def) {
+            regDef(struct, def);
+        }
+        //检查处理默认值
+        initDefault(struct);
+        structDict[msgType] = struct;
     }
 
     function initDefault(struct: PBStruct, prototype?) {
