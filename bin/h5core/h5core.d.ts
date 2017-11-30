@@ -7925,7 +7925,7 @@ declare module junyou {
      * @author
      *
      */
-    interface IAsyncPanel extends egret.DisplayObject, IAsync, IModulePanel {
+    interface IAsyncPanel extends IAsync, IModulePanel {
     }
 }
 declare module junyou {
@@ -8702,6 +8702,7 @@ declare module junyou {
 }
 declare module junyou {
     interface Panel extends IAsync {
+        $propagateFlagsDown(flags: egret.sys.DisplayObjectFlags, cachedBreak?: boolean): void;
     }
     /**
      * 模块面板

@@ -14902,7 +14902,7 @@ var junyou;
         return Panel;
     }(egret.Sprite));
     junyou.Panel = Panel;
-    __reflect(Panel.prototype, "junyou.Panel", ["junyou.SuiDataCallback", "junyou.IAsyncPanel", "egret.DisplayObject", "junyou.IAsync", "junyou.IModulePanel"]);
+    __reflect(Panel.prototype, "junyou.Panel", ["junyou.SuiDataCallback", "junyou.IAsyncPanel", "junyou.IAsync", "junyou.IModulePanel", "egret.DisplayObject"]);
     junyou.expand(Panel, junyou.FHost, "addReadyExecute");
 })(junyou || (junyou = {}));
 var junyou;
