@@ -14,19 +14,17 @@ interface ExternalParam {
      */
     sid: string;
     /**
-     * 服务器ip
-     * 
+     * 服务器地址，如：  
+     * `xxxx.com`  
+     * `xxxxx.com:123`  
+     * `192.168.0.140:8888` 
+     * `192.168.0.140:8888/gate`  
+     * `192.168.0.140:8888/gate/pdk` 
+     * `xxxxx.com:123/gate` 
      * @type {string}
      * @memberOf $ep
      */
-    ip: string;
-    /**
-     * 端口号
-     * 
-     * @type {number}
-     * @memberOf $ep
-     */
-    port: number;
+    host: string;
     /**
      * 平台标识
      * 
