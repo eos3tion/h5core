@@ -103,16 +103,12 @@ module junyou {
             return this._list[idx];
         }
         public selectItemByData<K extends keyof T>(key: K, value: T[K], useTween: boolean = false) {
-            let data = this._data;
-            let len = data.length;
-            for (let i = 0; i < len; i++) {
-                if (key in data[i]) {
-                    if (data[i][key] == value) {
-                        this.selectedIndex = i;
-                        break;
-                    }
+            this.find((dat, render, idx) => {
+                if (dat && (key in dat) && dat[key] == value) {
+                    this.selectedIndex = idx;
+                    return true;
                 }
-            }
+            });
         }
 
         /**
@@ -172,7 +168,7 @@ module junyou {
          */
         public updateByKey<K extends keyof T>(key: K, value: T[K], data?: T) {
             this.find((dat, render, idx) => {
-                if (dat[key] == value) {
+                if (dat && (key in dat) && dat[key] == value) {
                     this.updateByIdx(idx, data === undefined ? dat : data);
                     return true;
                 }
