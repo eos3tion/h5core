@@ -4,7 +4,7 @@ module junyou {
 	 * @author 
 	 *
 	 */
-	export interface IAsyncPanel extends egret.DisplayObject, IAsync, IModulePanel {
+	export interface IAsyncPanel extends IAsync, IModulePanel {
 
 	}
 }

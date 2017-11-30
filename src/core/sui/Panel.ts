@@ -1,6 +1,6 @@
 module junyou {
     export interface Panel extends IAsync {
-
+        $propagateFlagsDown(flags: egret.sys.DisplayObjectFlags, cachedBreak?: boolean): void;
     }
 	/**
 	 * 模块面板
