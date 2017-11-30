@@ -3632,17 +3632,14 @@ var junyou;
             return this._list[idx];
         };
         AbsPageList.prototype.selectItemByData = function (key, value, useTween) {
+            var _this = this;
             if (useTween === void 0) { useTween = false; }
-            var data = this._data;
-            var len = data.length;
-            for (var i = 0; i < len; i++) {
-                if (key in data[i]) {
-                    if (data[i][key] == value) {
-                        this.selectedIndex = i;
-                        break;
-                    }
+            this.find(function (dat, render, idx) {
+                if (dat && (key in dat) && dat[key] == value) {
+                    _this.selectedIndex = idx;
+                    return true;
                 }
-            }
+            });
         };
         /**
          * 遍历列表
@@ -3704,7 +3701,7 @@ var junyou;
         AbsPageList.prototype.updateByKey = function (key, value, data) {
             var _this = this;
             this.find(function (dat, render, idx) {
-                if (dat[key] == value) {
+                if (dat && (key in dat) && dat[key] == value) {
                     _this.updateByIdx(idx, data === undefined ? dat : data);
                     return true;
                 }
