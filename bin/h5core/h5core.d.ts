@@ -5737,6 +5737,10 @@ declare module junyou {
          * @memberof AniOption
          */
         start?: number;
+        /**
+         * 缩放，默认为 1
+         */
+        scale?: number;
     }
 }
 declare module junyou {

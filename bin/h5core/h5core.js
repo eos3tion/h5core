@@ -9766,6 +9766,10 @@ var junyou;
                 if (y != undefined) {
                     display.y = y;
                 }
+                var scale = option.scale;
+                if (scale != undefined) {
+                    display.scaleX = display.scaleY = scale;
+                }
                 stop = option.stop;
                 var parent_1 = option.parent;
                 if (parent_1) {
