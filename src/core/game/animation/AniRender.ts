@@ -436,6 +436,10 @@ module junyou {
                 if (y != undefined) {
                     display.y = y;
                 }
+                let scale = option.scale;
+                if (scale != undefined) {
+                    display.scaleX = display.scaleY = scale;
+                }
                 stop = option.stop;
                 let parent = option.parent;
                 if (parent) {
@@ -578,5 +582,10 @@ module junyou {
          * @memberof AniOption
          */
         start?: number;
+
+        /**
+         * 缩放，默认为 1
+         */
+        scale?: number;
     }
 }
