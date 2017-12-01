@@ -12,6 +12,8 @@
     },
     "exclude": [
         "./bin",
-        "./backup"
+        "./backup",
+        "./src/core/common/net/getXHR.ts",
+        "./src/core/common/loadScript.ts"
     ]
 }
