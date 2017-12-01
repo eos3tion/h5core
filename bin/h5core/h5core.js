@@ -614,81 +614,137 @@ if (typeof window["Map"] == "undefined" || !window["Map"]) {
 }
 var egret;
 (function (egret) {
-    (function () {
-        var bpt = egret.Bitmap.prototype;
-        bpt.refreshBMD = function () {
-            var tex = this.texture;
-            if (tex != null) {
-                this.texture = null;
-                this.texture = tex;
-            }
+    var bpt = egret.Bitmap.prototype;
+    bpt.refreshBMD = function () {
+        var tex = this.texture;
+        if (tex != null) {
+            this.texture = null;
+            this.texture = tex;
+        }
+    };
+    /**重写Bitmap.prototype.$refreshImageData用于支持egret的webgl渲染 */
+    var $rawRefreshImageData = egret.Bitmap.prototype.$refreshImageData;
+    bpt.$refreshImageData = function () {
+        $rawRefreshImageData.call(this);
+        var values = this.$Bitmap;
+        var bmd = values[1 /* image */];
+        if (bmd) {
+            values[13 /* sourceWidth */] = bmd.width;
+            values[14 /* sourceHeight */] = bmd.height;
+        }
+    };
+    var htmlTextParser = new egret.HtmlTextParser();
+    egret.TextField.prototype.setHtmlText = function (value) {
+        if (value == undefined) {
+            value = "";
+        }
+        else if (typeof value == "number") {
+            value = value + "";
+        }
+        this.textFlow = value ? htmlTextParser.parser(value) : junyou.Temp.EmptyArray;
+    };
+    var ept = egret.EventDispatcher.prototype;
+    ept.removeAllListeners = function () {
+        var values = this.$EventDispatcher;
+        values[1 /**eventsMap */] = {};
+        values[2 /**captureEventsMap */] = {};
+    };
+    ept.removeListeners = function (type, useCapture) {
+        var eventMap = this.$getEventMap(useCapture);
+        var list = eventMap[type];
+        if (list) {
+            list.length = 0;
+        }
+    };
+    ept.on = ept.addEventListener;
+    ept.off = ept.removeEventListener;
+    ept.hasListen = ept.hasEventListener;
+    ept.dispatch = ept.dispatchEventWith;
+    egret.Graphics.prototype.drawRectangle = function (rect) {
+        this.drawRect(rect.x, rect.y, rect.width, rect.height);
+    };
+    // DisplayObject重写了EventDispatcher的removeEventListener
+    var dpt = egret.DisplayObject.prototype;
+    dpt.off = dpt.removeEventListener;
+    dpt.removeListeners = function (type, useCapture) {
+        var eventMap = this.$getEventMap(useCapture);
+        var list;
+        if ("enterFrame" == type) {
+            list = egret.DisplayObject.$enterFrameCallBackList;
+        }
+        else if ("render" == type) {
+            list = egret.DisplayObject.$renderCallBackList;
+        }
+        if (list) {
+            list.remove(this);
+        }
+        ept.removeListeners.call(this, type, useCapture);
+    };
+    dpt.removeAllListeners = function () {
+        var values = this.$EventDispatcher;
+        values[1 /**eventsMap */] = {};
+        values[2 /**captureEventsMap */] = {};
+        egret.DisplayObject.$enterFrameCallBackList.remove(this);
+        egret.DisplayObject.$renderCallBackList.remove(this);
+    };
+    Object.defineProperties(dpt, {
+        "bright": {
+            set: function (value) {
+                value = Math.clamp(value, -1, 1);
+                if (this["_bright" /* PrivateKey */] == value) {
+                    return;
+                }
+                var filters = this.filters;
+                var brightMatrix = this["_briFilter" /* PrivateFilter */];
+                if (value == 0) {
+                    if (filters) {
+                        filters.remove(brightMatrix);
+                        if (!filters.length) {
+                            filters = null;
+                        }
+                    }
+                }
+                else {
+                    if (!brightMatrix) {
+                        this["_briFilter" /* PrivateFilter */] = brightMatrix = new egret.ColorMatrixFilter();
+                    }
+                    this["_bright" /* PrivateKey */] = value;
+                    brightMatrix.matrix = [1, 0, 0, 0, 255 * value, 0, 1, 0, 0, 255 * value, 0, 0, 1, 0, 255 * value, 0, 0, 0, 1, 0];
+                    if (!filters) {
+                        filters = [brightMatrix];
+                    }
+                    else {
+                        filters.pushOnce(brightMatrix);
+                    }
+                }
+                this.filters = filters;
+            },
+            get: function () {
+                return this["_bright" /* PrivateKey */] || 0;
+            },
+            enumerable: false,
+            configurable: true
+        },
+        "sRectX": setScrollRectPos("x"),
+        "sRectY": setScrollRectPos("y"),
+    });
+    function setScrollRectPos(key) {
+        return {
+            set: function (value) {
+                var scroll = this.scrollRect;
+                if (scroll) {
+                    scroll[key] = value;
+                    this.scrollRect = scroll;
+                }
+            },
+            get: function () {
+                var scroll = this.scrollRect;
+                return scroll && scroll[key] || 0;
+            },
+            enumerable: false,
+            configurable: true
         };
-        /**重写Bitmap.prototype.$refreshImageData用于支持egret的webgl渲染 */
-        var $rawRefreshImageData = egret.Bitmap.prototype.$refreshImageData;
-        bpt.$refreshImageData = function () {
-            $rawRefreshImageData.call(this);
-            var values = this.$Bitmap;
-            var bmd = values[1 /* image */];
-            if (bmd) {
-                values[13 /* sourceWidth */] = bmd.width;
-                values[14 /* sourceHeight */] = bmd.height;
-            }
-        };
-        var htmlTextParser = new egret.HtmlTextParser();
-        egret.TextField.prototype.setHtmlText = function (value) {
-            if (value == undefined) {
-                value = "";
-            }
-            else if (typeof value == "number") {
-                value = value + "";
-            }
-            this.textFlow = value ? htmlTextParser.parser(value) : junyou.Temp.EmptyArray;
-        };
-        var ept = egret.EventDispatcher.prototype;
-        ept.removeAllListeners = function () {
-            var values = this.$EventDispatcher;
-            values[1 /**eventsMap */] = {};
-            values[2 /**captureEventsMap */] = {};
-        };
-        ept.removeListeners = function (type, useCapture) {
-            var eventMap = this.$getEventMap(useCapture);
-            var list = eventMap[type];
-            if (list) {
-                list.length = 0;
-            }
-        };
-        ept.on = ept.addEventListener;
-        ept.off = ept.removeEventListener;
-        ept.hasListen = ept.hasEventListener;
-        ept.dispatch = ept.dispatchEventWith;
-        // DisplayObject重写了EventDispatcher的removeEventListener
-        var dpt = egret.DisplayObject.prototype;
-        dpt.off = dpt.removeEventListener;
-        dpt.removeListeners = function (type, useCapture) {
-            var eventMap = this.$getEventMap(useCapture);
-            var list;
-            if ("enterFrame" == type) {
-                list = egret.DisplayObject.$enterFrameCallBackList;
-            }
-            else if ("render" == type) {
-                list = egret.DisplayObject.$renderCallBackList;
-            }
-            if (list) {
-                list.remove(this);
-            }
-            ept.removeListeners.call(this, type, useCapture);
-        };
-        dpt.removeAllListeners = function () {
-            var values = this.$EventDispatcher;
-            values[1 /**eventsMap */] = {};
-            values[2 /**captureEventsMap */] = {};
-            egret.DisplayObject.$enterFrameCallBackList.remove(this);
-            egret.DisplayObject.$renderCallBackList.remove(this);
-        };
-        egret.Graphics.prototype.drawRectangle = function (rect) {
-            this.drawRect(rect.x, rect.y, rect.width, rect.height);
-        };
-    })();
+    }
 })(egret || (egret = {}));
 var junyou;
 (function (junyou) {

@@ -501,6 +501,21 @@ declare module egret {
          */
         drawRectangle(rect: junyou.Rect): any;
     }
+    interface DisplayObject {
+        /**
+         * 亮度 赋值范围 -1 ~ 1
+         * 默认为 0 表示正常亮度
+         */
+        bright: number;
+        /**
+         * 调整scrollRect的x
+         */
+        sRectX: number;
+        /**
+         * 调整scrollRect的y
+         */
+        sRectY: number;
+    }
 }
 interface Storage {
     getItem(key: number): string | null;
