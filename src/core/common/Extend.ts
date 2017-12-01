@@ -863,81 +863,165 @@ module egret {
          */
         drawRectangle(rect: junyou.Rect);
     }
-    (function () {
-        let bpt = Bitmap.prototype;
-        bpt.refreshBMD = function () {
-            let tex = this.texture;
-            if (tex != null) {
-                this.texture = null;
-                this.texture = tex;
-            }
-        }
-        /**重写Bitmap.prototype.$refreshImageData用于支持egret的webgl渲染 */
-        let $rawRefreshImageData = Bitmap.prototype.$refreshImageData;
-        bpt.$refreshImageData = function () {
-            $rawRefreshImageData.call(this);
-            let values = this.$Bitmap;
-            let bmd = values[egret.sys.BitmapKeys.image];
-            if (bmd) {
-                values[egret.sys.BitmapKeys.sourceWidth] = bmd.width;
-                values[egret.sys.BitmapKeys.sourceHeight] = bmd.height;
-            }
-        }
-        const htmlTextParser = new HtmlTextParser();
-        TextField.prototype.setHtmlText = function (this: TextField, value?: string | number) {
-            if (value == undefined) {
-                value = "";
-            } else if (typeof value == "number") {
-                value = value + "";
-            }
-            this.textFlow = value ? htmlTextParser.parser(value) : junyou.Temp.EmptyArray as ITextElement[];
-        }
-        let ept = EventDispatcher.prototype;
-        ept.removeAllListeners = function (this: EventDispatcher) {
-            let values = this.$EventDispatcher;
-            values[1/**eventsMap */] = {};
-            values[2/**captureEventsMap */] = {};
-        }
-        ept.removeListeners = function (type, useCapture) {
-            let eventMap = this.$getEventMap(useCapture);
-            let list: egret.sys.EventBin[] = eventMap[type];
-            if (list) {
-                list.length = 0;
-            }
-        }
-        ept.on = ept.addEventListener;
-        ept.off = ept.removeEventListener;
-        ept.hasListen = ept.hasEventListener;
-        ept.dispatch = ept.dispatchEventWith;
 
-        // DisplayObject重写了EventDispatcher的removeEventListener
-        let dpt = DisplayObject.prototype;
-        dpt.off = dpt.removeEventListener;
-        dpt.removeListeners = function (type, useCapture) {
-            let eventMap = this.$getEventMap(useCapture);
-            let list: DisplayObject[];
-            if ("enterFrame" == type) {
-                list = DisplayObject.$enterFrameCallBackList;
-            } else if ("render" == type) {
-                list = DisplayObject.$renderCallBackList;
-            }
-            if (list) {
-                list.remove(this);
-            }
-            ept.removeListeners.call(this, type, useCapture);
+    let bpt = Bitmap.prototype;
+    bpt.refreshBMD = function () {
+        let tex = this.texture;
+        if (tex != null) {
+            this.texture = null;
+            this.texture = tex;
         }
-        dpt.removeAllListeners = function (this: DisplayObject) {
-            let values = this.$EventDispatcher;
-            values[1/**eventsMap */] = {};
-            values[2/**captureEventsMap */] = {};
-            DisplayObject.$enterFrameCallBackList.remove(this);
-            DisplayObject.$renderCallBackList.remove(this);
+    }
+    /**重写Bitmap.prototype.$refreshImageData用于支持egret的webgl渲染 */
+    let $rawRefreshImageData = Bitmap.prototype.$refreshImageData;
+    bpt.$refreshImageData = function () {
+        $rawRefreshImageData.call(this);
+        let values = this.$Bitmap;
+        let bmd = values[egret.sys.BitmapKeys.image];
+        if (bmd) {
+            values[egret.sys.BitmapKeys.sourceWidth] = bmd.width;
+            values[egret.sys.BitmapKeys.sourceHeight] = bmd.height;
         }
+    }
+    const htmlTextParser = new HtmlTextParser();
+    TextField.prototype.setHtmlText = function (this: TextField, value?: string | number) {
+        if (value == undefined) {
+            value = "";
+        } else if (typeof value == "number") {
+            value = value + "";
+        }
+        this.textFlow = value ? htmlTextParser.parser(value) : junyou.Temp.EmptyArray as ITextElement[];
+    }
+    let ept = EventDispatcher.prototype;
+    ept.removeAllListeners = function (this: EventDispatcher) {
+        let values = this.$EventDispatcher;
+        values[1/**eventsMap */] = {};
+        values[2/**captureEventsMap */] = {};
+    }
+    ept.removeListeners = function (type, useCapture) {
+        let eventMap = this.$getEventMap(useCapture);
+        let list: egret.sys.EventBin[] = eventMap[type];
+        if (list) {
+            list.length = 0;
+        }
+    }
+    ept.on = ept.addEventListener;
+    ept.off = ept.removeEventListener;
+    ept.hasListen = ept.hasEventListener;
+    ept.dispatch = ept.dispatchEventWith;
 
-        Graphics.prototype.drawRectangle = function (this: Graphics, rect: junyou.Rect) {
-            this.drawRect(rect.x, rect.y, rect.width, rect.height);
+
+
+    Graphics.prototype.drawRectangle = function (this: Graphics, rect: junyou.Rect) {
+        this.drawRect(rect.x, rect.y, rect.width, rect.height);
+    }
+
+    export interface DisplayObject {
+        /**
+         * 亮度 赋值范围 -1 ~ 1
+         * 默认为 0 表示正常亮度
+         */
+        bright: number;
+
+        /**
+         * 调整scrollRect的x
+         */
+        sRectX: number;
+
+        /**
+         * 调整scrollRect的y
+         */
+        sRectY: number;
+    }
+
+    const enum BrightConst {
+        PrivateKey = "_bright",
+        PrivateFilter = "_briFilter"
+    }
+
+    // DisplayObject重写了EventDispatcher的removeEventListener
+    let dpt = DisplayObject.prototype;
+    dpt.off = dpt.removeEventListener;
+    dpt.removeListeners = function (type, useCapture) {
+        let eventMap = this.$getEventMap(useCapture);
+        let list: DisplayObject[];
+        if ("enterFrame" == type) {
+            list = DisplayObject.$enterFrameCallBackList;
+        } else if ("render" == type) {
+            list = DisplayObject.$renderCallBackList;
         }
-    })();
+        if (list) {
+            list.remove(this);
+        }
+        ept.removeListeners.call(this, type, useCapture);
+    }
+    dpt.removeAllListeners = function (this: DisplayObject) {
+        let values = this.$EventDispatcher;
+        values[1/**eventsMap */] = {};
+        values[2/**captureEventsMap */] = {};
+        DisplayObject.$enterFrameCallBackList.remove(this);
+        DisplayObject.$renderCallBackList.remove(this);
+    }
+
+    Object.defineProperties(dpt, {
+        "bright": {
+            set: function (this: egret.DisplayObject, value: number) {
+                value = Math.clamp(value, -1, 1);
+                if (this[BrightConst.PrivateKey] == value) {
+                    return;
+                }
+                let filters = this.filters;
+                let brightMatrix: egret.ColorMatrixFilter = this[BrightConst.PrivateFilter];
+                if (value == 0) {
+                    if (filters) {
+                        filters.remove(brightMatrix);
+                        if (!filters.length) {
+                            filters = null;
+                        }
+                    }
+                } else {
+                    if (!brightMatrix) {
+                        this[BrightConst.PrivateFilter] = brightMatrix = new egret.ColorMatrixFilter();
+                    }
+                    this[BrightConst.PrivateKey] = value;
+                    brightMatrix.matrix = [1, 0, 0, 0, 255 * value, 0, 1, 0, 0, 255 * value, 0, 0, 1, 0, 255 * value, 0, 0, 0, 1, 0];
+                    if (!filters) {
+                        filters = [brightMatrix];
+                    } else {
+                        filters.pushOnce(brightMatrix);
+                    }
+                }
+                this.filters = filters;
+            },
+            get: function () {
+                return this[BrightConst.PrivateKey] || 0;
+            },
+            enumerable: false,
+            configurable: true
+        },
+        "sRectX": setScrollRectPos("x"),
+        "sRectY": setScrollRectPos("y"),
+    })
+
+
+    function setScrollRectPos(key: "x" | "y") {
+        return {
+            set: function (this: egret.DisplayObject, value: number) {
+                let scroll = this.scrollRect;
+                if (scroll) {
+                    scroll[key] = value;
+                    this.scrollRect = scroll;
+                }
+            },
+            get: function (this: egret.DisplayObject) {
+                let scroll = this.scrollRect;
+                return scroll && scroll[key] || 0;
+            },
+            enumerable: false,
+            configurable: true
+        }
+    }
+
 }
 interface Storage {
     getItem(key: number): string | null;
