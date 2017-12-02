@@ -4,9 +4,6 @@ module junyou {
 	} catch (err) { }
 
 	const _webp = supportWebp ? Ext.WEBP : "";
-	if (_webp) {
-		RES.registerAnalyzer("webp", RES.ImageAnalyzer);
-	}
 
 	var _isNative = egret.Capabilities.supportVersion != "Unknown";
 
