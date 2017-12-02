@@ -26,9 +26,12 @@ module junyou {
 
         url: string;
 
-        private _splitInfo: SplitInfo;
+        /**
+         * 资源打包分隔信息
+         */
+        readonly sInfo: SplitInfo;
 
-        state: RequestState = RequestState.UNREQUEST;
+        state = RequestState.UNREQUEST;
 
         /**
          * 获取数据
@@ -37,7 +40,7 @@ module junyou {
 
         constructor(uri: string, splitInfo: SplitInfo) {
             this.key = uri;
-            this._splitInfo = splitInfo;
+            this.sInfo = splitInfo;
         }
 
         /**
@@ -156,7 +159,7 @@ module junyou {
         }
 
         loadRes(d: number, a: number) {
-            let r = this._splitInfo.getResource(d, a);
+            let r = this.sInfo.getResource(d, a);
             let uri = this.key + "/" + r + Ext.PNG;
             let datas = this._datas;
             return ResourceManager.get(uri, this.noRes, this, uri, r) as SplitUnitResource;
@@ -164,13 +167,13 @@ module junyou {
 
         noRes(uri: string, r: string) {
             let tmp = new SplitUnitResource(uri);
-            tmp.bindTextures(this._datas, this._splitInfo.adDict[r]);
+            tmp.bindTextures(this._datas, this.sInfo.adDict[r]);
             tmp.load();
             return tmp;
         }
 
         isResOK(d: number, a: number) {
-            const info = this._splitInfo;
+            const info = this.sInfo;
             let r = info.getResource(d, a);
             let uri = this.key + "/" + r + Ext.PNG;
             let res = ResourceManager.getResource(uri) as SplitUnitResource;

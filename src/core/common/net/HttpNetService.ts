@@ -42,7 +42,7 @@ module junyou {
             NetService._ins = this;
             this._unsendRequest = [];
             this._sendingList = [];
-            this._loader = getXHR();
+            this._loader = new XMLHttpRequest;
         }
 
         /**
