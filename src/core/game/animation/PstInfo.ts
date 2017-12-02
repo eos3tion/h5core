@@ -302,9 +302,8 @@ module junyou {
 
         parseFrameData(data: any) {
             this._resDict = {};
-            var _adDict: { [index: string]: number[] } = {};
-            this.adDict = _adDict;
-            var frames: { [index: number]: ActionInfo } = {};
+            let _adDict = this.adDict = {};
+            let frames: { [index: number]: ActionInfo } = {};
             for (let key in data) {
                 let a = +key;
                 frames[a] = getActionInfo(data[a], a);
