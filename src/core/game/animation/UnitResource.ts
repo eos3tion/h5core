@@ -24,7 +24,10 @@ module junyou {
          */
         key: string;
 
-        url: string;
+        /**
+         * 纹理的配置文件的加载地址
+         */
+        readonly url: string;
 
         /**
          * 资源打包分隔信息
@@ -40,6 +43,7 @@ module junyou {
 
         constructor(uri: string, splitInfo: SplitInfo) {
             this.key = uri;
+            this.url = ConfigUtils.getResUrl(uri + "/" + UnitResourceConst.CfgFile);
             this.sInfo = splitInfo;
         }
 
@@ -89,11 +93,8 @@ module junyou {
          */
         public loadData() {
             if (this.state == RequestState.UNREQUEST) {
-                let uri = this.key + "/" + UnitResourceConst.CfgFile;
-                let url = ConfigUtils.getResUrl(uri);
-                this.url = url;
                 this.state = RequestState.REQUESTING;
-                RES.getResByUrl(url, this.dataLoadComplete, this, EgretResType.TYPE_JSON);
+                RES.getResByUrl(this.url, this.dataLoadComplete, this, EgretResType.TYPE_JSON);
             }
         }
 
@@ -158,26 +159,46 @@ module junyou {
             }
         }
 
-        loadRes(d: number, a: number) {
-            let r = this.sInfo.getResource(d, a);
-            let uri = this.key + "/" + r + Ext.PNG;
-            let datas = this._datas;
+        loadRes(direction: number, action: number) {
+            let r = this.sInfo.getResKey(direction, action);
+            let uri = this.getUri2(r);
             return ResourceManager.get(uri, this.noRes, this, uri, r) as SplitUnitResource;
         }
 
         noRes(uri: string, r: string) {
-            let tmp = new SplitUnitResource(uri);
+            let tmp = new SplitUnitResource(uri, this.getUrl(uri));
             tmp.bindTextures(this._datas, this.sInfo.adDict[r]);
             tmp.load();
             return tmp;
         }
+        getUri(direction: number, action: number) {
+            return this.getUri2(this.sInfo.getResKey(direction, action));
+        }
 
-        isResOK(d: number, a: number) {
-            const info = this.sInfo;
-            let r = info.getResource(d, a);
-            let uri = this.key + "/" + r + Ext.PNG;
+        getUri2(resKey: string) {
+            return this.key + "/" + resKey + Ext.PNG;
+        }
+        getUrl(uri: string) {
+            return ConfigUtils.getResUrl(uri + Global.webp);
+        }
+        isResOK(direction: number, action: number) {
+            let uri = this.getUri(direction, action);
             let res = ResourceManager.getResource(uri) as SplitUnitResource;
             return !!(res && res.bmd);
+        }
+
+        /**
+         * 遍历Res所有资源
+         * @param { (uri: string, adKey: number): boolean } forEach 如果 forEach 方法返回 true，则停止遍历
+         */
+        checkRes(forEach: { (uri: string, adKey: number): boolean }) {
+            const dict = this.sInfo.adDict;
+            for (let resKey in dict) {
+                let uri = this.getUri2(resKey);
+                if (forEach(uri, dict[resKey])) {
+                    return
+                }
+            }
         }
     }
 }
