@@ -16,12 +16,50 @@ if (DEBUG) {
     }
 }
 module junyou {
+    function checkRect(map: MapInfo, rect: egret.Rectangle, preload: number, forEach: { (uri: string, col: number, row: number) }, checker?: { (sc: number, sr: number, ec: number, er: number): boolean }) {
+        //检查地图，进行加载区块
+        let x = rect.x;
+        let y = rect.y;
+        let w = rect.width;
+        let h = rect.height;
+
+        let pW = map.pWidth;
+        let pH = map.pHeight;
+        let sc = x / pW | 0;
+        let sr = y / pH | 0;
+        let ec = (x + w) / pW | 0;
+        let er = (y + h) / pH | 0;
+        sc = Math.max(sc - preload, 0);
+        sr = Math.max(sr - preload, 0);
+        ec = Math.min(ec + preload, map.maxPicX);
+        er = Math.min(er + preload, map.maxPicY);
+
+        if (checker && !checker(sc, sr, ec, er)) {
+            return;
+        }
+
+        let i = 0;
+        let get = ResourceManager.get;
+        for (let r = sr; r <= er; r++) {
+            for (let c = sc; c <= ec; c++) {
+                let uri = map.getMapUri(c, r);
+                forEach(uri, c, r);
+            }
+        }
+    }
     /**
     * MapRender
     * 用于处理地图平铺的渲染
     */
     export class TileMapLayer extends GameLayer {
 
+        /**
+         * 扩展预加载的图块数量  
+         * 
+         */
+        preload = 0;
+
+        static checkRect?(map: MapInfo, rect: egret.Rectangle, preload: number, forEach: { (uri: string, col: number, row: number) }, checker?: { (sc: number, sr: number, ec: number, er: number): boolean });
         /**
          * @private
          */
@@ -75,59 +113,92 @@ module junyou {
             if (!cM) {
                 return;
             }
-            //检查地图，进行加载区块
-            let x = rect.x;
-            let y = rect.y;
-            let w = rect.width;
-            let h = rect.height;
-
-            let pW = cM.pWidth;
-            let pH = cM.pHeight;
-            let sc = x / pW | 0;
-            let sr = y / pH | 0;
-            let ec = (x + w) / pW | 0;
-            let er = (y + h) / pH | 0;
-            sc = Math.max(sc, 0);
-            sr = Math.max(sr, 0);
-            ec = Math.min(ec, cM.maxPicX);
-            er = Math.min(er, cM.maxPicY);
             if (DEBUG) {
                 if (this.drawGrid) {
-                    this.drawGrid(x, y, w, h, cM);
+                    this.drawGrid(rect.x, rect.y, rect.width, rect.height, cM);
                 }
             }
-            if (sc == this.lsc && sr == this.lsr && ec == this.lec && er == this.ler) {//要加载的块没有发生任何变更
-                return;
-            }
-            this.lsc = sc;
-            this.lsr = sr;
-            this.lec = ec;
-            this.ler = er;
-
-            // 先将正在显示的全部标记为未使用
-            // 换地图也使用此方法处理
+            let pW = cM.pWidth;
+            let pH = cM.pHeight;
+            let add = 0;
             let showing = this._showing;
-            let now = Global.now;
-            let i = showing.length;
-            while (i > 0) {
-                let m = showing[--i];
-                m.isStatic = false;
-                m.lastUseTime = now;
-                this.$doRemoveChild(i, false);
-            }
-            i = 0;
-            let get = ResourceManager.get;
-            for (let r = sr; r <= er; r++) {
-                for (let c = sc; c <= ec; c++) {
-                    let uri = cM.getMapUri(c, r);
-                    let tm = get(uri, this.noRes, this, uri, c, r, pW, pH);
-                    // 舞台上的标记为静态
-                    tm.isStatic = true;
-                    this.$doAddChild(tm, i, false);
-                    showing[i++] = tm;
+            checkRect(cM, rect, this.preload, (uri, c, r) => {
+                let tm = ResourceManager.get(uri, this.noRes, this, uri, c, r, pW, pH);
+                // 舞台上的标记为静态
+                tm.isStatic = true;
+                this.$doAddChild(tm, add, false);
+                showing[add++] = tm;
+            }, (sc, sr, ec, er) => {
+                if (sc == this.lsc && sr == this.lsr && ec == this.lec && er == this.ler) {//要加载的块没有发生任何变更
+                    return;
                 }
-            }
-            showing.length = i;
+                this.lsc = sc;
+                this.lsr = sr;
+                this.lec = ec;
+                this.ler = er;
+                // 先将正在显示的全部标记为未使用
+                // 换地图也使用此方法处理
+                let now = Global.now;
+                let left = showing.length;
+                while (left > 0) {
+                    let m = showing[--left];
+                    m.isStatic = false;
+                    m.lastUseTime = now;
+                    this.$doRemoveChild(left, false);
+                }
+                return true;
+            })
+            showing.length = add;
+            // //检查地图，进行加载区块
+            // let x = rect.x;
+            // let y = rect.y;
+            // let w = rect.width;
+            // let h = rect.height;
+
+            // let pW = cM.pWidth;
+            // let pH = cM.pHeight;
+            // let pre = TileMapLayer.preload;
+            // let sc = x / pW | 0;
+            // let sr = y / pH | 0;
+            // let ec = (x + w) / pW | 0;
+            // let er = (y + h) / pH | 0;
+            // sc = Math.max(sc - pre, 0);
+            // sr = Math.max(sr - pre, 0);
+            // ec = Math.min(ec + pre, cM.maxPicX);
+            // er = Math.min(er + pre, cM.maxPicY);
+
+            // if (sc == this.lsc && sr == this.lsr && ec == this.lec && er == this.ler) {//要加载的块没有发生任何变更
+            //     return;
+            // }
+            // this.lsc = sc;
+            // this.lsr = sr;
+            // this.lec = ec;
+            // this.ler = er;
+
+            // // 先将正在显示的全部标记为未使用
+            // // 换地图也使用此方法处理
+            // let showing = this._showing;
+            // let now = Global.now;
+            // let i = showing.length;
+            // while (i > 0) {
+            //     let m = showing[--i];
+            //     m.isStatic = false;
+            //     m.lastUseTime = now;
+            //     this.$doRemoveChild(i, false);
+            // }
+            // i = 0;
+            // let get = ResourceManager.get;
+            // for (let r = sr; r <= er; r++) {
+            //     for (let c = sc; c <= ec; c++) {
+            //         let uri = cM.getMapUri(c, r);
+            //         let tm = get(uri, this.noRes, this, uri, c, r, pW, pH);
+            //         // 舞台上的标记为静态
+            //         tm.isStatic = true;
+            //         this.$doAddChild(tm, i, false);
+            //         showing[i++] = tm;
+            //     }
+            // }
+            // showing.length = i;
         }
 
         protected noRes(uri: string, c: number, r: number, pW: number, pH: number) {
@@ -179,7 +250,7 @@ module junyou {
             super.removeChildren();
         }
     }
-
+    TileMapLayer.checkRect = checkRect;
     /**
     * TileMap
     */
