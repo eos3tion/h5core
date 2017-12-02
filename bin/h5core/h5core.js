@@ -2173,6 +2173,72 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
+     * 延迟执行
+     * @author 3tion
+     */
+    var CallLater = (function () {
+        function CallLater() {
+            this._callLaters = [];
+            this._temp = [];
+        }
+        CallLater.prototype.tick = function (now) {
+            var i = 0, j = 0, k = 0, callLaters = this._callLaters, temp = this._temp;
+            // 检查callLater，执行时间够的calllater调用
+            for (var len = callLaters.length; i < len; i++) {
+                var cb = callLaters[i];
+                if (now > cb.time) {
+                    temp[j++] = cb;
+                }
+                else {
+                    callLaters[k++] = cb;
+                }
+            }
+            callLaters.length = k;
+            for (i = 0; i < j; i++) {
+                temp[i].execute();
+            }
+        };
+        /**
+         * 增加延迟执行的函数
+         *
+         * @param {Function} callback (description)
+         * @param {number} now (description)
+         * @param {number} [time] (description)
+         * @param {*} [thisObj] (description)
+         * @param args (description)
+         */
+        CallLater.prototype.callLater = function (callback, now, time, thisObj) {
+            var args = [];
+            for (var _i = 4; _i < arguments.length; _i++) {
+                args[_i - 4] = arguments[_i];
+            }
+            var cInfo = junyou.CallbackInfo.addToList.apply(junyou.CallbackInfo, [this._callLaters, callback, thisObj].concat(args));
+            cInfo.time = now + (time || 0);
+        };
+        /**
+         * 清理延迟执行的函数
+         *
+         * @param {Function} callback (description)
+         * @param {*} [thisObj] (description)
+         */
+        CallLater.prototype.clearCallLater = function (callback, thisObj) {
+            var callLaters = this._callLaters;
+            for (var i = callLaters.length - 1; i >= 0; --i) {
+                var cInfo = callLaters[i];
+                if (cInfo.checkHandle(callback, thisObj)) {
+                    callLaters.splice(i, 1);
+                    return cInfo.recycle();
+                }
+            }
+        };
+        return CallLater;
+    }());
+    junyou.CallLater = CallLater;
+    __reflect(CallLater.prototype, "junyou.CallLater");
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
     * GameLayer
     * 用于后期扩展
     */
@@ -2487,7 +2553,7 @@ var junyou;
          */
         PstInfo.prototype.getCastPoint = function (action, direction) {
             if (this.castPoints) {
-                var pt = this.castPoints[junyou.PstUtils.getADKey(action, direction)];
+                var pt = this.castPoints[junyou.ADKey.get(action, direction)];
                 if (pt) {
                     return pt;
                 }
@@ -2502,7 +2568,7 @@ var junyou;
             //     return;
             // }
             // let parser = new parserRef(key);
-            var parser = new OneADSInfo(key);
+            var parser = new SplitInfo(key);
             //处理数据
             this.splitInfo = parser;
             parser.parseSplitInfo(data[1]);
@@ -2524,7 +2590,7 @@ var junyou;
                             var pInfo = aInfo[d > 4 ? 8 - d : d];
                             if (pInfo) {
                                 var pt = new egret.Point();
-                                castPoints[junyou.PstUtils.getADKey(+a, d)] = pt;
+                                castPoints[junyou.ADKey.get(+a, d)] = pt;
                                 pt.x = +pInfo[0];
                                 pt.y = +pInfo[1];
                             }
@@ -2565,28 +2631,51 @@ var junyou;
     __reflect(PstInfo.prototype, "junyou.PstInfo");
     /**
      * 资源打包分隔信息
+     * 只保留了最主流的单动作，单方向
      */
     var SplitInfo = (function () {
         function SplitInfo(key) {
             this._key = key;
         }
-        /**
-         * 处理帧数据
-         * @param data
-         */
         SplitInfo.prototype.parseFrameData = function (data) {
+            this._resDict = {};
+            var adDict = this.adDict = {};
             var frames = {};
             for (var key in data) {
                 var a = +key;
                 frames[a] = junyou.getActionInfo(data[a], a);
+                for (var d = 0; d < 5; d++) {
+                    var res = this.getResKey(d, a);
+                    adDict[res] = junyou.ADKey.get(a, d);
+                }
             }
             return frames;
+        };
+        SplitInfo.prototype.parseSplitInfo = function (infos) {
+            this._n = infos.n || "{a}{d}";
+            this._a = infos.a || _pst$a;
+            this._d = infos.d;
+        };
+        SplitInfo.prototype.getResKey = function (direction, action) {
+            var key = junyou.ADKey.get(action, direction);
+            var res = this._resDict[key];
+            if (!res) {
+                this._resDict[key] = res = this._n.substitute({ "f": this._key, "a": getRep(action, this._a), "d": getRep(direction, this._d) });
+            }
+            return res;
         };
         return SplitInfo;
     }());
     junyou.SplitInfo = SplitInfo;
     __reflect(SplitInfo.prototype, "junyou.SplitInfo");
-    junyou.PstUtils = {
+    function getRep(data, repArr) {
+        var str = data + "";
+        if (repArr && (data in repArr)) {
+            str = repArr[data];
+        }
+        return str;
+    }
+    junyou.ADKey = {
         /**
          * 得到 A(动作)D(方向)的标识
          *
@@ -2595,27 +2684,27 @@ var junyou;
          * @param {number} direction D(方向)标识
          * @returns {number} A(动作)D(方向)的标识
          */
-        getADKey: function (action, direction) {
+        get: function (action, direction) {
             return action << 8 | direction;
         },
         /**
          * 从A(动作)D(方向)的标识中获取 A(动作)标识
          *
          * @static
-         * @param {number} adKey A(动作)D(方向)的标识
+         * @param {ADKey} adKey A(动作)D(方向)的标识
          * @returns {number} A(动作)标识
          */
-        getAFromADKey: function (adKey) {
+        getAction: function (adKey) {
             return adKey >> 8;
         },
         /**
          * 从A(动作)D(方向)的标识中获取 D(方向)标识
          *
          * @static
-         * @param {number} adKey A(动作)D(方向)的标识
+         * @param {ADKey} adKey A(动作)D(方向)的标识
          * @returns {number} D(方向)标识
          */
-        getDFromADKey: function (adKey) {
+        getDirection: function (adKey) {
             return adKey & 0xff;
         }
     };
@@ -2634,54 +2723,49 @@ var junyou;
             }
         }
     }();
-    /**
-     * 单方向单动作分隔数据
-     * 后面只用这种打包方式
-     */
-    var OneADSInfo = (function (_super) {
-        __extends(OneADSInfo, _super);
-        function OneADSInfo() {
-            return _super !== null && _super.apply(this, arguments) || this;
-        }
-        OneADSInfo.prototype.parseFrameData = function (data) {
-            this._resDict = {};
-            var _adDict = {};
-            this.adDict = _adDict;
-            var frames = {};
-            for (var key in data) {
-                var a = +key;
-                frames[a] = junyou.getActionInfo(data[a], a);
-                for (var d = 0; d < 5; d++) {
-                    var res = this.getResource(d, a);
-                    _adDict[res] = [junyou.PstUtils.getADKey(a, d)];
-                }
-            }
-            return frames;
-        };
-        OneADSInfo.prototype.parseSplitInfo = function (infos) {
-            this._n = infos.n || "{a}{d}";
-            this._a = infos.a || _pst$a;
-            this._d = infos.d;
-        };
-        OneADSInfo.prototype.getResource = function (direction, action) {
-            var key = junyou.PstUtils.getADKey(action, direction);
-            var res = this._resDict[key];
-            if (!res) {
-                this._resDict[key] = res = this._n.substitute({ "f": this._key, "a": getRep(action, this._a), "d": getRep(direction, this._d) });
-            }
-            return res;
-            function getRep(data, repArr) {
-                var str = data + "";
-                if (repArr && (data in repArr)) {
-                    str = repArr[data];
-                }
-                return str;
-            }
-        };
-        return OneADSInfo;
-    }(SplitInfo));
-    junyou.OneADSInfo = OneADSInfo;
-    __reflect(OneADSInfo.prototype, "junyou.OneADSInfo");
+    // /**
+    //  * 单方向单动作分隔数据
+    //  * 后面只用这种打包方式
+    //  */
+    // export class OneADSInfo extends SplitInfo {
+    //     protected _n: string;
+    //     protected _a: any[];
+    //     protected _d: any[];
+    //     parseFrameData(data: any) {
+    //         this._resDict = {};
+    //         let adDict = this.adDict = {};
+    //         let frames: { [index: number]: ActionInfo } = {};
+    //         for (let key in data) {
+    //             let a = +key;
+    //             frames[a] = getActionInfo(data[a], a);
+    //             for (let d = 0; d < 5; d++) {
+    //                 let res = this.getResUri(d, a);
+    //                 adDict[res] = ADKey.get(a, d);
+    //             }
+    //         }
+    //         return frames;
+    //     }
+    //     parseSplitInfo(infos: any) {
+    //         this._n = infos.n || "{a}{d}";
+    //         this._a = infos.a || _pst$a;
+    //         this._d = infos.d;
+    //     }
+    //     getResUri(direction: number, action: number): string {
+    //         let key = ADKey.get(action, direction);
+    //         let res = this._resDict[key];
+    //         if (!res) {
+    //             this._resDict[key] = res = this._n.substitute({ "f": this._key, "a": getRep(action, this._a), "d": getRep(direction, this._d) });
+    //         }
+    //         return res;
+    //         function getRep(data: number, repArr: any[]): string {
+    //             var str = data + "";
+    //             if (repArr && (data in repArr)) {
+    //                 str = repArr[data];
+    //             }
+    //             return str;
+    //         }
+    //     }
+    // }
     // /**
     //  * 基于动作打包的分隔数据
     //  * @deprecated 已弃用
@@ -4593,176 +4677,794 @@ var junyou;
     junyou.Group = Group;
     __reflect(Group.prototype, "junyou.Group");
 })(junyou || (junyou = {}));
+/**
+ * 参考createjs和白鹭的tween
+ * 调整tick的驱动方式
+ * https://github.com/CreateJS/TweenJS
+ * @author 3tion
+ */
 var junyou;
 (function (junyou) {
-    /**
-     * 用于发送的网络数据<br/>
-     * @author 3tion
-     */
-    var NetSendData = (function () {
-        function NetSendData() {
+    var TweenManager = (function () {
+        function TweenManager() {
+            this._tweens = [];
+            /**
+             * 注册过的插件列表
+             * Key      {string}            属性
+             * Value    {ITweenPlugin[]}    插件列表
+             *
+             * @type {{ [index: string]: ITweenPlugin[] }}
+             */
+            this._plugins = {};
         }
-        NetSendData.prototype.onRecycle = function () {
-            this.data = undefined;
-            this.msgType = undefined;
+        /**
+         * Returns a new tween instance. This is functionally identical to using "new Tween(...)", but looks cleaner
+         * with the chained syntax of TweenJS.
+         * <h4>Example</h4>
+         *
+         *		var tween = createjs. this.get(target);
+        *
+        * @method get
+        * @param {Object} target The target object that will have its properties tweened.
+        * @param {TweenOption} [props] The configuration properties to apply to this tween instance (ex. `{loop:true, paused:true}`).
+        * All properties default to `false`. Supported props are:
+        * <UL>
+        *    <LI> loop: sets the loop property on this tween.</LI>
+        *    <LI> useTicks: uses ticks for all durations instead of milliseconds.</LI>
+        *    <LI> ignoreGlobalPause: sets the {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}} property on
+        *    this tween.</LI>
+        *    <LI> override: if true, `createjs. this.removeTweens(target)` will be called to remove any other tweens with
+        *    the same target.
+        *    <LI> paused: indicates whether to start the tween paused.</LI>
+        *    <LI> position: indicates the initial position for this tween.</LI>
+        *    <LI> onChange: specifies a listener for the {{#crossLink "Tween/change:event"}}{{/crossLink}} event.</LI>
+        * </UL>
+        * @param {Object} [pluginData] An object containing data for use by installed plugins. See individual plugins'
+        * documentation for details.
+        * @param {Boolean} [override=false] If true, any previous tweens on the same target will be removed. This is the
+        * same as calling ` this.removeTweens(target)`.
+        * @return {Tween} A reference to the created tween. Additional chained tweens, method calls, or callbacks can be
+        * applied to the returned tween instance.
+        * @static
+        */
+        TweenManager.prototype.get = function (target, props, pluginData, override) {
+            if (override) {
+                this.removeTweens(target);
+            }
+            return new junyou.Tween(target, props, pluginData, this);
         };
-        return NetSendData;
+        /**
+         * 移除指定对象的所有tween
+         * Removes all existing tweens for a target. This is called automatically by new tweens if the `override`
+         * property is `true`.
+         * @method removeTweens
+         * @param {Object} target The target object to remove existing tweens from.
+         * @static
+         */
+        TweenManager.prototype.removeTweens = function (target) {
+            if (!target.tween_count) {
+                return;
+            }
+            var tweens = this._tweens;
+            var j = 0;
+            for (var i = 0, len = tweens.length; i < len; i++) {
+                var tween = tweens[i];
+                if (tween.target == target) {
+                    tween.paused = true;
+                    tween.onRecycle();
+                }
+                else {
+                    tweens[j++] = tween;
+                }
+            }
+            tweens.length = j;
+            target.tween_count = 0;
+        };
+        /**
+         * 移除单个tween
+         *
+         * @param {Tween} twn
+         * @returns
+         *
+         * @memberOf TweenManager
+         */
+        TweenManager.prototype.removeTween = function (twn) {
+            if (!twn) {
+                return;
+            }
+            var tweens = this._tweens;
+            for (var i = tweens.length - 1; i >= 0; i--) {
+                var tween = tweens[i];
+                if (tween == twn) {
+                    tween.paused = true;
+                    tweens.splice(i, 1);
+                    tween.onRecycle();
+                    break;
+                }
+            }
+        };
+        /**
+         * 暂停某个对象的全部Tween
+         *
+         * @static
+         * @param {*} target 指定对象
+         */
+        TweenManager.prototype.pauseTweens = function (target) {
+            if (!target.tween_count) {
+                return;
+            }
+            var tweens = this._tweens;
+            for (var i = tweens.length - 1; i >= 0; i--) {
+                if (tweens[i].target == target) {
+                    tweens[i].paused = true;
+                }
+            }
+        };
+        /**
+         * 恢复某个对象的全部Tween
+         *
+         * @static
+         * @param {*} target 指定对象
+         */
+        TweenManager.prototype.resumeTweens = function (target) {
+            if (!target.tween_count) {
+                return;
+            }
+            var tweens = this._tweens;
+            for (var i = tweens.length - 1; i >= 0; i--) {
+                if (tweens[i].target == target) {
+                    tweens[i].paused = false;
+                }
+            }
+        };
+        /**
+         * 由外部进行调用，进行心跳
+         * Advances all tweens. This typically uses the {{#crossLink "Ticker"}}{{/crossLink}} class, but you can call it
+         * manually if you prefer to use your own "heartbeat" implementation.
+         * @method tick
+         * @param {Number} delta The change in time in milliseconds since the last tick. Required unless all tweens have
+         * `useTicks` set to true.
+         * @param {Boolean} paused Indicates whether a global pause is in effect. Tweens with {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}}
+         * will ignore this, but all others will pause if this is `true`.
+         * @static
+         */
+        TweenManager.prototype.tick = function (delta, paused) {
+            if (!this._tweens.length) {
+                return;
+            }
+            var tweens = this._tweens.concat();
+            for (var i = tweens.length - 1; i >= 0; i--) {
+                var tween = tweens[i];
+                if ((paused && !tween.ignoreGlobalPause) || tween.paused) {
+                    continue;
+                }
+                tween.tick(tween._useTicks ? 1 : delta);
+            }
+        };
+        /**
+         * 将tween注册/注销到管理器中，
+         *
+         * @param {Tween} tween
+         * @param {boolean} [value] (description)
+         * @returns {void}
+         * @private 此方法只允许tween调用
+         */
+        TweenManager.prototype._register = function (tween, value) {
+            var target = tween.target;
+            var tweens = this._tweens;
+            if (value && !tween._registered) {
+                if (target) {
+                    target.tween_count = target.tween_count > 0 ? target.tween_count + 1 : 1;
+                }
+                tweens.push(tween);
+            }
+            else {
+                if (target) {
+                    target.tween_count--;
+                }
+                var i = tweens.length;
+                while (i--) {
+                    if (tweens[i] == tween) {
+                        tweens.splice(i, 1);
+                        tween.onRecycle();
+                        return;
+                    }
+                }
+            }
+        };
+        /**
+         * Stop and remove all existing tweens.
+         * 终止并移除所有的tween
+         * @method removeAllTweens
+         * @static
+         * @since 0.4.1
+         */
+        TweenManager.prototype.removeAllTweens = function () {
+            var tweens = this._tweens;
+            for (var i = 0, l = tweens.length; i < l; i++) {
+                var tween = tweens[i];
+                tween.paused = true;
+                tween.onRecycle();
+                tween.target.tweenjs_count = 0;
+            }
+            tweens.length = 0;
+        };
+        /**
+         * Indicates whether there are any active tweens (and how many) on the target object (if specified) or in general.
+         * @method hasActiveTweens
+         * @param {Object} [target] The target to check for active tweens. If not specified, the return value will indicate
+         * if there are any active tweens on any target.
+         * @return {Boolean} If there are active tweens.
+         * @static
+         */
+        TweenManager.prototype.hasActiveTweens = function (target) {
+            if (target) {
+                return target.tweenjs_count != null && !!target.tweenjs_count;
+            }
+            return this._tweens && !!this._tweens.length;
+        };
+        /**
+         * Installs a plugin, which can modify how certain properties are handled when tweened. See the {{#crossLink "CSSPlugin"}}{{/crossLink}}
+         * for an example of how to write TweenJS plugins.
+         * @method installPlugin
+         * @static
+         * @param {Object} plugin The plugin class to install
+         * @param {Array} properties An array of properties that the plugin will handle.
+         */
+        TweenManager.prototype.installPlugin = function (plugin, properties) {
+            var priority = plugin.priority;
+            if (priority == null) {
+                plugin.priority = priority = 0;
+            }
+            for (var i = 0, l = properties.length, p = this._plugins; i < l; i++) {
+                var n = properties[i];
+                if (!p[n]) {
+                    p[n] = [plugin];
+                }
+                else {
+                    var arr = p[n];
+                    for (var j = 0, jl = arr.length; j < jl; j++) {
+                        if (priority < arr[j].priority) {
+                            break;
+                        }
+                    }
+                    p[n].splice(j, 0, plugin);
+                }
+            }
+        };
+        return TweenManager;
     }());
-    junyou.NetSendData = NetSendData;
-    __reflect(NetSendData.prototype, "junyou.NetSendData", ["junyou.IRecyclable"]);
-    /**
-     * 网络数据，类似AS3项目中Stream<br/>
-     * @author 3tion
-     *
-     */
-    var NetData = (function (_super) {
-        __extends(NetData, _super);
-        function NetData() {
-            return _super !== null && _super.apply(this, arguments) || this;
-        }
-        return NetData;
-    }(NetSendData));
-    junyou.NetData = NetData;
-    __reflect(NetData.prototype, "junyou.NetData");
+    junyou.TweenManager = TweenManager;
+    __reflect(TweenManager.prototype, "junyou.TweenManager");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
     /**
-     *
-     * @author 3tion
-     *
+     *  尝试启用本地资源缓存
+     * @author 3tion(https://github.com/eos3tion/)
+     * @export
+     * @param {number} [version=1]
+     * @returns
      */
-    var NetRouter = (function () {
-        function NetRouter() {
-            this.dispatchList = [];
-            this._listenerMaps = {};
+    function tryLocalRes(version) {
+        if (version === void 0) { version = 1; }
+        if (egret.Capabilities.supportVersion != "Unknown") {
+            return;
         }
+        //检查浏览器是否支持IndexedDB
+        var w = window;
+        w.indexedDB = w.indexedDB ||
+            w.mozIndexedDB ||
+            w.webkitIndexedDB ||
+            w.msIndexedDB;
+        if (!w.indexedDB) {
+            //不支持indexedDB，不对白鹭的RES做任何调整，直接return
+            return;
+        }
+        w.IDBTransaction = w.IDBTransaction ||
+            w.webkitIDBTransaction ||
+            w.msIDBTransaction;
+        w.IDBKeyRange = w.IDBKeyRange ||
+            w.webkitIDBKeyRange ||
+            w.msIDBKeyRange;
+        w.URL = window.URL || w.webkitURL;
+        //当前ios10还不支持IndexedDB的Blob存储，所以如果是ios，则此值为false
+        var canUseBlob = egret.Capabilities.os == "iOS" ? false : !!(window.Blob && window.URL);
         /**
-         * 注册一cmd侦听;
-         * @param cmd      协议号
-         * @param handler   处理器
-         * @param priority  越大越优先
-         * @param once      是否只执行一次
-         * @return boolean true 做为新的兼听添加进去，false 原来就有处理器
-         *
+         * 本地数据库操作
          */
-        NetRouter.prototype.register = function (cmd, handler, priority, once) {
-            if (priority === void 0) { priority = 0; }
-            if (once === void 0) { once = false; }
-            var listenerMaps = this._listenerMaps;
-            var netBin = { handler: handler, priority: priority, once: once };
-            var list = listenerMaps[cmd];
-            if (!list) {
-                list = [];
-                listenerMaps[cmd] = list;
-                //以前单条是没有存储优先级信息的，会导致，如果先加入的大的，后加入小的，可能会出现问题
-                list.push(netBin);
+        var db = (function (version) {
+            var keyPath = "uri";
+            var RW = "readwrite";
+            var R = "readonly";
+            var storeName = 'res';
+            return {
+                /**
+                 * 存储资源
+                 *
+                 * @param {RES.ResourceItem} data
+                 * @param {(this: IDBRequest, ev: Event) => any} callback 存储资源执行完成后的回调
+                 */
+                save: function (data, callback) {
+                    open(function (result) {
+                        var store = getObjectStore(result, RW);
+                        var request = data.uri ? store.put(data) : store.add(data);
+                        request.onsuccess = callback;
+                    });
+                },
+                /**
+                 * 获取资源
+                 *
+                 * @param {string} url
+                 * @param {{ (data: RES.ResourceItem) }} callback
+                 */
+                get: function (url, callback) {
+                    open(function (result) {
+                        var store = getObjectStore(result, R);
+                        var request = store.get(url);
+                        request.onsuccess = function (e) {
+                            callback(e.target.result);
+                        };
+                    }, function (e) { callback(null); });
+                },
+                /**
+                 * 删除指定资源
+                 *
+                 * @param {string} url
+                 * @param {{ (this: IDBRequest, ev: Event) }} callback 删除指定资源执行完成后的回调
+                 */
+                delete: function (url, callback) {
+                    open(function (result) {
+                        var store = getObjectStore(result, RW);
+                        var request = store.delete(url);
+                        request.onsuccess = callback;
+                    });
+                },
+                /**
+                 * 删除全部资源
+                 *
+                 * @param {{ (this: IDBRequest, ev: Event) }} callback 删除全部资源执行完成后的回调
+                 */
+                clear: function (callback) {
+                    open(function (result) {
+                        var store = getObjectStore(result, RW);
+                        var request = store.clear();
+                        request.onsuccess = callback;
+                    });
+                },
+            };
+            function open(callback, onError) {
+                try {
+                    var request = indexedDB.open(storeName, version);
+                }
+                catch (e) {
+                    true && junyou.ThrowError("indexedDB error", e);
+                    return onError && onError(e);
+                }
+                request.onerror = function (e) {
+                    onError && onError(e.error);
+                    errorHandler(e);
+                };
+                request.onupgradeneeded = function (e) {
+                    var _db = e.target.result;
+                    var names = _db.objectStoreNames;
+                    if (!names.contains(storeName)) {
+                        _db.createObjectStore(storeName, { keyPath: keyPath });
+                    }
+                };
+                request.onsuccess = function (e) {
+                    var result = request.result;
+                    result.onerror = errorHandler;
+                    callback(result);
+                };
             }
-            else {
-                var i = void 0;
-                var len = list.length;
-                //=====同样的CODE 同样的Function 不会被注册多次=====
-                for (i = 0; i < len; i++) {
-                    var temp = list[i];
-                    if (temp.handler == handler) {
-                        if (temp.priority == priority) {
-                            return false;
+            function getObjectStore(result, mode) {
+                return result.transaction(storeName, mode).objectStore(storeName);
+            }
+            function errorHandler(ev) {
+                junyou.ThrowError("indexedDB error", ev.error);
+            }
+        })(version);
+        var canvas = document.createElement("canvas");
+        var context = canvas.getContext("2d");
+        var BAPt = RES.BinAnalyzer.prototype;
+        BAPt.loadFile = function (resItem, compFunc, thisObject) {
+            var _this = this;
+            var name = resItem.name;
+            if (this.fileDic[name]) {
+                return compFunc.call(thisObject, resItem);
+            }
+            var url = resItem.url;
+            var uri = junyou.ConfigUtils.getResUri(url);
+            if (uri) {
+                resItem.uri = uri;
+                return db.get(uri, function (data) {
+                    if (data) {
+                        var local = data.local;
+                        if (local) {
+                            var ver = junyou.ConfigUtils.getResVer(data.uri);
+                            if (ver == data.version) {
+                                resItem.data = local;
+                                resItem.loaded = true;
+                                _this.fileDic[name] = local;
+                                return compFunc.call(thisObject, resItem);
+                            }
                         }
-                        //新的同指令，同处理器的函数会被新的once,priority属性覆盖
-                        list.splice(i, 1);
-                        len--;
-                        break;
                     }
-                }
-                for (i = 0; i < len; i++) {
-                    if (priority > list[i].priority) {
-                        list.splice(i, 0, netBin);
-                        return true;
-                    }
-                }
-                list[len] = netBin;
-            }
-            return true;
-        };
-        /**
-         * 删除兼听处理器
-         * @param cmd      协议号
-         * @param handler   处理器
-         * @return boolean true 删除成功  <br/>
-         *                 false 没有这个兼听
-         */
-        NetRouter.prototype.remove = function (cmd, handler) {
-            var listenerMaps = this._listenerMaps;
-            var list = listenerMaps[cmd];
-            if (!list) {
-                return false;
-            }
-            var len = list.length;
-            for (var i = 0; i < len; i++) {
-                if (list[i].handler == handler) {
-                    list.splice(i, 1);
-                    //如果没有项了就清理;
-                    if (len == 1) {
-                        delete listenerMaps[cmd];
-                    }
-                    return true;
-                }
-            }
-            return false;
-        };
-        /**
-        * 调用列表
-        */
-        NetRouter.prototype.dispatch = function (data) {
-            egret.callLater(this._dispatch, this, data);
-        };
-        NetRouter.prototype._dispatch = function (data) {
-            var cmd = data.cmd;
-            var list = this._listenerMaps[cmd];
-            if (!list) {
-                return;
-            }
-            var dispatchList = this.dispatchList;
-            var idx = 0, len = list.length;
-            for (; idx < len; idx++) {
-                dispatchList[idx] = list[idx];
-            }
-            if (true) {
-                for (var i = 0; i < idx; i++) {
-                    var bin = dispatchList[i];
-                    bin.handler(data);
-                    if (bin.once) {
-                        this.remove(cmd, bin.handler);
-                    }
-                    if (data.stopPropagation) {
-                        break;
-                    }
-                }
+                    _this.tryLoad(url, resItem, compFunc, thisObject);
+                });
             }
             else {
-                for (var i = 0; i < idx; i++) {
-                    var bin = dispatchList[i];
-                    try {
-                        bin.handler(data);
+                this.tryLoad(url, resItem, compFunc, thisObject);
+            }
+        };
+        BAPt.tryLoad = function (url, resItem, compFunc, thisObject) {
+            var request = this.getRequest();
+            this.resItemDic[request.hashCode] = { item: resItem, func: compFunc, thisObject: thisObject };
+            request.open(url);
+            request.send();
+        };
+        BAPt.onLoadFinish = function (event) {
+            var req = event.target;
+            var hashCode = req.hashCode;
+            var resItemDic = this.resItemDic;
+            var data = resItemDic[hashCode];
+            delete resItemDic[hashCode];
+            var item = data.item;
+            var local = item.local;
+            var loaded = event.type == "complete" /* COMPLETE */;
+            if (loaded) {
+                this.analyzeData(item, req.response);
+            }
+            item.loaded = loaded;
+            var uri = item.uri;
+            if (!local && uri) {
+                local = this.fileDic[item.name];
+                if (local) {
+                    item.local = local;
+                    item.version = junyou.ConfigUtils.getResVer(uri);
+                    //存储数据
+                    db.save(item);
+                }
+            }
+            this.recycler.push(req);
+            return data.func.call(data.thisObject, item);
+        };
+        //注入
+        var IApt = RES.ImageAnalyzer.prototype;
+        IApt.loadFile = function (resItem, compFunc, thisObject) {
+            var _this = this;
+            // 检查内存中是否有本地资源
+            if (this.fileDic[resItem.name]) {
+                return compFunc.call(thisObject, resItem);
+            }
+            var url = resItem.url;
+            var uri = junyou.ConfigUtils.getResUri(url);
+            if (uri) {
+                resItem.uri = uri;
+                db.get(uri, function (data) {
+                    if (data) {
+                        var ver = junyou.ConfigUtils.getResVer(data.uri);
+                        if (ver == data.version) {
+                            var rawData = data.local;
+                            if (rawData instanceof Blob) {
+                                url = URL.createObjectURL(rawData);
+                            }
+                            else if (typeof rawData === "string") {
+                                url = rawData;
+                            }
+                            else {
+                                if (true) {
+                                    junyou.ThrowError("出现ImageAnalyzer本地缓存不支持的情况");
+                                }
+                            }
+                            resItem.local = rawData;
+                        }
+                        else {
+                            //清除原始数据
+                            resItem.local = undefined;
+                        }
                     }
-                    catch (e) {
-                        junyou.ThrowError("NetHander Error:" + JSON.stringify(data), e);
+                    _this.tryLoad(url, resItem, compFunc, thisObject);
+                });
+            }
+            else {
+                this.tryLoad(url, resItem, compFunc, thisObject);
+            }
+        };
+        IApt.tryLoad = function (url, resItem, compFunc, thisObject) {
+            var loader = this.getLoader();
+            this.resItemDic[loader.$hashCode] = { item: resItem, func: compFunc, thisObject: thisObject };
+            loader.load(url); //走原流程
+        };
+        IApt.onLoadFinish = function (event) {
+            var request = event.$target;
+            var hashCode = request.$hashCode;
+            var resItemDic = this.resItemDic;
+            var data = resItemDic[hashCode];
+            delete resItemDic[hashCode];
+            var item = data.item;
+            var local = item.local;
+            var uri = item.uri;
+            if (!local && uri) {
+                var url = item.url;
+                item.version = junyou.ConfigUtils.getResVer(item.uri);
+                var req = request.request;
+                if (req && req._url == url) {
+                    var type = req.responseType;
+                    if (type == "blob") {
+                        // 将数据存到本地缓存
+                        local = req.response;
                     }
-                    if (bin.once) {
-                        this.remove(cmd, bin.handler);
+                }
+                else {
+                    // 普通图片
+                    // 尝试转换成DataURL，此方法为同步方法，可能会影响性能
+                    var dat = request.data;
+                    if (dat instanceof egret.BitmapData) {
+                        var img = dat.source;
+                        var w_1 = img.width;
+                        var h = img.height;
+                        var type = "image/" + url.substring(url.lastIndexOf(".") + 1);
+                        canvas.width = w_1;
+                        canvas.height = h;
+                        context.clearRect(0, 0, w_1, h);
+                        context.drawImage(img, 0, 0);
+                        try {
+                            if (canUseBlob && url.indexOf("wxLocalResource:") != 0) {
+                                canvas.toBlob(function (blob) {
+                                    item.local = blob;
+                                    //存储数据
+                                    db.save(item);
+                                }, type);
+                            }
+                            else {
+                                local = canvas.toDataURL(type);
+                            }
+                        }
+                        catch (e) {
+                            //一般跨域并且没有权限的时候，会参数错误
+                        }
                     }
-                    if (data.stopPropagation) {
-                        break;
+                }
+                if (!local) {
+                    if (!canUseBlob && typeof local !== "string") {
+                        var a = new FileReader();
+                        a.onload = function (e) {
+                            item.local = this.result;
+                            //存储数据
+                            db.save(item);
+                        };
+                        a.readAsDataURL(local);
+                    }
+                    else {
+                        item.local = local;
+                        //存储数据
+                        db.save(item);
                     }
                 }
             }
-            data.recycle();
+            item.loaded = (event.$type == "complete" /* COMPLETE */);
+            if (item.loaded) {
+                var texture = new egret.Texture();
+                texture._setBitmapData(request.data);
+                this.analyzeData(item, texture);
+            }
+            delete request.request;
+            this.recycler.push(request);
+            return data.func.call(data.thisObject, item);
         };
-        return NetRouter;
+        return db;
+    }
+    junyou.tryLocalRes = tryLocalRes;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 资源管理器
+     */
+    var _resources = {};
+    function get(resid, noResHandler, thisObj) {
+        var res = getResource(resid);
+        if (!res) {
+            var args = [];
+            for (var i = 3; i < arguments.length; i++) {
+                args[i - 3] = arguments[i];
+            }
+            res = noResHandler.apply(thisObj, args);
+            regResource(resid, res);
+        }
+        return res;
+    }
+    junyou.ResourceManager = {
+        get: get,
+        // addChecker(checker: ResourceChecker) {
+        //     _checkers.pushOnce(checker);
+        // },
+        /**
+         * 获取纹理资源
+         *
+         * @param {string} resID 资源id
+         * @param {boolean} [noWebp] 是否不加webp后缀
+         * @returns {TextureResource}
+         */
+        getTextureRes: function (resID, noWebp) {
+            var resources = _resources;
+            var res = resources[resID];
+            if (res) {
+                if (!(res instanceof junyou.TextureResource)) {
+                    junyou.ThrowError("[" + resID + "]\u8D44\u6E90\u6709\u8BEF\uFF0C\u4E0D\u662FTextureResource");
+                    res = undefined;
+                }
+            }
+            if (!res) {
+                res = new junyou.TextureResource();
+                res.resID = resID;
+                res.url = junyou.ConfigUtils.getResUrl(resID + (!noWebp ? junyou.Global.webp : ""));
+                resources[resID] = res;
+            }
+            return res;
+        },
+        /**
+         * 获取资源
+         */
+        getResource: getResource,
+        // /**
+        //  * 注册资源
+        //  */
+        // regResource,
+        //按时间检测资源
+        init: function () {
+            var tobeDele = [];
+            junyou.TimerUtil.addCallback(30000 /* CheckTime */, function () {
+                var expire = junyou.Global.now - 300000 /* DisposeTime */;
+                var reses = _resources;
+                var delLen = 0;
+                for (var key in reses) {
+                    var res = reses[key];
+                    if (!res.isStatic && res.lastUseTime < expire) {
+                        tobeDele[delLen++] = key;
+                    }
+                }
+                // //对附加的checker进行检查
+                // for (let i = 0; i < _checkers.length; i++) {
+                //     _checkers[i].resCheck(expire);
+                // }
+                for (var i = 0; i < delLen; i++) {
+                    var key = tobeDele[i];
+                    var res = reses[key];
+                    if (res) {
+                        res.dispose();
+                        RES.destroyRes(res.url);
+                        delete reses[key];
+                    }
+                }
+            });
+        }
+    };
+    /**
+     * 获取资源
+     */
+    function getResource(resID) {
+        return _resources[resID];
+    }
+    /**
+     * 注册资源
+     */
+    function regResource(resID, res) {
+        var resources = _resources;
+        if (resID in resources) {
+            return resources[resID] === res;
+        }
+        resources[resID] = res;
+        return true;
+    }
+})(junyou || (junyou = {}));
+if (true) {
+    var ErrorTexture = new egret.Texture();
+    var img = new Image(40, 40);
+    img.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAAWUlEQVRYR+3SwQkAIAwEwaT/orWI/YiM/wWZ3J6ZMw+/9cF4HYIRcAgSrAK1t0GCVaD2NkiwCtTeBglWgdrbIMEqUHsbJFgFam+DBKtA7W2QYBWovQ1+L3gB8nhP2Y60cpgAAAAASUVORK5CYII=";
+    ErrorTexture._setBitmapData(img);
+}
+var junyou;
+(function (junyou) {
+    /**
+     *
+     * 纹理资源
+     * @export
+     * @class TextureResource
+     * @implements {IResource}
+     */
+    var TextureResource = (function () {
+        function TextureResource() {
+            /**
+             *
+             * 绑定的对象列表
+             * @private
+             * @type {Bitmap[]}
+             */
+            this._list = [];
+        }
+        Object.defineProperty(TextureResource.prototype, "isStatic", {
+            /**
+             *
+             * 是否为静态不销毁的资源
+             * @type {boolean}
+             */
+            get: function () {
+                return this._list.length > 0;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         *
+         * 绑定一个目标
+         * @param {Bitmap} target
+         */
+        TextureResource.prototype.bind = function (bmp) {
+            if (this._tex) {
+                bmp.texture = this._tex;
+                bmp.dispatch(-193 /* Texture_Complete */);
+            }
+            this._list.pushOnce(bmp);
+            this.lastUseTime = junyou.Global.now;
+        };
+        /**
+         *
+         * 解除目标的绑定
+         * @param {Bitmap} target
+         */
+        TextureResource.prototype.loose = function (bmp) {
+            this._list.remove(bmp);
+            this.lastUseTime = junyou.Global.now;
+        };
+        // /**
+        //  * 
+        //  * 纹理
+        //  * @type {egret.Texture}
+        //  */
+        // public get texture(): egret.Texture {
+        //     return this._tex;
+        // }
+        TextureResource.prototype.load = function () {
+            RES.getResByUrl(this.url, this.loadComplete, this, "image" /* TYPE_IMAGE */);
+        };
+        /**
+         * 资源加载完成
+         */
+        TextureResource.prototype.loadComplete = function (res, key) {
+            if (key == this.url) {
+                this._tex = res;
+                for (var _i = 0, _a = this._list; _i < _a.length; _i++) {
+                    var bmp = _a[_i];
+                    bmp.texture = res;
+                    if (true && !res) {
+                        bmp.texture = ErrorTexture;
+                        var rect = bmp.suiRawRect;
+                        if (rect) {
+                            bmp.width = rect.width;
+                            bmp.height = rect.height;
+                        }
+                    }
+                    bmp.dispatch(-193 /* Texture_Complete */);
+                }
+            }
+        };
+        /**
+         * 销毁资源
+         */
+        TextureResource.prototype.dispose = function () {
+            if (this._tex) {
+                this._tex.dispose();
+                this._tex = undefined;
+            }
+            this._list.length = 0;
+        };
+        return TextureResource;
     }());
-    junyou.NetRouter = NetRouter;
-    __reflect(NetRouter.prototype, "junyou.NetRouter");
-    ;
+    junyou.TextureResource = TextureResource;
+    __reflect(TextureResource.prototype, "junyou.TextureResource", ["junyou.IResource"]);
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -5484,1003 +6186,6 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
-    *
-    * 发起可以不需要回调响应的跨域get请求
-    * @param {string} url          发起请求的地址
-    * @param {boolean} [always]    是否总是发起请求
-    *                              false（默认） 请求已经在列队中，则不会重复发起请求
-    *                              true 不管相同地址的请求之前是否已经发起，继续发起请求
-    */
-    junyou.sendToUrl = $();
-})(junyou || (junyou = {}));
-function $() {
-    var _unSendList = [];
-    var img = new Image(); //使用Image，在https下，不会因为最终请求地址为http，导致浏览器将请求拦截，详情参考 https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content
-    var _requestState = 0 /* UNREQUEST */;
-    img.onerror = callBack(this, -1 /* FAILED */);
-    img.onload = callBack(this, 2 /* COMPLETE */);
-    return sendToUrl;
-    function sendToUrl(url, always) {
-        if (_requestState == 1 /* REQUESTING */) {
-            if (always) {
-                _unSendList.push(url);
-            }
-            else {
-                _unSendList.pushOnce(url);
-            }
-            return;
-        }
-        _requestState = 1 /* REQUESTING */;
-        img.src = url;
-    }
-    ;
-    function callBack(self, state) {
-        return function () {
-            _requestState = state;
-            if (true) {
-                console.log(img.src, "callBack:", state);
-            }
-            if (_unSendList.length > 0) {
-                return sendToUrl(_unSendList.shift());
-            }
-        };
-    }
-}
-var junyou;
-(function (junyou) {
-    // const enum Const {
-    //     /**
-    //      * 
-    //      * ## 概述
-    //      * 首先要看TCP/IP协议，涉及到四层：链路层，网络层，传输层，应用层。  
-    //      * 其中以太网（Ethernet）的数据帧在链路层  
-    //      * IP包在网络层  
-    //      * TCP或UDP包在传输层  
-    //      * TCP或UDP中的数据（Data)在应用层  
-    //      * 它们的关系是 数据帧｛IP包｛TCP或UDP包｛Data｝｝｝  
-    //      *
-    //      * 不同的协议层对数据包有不同的称谓，在传输层叫做段(segment)，在网络层叫做数据报(datagram)，在链路层叫做帧(frame)。数据封装成帧后发到传输介质上，到达目的主机后每层协议再剥掉相应的首部，最后将应用层数据交给应用程序处理。
-    //      *
-    //      * 在应用程序中我们用到的Data的长度最大是多少，直接取决于底层的限制。  
-    //      * 我们从下到上分析一下：  
-    //      *      1. 在链路层，由以太网的物理特性决定了数据帧的长度为(46＋18)－(1500＋18)，其中的18是数据帧的头和尾，也就是说数据帧的内容最大为1500(不包括帧头和帧尾)，即MTU(Maximum Transmission Unit)为1500； 　
-    //      *      2. 在网络层，因为IP包的首部要占用20字节，所以这的MTU为1500－20＝1480；　
-    //      *      3. 在传输层，对于UDP包的首部要占用8字节，所以这的MTU为1480－8＝1472；  
-    //      * 
-    //      * 所以，在应用层，你的Data最大长度为1472。当我们的UDP包中的数据多于MTU(1472)时，发送方的IP层需要分片fragmentation进行传输，而在接收方IP层则需要进行数据报重组，由于UDP是不可靠的传输协议，如果分片丢失导致重* 组失败，将导致UDP数据包被丢弃。  
-    //      * 从上面的分析来看，在普通的局域网环境下，UDP的数据最大为1472字节最好(避免分片重组)。  
-    //      * 但在网络编程中，Internet中的路由器可能有设置成不同的值(小于默认值)，Internet上的标准MTU值为576，所以Internet的UDP编程时数据长度最好在576－20－8＝548字节以内。
-    //      *
-    //      * 
-    //      * ## TCP、UDP数据包最大值的确定
-    //      * UDP和TCP协议利用端口号实现多项应用同时发送和接收数据。数据通过源端口发送出去，通过目标端口接收。有的网络应用只能使用预留或注册的静态端口；而另外一些网络应用则可以使用未被注册的动态端口。因为UDP和TCP报头使* 用两个字节存放端口号，所以端口号的有效范围是从0到65535。动态端口的范围是从1024到65535。  
-    //      * MTU最大传输单元，这个最大传输单元实际上和链路层协议有着密切的关系，EthernetII帧的结构DMAC+SMAC+Type+Data+CRC由于以太网传输电气方面的限制，每个以太网帧都有最小的大小64Bytes最大不能超过1518Bytes，对于小* 于或者大于这个限制的以太网帧我们都可以视之为错误的数据帧，一般的以太网转发设备会丢弃这些数据帧。  
-    //      * 
-    //      * 由于以太网EthernetII最大的数据帧是1518Bytes这样，刨去以太网帧的帧头（DMAC目的MAC地址48bits=6Bytes+SMAC源MAC地址48bits=6Bytes+Type域2Bytes）14Bytes和帧尾CRC校验部分4Bytes那么剩下承载上层协议的地方也就是Data域最大就只能有1500Bytes这个值我们就把它称之为MTU。  
-    //      * UDP 包的大小就应该是 1500 - IP头(20) - UDP头(8) = 1472(Bytes)  
-    //      * TCP 包的大小就应该是 1500 - IP头(20) - TCP头(20) = 1460 (Bytes)  
-    //      * 以上内容原网址：http://blog.csdn.net/caoshangpa/article/details/51530685
-    //      * 
-    //      * WebSocket的头部字节数为 2 - 8 字节  
-    //      * 
-    //      * ```
-    //      *  0                   1                   2                   3  
-    //      *  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1  
-    //      * +-+-+-+-+-------+-+-------------+-------------------------------+  
-    //      * |F|R|R|R| opcode|M| Payload len |    Extended payload length    |  
-    //      * |I|S|S|S|  (4)  |A|     (7)     |             (16/64)           |  
-    //      * |N|V|V|V|       |S|             |   (if payload len==126/127)   |  
-    //      * | |1|2|3|       |K|             |                               |  
-    //      * +-+-+-+-+-------+-+-------------+ - - - - - - - - - - - - - - - +  
-    //      * |     Extended payload length continued, if payload len == 127  |  
-    //      * + - - - - - - - - - - - - - - - +-------------------------------+  
-    //      * |                               |Masking-key, if MASK set to 1  |  
-    //      * +-------------------------------+-------------------------------+  
-    //      * | Masking-key (continued)       |          Payload Data         |  
-    //      * +-------------------------------- - - - - - - - - - - - - - - - +  
-    //      * :                     Payload Data continued ...                :  
-    //      * + - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - +  
-    //      * |                     Payload Data continued ...                |  
-    //      * +---------------------------------------------------------------+  
-    //      * ```
-    // }
-    // 上面操作是多余的，参看netty的源码
-    // https://github.com/netty/netty/tree/4.1/codec/src/main/java/io/netty/handler/codec
-    // https://github.com/netty/netty/tree/4.1/codec-socks/src/main/java/io/netty/handler/codec/socks
-    // https://github.com/netty/netty/tree/4.1/transport/src/main/java/io/netty
-    // 参看Chrome的源码 
-    // https://src.chromium.org/viewvc/chrome/trunk/src/net/socket/
-    // https://src.chromium.org/viewvc/chrome/trunk/src/net/socket_stream/
-    // https://src.chromium.org/viewvc/chrome/trunk/src/net/websockets/
-    // 均没有针对[MTU](http://baike.baidu.com/item/mtu)进行业务层面的分帧的代码处理  
-    // 然后和服务端重新进行调试，发送大的(50003Bytes)的一帧WebSocketFrame，让服务端也开[WireShark](http://www.wireshark.org)进行捕获
-    // 发现客户端对服务端发送的数据帧是多个TCP帧的，并且每个帧都复合`MTU`，故删除以上代码
-    // 仔细研读`WireShark`的客户端向服务端发送的数据帧的说明，其中提到`[Total Length: 50051 bytes (reported as 0, presumed to be because of "TCP segmentation offload" (TSO))]`
-    // **TSO**（TCP Segment Offload）是一种利用网卡的少量处理能力，降低CPU发送数据包负载的技术，需要网卡硬件及驱动的支持。  http://baike.baidu.com/item/tso/1843452
-    /**
-     * WebSocket版本的NetService
-     * @author 3tion
-     */
-    var WSNetService = (function (_super) {
-        __extends(WSNetService, _super);
-        function WSNetService() {
-            var _this = _super.call(this) || this;
-            _this.onOpen = function () {
-                _this._ws.onopen = null;
-                if (true) {
-                    console.log("webSocket连接成功");
-                }
-                junyou.dispatch(-197 /* Connected */);
-            };
-            /**
-             *
-             * 发生错误
-             * @protected
-             */
-            _this.onError = function (ev) {
-                if (true) {
-                    junyou.ThrowError("socket发生错误", ev.error);
-                }
-                junyou.dispatch(-196 /* ConnectFailed */);
-            };
-            /**
-             *
-             * 断开连接
-             * @protected
-             */
-            _this.onClose = function (ev) {
-                if (true) {
-                    console.log("socket断开连接");
-                }
-                junyou.dispatch(-195 /* Disconnect */);
-            };
-            /**
-             *
-             * 收到消息
-             * @protected
-             */
-            _this.onData = function (ev) {
-                var readBuffer = _this._readBuffer;
-                var ab = new Uint8Array(ev.data);
-                var temp;
-                var position = readBuffer.position;
-                var buffer = readBuffer.buffer;
-                var length = buffer.byteLength;
-                if (position < length) {
-                    var rb = new Uint8Array(buffer);
-                    var rbLen = length - position;
-                    var abLen = ab.length;
-                    temp = new Uint8Array(rbLen + abLen);
-                    var i = 0, m = void 0;
-                    for (m = 0; m < rbLen; m++) {
-                        temp[i++] = rb[position + m];
-                    }
-                    for (m = 0; m < abLen; m++) {
-                        temp[i++] = ab[m];
-                    }
-                }
-                else {
-                    temp = ab;
-                }
-                readBuffer.replaceBuffer(temp.buffer);
-                readBuffer.position = 0;
-                _this.decodeBytes(readBuffer);
-            };
-            //覆盖instance
-            junyou.NetService._ins = _this;
-            return _this;
-        }
-        /**
-         *
-         * 设置websocket地址
-         * @param {string} actionUrl
-         */
-        WSNetService.prototype.setUrl = function (actionUrl) {
-            if (this._actionUrl != actionUrl) {
-                this._actionUrl = actionUrl;
-                var ws = this._ws;
-                if (ws && ws.readyState <= WebSocket.OPEN) {
-                    this.connect();
-                }
-            }
-        };
-        /**
-         * 打开新的连接
-         */
-        WSNetService.prototype.connect = function () {
-            var ws = this._ws;
-            if (ws) {
-                ws.onclose = null;
-                ws.onerror = null;
-                ws.onmessage = null;
-                ws.onopen = null;
-            }
-            this._ws = ws = new WebSocket(this._actionUrl);
-            ws.binaryType = "arraybuffer";
-            ws.onclose = this.onClose;
-            ws.onerror = this.onError;
-            ws.onmessage = this.onData;
-            ws.onopen = this.onOpen;
-        };
-        WSNetService.prototype._send = function (cmd, data, msgType) {
-            var ws = this._ws;
-            if (ws.readyState != WebSocket.OPEN) {
-                return;
-            }
-            //没有同协议的指令，新增数据
-            var pdata = junyou.recyclable(junyou.NetSendData);
-            pdata.cmd = cmd;
-            pdata.data = data;
-            pdata.msgType = msgType;
-            var sendBuffer = this._sendBuffer;
-            sendBuffer.reset();
-            this.writeToBuffer(sendBuffer, pdata);
-            pdata.recycle();
-            var pcmdList = this._pcmdList;
-            for (var _i = 0, pcmdList_2 = pcmdList; _i < pcmdList_2.length; _i++) {
-                var pdata_1 = pcmdList_2[_i];
-                this.writeToBuffer(sendBuffer, pdata_1);
-                pdata_1.recycle();
-            }
-            //清空被动数据
-            pcmdList.length = 0;
-            ws.send(sendBuffer.outBytes);
-        };
-        return WSNetService;
-    }(junyou.NetService));
-    junyou.WSNetService = WSNetService;
-    __reflect(WSNetService.prototype, "junyou.WSNetService");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     *  尝试启用本地资源缓存
-     * @author 3tion(https://github.com/eos3tion/)
-     * @export
-     * @param {number} [version=1]
-     * @returns
-     */
-    function tryLocalRes(version) {
-        if (version === void 0) { version = 1; }
-        if (egret.Capabilities.supportVersion != "Unknown") {
-            return;
-        }
-        //检查浏览器是否支持IndexedDB
-        var w = window;
-        w.indexedDB = w.indexedDB ||
-            w.mozIndexedDB ||
-            w.webkitIndexedDB ||
-            w.msIndexedDB;
-        if (!w.indexedDB) {
-            //不支持indexedDB，不对白鹭的RES做任何调整，直接return
-            return;
-        }
-        w.IDBTransaction = w.IDBTransaction ||
-            w.webkitIDBTransaction ||
-            w.msIDBTransaction;
-        w.IDBKeyRange = w.IDBKeyRange ||
-            w.webkitIDBKeyRange ||
-            w.msIDBKeyRange;
-        w.URL = window.URL || w.webkitURL;
-        //当前ios10还不支持IndexedDB的Blob存储，所以如果是ios，则此值为false
-        var canUseBlob = egret.Capabilities.os == "iOS" ? false : !!(window.Blob && window.URL);
-        /**
-         * 本地数据库操作
-         */
-        var db = (function (version) {
-            var keyPath = "uri";
-            var RW = "readwrite";
-            var R = "readonly";
-            var storeName = 'res';
-            return {
-                /**
-                 * 存储资源
-                 *
-                 * @param {RES.ResourceItem} data
-                 * @param {(this: IDBRequest, ev: Event) => any} callback 存储资源执行完成后的回调
-                 */
-                save: function (data, callback) {
-                    open(function (result) {
-                        var store = getObjectStore(result, RW);
-                        var request = data.uri ? store.put(data) : store.add(data);
-                        request.onsuccess = callback;
-                    });
-                },
-                /**
-                 * 获取资源
-                 *
-                 * @param {string} url
-                 * @param {{ (data: RES.ResourceItem) }} callback
-                 */
-                get: function (url, callback) {
-                    open(function (result) {
-                        var store = getObjectStore(result, R);
-                        var request = store.get(url);
-                        request.onsuccess = function (e) {
-                            callback(e.target.result);
-                        };
-                    }, function (e) { callback(null); });
-                },
-                /**
-                 * 删除指定资源
-                 *
-                 * @param {string} url
-                 * @param {{ (this: IDBRequest, ev: Event) }} callback 删除指定资源执行完成后的回调
-                 */
-                delete: function (url, callback) {
-                    open(function (result) {
-                        var store = getObjectStore(result, RW);
-                        var request = store.delete(url);
-                        request.onsuccess = callback;
-                    });
-                },
-                /**
-                 * 删除全部资源
-                 *
-                 * @param {{ (this: IDBRequest, ev: Event) }} callback 删除全部资源执行完成后的回调
-                 */
-                clear: function (callback) {
-                    open(function (result) {
-                        var store = getObjectStore(result, RW);
-                        var request = store.clear();
-                        request.onsuccess = callback;
-                    });
-                },
-            };
-            function open(callback, onError) {
-                try {
-                    var request = indexedDB.open(storeName, version);
-                }
-                catch (e) {
-                    true && junyou.ThrowError("indexedDB error", e);
-                    return onError && onError(e);
-                }
-                request.onerror = function (e) {
-                    onError && onError(e.error);
-                    errorHandler(e);
-                };
-                request.onupgradeneeded = function (e) {
-                    var _db = e.target.result;
-                    var names = _db.objectStoreNames;
-                    if (!names.contains(storeName)) {
-                        _db.createObjectStore(storeName, { keyPath: keyPath });
-                    }
-                };
-                request.onsuccess = function (e) {
-                    var result = request.result;
-                    result.onerror = errorHandler;
-                    callback(result);
-                };
-            }
-            function getObjectStore(result, mode) {
-                return result.transaction(storeName, mode).objectStore(storeName);
-            }
-            function errorHandler(ev) {
-                junyou.ThrowError("indexedDB error", ev.error);
-            }
-        })(version);
-        var canvas = document.createElement("canvas");
-        var context = canvas.getContext("2d");
-        var BAPt = RES.BinAnalyzer.prototype;
-        BAPt.loadFile = function (resItem, compFunc, thisObject) {
-            var _this = this;
-            var name = resItem.name;
-            if (this.fileDic[name]) {
-                return compFunc.call(thisObject, resItem);
-            }
-            var url = resItem.url;
-            var uri = junyou.ConfigUtils.getResUri(url);
-            if (uri) {
-                resItem.uri = uri;
-                return db.get(uri, function (data) {
-                    if (data) {
-                        var local = data.local;
-                        if (local) {
-                            var ver = junyou.ConfigUtils.getResVer(data.uri);
-                            if (ver == data.version) {
-                                resItem.data = local;
-                                resItem.loaded = true;
-                                _this.fileDic[name] = local;
-                                return compFunc.call(thisObject, resItem);
-                            }
-                        }
-                    }
-                    _this.tryLoad(url, resItem, compFunc, thisObject);
-                });
-            }
-            else {
-                this.tryLoad(url, resItem, compFunc, thisObject);
-            }
-        };
-        BAPt.tryLoad = function (url, resItem, compFunc, thisObject) {
-            var request = this.getRequest();
-            this.resItemDic[request.hashCode] = { item: resItem, func: compFunc, thisObject: thisObject };
-            request.open(url);
-            request.send();
-        };
-        BAPt.onLoadFinish = function (event) {
-            var req = event.target;
-            var hashCode = req.hashCode;
-            var resItemDic = this.resItemDic;
-            var data = resItemDic[hashCode];
-            delete resItemDic[hashCode];
-            var item = data.item;
-            var local = item.local;
-            var loaded = event.type == "complete" /* COMPLETE */;
-            if (loaded) {
-                this.analyzeData(item, req.response);
-            }
-            item.loaded = loaded;
-            var uri = item.uri;
-            if (!local && uri) {
-                local = this.fileDic[item.name];
-                if (local) {
-                    item.local = local;
-                    item.version = junyou.ConfigUtils.getResVer(uri);
-                    //存储数据
-                    db.save(item);
-                }
-            }
-            this.recycler.push(req);
-            return data.func.call(data.thisObject, item);
-        };
-        //注入
-        var IApt = RES.ImageAnalyzer.prototype;
-        IApt.loadFile = function (resItem, compFunc, thisObject) {
-            var _this = this;
-            // 检查内存中是否有本地资源
-            if (this.fileDic[resItem.name]) {
-                return compFunc.call(thisObject, resItem);
-            }
-            var url = resItem.url;
-            var uri = junyou.ConfigUtils.getResUri(url);
-            if (uri) {
-                resItem.uri = uri;
-                db.get(uri, function (data) {
-                    if (data) {
-                        var ver = junyou.ConfigUtils.getResVer(data.uri);
-                        if (ver == data.version) {
-                            var rawData = data.local;
-                            if (rawData instanceof Blob) {
-                                url = URL.createObjectURL(rawData);
-                            }
-                            else if (typeof rawData === "string") {
-                                url = rawData;
-                            }
-                            else {
-                                if (true) {
-                                    junyou.ThrowError("出现ImageAnalyzer本地缓存不支持的情况");
-                                }
-                            }
-                            resItem.local = rawData;
-                        }
-                        else {
-                            //清除原始数据
-                            resItem.local = undefined;
-                        }
-                    }
-                    _this.tryLoad(url, resItem, compFunc, thisObject);
-                });
-            }
-            else {
-                this.tryLoad(url, resItem, compFunc, thisObject);
-            }
-        };
-        IApt.tryLoad = function (url, resItem, compFunc, thisObject) {
-            var loader = this.getLoader();
-            this.resItemDic[loader.$hashCode] = { item: resItem, func: compFunc, thisObject: thisObject };
-            loader.load(url); //走原流程
-        };
-        IApt.onLoadFinish = function (event) {
-            var request = event.$target;
-            var hashCode = request.$hashCode;
-            var resItemDic = this.resItemDic;
-            var data = resItemDic[hashCode];
-            delete resItemDic[hashCode];
-            var item = data.item;
-            var local = item.local;
-            var uri = item.uri;
-            if (!local && uri) {
-                var url = item.url;
-                item.version = junyou.ConfigUtils.getResVer(item.uri);
-                var req = request.request;
-                if (req && req._url == url) {
-                    var type = req.responseType;
-                    if (type == "blob") {
-                        // 将数据存到本地缓存
-                        local = req.response;
-                    }
-                }
-                else {
-                    // 普通图片
-                    // 尝试转换成DataURL，此方法为同步方法，可能会影响性能
-                    var dat = request.data;
-                    if (dat instanceof egret.BitmapData) {
-                        var img = dat.source;
-                        var w_1 = img.width;
-                        var h = img.height;
-                        var type = "image/" + url.substring(url.lastIndexOf(".") + 1);
-                        canvas.width = w_1;
-                        canvas.height = h;
-                        context.clearRect(0, 0, w_1, h);
-                        context.drawImage(img, 0, 0);
-                        try {
-                            if (canUseBlob && url.indexOf("wxLocalResource:") != 0) {
-                                canvas.toBlob(function (blob) {
-                                    item.local = blob;
-                                    //存储数据
-                                    db.save(item);
-                                }, type);
-                            }
-                            else {
-                                local = canvas.toDataURL(type);
-                            }
-                        }
-                        catch (e) {
-                            //一般跨域并且没有权限的时候，会参数错误
-                        }
-                    }
-                }
-                if (!local) {
-                    if (!canUseBlob && typeof local !== "string") {
-                        var a = new FileReader();
-                        a.onload = function (e) {
-                            item.local = this.result;
-                            //存储数据
-                            db.save(item);
-                        };
-                        a.readAsDataURL(local);
-                    }
-                    else {
-                        item.local = local;
-                        //存储数据
-                        db.save(item);
-                    }
-                }
-            }
-            item.loaded = (event.$type == "complete" /* COMPLETE */);
-            if (item.loaded) {
-                var texture = new egret.Texture();
-                texture._setBitmapData(request.data);
-                this.analyzeData(item, texture);
-            }
-            delete request.request;
-            this.recycler.push(request);
-            return data.func.call(data.thisObject, item);
-        };
-        return db;
-    }
-    junyou.tryLocalRes = tryLocalRes;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * 资源管理器
-     */
-    var _resources = {};
-    function get(resid, noResHandler, thisObj) {
-        var res = getResource(resid);
-        if (!res) {
-            var args = [];
-            for (var i = 3; i < arguments.length; i++) {
-                args[i - 3] = arguments[i];
-            }
-            res = noResHandler.apply(thisObj, args);
-            regResource(resid, res);
-        }
-        return res;
-    }
-    junyou.ResourceManager = {
-        get: get,
-        // addChecker(checker: ResourceChecker) {
-        //     _checkers.pushOnce(checker);
-        // },
-        /**
-         * 获取纹理资源
-         *
-         * @param {string} resID 资源id
-         * @param {boolean} [noWebp] 是否不加webp后缀
-         * @returns {TextureResource}
-         */
-        getTextureRes: function (resID, noWebp) {
-            var resources = _resources;
-            var res = resources[resID];
-            if (res) {
-                if (!(res instanceof junyou.TextureResource)) {
-                    junyou.ThrowError("[" + resID + "]\u8D44\u6E90\u6709\u8BEF\uFF0C\u4E0D\u662FTextureResource");
-                    res = undefined;
-                }
-            }
-            if (!res) {
-                res = new junyou.TextureResource();
-                res.resID = resID;
-                res.url = junyou.ConfigUtils.getResUrl(resID + (!noWebp ? junyou.Global.webp : ""));
-                resources[resID] = res;
-            }
-            return res;
-        },
-        /**
-         * 获取资源
-         */
-        getResource: getResource,
-        // /**
-        //  * 注册资源
-        //  */
-        // regResource,
-        //按时间检测资源
-        init: function () {
-            var tobeDele = [];
-            junyou.TimerUtil.addCallback(30000 /* CheckTime */, function () {
-                var expire = junyou.Global.now - 300000 /* DisposeTime */;
-                var reses = _resources;
-                var delLen = 0;
-                for (var key in reses) {
-                    var res = reses[key];
-                    if (!res.isStatic && res.lastUseTime < expire) {
-                        tobeDele[delLen++] = key;
-                    }
-                }
-                // //对附加的checker进行检查
-                // for (let i = 0; i < _checkers.length; i++) {
-                //     _checkers[i].resCheck(expire);
-                // }
-                for (var i = 0; i < delLen; i++) {
-                    var key = tobeDele[i];
-                    var res = reses[key];
-                    if (res) {
-                        res.dispose();
-                        RES.destroyRes(res.url);
-                        delete reses[key];
-                    }
-                }
-            });
-        }
-    };
-    /**
-     * 获取资源
-     */
-    function getResource(resID) {
-        return _resources[resID];
-    }
-    /**
-     * 注册资源
-     */
-    function regResource(resID, res) {
-        var resources = _resources;
-        if (resID in resources) {
-            return resources[resID] === res;
-        }
-        resources[resID] = res;
-        return true;
-    }
-})(junyou || (junyou = {}));
-if (true) {
-    var ErrorTexture = new egret.Texture();
-    var img = new Image(40, 40);
-    img.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAAWUlEQVRYR+3SwQkAIAwEwaT/orWI/YiM/wWZ3J6ZMw+/9cF4HYIRcAgSrAK1t0GCVaD2NkiwCtTeBglWgdrbIMEqUHsbJFgFam+DBKtA7W2QYBWovQ1+L3gB8nhP2Y60cpgAAAAASUVORK5CYII=";
-    ErrorTexture._setBitmapData(img);
-}
-var junyou;
-(function (junyou) {
-    /**
-     *
-     * 纹理资源
-     * @export
-     * @class TextureResource
-     * @implements {IResource}
-     */
-    var TextureResource = (function () {
-        function TextureResource() {
-            /**
-             *
-             * 绑定的对象列表
-             * @private
-             * @type {Bitmap[]}
-             */
-            this._list = [];
-        }
-        Object.defineProperty(TextureResource.prototype, "isStatic", {
-            /**
-             *
-             * 是否为静态不销毁的资源
-             * @type {boolean}
-             */
-            get: function () {
-                return this._list.length > 0;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        /**
-         *
-         * 绑定一个目标
-         * @param {Bitmap} target
-         */
-        TextureResource.prototype.bind = function (bmp) {
-            if (this._tex) {
-                bmp.texture = this._tex;
-                bmp.dispatch(-193 /* Texture_Complete */);
-            }
-            this._list.pushOnce(bmp);
-            this.lastUseTime = junyou.Global.now;
-        };
-        /**
-         *
-         * 解除目标的绑定
-         * @param {Bitmap} target
-         */
-        TextureResource.prototype.loose = function (bmp) {
-            this._list.remove(bmp);
-            this.lastUseTime = junyou.Global.now;
-        };
-        // /**
-        //  * 
-        //  * 纹理
-        //  * @type {egret.Texture}
-        //  */
-        // public get texture(): egret.Texture {
-        //     return this._tex;
-        // }
-        TextureResource.prototype.load = function () {
-            RES.getResByUrl(this.url, this.loadComplete, this, "image" /* TYPE_IMAGE */);
-        };
-        /**
-         * 资源加载完成
-         */
-        TextureResource.prototype.loadComplete = function (res, key) {
-            if (key == this.url) {
-                this._tex = res;
-                for (var _i = 0, _a = this._list; _i < _a.length; _i++) {
-                    var bmp = _a[_i];
-                    bmp.texture = res;
-                    if (true && !res) {
-                        bmp.texture = ErrorTexture;
-                        var rect = bmp.suiRawRect;
-                        if (rect) {
-                            bmp.width = rect.width;
-                            bmp.height = rect.height;
-                        }
-                    }
-                    bmp.dispatch(-193 /* Texture_Complete */);
-                }
-            }
-        };
-        /**
-         * 销毁资源
-         */
-        TextureResource.prototype.dispose = function () {
-            if (this._tex) {
-                this._tex.dispose();
-                this._tex = undefined;
-            }
-            this._list.length = 0;
-        };
-        return TextureResource;
-    }());
-    junyou.TextureResource = TextureResource;
-    __reflect(TextureResource.prototype, "junyou.TextureResource", ["junyou.IResource"]);
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    junyou.MotionGuidePlugin = (function () {
-        return {
-            priority: 0,
-            install: function (manager) {
-                manager.installPlugin(this, ["guide", "x", "y", "rotation"]);
-            },
-            init: function (tween, prop, value) {
-                var target = tween.target;
-                if (target.x == undefined) {
-                    target.x = 0;
-                }
-                if (target.y == undefined) {
-                    target.y = 0;
-                }
-                if (target.rotation == undefined) {
-                    target.rotation = 0;
-                }
-                if (prop == "rotation") {
-                    tween.__needsRot = true;
-                }
-                return prop == "guide" ? null : value;
-            },
-            step: function (tween, prop, startValue, endValue, injectProps) {
-                // other props
-                if (prop == "rotation") {
-                    tween.__rotGlobalS = startValue;
-                    tween.__rotGlobalE = endValue;
-                    testRotData(tween, injectProps);
-                }
-                if (prop != "guide") {
-                    return endValue;
-                }
-                // guide only information - Start -
-                var temp, data = endValue;
-                if (!data.hasOwnProperty("path")) {
-                    data.path = [];
-                }
-                var path = data.path;
-                if (!data.hasOwnProperty("end")) {
-                    data.end = 1;
-                }
-                if (!data.hasOwnProperty("start")) {
-                    data.start = (startValue && startValue.hasOwnProperty("end") && startValue.path === path) ? startValue.end : 0;
-                }
-                // Figure out subline information
-                if (data.hasOwnProperty("_segments") && data._length) {
-                    return endValue;
-                }
-                var l = path.length;
-                var accuracy = 10; // Adjust to improve line following precision but sacrifice performance (# of seg)
-                if (l >= 6 && (l - 2) % 4 == 0) {
-                    data._segments = [];
-                    data._length = 0;
-                    for (var i = 2; i < l; i += 4) {
-                        var sx = path[i - 2], sy = path[i - 1];
-                        var cx = path[i + 0], cy = path[i + 1];
-                        var ex = path[i + 2], ey = path[i + 3];
-                        var oldX = sx, oldY = sy;
-                        var tempX, tempY, total = 0;
-                        var sublines = [];
-                        for (var j = 1; j <= accuracy; j++) {
-                            var t = j / accuracy;
-                            var inv = 1 - t;
-                            tempX = inv * inv * sx + 2 * inv * t * cx + t * t * ex;
-                            tempY = inv * inv * sy + 2 * inv * t * cy + t * t * ey;
-                            total += sublines[sublines.push(Math.sqrt((temp = tempX - oldX) * temp + (temp = tempY - oldY) * temp)) - 1];
-                            oldX = tempX;
-                            oldY = tempY;
-                        }
-                        data._segments.push(total);
-                        data._segments.push(sublines);
-                        data._length += total;
-                    }
-                }
-                else {
-                    throw ("invalid 'path' data, please see documentation for valid paths");
-                }
-                // Setup x/y tweens
-                temp = data.orient;
-                data.orient = true;
-                var o = {};
-                calc(data, data.start, o);
-                tween.__rotPathS = Number(o.rotation.toFixed(5));
-                calc(data, data.end, o);
-                tween.__rotPathE = Number(o.rotation.toFixed(5));
-                data.orient = false; //here and now we don't know if we need to
-                calc(data, data.end, injectProps);
-                data.orient = temp;
-                // Setup rotation properties
-                if (!data.orient) {
-                    return endValue;
-                }
-                tween.__guideData = data;
-                testRotData(tween, injectProps);
-                return endValue;
-            },
-            tween: function (tween, prop, value, startValues, endValues, ratio, wait, end) {
-                var data = endValues.guide;
-                if (data == undefined || data === startValues.guide) {
-                    return value;
-                }
-                if (data.lastRatio != ratio) {
-                    // first time through so calculate what I need to
-                    var t = ((data.end - data.start) * (wait ? data.end : ratio) + data.start);
-                    calc(data, t, tween.target);
-                    switch (data.orient) {
-                        case "cw": // mix in the original rotation
-                        case "ccw":
-                        case "auto":
-                            tween.target.rotation += data.rotOffS + data.rotDelta * ratio;
-                            break;
-                        case "fixed": // follow fixed behaviour to solve potential issues
-                        default:
-                            tween.target.rotation += data.rotOffS;
-                            break;
-                    }
-                    data.lastRatio = ratio;
-                }
-                if (prop == "rotation" && ((!data.orient) || data.orient == "false")) {
-                    return value;
-                }
-                return tween.target[prop];
-            }
-        };
-        function testRotData(tween, injectProps) {
-            // no rotation informat? if we need it come back, if we don't use 0 & ensure we have guide data
-            if (tween.__rotGlobalS === undefined || tween.__rotGlobalE === undefined) {
-                if (tween.__needsRot) {
-                    return;
-                }
-                var _curQueueProps = tween._curQueueProps;
-                if (_curQueueProps.rotation !== undefined) {
-                    tween.__rotGlobalS = tween.__rotGlobalE = _curQueueProps.rotation;
-                }
-                else {
-                    tween.__rotGlobalS = tween.__rotGlobalE = injectProps.rotation = tween.target.rotation || 0;
-                }
-            }
-            if (tween.__guideData === undefined) {
-                return;
-            }
-            // Process rotation properties
-            var data = tween.__guideData;
-            var rotGlobalD = tween.__rotGlobalE - tween.__rotGlobalS;
-            var rotPathD = tween.__rotPathE - tween.__rotPathS;
-            var rot = rotGlobalD - rotPathD;
-            if (data.orient == "auto") {
-                if (rot > 180) {
-                    rot -= 360;
-                }
-                else if (rot < -180) {
-                    rot += 360;
-                }
-            }
-            else if (data.orient == "cw") {
-                while (rot < 0) {
-                    rot += 360;
-                }
-                if (rot == 0 && rotGlobalD > 0 && rotGlobalD != 180) {
-                    rot += 360;
-                }
-            }
-            else if (data.orient == "ccw") {
-                rot = rotGlobalD - ((rotPathD > 180) ? (360 - rotPathD) : (rotPathD)); // sign flipping on path
-                while (rot > 0) {
-                    rot -= 360;
-                }
-                if (rot == 0 && rotGlobalD < 0 && rotGlobalD != -180) {
-                    rot -= 360;
-                }
-            }
-            data.rotDelta = rot;
-            data.rotOffS = tween.__rotGlobalS - tween.__rotPathS;
-            // reset
-            tween.__rotGlobalS = tween.__rotGlobalE = tween.__guideData = tween.__needsRot = undefined;
-        }
-        function calc(data, ratio, target) {
-            if (data._segments == undefined) {
-                throw ("Missing critical pre-calculated information, please file a bug");
-            }
-            if (target == undefined) {
-                target = { x: 0, y: 0, rotation: 0 };
-            }
-            var seg = data._segments;
-            var path = data.path;
-            // find segment
-            var pos = data._length * ratio;
-            var cap = seg.length - 2;
-            var n = 0;
-            while (pos > seg[n] && n < cap) {
-                pos -= seg[n];
-                n += 2;
-            }
-            // find subline
-            var sublines = seg[n + 1];
-            var i = 0;
-            cap = sublines.length - 1;
-            while (pos > sublines[i] && i < cap) {
-                pos -= sublines[i];
-                i++;
-            }
-            var t = (i / ++cap) + (pos / (cap * sublines[i]));
-            // find x/y
-            n = (n * 2) + 2;
-            var inv = 1 - t;
-            target.x = inv * inv * path[n - 2] + 2 * inv * t * path[n + 0] + t * t * path[n + 2];
-            target.y = inv * inv * path[n - 1] + 2 * inv * t * path[n + 1] + t * t * path[n + 3];
-            // orientation
-            if (data.orient) {
-                target.rotation = 57.2957795 * Math.atan2((path[n + 1] - path[n - 1]) * inv + (path[n + 3] - path[n + 1]) * t, (path[n + 0] - path[n - 2]) * inv + (path[n + 2] - path[n + 0]) * t);
-            }
-            return target;
-        }
-        ;
-    })();
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
     * 限制列队
     * @author 3tion
     */
@@ -7153,172 +6858,166 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
+    try {
+        var supportWebp = document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') == 0;
+    }
+    catch (err) { }
+    var _webp = supportWebp ? ".webp" /* WEBP */ : "";
+    var _isNative = egret.Capabilities.supportVersion != "Unknown";
+    /**
+     *  当前这一帧的时间
+     */
+    var now = 0;
+    /**
+     * 按照帧，应该走的时间
+     * 每帧根据帧率加固定时间
+     * 用于处理逐帧同步用
+     */
+    var frameNow = 0;
+    var _callLater = new junyou.CallLater();
+    var tweenManager = new junyou.TweenManager();
+    var _nextTicks = [];
+    /**
+     * 注入白鹭的全局Ticker
+     */
+    function initTick() {
+        //@ts-ignore
+        var ticker = egret.ticker || egret.sys.$ticker;
+        var update = ticker.render;
+        var delta = 0 | 1000 / ticker.$frameRate;
+        var temp = [];
+        ticker.render = function () {
+            var _now = Date.now();
+            var dis = _now - now;
+            now = _now;
+            if (dis > 2000) {
+                //有2秒钟大概就是进入过休眠了
+                junyou.dispatch(-190 /* Awake */);
+                frameNow = _now;
+            }
+            else {
+                frameNow += delta;
+            }
+            //执行顺序  nextTick  callLater TimerUtil  tween  最后是白鹭的更新
+            var len = _nextTicks.length;
+            var tmp = temp;
+            for (var i = 0; i < len; i++) {
+                tmp[i] = _nextTicks[i];
+            }
+            _nextTicks.length = 0;
+            //先复制再操作是为了防止回调过程中，有新增的nextTick
+            for (var i = 0; i < len; i++) {
+                tmp[i].execute();
+            }
+            _callLater.tick(_now);
+            junyou.TimerUtil.tick(_now);
+            tweenManager.tick(dis);
+            update.call(ticker);
+        };
+    }
+    function nextTick(callback, thisObj) {
+        var args = [];
+        for (var _i = 2; _i < arguments.length; _i++) {
+            args[_i - 2] = arguments[_i];
+        }
+        _nextTicks.push(junyou.CallbackInfo.get.apply(junyou.CallbackInfo, [callback, thisObj].concat(args)));
+    }
+    /**
+     * 延迟执行
+     *
+     * @static
+     * @param {Function} callback (description)
+     * @param {number} [time] 延迟执行的时间
+     * @param {*} [thisObj] (description)
+     * @param args (description)
+     */
+    function callLater(callback, time, thisObj) {
+        var args = [];
+        for (var _i = 3; _i < arguments.length; _i++) {
+            args[_i - 3] = arguments[_i];
+        }
+        return _callLater.callLater.apply(_callLater, [callback, now, time, thisObj].concat(args));
+    }
+    /**
+     * 清理延迟
+     *
+     * @static
+     * @param {Function} callback (description)
+     * @param {*} [thisObj] (description)
+     * @returns (description)
+     */
+    function clearCallLater(callback, thisObj) {
+        return _callLater.clearCallLater(callback, thisObj);
+    }
+    /**
+     * 获取Tween
+     *
+     * @static
+     * @param {*} target 要对那个对象做Tween处理
+     * @param {TweenOption} props Tween的附加属性 (如： `{loop:true, paused:true}`).
+     * All properties default to `false`. Supported props are:
+     * <UL>
+     *    <LI> loop: sets the loop property on this tween.</LI>
+     *    <LI> useTicks: uses ticks for all durations instead of milliseconds.</LI>
+     *    <LI> ignoreGlobalPause: sets the {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}} property on
+     *    this tween.</LI>
+     *    <LI> override: if true, `createjs. this.removeTweens(target)` will be called to remove any other tweens with
+     *    the same target.
+     *    <LI> paused: indicates whether to start the tween paused.</LI>
+     *    <LI> position: indicates the initial position for this tween.</LI>
+     *    <LI> onChange: specifies a listener for the {{#crossLink "Tween/change:event"}}{{/crossLink}} event.</LI>
+     * </UL>
+     * @param {*} pluginData 插件数据
+     * @param {boolean} override 是否覆盖
+     * @returns {Tween} tween的实例
+     */
+    function getTween(target, props, pluginData, override) {
+        return tweenManager.get(target, props, pluginData, override);
+    }
+    /**
+     * 移除指定的Tween
+     *
+     * @param {Tween} tween
+     * @returns
+     */
+    function removeTween(tween) {
+        return tweenManager.removeTween(tween);
+    }
+    function removeTweens(target) {
+        return tweenManager.removeTweens(target);
+    }
     /**
      * 动画的全局对象
-     * @author
+     * @author 3tion
      *
      */
-    junyou.Global = (function () {
-        try {
-            var supportWebp = document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') == 0;
-        }
-        catch (err) {
-        }
-        var _webp = supportWebp ? ".webp" /* WEBP */ : "";
-        var _isNative = egret.Capabilities.supportVersion != "Unknown";
+    junyou.Global = {
+        initTick: initTick, nextTick: nextTick, callLater: callLater, clearCallLater: clearCallLater, getTween: getTween, removeTween: removeTween, removeTweens: removeTweens,
+        get isNative() {
+            return _isNative;
+        },
+        tweenManager: tweenManager,
         /**
          *  当前这一帧的时间
          */
-        var now = 0;
+        get now() {
+            return now;
+        },
         /**
          * 按照帧，应该走的时间
          * 每帧根据帧率加固定时间
          * 用于处理逐帧同步用
          */
-        var frameNow = 0;
-        var _callLater;
-        var _tweenManager;
-        var _nextTicks = [];
-        return {
-            initTick: initTick, nextTick: nextTick, callLater: callLater, clearCallLater: clearCallLater, getTween: getTween, removeTween: removeTween, removeTweens: removeTweens,
-            get isNative() {
-                return _isNative;
-            },
-            get tweenManager() {
-                return _tweenManager || (_tweenManager = new junyou.TweenManager());
-            },
-            /**
-             *  当前这一帧的时间
-             */
-            get now() {
-                return now;
-            },
-            /**
-             * 按照帧，应该走的时间
-             * 每帧根据帧率加固定时间
-             * 用于处理逐帧同步用
-             */
-            get frameNow() {
-                return frameNow;
-            },
-            /**
-             * 是否支持webp
-             */
-            get webp() {
-                return _webp;
-            }
-        };
+        get frameNow() {
+            return frameNow;
+        },
         /**
-         * 注入白鹭的全局Ticker
+         * 是否支持webp
          */
-        function initTick() {
-            var ticker = egret.ticker || egret.sys.$ticker;
-            var update = ticker.render;
-            var delta = 0 | 1000 / ticker.$frameRate;
-            var temp = [];
-            _callLater = new junyou.CallLater();
-            _tweenManager || (_tweenManager = new junyou.TweenManager());
-            ticker.render = function () {
-                var _now = Date.now();
-                var dis = _now - now;
-                now = _now;
-                if (dis > 2000) {
-                    //有2秒钟大概就是进入过休眠了
-                    junyou.dispatch(-190 /* Awake */);
-                    frameNow = _now;
-                }
-                else {
-                    frameNow += delta;
-                }
-                //执行顺序  nextTick  callLater TimerUtil  tween  最后是白鹭的更新
-                var len = _nextTicks.length;
-                var tmp = temp;
-                for (var i = 0; i < len; i++) {
-                    tmp[i] = _nextTicks[i];
-                }
-                _nextTicks.length = 0;
-                //先复制再操作是为了防止回调过程中，有新增的nextTick
-                for (var i = 0; i < len; i++) {
-                    tmp[i].execute();
-                }
-                _callLater.tick(_now);
-                junyou.TimerUtil.tick(_now);
-                _tweenManager.tick(dis);
-                update.call(ticker);
-            };
+        get webp() {
+            return _webp;
         }
-        function nextTick(callback, thisObj) {
-            var args = [];
-            for (var _i = 2; _i < arguments.length; _i++) {
-                args[_i - 2] = arguments[_i];
-            }
-            _nextTicks.push(junyou.CallbackInfo.get.apply(junyou.CallbackInfo, [callback, thisObj].concat(args)));
-        }
-        /**
-         * 延迟执行
-         *
-         * @static
-         * @param {Function} callback (description)
-         * @param {number} [time] 延迟执行的时间
-         * @param {*} [thisObj] (description)
-         * @param args (description)
-         */
-        function callLater(callback, time, thisObj) {
-            var args = [];
-            for (var _i = 3; _i < arguments.length; _i++) {
-                args[_i - 3] = arguments[_i];
-            }
-            return _callLater.callLater.apply(_callLater, [callback, now, time, thisObj].concat(args));
-        }
-        /**
-         * 清理延迟
-         *
-         * @static
-         * @param {Function} callback (description)
-         * @param {*} [thisObj] (description)
-         * @returns (description)
-         */
-        function clearCallLater(callback, thisObj) {
-            return _callLater.clearCallLater(callback, thisObj);
-        }
-        /**
-         * 获取Tween
-         *
-         * @static
-         * @param {*} target 要对那个对象做Tween处理
-         * @param {TweenOption} props Tween的附加属性 (如： `{loop:true, paused:true}`).
-         * All properties default to `false`. Supported props are:
-         * <UL>
-         *    <LI> loop: sets the loop property on this tween.</LI>
-         *    <LI> useTicks: uses ticks for all durations instead of milliseconds.</LI>
-         *    <LI> ignoreGlobalPause: sets the {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}} property on
-         *    this tween.</LI>
-         *    <LI> override: if true, `createjs. this.removeTweens(target)` will be called to remove any other tweens with
-         *    the same target.
-         *    <LI> paused: indicates whether to start the tween paused.</LI>
-         *    <LI> position: indicates the initial position for this tween.</LI>
-         *    <LI> onChange: specifies a listener for the {{#crossLink "Tween/change:event"}}{{/crossLink}} event.</LI>
-         * </UL>
-         * @param {*} pluginData 插件数据
-         * @param {boolean} override 是否覆盖
-         * @returns {Tween} tween的实例
-         */
-        function getTween(target, props, pluginData, override) {
-            return _tweenManager.get(target, props, pluginData, override);
-        }
-        /**
-         * 移除指定的Tween
-         *
-         * @param {Tween} tween
-         * @returns
-         */
-        function removeTween(tween) {
-            return _tweenManager.removeTween(tween);
-        }
-        function removeTweens(target) {
-            return _tweenManager.removeTweens(target);
-        }
-    })();
+    };
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -7626,72 +7325,6 @@ var junyou;
     }());
     junyou.TimeVO = TimeVO;
     __reflect(TimeVO.prototype, "junyou.TimeVO");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * 延迟执行
-     * @author 3tion
-     */
-    var CallLater = (function () {
-        function CallLater() {
-            this._callLaters = [];
-            this._temp = [];
-        }
-        CallLater.prototype.tick = function (now) {
-            var i = 0, j = 0, k = 0, callLaters = this._callLaters, temp = this._temp;
-            // 检查callLater，执行时间够的calllater调用
-            for (var len = callLaters.length; i < len; i++) {
-                var cb = callLaters[i];
-                if (now > cb.time) {
-                    temp[j++] = cb;
-                }
-                else {
-                    callLaters[k++] = cb;
-                }
-            }
-            callLaters.length = k;
-            for (i = 0; i < j; i++) {
-                temp[i].execute();
-            }
-        };
-        /**
-         * 增加延迟执行的函数
-         *
-         * @param {Function} callback (description)
-         * @param {number} now (description)
-         * @param {number} [time] (description)
-         * @param {*} [thisObj] (description)
-         * @param args (description)
-         */
-        CallLater.prototype.callLater = function (callback, now, time, thisObj) {
-            var args = [];
-            for (var _i = 4; _i < arguments.length; _i++) {
-                args[_i - 4] = arguments[_i];
-            }
-            var cInfo = junyou.CallbackInfo.addToList.apply(junyou.CallbackInfo, [this._callLaters, callback, thisObj].concat(args));
-            cInfo.time = now + (time || 0);
-        };
-        /**
-         * 清理延迟执行的函数
-         *
-         * @param {Function} callback (description)
-         * @param {*} [thisObj] (description)
-         */
-        CallLater.prototype.clearCallLater = function (callback, thisObj) {
-            var callLaters = this._callLaters;
-            for (var i = callLaters.length - 1; i >= 0; --i) {
-                var cInfo = callLaters[i];
-                if (cInfo.checkHandle(callback, thisObj)) {
-                    callLaters.splice(i, 1);
-                    return cInfo.recycle();
-                }
-            }
-        };
-        return CallLater;
-    }());
-    junyou.CallLater = CallLater;
-    __reflect(CallLater.prototype, "junyou.CallLater");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -8221,7 +7854,7 @@ var junyou;
             this.setRandomFunc(randomFunc);
         }
         NameUtils.loadNameLib = function (url) {
-            junyou.loadScript(url, function () {
+            loadScript(url, function () {
                 if ($nl_nc) {
                     //a：姓,b:符号,c1:男名,c2:女名
                     var a = $nl_nc.a, b = $nl_nc.b, c1 = $nl_nc.c1, c2 = $nl_nc.c2;
@@ -9009,7 +8642,7 @@ var junyou;
          */
         loadDirtyWord: function (url, split) {
             if (split === void 0) { split = ";"; }
-            junyou.loadScript(url, function () {
+            loadScript(url, function () {
                 if ($dirty) {
                     initFilterstring($dirty, split);
                     // 清理脏字原始数据
@@ -9827,45 +9460,6 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
-      * 加载脚本
-      * @param url
-      * @param callback
-      * @param thisObj
-      * @param args
-      */
-    function loadScript(url, callback, thisObj) {
-        var args = [];
-        for (var _i = 3; _i < arguments.length; _i++) {
-            args[_i - 3] = arguments[_i];
-        }
-        if (!url) {
-            return;
-        }
-        var script = document.createElement("script");
-        script.type = "text/javascript";
-        //检测客户端类型
-        if (script.readyState) {
-            script.onreadystatechange = function () {
-                if (script.readyState === "loaded" || script.readyState === "complete") {
-                    script.onreadystatechange = null;
-                    callback.apply(thisObj, args);
-                }
-            };
-        }
-        else {
-            script.onload = function () {
-                callback.apply(thisObj, args);
-            };
-        }
-        script.src = url;
-        // 调整为放到文档最后
-        document.documentElement.appendChild(script);
-    }
-    junyou.loadScript = loadScript;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
      * 存储锚点信息
      */
     var JTexture = (function (_super) {
@@ -9880,140 +9474,201 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    function call(info, ars) {
-        var args = [];
-        var i = 0;
-        if (ars) {
-            for (; i < ars.length; i++) {
-                args[i] = ars[i];
-            }
-        }
-        var argus = info.args;
-        if (argus) {
-            for (var j = 0; j < argus.length; j++) {
-                args[i++] = argus[j];
-            }
-        }
-        var callback = info.callback;
-        if (callback != undefined) {
-            try {
-                return callback.apply(info.thisObj, args);
-            }
-            catch (e) {
-                if (true) {
-                    var debug = info["_debug"];
-                    junyou.ThrowError("CallbackInfo\u6267\u884C\u62A5\u9519\uFF0C\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n}==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + e.stack);
-                    console.log.apply(console, ["参数列表"].concat(this.args));
-                }
-            }
-        }
-        else if (true) {
-            var debug = info["_debug"];
-            junyou.ThrowError("\u5BF9\u5DF2\u56DE\u6536\u7684CallbackInfo\u6267\u884C\u4E86\u56DE\u8C03\uFF0C\u6700\u540E\u4E00\u6B21\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + new Error().stack);
-        }
-    }
     /**
-     * 回调信息，用于存储回调数据
-     * @author 3tion
+     * 基于4个顶点变形的纹理
      *
+     * @export
+     * @class QuadTransform
      */
-    var CallbackInfo = (function () {
-        function CallbackInfo() {
-            if (true) {
-                var data = { enumerable: true, configurable: true };
-                data.get = function () {
-                    return this._cb;
-                };
-                data.set = function (value) {
-                    if (this._cb != value) {
-                        this._cb = value;
-                        if (value != undefined) {
-                            this._debug = { handle: value.toString(), stack: new Error().stack };
-                        }
-                    }
-                };
-                Object.defineProperty(this, "callback", data);
-            }
+    var QuadTransform = (function () {
+        function QuadTransform() {
+            this._tex = new egret.RenderTexture();
+            this._canvas = document.createElement("canvas");
+            this._content = this._canvas.getContext("2d");
         }
-        CallbackInfo.prototype.init = function (callback, thisObj, args) {
-            this.callback = callback;
-            this.args = args;
-            this.thisObj = thisObj;
-        };
         /**
-         * 检查回调是否一致，只检查参数和this对象,不检查参数
+         * 绘制白鹭的可视对象，并且进行变形
+         *
+         * @param {egret.DisplayObject} display
+         * @param {{ x: number, y: number }} ptl
+         * @param {{ x: number, y: number }} ptr
+         * @param {{ x: number, y: number }} pbl
+         * @param {{ x: number, y: number }} pbr
+         *
+         * @memberOf QuadTransform
          */
-        CallbackInfo.prototype.checkHandle = function (callback, thisObj) {
-            return this.callback === callback && this.thisObj == thisObj /* 允许null==undefined */;
-        };
-        /**
-         * 执行回调
-         * 回调函数，将以args作为参数，callback作为函数执行
-         * @param {boolean} [doRecycle=true] 是否回收CallbackInfo，默认为true
-         */
-        CallbackInfo.prototype.execute = function (doRecycle) {
-            if (doRecycle === void 0) { doRecycle = true; }
-            var callback = this.callback;
-            var result = call(this);
-            if (doRecycle) {
-                this.recycle();
-            }
-            return result;
-        };
-        CallbackInfo.prototype.call = function () {
-            return call(this, arguments);
-        };
-        CallbackInfo.prototype.callAndRecycle = function () {
-            var result = call(this, arguments);
-            this.recycle();
-            return result;
-        };
-        CallbackInfo.prototype.onRecycle = function () {
-            this.callback = undefined;
-            this.args = undefined;
-            this.thisObj = undefined;
-        };
-        /**
-         * 获取CallbackInfo的实例
-         */
-        CallbackInfo.get = function (callback, thisObj) {
-            var args = [];
-            for (var _i = 2; _i < arguments.length; _i++) {
-                args[_i - 2] = arguments[_i];
-            }
-            var info = junyou.recyclable(CallbackInfo);
-            info.init(callback, thisObj, args);
-            return info;
-        };
-        /**
-         * 加入到数组
-         * 检查是否有this和handle相同的callback，如果有，就用新的参数替换旧参数
-         * @param list
-         * @param handle
-         * @param args
-         * @param thisObj
-         */
-        CallbackInfo.addToList = function (list, handle, thisObj) {
-            var args = [];
-            for (var _i = 3; _i < arguments.length; _i++) {
-                args[_i - 3] = arguments[_i];
-            }
-            //检查是否有this和handle相同的callback
-            for (var _a = 0, list_1 = list; _a < list_1.length; _a++) {
-                var callback = list_1[_a];
-                if (callback.checkHandle(handle, thisObj)) {
-                    callback.args = args;
-                    return callback;
+        QuadTransform.prototype.drawDisplay = function (display, ptl, ptr, pbl, pbr) {
+            var rawWidth = display.width;
+            var rawHeight = display.height;
+            ptl = ptl || { x: 0, y: 0 };
+            ptr = ptr || { x: rawWidth, y: 0 };
+            pbl = pbl || { x: 0, y: rawHeight };
+            pbr = pbr || { x: rawWidth, y: rawHeight };
+            //获取新的位图大小
+            var ptlx = ptl.x, ptly = ptl.y, ptrx = ptr.x, ptry = ptr.y, pblx = pbl.x, pbly = pbl.y, pbrx = pbr.x, pbry = pbr.y;
+            var minX = Math.min(ptlx, ptrx, pblx, pbrx);
+            var maxX = Math.max(ptlx, ptrx, pblx, pbrx);
+            var minY = Math.min(ptly, ptry, pbly, pbry);
+            var maxY = Math.max(ptly, ptry, pbly, pbry);
+            var width = maxX - minX;
+            var height = maxY - minY;
+            // let bytes = new Uint8ClampedArray(width * height * 4);
+            var canvas = this._canvas;
+            canvas.width = width;
+            canvas.height = height;
+            var content = this._content;
+            var imgData = content.createImageData(width, height);
+            var bytes = imgData.data;
+            //获取原始位图数据
+            var tex = this._tex;
+            tex.drawToTexture(display);
+            var source = tex.getPixels(0, 0, rawWidth, rawHeight);
+            // top left
+            ptl.Rx = ptl.Rx || 0;
+            ptl.Ry = ptl.Ry || 0;
+            //top right
+            ptr.Rx = ptr.Rx || rawWidth;
+            ptr.Ry = ptr.Ry || 0;
+            //bottom right
+            pbr.Rx = pbr.Rx || rawWidth;
+            pbr.Ry = pbr.Ry || rawHeight;
+            //bottom left
+            pbl.Rx = pbl.Rx || 0;
+            pbl.Ry = pbl.Ry || rawHeight;
+            //使用 向辉 寿标《真实感图像的颜色插值及其应用》计算机世界月刊，1992年10月 的方案进行计算
+            var dict = [];
+            var edges = 0;
+            edges += makeEdge(ptl, ptr, dict);
+            edges += makeEdge(ptr, pbr, dict);
+            edges += makeEdge(pbr, pbl, dict);
+            edges += makeEdge(pbl, ptl, dict);
+            if (edges > 0) {
+                var ael = [];
+                var tael = [];
+                for (var y = 0; y < maxY; y++) {
+                    var edges_1 = dict[y];
+                    if (edges_1 && edges_1.length) {
+                        edges_1.appendTo(ael);
+                        ael.doSort("dx");
+                    }
+                    var len = ael.length - 1;
+                    if (len > 0) {
+                        for (var i = 0; i < len; i++) {
+                            var edgeA = ael[i];
+                            var xLeft = edgeA.x;
+                            //let pLeft = { x: xLeft, y };
+                            var lRx = edgeA.Rx;
+                            var lRy = edgeA.Ry;
+                            var edgeB = ael[i + 1];
+                            //得到区段
+                            var xRight = edgeB.x;
+                            var rRx = edgeB.Rx;
+                            var rRy = edgeB.Ry;
+                            var xWidth = xLeft - xRight;
+                            var dRxx = 0, dRyx = 0;
+                            if (xWidth) {
+                                dRxx = (lRx - rRx) / xWidth;
+                                dRyx = (lRy - rRy) / xWidth;
+                            }
+                            for (var x = xLeft; x <= xRight; x++) {
+                                var ix = lRx | 0;
+                                var u = lRx - ix;
+                                var iy = lRy | 0;
+                                var v = lRy - iy;
+                                //得到像素，做双线性插值
+                                var pos00 = (iy * rawWidth + ix) * 4;
+                                var r00 = source[pos00];
+                                var g00 = source[pos00 + 1];
+                                var b00 = source[pos00 + 2];
+                                var a00 = source[pos00 + 3];
+                                var pos10 = pos00 + 4;
+                                var r10 = source[pos10];
+                                var g10 = source[pos10 + 1];
+                                var b10 = source[pos10 + 2];
+                                var a10 = source[pos10 + 3];
+                                var pos01 = ((iy + 1) * rawWidth + ix) * 4;
+                                var r01 = source[pos01];
+                                var g01 = source[pos01 + 1];
+                                var b01 = source[pos01 + 2];
+                                var a01 = source[pos01 + 3];
+                                var pos11 = pos01 + 4;
+                                var r11 = source[pos11];
+                                var g11 = source[pos11 + 1];
+                                var b11 = source[pos11 + 2];
+                                var a11 = source[pos11 + 3];
+                                var u1 = 1 - u;
+                                var v1 = 1 - v;
+                                var pm00 = u1 * v1;
+                                var pm10 = u * v1;
+                                var pm01 = u1 * v;
+                                var pm11 = u * v;
+                                var pos = (y * width + x) * 4;
+                                bytes[pos] = r00 * pm00 + r10 * pm10 + r01 * pm01 + r11 * pm11;
+                                bytes[pos + 1] = g00 * pm00 + g10 * pm10 + g01 * pm01 + g11 * pm11;
+                                bytes[pos + 2] = b00 * pm00 + b10 * pm10 + b01 * pm01 + b11 * pm11;
+                                bytes[pos + 3] = a00 * pm00 + a10 * pm10 + a01 * pm01 + a11 * pm11;
+                                lRx += dRxx;
+                                lRy += dRyx;
+                            }
+                        }
+                        var l = 0;
+                        for (var i = 0; i <= len; i++) {
+                            l = edgeCheckAndInc(ael[i], tael, l, y);
+                        }
+                        tael.length = l;
+                        var tmp = ael;
+                        ael = tael;
+                        tael = tmp;
+                    }
                 }
             }
-            callback = this.get.apply(this, [handle, thisObj].concat(args));
-            list.push(callback);
-            return callback;
+            content.putImageData(imgData, 0, 0);
+            return egret.BitmapData.create("base64", canvas.toDataURL());
+            function edgeCheckAndInc(edge, list, l, y) {
+                if (edge.ymax > y) {
+                    list[l++] = edge;
+                    edge.Rx += edge.dRx;
+                    edge.Ry += edge.dRy;
+                    edge.x = Math.round(edge.x + edge.dx);
+                }
+                return l;
+            }
+            function makeEdge(p0, p1, dict) {
+                var x, Rx, Ry, ymax, ymin;
+                if (p0.y == p1.y) {
+                    return 0;
+                }
+                if (p0.y < p1.y) {
+                    x = p0.x;
+                    Rx = p0.Rx;
+                    Ry = p0.Ry;
+                    ymax = p1.y;
+                    ymin = p0.y;
+                }
+                else {
+                    x = p1.x;
+                    Rx = p1.Rx;
+                    Ry = p1.Ry;
+                    ymax = p0.y;
+                    ymin = p1.y;
+                }
+                var deltaY = p0.y - p1.y;
+                var dx = (p0.x - p1.x) / deltaY;
+                var dRx = (p0.Rx - p1.Rx) / deltaY;
+                var dRy = (p0.Ry - p1.Ry) / deltaY;
+                var edges = dict[ymin];
+                if (!edges) {
+                    dict[ymin] = edges = [];
+                    edges.minY = ymin;
+                }
+                edges.push({ x: x, Rx: Rx, Ry: Ry, ymax: ymax, dx: dx, dRx: dRx, dRy: dRy });
+                return 1;
+            }
         };
-        return CallbackInfo;
+        return QuadTransform;
     }());
-    junyou.CallbackInfo = CallbackInfo;
-    __reflect(CallbackInfo.prototype, "junyou.CallbackInfo", ["junyou.IRecyclable"]);
+    junyou.QuadTransform = QuadTransform;
+    __reflect(QuadTransform.prototype, "junyou.QuadTransform");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -10086,13 +9741,13 @@ var junyou;
      * @author 3tion
      */
     var SplitUnitResource = (function () {
-        function SplitUnitResource(uri) {
+        function SplitUnitResource(uri, url) {
             /**
              * 资源加载状态
              */
             this.state = 0 /* UNREQUEST */;
             this.resID = uri;
-            this.url = junyou.ConfigUtils.getResUrl(uri + junyou.Global.webp);
+            this.url = url;
             this.textures = [];
         }
         Object.defineProperty(SplitUnitResource.prototype, "isStatic", {
@@ -10108,19 +9763,18 @@ var junyou;
          * @param {{ [index: number]: JTexture[][] }} textures (description)
          * @param {number[]} adKeys (description)
          */
-        SplitUnitResource.prototype.bindTextures = function (textures, adKeys) {
-            var _this = this;
-            adKeys.forEach(function (adKey) {
-                var a = junyou.PstUtils.getAFromADKey(adKey);
-                var dTextures = textures[a];
-                if (dTextures) {
-                    var d = junyou.PstUtils.getDFromADKey(adKey);
-                    var textures_1 = dTextures[d];
-                    if (textures_1) {
-                        textures_1.forEach(function (tex) { _this.bindTexture(tex); });
+        SplitUnitResource.prototype.bindTextures = function (textures, adKey) {
+            var a = junyou.ADKey.getAction(adKey);
+            var dTextures = textures[a];
+            if (dTextures) {
+                var d = junyou.ADKey.getDirection(adKey);
+                var textures_1 = dTextures[d];
+                if (textures_1) {
+                    for (var i = 0; i < textures_1.length; i++) {
+                        this.bindTexture(textures_1[i]);
                     }
                 }
-            });
+            }
         };
         /**
          * 绑定纹理
@@ -10198,7 +9852,8 @@ var junyou;
         function UnitResource(uri, splitInfo) {
             this.state = 0 /* UNREQUEST */;
             this.key = uri;
-            this._splitInfo = splitInfo;
+            this.url = junyou.ConfigUtils.getResUrl(uri + "/" + "d.json" /* CfgFile */);
+            this.sInfo = splitInfo;
         }
         /**
          * 解析数据
@@ -10247,11 +9902,8 @@ var junyou;
          */
         UnitResource.prototype.loadData = function () {
             if (this.state == 0 /* UNREQUEST */) {
-                var uri = this.key + "/" + "d.json" /* CfgFile */;
-                var url = junyou.ConfigUtils.getResUrl(uri);
-                this.url = url;
                 this.state = 1 /* REQUESTING */;
-                RES.getResByUrl(url, this.dataLoadComplete, this, "json" /* TYPE_JSON */);
+                RES.getResByUrl(this.url, this.dataLoadComplete, this, "json" /* TYPE_JSON */);
             }
         };
         /**
@@ -10313,24 +9965,43 @@ var junyou;
                 }
             }
         };
-        UnitResource.prototype.loadRes = function (d, a) {
-            var r = this._splitInfo.getResource(d, a);
-            var uri = this.key + "/" + r + ".png" /* PNG */;
-            var datas = this._datas;
+        UnitResource.prototype.loadRes = function (direction, action) {
+            var r = this.sInfo.getResKey(direction, action);
+            var uri = this.getUri2(r);
             return junyou.ResourceManager.get(uri, this.noRes, this, uri, r);
         };
         UnitResource.prototype.noRes = function (uri, r) {
-            var tmp = new junyou.SplitUnitResource(uri);
-            tmp.bindTextures(this._datas, this._splitInfo.adDict[r]);
+            var tmp = new junyou.SplitUnitResource(uri, this.getUrl(uri));
+            tmp.bindTextures(this._datas, this.sInfo.adDict[r]);
             tmp.load();
             return tmp;
         };
-        UnitResource.prototype.isResOK = function (d, a) {
-            var info = this._splitInfo;
-            var r = info.getResource(d, a);
-            var uri = this.key + "/" + r + ".png" /* PNG */;
+        UnitResource.prototype.getUri = function (direction, action) {
+            return this.getUri2(this.sInfo.getResKey(direction, action));
+        };
+        UnitResource.prototype.getUri2 = function (resKey) {
+            return this.key + "/" + resKey + ".png" /* PNG */;
+        };
+        UnitResource.prototype.getUrl = function (uri) {
+            return junyou.ConfigUtils.getResUrl(uri + junyou.Global.webp);
+        };
+        UnitResource.prototype.isResOK = function (direction, action) {
+            var uri = this.getUri(direction, action);
             var res = junyou.ResourceManager.getResource(uri);
             return !!(res && res.bmd);
+        };
+        /**
+         * 遍历Res所有资源
+         * @param { (uri: string, adKey: number): boolean } forEach 如果 forEach 方法返回 true，则停止遍历
+         */
+        UnitResource.prototype.checkRes = function (forEach) {
+            var dict = this.sInfo.adDict;
+            for (var resKey in dict) {
+                var uri = this.getUri2(resKey);
+                if (forEach(uri, dict[resKey])) {
+                    return;
+                }
+            }
         };
         return UnitResource;
     }());
@@ -11041,6 +10712,34 @@ if (true) {
 }
 var junyou;
 (function (junyou) {
+    function checkRect(map, rect, preload, forEach, checker) {
+        //检查地图，进行加载区块
+        var x = rect.x;
+        var y = rect.y;
+        var w = rect.width;
+        var h = rect.height;
+        var pW = map.pWidth;
+        var pH = map.pHeight;
+        var sc = x / pW | 0;
+        var sr = y / pH | 0;
+        var ec = (x + w) / pW | 0;
+        var er = (y + h) / pH | 0;
+        sc = Math.max(sc - preload, 0);
+        sr = Math.max(sr - preload, 0);
+        ec = Math.min(ec + preload, map.maxPicX);
+        er = Math.min(er + preload, map.maxPicY);
+        if (checker && !checker(sc, sr, ec, er)) {
+            return;
+        }
+        var i = 0;
+        var get = junyou.ResourceManager.get;
+        for (var r = sr; r <= er; r++) {
+            for (var c = sc; c <= ec; c++) {
+                var uri = map.getMapUri(c, r);
+                forEach(uri, c, r);
+            }
+        }
+    }
     /**
     * MapRender
     * 用于处理地图平铺的渲染
@@ -11049,6 +10748,11 @@ var junyou;
         __extends(TileMapLayer, _super);
         function TileMapLayer(id) {
             var _this = _super.call(this, id) || this;
+            /**
+             * 扩展预加载的图块数量
+             *
+             */
+            _this.preload = 0;
             /**
              *
              * 显示中的地图
@@ -11090,61 +10794,94 @@ var junyou;
             return _this;
         }
         TileMapLayer.prototype.setRect = function (rect) {
+            var _this = this;
             var cM = this.currentMap;
             if (!cM) {
                 return;
             }
-            //检查地图，进行加载区块
-            var x = rect.x;
-            var y = rect.y;
-            var w = rect.width;
-            var h = rect.height;
-            var pW = cM.pWidth;
-            var pH = cM.pHeight;
-            var sc = x / pW | 0;
-            var sr = y / pH | 0;
-            var ec = (x + w) / pW | 0;
-            var er = (y + h) / pH | 0;
-            sc = Math.max(sc, 0);
-            sr = Math.max(sr, 0);
-            ec = Math.min(ec, cM.maxPicX);
-            er = Math.min(er, cM.maxPicY);
             if (true) {
                 if (this.drawGrid) {
-                    this.drawGrid(x, y, w, h, cM);
+                    this.drawGrid(rect.x, rect.y, rect.width, rect.height, cM);
                 }
             }
-            if (sc == this.lsc && sr == this.lsr && ec == this.lec && er == this.ler) {
-                return;
-            }
-            this.lsc = sc;
-            this.lsr = sr;
-            this.lec = ec;
-            this.ler = er;
-            // 先将正在显示的全部标记为未使用
-            // 换地图也使用此方法处理
+            var pW = cM.pWidth;
+            var pH = cM.pHeight;
+            var add = 0;
             var showing = this._showing;
-            var now = junyou.Global.now;
-            var i = showing.length;
-            while (i > 0) {
-                var m = showing[--i];
-                m.isStatic = false;
-                m.lastUseTime = now;
-                this.$doRemoveChild(i, false);
-            }
-            i = 0;
-            var get = junyou.ResourceManager.get;
-            for (var r = sr; r <= er; r++) {
-                for (var c = sc; c <= ec; c++) {
-                    var uri = cM.getMapUri(c, r);
-                    var tm = get(uri, this.noRes, this, uri, c, r, pW, pH);
-                    // 舞台上的标记为静态
-                    tm.isStatic = true;
-                    this.$doAddChild(tm, i, false);
-                    showing[i++] = tm;
+            checkRect(cM, rect, this.preload, function (uri, c, r) {
+                var tm = junyou.ResourceManager.get(uri, _this.noRes, _this, uri, c, r, pW, pH);
+                // 舞台上的标记为静态
+                tm.isStatic = true;
+                _this.$doAddChild(tm, add, false);
+                showing[add++] = tm;
+            }, function (sc, sr, ec, er) {
+                if (sc == _this.lsc && sr == _this.lsr && ec == _this.lec && er == _this.ler) {
+                    return;
                 }
-            }
-            showing.length = i;
+                _this.lsc = sc;
+                _this.lsr = sr;
+                _this.lec = ec;
+                _this.ler = er;
+                // 先将正在显示的全部标记为未使用
+                // 换地图也使用此方法处理
+                var now = junyou.Global.now;
+                var left = showing.length;
+                while (left > 0) {
+                    var m = showing[--left];
+                    m.isStatic = false;
+                    m.lastUseTime = now;
+                    _this.$doRemoveChild(left, false);
+                }
+                return true;
+            });
+            showing.length = add;
+            // //检查地图，进行加载区块
+            // let x = rect.x;
+            // let y = rect.y;
+            // let w = rect.width;
+            // let h = rect.height;
+            // let pW = cM.pWidth;
+            // let pH = cM.pHeight;
+            // let pre = TileMapLayer.preload;
+            // let sc = x / pW | 0;
+            // let sr = y / pH | 0;
+            // let ec = (x + w) / pW | 0;
+            // let er = (y + h) / pH | 0;
+            // sc = Math.max(sc - pre, 0);
+            // sr = Math.max(sr - pre, 0);
+            // ec = Math.min(ec + pre, cM.maxPicX);
+            // er = Math.min(er + pre, cM.maxPicY);
+            // if (sc == this.lsc && sr == this.lsr && ec == this.lec && er == this.ler) {//要加载的块没有发生任何变更
+            //     return;
+            // }
+            // this.lsc = sc;
+            // this.lsr = sr;
+            // this.lec = ec;
+            // this.ler = er;
+            // // 先将正在显示的全部标记为未使用
+            // // 换地图也使用此方法处理
+            // let showing = this._showing;
+            // let now = Global.now;
+            // let i = showing.length;
+            // while (i > 0) {
+            //     let m = showing[--i];
+            //     m.isStatic = false;
+            //     m.lastUseTime = now;
+            //     this.$doRemoveChild(i, false);
+            // }
+            // i = 0;
+            // let get = ResourceManager.get;
+            // for (let r = sr; r <= er; r++) {
+            //     for (let c = sc; c <= ec; c++) {
+            //         let uri = cM.getMapUri(c, r);
+            //         let tm = get(uri, this.noRes, this, uri, c, r, pW, pH);
+            //         // 舞台上的标记为静态
+            //         tm.isStatic = true;
+            //         this.$doAddChild(tm, i, false);
+            //         showing[i++] = tm;
+            //     }
+            // }
+            // showing.length = i;
         };
         TileMapLayer.prototype.noRes = function (uri, c, r, pW, pH) {
             var tmp = new TileMap();
@@ -11163,6 +10900,7 @@ var junyou;
     }(junyou.GameLayer));
     junyou.TileMapLayer = TileMapLayer;
     __reflect(TileMapLayer.prototype, "junyou.TileMapLayer");
+    TileMapLayer.checkRect = checkRect;
     /**
     * TileMap
     */
@@ -11414,44 +11152,222 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
-     * 用于像统计接口发送步骤信息
-     * @author pb
+     * 资源的 版本字典
      */
-    junyou.Stats = (function () {
-        var _actionUrl, _ip, _sign, _pid, _uid, _sid;
-        return {
-            setUrl: function (url) {
-                if (url.charAt(url.length - 1) != "?") {
-                    url += "?";
-                }
-                _actionUrl = url;
-                return this;
-            },
-            setParams: function (params) {
-                _ip = getData(params.ip);
-                _pid = getData(params.pid);
-                _uid = getData(params.uid);
-                _sid = getData(params.sid);
-                return this;
-            },
-            setSign: function (sign) {
-                _sign = getData(sign);
-                return this;
-            },
-            postData: function (step) {
-                junyou.sendToUrl(_actionUrl + this.getParamUrl(step));
-            },
-            getParamUrl: function (step) {
-                return "step=" + getData(step) + "&ip=" + _ip
-                    + "&sign=" + _sign + "&pid=" + _pid
-                    + "&sid=" + _sid + "&uid=" + _uid
-                    + "&client_time=" + junyou.Global.now;
-            }
-        };
-        function getData(value) {
-            return value === undefined ? "" : encodeURIComponent(value);
+    var _hash = {};
+    /**
+     * 配置数据
+     */
+    var _data;
+    /**
+     * 注册的皮肤路径
+     * key      {string}   皮肤的key
+     * value    {Path}    皮肤实际路径地址
+     */
+    var _regedSkinPath = {};
+    var getPrefix;
+    var _res;
+    /**
+     * 获取皮肤路径
+     *
+     * @param {string} key
+     * @param {string} fileName
+     * @returns
+     */
+    function getSkinPath(key, fileName) {
+        return key + "/" + fileName;
+    }
+    /**
+     * 通过Path获取完整url
+     *
+     * @private
+     * @static
+     * @param {string} uri 路径标识
+     * @param {Path} path Path对象
+     * @returns
+     */
+    function getUrlWithPath(uri, path) {
+        if (/^((http|https):)?\/\//.test(uri)) {
+            return uri;
         }
-    })();
+        uri = path.tPath + uri;
+        var prefix = path.iPrefix ? "" : getPrefix(uri);
+        return prefix + uri;
+    }
+    /**
+     * 根据uri缓存url的字典
+     */
+    var uriDict = {};
+    /**
+     * 根据url缓存uri的字典
+     */
+    var urlDict = {};
+    /**
+     * 获取资源版本号
+     * @param uri
+     */
+    function getResVer(uri) {
+        return ~~(_hash && _hash[uri.hash()]);
+    }
+    /**
+     * 配置工具
+     * @author 3tion
+     * @export
+     * @class ConfigUtils
+     */
+    junyou.ConfigUtils = {
+        setData: function (data) {
+            _data = data;
+            !_data.params && (_data.params = {});
+            //检查路径是否存在有路径有父路径的，如果有，进行预处理
+            var paths = _data.paths;
+            for (var key in paths) {
+                var p = paths[key];
+                p.tPath = getPath(p);
+            }
+            _res = _data.paths.res;
+            //检查前缀
+            getPrefix = (function (prefixes) {
+                var len = 0;
+                if (prefixes) {
+                    len = prefixes.length;
+                }
+                switch (len) {
+                    case 0:
+                        return function (uri) { return ""; };
+                    case 1: {
+                        var prefix_1 = prefixes[0];
+                        return function (uri) { return prefix_1; };
+                    }
+                    default:
+                        return function (uri) {
+                            var idx = uri.hash() % prefixes.length;
+                            return prefixes[idx] || "";
+                        };
+                }
+            })(_data.prefixes);
+            function getPath(p) {
+                var parentKey = p.parent;
+                if (parentKey) {
+                    var parent_2 = paths[parentKey];
+                    if (parent_2) {
+                        return getPath(parent_2) + p.path;
+                    }
+                    else if (true) {
+                        junyou.ThrowError("\u8DEF\u5F84[" + p.path + "]\u914D\u7F6E\u4E86\u7236\u7EA7(parent)\uFF0C\u4F46\u662F\u627E\u4E0D\u5230\u5BF9\u5E94\u7684\u7236\u7EA7");
+                    }
+                }
+                return p.path;
+            }
+        },
+        /**
+         * 解析版本控制文件
+         * @param {ArrayBufferLike} hash
+         */
+        parseHash: function (hash) {
+            var dv = new DataView(hash);
+            var pos = 0;
+            var len = dv.byteLength;
+            _hash = {};
+            while (pos < len) {
+                var hash_1 = dv.getUint32(pos);
+                pos += 4 /* SIZE_OF_UINT32 */;
+                var version = dv.getUint16(pos);
+                pos += 2 /* SIZE_OF_UINT16 */;
+                _hash[hash_1] = version;
+            }
+            junyou.dispatch(-188 /* ParseResHash */);
+        },
+        /**
+         * 设置版本控制文件
+         * @param hash
+         */
+        setHash: function (hash) {
+            _hash = hash;
+        },
+        getResVer: getResVer,
+        /**
+         * 获取资源完整路径
+         *
+         * @static
+         * @param {string} uri                  路径标识
+         * @returns {string}
+         */
+        getResUrl: function (uri) {
+            var url = uriDict[uri];
+            if (!url) {
+                var ver = getResVer(uri);
+                if (ver) {
+                    if (uri.indexOf("?") == -1) {
+                        uri = uri + "?" + ver;
+                    }
+                    else {
+                        uri = uri + "&jyver=" + ver;
+                    }
+                }
+                url = getUrlWithPath(uri, _res);
+                uriDict[uri] = url;
+                urlDict[url] = uri;
+            }
+            return url;
+        },
+        /**
+         * 根据res的url获取uri
+         * @param {string} url
+         * @returns {string}
+         */
+        getResUri: function (url) {
+            return urlDict[url];
+        },
+        /**
+         * 获取参数
+         */
+        getParam: function (key) {
+            return _data.params[key];
+        },
+        getSkinPath: getSkinPath,
+        /**
+         * 获取皮肤文件地址
+         */
+        getSkinFile: function (key, fileName) {
+            return getUrlWithPath(getSkinPath(key, fileName), _regedSkinPath[key] || _data.paths.skin);
+        },
+        /**
+         * 设置皮肤路径
+         * 如 `lib` 原本应该放在当前项目  resource/skin/ 目录下
+         * 现在要将`lib`的指向改到  a/ 目录下
+         * 则使用下列代码
+         * ```typescript
+         * ConfigUtils.regSkinPath("lib","a/");
+         * ```
+         * 如果要将`lib`的指向改到 http://www.xxx.com/a/下
+         * 则使用下列代码
+         * ```typescript
+         * ConfigUtils.regSkinPath("lib","http://www.xxx.com/a/",true);
+         * ```
+         * 如果域名不同，`自行做好跨域策略CROS`
+         *
+         * @param {string} key
+         * @param {string} path
+         * @param {boolean} [iPrefix] 是否忽略皮肤前缀
+         */
+        regSkinPath: function (key, path, iPrefix) {
+            _regedSkinPath[key] = { tPath: path, path: path, iPrefix: iPrefix };
+        },
+        /**
+         * 获取路径
+         *
+         * @param {string} uri
+         * @param {string} pathKey
+         * @returns
+         */
+        getUrl: function (uri, pathKey) {
+            var path = _data.paths[pathKey];
+            if (path) {
+                return getUrlWithPath(uri, path);
+            }
+        }
+    };
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -11849,8 +11765,8 @@ var junyou;
             this.x = 0;
             this.y = 0;
             var list = this.$children;
-            for (var _i = 0, list_2 = list; _i < list_2.length; _i++) {
-                var bmp = list_2[_i];
+            for (var _i = 0, list_1 = list; _i < list_1.length; _i++) {
+                var bmp = list_1[_i];
                 bmp.recycle();
             }
         };
@@ -11862,6 +11778,954 @@ var junyou;
     }(egret.DisplayObjectContainer));
     junyou.UModel = UModel;
     __reflect(UModel.prototype, "junyou.UModel");
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 基本单位<br/>
+     * 是一个状态机<br/>
+     * @author 3tion
+     *
+     */
+    var Unit = (function (_super) {
+        __extends(Unit, _super);
+        function Unit() {
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            /**
+             * 当前骑乘标识
+             */
+            _this._mountType = 0 /* ground */;
+            _this._z = 0;
+            _this._rotation = 0;
+            return _this;
+        }
+        Object.defineProperty(Unit.prototype, "playSpeed", {
+            /**
+             * 播放速度，默认为1倍速度<br/>
+             * 值越高，速度越快
+             */
+            get: function () {
+                return this._render.playSpeed;
+            },
+            /**
+             * 设置播放速度
+             */
+            set: function (value) {
+                this._render.playSpeed = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Unit.prototype, "model", {
+            /**
+             * 用于放纸娃娃贴图的容器
+             * 只允许放ResourceBitmap
+             */
+            get: function () {
+                return this._model;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Unit.prototype, "resDict", {
+            /**
+             * 人物底图资源的字典
+             * key      {string}            部位
+             * value    {UnitResource}      资源
+             * @readonly
+             * @type {{}
+             */
+            get: function () {
+                return this._resDict;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Unit.prototype, "pst", {
+            /**
+             * 设置单位pst
+             */
+            set: function (pst) {
+                var pstInfo = this.getPstInfo(pst);
+                if (pstInfo != this._pstInfo) {
+                    this._pstInfo = pstInfo;
+                    this.pstInfoChange();
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Unit.prototype.init = function (pst, setting) {
+            this._resDict = {};
+            this.initDisplayList(setting);
+            this.pst = pst;
+            this.initDefaultAction();
+            this.startUnitAction();
+            this.onSpawn();
+            return this;
+        };
+        Unit.prototype.onSpawn = function () {
+            this.state = 0 /* Init */;
+            this.dispatch(-1998 /* UnitCreate */);
+        };
+        /**
+         * 重置渲染器时间
+         *
+         * @param {number} now (description)
+         */
+        Unit.prototype.resetRenderTime = function (now) {
+            this._render.reset(now);
+        };
+        /**
+         * 初始化显示列表
+         * @param setting
+         */
+        Unit.prototype.initDisplayList = function (setting) {
+            var render = new junyou.UnitRender(this);
+            var model = new junyou.UModel();
+            var body = new junyou.DSprite();
+            this._render = render;
+            render.model = model;
+            this._model = model;
+            this.body = body;
+            body.addChild(model);
+            //其他设置
+            this._depth = setting.getDepth();
+            if (setting.addToEngine) {
+                this.addedToEngine();
+            }
+        };
+        Object.defineProperty(Unit.prototype, "faceTo", {
+            /**
+             * 获取朝向
+             */
+            get: function () {
+                return this._render.faceTo;
+            },
+            /**
+             * 设置朝向
+             */
+            set: function (value) {
+                this._render.faceTo = value >> 0;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         * 播放自定义动作
+         *
+         * @param {ActionInfo} customAction 自定义动作
+         * @param {number} [startFrame=-1]  起始帧
+         */
+        Unit.prototype.doCustomAction = function (customAction, startFrame) {
+            if (startFrame === void 0) { startFrame = -1; }
+            var render = this._render;
+            var action = customAction.key;
+            if (this._action != action) {
+                this._action = action;
+                render.actionInfo = customAction;
+                startFrame = 0;
+            }
+            if (startFrame > -1) {
+                render.f = startFrame;
+            }
+        };
+        /**
+         * 执行动作序列
+         * @private 只允许UnitAction调用
+         */
+        Unit.prototype.doAction = function (now, action, startFrame) {
+            if (startFrame === void 0) { startFrame = -1; }
+            var render = this._render;
+            action = ~~action;
+            if (this._action != action) {
+                this._action = action;
+                render.actionInfo = this._pstInfo.frames[action];
+                render.reset(now);
+                startFrame = 0;
+            }
+            if (startFrame > -1) {
+                render.f = startFrame;
+            }
+            return render.actionInfo;
+        };
+        /**
+         * 获取当前动作序列
+         */
+        Unit.prototype.getCurAction = function () {
+            return this._render.actionInfo;
+        };
+        /**
+         * 对指定部位设置资源
+         *
+         * @protected
+         * @param {Key} part 部位
+         * @param {string} [uri] 资源路径，不传则清空部位
+         * @param {string} [pst] 通过其他pst配置进行加载
+         */
+        Unit.prototype.setRes = function (part, uri, pst) {
+            var old = this._resDict[part];
+            var res;
+            if (uri) {
+                var pstInfo = void 0;
+                if (pst) {
+                    pstInfo = this.getPstInfo(pst);
+                }
+                else {
+                    pstInfo = this._pstInfo;
+                }
+                if (pstInfo) {
+                    res = pstInfo.getUnitResource(uri);
+                }
+            }
+            if (res != old) {
+                this._resDict[part] = res;
+                this.invalidateResList();
+            }
+        };
+        /**
+         * 资源列表发生改变
+         */
+        Unit.prototype.invalidateResList = function () {
+            this._resListChange = true;
+        };
+        /**
+         * 刷新资源列表
+         */
+        Unit.prototype.refreshResList = function () {
+            if (this._resListChange) {
+                this.checkResList(this._partList);
+                this._resListChange = false;
+            }
+        };
+        /**
+         * 检查/重置资源列表
+         *
+         * @param {string[]} [resOrder] 部位的排列顺序
+         * @param {{ [index: string]: UnitResource }} [resDict] 部位和资源的字典
+         */
+        Unit.prototype.checkResList = function (resOrder, resDict) {
+            this._model.checkResList(resOrder || this._partList, resDict || this._resDict);
+        };
+        /**
+         * 执行默认的，基于enterframe的渲染
+         *
+         * @protected
+         */
+        Unit.prototype.$render = function () {
+            var now = junyou.Global.now;
+            this.refreshResList();
+            var currentAction = this._currentAction;
+            if (currentAction) {
+                currentAction.doData(this, now);
+                currentAction.doRender(this, now);
+            }
+            this._render.render(now);
+        };
+        /**
+         * 通过其他方式驱动数据
+         *
+         * @param {number} now 时间戳
+         */
+        Unit.prototype.doData = function (now) {
+            var currentAction = this._currentAction;
+            if (currentAction) {
+                currentAction.doData(this, now);
+            }
+            this._render.doData(now);
+        };
+        /**
+         * 通过其他方式驱动渲染
+         *
+         * @param {number} now 时间戳
+         */
+        Unit.prototype.doRender = function (now) {
+            this.refreshResList();
+            var currentAction = this._currentAction;
+            if (currentAction) {
+                currentAction.doRender(this, now);
+            }
+            this._render.doRender(now);
+        };
+        /**
+         * 回收
+         */
+        Unit.prototype.onRecycle = function () {
+            junyou.removeDisplay(this.body);
+            var model = this._model;
+            model.off("enterFrame" /* ENTER_FRAME */, this.$render, this);
+            model.clear();
+            this.rotation = 0;
+            this.z = 0;
+            // 回收ResourceBitmap
+            var dict = this._resDict;
+            for (var key in dict) {
+                delete dict[key];
+            }
+            var current = this._currentAction;
+            if (current) {
+                current.recycle();
+                this._currentAction = undefined;
+            }
+            var next = this._nextAction;
+            if (next) {
+                next.recycle();
+                this._nextAction = undefined;
+            }
+            this._action = undefined;
+            if (this._render) {
+                this._render.reset(0);
+            }
+            this.lastFrame = undefined;
+            this.dispatch(-1999 /* UnitRecycle */);
+        };
+        Unit.prototype.initDefaultAction = function () {
+            this.aStandBy = new junyou.UnitAction();
+        };
+        /**
+         * 开始执行单位动作
+         * @param {UnitAction} [action]     准备执行的动作，默认为待机动作
+         * @param {number}     [now]        执行时间，默认取全局时间
+         * @param {boolean}    [override]   是否强制覆盖当前动作，默认为否
+         * @return true     成功执行动作
+         *         false    未成功执行动作，将动作覆盖到下一个动作
+         */
+        Unit.prototype.startUnitAction = function (action, now, override) {
+            if (this.state != 1 /* Stage */) {
+                return;
+            }
+            if (!action) {
+                action = this.aStandBy;
+            }
+            now = now || junyou.Global.now;
+            var currentAction = this._currentAction;
+            /**
+             * 是否成功执行新的动作
+             */
+            var flag = false;
+            if (currentAction) {
+                if (currentAction != action) {
+                    if (currentAction.isEnd) {
+                        currentAction.recycle();
+                        flag = true;
+                    }
+                    else if (override || currentAction.canStop) {
+                        currentAction.terminate();
+                        currentAction.recycle();
+                        flag = true;
+                    }
+                    else {
+                        var next = this._nextAction;
+                        if (next) {
+                            if (next != action) {
+                                next.recycle();
+                                this._nextAction = action; //覆盖下一个动作
+                            }
+                        }
+                        else {
+                            this._nextAction = action;
+                        }
+                    }
+                }
+            }
+            else {
+                flag = true;
+            }
+            if (flag) {
+                currentAction = action;
+                currentAction.start(this, now);
+                this._currentAction = currentAction;
+            }
+            currentAction.playAction(this, this._mountType, now);
+            return flag;
+        };
+        /**
+         * 停止单位当前动作，做待机动作
+         *
+         * @param {number} [now]
+         */
+        Unit.prototype.stopUnitAction = function (now) {
+            this._nextAction = undefined;
+            this.startUnitAction(null, now, true);
+        };
+        Unit.prototype.setMountType = function (value) {
+            if (value != this._mountType) {
+                this._mountType = value;
+                //由子类实现 先向服务器请求坐骑状态变更，处理其他
+            }
+        };
+        /**
+         * 动作的动画播放完毕
+         */
+        Unit.prototype.playComplete = function (now) {
+            var currentAction = this._currentAction;
+            var flag;
+            if (currentAction) {
+                currentAction.playComplete(this, now);
+                if (currentAction.isEnd) {
+                    flag = true;
+                }
+                else {
+                    currentAction.playAction(this, this._mountType, now);
+                }
+            }
+            else {
+                flag = true;
+            }
+            if (flag) {
+                var next = this._nextAction;
+                this._nextAction = undefined;
+                this.startUnitAction(next, now);
+            }
+        };
+        /**
+         * 动作进行渲染的时候
+         */
+        Unit.prototype.onRenderFrame = function (now) {
+            var currentAction = this._currentAction;
+            if (currentAction) {
+                if (currentAction.isEnd) {
+                    this.startUnitAction(this._nextAction, now);
+                }
+            }
+            else {
+                this.startUnitAction(this._nextAction, now);
+            }
+        };
+        /**
+         * 执行动作中的回调事件
+         */
+        Unit.prototype.fire = function (eventType, now) {
+            var currentAction = this._currentAction;
+            if (currentAction) {
+                currentAction.dispatchEvent(this, eventType, now);
+            }
+        };
+        //        /**
+        //         * 绘制快照
+        //         */ 
+        //        public drawShortcut(){
+        //            //TODO
+        //            
+        //        }
+        /*↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑UnitAction相关↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑*/
+        /**
+         * 加到游戏引擎中
+         *
+         * @param {boolean} [doRender=true] 是否添加Event.ENTER_FRAME事件
+         */
+        Unit.prototype.addedToEngine = function (doRender) {
+            if (doRender === void 0) { doRender = true; }
+            // 子类实现其他层的添加
+            junyou.GameEngine.instance.getLayer(1760 /* Sorted */).addChild(this.body);
+            if (doRender) {
+                this.model.on("enterFrame" /* ENTER_FRAME */, this.$render, this);
+            }
+            this.state = 1 /* Stage */;
+            this.dispatch(-1997 /* UnitAddToStage */);
+        };
+        /**
+         * 添加到容器中
+         *
+         * @param {Container} container
+         * @param {boolean} [doRender=true]
+         *
+         * @memberOf Unit
+         */
+        Unit.prototype.addToContainer = function (container, doRender) {
+            if (doRender === void 0) { doRender = true; }
+            container.addChild(this.body);
+            if (doRender) {
+                this.model.on("enterFrame" /* ENTER_FRAME */, this.$render, this);
+            }
+            this.state = 1 /* Stage */;
+            this.dispatch(-1997 /* UnitAddToStage */);
+        };
+        Object.defineProperty(Unit.prototype, "x", {
+            get: function () {
+                return this._x;
+            },
+            /**
+             * 此方法只允许 UnitAction调用
+             */
+            set: function (value) {
+                value = value >> 0;
+                if (this._x != value) {
+                    this._x = value;
+                    this.checkPosition();
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Unit.prototype, "y", {
+            get: function () {
+                return this._y;
+            },
+            /**
+             * 此方法只允许 UnitAction调用
+             */
+            set: function (value) {
+                value = value >> 0;
+                if (this._y != value) {
+                    this._y = value;
+                    this.checkPosition();
+                    junyou.GameEngine.invalidateSort();
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Unit.prototype, "z", {
+            get: function () {
+                return this._z;
+            },
+            /**
+             * 此方法只允许 UnitAction调用
+             */
+            set: function (value) {
+                value = value >> 0;
+                if (this._z != value) {
+                    this._z = value;
+                    this.checkPosition();
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         * 检查模型和其他的y轴
+         */
+        Unit.prototype.checkPosition = function () {
+            var body = this.body;
+            if (body) {
+                body.depth = this._depth + this._y;
+                body.y = this._y + this._z;
+                body.x = this._x;
+            }
+        };
+        Object.defineProperty(Unit.prototype, "rotation", {
+            /**
+             * 获得模型的旋转角度
+             */
+            get: function () {
+                return this._rotation;
+            },
+            /**
+             * 设置旋转角度
+             * 表示 DisplayObject 实例距其原始方向的旋转程度，以度为单位。
+             * 从 0 到 180 的值表示顺时针方向旋转；从 0 到 -180 的值表示逆时针方向旋转。对于此范围之外的值，可以通过加上或减去 360 获得该范围内的值。
+             * 例如，myDisplayObject.rotation = 450语句与 myDisplayObject.rotation = 90 是相同的
+             */
+            set: function (value) {
+                if (this._rotation != value) {
+                    this._rotation = value;
+                    if (this._model.scaleX >= 0) {
+                        this._model.rotation = value;
+                    }
+                    else {
+                        this._model.rotation = -value;
+                    }
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         * 根据 resKey 获取纹理
+         * @param {Key} resKey resDict的key
+         * @param {IDrawInfo} [drawInfo] 动作，方向，帧数信息
+         */
+        Unit.prototype.getTexture = function (resKey, drawInfo) {
+            drawInfo = drawInfo || this._render;
+            if (drawInfo) {
+                var res = this._resDict[resKey];
+                if (res) {
+                    return res.getTexture(drawInfo);
+                }
+            }
+        };
+        return Unit;
+    }(egret.EventDispatcher));
+    junyou.Unit = Unit;
+    __reflect(Unit.prototype, "junyou.Unit");
+})(junyou || (junyou = {}));
+/**
+ * DataLocator的主数据
+ * 原 junyou.DataLocator.data  的全局别名简写
+ */
+var $DD = {};
+/**
+ * DataLocator的附加数据
+ * 原junyou.DataLocator.extra 的全局别名简写
+ */
+var $DE;
+var junyou;
+(function (junyou) {
+    var parsers = {};
+    /**
+     *
+     * 用于处理顺序
+     * @private
+     * @static
+     */
+    var _plist = [];
+    /**
+     * 配置加载器<br/>
+     * 用于预加载数据的解析
+     * @author 3tion
+     *
+     */
+    junyou.DataLocator = {
+        regParser: regParser,
+        /**
+         * 解析打包的配置
+         */
+        parsePakedDatas: function (type) {
+            var configs = RES.getRes("cfgs");
+            RES.destroyRes("cfgs");
+            if (type == 1) {
+                configs = decodePakCfgs(new junyou.ByteArray(configs));
+            }
+            // 按顺序解析
+            for (var _i = 0, _plist_1 = _plist; _i < _plist_1.length; _i++) {
+                var key = _plist_1[_i];
+                var parser = parsers[key];
+                var data = parser(configs[key]);
+                if (data) {
+                    $DD[key] = data;
+                }
+            }
+            var extraData = {};
+            //处理额外数据
+            for (var key in configs) {
+                if (key.charAt(0) == "$") {
+                    var raw = configs[key];
+                    key = key.substr(1);
+                    if (raw) {
+                        var i = 0, len = raw.length, data = {};
+                        while (i < len) {
+                            var sub = raw[i++];
+                            var value = raw[i++];
+                            var test = raw[i];
+                            if (typeof test === "number") {
+                                i++;
+                                value = getJSONValue(value, test);
+                            }
+                            data[sub] = value;
+                        }
+                        extraData[key] = data;
+                    }
+                }
+            }
+            $DE = extraData;
+            //清理内存
+            parsers = null;
+            _plist = null;
+            delete junyou.DataLocator;
+        },
+        /**
+         *
+         * 注册通过H5ExcelTool导出的数据并且有唯一标识的使用此方法注册
+         * @param {keyof CfgData} key 数据的标识
+         * @param {(Creator<any> | 0)} CfgCreator 配置的类名
+         * @param {(string | 0)} [idkey="id"] 唯一标识 0用于标识数组
+         * @param {CfgDataType} [type]
+         */
+        regCommonParser: function (key, CfgCreator, idkey, type) {
+            if (idkey === void 0) { idkey = "id"; }
+            regParser(key, function (data) {
+                if (!data)
+                    return;
+                var dict, forEach;
+                var headersRaw = data[0];
+                var hasLocal;
+                for (var j = 0; j < headersRaw.length; j++) {
+                    var head = headersRaw[j];
+                    if ((head[2] & 2 /* Local */) == 2 /* Local */) {
+                        hasLocal = 1;
+                    }
+                }
+                (_a = getParserOption(idkey, type), type = _a[0], dict = _a[1], forEach = _a[2]);
+                try {
+                    var ref = CfgCreator || Object;
+                    for (var i = 1; i < data.length; i++) {
+                        var rowData = data[i];
+                        var ins = new ref();
+                        var local = hasLocal && {};
+                        for (var j = 0; j < headersRaw.length; j++) {
+                            var head = headersRaw[j];
+                            var name_6 = head[0], test = head[1], type_1 = head[2], def = head[3];
+                            var v = getJSONValue(rowData[j], test, def);
+                            if ((type_1 & 2 /* Local */) == 2 /* Local */) {
+                                local[name_6] = v;
+                            }
+                            else {
+                                ins[name_6] = v;
+                            }
+                        }
+                        forEach(ins, i - 1, key, dict, idkey);
+                        if (typeof ins.decode === "function") {
+                            ins.decode(local);
+                        }
+                    }
+                    if (type == 1 /* ArraySet */) {
+                        dict = new junyou.ArraySet().setRawList(dict, idkey);
+                    }
+                }
+                catch (e) {
+                    if (true) {
+                        junyou.ThrowError("\u89E3\u6790\u914D\u7F6E:" + key + "\u51FA\u9519", e);
+                    }
+                }
+                return dict;
+                var _a;
+            });
+        },
+        regBytesParser: regBytesParser
+    };
+    /**
+     * 注册配置解析
+     * @param key       配置的标识
+     * @param parser    解析器
+     */
+    function regParser(key, parser) {
+        parsers[key] = parser;
+        _plist.push(key);
+    }
+    function getJSONValue(value, type, def) {
+        // 特殊类型数据
+        switch (type) {
+            case 0 /* Any */:
+                if (value == null) {
+                    value = def;
+                }
+                break;
+            case 1 /* String */:
+                if (value === 0 || value == null) {
+                    value = def || "";
+                }
+                break;
+            case 2 /* Number */:
+            case 9 /* Int32 */:
+                // 0 == "" // true
+                if (value === "" || value == null) {
+                    value = +def || 0;
+                }
+                break;
+            case 3 /* Bool */:
+                if (value == null) {
+                    value = def;
+                }
+                value = !!value;
+                break;
+            case 4 /* Array */:
+            case 5 /* Array2D */:
+                if (value === 0) {
+                    value = undefined;
+                }
+                if (!value && def) {
+                    value = def;
+                }
+                break;
+            case 6 /* Date */:
+            case 8 /* DateTime */:
+                value = new Date((value || def || 0) * 10000);
+                break;
+            case 7 /* Time */:
+                value = new junyou.TimeVO().decodeBit(value || def || 0);
+                break;
+        }
+        return value;
+    }
+    /**
+     * 用于解析数组
+     *
+     * @memberOf DataLocator
+     */
+    function arrayParserForEach(t, idx, key, dict) {
+        dict.push(t);
+    }
+    /**
+     * 用于解析字典
+     */
+    function commonParserForEach(t, idx, key, dict, idKey) {
+        if (idKey in t) {
+            var id = t[idKey];
+            if (true) {
+                if (typeof id === "object") {
+                    junyou.Log("\u914D\u7F6E" + key + "\u7684\u6570\u636E\u6709\u8BEF\uFF0C\u552F\u4E00\u6807\u8BC6" + idKey + "\u4E0D\u80FD\u4E3A\u5BF9\u8C61");
+                }
+                if (id in dict) {
+                    junyou.Log("\u914D\u7F6E" + key + "\u7684\u6570\u636E\u6709\u8BEF\uFF0C\u552F\u4E00\u6807\u8BC6" + idKey + "\u6709\u91CD\u590D\u503C\uFF1A" + id);
+                }
+            }
+            dict[id] = t;
+        }
+        else if (true) {
+            junyou.Log("\u914D\u7F6E" + key + "\u89E3\u6790\u6709\u8BEF\uFF0C\u65E0\u6CD5\u627E\u5230\u6307\u5B9A\u7684\u552F\u4E00\u6807\u793A\uFF1A" + idKey + "\uFF0C\u6570\u636E\u7D22\u5F15\uFF1A" + idx);
+        }
+    }
+    var CfgHeadStruct = {
+        1: [0, 2 /* Required */, 9 /* String */] /*必有 属性名字*/,
+        2: [1, 2 /* Required */, 14 /* Enum */] /*必有 数值的数据类型*/,
+        3: [2, 1 /* Optional */, 14 /* Enum */] /*可选 此列的状态*/,
+        4: [3, 1 /* Optional */, 17 /* SInt32 */] /*可选 bool / int32 型默认值 */,
+        5: [4, 1 /* Optional */, 1 /* Double */] /*可选 double 型默认值 */,
+        6: [5, 1 /* Optional */, 9 /* String */] /*可选 字符串型默认值 */
+    };
+    junyou.PBUtils.initDefault(CfgHeadStruct);
+    //配置数据 打包的文件结构数据
+    //readUnsignedByte 字符串长度 readString 表名字 readUnsignedByte 配置类型(0 PBBytes 1 JSON字符串) readVarint 数据长度
+    function decodePakCfgs(buffer) {
+        var cfgs = {};
+        while (buffer.readAvailable) {
+            var len = buffer.readUnsignedByte();
+            var key = buffer.readUTFBytes(len); //得到表名
+            var type = buffer.readUnsignedByte();
+            var value = void 0;
+            len = buffer.readVarint();
+            switch (type) {
+                case 0://JSON字符串
+                    var str = buffer.readUTFBytes(len);
+                    value = JSON.parse(str);
+                    break;
+                case 1://PBBytes
+                    value = buffer.readByteArray(len);
+                    break;
+            }
+            cfgs[key] = value;
+        }
+        return cfgs;
+    }
+    function getParserOption(idkey, type) {
+        if (idkey === void 0) { idkey = "id"; }
+        var dict, forEach;
+        if (idkey == "" || idkey == 0) {
+            type = 2 /* Array */;
+        }
+        else if (!type) {
+            type = 3 /* Dictionary */;
+        }
+        switch (type) {
+            case 2 /* Array */:
+            case 1 /* ArraySet */:
+                dict = [];
+                forEach = arrayParserForEach;
+                break;
+            case 3 /* Dictionary */:
+                dict = {};
+                forEach = commonParserForEach;
+                break;
+        }
+        return [type, dict, forEach];
+    }
+    /**
+     * 通用的Bytes版本的配置解析器
+     * @param buffer
+     */
+    function regBytesParser(key, CfgCreator, idkey, type) {
+        if (idkey === void 0) { idkey = "id"; }
+        regParser(key, function (bytes) {
+            if (!bytes) {
+                return;
+            }
+            var dict, forEach;
+            (_a = getParserOption(idkey, type), type = _a[0], dict = _a[1], forEach = _a[2]);
+            try {
+                var struct = {};
+                var headersRaw = [];
+                var i = 0;
+                var count = bytes.readVarint(); //头的数量
+                var hasLocal = void 0;
+                while (bytes.readAvailable && count--) {
+                    var len = bytes.readVarint();
+                    var head = junyou.PBUtils.readFrom(CfgHeadStruct, bytes, len);
+                    var name_7 = head[0], headType = head[1], headState = head[2], i32Def = head[3], dblDef = head[4], strDef = head[5];
+                    var def = void 0, isJSON = 0, pbType = void 0;
+                    switch (headType) {
+                        case 0 /* Any */:
+                        case 1 /* String */:
+                            def = strDef;
+                            pbType = 9 /* String */;
+                            break;
+                        case 2 /* Number */:
+                            def = dblDef;
+                            pbType = 1 /* Double */;
+                            break;
+                        case 3 /* Bool */:
+                        case 9 /* Int32 */:
+                        case 6 /* Date */:
+                        case 7 /* Time */:
+                        case 8 /* DateTime */:
+                            def = i32Def;
+                            pbType = 17 /* SInt32 */;
+                            break;
+                        case 4 /* Array */:
+                        case 5 /* Array2D */:
+                            if (strDef) {
+                                def = JSON.parse(strDef);
+                            }
+                            pbType = 9 /* String */;
+                            isJSON = 1;
+                            break;
+                    }
+                    struct[i + 1] = [name_7, 1 /* Optional */, pbType, def];
+                    head.length = 5;
+                    head[3] = def;
+                    head[4] = isJSON;
+                    headersRaw[i++] = head;
+                    if ((headState & 2 /* Local */) == 2 /* Local */) {
+                        hasLocal = 1;
+                    }
+                }
+                junyou.PBUtils.initDefault(struct, CfgCreator.prototype);
+                var headLen = i;
+                i = 0;
+                count = bytes.readVarint(); //行的数量
+                while (bytes.readAvailable && count--) {
+                    var len = bytes.readVarint();
+                    var obj = junyou.PBUtils.readFrom(struct, bytes, len);
+                    if (!obj) {
+                        continue;
+                    }
+                    if (CfgCreator) {
+                        CfgCreator.call(obj);
+                    }
+                    var local = hasLocal && {};
+                    for (var j = 0; j < headLen; j++) {
+                        var head = headersRaw[j];
+                        var name_8 = head[0], test = head[1], type_2 = head[2], def = head[3], isJSON = head[4];
+                        var value = obj[name_8];
+                        if (value && isJSON) {
+                            value = JSON.parse(value);
+                        }
+                        var v = getJSONValue(value, test, def);
+                        if ((type_2 & 2 /* Local */) == 2 /* Local */) {
+                            local[name_8] = v;
+                        }
+                        else {
+                            obj[name_8] = v;
+                        }
+                    }
+                    forEach(obj, i++, key, dict, idkey);
+                    if (typeof obj.decode === "function") {
+                        obj.decode(local);
+                    }
+                }
+                if (type == 1 /* ArraySet */) {
+                    dict = new junyou.ArraySet().setRawList(dict, idkey);
+                }
+            }
+            catch (e) {
+                if (true) {
+                    junyou.ThrowError("\u89E3\u6790\u914D\u7F6E:" + key + "\u51FA\u9519", e);
+                }
+            }
+            return dict;
+            var _a;
+        });
+    }
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -13150,201 +14014,114 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    /**
-     * 基于4个顶点变形的纹理
-     *
-     * @export
-     * @class QuadTransform
-     */
-    var QuadTransform = (function () {
-        function QuadTransform() {
-            this._tex = new egret.RenderTexture();
-            this._canvas = document.createElement("canvas");
-            this._content = this._canvas.getContext("2d");
+    function getData(valueList, keyList, o) {
+        o = o || {};
+        for (var i = 0, len = keyList.length; i < len; i++) {
+            var key = keyList[i];
+            var v = valueList[i];
+            if (v != undefined) {
+                o[key] = valueList[i];
+            }
         }
-        /**
-         * 绘制白鹭的可视对象，并且进行变形
-         *
-         * @param {egret.DisplayObject} display
-         * @param {{ x: number, y: number }} ptl
-         * @param {{ x: number, y: number }} ptr
-         * @param {{ x: number, y: number }} pbl
-         * @param {{ x: number, y: number }} pbr
-         *
-         * @memberOf QuadTransform
-         */
-        QuadTransform.prototype.drawDisplay = function (display, ptl, ptr, pbl, pbr) {
-            var rawWidth = display.width;
-            var rawHeight = display.height;
-            ptl = ptl || { x: 0, y: 0 };
-            ptr = ptr || { x: rawWidth, y: 0 };
-            pbl = pbl || { x: 0, y: rawHeight };
-            pbr = pbr || { x: rawWidth, y: rawHeight };
-            //获取新的位图大小
-            var ptlx = ptl.x, ptly = ptl.y, ptrx = ptr.x, ptry = ptr.y, pblx = pbl.x, pbly = pbl.y, pbrx = pbr.x, pbry = pbr.y;
-            var minX = Math.min(ptlx, ptrx, pblx, pbrx);
-            var maxX = Math.max(ptlx, ptrx, pblx, pbrx);
-            var minY = Math.min(ptly, ptry, pbly, pbry);
-            var maxY = Math.max(ptly, ptry, pbly, pbry);
-            var width = maxX - minX;
-            var height = maxY - minY;
-            // let bytes = new Uint8ClampedArray(width * height * 4);
-            var canvas = this._canvas;
-            canvas.width = width;
-            canvas.height = height;
-            var content = this._content;
-            var imgData = content.createImageData(width, height);
-            var bytes = imgData.data;
-            //获取原始位图数据
-            var tex = this._tex;
-            tex.drawToTexture(display);
-            var source = tex.getPixels(0, 0, rawWidth, rawHeight);
-            // top left
-            ptl.Rx = ptl.Rx || 0;
-            ptl.Ry = ptl.Ry || 0;
-            //top right
-            ptr.Rx = ptr.Rx || rawWidth;
-            ptr.Ry = ptr.Ry || 0;
-            //bottom right
-            pbr.Rx = pbr.Rx || rawWidth;
-            pbr.Ry = pbr.Ry || rawHeight;
-            //bottom left
-            pbl.Rx = pbl.Rx || 0;
-            pbl.Ry = pbl.Ry || rawHeight;
-            //使用 向辉 寿标《真实感图像的颜色插值及其应用》计算机世界月刊，1992年10月 的方案进行计算
-            var dict = [];
-            var edges = 0;
-            edges += makeEdge(ptl, ptr, dict);
-            edges += makeEdge(ptr, pbr, dict);
-            edges += makeEdge(pbr, pbl, dict);
-            edges += makeEdge(pbl, ptl, dict);
-            if (edges > 0) {
-                var ael = [];
-                var tael = [];
-                for (var y = 0; y < maxY; y++) {
-                    var edges_1 = dict[y];
-                    if (edges_1 && edges_1.length) {
-                        edges_1.appendTo(ael);
-                        ael.doSort("dx");
+        return o;
+    }
+    function copyData(to, valueList, keyList) {
+        for (var i = 0, len = keyList.length; i < len; i++) {
+            var key = keyList[i];
+            to[key] = valueList[i];
+        }
+    }
+    /**
+     *
+     * @author 君游项目解析工具
+     *
+     */
+    junyou.DataUtils = {
+        parseDatas: function (to, from, checkStart, checkEnd, dataKey, typeKey, toDatasKey) {
+            var arr;
+            for (var i = checkStart; i <= checkEnd; i++) {
+                var key = dataKey + i;
+                if (key in from) {
+                    if (!arr) {
+                        arr = [];
                     }
-                    var len = ael.length - 1;
-                    if (len > 0) {
-                        for (var i = 0; i < len; i++) {
-                            var edgeA = ael[i];
-                            var xLeft = edgeA.x;
-                            //let pLeft = { x: xLeft, y };
-                            var lRx = edgeA.Rx;
-                            var lRy = edgeA.Ry;
-                            var edgeB = ael[i + 1];
-                            //得到区段
-                            var xRight = edgeB.x;
-                            var rRx = edgeB.Rx;
-                            var rRy = edgeB.Ry;
-                            var xWidth = xLeft - xRight;
-                            var dRxx = 0, dRyx = 0;
-                            if (xWidth) {
-                                dRxx = (lRx - rRx) / xWidth;
-                                dRyx = (lRy - rRy) / xWidth;
-                            }
-                            for (var x = xLeft; x <= xRight; x++) {
-                                var ix = lRx | 0;
-                                var u = lRx - ix;
-                                var iy = lRy | 0;
-                                var v = lRy - iy;
-                                //得到像素，做双线性插值
-                                var pos00 = (iy * rawWidth + ix) * 4;
-                                var r00 = source[pos00];
-                                var g00 = source[pos00 + 1];
-                                var b00 = source[pos00 + 2];
-                                var a00 = source[pos00 + 3];
-                                var pos10 = pos00 + 4;
-                                var r10 = source[pos10];
-                                var g10 = source[pos10 + 1];
-                                var b10 = source[pos10 + 2];
-                                var a10 = source[pos10 + 3];
-                                var pos01 = ((iy + 1) * rawWidth + ix) * 4;
-                                var r01 = source[pos01];
-                                var g01 = source[pos01 + 1];
-                                var b01 = source[pos01 + 2];
-                                var a01 = source[pos01 + 3];
-                                var pos11 = pos01 + 4;
-                                var r11 = source[pos11];
-                                var g11 = source[pos11 + 1];
-                                var b11 = source[pos11 + 2];
-                                var a11 = source[pos11 + 3];
-                                var u1 = 1 - u;
-                                var v1 = 1 - v;
-                                var pm00 = u1 * v1;
-                                var pm10 = u * v1;
-                                var pm01 = u1 * v;
-                                var pm11 = u * v;
-                                var pos = (y * width + x) * 4;
-                                bytes[pos] = r00 * pm00 + r10 * pm10 + r01 * pm01 + r11 * pm11;
-                                bytes[pos + 1] = g00 * pm00 + g10 * pm10 + g01 * pm01 + g11 * pm11;
-                                bytes[pos + 2] = b00 * pm00 + b10 * pm10 + b01 * pm01 + b11 * pm11;
-                                bytes[pos + 3] = a00 * pm00 + a10 * pm10 + a01 * pm01 + a11 * pm11;
-                                lRx += dRxx;
-                                lRy += dRyx;
-                            }
-                        }
-                        var l = 0;
-                        for (var i = 0; i <= len; i++) {
-                            l = edgeCheckAndInc(ael[i], tael, l, y);
-                        }
-                        tael.length = l;
-                        var tmp = ael;
-                        ael = tael;
-                        tael = tmp;
+                    arr[i] = from[key];
+                }
+            }
+            if (!arr) {
+                if (typeKey in from) {
+                    arr = [];
+                    to[typeKey] = from[typeKey];
+                }
+            }
+            if (arr) {
+                to[toDatasKey] = arr;
+            }
+        },
+        parseDatas2: function (to, valueList, keyList, checkStart, checkEnd, dataKey, typeKey, toDatasKey) {
+            var arr;
+            for (var i = checkStart; i <= checkEnd; i++) {
+                var key = dataKey + i;
+                var idx = keyList.indexOf(key);
+                if (~idx) {
+                    if (!arr) {
+                        arr = [];
                     }
+                    arr[i] = valueList[idx];
                 }
             }
-            content.putImageData(imgData, 0, 0);
-            return egret.BitmapData.create("base64", canvas.toDataURL());
-            function edgeCheckAndInc(edge, list, l, y) {
-                if (edge.ymax > y) {
-                    list[l++] = edge;
-                    edge.Rx += edge.dRx;
-                    edge.Ry += edge.dRy;
-                    edge.x = Math.round(edge.x + edge.dx);
+            if (!arr) {
+                // 数据中有列表值
+                var idx = keyList.indexOf(typeKey);
+                if (~idx) {
+                    arr = [];
+                    to[typeKey] = valueList[idx];
                 }
-                return l;
             }
-            function makeEdge(p0, p1, dict) {
-                var x, Rx, Ry, ymax, ymin;
-                if (p0.y == p1.y) {
-                    return 0;
-                }
-                if (p0.y < p1.y) {
-                    x = p0.x;
-                    Rx = p0.Rx;
-                    Ry = p0.Ry;
-                    ymax = p1.y;
-                    ymin = p0.y;
-                }
-                else {
-                    x = p1.x;
-                    Rx = p1.Rx;
-                    Ry = p1.Ry;
-                    ymax = p0.y;
-                    ymin = p1.y;
-                }
-                var deltaY = p0.y - p1.y;
-                var dx = (p0.x - p1.x) / deltaY;
-                var dRx = (p0.Rx - p1.Rx) / deltaY;
-                var dRy = (p0.Ry - p1.Ry) / deltaY;
-                var edges = dict[ymin];
-                if (!edges) {
-                    dict[ymin] = edges = [];
-                    edges.minY = ymin;
-                }
-                edges.push({ x: x, Rx: Rx, Ry: Ry, ymax: ymax, dx: dx, dRx: dRx, dRy: dRy });
-                return 1;
+            if (arr) {
+                to[toDatasKey] = arr;
             }
-        };
-        return QuadTransform;
-    }());
-    junyou.QuadTransform = QuadTransform;
-    __reflect(QuadTransform.prototype, "junyou.QuadTransform");
+        },
+        getData: getData,
+        getDataList: function (dataList, keyList) {
+            var list = [];
+            if (dataList) {
+                for (var i = 0, len = dataList.length; i < len; i++) {
+                    var valueList = dataList[i];
+                    list.push(getData(valueList, keyList));
+                }
+            }
+            return list;
+        },
+        parseDataList: function (dataList, keyList, forEach, thisObj) {
+            var args = [];
+            for (var _i = 4; _i < arguments.length; _i++) {
+                args[_i - 4] = arguments[_i];
+            }
+            if (dataList) {
+                for (var i = 0, len = dataList.length; i < len; i++) {
+                    var valueList = dataList[i];
+                    var to = getData(valueList, keyList);
+                    forEach.call(thisObj, to, args, i);
+                }
+            }
+        },
+        copyData: copyData,
+        copyDataList: function (creator, dataList, keyList, forEach, thisObj) {
+            var args = [];
+            for (var _i = 5; _i < arguments.length; _i++) {
+                args[_i - 5] = arguments[_i];
+            }
+            if (dataList) {
+                for (var i = 0, len = dataList.length; i < len; i++) {
+                    var valueList = dataList[i];
+                    var to = new creator();
+                    copyData(to, valueList, keyList);
+                    forEach.call(thisObj, to, args, i);
+                }
+            }
+        },
+    };
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -13470,7 +14247,7 @@ var junyou;
         ModuleScript.prototype.load = function () {
             if (this.state == 0 /* UNREQUEST */) {
                 var url = this.url || junyou.Facade.Script.substitute(this.id);
-                junyou.loadScript(url, this.onScriptLoaded, this);
+                loadScript(url, this.onScriptLoaded, this);
                 this.state = 1 /* REQUESTING */;
             }
         };
@@ -13493,222 +14270,70 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    /**
-     * 资源的 版本字典
-     */
-    var _hash = {};
-    /**
-     * 配置数据
-     */
-    var _data;
-    /**
-     * 注册的皮肤路径
-     * key      {string}   皮肤的key
-     * value    {Path}    皮肤实际路径地址
-     */
-    var _regedSkinPath = {};
-    var getPrefix;
-    var _res;
-    /**
-     * 获取皮肤路径
-     *
-     * @param {string} key
-     * @param {string} fileName
-     * @returns
-     */
-    function getSkinPath(key, fileName) {
-        return key + "/" + fileName;
+    function getZuobiao(data) {
+        return { x: data[0], y: data[1] };
     }
-    /**
-     * 通过Path获取完整url
-     *
-     * @private
-     * @static
-     * @param {string} uri 路径标识
-     * @param {Path} path Path对象
-     * @returns
-     */
-    function getUrlWithPath(uri, path) {
-        if (/^((http|https):)?\/\//.test(uri)) {
-            return uri;
+    junyou.DataUtils.getZuobiao = getZuobiao;
+    junyou.DataUtils.getZuobiaos = function (data, out) {
+        out = out || [];
+        for (var i = 0; i < data.length; i++) {
+            out.push(getZuobiao(data[i]));
         }
-        uri = path.tPath + uri;
-        var prefix = path.iPrefix ? "" : getPrefix(uri);
-        return prefix + uri;
-    }
-    /**
-     * 根据uri缓存url的字典
-     */
-    var uriDict = {};
-    /**
-     * 根据url缓存uri的字典
-     */
-    var urlDict = {};
-    /**
-     * 获取资源版本号
-     * @param uri
-     */
-    function getResVer(uri) {
-        return ~~(_hash && _hash[uri.hash()]);
-    }
-    /**
-     * 配置工具
-     * @author 3tion
-     * @export
-     * @class ConfigUtils
-     */
-    junyou.ConfigUtils = {
-        setData: function (data) {
-            _data = data;
-            !_data.params && (_data.params = {});
-            //检查路径是否存在有路径有父路径的，如果有，进行预处理
-            var paths = _data.paths;
-            for (var key in paths) {
-                var p = paths[key];
-                p.tPath = getPath(p);
-            }
-            _res = _data.paths.res;
-            //检查前缀
-            getPrefix = (function (prefixes) {
-                var len = 0;
-                if (prefixes) {
-                    len = prefixes.length;
+    };
+    junyou.DataUtils.parseXAttr = function (from, xattr, delOriginKey, xReg) {
+        if (delOriginKey === void 0) { delOriginKey = true; }
+        if (xReg === void 0) { xReg = /^x\d+$/; }
+        var keyCount = 0;
+        for (var key in from) {
+            if (xReg.test(key)) {
+                var value = +(from[key]);
+                if (value > 0) {
+                    keyCount++;
+                    xattr[key] = value;
                 }
-                switch (len) {
-                    case 0:
-                        return function (uri) { return ""; };
-                    case 1: {
-                        var prefix_1 = prefixes[0];
-                        return function (uri) { return prefix_1; };
-                    }
-                    default:
-                        return function (uri) {
-                            var idx = uri.hash() % prefixes.length;
-                            return prefixes[idx] || "";
-                        };
+                if (delOriginKey) {
+                    delete from[key];
                 }
-            })(_data.prefixes);
-            function getPath(p) {
-                var parentKey = p.parent;
-                if (parentKey) {
-                    var parent_2 = paths[parentKey];
-                    if (parent_2) {
-                        return getPath(parent_2) + p.path;
-                    }
-                    else if (true) {
-                        junyou.ThrowError("\u8DEF\u5F84[" + p.path + "]\u914D\u7F6E\u4E86\u7236\u7EA7(parent)\uFF0C\u4F46\u662F\u627E\u4E0D\u5230\u5BF9\u5E94\u7684\u7236\u7EA7");
-                    }
-                }
-                return p.path;
-            }
-        },
-        /**
-         * 解析版本控制文件
-         * @param {ArrayBufferLike} hash
-         */
-        parseHash: function (hash) {
-            var dv = new DataView(hash);
-            var pos = 0;
-            var len = dv.byteLength;
-            _hash = {};
-            while (pos < len) {
-                var hash_1 = dv.getUint32(pos);
-                pos += 4 /* SIZE_OF_UINT32 */;
-                var version = dv.getUint16(pos);
-                pos += 2 /* SIZE_OF_UINT16 */;
-                _hash[hash_1] = version;
-            }
-            junyou.dispatch(-188 /* ParseResHash */);
-        },
-        /**
-         * 设置版本控制文件
-         * @param hash
-         */
-        setHash: function (hash) {
-            _hash = hash;
-        },
-        getResVer: getResVer,
-        /**
-         * 获取资源完整路径
-         *
-         * @static
-         * @param {string} uri                  路径标识
-         * @returns {string}
-         */
-        getResUrl: function (uri) {
-            var url = uriDict[uri];
-            if (!url) {
-                var ver = getResVer(uri);
-                if (ver) {
-                    if (uri.indexOf("?") == -1) {
-                        uri = uri + "?" + ver;
-                    }
-                    else {
-                        uri = uri + "&jyver=" + ver;
-                    }
-                }
-                url = getUrlWithPath(uri, _res);
-                uriDict[uri] = url;
-                urlDict[url] = uri;
-            }
-            return url;
-        },
-        /**
-         * 根据res的url获取uri
-         * @param {string} url
-         * @returns {string}
-         */
-        getResUri: function (url) {
-            return urlDict[url];
-        },
-        /**
-         * 获取参数
-         */
-        getParam: function (key) {
-            return _data.params[key];
-        },
-        getSkinPath: getSkinPath,
-        /**
-         * 获取皮肤文件地址
-         */
-        getSkinFile: function (key, fileName) {
-            return getUrlWithPath(getSkinPath(key, fileName), _regedSkinPath[key] || _data.paths.skin);
-        },
-        /**
-         * 设置皮肤路径
-         * 如 `lib` 原本应该放在当前项目  resource/skin/ 目录下
-         * 现在要将`lib`的指向改到  a/ 目录下
-         * 则使用下列代码
-         * ```typescript
-         * ConfigUtils.regSkinPath("lib","a/");
-         * ```
-         * 如果要将`lib`的指向改到 http://www.xxx.com/a/下
-         * 则使用下列代码
-         * ```typescript
-         * ConfigUtils.regSkinPath("lib","http://www.xxx.com/a/",true);
-         * ```
-         * 如果域名不同，`自行做好跨域策略CROS`
-         *
-         * @param {string} key
-         * @param {string} path
-         * @param {boolean} [iPrefix] 是否忽略皮肤前缀
-         */
-        regSkinPath: function (key, path, iPrefix) {
-            _regedSkinPath[key] = { tPath: path, path: path, iPrefix: iPrefix };
-        },
-        /**
-         * 获取路径
-         *
-         * @param {string} uri
-         * @param {string} pathKey
-         * @returns
-         */
-        getUrl: function (uri, pathKey) {
-            var path = _data.paths[pathKey];
-            if (path) {
-                return getUrlWithPath(uri, path);
             }
         }
+        return keyCount;
+    };
+    junyou.DataUtils.parseXAttr2 = function (from, xattr, keyPrefix, valuePrefix, delOriginKey) {
+        if (keyPrefix === void 0) { keyPrefix = "pro"; }
+        if (valuePrefix === void 0) { valuePrefix = "provalue"; }
+        if (delOriginKey === void 0) { delOriginKey = true; }
+        var xReg = new RegExp("^" + keyPrefix + "(\\d+)$");
+        if (true) {
+            var repeatedErr = "";
+        }
+        var keyCount = 0;
+        for (var key in from) {
+            var obj = xReg.exec(key);
+            if (obj) {
+                var idx = +(obj[1]) || 0;
+                var valueKey = valuePrefix + idx;
+                if (true) {
+                    if (key in xattr) {
+                        repeatedErr += key + " ";
+                    }
+                }
+                var value = +(from[valueKey]);
+                if (value > 0) {
+                    keyCount++;
+                    xattr[from[key]] = value;
+                }
+                if (delOriginKey) {
+                    delete from[key];
+                    delete from[valueKey];
+                }
+            }
+        }
+        if (true) {
+            if (repeatedErr) {
+                junyou.ThrowError("有重复的属性值:" + repeatedErr);
+            }
+        }
+        return keyCount;
     };
 })(junyou || (junyou = {}));
 var junyou;
@@ -13843,383 +14468,6 @@ var junyou;
         return stateMed;
     }
     junyou.transformToStateMediator = transformToStateMediator;
-})(junyou || (junyou = {}));
-/**
- * DataLocator的主数据
- * 原 junyou.DataLocator.data  的全局别名简写
- */
-var $DD = {};
-/**
- * DataLocator的附加数据
- * 原junyou.DataLocator.extra 的全局别名简写
- */
-var $DE;
-var junyou;
-(function (junyou) {
-    var parsers = {};
-    /**
-     *
-     * 用于处理顺序
-     * @private
-     * @static
-     */
-    var _plist = [];
-    /**
-     * 配置加载器<br/>
-     * 用于预加载数据的解析
-     * @author 3tion
-     *
-     */
-    junyou.DataLocator = {
-        regParser: regParser,
-        /**
-         * 解析打包的配置
-         */
-        parsePakedDatas: function (type) {
-            var configs = RES.getRes("cfgs");
-            RES.destroyRes("cfgs");
-            if (type == 1) {
-                configs = decodePakCfgs(new junyou.ByteArray(configs));
-            }
-            // 按顺序解析
-            for (var _i = 0, _plist_1 = _plist; _i < _plist_1.length; _i++) {
-                var key = _plist_1[_i];
-                var parser = parsers[key];
-                var data = parser(configs[key]);
-                if (data) {
-                    $DD[key] = data;
-                }
-            }
-            var extraData = {};
-            //处理额外数据
-            for (var key in configs) {
-                if (key.charAt(0) == "$") {
-                    var raw = configs[key];
-                    key = key.substr(1);
-                    if (raw) {
-                        var i = 0, len = raw.length, data = {};
-                        while (i < len) {
-                            var sub = raw[i++];
-                            var value = raw[i++];
-                            var test = raw[i];
-                            if (typeof test === "number") {
-                                i++;
-                                value = getJSONValue(value, test);
-                            }
-                            data[sub] = value;
-                        }
-                        extraData[key] = data;
-                    }
-                }
-            }
-            $DE = extraData;
-            //清理内存
-            parsers = null;
-            _plist = null;
-            delete junyou.DataLocator;
-        },
-        /**
-         *
-         * 注册通过H5ExcelTool导出的数据并且有唯一标识的使用此方法注册
-         * @param {keyof CfgData} key 数据的标识
-         * @param {(Creator<any> | 0)} CfgCreator 配置的类名
-         * @param {(string | 0)} [idkey="id"] 唯一标识 0用于标识数组
-         * @param {CfgDataType} [type]
-         */
-        regCommonParser: function (key, CfgCreator, idkey, type) {
-            if (idkey === void 0) { idkey = "id"; }
-            regParser(key, function (data) {
-                if (!data)
-                    return;
-                var dict, forEach;
-                var headersRaw = data[0];
-                var hasLocal;
-                for (var j = 0; j < headersRaw.length; j++) {
-                    var head = headersRaw[j];
-                    if ((head[2] & 2 /* Local */) == 2 /* Local */) {
-                        hasLocal = 1;
-                    }
-                }
-                (_a = getParserOption(idkey, type), type = _a[0], dict = _a[1], forEach = _a[2]);
-                try {
-                    var ref = CfgCreator || Object;
-                    for (var i = 1; i < data.length; i++) {
-                        var rowData = data[i];
-                        var ins = new ref();
-                        var local = hasLocal && {};
-                        for (var j = 0; j < headersRaw.length; j++) {
-                            var head = headersRaw[j];
-                            var name_6 = head[0], test = head[1], type_1 = head[2], def = head[3];
-                            var v = getJSONValue(rowData[j], test, def);
-                            if ((type_1 & 2 /* Local */) == 2 /* Local */) {
-                                local[name_6] = v;
-                            }
-                            else {
-                                ins[name_6] = v;
-                            }
-                        }
-                        forEach(ins, i - 1, key, dict, idkey);
-                        if (typeof ins.decode === "function") {
-                            ins.decode(local);
-                        }
-                    }
-                    if (type == 1 /* ArraySet */) {
-                        dict = new junyou.ArraySet().setRawList(dict, idkey);
-                    }
-                }
-                catch (e) {
-                    if (true) {
-                        junyou.ThrowError("\u89E3\u6790\u914D\u7F6E:" + key + "\u51FA\u9519", e);
-                    }
-                }
-                return dict;
-                var _a;
-            });
-        },
-        regBytesParser: regBytesParser
-    };
-    /**
-     * 注册配置解析
-     * @param key       配置的标识
-     * @param parser    解析器
-     */
-    function regParser(key, parser) {
-        parsers[key] = parser;
-        _plist.push(key);
-    }
-    function getJSONValue(value, type, def) {
-        // 特殊类型数据
-        switch (type) {
-            case 0 /* Any */:
-                if (value == null) {
-                    value = def;
-                }
-                break;
-            case 1 /* String */:
-                if (value === 0 || value == null) {
-                    value = def || "";
-                }
-                break;
-            case 2 /* Number */:
-            case 9 /* Int32 */:
-                // 0 == "" // true
-                if (value === "" || value == null) {
-                    value = +def || 0;
-                }
-                break;
-            case 3 /* Bool */:
-                if (value == null) {
-                    value = def;
-                }
-                value = !!value;
-                break;
-            case 4 /* Array */:
-            case 5 /* Array2D */:
-                if (value === 0) {
-                    value = undefined;
-                }
-                if (!value && def) {
-                    value = def;
-                }
-                break;
-            case 6 /* Date */:
-            case 8 /* DateTime */:
-                value = new Date((value || def || 0) * 10000);
-                break;
-            case 7 /* Time */:
-                value = new junyou.TimeVO().decodeBit(value || def || 0);
-                break;
-        }
-        return value;
-    }
-    /**
-     * 用于解析数组
-     *
-     * @memberOf DataLocator
-     */
-    function arrayParserForEach(t, idx, key, dict) {
-        dict.push(t);
-    }
-    /**
-     * 用于解析字典
-     */
-    function commonParserForEach(t, idx, key, dict, idKey) {
-        if (idKey in t) {
-            var id = t[idKey];
-            if (true) {
-                if (typeof id === "object") {
-                    junyou.Log("\u914D\u7F6E" + key + "\u7684\u6570\u636E\u6709\u8BEF\uFF0C\u552F\u4E00\u6807\u8BC6" + idKey + "\u4E0D\u80FD\u4E3A\u5BF9\u8C61");
-                }
-                if (id in dict) {
-                    junyou.Log("\u914D\u7F6E" + key + "\u7684\u6570\u636E\u6709\u8BEF\uFF0C\u552F\u4E00\u6807\u8BC6" + idKey + "\u6709\u91CD\u590D\u503C\uFF1A" + id);
-                }
-            }
-            dict[id] = t;
-        }
-        else if (true) {
-            junyou.Log("\u914D\u7F6E" + key + "\u89E3\u6790\u6709\u8BEF\uFF0C\u65E0\u6CD5\u627E\u5230\u6307\u5B9A\u7684\u552F\u4E00\u6807\u793A\uFF1A" + idKey + "\uFF0C\u6570\u636E\u7D22\u5F15\uFF1A" + idx);
-        }
-    }
-    var CfgHeadStruct = {
-        1: [0, 2 /* Required */, 9 /* String */] /*必有 属性名字*/,
-        2: [1, 2 /* Required */, 14 /* Enum */] /*必有 数值的数据类型*/,
-        3: [2, 1 /* Optional */, 14 /* Enum */] /*可选 此列的状态*/,
-        4: [3, 1 /* Optional */, 17 /* SInt32 */] /*可选 bool / int32 型默认值 */,
-        5: [4, 1 /* Optional */, 1 /* Double */] /*可选 double 型默认值 */,
-        6: [5, 1 /* Optional */, 9 /* String */] /*可选 字符串型默认值 */
-    };
-    junyou.PBUtils.initDefault(CfgHeadStruct);
-    //配置数据 打包的文件结构数据
-    //readUnsignedByte 字符串长度 readString 表名字 readUnsignedByte 配置类型(0 PBBytes 1 JSON字符串) readVarint 数据长度
-    function decodePakCfgs(buffer) {
-        var cfgs = {};
-        while (buffer.readAvailable) {
-            var len = buffer.readUnsignedByte();
-            var key = buffer.readUTFBytes(len); //得到表名
-            var type = buffer.readUnsignedByte();
-            var value = void 0;
-            len = buffer.readVarint();
-            switch (type) {
-                case 0://JSON字符串
-                    var str = buffer.readUTFBytes(len);
-                    value = JSON.parse(str);
-                    break;
-                case 1://PBBytes
-                    value = buffer.readByteArray(len);
-                    break;
-            }
-            cfgs[key] = value;
-        }
-        return cfgs;
-    }
-    function getParserOption(idkey, type) {
-        if (idkey === void 0) { idkey = "id"; }
-        var dict, forEach;
-        if (idkey == "" || idkey == 0) {
-            type = 2 /* Array */;
-        }
-        else if (!type) {
-            type = 3 /* Dictionary */;
-        }
-        switch (type) {
-            case 2 /* Array */:
-            case 1 /* ArraySet */:
-                dict = [];
-                forEach = arrayParserForEach;
-                break;
-            case 3 /* Dictionary */:
-                dict = {};
-                forEach = commonParserForEach;
-                break;
-        }
-        return [type, dict, forEach];
-    }
-    /**
-     * 通用的Bytes版本的配置解析器
-     * @param buffer
-     */
-    function regBytesParser(key, CfgCreator, idkey, type) {
-        if (idkey === void 0) { idkey = "id"; }
-        regParser(key, function (bytes) {
-            if (!bytes) {
-                return;
-            }
-            var dict, forEach;
-            (_a = getParserOption(idkey, type), type = _a[0], dict = _a[1], forEach = _a[2]);
-            try {
-                var struct = {};
-                var headersRaw = [];
-                var i = 0;
-                var count = bytes.readVarint(); //头的数量
-                var hasLocal = void 0;
-                while (bytes.readAvailable && count--) {
-                    var len = bytes.readVarint();
-                    var head = junyou.PBUtils.readFrom(CfgHeadStruct, bytes, len);
-                    var name_7 = head[0], headType = head[1], headState = head[2], i32Def = head[3], dblDef = head[4], strDef = head[5];
-                    var def = void 0, isJSON = 0, pbType = void 0;
-                    switch (headType) {
-                        case 0 /* Any */:
-                        case 1 /* String */:
-                            def = strDef;
-                            pbType = 9 /* String */;
-                            break;
-                        case 2 /* Number */:
-                            def = dblDef;
-                            pbType = 1 /* Double */;
-                            break;
-                        case 3 /* Bool */:
-                        case 9 /* Int32 */:
-                        case 6 /* Date */:
-                        case 7 /* Time */:
-                        case 8 /* DateTime */:
-                            def = i32Def;
-                            pbType = 17 /* SInt32 */;
-                            break;
-                        case 4 /* Array */:
-                        case 5 /* Array2D */:
-                            if (strDef) {
-                                def = JSON.parse(strDef);
-                            }
-                            pbType = 9 /* String */;
-                            isJSON = 1;
-                            break;
-                    }
-                    struct[i + 1] = [name_7, 1 /* Optional */, pbType, def];
-                    head.length = 5;
-                    head[3] = def;
-                    head[4] = isJSON;
-                    headersRaw[i++] = head;
-                    if ((headState & 2 /* Local */) == 2 /* Local */) {
-                        hasLocal = 1;
-                    }
-                }
-                junyou.PBUtils.initDefault(struct, CfgCreator.prototype);
-                var headLen = i;
-                i = 0;
-                count = bytes.readVarint(); //行的数量
-                while (bytes.readAvailable && count--) {
-                    var len = bytes.readVarint();
-                    var obj = junyou.PBUtils.readFrom(struct, bytes, len);
-                    if (!obj) {
-                        continue;
-                    }
-                    if (CfgCreator) {
-                        CfgCreator.call(obj);
-                    }
-                    var local = hasLocal && {};
-                    for (var j = 0; j < headLen; j++) {
-                        var head = headersRaw[j];
-                        var name_8 = head[0], test = head[1], type_2 = head[2], def = head[3], isJSON = head[4];
-                        var value = obj[name_8];
-                        if (value && isJSON) {
-                            value = JSON.parse(value);
-                        }
-                        var v = getJSONValue(value, test, def);
-                        if ((type_2 & 2 /* Local */) == 2 /* Local */) {
-                            local[name_8] = v;
-                        }
-                        else {
-                            obj[name_8] = v;
-                        }
-                    }
-                    forEach(obj, i++, key, dict, idkey);
-                    if (typeof obj.decode === "function") {
-                        obj.decode(local);
-                    }
-                }
-                if (type == 1 /* ArraySet */) {
-                    dict = new junyou.ArraySet().setRawList(dict, idkey);
-                }
-            }
-            catch (e) {
-                if (true) {
-                    junyou.ThrowError("\u89E3\u6790\u914D\u7F6E:" + key + "\u51FA\u9519", e);
-                }
-            }
-            return dict;
-            var _a;
-        });
-    }
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -15867,182 +16115,166 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    function getData(valueList, keyList, o) {
-        o = o || {};
-        for (var i = 0, len = keyList.length; i < len; i++) {
-            var key = keyList[i];
-            var v = valueList[i];
-            if (v != undefined) {
-                o[key] = valueList[i];
+    function call(info, ars) {
+        var args = [];
+        var i = 0;
+        if (ars) {
+            for (; i < ars.length; i++) {
+                args[i] = ars[i];
             }
         }
-        return o;
-    }
-    function copyData(to, valueList, keyList) {
-        for (var i = 0, len = keyList.length; i < len; i++) {
-            var key = keyList[i];
-            to[key] = valueList[i];
+        var argus = info.args;
+        if (argus) {
+            for (var j = 0; j < argus.length; j++) {
+                args[i++] = argus[j];
+            }
+        }
+        var callback = info.callback;
+        if (callback != undefined) {
+            try {
+                return callback.apply(info.thisObj, args);
+            }
+            catch (e) {
+                if (true) {
+                    var debug = info["_debug"];
+                    junyou.ThrowError("CallbackInfo\u6267\u884C\u62A5\u9519\uFF0C\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n}==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + e.stack);
+                    console.log.apply(console, ["参数列表"].concat(this.args));
+                }
+            }
+        }
+        else if (true) {
+            var debug = info["_debug"];
+            junyou.ThrowError("\u5BF9\u5DF2\u56DE\u6536\u7684CallbackInfo\u6267\u884C\u4E86\u56DE\u8C03\uFF0C\u6700\u540E\u4E00\u6B21\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + new Error().stack);
         }
     }
     /**
-     *
-     * @author 君游项目解析工具
+     * 回调信息，用于存储回调数据
+     * @author 3tion
      *
      */
-    junyou.DataUtils = {
-        parseDatas: function (to, from, checkStart, checkEnd, dataKey, typeKey, toDatasKey) {
-            var arr;
-            for (var i = checkStart; i <= checkEnd; i++) {
-                var key = dataKey + i;
-                if (key in from) {
-                    if (!arr) {
-                        arr = [];
+    var CallbackInfo = (function () {
+        function CallbackInfo() {
+            if (true) {
+                var data = { enumerable: true, configurable: true };
+                data.get = function () {
+                    return this._cb;
+                };
+                data.set = function (value) {
+                    if (this._cb != value) {
+                        this._cb = value;
+                        if (value != undefined) {
+                            this._debug = { handle: value.toString(), stack: new Error().stack };
+                        }
                     }
-                    arr[i] = from[key];
-                }
+                };
+                Object.defineProperty(this, "callback", data);
             }
-            if (!arr) {
-                if (typeKey in from) {
-                    arr = [];
-                    to[typeKey] = from[typeKey];
-                }
+        }
+        CallbackInfo.prototype.init = function (callback, thisObj, args) {
+            this.callback = callback;
+            this.args = args;
+            this.thisObj = thisObj;
+        };
+        /**
+         * 检查回调是否一致，只检查参数和this对象,不检查参数
+         */
+        CallbackInfo.prototype.checkHandle = function (callback, thisObj) {
+            return this.callback === callback && this.thisObj == thisObj /* 允许null==undefined */;
+        };
+        /**
+         * 执行回调
+         * 回调函数，将以args作为参数，callback作为函数执行
+         * @param {boolean} [doRecycle=true] 是否回收CallbackInfo，默认为true
+         */
+        CallbackInfo.prototype.execute = function (doRecycle) {
+            if (doRecycle === void 0) { doRecycle = true; }
+            var callback = this.callback;
+            var result = call(this);
+            if (doRecycle) {
+                this.recycle();
             }
-            if (arr) {
-                to[toDatasKey] = arr;
-            }
-        },
-        parseDatas2: function (to, valueList, keyList, checkStart, checkEnd, dataKey, typeKey, toDatasKey) {
-            var arr;
-            for (var i = checkStart; i <= checkEnd; i++) {
-                var key = dataKey + i;
-                var idx = keyList.indexOf(key);
-                if (~idx) {
-                    if (!arr) {
-                        arr = [];
-                    }
-                    arr[i] = valueList[idx];
-                }
-            }
-            if (!arr) {
-                // 数据中有列表值
-                var idx = keyList.indexOf(typeKey);
-                if (~idx) {
-                    arr = [];
-                    to[typeKey] = valueList[idx];
-                }
-            }
-            if (arr) {
-                to[toDatasKey] = arr;
-            }
-        },
-        getData: getData,
-        getDataList: function (dataList, keyList) {
-            var list = [];
-            if (dataList) {
-                for (var i = 0, len = dataList.length; i < len; i++) {
-                    var valueList = dataList[i];
-                    list.push(getData(valueList, keyList));
-                }
-            }
-            return list;
-        },
-        parseDataList: function (dataList, keyList, forEach, thisObj) {
+            return result;
+        };
+        CallbackInfo.prototype.call = function () {
+            return call(this, arguments);
+        };
+        CallbackInfo.prototype.callAndRecycle = function () {
+            var result = call(this, arguments);
+            this.recycle();
+            return result;
+        };
+        CallbackInfo.prototype.onRecycle = function () {
+            this.callback = undefined;
+            this.args = undefined;
+            this.thisObj = undefined;
+        };
+        /**
+         * 获取CallbackInfo的实例
+         */
+        CallbackInfo.get = function (callback, thisObj) {
             var args = [];
-            for (var _i = 4; _i < arguments.length; _i++) {
-                args[_i - 4] = arguments[_i];
+            for (var _i = 2; _i < arguments.length; _i++) {
+                args[_i - 2] = arguments[_i];
             }
-            if (dataList) {
-                for (var i = 0, len = dataList.length; i < len; i++) {
-                    var valueList = dataList[i];
-                    var to = getData(valueList, keyList);
-                    forEach.call(thisObj, to, args, i);
-                }
-            }
-        },
-        copyData: copyData,
-        copyDataList: function (creator, dataList, keyList, forEach, thisObj) {
+            var info = junyou.recyclable(CallbackInfo);
+            info.init(callback, thisObj, args);
+            return info;
+        };
+        /**
+         * 加入到数组
+         * 检查是否有this和handle相同的callback，如果有，就用新的参数替换旧参数
+         * @param list
+         * @param handle
+         * @param args
+         * @param thisObj
+         */
+        CallbackInfo.addToList = function (list, handle, thisObj) {
             var args = [];
-            for (var _i = 5; _i < arguments.length; _i++) {
-                args[_i - 5] = arguments[_i];
+            for (var _i = 3; _i < arguments.length; _i++) {
+                args[_i - 3] = arguments[_i];
             }
-            if (dataList) {
-                for (var i = 0, len = dataList.length; i < len; i++) {
-                    var valueList = dataList[i];
-                    var to = new creator();
-                    copyData(to, valueList, keyList);
-                    forEach.call(thisObj, to, args, i);
+            //检查是否有this和handle相同的callback
+            for (var _a = 0, list_2 = list; _a < list_2.length; _a++) {
+                var callback = list_2[_a];
+                if (callback.checkHandle(handle, thisObj)) {
+                    callback.args = args;
+                    return callback;
                 }
             }
-        },
-    };
+            callback = this.get.apply(this, [handle, thisObj].concat(args));
+            list.push(callback);
+            return callback;
+        };
+        return CallbackInfo;
+    }());
+    junyou.CallbackInfo = CallbackInfo;
+    __reflect(CallbackInfo.prototype, "junyou.CallbackInfo", ["junyou.IRecyclable"]);
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    function getZuobiao(data) {
-        return { x: data[0], y: data[1] };
-    }
-    junyou.DataUtils.getZuobiao = getZuobiao;
-    junyou.DataUtils.getZuobiaos = function (data, out) {
-        out = out || [];
-        for (var i = 0; i < data.length; i++) {
-            out.push(getZuobiao(data[i]));
+    /**
+     * 平台数据
+     * @author 3tion
+     *
+     */
+    var AuthData = (function () {
+        function AuthData() {
+            /**
+             * 认证次数
+             *
+             * @type {number}
+             * @memberOf AuthData
+             */
+            this.count = 0;
         }
-    };
-    junyou.DataUtils.parseXAttr = function (from, xattr, delOriginKey, xReg) {
-        if (delOriginKey === void 0) { delOriginKey = true; }
-        if (xReg === void 0) { xReg = /^x\d+$/; }
-        var keyCount = 0;
-        for (var key in from) {
-            if (xReg.test(key)) {
-                var value = +(from[key]);
-                if (value > 0) {
-                    keyCount++;
-                    xattr[key] = value;
-                }
-                if (delOriginKey) {
-                    delete from[key];
-                }
-            }
-        }
-        return keyCount;
-    };
-    junyou.DataUtils.parseXAttr2 = function (from, xattr, keyPrefix, valuePrefix, delOriginKey) {
-        if (keyPrefix === void 0) { keyPrefix = "pro"; }
-        if (valuePrefix === void 0) { valuePrefix = "provalue"; }
-        if (delOriginKey === void 0) { delOriginKey = true; }
-        var xReg = new RegExp("^" + keyPrefix + "(\\d+)$");
-        if (true) {
-            var repeatedErr = "";
-        }
-        var keyCount = 0;
-        for (var key in from) {
-            var obj = xReg.exec(key);
-            if (obj) {
-                var idx = +(obj[1]) || 0;
-                var valueKey = valuePrefix + idx;
-                if (true) {
-                    if (key in xattr) {
-                        repeatedErr += key + " ";
-                    }
-                }
-                var value = +(from[valueKey]);
-                if (value > 0) {
-                    keyCount++;
-                    xattr[from[key]] = value;
-                }
-                if (delOriginKey) {
-                    delete from[key];
-                    delete from[valueKey];
-                }
-            }
-        }
-        if (true) {
-            if (repeatedErr) {
-                junyou.ThrowError("有重复的属性值:" + repeatedErr);
-            }
-        }
-        return keyCount;
-    };
+        AuthData.prototype.toURLString = function () {
+            return "pid=" + encodeURIComponent(this.pid) + "&puid=" + encodeURIComponent(this.puid) +
+                "&sid=" + this.sid + "&sign=" + encodeURIComponent(this.sign);
+        };
+        return AuthData;
+    }());
+    junyou.AuthData = AuthData;
+    __reflect(AuthData.prototype, "junyou.AuthData");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -16822,136 +17054,6 @@ var junyou;
         });
     }
     junyou.bindSize = bindSize;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     *
-     * 调整ClassFactory
-     * @export
-     * @class ClassFactory
-     * @template T
-     */
-    var ClassFactory = (function () {
-        /**
-         * @param {Creator<T>} creator
-         * @param {Partial<T>} [props] 属性模板
-         * @memberof ClassFactory
-         */
-        function ClassFactory(creator, props) {
-            this._creator = creator;
-            this._props = props;
-        }
-        /**
-         * 获取实例
-         *
-         * @returns
-         */
-        ClassFactory.prototype.get = function () {
-            var ins = new this._creator();
-            var p = this._props;
-            for (var key in p) {
-                ins[key] = p[key];
-            }
-            return ins;
-        };
-        return ClassFactory;
-    }());
-    junyou.ClassFactory = ClassFactory;
-    __reflect(ClassFactory.prototype, "junyou.ClassFactory");
-    /**
-     * 回收池
-     * @author 3tion
-     *
-     */
-    var RecyclablePool = (function () {
-        function RecyclablePool(TCreator, max) {
-            if (max === void 0) { max = 100; }
-            this._pool = [];
-            this._max = max;
-            this._creator = TCreator;
-        }
-        RecyclablePool.prototype.get = function () {
-            var ins;
-            var pool = this._pool;
-            if (pool.length) {
-                ins = pool.pop();
-            }
-            else {
-                ins = new this._creator();
-            }
-            if (typeof ins.onSpawn === "function") {
-                ins.onSpawn();
-            }
-            if (true) {
-                ins._insid = _recid++;
-            }
-            return ins;
-        };
-        /**
-         * 回收
-         */
-        RecyclablePool.prototype.recycle = function (t) {
-            var pool = this._pool;
-            var idx = pool.indexOf(t);
-            if (!~idx) {
-                if (typeof t.onRecycle === "function") {
-                    t.onRecycle();
-                }
-                if (pool.length < this._max) {
-                    pool.push(t);
-                }
-            }
-        };
-        return RecyclablePool;
-    }());
-    junyou.RecyclablePool = RecyclablePool;
-    __reflect(RecyclablePool.prototype, "junyou.RecyclablePool");
-    if (true) {
-        var _recid = 0;
-    }
-    function recyclable(clazz, addInstanceRecycle) {
-        var pool = clazz._pool;
-        if (!pool) {
-            if (addInstanceRecycle) {
-                pool = new RecyclablePool(function () {
-                    var ins = new clazz();
-                    ins.recycle = recycle;
-                    return ins;
-                });
-            }
-            else {
-                pool = new RecyclablePool(clazz);
-                var pt = clazz.prototype;
-                if (pt.recycle == undefined) {
-                    pt.recycle = recycle;
-                }
-            }
-            Object.defineProperty(clazz, "_pool", {
-                value: pool
-            });
-        }
-        return pool.get();
-        function recycle() {
-            pool.recycle(this);
-        }
-    }
-    junyou.recyclable = recyclable;
-    /**
-     * 单例工具
-     * @param clazz 要做单例的类型
-     */
-    function singleton(clazz) {
-        var instance = clazz._instance;
-        if (!instance) {
-            instance = new clazz;
-            Object.defineProperty(clazz, "_instance", {
-                value: instance
-            });
-        }
-        return instance;
-    }
-    junyou.singleton = singleton;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -17943,28 +18045,224 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
-     * 平台数据
+     * 使用http进行通信的网络服务
      * @author 3tion
      *
      */
-    var AuthData = (function () {
-        function AuthData() {
+    var HttpNetService = (function (_super) {
+        __extends(HttpNetService, _super);
+        function HttpNetService() {
+            var _this = _super.call(this) || this;
+            _this._state = 0 /* UNREQUEST */;
             /**
-             * 认证次数
-             *
-             * @type {number}
-             * @memberOf AuthData
+             * 请求发送成功的次数
              */
-            this.count = 0;
+            _this._success = 0;
+            /**
+             * 请求连续发送失败的次数
+             */
+            _this._cerror = 0;
+            /**
+             * 请求失败次数
+             */
+            _this._error = 0;
+            //覆盖instance
+            junyou.NetService._ins = _this;
+            _this._unsendRequest = [];
+            _this._sendingList = [];
+            _this._loader = new XMLHttpRequest;
+            return _this;
         }
-        AuthData.prototype.toURLString = function () {
-            return "pid=" + encodeURIComponent(this.pid) + "&puid=" + encodeURIComponent(this.puid) +
-                "&sid=" + this.sid + "&sign=" + encodeURIComponent(this.sign);
+        /**
+         * 重置
+         * @param actionUrl             请求地址
+         * @param autoTimeDelay         自动发送的最短延迟时间
+         */
+        HttpNetService.prototype.setUrl = function (actionUrl, autoTimeDelay) {
+            if (autoTimeDelay === void 0) { autoTimeDelay = 5000; }
+            this._actionUrl = actionUrl;
+            if (autoTimeDelay != this._autoTimeDelay) {
+                this._autoTimeDelay = autoTimeDelay;
+            }
+            // 200毫秒检查一次，是否可以自动拉数据了
+            junyou.TimerUtil.addCallback(200, this.checkUnsend, this);
+            var loader = this._loader;
+            loader.onreadystatechange = this.onReadyStateChange.bind(this);
+            loader.ontimeout = this.errorHandler.bind(this);
         };
-        return AuthData;
+        /**
+        * @protected
+        */
+        HttpNetService.prototype.onReadyStateChange = function () {
+            var xhr = this._loader;
+            if (xhr.readyState == 4) {
+                var ioError = (xhr.status >= 400 || xhr.status == 0);
+                // var url = this._actionUrl;
+                var self = this;
+                setTimeout(function () {
+                    if (ioError) {
+                        self.errorHandler();
+                    }
+                    else {
+                        self.complete();
+                    }
+                }, 0);
+            }
+        };
+        /**
+         * 发生错误
+         */
+        HttpNetService.prototype.errorHandler = function () {
+            this._error++;
+            this._cerror++;
+            this._state = -1 /* FAILED */;
+            if (this._cerror > 1) {
+                this.showReconnect();
+                return;
+            }
+            //曾经成功过
+            //数据未发送成功
+            var sending = this._sendingList;
+            var idx = sending.length;
+            var unrequest = this._unsendRequest;
+            for (var _i = 0, unrequest_1 = unrequest; _i < unrequest_1.length; _i++) {
+                var pdata = unrequest_1[_i];
+                sending[idx++] = pdata;
+            }
+            //交互未发送的请求和发送中的请求列表
+            unrequest.length = 0;
+            this._unsendRequest = sending;
+            this._sendingList = unrequest;
+            //尝试重新发送请求
+            this.checkUnsend();
+        };
+        HttpNetService.prototype.complete = function () {
+            this._state = 2 /* COMPLETE */;
+            this._reconCount = 0;
+            //处理Response
+            var readBuffer = this._readBuffer;
+            readBuffer.replaceBuffer(this._loader.response);
+            readBuffer.position = 0;
+            //成功一次清零连续失败次数
+            this._cerror = 0;
+            this._success++;
+            //清理正在发送的数据            
+            for (var _i = 0, _a = this._sendingList; _i < _a.length; _i++) {
+                var pdata = _a[_i];
+                pdata.recycle();
+            }
+            //数据发送成功
+            this._sendingList.length = 0;
+            this.onBeforeSolveData();
+            this.decodeBytes(readBuffer);
+            this.checkUnsend();
+        };
+        /**
+         * 检查在发送过程中的请求
+         */
+        HttpNetService.prototype.checkUnsend = function () {
+            //有在发送过程中，主动发送的数据
+            if (this._unsendRequest.length || junyou.Global.now > this._nextAutoTime) {
+                this.trySend();
+            }
+        };
+        HttpNetService.prototype._send = function (cmd, data, msgType) {
+            //没有同协议的指令，新增数据
+            var pdata = junyou.recyclable(junyou.NetData);
+            pdata.cmd = cmd;
+            pdata.data = data;
+            pdata.msgType = msgType;
+            this._unsendRequest.push(pdata);
+            this.trySend();
+        };
+        /**
+         * 发送消息之前，用于预处理一些http头信息等
+         *
+         * @protected
+         */
+        HttpNetService.prototype.onBeforeSend = function () {
+        };
+        /**
+         * 接收到服务端Response，用于预处理一些信息
+         *
+         * @protected
+         */
+        HttpNetService.prototype.onBeforeSolveData = function () {
+        };
+        /**
+         * 尝试发送
+         */
+        HttpNetService.prototype.trySend = function () {
+            if (this._state == 1 /* REQUESTING */) {
+                return;
+            }
+            this._state = 1 /* REQUESTING */;
+            var loader = this._loader;
+            loader.open("POST", this._actionUrl, true);
+            loader.responseType = "arraybuffer";
+            this.onBeforeSend();
+            var sendBuffer = this._sendBuffer;
+            sendBuffer.reset();
+            // var sendPool = this._sendDataPool;
+            var unsend = this._unsendRequest;
+            var sending = this._sendingList;
+            // sendBuffer.writeUTFBytes(this._authData.sessionID);
+            // sendBuffer.writeDouble(this._lastMid);
+            for (var i = 0, len = unsend.length; i < len; i++) {
+                var pdata = unsend[i];
+                this.writeToBuffer(sendBuffer, pdata);
+                sending[i] = pdata;
+            }
+            var pcmdList = this._pcmdList;
+            for (var _i = 0, pcmdList_2 = pcmdList; _i < pcmdList_2.length; _i++) {
+                var pdata = pcmdList_2[_i];
+                this.writeToBuffer(sendBuffer, pdata);
+                sending[i++] = pdata;
+            }
+            //清空被动数据
+            pcmdList.length = 0;
+            //清空未发送的数据
+            unsend.length = 0;
+            loader.send(sendBuffer.outBytes);
+            //重置自动发送的时间
+            this._nextAutoTime = junyou.Global.now + this._autoTimeDelay;
+        };
+        return HttpNetService;
+    }(junyou.NetService));
+    junyou.HttpNetService = HttpNetService;
+    __reflect(HttpNetService.prototype, "junyou.HttpNetService");
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 用于发送的网络数据<br/>
+     * @author 3tion
+     */
+    var NetSendData = (function () {
+        function NetSendData() {
+        }
+        NetSendData.prototype.onRecycle = function () {
+            this.data = undefined;
+            this.msgType = undefined;
+        };
+        return NetSendData;
     }());
-    junyou.AuthData = AuthData;
-    __reflect(AuthData.prototype, "junyou.AuthData");
+    junyou.NetSendData = NetSendData;
+    __reflect(NetSendData.prototype, "junyou.NetSendData", ["junyou.IRecyclable"]);
+    /**
+     * 网络数据，类似AS3项目中Stream<br/>
+     * @author 3tion
+     *
+     */
+    var NetData = (function (_super) {
+        __extends(NetData, _super);
+        function NetData() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        return NetData;
+    }(NetSendData));
+    junyou.NetData = NetData;
+    __reflect(NetData.prototype, "junyou.NetData");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -19694,6 +19992,145 @@ var junyou;
         getTipLayoutPos: getTipLayoutPos,
     };
 })(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     *
+     * @author 3tion
+     *
+     */
+    var NetRouter = (function () {
+        function NetRouter() {
+            this.dispatchList = [];
+            this._listenerMaps = {};
+        }
+        /**
+         * 注册一cmd侦听;
+         * @param cmd      协议号
+         * @param handler   处理器
+         * @param priority  越大越优先
+         * @param once      是否只执行一次
+         * @return boolean true 做为新的兼听添加进去，false 原来就有处理器
+         *
+         */
+        NetRouter.prototype.register = function (cmd, handler, priority, once) {
+            if (priority === void 0) { priority = 0; }
+            if (once === void 0) { once = false; }
+            var listenerMaps = this._listenerMaps;
+            var netBin = { handler: handler, priority: priority, once: once };
+            var list = listenerMaps[cmd];
+            if (!list) {
+                list = [];
+                listenerMaps[cmd] = list;
+                //以前单条是没有存储优先级信息的，会导致，如果先加入的大的，后加入小的，可能会出现问题
+                list.push(netBin);
+            }
+            else {
+                var i = void 0;
+                var len = list.length;
+                //=====同样的CODE 同样的Function 不会被注册多次=====
+                for (i = 0; i < len; i++) {
+                    var temp = list[i];
+                    if (temp.handler == handler) {
+                        if (temp.priority == priority) {
+                            return false;
+                        }
+                        //新的同指令，同处理器的函数会被新的once,priority属性覆盖
+                        list.splice(i, 1);
+                        len--;
+                        break;
+                    }
+                }
+                for (i = 0; i < len; i++) {
+                    if (priority > list[i].priority) {
+                        list.splice(i, 0, netBin);
+                        return true;
+                    }
+                }
+                list[len] = netBin;
+            }
+            return true;
+        };
+        /**
+         * 删除兼听处理器
+         * @param cmd      协议号
+         * @param handler   处理器
+         * @return boolean true 删除成功  <br/>
+         *                 false 没有这个兼听
+         */
+        NetRouter.prototype.remove = function (cmd, handler) {
+            var listenerMaps = this._listenerMaps;
+            var list = listenerMaps[cmd];
+            if (!list) {
+                return false;
+            }
+            var len = list.length;
+            for (var i = 0; i < len; i++) {
+                if (list[i].handler == handler) {
+                    list.splice(i, 1);
+                    //如果没有项了就清理;
+                    if (len == 1) {
+                        delete listenerMaps[cmd];
+                    }
+                    return true;
+                }
+            }
+            return false;
+        };
+        /**
+        * 调用列表
+        */
+        NetRouter.prototype.dispatch = function (data) {
+            egret.callLater(this._dispatch, this, data);
+        };
+        NetRouter.prototype._dispatch = function (data) {
+            var cmd = data.cmd;
+            var list = this._listenerMaps[cmd];
+            if (!list) {
+                return;
+            }
+            var dispatchList = this.dispatchList;
+            var idx = 0, len = list.length;
+            for (; idx < len; idx++) {
+                dispatchList[idx] = list[idx];
+            }
+            if (true) {
+                for (var i = 0; i < idx; i++) {
+                    var bin = dispatchList[i];
+                    bin.handler(data);
+                    if (bin.once) {
+                        this.remove(cmd, bin.handler);
+                    }
+                    if (data.stopPropagation) {
+                        break;
+                    }
+                }
+            }
+            else {
+                for (var i = 0; i < idx; i++) {
+                    var bin = dispatchList[i];
+                    try {
+                        bin.handler(data);
+                    }
+                    catch (e) {
+                        junyou.ThrowError("NetHander Error:" + JSON.stringify(data), e);
+                    }
+                    if (bin.once) {
+                        this.remove(cmd, bin.handler);
+                    }
+                    if (data.stopPropagation) {
+                        break;
+                    }
+                }
+            }
+            data.recycle();
+        };
+        return NetRouter;
+    }());
+    junyou.NetRouter = NetRouter;
+    __reflect(NetRouter.prototype, "junyou.NetRouter");
+    ;
+})(junyou || (junyou = {}));
 var $useDPR = true;
 var dpr = 1;
 if (window.$useDPR) {
@@ -20026,16 +20463,132 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
-     * 获取XMLHttpRequest对象
      *
+     * 调整ClassFactory
      * @export
-     * @returns
+     * @class ClassFactory
+     * @template T
      */
-    function getXHR() {
-        junyou.getXHR = window.XMLHttpRequest ? function () { return new XMLHttpRequest; } : function () { return new ActiveXObject("MSXML2.XMLHTTP"); };
-        return junyou.getXHR();
+    var ClassFactory = (function () {
+        /**
+         * @param {Creator<T>} creator
+         * @param {Partial<T>} [props] 属性模板
+         * @memberof ClassFactory
+         */
+        function ClassFactory(creator, props) {
+            this._creator = creator;
+            this._props = props;
+        }
+        /**
+         * 获取实例
+         *
+         * @returns
+         */
+        ClassFactory.prototype.get = function () {
+            var ins = new this._creator();
+            var p = this._props;
+            for (var key in p) {
+                ins[key] = p[key];
+            }
+            return ins;
+        };
+        return ClassFactory;
+    }());
+    junyou.ClassFactory = ClassFactory;
+    __reflect(ClassFactory.prototype, "junyou.ClassFactory");
+    /**
+     * 回收池
+     * @author 3tion
+     *
+     */
+    var RecyclablePool = (function () {
+        function RecyclablePool(TCreator, max) {
+            if (max === void 0) { max = 100; }
+            this._pool = [];
+            this._max = max;
+            this._creator = TCreator;
+        }
+        RecyclablePool.prototype.get = function () {
+            var ins;
+            var pool = this._pool;
+            if (pool.length) {
+                ins = pool.pop();
+            }
+            else {
+                ins = new this._creator();
+            }
+            if (typeof ins.onSpawn === "function") {
+                ins.onSpawn();
+            }
+            if (true) {
+                ins._insid = _recid++;
+            }
+            return ins;
+        };
+        /**
+         * 回收
+         */
+        RecyclablePool.prototype.recycle = function (t) {
+            var pool = this._pool;
+            var idx = pool.indexOf(t);
+            if (!~idx) {
+                if (typeof t.onRecycle === "function") {
+                    t.onRecycle();
+                }
+                if (pool.length < this._max) {
+                    pool.push(t);
+                }
+            }
+        };
+        return RecyclablePool;
+    }());
+    junyou.RecyclablePool = RecyclablePool;
+    __reflect(RecyclablePool.prototype, "junyou.RecyclablePool");
+    if (true) {
+        var _recid = 0;
     }
-    junyou.getXHR = getXHR;
+    function recyclable(clazz, addInstanceRecycle) {
+        var pool = clazz._pool;
+        if (!pool) {
+            if (addInstanceRecycle) {
+                pool = new RecyclablePool(function () {
+                    var ins = new clazz();
+                    ins.recycle = recycle;
+                    return ins;
+                });
+            }
+            else {
+                pool = new RecyclablePool(clazz);
+                var pt = clazz.prototype;
+                if (pt.recycle == undefined) {
+                    pt.recycle = recycle;
+                }
+            }
+            Object.defineProperty(clazz, "_pool", {
+                value: pool
+            });
+        }
+        return pool.get();
+        function recycle() {
+            pool.recycle(this);
+        }
+    }
+    junyou.recyclable = recyclable;
+    /**
+     * 单例工具
+     * @param clazz 要做单例的类型
+     */
+    function singleton(clazz) {
+        var instance = clazz._instance;
+        if (!instance) {
+            instance = new clazz;
+            Object.defineProperty(clazz, "_instance", {
+                value: instance
+            });
+        }
+        return instance;
+    }
+    junyou.singleton = singleton;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -20394,193 +20947,48 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
-     * 使用http进行通信的网络服务
-     * @author 3tion
-     *
-     */
-    var HttpNetService = (function (_super) {
-        __extends(HttpNetService, _super);
-        function HttpNetService() {
-            var _this = _super.call(this) || this;
-            _this._state = 0 /* UNREQUEST */;
-            /**
-             * 请求发送成功的次数
-             */
-            _this._success = 0;
-            /**
-             * 请求连续发送失败的次数
-             */
-            _this._cerror = 0;
-            /**
-             * 请求失败次数
-             */
-            _this._error = 0;
-            //覆盖instance
-            junyou.NetService._ins = _this;
-            _this._unsendRequest = [];
-            _this._sendingList = [];
-            _this._loader = junyou.getXHR();
-            return _this;
-        }
-        /**
-         * 重置
-         * @param actionUrl             请求地址
-         * @param autoTimeDelay         自动发送的最短延迟时间
-         */
-        HttpNetService.prototype.setUrl = function (actionUrl, autoTimeDelay) {
-            if (autoTimeDelay === void 0) { autoTimeDelay = 5000; }
-            this._actionUrl = actionUrl;
-            if (autoTimeDelay != this._autoTimeDelay) {
-                this._autoTimeDelay = autoTimeDelay;
-            }
-            // 200毫秒检查一次，是否可以自动拉数据了
-            junyou.TimerUtil.addCallback(200, this.checkUnsend, this);
-            var loader = this._loader;
-            loader.onreadystatechange = this.onReadyStateChange.bind(this);
-            loader.ontimeout = this.errorHandler.bind(this);
-        };
-        /**
-        * @protected
-        */
-        HttpNetService.prototype.onReadyStateChange = function () {
-            var xhr = this._loader;
-            if (xhr.readyState == 4) {
-                var ioError = (xhr.status >= 400 || xhr.status == 0);
-                // var url = this._actionUrl;
-                var self = this;
-                setTimeout(function () {
-                    if (ioError) {
-                        self.errorHandler();
-                    }
-                    else {
-                        self.complete();
-                    }
-                }, 0);
-            }
-        };
-        /**
-         * 发生错误
-         */
-        HttpNetService.prototype.errorHandler = function () {
-            this._error++;
-            this._cerror++;
-            this._state = -1 /* FAILED */;
-            if (this._cerror > 1) {
-                this.showReconnect();
-                return;
-            }
-            //曾经成功过
-            //数据未发送成功
-            var sending = this._sendingList;
-            var idx = sending.length;
-            var unrequest = this._unsendRequest;
-            for (var _i = 0, unrequest_1 = unrequest; _i < unrequest_1.length; _i++) {
-                var pdata = unrequest_1[_i];
-                sending[idx++] = pdata;
-            }
-            //交互未发送的请求和发送中的请求列表
-            unrequest.length = 0;
-            this._unsendRequest = sending;
-            this._sendingList = unrequest;
-            //尝试重新发送请求
-            this.checkUnsend();
-        };
-        HttpNetService.prototype.complete = function () {
-            this._state = 2 /* COMPLETE */;
-            this._reconCount = 0;
-            //处理Response
-            var readBuffer = this._readBuffer;
-            readBuffer.replaceBuffer(this._loader.response);
-            readBuffer.position = 0;
-            //成功一次清零连续失败次数
-            this._cerror = 0;
-            this._success++;
-            //清理正在发送的数据            
-            for (var _i = 0, _a = this._sendingList; _i < _a.length; _i++) {
-                var pdata = _a[_i];
-                pdata.recycle();
-            }
-            //数据发送成功
-            this._sendingList.length = 0;
-            this.onBeforeSolveData();
-            this.decodeBytes(readBuffer);
-            this.checkUnsend();
-        };
-        /**
-         * 检查在发送过程中的请求
-         */
-        HttpNetService.prototype.checkUnsend = function () {
-            //有在发送过程中，主动发送的数据
-            if (this._unsendRequest.length || junyou.Global.now > this._nextAutoTime) {
-                this.trySend();
-            }
-        };
-        HttpNetService.prototype._send = function (cmd, data, msgType) {
-            //没有同协议的指令，新增数据
-            var pdata = junyou.recyclable(junyou.NetData);
-            pdata.cmd = cmd;
-            pdata.data = data;
-            pdata.msgType = msgType;
-            this._unsendRequest.push(pdata);
-            this.trySend();
-        };
-        /**
-         * 发送消息之前，用于预处理一些http头信息等
-         *
-         * @protected
-         */
-        HttpNetService.prototype.onBeforeSend = function () {
-        };
-        /**
-         * 接收到服务端Response，用于预处理一些信息
-         *
-         * @protected
-         */
-        HttpNetService.prototype.onBeforeSolveData = function () {
-        };
-        /**
-         * 尝试发送
-         */
-        HttpNetService.prototype.trySend = function () {
-            if (this._state == 1 /* REQUESTING */) {
-                return;
-            }
-            this._state = 1 /* REQUESTING */;
-            var loader = this._loader;
-            loader.open("POST", this._actionUrl, true);
-            loader.responseType = "arraybuffer";
-            this.onBeforeSend();
-            var sendBuffer = this._sendBuffer;
-            sendBuffer.reset();
-            // var sendPool = this._sendDataPool;
-            var unsend = this._unsendRequest;
-            var sending = this._sendingList;
-            // sendBuffer.writeUTFBytes(this._authData.sessionID);
-            // sendBuffer.writeDouble(this._lastMid);
-            for (var i = 0, len = unsend.length; i < len; i++) {
-                var pdata = unsend[i];
-                this.writeToBuffer(sendBuffer, pdata);
-                sending[i] = pdata;
-            }
-            var pcmdList = this._pcmdList;
-            for (var _i = 0, pcmdList_3 = pcmdList; _i < pcmdList_3.length; _i++) {
-                var pdata = pcmdList_3[_i];
-                this.writeToBuffer(sendBuffer, pdata);
-                sending[i++] = pdata;
-            }
-            //清空被动数据
-            pcmdList.length = 0;
-            //清空未发送的数据
-            unsend.length = 0;
-            loader.send(sendBuffer.outBytes);
-            //重置自动发送的时间
-            this._nextAutoTime = junyou.Global.now + this._autoTimeDelay;
-        };
-        return HttpNetService;
-    }(junyou.NetService));
-    junyou.HttpNetService = HttpNetService;
-    __reflect(HttpNetService.prototype, "junyou.HttpNetService");
+    *
+    * 发起可以不需要回调响应的跨域get请求
+    * @param {string} url          发起请求的地址
+    * @param {boolean} [always]    是否总是发起请求
+    *                              false（默认） 请求已经在列队中，则不会重复发起请求
+    *                              true 不管相同地址的请求之前是否已经发起，继续发起请求
+    */
+    junyou.sendToUrl = $();
 })(junyou || (junyou = {}));
+function $() {
+    var _unSendList = [];
+    var img = new Image(); //使用Image，在https下，不会因为最终请求地址为http，导致浏览器将请求拦截，详情参考 https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content
+    var _requestState = 0 /* UNREQUEST */;
+    img.onerror = callBack(this, -1 /* FAILED */);
+    img.onload = callBack(this, 2 /* COMPLETE */);
+    return sendToUrl;
+    function sendToUrl(url, always) {
+        if (_requestState == 1 /* REQUESTING */) {
+            if (always) {
+                _unSendList.push(url);
+            }
+            else {
+                _unSendList.pushOnce(url);
+            }
+            return;
+        }
+        _requestState = 1 /* REQUESTING */;
+        img.src = url;
+    }
+    ;
+    function callBack(self, state) {
+        return function () {
+            _requestState = state;
+            if (true) {
+                console.log(img.src, "callBack:", state);
+            }
+            if (_unSendList.length > 0) {
+                return sendToUrl(_unSendList.shift());
+            }
+        };
+    }
+}
 var junyou;
 (function (junyou) {
     /**
@@ -21302,834 +21710,426 @@ var junyou;
     junyou.Tween = Tween;
     __reflect(Tween.prototype, "junyou.Tween");
 })(junyou || (junyou = {}));
-/**
- * 参考createjs和白鹭的tween
- * 调整tick的驱动方式
- * https://github.com/CreateJS/TweenJS
- * @author 3tion
- */
 var junyou;
 (function (junyou) {
-    var TweenManager = (function () {
-        function TweenManager() {
-            this._tweens = [];
+    // const enum Const {
+    //     /**
+    //      * 
+    //      * ## 概述
+    //      * 首先要看TCP/IP协议，涉及到四层：链路层，网络层，传输层，应用层。  
+    //      * 其中以太网（Ethernet）的数据帧在链路层  
+    //      * IP包在网络层  
+    //      * TCP或UDP包在传输层  
+    //      * TCP或UDP中的数据（Data)在应用层  
+    //      * 它们的关系是 数据帧｛IP包｛TCP或UDP包｛Data｝｝｝  
+    //      *
+    //      * 不同的协议层对数据包有不同的称谓，在传输层叫做段(segment)，在网络层叫做数据报(datagram)，在链路层叫做帧(frame)。数据封装成帧后发到传输介质上，到达目的主机后每层协议再剥掉相应的首部，最后将应用层数据交给应用程序处理。
+    //      *
+    //      * 在应用程序中我们用到的Data的长度最大是多少，直接取决于底层的限制。  
+    //      * 我们从下到上分析一下：  
+    //      *      1. 在链路层，由以太网的物理特性决定了数据帧的长度为(46＋18)－(1500＋18)，其中的18是数据帧的头和尾，也就是说数据帧的内容最大为1500(不包括帧头和帧尾)，即MTU(Maximum Transmission Unit)为1500； 　
+    //      *      2. 在网络层，因为IP包的首部要占用20字节，所以这的MTU为1500－20＝1480；　
+    //      *      3. 在传输层，对于UDP包的首部要占用8字节，所以这的MTU为1480－8＝1472；  
+    //      * 
+    //      * 所以，在应用层，你的Data最大长度为1472。当我们的UDP包中的数据多于MTU(1472)时，发送方的IP层需要分片fragmentation进行传输，而在接收方IP层则需要进行数据报重组，由于UDP是不可靠的传输协议，如果分片丢失导致重* 组失败，将导致UDP数据包被丢弃。  
+    //      * 从上面的分析来看，在普通的局域网环境下，UDP的数据最大为1472字节最好(避免分片重组)。  
+    //      * 但在网络编程中，Internet中的路由器可能有设置成不同的值(小于默认值)，Internet上的标准MTU值为576，所以Internet的UDP编程时数据长度最好在576－20－8＝548字节以内。
+    //      *
+    //      * 
+    //      * ## TCP、UDP数据包最大值的确定
+    //      * UDP和TCP协议利用端口号实现多项应用同时发送和接收数据。数据通过源端口发送出去，通过目标端口接收。有的网络应用只能使用预留或注册的静态端口；而另外一些网络应用则可以使用未被注册的动态端口。因为UDP和TCP报头使* 用两个字节存放端口号，所以端口号的有效范围是从0到65535。动态端口的范围是从1024到65535。  
+    //      * MTU最大传输单元，这个最大传输单元实际上和链路层协议有着密切的关系，EthernetII帧的结构DMAC+SMAC+Type+Data+CRC由于以太网传输电气方面的限制，每个以太网帧都有最小的大小64Bytes最大不能超过1518Bytes，对于小* 于或者大于这个限制的以太网帧我们都可以视之为错误的数据帧，一般的以太网转发设备会丢弃这些数据帧。  
+    //      * 
+    //      * 由于以太网EthernetII最大的数据帧是1518Bytes这样，刨去以太网帧的帧头（DMAC目的MAC地址48bits=6Bytes+SMAC源MAC地址48bits=6Bytes+Type域2Bytes）14Bytes和帧尾CRC校验部分4Bytes那么剩下承载上层协议的地方也就是Data域最大就只能有1500Bytes这个值我们就把它称之为MTU。  
+    //      * UDP 包的大小就应该是 1500 - IP头(20) - UDP头(8) = 1472(Bytes)  
+    //      * TCP 包的大小就应该是 1500 - IP头(20) - TCP头(20) = 1460 (Bytes)  
+    //      * 以上内容原网址：http://blog.csdn.net/caoshangpa/article/details/51530685
+    //      * 
+    //      * WebSocket的头部字节数为 2 - 8 字节  
+    //      * 
+    //      * ```
+    //      *  0                   1                   2                   3  
+    //      *  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1  
+    //      * +-+-+-+-+-------+-+-------------+-------------------------------+  
+    //      * |F|R|R|R| opcode|M| Payload len |    Extended payload length    |  
+    //      * |I|S|S|S|  (4)  |A|     (7)     |             (16/64)           |  
+    //      * |N|V|V|V|       |S|             |   (if payload len==126/127)   |  
+    //      * | |1|2|3|       |K|             |                               |  
+    //      * +-+-+-+-+-------+-+-------------+ - - - - - - - - - - - - - - - +  
+    //      * |     Extended payload length continued, if payload len == 127  |  
+    //      * + - - - - - - - - - - - - - - - +-------------------------------+  
+    //      * |                               |Masking-key, if MASK set to 1  |  
+    //      * +-------------------------------+-------------------------------+  
+    //      * | Masking-key (continued)       |          Payload Data         |  
+    //      * +-------------------------------- - - - - - - - - - - - - - - - +  
+    //      * :                     Payload Data continued ...                :  
+    //      * + - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - +  
+    //      * |                     Payload Data continued ...                |  
+    //      * +---------------------------------------------------------------+  
+    //      * ```
+    // }
+    // 上面操作是多余的，参看netty的源码
+    // https://github.com/netty/netty/tree/4.1/codec/src/main/java/io/netty/handler/codec
+    // https://github.com/netty/netty/tree/4.1/codec-socks/src/main/java/io/netty/handler/codec/socks
+    // https://github.com/netty/netty/tree/4.1/transport/src/main/java/io/netty
+    // 参看Chrome的源码 
+    // https://src.chromium.org/viewvc/chrome/trunk/src/net/socket/
+    // https://src.chromium.org/viewvc/chrome/trunk/src/net/socket_stream/
+    // https://src.chromium.org/viewvc/chrome/trunk/src/net/websockets/
+    // 均没有针对[MTU](http://baike.baidu.com/item/mtu)进行业务层面的分帧的代码处理  
+    // 然后和服务端重新进行调试，发送大的(50003Bytes)的一帧WebSocketFrame，让服务端也开[WireShark](http://www.wireshark.org)进行捕获
+    // 发现客户端对服务端发送的数据帧是多个TCP帧的，并且每个帧都复合`MTU`，故删除以上代码
+    // 仔细研读`WireShark`的客户端向服务端发送的数据帧的说明，其中提到`[Total Length: 50051 bytes (reported as 0, presumed to be because of "TCP segmentation offload" (TSO))]`
+    // **TSO**（TCP Segment Offload）是一种利用网卡的少量处理能力，降低CPU发送数据包负载的技术，需要网卡硬件及驱动的支持。  http://baike.baidu.com/item/tso/1843452
+    /**
+     * WebSocket版本的NetService
+     * @author 3tion
+     */
+    var WSNetService = (function (_super) {
+        __extends(WSNetService, _super);
+        function WSNetService() {
+            var _this = _super.call(this) || this;
+            _this.onOpen = function () {
+                _this._ws.onopen = null;
+                if (true) {
+                    console.log("webSocket连接成功");
+                }
+                junyou.dispatch(-197 /* Connected */);
+            };
             /**
-             * 注册过的插件列表
-             * Key      {string}            属性
-             * Value    {ITweenPlugin[]}    插件列表
              *
-             * @type {{ [index: string]: ITweenPlugin[] }}
+             * 发生错误
+             * @protected
              */
-            this._plugins = {};
+            _this.onError = function (ev) {
+                if (true) {
+                    junyou.ThrowError("socket发生错误", ev.error);
+                }
+                junyou.dispatch(-196 /* ConnectFailed */);
+            };
+            /**
+             *
+             * 断开连接
+             * @protected
+             */
+            _this.onClose = function (ev) {
+                if (true) {
+                    console.log("socket断开连接");
+                }
+                junyou.dispatch(-195 /* Disconnect */);
+            };
+            /**
+             *
+             * 收到消息
+             * @protected
+             */
+            _this.onData = function (ev) {
+                var readBuffer = _this._readBuffer;
+                var ab = new Uint8Array(ev.data);
+                var temp;
+                var position = readBuffer.position;
+                var buffer = readBuffer.buffer;
+                var length = buffer.byteLength;
+                if (position < length) {
+                    var rb = new Uint8Array(buffer);
+                    var rbLen = length - position;
+                    var abLen = ab.length;
+                    temp = new Uint8Array(rbLen + abLen);
+                    var i = 0, m = void 0;
+                    for (m = 0; m < rbLen; m++) {
+                        temp[i++] = rb[position + m];
+                    }
+                    for (m = 0; m < abLen; m++) {
+                        temp[i++] = ab[m];
+                    }
+                }
+                else {
+                    temp = ab;
+                }
+                readBuffer.replaceBuffer(temp.buffer);
+                readBuffer.position = 0;
+                _this.decodeBytes(readBuffer);
+            };
+            //覆盖instance
+            junyou.NetService._ins = _this;
+            return _this;
         }
         /**
-         * Returns a new tween instance. This is functionally identical to using "new Tween(...)", but looks cleaner
-         * with the chained syntax of TweenJS.
-         * <h4>Example</h4>
          *
-         *		var tween = createjs. this.get(target);
-        *
-        * @method get
-        * @param {Object} target The target object that will have its properties tweened.
-        * @param {TweenOption} [props] The configuration properties to apply to this tween instance (ex. `{loop:true, paused:true}`).
-        * All properties default to `false`. Supported props are:
-        * <UL>
-        *    <LI> loop: sets the loop property on this tween.</LI>
-        *    <LI> useTicks: uses ticks for all durations instead of milliseconds.</LI>
-        *    <LI> ignoreGlobalPause: sets the {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}} property on
-        *    this tween.</LI>
-        *    <LI> override: if true, `createjs. this.removeTweens(target)` will be called to remove any other tweens with
-        *    the same target.
-        *    <LI> paused: indicates whether to start the tween paused.</LI>
-        *    <LI> position: indicates the initial position for this tween.</LI>
-        *    <LI> onChange: specifies a listener for the {{#crossLink "Tween/change:event"}}{{/crossLink}} event.</LI>
-        * </UL>
-        * @param {Object} [pluginData] An object containing data for use by installed plugins. See individual plugins'
-        * documentation for details.
-        * @param {Boolean} [override=false] If true, any previous tweens on the same target will be removed. This is the
-        * same as calling ` this.removeTweens(target)`.
-        * @return {Tween} A reference to the created tween. Additional chained tweens, method calls, or callbacks can be
-        * applied to the returned tween instance.
-        * @static
-        */
-        TweenManager.prototype.get = function (target, props, pluginData, override) {
-            if (override) {
-                this.removeTweens(target);
+         * 设置websocket地址
+         * @param {string} actionUrl
+         */
+        WSNetService.prototype.setUrl = function (actionUrl) {
+            if (this._actionUrl != actionUrl) {
+                this._actionUrl = actionUrl;
+                var ws = this._ws;
+                if (ws && ws.readyState <= WebSocket.OPEN) {
+                    this.connect();
+                }
             }
-            return new junyou.Tween(target, props, pluginData, this);
         };
         /**
-         * 移除指定对象的所有tween
-         * Removes all existing tweens for a target. This is called automatically by new tweens if the `override`
-         * property is `true`.
-         * @method removeTweens
-         * @param {Object} target The target object to remove existing tweens from.
-         * @static
+         * 打开新的连接
          */
-        TweenManager.prototype.removeTweens = function (target) {
-            if (!target.tween_count) {
+        WSNetService.prototype.connect = function () {
+            var ws = this._ws;
+            if (ws) {
+                ws.onclose = null;
+                ws.onerror = null;
+                ws.onmessage = null;
+                ws.onopen = null;
+            }
+            this._ws = ws = new WebSocket(this._actionUrl);
+            ws.binaryType = "arraybuffer";
+            ws.onclose = this.onClose;
+            ws.onerror = this.onError;
+            ws.onmessage = this.onData;
+            ws.onopen = this.onOpen;
+        };
+        WSNetService.prototype._send = function (cmd, data, msgType) {
+            var ws = this._ws;
+            if (ws.readyState != WebSocket.OPEN) {
                 return;
             }
-            var tweens = this._tweens;
-            var j = 0;
-            for (var i = 0, len = tweens.length; i < len; i++) {
-                var tween = tweens[i];
-                if (tween.target == target) {
-                    tween.paused = true;
-                    tween.onRecycle();
-                }
-                else {
-                    tweens[j++] = tween;
-                }
+            //没有同协议的指令，新增数据
+            var pdata = junyou.recyclable(junyou.NetSendData);
+            pdata.cmd = cmd;
+            pdata.data = data;
+            pdata.msgType = msgType;
+            var sendBuffer = this._sendBuffer;
+            sendBuffer.reset();
+            this.writeToBuffer(sendBuffer, pdata);
+            pdata.recycle();
+            var pcmdList = this._pcmdList;
+            for (var _i = 0, pcmdList_3 = pcmdList; _i < pcmdList_3.length; _i++) {
+                var pdata_1 = pcmdList_3[_i];
+                this.writeToBuffer(sendBuffer, pdata_1);
+                pdata_1.recycle();
             }
-            tweens.length = j;
-            target.tween_count = 0;
+            //清空被动数据
+            pcmdList.length = 0;
+            ws.send(sendBuffer.outBytes);
         };
-        /**
-         * 移除单个tween
-         *
-         * @param {Tween} twn
-         * @returns
-         *
-         * @memberOf TweenManager
-         */
-        TweenManager.prototype.removeTween = function (twn) {
-            if (!twn) {
-                return;
-            }
-            var tweens = this._tweens;
-            for (var i = tweens.length - 1; i >= 0; i--) {
-                var tween = tweens[i];
-                if (tween == twn) {
-                    tween.paused = true;
-                    tweens.splice(i, 1);
-                    tween.onRecycle();
-                    break;
-                }
-            }
-        };
-        /**
-         * 暂停某个对象的全部Tween
-         *
-         * @static
-         * @param {*} target 指定对象
-         */
-        TweenManager.prototype.pauseTweens = function (target) {
-            if (!target.tween_count) {
-                return;
-            }
-            var tweens = this._tweens;
-            for (var i = tweens.length - 1; i >= 0; i--) {
-                if (tweens[i].target == target) {
-                    tweens[i].paused = true;
-                }
-            }
-        };
-        /**
-         * 恢复某个对象的全部Tween
-         *
-         * @static
-         * @param {*} target 指定对象
-         */
-        TweenManager.prototype.resumeTweens = function (target) {
-            if (!target.tween_count) {
-                return;
-            }
-            var tweens = this._tweens;
-            for (var i = tweens.length - 1; i >= 0; i--) {
-                if (tweens[i].target == target) {
-                    tweens[i].paused = false;
-                }
-            }
-        };
-        /**
-         * 由外部进行调用，进行心跳
-         * Advances all tweens. This typically uses the {{#crossLink "Ticker"}}{{/crossLink}} class, but you can call it
-         * manually if you prefer to use your own "heartbeat" implementation.
-         * @method tick
-         * @param {Number} delta The change in time in milliseconds since the last tick. Required unless all tweens have
-         * `useTicks` set to true.
-         * @param {Boolean} paused Indicates whether a global pause is in effect. Tweens with {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}}
-         * will ignore this, but all others will pause if this is `true`.
-         * @static
-         */
-        TweenManager.prototype.tick = function (delta, paused) {
-            if (!this._tweens.length) {
-                return;
-            }
-            var tweens = this._tweens.concat();
-            for (var i = tweens.length - 1; i >= 0; i--) {
-                var tween = tweens[i];
-                if ((paused && !tween.ignoreGlobalPause) || tween.paused) {
-                    continue;
-                }
-                tween.tick(tween._useTicks ? 1 : delta);
-            }
-        };
-        /**
-         * 将tween注册/注销到管理器中，
-         *
-         * @param {Tween} tween
-         * @param {boolean} [value] (description)
-         * @returns {void}
-         * @private 此方法只允许tween调用
-         */
-        TweenManager.prototype._register = function (tween, value) {
-            var target = tween.target;
-            var tweens = this._tweens;
-            if (value && !tween._registered) {
-                if (target) {
-                    target.tween_count = target.tween_count > 0 ? target.tween_count + 1 : 1;
-                }
-                tweens.push(tween);
-            }
-            else {
-                if (target) {
-                    target.tween_count--;
-                }
-                var i = tweens.length;
-                while (i--) {
-                    if (tweens[i] == tween) {
-                        tweens.splice(i, 1);
-                        tween.onRecycle();
-                        return;
-                    }
-                }
-            }
-        };
-        /**
-         * Stop and remove all existing tweens.
-         * 终止并移除所有的tween
-         * @method removeAllTweens
-         * @static
-         * @since 0.4.1
-         */
-        TweenManager.prototype.removeAllTweens = function () {
-            var tweens = this._tweens;
-            for (var i = 0, l = tweens.length; i < l; i++) {
-                var tween = tweens[i];
-                tween.paused = true;
-                tween.onRecycle();
-                tween.target.tweenjs_count = 0;
-            }
-            tweens.length = 0;
-        };
-        /**
-         * Indicates whether there are any active tweens (and how many) on the target object (if specified) or in general.
-         * @method hasActiveTweens
-         * @param {Object} [target] The target to check for active tweens. If not specified, the return value will indicate
-         * if there are any active tweens on any target.
-         * @return {Boolean} If there are active tweens.
-         * @static
-         */
-        TweenManager.prototype.hasActiveTweens = function (target) {
-            if (target) {
-                return target.tweenjs_count != null && !!target.tweenjs_count;
-            }
-            return this._tweens && !!this._tweens.length;
-        };
-        /**
-         * Installs a plugin, which can modify how certain properties are handled when tweened. See the {{#crossLink "CSSPlugin"}}{{/crossLink}}
-         * for an example of how to write TweenJS plugins.
-         * @method installPlugin
-         * @static
-         * @param {Object} plugin The plugin class to install
-         * @param {Array} properties An array of properties that the plugin will handle.
-         */
-        TweenManager.prototype.installPlugin = function (plugin, properties) {
-            var priority = plugin.priority;
-            if (priority == null) {
-                plugin.priority = priority = 0;
-            }
-            for (var i = 0, l = properties.length, p = this._plugins; i < l; i++) {
-                var n = properties[i];
-                if (!p[n]) {
-                    p[n] = [plugin];
-                }
-                else {
-                    var arr = p[n];
-                    for (var j = 0, jl = arr.length; j < jl; j++) {
-                        if (priority < arr[j].priority) {
-                            break;
-                        }
-                    }
-                    p[n].splice(j, 0, plugin);
-                }
-            }
-        };
-        return TweenManager;
-    }());
-    junyou.TweenManager = TweenManager;
-    __reflect(TweenManager.prototype, "junyou.TweenManager");
+        return WSNetService;
+    }(junyou.NetService));
+    junyou.WSNetService = WSNetService;
+    __reflect(WSNetService.prototype, "junyou.WSNetService");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    /**
-     * 基本单位<br/>
-     * 是一个状态机<br/>
-     * @author 3tion
-     *
-     */
-    var Unit = (function (_super) {
-        __extends(Unit, _super);
-        function Unit() {
-            var _this = _super !== null && _super.apply(this, arguments) || this;
-            /**
-             * 当前骑乘标识
-             */
-            _this._mountType = 0 /* ground */;
-            _this._z = 0;
-            _this._rotation = 0;
-            return _this;
-        }
-        Object.defineProperty(Unit.prototype, "playSpeed", {
-            /**
-             * 播放速度，默认为1倍速度<br/>
-             * 值越高，速度越快
-             */
-            get: function () {
-                return this._render.playSpeed;
+    junyou.MotionGuidePlugin = (function () {
+        return {
+            priority: 0,
+            install: function (manager) {
+                manager.installPlugin(this, ["guide", "x", "y", "rotation"]);
             },
-            /**
-             * 设置播放速度
-             */
-            set: function (value) {
-                this._render.playSpeed = value;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Unit.prototype, "model", {
-            /**
-             * 用于放纸娃娃贴图的容器
-             * 只允许放ResourceBitmap
-             */
-            get: function () {
-                return this._model;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Unit.prototype, "resDict", {
-            /**
-             * 人物底图资源的字典
-             * key      {string}            部位
-             * value    {UnitResource}      资源
-             * @readonly
-             * @type {{}
-             */
-            get: function () {
-                return this._resDict;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Unit.prototype, "pst", {
-            /**
-             * 设置单位pst
-             */
-            set: function (pst) {
-                var pstInfo = this.getPstInfo(pst);
-                if (pstInfo != this._pstInfo) {
-                    this._pstInfo = pstInfo;
-                    this.pstInfoChange();
+            init: function (tween, prop, value) {
+                var target = tween.target;
+                if (target.x == undefined) {
+                    target.x = 0;
                 }
+                if (target.y == undefined) {
+                    target.y = 0;
+                }
+                if (target.rotation == undefined) {
+                    target.rotation = 0;
+                }
+                if (prop == "rotation") {
+                    tween.__needsRot = true;
+                }
+                return prop == "guide" ? null : value;
             },
-            enumerable: true,
-            configurable: true
-        });
-        Unit.prototype.init = function (pst, setting) {
-            this._resDict = {};
-            this.initDisplayList(setting);
-            this.pst = pst;
-            this.initDefaultAction();
-            this.startUnitAction();
-            this.onSpawn();
-            return this;
-        };
-        Unit.prototype.onSpawn = function () {
-            this.state = 0 /* Init */;
-            this.dispatch(-1998 /* UnitCreate */);
-        };
-        /**
-         * 重置渲染器时间
-         *
-         * @param {number} now (description)
-         */
-        Unit.prototype.resetRenderTime = function (now) {
-            this._render.reset(now);
-        };
-        /**
-         * 初始化显示列表
-         * @param setting
-         */
-        Unit.prototype.initDisplayList = function (setting) {
-            var render = new junyou.UnitRender(this);
-            var model = new junyou.UModel();
-            var body = new junyou.DSprite();
-            this._render = render;
-            render.model = model;
-            this._model = model;
-            this.body = body;
-            body.addChild(model);
-            //其他设置
-            this._depth = setting.getDepth();
-            if (setting.addToEngine) {
-                this.addedToEngine();
-            }
-        };
-        Object.defineProperty(Unit.prototype, "faceTo", {
-            /**
-             * 获取朝向
-             */
-            get: function () {
-                return this._render.faceTo;
-            },
-            /**
-             * 设置朝向
-             */
-            set: function (value) {
-                this._render.faceTo = value >> 0;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        /**
-         * 播放自定义动作
-         *
-         * @param {ActionInfo} customAction 自定义动作
-         * @param {number} [startFrame=-1]  起始帧
-         */
-        Unit.prototype.doCustomAction = function (customAction, startFrame) {
-            if (startFrame === void 0) { startFrame = -1; }
-            var render = this._render;
-            var action = customAction.key;
-            if (this._action != action) {
-                this._action = action;
-                render.actionInfo = customAction;
-                startFrame = 0;
-            }
-            if (startFrame > -1) {
-                render.f = startFrame;
-            }
-        };
-        /**
-         * 执行动作序列
-         * @private 只允许UnitAction调用
-         */
-        Unit.prototype.doAction = function (now, action, startFrame) {
-            if (startFrame === void 0) { startFrame = -1; }
-            var render = this._render;
-            action = ~~action;
-            if (this._action != action) {
-                this._action = action;
-                render.actionInfo = this._pstInfo.frames[action];
-                render.reset(now);
-                startFrame = 0;
-            }
-            if (startFrame > -1) {
-                render.f = startFrame;
-            }
-            return render.actionInfo;
-        };
-        /**
-         * 获取当前动作序列
-         */
-        Unit.prototype.getCurAction = function () {
-            return this._render.actionInfo;
-        };
-        /**
-         * 对指定部位设置资源
-         *
-         * @protected
-         * @param {Key} part 部位
-         * @param {string} [uri] 资源路径，不传则清空部位
-         * @param {string} [pst] 通过其他pst配置进行加载
-         */
-        Unit.prototype.setRes = function (part, uri, pst) {
-            var old = this._resDict[part];
-            var res;
-            if (uri) {
-                var pstInfo = void 0;
-                if (pst) {
-                    pstInfo = this.getPstInfo(pst);
+            step: function (tween, prop, startValue, endValue, injectProps) {
+                // other props
+                if (prop == "rotation") {
+                    tween.__rotGlobalS = startValue;
+                    tween.__rotGlobalE = endValue;
+                    testRotData(tween, injectProps);
+                }
+                if (prop != "guide") {
+                    return endValue;
+                }
+                // guide only information - Start -
+                var temp, data = endValue;
+                if (!data.hasOwnProperty("path")) {
+                    data.path = [];
+                }
+                var path = data.path;
+                if (!data.hasOwnProperty("end")) {
+                    data.end = 1;
+                }
+                if (!data.hasOwnProperty("start")) {
+                    data.start = (startValue && startValue.hasOwnProperty("end") && startValue.path === path) ? startValue.end : 0;
+                }
+                // Figure out subline information
+                if (data.hasOwnProperty("_segments") && data._length) {
+                    return endValue;
+                }
+                var l = path.length;
+                var accuracy = 10; // Adjust to improve line following precision but sacrifice performance (# of seg)
+                if (l >= 6 && (l - 2) % 4 == 0) {
+                    data._segments = [];
+                    data._length = 0;
+                    for (var i = 2; i < l; i += 4) {
+                        var sx = path[i - 2], sy = path[i - 1];
+                        var cx = path[i + 0], cy = path[i + 1];
+                        var ex = path[i + 2], ey = path[i + 3];
+                        var oldX = sx, oldY = sy;
+                        var tempX, tempY, total = 0;
+                        var sublines = [];
+                        for (var j = 1; j <= accuracy; j++) {
+                            var t = j / accuracy;
+                            var inv = 1 - t;
+                            tempX = inv * inv * sx + 2 * inv * t * cx + t * t * ex;
+                            tempY = inv * inv * sy + 2 * inv * t * cy + t * t * ey;
+                            total += sublines[sublines.push(Math.sqrt((temp = tempX - oldX) * temp + (temp = tempY - oldY) * temp)) - 1];
+                            oldX = tempX;
+                            oldY = tempY;
+                        }
+                        data._segments.push(total);
+                        data._segments.push(sublines);
+                        data._length += total;
+                    }
                 }
                 else {
-                    pstInfo = this._pstInfo;
+                    throw ("invalid 'path' data, please see documentation for valid paths");
                 }
-                if (pstInfo) {
-                    res = pstInfo.getUnitResource(uri);
+                // Setup x/y tweens
+                temp = data.orient;
+                data.orient = true;
+                var o = {};
+                calc(data, data.start, o);
+                tween.__rotPathS = Number(o.rotation.toFixed(5));
+                calc(data, data.end, o);
+                tween.__rotPathE = Number(o.rotation.toFixed(5));
+                data.orient = false; //here and now we don't know if we need to
+                calc(data, data.end, injectProps);
+                data.orient = temp;
+                // Setup rotation properties
+                if (!data.orient) {
+                    return endValue;
+                }
+                tween.__guideData = data;
+                testRotData(tween, injectProps);
+                return endValue;
+            },
+            tween: function (tween, prop, value, startValues, endValues, ratio, wait, end) {
+                var data = endValues.guide;
+                if (data == undefined || data === startValues.guide) {
+                    return value;
+                }
+                if (data.lastRatio != ratio) {
+                    // first time through so calculate what I need to
+                    var t = ((data.end - data.start) * (wait ? data.end : ratio) + data.start);
+                    calc(data, t, tween.target);
+                    switch (data.orient) {
+                        case "cw": // mix in the original rotation
+                        case "ccw":
+                        case "auto":
+                            tween.target.rotation += data.rotOffS + data.rotDelta * ratio;
+                            break;
+                        case "fixed": // follow fixed behaviour to solve potential issues
+                        default:
+                            tween.target.rotation += data.rotOffS;
+                            break;
+                    }
+                    data.lastRatio = ratio;
+                }
+                if (prop == "rotation" && ((!data.orient) || data.orient == "false")) {
+                    return value;
+                }
+                return tween.target[prop];
+            }
+        };
+        function testRotData(tween, injectProps) {
+            // no rotation informat? if we need it come back, if we don't use 0 & ensure we have guide data
+            if (tween.__rotGlobalS === undefined || tween.__rotGlobalE === undefined) {
+                if (tween.__needsRot) {
+                    return;
+                }
+                var _curQueueProps = tween._curQueueProps;
+                if (_curQueueProps.rotation !== undefined) {
+                    tween.__rotGlobalS = tween.__rotGlobalE = _curQueueProps.rotation;
+                }
+                else {
+                    tween.__rotGlobalS = tween.__rotGlobalE = injectProps.rotation = tween.target.rotation || 0;
                 }
             }
-            if (res != old) {
-                this._resDict[part] = res;
-                this.invalidateResList();
-            }
-        };
-        /**
-         * 资源列表发生改变
-         */
-        Unit.prototype.invalidateResList = function () {
-            this._resListChange = true;
-        };
-        /**
-         * 刷新资源列表
-         */
-        Unit.prototype.refreshResList = function () {
-            if (this._resListChange) {
-                this.checkResList(this._partList);
-                this._resListChange = false;
-            }
-        };
-        /**
-         * 检查/重置资源列表
-         *
-         * @param {string[]} [resOrder] 部位的排列顺序
-         * @param {{ [index: string]: UnitResource }} [resDict] 部位和资源的字典
-         */
-        Unit.prototype.checkResList = function (resOrder, resDict) {
-            this._model.checkResList(resOrder || this._partList, resDict || this._resDict);
-        };
-        /**
-         * 执行默认的，基于enterframe的渲染
-         *
-         * @protected
-         */
-        Unit.prototype.$render = function () {
-            var now = junyou.Global.now;
-            this.refreshResList();
-            var currentAction = this._currentAction;
-            if (currentAction) {
-                currentAction.doData(this, now);
-                currentAction.doRender(this, now);
-            }
-            this._render.render(now);
-        };
-        /**
-         * 通过其他方式驱动数据
-         *
-         * @param {number} now 时间戳
-         */
-        Unit.prototype.doData = function (now) {
-            var currentAction = this._currentAction;
-            if (currentAction) {
-                currentAction.doData(this, now);
-            }
-            this._render.doData(now);
-        };
-        /**
-         * 通过其他方式驱动渲染
-         *
-         * @param {number} now 时间戳
-         */
-        Unit.prototype.doRender = function (now) {
-            this.refreshResList();
-            var currentAction = this._currentAction;
-            if (currentAction) {
-                currentAction.doRender(this, now);
-            }
-            this._render.doRender(now);
-        };
-        /**
-         * 回收
-         */
-        Unit.prototype.onRecycle = function () {
-            junyou.removeDisplay(this.body);
-            var model = this._model;
-            model.off("enterFrame" /* ENTER_FRAME */, this.$render, this);
-            model.clear();
-            this.rotation = 0;
-            this.z = 0;
-            // 回收ResourceBitmap
-            var dict = this._resDict;
-            for (var key in dict) {
-                delete dict[key];
-            }
-            var current = this._currentAction;
-            if (current) {
-                current.recycle();
-                this._currentAction = undefined;
-            }
-            var next = this._nextAction;
-            if (next) {
-                next.recycle();
-                this._nextAction = undefined;
-            }
-            this._action = undefined;
-            if (this._render) {
-                this._render.reset(0);
-            }
-            this.lastFrame = undefined;
-            this.dispatch(-1999 /* UnitRecycle */);
-        };
-        Unit.prototype.initDefaultAction = function () {
-            this.aStandBy = new junyou.UnitAction();
-        };
-        /**
-         * 开始执行单位动作
-         * @param {UnitAction} [action]     准备执行的动作，默认为待机动作
-         * @param {number}     [now]        执行时间，默认取全局时间
-         * @param {boolean}    [override]   是否强制覆盖当前动作，默认为否
-         * @return true     成功执行动作
-         *         false    未成功执行动作，将动作覆盖到下一个动作
-         */
-        Unit.prototype.startUnitAction = function (action, now, override) {
-            if (this.state != 1 /* Stage */) {
+            if (tween.__guideData === undefined) {
                 return;
             }
-            if (!action) {
-                action = this.aStandBy;
-            }
-            now = now || junyou.Global.now;
-            var currentAction = this._currentAction;
-            /**
-             * 是否成功执行新的动作
-             */
-            var flag = false;
-            if (currentAction) {
-                if (currentAction != action) {
-                    if (currentAction.isEnd) {
-                        currentAction.recycle();
-                        flag = true;
-                    }
-                    else if (override || currentAction.canStop) {
-                        currentAction.terminate();
-                        currentAction.recycle();
-                        flag = true;
-                    }
-                    else {
-                        var next = this._nextAction;
-                        if (next) {
-                            if (next != action) {
-                                next.recycle();
-                                this._nextAction = action; //覆盖下一个动作
-                            }
-                        }
-                        else {
-                            this._nextAction = action;
-                        }
-                    }
+            // Process rotation properties
+            var data = tween.__guideData;
+            var rotGlobalD = tween.__rotGlobalE - tween.__rotGlobalS;
+            var rotPathD = tween.__rotPathE - tween.__rotPathS;
+            var rot = rotGlobalD - rotPathD;
+            if (data.orient == "auto") {
+                if (rot > 180) {
+                    rot -= 360;
+                }
+                else if (rot < -180) {
+                    rot += 360;
                 }
             }
-            else {
-                flag = true;
-            }
-            if (flag) {
-                currentAction = action;
-                currentAction.start(this, now);
-                this._currentAction = currentAction;
-            }
-            currentAction.playAction(this, this._mountType, now);
-            return flag;
-        };
-        /**
-         * 停止单位当前动作，做待机动作
-         *
-         * @param {number} [now]
-         */
-        Unit.prototype.stopUnitAction = function (now) {
-            this._nextAction = undefined;
-            this.startUnitAction(null, now, true);
-        };
-        Unit.prototype.setMountType = function (value) {
-            if (value != this._mountType) {
-                this._mountType = value;
-                //由子类实现 先向服务器请求坐骑状态变更，处理其他
-            }
-        };
-        /**
-         * 动作的动画播放完毕
-         */
-        Unit.prototype.playComplete = function (now) {
-            var currentAction = this._currentAction;
-            var flag;
-            if (currentAction) {
-                currentAction.playComplete(this, now);
-                if (currentAction.isEnd) {
-                    flag = true;
+            else if (data.orient == "cw") {
+                while (rot < 0) {
+                    rot += 360;
                 }
-                else {
-                    currentAction.playAction(this, this._mountType, now);
+                if (rot == 0 && rotGlobalD > 0 && rotGlobalD != 180) {
+                    rot += 360;
                 }
             }
-            else {
-                flag = true;
-            }
-            if (flag) {
-                var next = this._nextAction;
-                this._nextAction = undefined;
-                this.startUnitAction(next, now);
-            }
-        };
-        /**
-         * 动作进行渲染的时候
-         */
-        Unit.prototype.onRenderFrame = function (now) {
-            var currentAction = this._currentAction;
-            if (currentAction) {
-                if (currentAction.isEnd) {
-                    this.startUnitAction(this._nextAction, now);
+            else if (data.orient == "ccw") {
+                rot = rotGlobalD - ((rotPathD > 180) ? (360 - rotPathD) : (rotPathD)); // sign flipping on path
+                while (rot > 0) {
+                    rot -= 360;
+                }
+                if (rot == 0 && rotGlobalD < 0 && rotGlobalD != -180) {
+                    rot -= 360;
                 }
             }
-            else {
-                this.startUnitAction(this._nextAction, now);
+            data.rotDelta = rot;
+            data.rotOffS = tween.__rotGlobalS - tween.__rotPathS;
+            // reset
+            tween.__rotGlobalS = tween.__rotGlobalE = tween.__guideData = tween.__needsRot = undefined;
+        }
+        function calc(data, ratio, target) {
+            if (data._segments == undefined) {
+                throw ("Missing critical pre-calculated information, please file a bug");
             }
-        };
-        /**
-         * 执行动作中的回调事件
-         */
-        Unit.prototype.fire = function (eventType, now) {
-            var currentAction = this._currentAction;
-            if (currentAction) {
-                currentAction.dispatchEvent(this, eventType, now);
+            if (target == undefined) {
+                target = { x: 0, y: 0, rotation: 0 };
             }
-        };
-        //        /**
-        //         * 绘制快照
-        //         */ 
-        //        public drawShortcut(){
-        //            //TODO
-        //            
-        //        }
-        /*↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑UnitAction相关↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑*/
-        /**
-         * 加到游戏引擎中
-         *
-         * @param {boolean} [doRender=true] 是否添加Event.ENTER_FRAME事件
-         */
-        Unit.prototype.addedToEngine = function (doRender) {
-            if (doRender === void 0) { doRender = true; }
-            // 子类实现其他层的添加
-            junyou.GameEngine.instance.getLayer(1760 /* Sorted */).addChild(this.body);
-            if (doRender) {
-                this.model.on("enterFrame" /* ENTER_FRAME */, this.$render, this);
+            var seg = data._segments;
+            var path = data.path;
+            // find segment
+            var pos = data._length * ratio;
+            var cap = seg.length - 2;
+            var n = 0;
+            while (pos > seg[n] && n < cap) {
+                pos -= seg[n];
+                n += 2;
             }
-            this.state = 1 /* Stage */;
-            this.dispatch(-1997 /* UnitAddToStage */);
-        };
-        /**
-         * 添加到容器中
-         *
-         * @param {Container} container
-         * @param {boolean} [doRender=true]
-         *
-         * @memberOf Unit
-         */
-        Unit.prototype.addToContainer = function (container, doRender) {
-            if (doRender === void 0) { doRender = true; }
-            container.addChild(this.body);
-            if (doRender) {
-                this.model.on("enterFrame" /* ENTER_FRAME */, this.$render, this);
+            // find subline
+            var sublines = seg[n + 1];
+            var i = 0;
+            cap = sublines.length - 1;
+            while (pos > sublines[i] && i < cap) {
+                pos -= sublines[i];
+                i++;
             }
-            this.state = 1 /* Stage */;
-            this.dispatch(-1997 /* UnitAddToStage */);
-        };
-        Object.defineProperty(Unit.prototype, "x", {
-            get: function () {
-                return this._x;
-            },
-            /**
-             * 此方法只允许 UnitAction调用
-             */
-            set: function (value) {
-                value = value >> 0;
-                if (this._x != value) {
-                    this._x = value;
-                    this.checkPosition();
-                }
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Unit.prototype, "y", {
-            get: function () {
-                return this._y;
-            },
-            /**
-             * 此方法只允许 UnitAction调用
-             */
-            set: function (value) {
-                value = value >> 0;
-                if (this._y != value) {
-                    this._y = value;
-                    this.checkPosition();
-                    junyou.GameEngine.invalidateSort();
-                }
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Unit.prototype, "z", {
-            get: function () {
-                return this._z;
-            },
-            /**
-             * 此方法只允许 UnitAction调用
-             */
-            set: function (value) {
-                value = value >> 0;
-                if (this._z != value) {
-                    this._z = value;
-                    this.checkPosition();
-                }
-            },
-            enumerable: true,
-            configurable: true
-        });
-        /**
-         * 检查模型和其他的y轴
-         */
-        Unit.prototype.checkPosition = function () {
-            var body = this.body;
-            if (body) {
-                body.depth = this._depth + this._y;
-                body.y = this._y + this._z;
-                body.x = this._x;
+            var t = (i / ++cap) + (pos / (cap * sublines[i]));
+            // find x/y
+            n = (n * 2) + 2;
+            var inv = 1 - t;
+            target.x = inv * inv * path[n - 2] + 2 * inv * t * path[n + 0] + t * t * path[n + 2];
+            target.y = inv * inv * path[n - 1] + 2 * inv * t * path[n + 1] + t * t * path[n + 3];
+            // orientation
+            if (data.orient) {
+                target.rotation = 57.2957795 * Math.atan2((path[n + 1] - path[n - 1]) * inv + (path[n + 3] - path[n + 1]) * t, (path[n + 0] - path[n - 2]) * inv + (path[n + 2] - path[n + 0]) * t);
             }
-        };
-        Object.defineProperty(Unit.prototype, "rotation", {
-            /**
-             * 获得模型的旋转角度
-             */
-            get: function () {
-                return this._rotation;
-            },
-            /**
-             * 设置旋转角度
-             * 表示 DisplayObject 实例距其原始方向的旋转程度，以度为单位。
-             * 从 0 到 180 的值表示顺时针方向旋转；从 0 到 -180 的值表示逆时针方向旋转。对于此范围之外的值，可以通过加上或减去 360 获得该范围内的值。
-             * 例如，myDisplayObject.rotation = 450语句与 myDisplayObject.rotation = 90 是相同的
-             */
-            set: function (value) {
-                if (this._rotation != value) {
-                    this._rotation = value;
-                    if (this._model.scaleX >= 0) {
-                        this._model.rotation = value;
-                    }
-                    else {
-                        this._model.rotation = -value;
-                    }
-                }
-            },
-            enumerable: true,
-            configurable: true
-        });
-        /**
-         * 根据 resKey 获取纹理
-         * @param {Key} resKey resDict的key
-         * @param {IDrawInfo} [drawInfo] 动作，方向，帧数信息
-         */
-        Unit.prototype.getTexture = function (resKey, drawInfo) {
-            drawInfo = drawInfo || this._render;
-            if (drawInfo) {
-                var res = this._resDict[resKey];
-                if (res) {
-                    return res.getTexture(drawInfo);
-                }
-            }
-        };
-        return Unit;
-    }(egret.EventDispatcher));
-    junyou.Unit = Unit;
-    __reflect(Unit.prototype, "junyou.Unit");
+            return target;
+        }
+        ;
+    })();
 })(junyou || (junyou = {}));
