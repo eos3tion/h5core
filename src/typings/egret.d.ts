@@ -1,6 +1,8 @@
 declare function __extends(d: any, b: any): void;
 declare let __define: any;
 declare namespace egret {
+
+    let ticker: egret.sys.SystemTicker;
     /**
      * The HashObject class is the base class for all objects in the Egret framework.The HashObject
      * class includes a hashCode property, which is a unique identification number of the instance.
