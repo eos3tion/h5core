@@ -49,7 +49,7 @@ module junyou {
     	 * Key      string  存储图片数据的key <br/>
     	 * Value    UnitResource<br/>
     	 */
-        protected _resources: { [index: string]: UnitResource } | UnitResource;
+        protected _resources: { [uri: string]: UnitResource } | UnitResource;
 
         /**
          * pst的唯一标识
@@ -61,7 +61,7 @@ module junyou {
          * Key      {number}        动作标识
          * Value    {ActionInfo}    动作信息
          */
-        public frames: { [index: number]: ActionInfo };
+        public frames: { [action: number]: ActionInfo };
 
         /**
          * 头顶显示的基准坐标Y，相对于角色的原点
@@ -81,9 +81,9 @@ module junyou {
          * 施法点
          * KEY      {number}        action << 8 | direction
          * VALUE    {egret.Point}   施法点坐标
-         * @type {[index:string]:egret.Point}
+         * @type {[adKey:string]:egret.Point}
          */
-        protected castPoints: { [index: number]: egret.Point };
+        protected castPoints: { [adKey: number]: egret.Point };
 
 
         /**
@@ -94,7 +94,7 @@ module junyou {
          */
         public getCastPoint(action: number, direction: number) {
             if (this.castPoints) {
-                let pt = this.castPoints[PstUtils.getADKey(action, direction)];
+                let pt = this.castPoints[ADKey.get(action, direction)];
                 if (pt) {
                     return pt;
                 }
@@ -116,7 +116,7 @@ module junyou {
             //     return;
             // }
             // let parser = new parserRef(key);
-            let parser = new OneADSInfo(key);
+            let parser = new SplitInfo(key);
             //处理数据
             this.splitInfo = parser;
             parser.parseSplitInfo(data[1]);
@@ -128,9 +128,9 @@ module junyou {
             if (extra) {
                 this.headY = +extra[0];
                 this.hurtY = +extra[1];
-                let castInfo: { [index: number]: number[][] } = extra[2];
+                let castInfo: { [adKey: number]: number[][] } = extra[2];
                 if (castInfo) {
-                    let castPoints: { [index: number]: egret.Point } = {};
+                    let castPoints: { [adKey: number]: egret.Point } = {};
                     this.castPoints = castPoints;
                     for (let a in castInfo) {
                         let aInfo = castInfo[a];
@@ -138,7 +138,7 @@ module junyou {
                             let pInfo: number[] = aInfo[d > 4 ? 8 - d : d];
                             if (pInfo) {
                                 let pt: egret.Point = new egret.Point();
-                                castPoints[PstUtils.getADKey(+a, d)] = pt;
+                                castPoints[ADKey.get(+a, d)] = pt;
                                 pt.x = +pInfo[0];
                                 pt.y = +pInfo[1];
                             }
@@ -180,14 +180,15 @@ module junyou {
     }
 
     /**
-     * 资源打包分隔信息
+     * 资源打包分隔信息 
+     * 只保留了最主流的单动作，单方向
      */
-    export abstract class SplitInfo {
+    export class SplitInfo {
 
         /**
          * 资源字典
          */
-        protected _resDict: { [index: number]: string };
+        protected _resDict: { [adkey: number]: string };
 
         /**
          * 子资源列表
@@ -201,44 +202,63 @@ module junyou {
 
         /**
          * 动作/方向的字典<br/>
-         * key      {string}  资源uri<br/>
+         * key      {string}  资源key<br/>
          * value    {Array}   action<<8|direction
          *                   
          */
-        public adDict: { [index: string]: number[] };
-
-        /**
-         * 处理分隔信息
-         * @param data
-         */
-        abstract parseSplitInfo(data: any[]);
+        public adDict: { [resKey: string]: ADKey };
 
         constructor(key: string) {
             this._key = key;
         }
 
-        /**
-         * 处理帧数据
-         * @param data
-         */
-        public parseFrameData(data: any[]): { [index: number]: ActionInfo } {
-            var frames: { [index: number]: ActionInfo } = {};
+        protected _n: string;
+        protected _a: any[];
+        protected _d: any[];
+
+        parseFrameData(data: any) {
+            this._resDict = {};
+            let adDict = this.adDict = {};
+            let frames: { [index: number]: ActionInfo } = {};
             for (let key in data) {
                 let a = +key;
                 frames[a] = getActionInfo(data[a], a);
+                for (let d = 0; d < 5; d++) {
+                    let res = this.getResKey(d, a);
+                    adDict[res] = ADKey.get(a, d);
+                }
             }
             return frames;
         }
 
-        /**
-         * 根据方向和动作获取原始资源
-         * @param direction 方向
-         * @param action    动作
-         */
-        abstract getResource(direction: number, action: number): string;
+        parseSplitInfo(infos: any) {
+            this._n = infos.n || "{a}{d}";
+            this._a = infos.a || _pst$a;
+            this._d = infos.d;
+        }
 
+        getResKey(direction: number, action: number): string {
+            let key = ADKey.get(action, direction);
+            let res = this._resDict[key];
+            if (!res) {
+                this._resDict[key] = res = this._n.substitute({ "f": this._key, "a": getRep(action, this._a), "d": getRep(direction, this._d) });
+            }
+            return res;
+        }
     }
-    export const PstUtils = {
+
+    function getRep(data: number, repArr: any[]): string {
+        let str = data + "";
+        if (repArr && (data in repArr)) {
+            str = repArr[data];
+        }
+        return str;
+    }
+    /**
+     * action << 8 | direction
+     */
+    export declare type ADKey = number;
+    export const ADKey = {
         /**
          * 得到 A(动作)D(方向)的标识
          * 
@@ -247,7 +267,7 @@ module junyou {
          * @param {number} direction D(方向)标识
          * @returns {number} A(动作)D(方向)的标识
          */
-        getADKey(action: number, direction: number): number {
+        get(action: number, direction: number): ADKey {
             return action << 8 | direction;
         },
 
@@ -255,10 +275,10 @@ module junyou {
          * 从A(动作)D(方向)的标识中获取 A(动作)标识
          * 
          * @static
-         * @param {number} adKey A(动作)D(方向)的标识
+         * @param {ADKey} adKey A(动作)D(方向)的标识
          * @returns {number} A(动作)标识
          */
-        getAFromADKey(adKey: number): number {
+        getAction(adKey: ADKey): number {
             return adKey >> 8;
         },
 
@@ -266,10 +286,10 @@ module junyou {
          * 从A(动作)D(方向)的标识中获取 D(方向)标识
          * 
          * @static
-         * @param {number} adKey A(动作)D(方向)的标识
+         * @param {ADKey} adKey A(动作)D(方向)的标识
          * @returns {number} D(方向)标识
          */
-        getDFromADKey(adKey: number): number {
+        getDirection(adKey: ADKey): number {
             return adKey & 0xff;
         }
     }
@@ -289,54 +309,54 @@ module junyou {
             }
         }
     }();
-    /**
-     * 单方向单动作分隔数据
-     * 后面只用这种打包方式
-     */
-    export class OneADSInfo extends SplitInfo {
+    // /**
+    //  * 单方向单动作分隔数据
+    //  * 后面只用这种打包方式
+    //  */
+    // export class OneADSInfo extends SplitInfo {
 
 
-        protected _n: string;
-        protected _a: any[];
-        protected _d: any[];
+    //     protected _n: string;
+    //     protected _a: any[];
+    //     protected _d: any[];
 
-        parseFrameData(data: any) {
-            this._resDict = {};
-            let _adDict = this.adDict = {};
-            let frames: { [index: number]: ActionInfo } = {};
-            for (let key in data) {
-                let a = +key;
-                frames[a] = getActionInfo(data[a], a);
-                for (let d = 0; d < 5; d++) {
-                    let res = this.getResource(d, a);
-                    _adDict[res] = [PstUtils.getADKey(a, d)];
-                }
-            }
-            return frames;
-        }
+    //     parseFrameData(data: any) {
+    //         this._resDict = {};
+    //         let adDict = this.adDict = {};
+    //         let frames: { [index: number]: ActionInfo } = {};
+    //         for (let key in data) {
+    //             let a = +key;
+    //             frames[a] = getActionInfo(data[a], a);
+    //             for (let d = 0; d < 5; d++) {
+    //                 let res = this.getResUri(d, a);
+    //                 adDict[res] = ADKey.get(a, d);
+    //             }
+    //         }
+    //         return frames;
+    //     }
 
-        parseSplitInfo(infos: any) {
-            this._n = infos.n || "{a}{d}";
-            this._a = infos.a || _pst$a;
-            this._d = infos.d;
-        }
+    //     parseSplitInfo(infos: any) {
+    //         this._n = infos.n || "{a}{d}";
+    //         this._a = infos.a || _pst$a;
+    //         this._d = infos.d;
+    //     }
 
-        getResource(direction: number, action: number): string {
-            let key = PstUtils.getADKey(action, direction);
-            let res = this._resDict[key];
-            if (!res) {
-                this._resDict[key] = res = this._n.substitute({ "f": this._key, "a": getRep(action, this._a), "d": getRep(direction, this._d) });
-            }
-            return res;
-            function getRep(data: number, repArr: any[]): string {
-                var str = data + "";
-                if (repArr && (data in repArr)) {
-                    str = repArr[data];
-                }
-                return str;
-            }
-        }
-    }
+    //     getResUri(direction: number, action: number): string {
+    //         let key = ADKey.get(action, direction);
+    //         let res = this._resDict[key];
+    //         if (!res) {
+    //             this._resDict[key] = res = this._n.substitute({ "f": this._key, "a": getRep(action, this._a), "d": getRep(direction, this._d) });
+    //         }
+    //         return res;
+    //         function getRep(data: number, repArr: any[]): string {
+    //             var str = data + "";
+    //             if (repArr && (data in repArr)) {
+    //                 str = repArr[data];
+    //             }
+    //             return str;
+    //         }
+    //     }
+    // }
 
     // /**
     //  * 基于动作打包的分隔数据

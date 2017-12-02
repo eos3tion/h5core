@@ -37,9 +37,9 @@ module junyou {
             return this.state != RequestState.REQUESTING;//加载中，本次不允许卸载
         }
 
-        constructor(uri: string) {
+        constructor(uri: string, url: string) {
             this.resID = uri;
-            this.url = ConfigUtils.getResUrl(uri + Global.webp);
+            this.url = url;
             this.textures = [];
         }
 
@@ -49,18 +49,18 @@ module junyou {
          * @param {{ [index: number]: JTexture[][] }} textures (description)
          * @param {number[]} adKeys (description)
          */
-        public bindTextures(textures: { [index: number]: JTexture[][] }, adKeys: number[]) {
-            adKeys.forEach(adKey => {
-                let a = PstUtils.getAFromADKey(adKey);
-                let dTextures = textures[a];
-                if (dTextures) {
-                    let d = PstUtils.getDFromADKey(adKey);
-                    let textures = dTextures[d];
-                    if (textures) {
-                        textures.forEach(tex => { this.bindTexture(tex) });
+        public bindTextures(textures: { [index: number]: JTexture[][] }, adKey: ADKey) {
+            let a = ADKey.getAction(adKey);
+            let dTextures = textures[a];
+            if (dTextures) {
+                let d = ADKey.getDirection(adKey);
+                let textures = dTextures[d];
+                if (textures) {
+                    for (let i = 0; i < textures.length; i++) {
+                        this.bindTexture(textures[i]);
                     }
                 }
-            });
+            }
         }
 
         /**
