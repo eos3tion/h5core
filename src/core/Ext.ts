@@ -6,6 +6,8 @@ module junyou {
     export const enum Ext {
         JPG = ".jpg",
         PNG = ".png",
-        WEBP = ".webp"
+        WEBP = ".webp",
+        BIN = ".bin",
+        JSON = ".json",
     }
 }
