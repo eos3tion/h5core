@@ -10712,7 +10712,7 @@ if (true) {
 }
 var junyou;
 (function (junyou) {
-    function checkRect(map, rect, preload, forEach, checker) {
+    function checkRect(map, rect, preload, forEach, checker, caller) {
         //检查地图，进行加载区块
         var x = rect.x;
         var y = rect.y;
@@ -10728,7 +10728,7 @@ var junyou;
         sr = Math.max(sr - preload, 0);
         ec = Math.min(ec + preload, map.maxPicX);
         er = Math.min(er + preload, map.maxPicY);
-        if (checker && !checker(sc, sr, ec, er)) {
+        if (checker && !checker.call(caller, sc, sr, ec, er)) {
             return;
         }
         var i = 0;
@@ -10736,7 +10736,7 @@ var junyou;
         for (var r = sr; r <= er; r++) {
             for (var c = sc; c <= ec; c++) {
                 var uri = map.getMapUri(c, r);
-                forEach(uri, c, r);
+                forEach.call(caller, uri, c, r, pW, pH);
             }
         }
     }
@@ -10793,8 +10793,38 @@ var junyou;
             }
             return _this;
         }
+        TileMapLayer.prototype.addMap = function (uri, c, r, pW, pH) {
+            var map = this.currentMap;
+            var tm = junyou.ResourceManager.get(uri, this.noRes, this, uri, c, r, pW, pH);
+            // 舞台上的标记为静态
+            tm.isStatic = true;
+            var idx = this._idx;
+            this.$doAddChild(tm, idx, false);
+            this._showing[idx++] = tm;
+            this._idx = idx;
+        };
+        TileMapLayer.prototype.check = function (sc, sr, ec, er) {
+            if (sc == this.lsc && sr == this.lsr && ec == this.lec && er == this.ler) {
+                return;
+            }
+            this.lsc = sc;
+            this.lsr = sr;
+            this.lec = ec;
+            this.ler = er;
+            // 先将正在显示的全部标记为未使用
+            // 换地图也使用此方法处理
+            var now = junyou.Global.now;
+            var showing = this._showing;
+            var left = showing.length;
+            while (left > 0) {
+                var m = showing[--left];
+                m.isStatic = false;
+                m.lastUseTime = now;
+                this.$doRemoveChild(left, false);
+            }
+            return true;
+        };
         TileMapLayer.prototype.setRect = function (rect) {
-            var _this = this;
             var cM = this.currentMap;
             if (!cM) {
                 return;
@@ -10804,84 +10834,9 @@ var junyou;
                     this.drawGrid(rect.x, rect.y, rect.width, rect.height, cM);
                 }
             }
-            var pW = cM.pWidth;
-            var pH = cM.pHeight;
-            var add = 0;
-            var showing = this._showing;
-            checkRect(cM, rect, this.preload, function (uri, c, r) {
-                var tm = junyou.ResourceManager.get(uri, _this.noRes, _this, uri, c, r, pW, pH);
-                // 舞台上的标记为静态
-                tm.isStatic = true;
-                _this.$doAddChild(tm, add, false);
-                showing[add++] = tm;
-            }, function (sc, sr, ec, er) {
-                if (sc == _this.lsc && sr == _this.lsr && ec == _this.lec && er == _this.ler) {
-                    return;
-                }
-                _this.lsc = sc;
-                _this.lsr = sr;
-                _this.lec = ec;
-                _this.ler = er;
-                // 先将正在显示的全部标记为未使用
-                // 换地图也使用此方法处理
-                var now = junyou.Global.now;
-                var left = showing.length;
-                while (left > 0) {
-                    var m = showing[--left];
-                    m.isStatic = false;
-                    m.lastUseTime = now;
-                    _this.$doRemoveChild(left, false);
-                }
-                return true;
-            });
-            showing.length = add;
-            // //检查地图，进行加载区块
-            // let x = rect.x;
-            // let y = rect.y;
-            // let w = rect.width;
-            // let h = rect.height;
-            // let pW = cM.pWidth;
-            // let pH = cM.pHeight;
-            // let pre = TileMapLayer.preload;
-            // let sc = x / pW | 0;
-            // let sr = y / pH | 0;
-            // let ec = (x + w) / pW | 0;
-            // let er = (y + h) / pH | 0;
-            // sc = Math.max(sc - pre, 0);
-            // sr = Math.max(sr - pre, 0);
-            // ec = Math.min(ec + pre, cM.maxPicX);
-            // er = Math.min(er + pre, cM.maxPicY);
-            // if (sc == this.lsc && sr == this.lsr && ec == this.lec && er == this.ler) {//要加载的块没有发生任何变更
-            //     return;
-            // }
-            // this.lsc = sc;
-            // this.lsr = sr;
-            // this.lec = ec;
-            // this.ler = er;
-            // // 先将正在显示的全部标记为未使用
-            // // 换地图也使用此方法处理
-            // let showing = this._showing;
-            // let now = Global.now;
-            // let i = showing.length;
-            // while (i > 0) {
-            //     let m = showing[--i];
-            //     m.isStatic = false;
-            //     m.lastUseTime = now;
-            //     this.$doRemoveChild(i, false);
-            // }
-            // i = 0;
-            // let get = ResourceManager.get;
-            // for (let r = sr; r <= er; r++) {
-            //     for (let c = sc; c <= ec; c++) {
-            //         let uri = cM.getMapUri(c, r);
-            //         let tm = get(uri, this.noRes, this, uri, c, r, pW, pH);
-            //         // 舞台上的标记为静态
-            //         tm.isStatic = true;
-            //         this.$doAddChild(tm, i, false);
-            //         showing[i++] = tm;
-            //     }
-            // }
-            // showing.length = i;
+            this._idx = 0;
+            checkRect(cM, rect, this.preload, this.addMap, this.check, this);
+            this._showing.length = this._idx;
         };
         TileMapLayer.prototype.noRes = function (uri, c, r, pW, pH) {
             var tmp = new TileMap();
@@ -17297,7 +17252,6 @@ var junyou;
 var junyou;
 (function (junyou) {
     var Texture = egret.Texture;
-    junyou.DATA_FILE = "s.json";
     /**
      * 用于管理位图和数据
      * @author 3tion
@@ -17355,7 +17309,7 @@ var junyou;
                     suiData.state = 1 /* REQUESTING */;
                     suiData.callbacks = callbacks = [];
                     //先加载配置
-                    var url = junyou.ConfigUtils.getSkinFile(key, junyou.DATA_FILE);
+                    var url = junyou.ConfigUtils.getSkinFile(key, "s.json" /* DataFile */);
                     suiData.url = url;
                     this._urlKey[url] = suiData;
                     RES.getResByUrl(url, this.checkData, this);
@@ -17370,7 +17324,7 @@ var junyou;
          * @param {*} data
          */
         SuiResManager.prototype.setInlineData = function (key, data) {
-            var url = junyou.ConfigUtils.getSkinFile(key, junyou.DATA_FILE);
+            var url = junyou.ConfigUtils.getSkinFile(key, "s.json" /* DataFile */);
             var suiData = this._urlKey[url];
             if (!suiData) {
                 suiData = new junyou.SuiData();
