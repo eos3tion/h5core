@@ -13,7 +13,9 @@ module egret {
 module junyou {
     import Texture = egret.Texture;
 
-    export const DATA_FILE = "s.json";
+    export const enum SuiResConst {
+        DataFile = "s.json"
+    }
 	/**
 	 * 用于管理位图和数据
 	 * @author 3tion
@@ -96,7 +98,7 @@ module junyou {
                     suiData.state = RequestState.REQUESTING;
                     suiData.callbacks = callbacks = [];
                     //先加载配置
-                    var url = ConfigUtils.getSkinFile(key, DATA_FILE);
+                    var url = ConfigUtils.getSkinFile(key, SuiResConst.DataFile);
                     suiData.url = url;
                     this._urlKey[url] = suiData;
                     RES.getResByUrl(url, this.checkData, this);
@@ -112,7 +114,7 @@ module junyou {
          * @param {*} data
          */
         public setInlineData(key: string, data: any) {
-            var url = ConfigUtils.getSkinFile(key, DATA_FILE);
+            var url = ConfigUtils.getSkinFile(key, SuiResConst.DataFile);
             var suiData = this._urlKey[url];
             if (!suiData) {
                 suiData = new SuiData();
