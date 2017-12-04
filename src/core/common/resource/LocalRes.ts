@@ -54,12 +54,19 @@ module junyou {
                  * @param {RES.ResourceItem} data 
                  * @param {(this: IDBRequest, ev: Event) => any} callback 存储资源执行完成后的回调
                  */
-                save(data: RES.ResourceItem, callback?: (this: IDBRequest, ev: Event) => any) {
+                save(data: RES.ResourceItem, callback?: { (ev: Event | Error) }) {
                     open(result => {
                         let store = getObjectStore(result, RW);
-                        let request = data.uri ? store.put(data) : store.add(data);
-                        request.onsuccess = callback;
-                    });
+                        try {
+                            let request = data.uri ? store.put(data) : store.add(data);
+                            if (callback) {
+                                request.onsuccess = callback;
+                                request.onerror = callback;
+                            }
+                        } catch (e) {
+                            return callback(e);
+                        }
+                    }, callback);
                 },
 
                 /**
@@ -68,14 +75,22 @@ module junyou {
                  * @param {string} url 
                  * @param {{ (data: RES.ResourceItem) }} callback 
                  */
-                get(url: string, callback: { (data: RES.ResourceItem) }) {
+                get(url: string, callback: { (data: RES.ResourceItem, url?: string) }) {
                     open(result => {
                         let store = getObjectStore(result, R);
-                        let request = store.get(url);
-                        request.onsuccess = function (e: Event) {
-                            callback((e.target as IDBRequest).result);
-                        };
-                    }, e => { callback(null) });
+                        try {
+                            let request = store.get(url);
+                            request.onsuccess = function (e: Event) {
+                                callback((e.target as IDBRequest).result, url);
+                            };
+                            request.onerror = () => {
+                                callback(null, url);
+                            }
+                        } catch (e) {
+                            DEBUG && ThrowError(`indexedDB error`, e);
+                            callback(null, url);
+                        }
+                    }, e => { callback(null, url) });
                 },
                 /**
                  * 删除指定资源
@@ -83,24 +98,37 @@ module junyou {
                  * @param {string} url 
                  * @param {{ (this: IDBRequest, ev: Event) }} callback 删除指定资源执行完成后的回调
                  */
-                delete(url: string, callback: { (this: IDBRequest, ev: Event) }) {
+                delete(url: string, callback?: { (url: string, ev: Event | Error) }) {
                     open(result => {
                         let store = getObjectStore(result, RW);
-                        let request = store.delete(url);
-                        request.onsuccess = callback;
-                    });
+                        try {
+                            let request = store.delete(url);
+                            if (callback) {
+                                request.onerror = request.onsuccess = e => { callback(url, e) };
+                            }
+                        } catch (e) {
+                            return callback && callback(url, e);
+                        }
+                    }, e => { callback && callback(url, e) });
                 },
                 /**
                  * 删除全部资源
                  * 
                  * @param {{ (this: IDBRequest, ev: Event) }} callback 删除全部资源执行完成后的回调
                  */
-                clear(callback: { (this: IDBRequest, ev: Event) }) {
+                clear(callback?: { (ev: Event | Error) }) {
                     open(result => {
                         let store = getObjectStore(result, RW);
-                        let request = store.clear();
-                        request.onsuccess = callback;
-                    });
+                        try {
+                            let request = store.clear();
+                            if (callback) {
+                                request.onsuccess = callback;
+                                request.onerror = callback;
+                            }
+                        } catch (e) {
+                            return callback(e);
+                        }
+                    }, callback);
                 },
             }
             function open(callback: { (result: IDBDatabase) }, onError?: { (e: Error) }) {
@@ -181,6 +209,9 @@ module junyou {
             let hashCode = req.hashCode;
             let resItemDic = this.resItemDic;
             let data: any = resItemDic[hashCode];
+            if (!data) {
+                return;
+            }
             delete resItemDic[hashCode];
             let item = data.item as RES.ResourceItem;
             let local = item.local;
@@ -202,6 +233,15 @@ module junyou {
 
             this.recycler.push(req);
             return data.func.call(data.thisObject, item);
+        }
+        let eWeb = (egret as any).web;
+        if (eWeb) {
+            let WILpt = eWeb.WebImageLoader.prototype;
+            let obl = WILpt.onBlobLoaded;
+            WILpt.onBlobLoaded = function (e: egret.Event) {
+                this.blob = this.request.response;
+                obl.call(this, e);
+            }
         }
 
         //注入
@@ -250,6 +290,8 @@ module junyou {
 
         IApt.onLoadFinish = function (event: egret.Event) {
             let request = event.$target as egret.ImageLoader;
+            let blob = (request as any).blob;
+            delete (request as any).blob;//清理
             let hashCode = request.$hashCode;
             let resItemDic = this.resItemDic;
             let data = resItemDic[hashCode];
@@ -260,19 +302,16 @@ module junyou {
             if (!local && uri) {
                 let url = item.url;
                 item.version = ConfigUtils.getResVer(item.uri);
-                let req = (request as any).request;
-                if (req && req._url == url) {// 正常情况是blob
-                    let type = req.responseType;
-                    if (type == "blob") {//是blob
-                        // 将数据存到本地缓存
-                        local = req.response as Blob;
-                    }
-                } else {
+                let local = blob;
+                if (!local) {
                     // 普通图片
                     // 尝试转换成DataURL，此方法为同步方法，可能会影响性能
                     let dat = request.data as egret.BitmapData;
                     if (dat instanceof egret.BitmapData) {
                         let img = dat.source as HTMLImageElement;
+                        if (!img) {
+                            return;
+                        }
                         let w = img.width;
                         let h = img.height;
                         let type = "image/" + url.substring(url.lastIndexOf(".") + 1);
@@ -295,7 +334,7 @@ module junyou {
                         }
                     }
                 }
-                if (!local) {
+                if (local) {
                     if (!canUseBlob && typeof local !== "string") {
                         let a = new FileReader();
                         a.onload = function (this, e) {
@@ -317,7 +356,6 @@ module junyou {
                 texture._setBitmapData(request.data);
                 this.analyzeData(item, texture)
             }
-            delete (request as any).request
             this.recycler.push(request);
             return data.func.call(data.thisObject, item);
         }
