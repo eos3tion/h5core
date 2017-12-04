@@ -4988,9 +4988,17 @@ var junyou;
                 save: function (data, callback) {
                     open(function (result) {
                         var store = getObjectStore(result, RW);
-                        var request = data.uri ? store.put(data) : store.add(data);
-                        request.onsuccess = callback;
-                    });
+                        try {
+                            var request = data.uri ? store.put(data) : store.add(data);
+                            if (callback) {
+                                request.onsuccess = callback;
+                                request.onerror = callback;
+                            }
+                        }
+                        catch (e) {
+                            return callback(e);
+                        }
+                    }, callback);
                 },
                 /**
                  * 获取资源
@@ -5001,11 +5009,20 @@ var junyou;
                 get: function (url, callback) {
                     open(function (result) {
                         var store = getObjectStore(result, R);
-                        var request = store.get(url);
-                        request.onsuccess = function (e) {
-                            callback(e.target.result);
-                        };
-                    }, function (e) { callback(null); });
+                        try {
+                            var request = store.get(url);
+                            request.onsuccess = function (e) {
+                                callback(e.target.result, url);
+                            };
+                            request.onerror = function () {
+                                callback(null, url);
+                            };
+                        }
+                        catch (e) {
+                            true && junyou.ThrowError("indexedDB error", e);
+                            callback(null, url);
+                        }
+                    }, function (e) { callback(null, url); });
                 },
                 /**
                  * 删除指定资源
@@ -5016,9 +5033,16 @@ var junyou;
                 delete: function (url, callback) {
                     open(function (result) {
                         var store = getObjectStore(result, RW);
-                        var request = store.delete(url);
-                        request.onsuccess = callback;
-                    });
+                        try {
+                            var request = store.delete(url);
+                            if (callback) {
+                                request.onerror = request.onsuccess = function (e) { callback(url, e); };
+                            }
+                        }
+                        catch (e) {
+                            return callback && callback(url, e);
+                        }
+                    }, function (e) { callback && callback(url, e); });
                 },
                 /**
                  * 删除全部资源
@@ -5028,9 +5052,17 @@ var junyou;
                 clear: function (callback) {
                     open(function (result) {
                         var store = getObjectStore(result, RW);
-                        var request = store.clear();
-                        request.onsuccess = callback;
-                    });
+                        try {
+                            var request = store.clear();
+                            if (callback) {
+                                request.onsuccess = callback;
+                                request.onerror = callback;
+                            }
+                        }
+                        catch (e) {
+                            return callback(e);
+                        }
+                    }, callback);
                 },
             };
             function open(callback, onError) {
@@ -5109,6 +5141,9 @@ var junyou;
             var hashCode = req.hashCode;
             var resItemDic = this.resItemDic;
             var data = resItemDic[hashCode];
+            if (!data) {
+                return;
+            }
             delete resItemDic[hashCode];
             var item = data.item;
             var local = item.local;
@@ -5130,6 +5165,15 @@ var junyou;
             this.recycler.push(req);
             return data.func.call(data.thisObject, item);
         };
+        var eWeb = egret.web;
+        if (eWeb) {
+            var WILpt = eWeb.WebImageLoader.prototype;
+            var obl_1 = WILpt.onBlobLoaded;
+            WILpt.onBlobLoaded = function (e) {
+                this.blob = this.request.response;
+                obl_1.call(this, e);
+            };
+        }
         //注入
         var IApt = RES.ImageAnalyzer.prototype;
         IApt.loadFile = function (resItem, compFunc, thisObject) {
@@ -5179,6 +5223,8 @@ var junyou;
         };
         IApt.onLoadFinish = function (event) {
             var request = event.$target;
+            var blob = request.blob;
+            delete request.blob; //清理
             var hashCode = request.$hashCode;
             var resItemDic = this.resItemDic;
             var data = resItemDic[hashCode];
@@ -5189,20 +5235,16 @@ var junyou;
             if (!local && uri) {
                 var url = item.url;
                 item.version = junyou.ConfigUtils.getResVer(item.uri);
-                var req = request.request;
-                if (req && req._url == url) {
-                    var type = req.responseType;
-                    if (type == "blob") {
-                        // 将数据存到本地缓存
-                        local = req.response;
-                    }
-                }
-                else {
+                var local_1 = blob;
+                if (!local_1) {
                     // 普通图片
                     // 尝试转换成DataURL，此方法为同步方法，可能会影响性能
                     var dat = request.data;
                     if (dat instanceof egret.BitmapData) {
                         var img = dat.source;
+                        if (!img) {
+                            return;
+                        }
                         var w_1 = img.width;
                         var h = img.height;
                         var type = "image/" + url.substring(url.lastIndexOf(".") + 1);
@@ -5219,7 +5261,7 @@ var junyou;
                                 }, type);
                             }
                             else {
-                                local = canvas.toDataURL(type);
+                                local_1 = canvas.toDataURL(type);
                             }
                         }
                         catch (e) {
@@ -5227,18 +5269,18 @@ var junyou;
                         }
                     }
                 }
-                if (!local) {
-                    if (!canUseBlob && typeof local !== "string") {
+                if (local_1) {
+                    if (!canUseBlob && typeof local_1 !== "string") {
                         var a = new FileReader();
                         a.onload = function (e) {
                             item.local = this.result;
                             //存储数据
                             db.save(item);
                         };
-                        a.readAsDataURL(local);
+                        a.readAsDataURL(local_1);
                     }
                     else {
-                        item.local = local;
+                        item.local = local_1;
                         //存储数据
                         db.save(item);
                     }
@@ -5250,7 +5292,6 @@ var junyou;
                 texture._setBitmapData(request.data);
                 this.analyzeData(item, texture);
             }
-            delete request.request;
             this.recycler.push(request);
             return data.func.call(data.thisObject, item);
         };

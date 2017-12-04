@@ -3284,10 +3284,10 @@ declare module junyou {
      * @returns
      */
     function tryLocalRes(version?: number): {
-        save(data: RES.ResourceItem, callback?: (this: IDBRequest, ev: Event) => any): void;
-        get(url: string, callback: (data: RES.ResourceItem) => any): void;
-        delete(url: string, callback: (this: IDBRequest, ev: Event) => any): void;
-        clear(callback: (this: IDBRequest, ev: Event) => any): void;
+        save(data: RES.ResourceItem, callback?: (ev: Event | Error) => any): void;
+        get(url: string, callback: (data: RES.ResourceItem, url?: string) => any): void;
+        delete(url: string, callback?: (url: string, ev: Event | Error) => any): void;
+        clear(callback?: (ev: Event | Error) => any): void;
     };
 }
 declare namespace RES {
