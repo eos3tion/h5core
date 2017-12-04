@@ -189,9 +189,9 @@ module junyou {
 
         /**
          * 遍历Res所有资源
-         * @param { (uri: string, adKey: number): boolean } forEach 如果 forEach 方法返回 true，则停止遍历
+         * @param { (uri: string, adKey: number): any } forEach 如果 forEach 方法返回 真 ，则停止遍历
          */
-        checkRes(forEach: { (uri: string, adKey: number): boolean }) {
+        checkRes(forEach: { (uri: string, adKey: number): any }) {
             const dict = this.sInfo.adDict;
             for (let resKey in dict) {
                 let uri = this.getUri2(resKey);
