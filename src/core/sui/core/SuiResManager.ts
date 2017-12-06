@@ -141,13 +141,14 @@ module junyou {
          * @param {string} key
          * @param {*} data
          */
-        public setInlineData(key: string, data: any) {
+        public setInlineData(key: string, data: any, skinUri?: string) {
             let uri = getSuiDataUri(key);
             let suiData = this._urlKey[uri];
             if (!suiData) {
                 suiData = new SuiData();
                 suiData.key = key;
                 suiData.uri = uri;
+                suiData.skinUri = skinUri;
                 suiData.url = ConfigUtils.getSkinFile(key, SuiResConst.DataFile);
                 this._suiDatas[key] = suiData;
             }
