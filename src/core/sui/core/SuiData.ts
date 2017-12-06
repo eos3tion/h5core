@@ -36,7 +36,10 @@ module junyou {
 	 *
 	 */
     export class SuiData {
-
+        /**
+         * 强制设置的皮肤标识
+         */
+        skinUri?: string;
     	/**
     	 * fla的名字
     	 */
@@ -115,7 +118,7 @@ module junyou {
         public createBmpLoader(ispng: boolean, textures: egret.Texture[]) {
             let file = "d" + (ispng ? Ext.PNG : Ext.JPG);
             //增加一个skin前缀
-            let uri = "skin/" + ConfigUtils.getSkinPath(this.key, file);
+            let uri = this.skinUri || "skin/" + ConfigUtils.getSkinPath(this.key, file);
             let tmp = ResManager.get(uri, this.noRes, this, uri, file, textures);
             ispng ? this.pngbmd = tmp : this.jpgbmd = tmp;
         }
