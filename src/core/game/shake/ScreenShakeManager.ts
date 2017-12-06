@@ -61,9 +61,9 @@ module junyou {
                 let engine = GameEngine.instance;
                 let layer = engine.getLayer(GameLayerID.Game);
                 if (cur != shake) {
-                    shake.setShakeTarget(layer).setTargetPos();
+                    shake.setShakeTarget(layer);
                 }
-                shake.start();
+                shake.setTargetPos().start();
                 this._st = Global.now;
                 egret.startTick(this.tick, this);
             }
