@@ -31,6 +31,11 @@ module junyou {
          */
         readonly url: string;
 
+        /**
+         * 加载列队
+         */
+        qid?: Res.ResQueueID;
+
         constructor(uri: string, noWebp?: boolean) {
             this.uri = uri;
             this.url = ConfigUtils.getResUrl(uri + (!noWebp ? Global.webp : ""))
@@ -79,7 +84,7 @@ module junyou {
         }
 
         load() {
-            Res.load(this.uri, this.url, CallbackInfo.get(this.loadComplete, this));
+            Res.load(this.uri, this.url, CallbackInfo.get(this.loadComplete, this), this.qid);
         }
 
         /**
