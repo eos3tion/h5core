@@ -3266,6 +3266,10 @@ declare module junyou {
          * 资源最终路径
          */
         readonly url: string;
+        /**
+         * 加载列队
+         */
+        qid?: Res.ResQueueID;
         constructor(uri: string, noWebp?: boolean);
         /**
          *
@@ -9300,6 +9304,10 @@ declare module junyou {
          * 资源唯一标识
          */
         uri: string;
+        /**
+         * 设置图片的加载列队优先级
+         */
+        qid?: Res.ResQueueID;
         /**
          * 在flash中设置的大小
          *

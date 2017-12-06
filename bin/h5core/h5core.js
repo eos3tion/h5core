@@ -5204,7 +5204,7 @@ var junyou;
             this.lastUseTime = junyou.Global.now;
         };
         TextureResource.prototype.load = function () {
-            junyou.Res.load(this.uri, this.url, junyou.CallbackInfo.get(this.loadComplete, this));
+            junyou.Res.load(this.uri, this.url, junyou.CallbackInfo.get(this.loadComplete, this), this.qid);
         };
         /**
          * 资源加载完成
@@ -15120,6 +15120,7 @@ var junyou;
             if (this.uri) {
                 var res = junyou.ResManager.getTextureRes(this.uri, this.noWebp);
                 if (res) {
+                    res.qid = this.qid;
                     res.bind(this);
                     res.load();
                 }
