@@ -8483,7 +8483,7 @@ var junyou;
                 if (state == 0 /* UNREQUEST */) {
                     var uri = this.uri = "a/" /* Ani */ + this.key + "/" + "d.json" /* CfgFile */;
                     var url = this.url = junyou.ConfigUtils.getResUrl(uri);
-                    junyou.Res.load(uri, url, junyou.CallbackInfo.get(this.dataLoadComplete, this));
+                    junyou.Res.load(uri, url, junyou.CallbackInfo.get(this.dataLoadComplete, this), this.qid);
                     this.state = 1 /* REQUESTING */;
                 }
             }
@@ -8522,6 +8522,7 @@ var junyou;
         AniInfo.prototype.init = function (key, data) {
             _super.prototype.init.call(this, key, data[0]);
             var res = new junyou.UnitResource("a/" /* Ani */ + key, this.splitInfo);
+            res.qid = this.qid;
             res.decodeData(data[1]);
             this._resources = res;
             this.state = 2 /* COMPLETE */;
@@ -8918,7 +8919,7 @@ var junyou;
          * @param {AniOption} [option] 动画的参数
          * @returns (description)
          */
-        AniRender.getAni = function (uri, option) {
+        AniRender.getAni = function (uri, option, qid) {
             if (true && !uri) {
                 true && junyou.ThrowError("\u521B\u5EFA\u4E86\u6CA1\u6709uri\u7684AniRender");
             }
@@ -8929,6 +8930,9 @@ var junyou;
                 aniInfo.key = uri;
                 aniDict[uri] = aniInfo;
             }
+            aniInfo.qid = qid;
+            var res = aniInfo.getResource();
+            res && (res.qid = qid);
             var display = junyou.recyclable(junyou.ResourceBitmap);
             var ani = junyou.recyclable(AniRender);
             var guid, stop;
@@ -9338,7 +9342,7 @@ var junyou;
         SplitUnitResource.prototype.load = function () {
             if (this.state == 0 /* UNREQUEST */) {
                 this.state = 1 /* REQUESTING */;
-                junyou.Res.load(this.uri, this.url, junyou.CallbackInfo.get(this.loadComplete, this));
+                junyou.Res.load(this.uri, this.url, junyou.CallbackInfo.get(this.loadComplete, this), this.qid);
             }
         };
         /**
@@ -9451,8 +9455,7 @@ var junyou;
         UnitResource.prototype.loadData = function () {
             if (this.state == 0 /* UNREQUEST */) {
                 this.state = 1 /* REQUESTING */;
-                // RES.getResByUrl(this.url, this.dataLoadComplete, this, EgretResType.TYPE_JSON);
-                junyou.Res.load(this.uri, this.url, junyou.CallbackInfo.get(this.dataLoadComplete, this));
+                junyou.Res.load(this.uri, this.url, junyou.CallbackInfo.get(this.dataLoadComplete, this), this.qid);
             }
         };
         /**
@@ -9522,6 +9525,7 @@ var junyou;
         };
         UnitResource.prototype.noRes = function (uri, r) {
             var tmp = new junyou.SplitUnitResource(uri, this.getUrl(uri));
+            tmp.qid = this.qid;
             tmp.bindTextures(this._datas, this.sInfo.adDict[r]);
             tmp.load();
             return tmp;
@@ -21625,12 +21629,16 @@ var junyou;
             }
             else {
                 //得到优先级最大并且
-                var min = -Infinity;
+                var high = -Infinity;
                 var highQueue = void 0;
                 for (var key in queues) {
                     var queue = queues[key];
-                    if (queue.list.length && queue.priority > min) {
-                        highQueue = queue;
+                    if (queue.list.length) {
+                        var priority = queue.priority;
+                        if (priority > high) {
+                            high = priority;
+                            highQueue = queue;
+                        }
                     }
                 }
                 if (highQueue) {

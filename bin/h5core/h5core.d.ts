@@ -5186,6 +5186,10 @@ declare module junyou {
         protected _refList: AniRender[];
         url: string;
         uri: string;
+        /**
+         * 资源加载列队，用于控制加载优先级
+         */
+        qid?: Res.ResQueueID;
         constructor();
         /**
          * 绑定渲染器
@@ -5495,7 +5499,7 @@ declare module junyou {
          * @param {AniOption} [option] 动画的参数
          * @returns (description)
          */
-        static getAni(uri: string, option?: AniOption): Recyclable<AniRender>;
+        static getAni(uri: string, option?: AniOption, qid?: Res.ResQueueID): Recyclable<AniRender>;
         /**
          * 获取正在运行的AniRender
          * @param guid  唯一标识
@@ -5704,8 +5708,9 @@ declare module junyou {
         /**
         * 资源id
         */
-        uri: string;
-        url: string;
+        readonly uri: string;
+        readonly url: string;
+        qid: Res.ResQueueID;
         /**
          * 资源最后使用时间
          *
@@ -5767,6 +5772,10 @@ declare module junyou {
          * 资源标识
          */
         key: string;
+        /**
+         * 加载列队
+         */
+        qid?: Res.ResQueueID;
         /**
          * 纹理的配置文件的加载地址
          */
