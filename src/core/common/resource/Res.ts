@@ -500,11 +500,11 @@ module junyou.Res {
      * @param {ResItem} resItem 
      * @param {ResQueueID} [queueID=ResQueueID.Normal]
      */
-    function loadRes(resItem: ResItem, callback: ResCallback, queueID = ResQueueID.Normal) {
+    export function loadRes(resItem: ResItem, callback?: ResCallback, queueID = ResQueueID.Normal) {
         addRes(resItem, queueID);
         let state = resItem.state;
         if (state == RequestState.COMPLETE) {//已经加载完成的资源，直接在下一帧回调
-            return callback.callAndRecycle(resItem);
+            return callback && callback.callAndRecycle(resItem);
         }
         resItem.removed = false;
         if (callback) {
