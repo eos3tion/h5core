@@ -1,102 +1,3 @@
-interface $gmType {
-    /**
-     * 主控类型，包括Proxy和Mediator
-     *
-     * @type {{ [index: string]: junyou.FHost }}
-     * @memberof $gmType
-     */
-    $: {
-        [index: string]: junyou.FHost;
-    };
-}
-declare module junyou {
-    type InjectProxy = {
-        new(): IAsync;
-    } | string | number;
-    /**
-     * Mediator和Proxy的基类
-     * @author 3tion
-     *
-     */
-    abstract class FHost implements IDepender {
-        protected _name: string | number;
-        /**
-         * 用于处理依赖注入的Proxy
-         *
-         * @protected
-         * @type {({[index:string]:{ new (): IAsync } | string})}
-         * @memberOf FHost
-         */
-        protected _injectProxys: {
-            [index: string]: InjectProxy;
-        };
-        /**
-         * 唯一标识
-         */
-        readonly name: string | number;
-        constructor(name: string | number);
-        /**
-         * 检查依赖注入的数据
-         *
-         * @protected
-         *
-         * @memberOf FHost
-         */
-        protected checkInject(): void;
-        /**
-         * 异步的Helper
-         */
-        protected _asyncHelper: AsyncHelper;
-        addReadyExecute(handle: Function, thisObj: any, ...args: any[]): void;
-        /**
-         * 作为依赖者的Helper
-         */
-        protected _dependerHelper: DependerHelper;
-        readonly isReady: boolean;
-        startSync(): void;
-        /**
-         * 添加依赖项
-         */
-        addDepend(async: IAsync): void;
-        /**
-         * 依赖项，加载完成后的检查
-         */
-        protected dependerReadyCheck(): void;
-        /**
-         * 模块在Facade注册时执行
-         */
-        onRegister(): void;
-        /**
-         * 模块从Facade注销时
-         */
-        onRemove(): void;
-        /**
-         * 全部加载好以后要处理的事情<br/>
-         * 包括依赖项加载完毕
-         */
-        protected afterAllReady(): void;
-    }
-    /**
-     *
-     * 附加依赖的Proxy
-     * @export
-     * @param {({ new (): IAsync } | string)} ref 如果注册的是Class，必须是Inline方式注册的Proxy
-     * @returns
-     */
-    function __dependProxy(ref: {
-        new(): IAsync;
-    } | string | number): (target: any, key: string) => void;
-}
-declare module junyou {
-    /**
-     *
-     * 附加依赖的Proxy
-     * @export
-     * @param {({ new (): IAsync } | string)} ref
-     * @returns
-     */
-    var d_dependProxy: typeof __dependProxy;
-}
 declare function parseInt(s: number, radix?: number): number;
 /**
  * 对数字进行补0操作
@@ -530,6 +431,105 @@ interface Storage {
     setItem(key: number | string, data: any): void;
     removeItem(key: number | string): void;
 }
+interface $gmType {
+    /**
+     * 主控类型，包括Proxy和Mediator
+     *
+     * @type {{ [index: string]: junyou.FHost }}
+     * @memberof $gmType
+     */
+    $: {
+        [index: string]: junyou.FHost;
+    };
+}
+declare module junyou {
+    type InjectProxy = {
+        new(): IAsync;
+    } | string | number;
+    /**
+     * Mediator和Proxy的基类
+     * @author 3tion
+     *
+     */
+    abstract class FHost implements IDepender {
+        protected _name: string | number;
+        /**
+         * 用于处理依赖注入的Proxy
+         *
+         * @protected
+         * @type {({[index:string]:{ new (): IAsync } | string})}
+         * @memberOf FHost
+         */
+        protected _injectProxys: {
+            [index: string]: InjectProxy;
+        };
+        /**
+         * 唯一标识
+         */
+        readonly name: string | number;
+        constructor(name: string | number);
+        /**
+         * 检查依赖注入的数据
+         *
+         * @protected
+         *
+         * @memberOf FHost
+         */
+        protected checkInject(): void;
+        /**
+         * 异步的Helper
+         */
+        protected _asyncHelper: AsyncHelper;
+        addReadyExecute(handle: Function, thisObj: any, ...args: any[]): void;
+        /**
+         * 作为依赖者的Helper
+         */
+        protected _dependerHelper: DependerHelper;
+        readonly isReady: boolean;
+        startSync(): void;
+        /**
+         * 添加依赖项
+         */
+        addDepend(async: IAsync): void;
+        /**
+         * 依赖项，加载完成后的检查
+         */
+        protected dependerReadyCheck(): void;
+        /**
+         * 模块在Facade注册时执行
+         */
+        onRegister(): void;
+        /**
+         * 模块从Facade注销时
+         */
+        onRemove(): void;
+        /**
+         * 全部加载好以后要处理的事情<br/>
+         * 包括依赖项加载完毕
+         */
+        protected afterAllReady(): void;
+    }
+    /**
+     *
+     * 附加依赖的Proxy
+     * @export
+     * @param {({ new (): IAsync } | string)} ref 如果注册的是Class，必须是Inline方式注册的Proxy
+     * @returns
+     */
+    function __dependProxy(ref: {
+        new(): IAsync;
+    } | string | number): (target: any, key: string) => void;
+}
+declare module junyou {
+    /**
+     *
+     * 附加依赖的Proxy
+     * @export
+     * @param {({ new (): IAsync } | string)} ref
+     * @returns
+     */
+    var d_dependProxy: typeof __dependProxy;
+}
 declare module junyou {
     /**
      * 基础创建器
@@ -695,452 +695,437 @@ declare module junyou {
         readonly view: this;
     }
 }
-interface $NSFilter {
+declare const enum EgretEvent {
+    /**************************************** egret.Event ****************************************/
     /**
-     * 感兴趣的请求
-     *
-     * @type { [index: number]: boolean }
-     * @memberOf $gmNSLog
-     */
-    cmds?: number[];
-    /**
-     * 是否为白名单模式，默认黑名单
-     *
-     * @type {boolean}
-     * @memberOf $NSFilter
-     */
-    isWhite: boolean;
-    /**
-     * 过滤器
-     *
-     * @type {{ ($gmNSLog, ...args): boolean }}
-     * @memberOf $NSFilter
-     */
-    filter?: {
-        ($gmNSLog, ...args): boolean;
-    };
-    /**
-     * 过滤器参数
-     *
-     * @type {any[]}
-     * @memberOf $NSFilter
-     */
-    filterParams?: any[];
-}
-interface $NSLog {
-    time: number;
-    type: "send" | "receive";
-    cmd: number;
-    data: any;
-}
-/**
- * 用于扩展GM指令
- *
- * @interface $gmType
+ * Dispatched when a display object is added to the on stage display list, either directly or through the addition
+ * of a sub tree in which the display object is contained.
+ * @version Egret 2.4
+ * @platform Web,Native
+ * @language en_US
  */
-interface $gmType {
     /**
-     * 发送的网络消息的日志
-     *
-     * @type {$NSFilter}
-     * @memberOf $gmType
+     * 在将显示对象直接添加到舞台显示列表或将包含显示对象的子树添加至舞台显示列表中时调度。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
      */
-    printSendFilter: $NSFilter;
+    ADDED_TO_STAGE = "addedToStage",
     /**
-     * 接收的网络消息的日志
-     *
-     * @type {$NSFilter}
-     * @memberOf $gmType
+     * Dispatched when a display object is about to be removed from the display list, either directly or through the removal
+     * of a sub tree in which the display object is contained.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
      */
-    printReceiveFilter: $NSFilter;
     /**
-     * 日志数据
-     *
-     * @type $NSLog[])}
-     * @memberOf $gmType
+     * 在从显示列表中直接删除显示对象或删除包含显示对象的子树时调度。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
      */
-    nsLogs: $NSLog[];
+    REMOVED_FROM_STAGE = "removedFromStage",
     /**
-     * 输出日志内容
-     * @memberOf $gmType
+     * Dispatched when a display object is added to the display list.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
      */
-    showNSLog(): $NSLog[];
-    showNSLog(filter: {
-        ($gmNSLog: $NSLog, ...args): boolean;
-    }, ...args: any[]): $NSLog[];
-    showNSLog(isWhite: boolean, ...cmds: number[]): $NSLog[];
     /**
-     * 使用黑名单模式，进行输出
-     *
-     * @param {...number[]} cmds
-     *
-     * @memberOf $gmType
+     * 将显示对象添加到显示列表中时调度。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
      */
-    showNSLog(...cmds: number[]): $NSLog[];
+    ADDED = "added",
     /**
-     * 最大网络日志数量
-     *
-     * @type {number}
-     * @memberOf $gmType
+     * Dispatched when a display object is about to be removed from the display list.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
      */
-    maxNSLogCount: number;
     /**
-     * 控制台输出发送日志
-     * @memberOf $gm
+     * 将要从显示列表中删除显示对象时调度。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
      */
-    printSend(): any;
+    REMOVED = "removed",
     /**
-     * 使用过滤函数过滤在控制台输出的发送日志
-     *
-     * @param {{ ($gmNSLog, ...args): boolean }} filter     过滤函数，函数返回true的会显示在控制台上
-     * @param {any} args                                    过滤函数使用的参数
-     *
-     * @memberOf $gmType
+     * [broadcast event] Dispatched when the playhead is entering a new frame.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
      */
-    printSend(filter: {
-        ($gmNSLog: $NSLog, ...args): boolean;
-    }, ...args: any[]): any;
     /**
-     * 显示或排除指定指令的发送日志，并在控制台输出
-     *
-     * @param {boolean} isWhite     是否为白名单模式
-     * @param {...number[]} cmds    指令列表
-     *
-     * @memberOf $gmType
+     * [广播事件] 进入新的一帧,监听此事件将会在下一帧开始时触发一次回调。这是一个广播事件，可以在任何一个显示对象上监听，无论它是否在显示列表中。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
      */
-    printSend(isWhite: boolean, ...cmds: number[]): any;
+    ENTER_FRAME = "enterFrame",
     /**
-     * 排除指定指令的发送日志，将其他日志信息在控制台输出
-     *
-     * @param {...number[]} cmds    黑名单列表
-     *
-     * @memberOf $gmType
+     * Dispatched when the display list is about to be updated and rendered.
+     * Note: Every time you want to receive a render event,you must call the stage.invalidate() method.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
      */
-    printSend(...cmds: number[]): any;
     /**
-     * 控制台输出接收日志
-     * @memberOf $gmType
+     * 渲染事件，监听此事件将会在本帧末即将开始渲染的前一刻触发回调，这是一个广播事件，可以在任何一个显示对象上监听，无论它是否在显示列表中。
+     * 注意：每次您希望 Egret 发送 Event.RENDER 事件时，都必须调用 stage.invalidate() 方法，由于每帧只会触发一次屏幕刷新，
+     * 若在 Event.RENDER 回调函数执行期间再次调用stage.invalidate()，将会被忽略。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
      */
-    printReceive(): any;
+    RENDER = "render",
     /**
-     * 使用过滤函数过滤并在控制台输出接收日志
-     *
-     * @param {{ ($gmNSLog, ...args): boolean }} filter     过滤函数，函数返回true的会显示在控制台上
-     * @param {any} args                                    过滤函数使用的参数
-     *
-     * @memberOf $gmType
+     * Dispatched when the size of stage or UIComponent is changed.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
      */
-    printReceive(filter: {
-        ($gmNSLog: $NSLog, ...args): boolean;
-    }, ...args: any[]): any;
     /**
-     * 显示或排除指定指令的接收日志，并在控制台输出
-     *
-     * @param {boolean} isWhite     是否为白名单模式
-     * @param {...number[]} cmds    指令列表
-     *
-     * @memberOf $gmType
+     * 舞台尺寸或UI组件尺寸发生改变
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
      */
-    printReceive(isWhite: boolean, ...cmds: number[]): any;
+    RESIZE = "resize",
     /**
-     * 排除指定指令的接收日志，将其他日志信息在控制台输出
-     *
-     * @param {...number[]} cmds
-     *
-     * @memberOf $gmType
+     * Dispatched when the value or selection of a property is chaned.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
      */
-    printReceive(...cmds: number[]): any;
     /**
-     * 调用printSend和printReceive的一个简写
-     *
-     *
-     * @memberof $gmType
+     * 属性值或状态发生改变。通常是按钮的选中状态，或者列表的选中项索引改变。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
      */
-    print(): any;
+    CHANGE = "change",
     /**
-     * 模拟服务端发送数据
-     *
-     * @param {number} cmd
-     * @param {*} [data]
-     *
-     * @memberof $gmType
+     * Dispatched when the value or selection of a property is going to change.you can cancel this by calling the
+     * preventDefault() method.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
      */
-    route(cmd: number, data?: any): any;
     /**
-     * 使用日志数据进行模拟调试
-     *
-     * @param {$NSLog[]} logs
-     *
-     * @memberof $gmType
+     * 属性值或状态即将发生改变,通常是按钮的选中状态，或者列表的选中项索引改变。可以通过调用 preventDefault() 方法阻止索引发生更改。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
      */
-    batchRoute(logs: $NSLog[]): any;
+    CHANGING = "changing",
     /**
-     * 获取网络传输数据日志的过滤器
-     * @returns {$NSFilter}
-     *
-     * @memberOf $gmType
+     * Dispatched when the net request is complete.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
      */
-    __getNSFilter(...args: any[]): $NSFilter;
     /**
-     * 检查是否需要显示日志
-     *
-     * @param {$NSLog} log
-     * @param {$NSFilter} nsFilter
-     * @returns {boolean}
-     *
-     * @memberOf $gmType
+     * 网络请求加载完成
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
      */
-    __nsLogCheck(log: $NSLog, nsFilter: $NSFilter): boolean;
-}
-declare module junyou {
-    const enum NSType {
-        Null = 0,
-        Boolean = 1,
-        String = 2,
-        Bytes = 4,
-        Double = 5,
-        Int32 = 6,
-        Uint32 = 7,
-        Int64 = 8,
-    }
-    const NSBytesLen: {
-        0: number;
-        1: number;
-        5: number;
-        6: number;
-        7: number;
-        8: number;
-    };
+    COMPLETE = "complete",
     /**
-     * 用于存储头部的临时变量
+     * Dispatched when loop completed.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
      */
-    const nsHeader: {
-        cmd: number;
-        len: number;
-    };
     /**
-     * 头信息
-     *
-     * @export
-     * @interface NSHeader
+     * 循环完成。循环最后一次只派发 COMPLETE 事件，不派发 LOOP_COMPLETE 事件。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
      */
-    interface NSHeader {
-        /**
-         * 指令/协议号
-         *
-         * @type {number}
-         * @memberof NSHeader
-         */
-        cmd: number;
-        /**
-         * 长度
-         *
-         * @type {number}
-         * @memberof NSHeader
-         */
-        len: number;
-    }
+    LOOP_COMPLETE = "loopComplete",
     /**
-     * 通信服务
-     * 收发的协议结构：
-     * 2字节协议号 2字节包长度(n) n字节包
-     * @author 3tion
-     *
+     * Dispatched when the TextInput instance gets focus.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
      */
-    abstract class NetService {
-        /**
-        * 请求地址
-        */
-        protected _actionUrl: string;
-        setLimitEventEmitable(emit: boolean): void;
-        protected static _ins: NetService;
-        protected _limitAlert: boolean;
-        protected _limitSendFunc: {
-            (cmd: number, data?: any, msgType?: string | number, limit?: number);
-        };
-        protected _nolimitSendFunc: {
-            (cmd: number, data?: any, msgType?: string | number, limit?: number);
-        };
-        static get(): NetService;
-        /**
-             * 用于调试模式下写日志
-             *
-             * @param {number} time
-             * @param {("send" | "receive")} type
-             * @param {number} cmd
-             * @param {*} data
-             *
-             * @memberOf $gmType
-             */
-        protected $writeNSLog: {
-            (time: number, type: "send" | "receive", cmd: number, data: any): void;
-        };
-        protected _router: NetRouter;
-        /**
-         * 待发送的的被动指令列表
-         */
-        protected _pcmdList: Recyclable<NetSendData>[];
-        /**
-         * 接收数据的临时数组
-         */
-        protected _tmpList: Recyclable<NetData>[];
-        /**
-         * 读取的字节缓存
-         */
-        protected _readBuffer: ByteArray;
-        /**
-         * 发送的字节缓存
-         */
-        protected _sendBuffer: ByteArray;
-        protected _tempBytes: ByteArray;
-        /**
-         * 接收消息的创建器
-         *
-         */
-        protected _receiveMSG: {
-            [index: number]: string | number;
-        };
-        /**
-         * 设置地址
-         *
-         * @abstract
-         * @param {string} actionUrl
-         */
-        abstract setUrl(actionUrl: string): any;
-        constructor();
-        protected netChange: () => void;
-        /**
-         * 基础连接时间
-         *
-         *
-         * @memberOf NetService
-         */
-        baseConTime: number;
-        /**
-         * 最大连接时间
-         *
-         *
-         * @memberOf NetService
-         */
-        maxConTime: Time;
-        /**
-         * 重连次数
-         *
-         * @private
-         * @type {number}
-         * @memberOf NetService
-         */
-        protected _reconCount: number;
-        /**
-         * 下次自动拉取请求的时间戳
-         */
-        protected _nextAutoTime: number;
-        /**
-         * 下次自动请求的最短
-         */
-        protected _autoTimeDelay: number;
-        protected showReconnect(): void;
-        protected onawake(): void;
-        /**
-         * 基础类型消息
-         */
-        regReceiveMSGRef(cmd: number, ref: string | number): void;
-        /**
-         * 注册处理器
-         * @param {number} cmd 协议号
-         * @param {INetHandler} handler 处理网络数据的处理器
-         * @param {number} [priority=0] 处理优先级
-         */
-        register(cmd: number, handler: INetHandler, priotity?: number): boolean;
-        /**
-         * 注册单次执行的处理器
-         * @param {number} cmd 协议号
-         * @param {INetHandler} handler 处理网络数据的处理器
-         * @param {number} [priority=0] 处理优先级
-         */
-        regOnce(cmd: number, handler: INetHandler, priotity?: number): boolean;
-        /**
-         * 移除协议号和处理器的监听
-         *
-         * @param {number} cmd 协议号
-         * @param {INetHandler} handler 处理网络数据的处理器
-         */
-        remove(cmd: number, handler: INetHandler): void;
-        protected _register(cmd: number, handler: INetHandler, priotity: number, once: boolean): boolean;
-        /**
-         * 即时发送指令<br/>
-         * 用于处理角色主动操作的请求，如点击合成道具，使用物品等
-         * @param {number} cmd 协议号
-         * @param {any} [data] 数据，简单数据(number,boolean,string)复合数据
-         * @param {string} [msgType] 如果是复合数据，必须有此值
-         * @param {number} [limit] 客户端发送时间限制，默认500毫秒
-         */
-        send(cmd: number, data?: any, msgType?: string | number, limit?: number): void;
-        /**
-         * 即时发送指令
-         */
-        protected abstract _send(cmd: number, data: any, msgType: string | number): any;
-        /**
-         * 断开连接
-         */
-        disconnect(): void;
-        /**
-         * 消极发送指令
-         * 如果使用通协议的指令，有堆积的指令，先合并，新的替换旧的
-         * __`请勿将一些用户操作使用此指令发送`__
-         * 处理一些实时性要求不高的指令，这些指令先缓存堆积，等到用户主动发指令的时候，一起发送
-         * @param {number} cmd 协议号
-         * @param {any} [data] 数据，简单数据(number,boolean,string)复合数据
-         * @param {string} [msgType] 如果是复合数据，必须有此值
-         */
-        sendPassive(cmd: number, data?: any, msgType?: string | number): void;
-        /**
-         * 向缓冲数组中写入数据
-         */
-        protected writeToBuffer(bytes: ByteArray, data: NetSendData): void;
-        /**
-         * @private
-         * @param bytes
-         * @param out
-         */
-        protected decodeBytes(bytes: ByteArray): void;
-        /**
-         * 解析头部信息
-         *
-         * @protected
-         * @param {ByteArray} bytes
-         * @param {NSHeader} header
-         * @returns 是否可以继续  true    继续后续解析
-         *                       false   取消后续解析
-         * @memberof NetService
-         */
-        protected decodeHeader(bytes: ByteArray, header: NSHeader): boolean;
-        /**
-         * 存储数据长度
-         *
-         * @protected
-         * @param {ByteArray} bytes
-         * @param {number} val
-         * @memberof NetService
-         */
-        protected writeBytesLength(bytes: ByteArray, val: number): void;
-        /**
-         *
-         * 模拟服务端
-         * @param {number} cmd
-         * @param {*} [data]
-         */
-        route(cmd: number, data?: any): void;
-    }
-    interface ReconectEvent extends egret.Event {
-        /**
-         * 重连次数
-         *
-         * @type {number}
-         * @memberOf ReconectEvent
-         */
-        data: number;
-    }
+    /**
+     * TextInput实例获得焦点
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    FOCUS_IN = "focusIn",
+    /**
+     * Dispatched when the TextInput instance loses focus.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * TextInput实例失去焦点
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    FOCUS_OUT = "focusOut",
+    /**
+     * Dispatched when the playback is ended.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 动画声音等播放完成
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    ENDED = "ended",
+    /**
+     * 游戏激活
+     * @version Egret 2.4
+     * @platform Web,Native
+     */
+    ACTIVATE = "activate",
+    /**
+     * 取消激活
+     * @version Egret 2.4
+     * @platform Web,Native
+     */
+    DEACTIVATE = "deactivate",
+    /**
+     * Event.CLOSE 常量定义 close 事件对象的 type 属性的值。
+     * @version Egret 2.4
+     * @platform Web,Native
+     */
+    CLOSE = "close",
+    /**
+     * Event.CONNECT 常量定义 connect 事件对象的 type 属性的值。
+     * @version Egret 2.4
+     * @platform Web,Native
+     */
+    CONNECT = "connect",
+    /**
+     * Event.LEAVE_STAGE 常量定义 leaveStage 事件对象的 type 属性的值。
+     * @version Egret 2.4
+     * @platform Web,Native
+     */
+    LEAVE_STAGE = "leaveStage",
+    /**
+     * Event.SOUND_COMPLETE 常量定义 在声音完成播放后调度。
+     * @version Egret 2.4
+     * @platform Web,Native
+     */
+    SOUND_COMPLETE = "soundComplete",
+    /**************************************** egret.StageOrientationEvent ****************************************/
+    /**
+     * After screen rotation distribute events.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 屏幕旋转后派发的事件。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    ORIENTATION_CHANGE = "orientationChange",
+    /**************************************** egret.TextEvent ****************************************/
+    /**
+     * It defines the value of the type property of a link event object.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 定义 link 事件对象的 type 属性值。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    LINK = "link",
+    /**************************************** egret.TouchEvent ****************************************/
+    /**
+    * Dispatched when the user touches the device, and is continuously dispatched until the point of contact is removed.
+    * @version Egret 2.4
+    * @platform Web,Native
+    * @language en_US
+    */
+    /**
+     * 当用户触碰设备时进行调度，而且会连续调度，直到接触点被删除。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    TOUCH_MOVE = "touchMove",
+    /**
+     * Dispatched when the user first contacts a touch-enabled device (such as touches a finger to a mobile phone or tablet with a touch screen).
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 当用户第一次触摸启用触摸的设备时（例如，用手指触摸配有触摸屏的移动电话或平板电脑）调度。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    TOUCH_BEGIN = "touchBegin",
+    /**
+     * Dispatched when the user removes contact with a touch-enabled device (such as lifts a finger off a mobile phone
+     * or tablet with a touch screen).
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 当用户移除与启用触摸的设备的接触时（例如，将手指从配有触摸屏的移动电话或平板电脑上抬起）调度。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    TOUCH_END = "touchEnd",
+    /**
+     * Dispatched when an event of some kind occurred that canceled the touch.
+     * Such as the eui.Scroller will dispatch 'TOUCH_CANCEL' when it start move, the 'TOUCH_END' and 'TOUCH_TAP' will not be triggered.
+     * @version Egret 3.0.1
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 由于某个事件取消了触摸时触发。比如 eui.Scroller 在开始滚动后会触发 'TOUCH_CANCEL' 事件，不再触发后续的 'TOUCH_END' 和 'TOUCH_TAP' 事件
+     * @version Egret 3.0.1
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    TOUCH_CANCEL = "touchCancel",
+    /**
+     * Dispatched when the user lifts the point of contact over the same DisplayObject instance on which the contact
+     * was initiated on a touch-enabled device.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 当用户在触摸设备上与开始触摸的同一 DisplayObject 实例上抬起接触点时调度。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    TOUCH_TAP = "touchTap",
+    /**
+     * Dispatched when the user lifts the point of contact over the different DisplayObject instance on which the contact
+     * was initiated on a touch-enabled device (such as presses and releases a finger from a single point over a display
+     * object on a mobile phone or tablet with a touch screen).
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 当用户在触摸设备上与开始触摸的不同 DisplayObject 实例上抬起接触点时调度。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    TOUCH_RELEASE_OUTSIDE = "touchReleaseOutside",
+    /**************************************** RES.ResourceEvent ****************************************/
+    /**
+ * Failure event for a load item.
+ * @version Egret 2.4
+ * @platform Web,Native
+ * @language en_US
+ */
+    /**
+     * 一个加载项加载失败事件。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    ITEM_LOAD_ERROR = "itemLoadError",
+    /**
+     * Configure file to load and parse the completion event. Note: if a configuration file is loaded, it will not be thrown out, and if you want to handle the configuration loading failure, monitor the CONFIG_LOAD_ERROR event.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 配置文件加载并解析完成事件。注意：若有配置文件加载失败，将不会抛出此事件，若要处理配置加载失败，请同时监听 CONFIG_LOAD_ERROR 事件。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    CONFIG_COMPLETE = "configComplete",
+    /**
+     * Configuration file failed to load.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 配置文件加载失败事件。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    CONFIG_LOAD_ERROR = "configLoadError",
+    /**
+     * Delay load group resource loading progress event.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 延迟加载组资源加载进度事件。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    GROUP_PROGRESS = "groupProgress",
+    /**
+     * Delay load group resource to complete event. Note: if you have a resource item loading failure, the event will not be thrown, if you want to handle the group load failure, please listen to the GROUP_LOAD_ERROR event.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 延迟加载组资源加载完成事件。注意：若组内有资源项加载失败，将不会抛出此事件，若要处理组加载失败，请同时监听 GROUP_LOAD_ERROR 事件。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    GROUP_COMPLETE = "groupComplete",
+    /**
+     * Delayed load group resource failed event.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 延迟加载组资源加载失败事件。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    GROUP_LOAD_ERROR = "groupLoadError",
+    /**************************************** Egret.IOErrorEvent ****************************************/
+    /**
+     * io error
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * io发生错误
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    IO_ERROR = "ioError",
 }
 declare module junyou {
     /**
@@ -1615,7 +1600,7 @@ declare module junyou {
      */
     type ADKey = number;
     const ADKey: {
-        get(action: number, direction: number): ADKey;
+        get(action: number, direction: number): number;
         getAction(adKey: number): number;
         getDirection(adKey: number): number;
     };
@@ -1683,544 +1668,6 @@ declare module junyou {
          */
         dispose(): void;
     }
-}
-declare const enum EgretEvent {
-    /**************************************** egret.Event ****************************************/
-    /**
- * Dispatched when a display object is added to the on stage display list, either directly or through the addition
- * of a sub tree in which the display object is contained.
- * @version Egret 2.4
- * @platform Web,Native
- * @language en_US
- */
-    /**
-     * 在将显示对象直接添加到舞台显示列表或将包含显示对象的子树添加至舞台显示列表中时调度。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    ADDED_TO_STAGE = "addedToStage",
-    /**
-     * Dispatched when a display object is about to be removed from the display list, either directly or through the removal
-     * of a sub tree in which the display object is contained.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 在从显示列表中直接删除显示对象或删除包含显示对象的子树时调度。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    REMOVED_FROM_STAGE = "removedFromStage",
-    /**
-     * Dispatched when a display object is added to the display list.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 将显示对象添加到显示列表中时调度。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    ADDED = "added",
-    /**
-     * Dispatched when a display object is about to be removed from the display list.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 将要从显示列表中删除显示对象时调度。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    REMOVED = "removed",
-    /**
-     * [broadcast event] Dispatched when the playhead is entering a new frame.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * [广播事件] 进入新的一帧,监听此事件将会在下一帧开始时触发一次回调。这是一个广播事件，可以在任何一个显示对象上监听，无论它是否在显示列表中。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    ENTER_FRAME = "enterFrame",
-    /**
-     * Dispatched when the display list is about to be updated and rendered.
-     * Note: Every time you want to receive a render event,you must call the stage.invalidate() method.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 渲染事件，监听此事件将会在本帧末即将开始渲染的前一刻触发回调，这是一个广播事件，可以在任何一个显示对象上监听，无论它是否在显示列表中。
-     * 注意：每次您希望 Egret 发送 Event.RENDER 事件时，都必须调用 stage.invalidate() 方法，由于每帧只会触发一次屏幕刷新，
-     * 若在 Event.RENDER 回调函数执行期间再次调用stage.invalidate()，将会被忽略。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    RENDER = "render",
-    /**
-     * Dispatched when the size of stage or UIComponent is changed.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 舞台尺寸或UI组件尺寸发生改变
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    RESIZE = "resize",
-    /**
-     * Dispatched when the value or selection of a property is chaned.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 属性值或状态发生改变。通常是按钮的选中状态，或者列表的选中项索引改变。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    CHANGE = "change",
-    /**
-     * Dispatched when the value or selection of a property is going to change.you can cancel this by calling the
-     * preventDefault() method.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 属性值或状态即将发生改变,通常是按钮的选中状态，或者列表的选中项索引改变。可以通过调用 preventDefault() 方法阻止索引发生更改。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    CHANGING = "changing",
-    /**
-     * Dispatched when the net request is complete.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 网络请求加载完成
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    COMPLETE = "complete",
-    /**
-     * Dispatched when loop completed.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 循环完成。循环最后一次只派发 COMPLETE 事件，不派发 LOOP_COMPLETE 事件。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    LOOP_COMPLETE = "loopComplete",
-    /**
-     * Dispatched when the TextInput instance gets focus.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * TextInput实例获得焦点
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    FOCUS_IN = "focusIn",
-    /**
-     * Dispatched when the TextInput instance loses focus.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * TextInput实例失去焦点
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    FOCUS_OUT = "focusOut",
-    /**
-     * Dispatched when the playback is ended.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 动画声音等播放完成
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    ENDED = "ended",
-    /**
-     * 游戏激活
-     * @version Egret 2.4
-     * @platform Web,Native
-     */
-    ACTIVATE = "activate",
-    /**
-     * 取消激活
-     * @version Egret 2.4
-     * @platform Web,Native
-     */
-    DEACTIVATE = "deactivate",
-    /**
-     * Event.CLOSE 常量定义 close 事件对象的 type 属性的值。
-     * @version Egret 2.4
-     * @platform Web,Native
-     */
-    CLOSE = "close",
-    /**
-     * Event.CONNECT 常量定义 connect 事件对象的 type 属性的值。
-     * @version Egret 2.4
-     * @platform Web,Native
-     */
-    CONNECT = "connect",
-    /**
-     * Event.LEAVE_STAGE 常量定义 leaveStage 事件对象的 type 属性的值。
-     * @version Egret 2.4
-     * @platform Web,Native
-     */
-    LEAVE_STAGE = "leaveStage",
-    /**
-     * Event.SOUND_COMPLETE 常量定义 在声音完成播放后调度。
-     * @version Egret 2.4
-     * @platform Web,Native
-     */
-    SOUND_COMPLETE = "soundComplete",
-    /**************************************** egret.StageOrientationEvent ****************************************/
-    /**
-     * After screen rotation distribute events.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 屏幕旋转后派发的事件。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    ORIENTATION_CHANGE = "orientationChange",
-    /**************************************** egret.TextEvent ****************************************/
-    /**
-     * It defines the value of the type property of a link event object.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 定义 link 事件对象的 type 属性值。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    LINK = "link",
-    /**************************************** egret.TouchEvent ****************************************/
-    /**
-    * Dispatched when the user touches the device, and is continuously dispatched until the point of contact is removed.
-    * @version Egret 2.4
-    * @platform Web,Native
-    * @language en_US
-    */
-    /**
-     * 当用户触碰设备时进行调度，而且会连续调度，直到接触点被删除。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    TOUCH_MOVE = "touchMove",
-    /**
-     * Dispatched when the user first contacts a touch-enabled device (such as touches a finger to a mobile phone or tablet with a touch screen).
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 当用户第一次触摸启用触摸的设备时（例如，用手指触摸配有触摸屏的移动电话或平板电脑）调度。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    TOUCH_BEGIN = "touchBegin",
-    /**
-     * Dispatched when the user removes contact with a touch-enabled device (such as lifts a finger off a mobile phone
-     * or tablet with a touch screen).
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 当用户移除与启用触摸的设备的接触时（例如，将手指从配有触摸屏的移动电话或平板电脑上抬起）调度。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    TOUCH_END = "touchEnd",
-    /**
-     * Dispatched when an event of some kind occurred that canceled the touch.
-     * Such as the eui.Scroller will dispatch 'TOUCH_CANCEL' when it start move, the 'TOUCH_END' and 'TOUCH_TAP' will not be triggered.
-     * @version Egret 3.0.1
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 由于某个事件取消了触摸时触发。比如 eui.Scroller 在开始滚动后会触发 'TOUCH_CANCEL' 事件，不再触发后续的 'TOUCH_END' 和 'TOUCH_TAP' 事件
-     * @version Egret 3.0.1
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    TOUCH_CANCEL = "touchCancel",
-    /**
-     * Dispatched when the user lifts the point of contact over the same DisplayObject instance on which the contact
-     * was initiated on a touch-enabled device.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 当用户在触摸设备上与开始触摸的同一 DisplayObject 实例上抬起接触点时调度。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    TOUCH_TAP = "touchTap",
-    /**
-     * Dispatched when the user lifts the point of contact over the different DisplayObject instance on which the contact
-     * was initiated on a touch-enabled device (such as presses and releases a finger from a single point over a display
-     * object on a mobile phone or tablet with a touch screen).
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 当用户在触摸设备上与开始触摸的不同 DisplayObject 实例上抬起接触点时调度。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    TOUCH_RELEASE_OUTSIDE = "touchReleaseOutside",
-    /**************************************** RES.ResourceEvent ****************************************/
-    /**
- * Failure event for a load item.
- * @version Egret 2.4
- * @platform Web,Native
- * @language en_US
- */
-    /**
-     * 一个加载项加载失败事件。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    ITEM_LOAD_ERROR = "itemLoadError",
-    /**
-     * Configure file to load and parse the completion event. Note: if a configuration file is loaded, it will not be thrown out, and if you want to handle the configuration loading failure, monitor the CONFIG_LOAD_ERROR event.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 配置文件加载并解析完成事件。注意：若有配置文件加载失败，将不会抛出此事件，若要处理配置加载失败，请同时监听 CONFIG_LOAD_ERROR 事件。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    CONFIG_COMPLETE = "configComplete",
-    /**
-     * Configuration file failed to load.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 配置文件加载失败事件。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    CONFIG_LOAD_ERROR = "configLoadError",
-    /**
-     * Delay load group resource loading progress event.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 延迟加载组资源加载进度事件。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    GROUP_PROGRESS = "groupProgress",
-    /**
-     * Delay load group resource to complete event. Note: if you have a resource item loading failure, the event will not be thrown, if you want to handle the group load failure, please listen to the GROUP_LOAD_ERROR event.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 延迟加载组资源加载完成事件。注意：若组内有资源项加载失败，将不会抛出此事件，若要处理组加载失败，请同时监听 GROUP_LOAD_ERROR 事件。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    GROUP_COMPLETE = "groupComplete",
-    /**
-     * Delayed load group resource failed event.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 延迟加载组资源加载失败事件。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    GROUP_LOAD_ERROR = "groupLoadError",
-    /**************************************** Egret.IOErrorEvent ****************************************/
-    /**
-     * io error
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * io发生错误
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    IO_ERROR = "ioError",
-}
-declare const enum EgretResType {
-    /**
-     * XML file.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * XML 文件。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    TYPE_XML = "xml",
-    /**
-     * Picture file.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 图片文件。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    TYPE_IMAGE = "image",
-    /**
-     * Binary file.
-     * @version Egret 2.4
-     * @platform Web
-     * @language en_US
-     */
-    /**
-     * 二进制文件。
-     * @version Egret 2.4
-     * @platform Web
-     * @language zh_CN
-     */
-    TYPE_BIN = "bin",
-    /**
-     * Text file.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 文本文件。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    TYPE_TEXT = "text",
-    /**
-     * JSON file.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * JSON 文件。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    TYPE_JSON = "json",
-    /**
-     * SpriteSheet file.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * SpriteSheet 文件。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    TYPE_SHEET = "sheet",
-    /**
-     * BitmapTextSpriteSheet file.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * BitmapTextSpriteSheet 文件。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    TYPE_FONT = "font",
-    /**
-     * Sound file.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 声音文件。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    TYPE_SOUND = "sound",
 }
 declare module junyou {
     /**
@@ -2322,6 +1769,237 @@ declare module junyou {
         doRender(unit: Unit, now: number): void;
         recycle(): void;
     }
+}
+/**
+ * 参考createjs和白鹭的tween
+ * 调整tick的驱动方式
+ * https://github.com/CreateJS/TweenJS
+ * @author 3tion
+ */
+declare module junyou {
+    class TweenManager {
+        protected _tweens: Tween[];
+        /**
+         * 注册过的插件列表
+         * Key      {string}            属性
+         * Value    {ITweenPlugin[]}    插件列表
+         *
+         * @type {{ [index: string]: ITweenPlugin[] }}
+         */
+        _plugins: {
+            [index: string]: ITweenPlugin[];
+        };
+        /**
+         * Returns a new tween instance. This is functionally identical to using "new Tween(...)", but looks cleaner
+         * with the chained syntax of TweenJS.
+         * <h4>Example</h4>
+         *
+         *		var tween = createjs. this.get(target);
+        *
+        * @method get
+        * @param {Object} target The target object that will have its properties tweened.
+        * @param {TweenOption} [props] The configuration properties to apply to this tween instance (ex. `{loop:true, paused:true}`).
+        * All properties default to `false`. Supported props are:
+        * <UL>
+        *    <LI> loop: sets the loop property on this tween.</LI>
+        *    <LI> useTicks: uses ticks for all durations instead of milliseconds.</LI>
+        *    <LI> ignoreGlobalPause: sets the {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}} property on
+        *    this tween.</LI>
+        *    <LI> override: if true, `createjs. this.removeTweens(target)` will be called to remove any other tweens with
+        *    the same target.
+        *    <LI> paused: indicates whether to start the tween paused.</LI>
+        *    <LI> position: indicates the initial position for this tween.</LI>
+        *    <LI> onChange: specifies a listener for the {{#crossLink "Tween/change:event"}}{{/crossLink}} event.</LI>
+        * </UL>
+        * @param {Object} [pluginData] An object containing data for use by installed plugins. See individual plugins'
+        * documentation for details.
+        * @param {Boolean} [override=false] If true, any previous tweens on the same target will be removed. This is the
+        * same as calling ` this.removeTweens(target)`.
+        * @return {Tween} A reference to the created tween. Additional chained tweens, method calls, or callbacks can be
+        * applied to the returned tween instance.
+        * @static
+        */
+        get(target: any, props?: TweenOption, pluginData?: any, override?: boolean): Tween;
+        /**
+         * 移除指定对象的所有tween
+         * Removes all existing tweens for a target. This is called automatically by new tweens if the `override`
+         * property is `true`.
+         * @method removeTweens
+         * @param {Object} target The target object to remove existing tweens from.
+         * @static
+         */
+        removeTweens(target: any): void;
+        /**
+         * 移除单个tween
+         *
+         * @param {Tween} twn
+         * @returns
+         *
+         * @memberOf TweenManager
+         */
+        removeTween(twn: Tween): void;
+        /**
+         * 暂停某个对象的全部Tween
+         *
+         * @static
+         * @param {*} target 指定对象
+         */
+        pauseTweens(target: any): void;
+        /**
+         * 恢复某个对象的全部Tween
+         *
+         * @static
+         * @param {*} target 指定对象
+         */
+        resumeTweens(target: any): void;
+        /**
+         * 由外部进行调用，进行心跳
+         * Advances all tweens. This typically uses the {{#crossLink "Ticker"}}{{/crossLink}} class, but you can call it
+         * manually if you prefer to use your own "heartbeat" implementation.
+         * @method tick
+         * @param {Number} delta The change in time in milliseconds since the last tick. Required unless all tweens have
+         * `useTicks` set to true.
+         * @param {Boolean} paused Indicates whether a global pause is in effect. Tweens with {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}}
+         * will ignore this, but all others will pause if this is `true`.
+         * @static
+         */
+        tick(delta: number, paused?: boolean): void;
+        /**
+         * 将tween注册/注销到管理器中，
+         *
+         * @param {Tween} tween
+         * @param {boolean} [value] (description)
+         * @returns {void}
+         * @private 此方法只允许tween调用
+         */
+        _register(tween: Tween, value?: boolean): void;
+        /**
+         * Stop and remove all existing tweens.
+         * 终止并移除所有的tween
+         * @method removeAllTweens
+         * @static
+         * @since 0.4.1
+         */
+        removeAllTweens(): void;
+        /**
+         * Indicates whether there are any active tweens (and how many) on the target object (if specified) or in general.
+         * @method hasActiveTweens
+         * @param {Object} [target] The target to check for active tweens. If not specified, the return value will indicate
+         * if there are any active tweens on any target.
+         * @return {Boolean} If there are active tweens.
+         * @static
+         */
+        hasActiveTweens(target: any): boolean;
+        /**
+         * Installs a plugin, which can modify how certain properties are handled when tweened. See the {{#crossLink "CSSPlugin"}}{{/crossLink}}
+         * for an example of how to write TweenJS plugins.
+         * @method installPlugin
+         * @static
+         * @param {Object} plugin The plugin class to install
+         * @param {Array} properties An array of properties that the plugin will handle.
+         */
+        installPlugin(plugin: ITweenPlugin, properties: string[]): void;
+    }
+}
+declare module junyou {
+    /**
+     * mixin的基类选项
+     *
+     * @export
+     * @interface MixinOption
+     * @template T
+     */
+    interface MixinOption<T> {
+        /**
+         *
+         * mixin的基类
+         * @type {{ new (): T }}
+         * @memberOf MixinOption
+         */
+        clazz: {
+            new(): T;
+        };
+        /**
+         *
+         *
+         * @type {(keyof T)[]}
+         * @memberOf MixinOption
+         */
+        keys: (keyof T)[];
+    }
+    /**
+     * 扩展一个实例，如果A类型实例本身并没有B类型的方法，则直接对实例的属性进行赋值，否则将不会赋值
+     *
+     * @export
+     * @template A
+     * @template B
+     * @param {A} instance                  要扩展的实例
+     * @param {{ prototype: B }} clazzB     需要扩展的对象方法
+     * @param {boolean} override            是否强制覆盖原有方法
+     * @returns {(A & B)}
+     */
+    function expandInstance<A, B, K extends keyof B>(instance: A, clazzB: {
+        prototype: B;
+    }, ...keys: K[]): A & B;
+    /**
+     * 将类型A扩展类型B的指定属性，并返回引用
+     *
+     * @export
+     * @template A
+     * @template B
+     * @template K
+     * @template B
+     * @param {{ prototype: A }} clazzA     要被扩展的类型
+     * @param {{ prototype: B }} clazzB     扩展的模板
+     * @param {...K[]} keys      如果没有参数，则将B的全部属性复制给类型A
+     * @returns {(A & Record<K, B>)}
+     */
+    function expand<A, B, K extends keyof B>(clazzA: {
+        prototype: A;
+    }, clazzB: {
+        prototype: B;
+    }, ...keys: K[]): A & Record<K, B>;
+    type Constructor<T> = new (...args: any[]) => T;
+    type MixinCtor<A, B> = new () => A & B & {
+        constructor: MixinCtor<A, B>;
+    };
+    /**
+     * 获取一个复合类型
+     *
+     * @export
+     * @template A
+     * @template B
+     * @param {{ prototype: A }} clazzA     类型A
+     * @param {{ prototype: B }} clazzB     类型B
+     * @returns
+     */
+    function getMixin<A, B>(clazzA: {
+        prototype: A;
+    }, clazzB: {
+        prototype: B;
+    }): MixinCtor<A, B>;
+    /**
+     * 拷贝属性
+     *
+     * @export
+     * @template To
+     * @template From
+     * @param {To} to
+     * @param {From} from
+     * @param {keyof B} key
+     */
+    function copyProperty<To, From>(to: To, from: From, key: keyof From): void;
+    /**
+     * 批量拷贝属性
+     *
+     * @export
+     * @template To
+     * @template From
+     * @param {To} to
+     * @param {From} from
+     * @param {...(keyof From)[]} keys
+     */
+    function copyProperties<To, From>(to: To, from: From, ...keys: (keyof From)[]): void;
 }
 declare module junyou {
     /**
@@ -2679,106 +2357,6 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     * mixin的基类选项
-     *
-     * @export
-     * @interface MixinOption
-     * @template T
-     */
-    interface MixinOption<T> {
-        /**
-         *
-         * mixin的基类
-         * @type {{ new (): T }}
-         * @memberOf MixinOption
-         */
-        clazz: {
-            new(): T;
-        };
-        /**
-         *
-         *
-         * @type {(keyof T)[]}
-         * @memberOf MixinOption
-         */
-        keys: (keyof T)[];
-    }
-    /**
-     * 扩展一个实例，如果A类型实例本身并没有B类型的方法，则直接对实例的属性进行赋值，否则将不会赋值
-     *
-     * @export
-     * @template A
-     * @template B
-     * @param {A} instance                  要扩展的实例
-     * @param {{ prototype: B }} clazzB     需要扩展的对象方法
-     * @param {boolean} override            是否强制覆盖原有方法
-     * @returns {(A & B)}
-     */
-    function expandInstance<A, B, K extends keyof B>(instance: A, clazzB: {
-        prototype: B;
-    }, ...keys: K[]): A & B;
-    /**
-     * 将类型A扩展类型B的指定属性，并返回引用
-     *
-     * @export
-     * @template A
-     * @template B
-     * @template K
-     * @template B
-     * @param {{ prototype: A }} clazzA     要被扩展的类型
-     * @param {{ prototype: B }} clazzB     扩展的模板
-     * @param {...K[]} keys      如果没有参数，则将B的全部属性复制给类型A
-     * @returns {(A & Record<K, B>)}
-     */
-    function expand<A, B, K extends keyof B>(clazzA: {
-        prototype: A;
-    }, clazzB: {
-        prototype: B;
-    }, ...keys: K[]): A & Record<K, B>;
-    type Constructor<T> = new (...args: any[]) => T;
-    type MixinCtor<A, B> = new () => A & B & {
-        constructor: MixinCtor<A, B>;
-    };
-    /**
-     * 获取一个复合类型
-     *
-     * @export
-     * @template A
-     * @template B
-     * @param {{ prototype: A }} clazzA     类型A
-     * @param {{ prototype: B }} clazzB     类型B
-     * @returns
-     */
-    function getMixin<A, B>(clazzA: {
-        prototype: A;
-    }, clazzB: {
-        prototype: B;
-    }): MixinCtor<A, B>;
-    /**
-     * 拷贝属性
-     *
-     * @export
-     * @template To
-     * @template From
-     * @param {To} to
-     * @param {From} from
-     * @param {keyof B} key
-     */
-    function copyProperty<To, From>(to: To, from: From, key: keyof From): void;
-    /**
-     * 批量拷贝属性
-     *
-     * @export
-     * @template To
-     * @template From
-     * @param {To} to
-     * @param {From} from
-     * @param {...(keyof From)[]} keys
-     */
-    function copyProperties<To, From>(to: To, from: From, ...keys: (keyof From)[]): void;
-}
-declare module junyou {
-    /**
      *
      * @author 3tion
      *
@@ -2800,6 +2378,453 @@ declare module junyou {
          * 加载失败 -1
          */
         FAILED = -1,
+    }
+}
+interface $NSFilter {
+    /**
+     * 感兴趣的请求
+     *
+     * @type { [index: number]: boolean }
+     * @memberOf $gmNSLog
+     */
+    cmds?: number[];
+    /**
+     * 是否为白名单模式，默认黑名单
+     *
+     * @type {boolean}
+     * @memberOf $NSFilter
+     */
+    isWhite: boolean;
+    /**
+     * 过滤器
+     *
+     * @type {{ ($gmNSLog, ...args): boolean }}
+     * @memberOf $NSFilter
+     */
+    filter?: {
+        ($gmNSLog, ...args): boolean;
+    };
+    /**
+     * 过滤器参数
+     *
+     * @type {any[]}
+     * @memberOf $NSFilter
+     */
+    filterParams?: any[];
+}
+interface $NSLog {
+    time: number;
+    type: "send" | "receive";
+    cmd: number;
+    data: any;
+}
+/**
+ * 用于扩展GM指令
+ *
+ * @interface $gmType
+ */
+interface $gmType {
+    /**
+     * 发送的网络消息的日志
+     *
+     * @type {$NSFilter}
+     * @memberOf $gmType
+     */
+    printSendFilter: $NSFilter;
+    /**
+     * 接收的网络消息的日志
+     *
+     * @type {$NSFilter}
+     * @memberOf $gmType
+     */
+    printReceiveFilter: $NSFilter;
+    /**
+     * 日志数据
+     *
+     * @type $NSLog[])}
+     * @memberOf $gmType
+     */
+    nsLogs: $NSLog[];
+    /**
+     * 输出日志内容
+     * @memberOf $gmType
+     */
+    showNSLog(): $NSLog[];
+    showNSLog(filter: {
+        ($gmNSLog: $NSLog, ...args): boolean;
+    }, ...args: any[]): $NSLog[];
+    showNSLog(isWhite: boolean, ...cmds: number[]): $NSLog[];
+    /**
+     * 使用黑名单模式，进行输出
+     *
+     * @param {...number[]} cmds
+     *
+     * @memberOf $gmType
+     */
+    showNSLog(...cmds: number[]): $NSLog[];
+    /**
+     * 最大网络日志数量
+     *
+     * @type {number}
+     * @memberOf $gmType
+     */
+    maxNSLogCount: number;
+    /**
+     * 控制台输出发送日志
+     * @memberOf $gm
+     */
+    printSend(): any;
+    /**
+     * 使用过滤函数过滤在控制台输出的发送日志
+     *
+     * @param {{ ($gmNSLog, ...args): boolean }} filter     过滤函数，函数返回true的会显示在控制台上
+     * @param {any} args                                    过滤函数使用的参数
+     *
+     * @memberOf $gmType
+     */
+    printSend(filter: {
+        ($gmNSLog: $NSLog, ...args): boolean;
+    }, ...args: any[]): any;
+    /**
+     * 显示或排除指定指令的发送日志，并在控制台输出
+     *
+     * @param {boolean} isWhite     是否为白名单模式
+     * @param {...number[]} cmds    指令列表
+     *
+     * @memberOf $gmType
+     */
+    printSend(isWhite: boolean, ...cmds: number[]): any;
+    /**
+     * 排除指定指令的发送日志，将其他日志信息在控制台输出
+     *
+     * @param {...number[]} cmds    黑名单列表
+     *
+     * @memberOf $gmType
+     */
+    printSend(...cmds: number[]): any;
+    /**
+     * 控制台输出接收日志
+     * @memberOf $gmType
+     */
+    printReceive(): any;
+    /**
+     * 使用过滤函数过滤并在控制台输出接收日志
+     *
+     * @param {{ ($gmNSLog, ...args): boolean }} filter     过滤函数，函数返回true的会显示在控制台上
+     * @param {any} args                                    过滤函数使用的参数
+     *
+     * @memberOf $gmType
+     */
+    printReceive(filter: {
+        ($gmNSLog: $NSLog, ...args): boolean;
+    }, ...args: any[]): any;
+    /**
+     * 显示或排除指定指令的接收日志，并在控制台输出
+     *
+     * @param {boolean} isWhite     是否为白名单模式
+     * @param {...number[]} cmds    指令列表
+     *
+     * @memberOf $gmType
+     */
+    printReceive(isWhite: boolean, ...cmds: number[]): any;
+    /**
+     * 排除指定指令的接收日志，将其他日志信息在控制台输出
+     *
+     * @param {...number[]} cmds
+     *
+     * @memberOf $gmType
+     */
+    printReceive(...cmds: number[]): any;
+    /**
+     * 调用printSend和printReceive的一个简写
+     *
+     *
+     * @memberof $gmType
+     */
+    print(): any;
+    /**
+     * 模拟服务端发送数据
+     *
+     * @param {number} cmd
+     * @param {*} [data]
+     *
+     * @memberof $gmType
+     */
+    route(cmd: number, data?: any): any;
+    /**
+     * 使用日志数据进行模拟调试
+     *
+     * @param {$NSLog[]} logs
+     *
+     * @memberof $gmType
+     */
+    batchRoute(logs: $NSLog[]): any;
+    /**
+     * 获取网络传输数据日志的过滤器
+     * @returns {$NSFilter}
+     *
+     * @memberOf $gmType
+     */
+    __getNSFilter(...args: any[]): $NSFilter;
+    /**
+     * 检查是否需要显示日志
+     *
+     * @param {$NSLog} log
+     * @param {$NSFilter} nsFilter
+     * @returns {boolean}
+     *
+     * @memberOf $gmType
+     */
+    __nsLogCheck(log: $NSLog, nsFilter: $NSFilter): boolean;
+}
+declare module junyou {
+    const enum NSType {
+        Null = 0,
+        Boolean = 1,
+        String = 2,
+        Bytes = 4,
+        Double = 5,
+        Int32 = 6,
+        Uint32 = 7,
+        Int64 = 8,
+    }
+    const NSBytesLen: {
+        0: number;
+        1: number;
+        5: number;
+        6: number;
+        7: number;
+        8: number;
+    };
+    /**
+     * 用于存储头部的临时变量
+     */
+    const nsHeader: {
+        cmd: number;
+        len: number;
+    };
+    /**
+     * 头信息
+     *
+     * @export
+     * @interface NSHeader
+     */
+    interface NSHeader {
+        /**
+         * 指令/协议号
+         *
+         * @type {number}
+         * @memberof NSHeader
+         */
+        cmd: number;
+        /**
+         * 长度
+         *
+         * @type {number}
+         * @memberof NSHeader
+         */
+        len: number;
+    }
+    /**
+     * 通信服务
+     * 收发的协议结构：
+     * 2字节协议号 2字节包长度(n) n字节包
+     * @author 3tion
+     *
+     */
+    abstract class NetService {
+        /**
+        * 请求地址
+        */
+        protected _actionUrl: string;
+        setLimitEventEmitable(emit: boolean): void;
+        protected static _ins: NetService;
+        protected _limitAlert: boolean;
+        protected _limitSendFunc: {
+            (cmd: number, data?: any, msgType?: string | number, limit?: number);
+        };
+        protected _nolimitSendFunc: {
+            (cmd: number, data?: any, msgType?: string | number, limit?: number);
+        };
+        static get(): NetService;
+        /**
+             * 用于调试模式下写日志
+             *
+             * @param {number} time
+             * @param {("send" | "receive")} type
+             * @param {number} cmd
+             * @param {*} data
+             *
+             * @memberOf $gmType
+             */
+        protected $writeNSLog: {
+            (time: number, type: "send" | "receive", cmd: number, data: any): void;
+        };
+        protected _router: NetRouter;
+        /**
+         * 待发送的的被动指令列表
+         */
+        protected _pcmdList: Recyclable<NetSendData>[];
+        /**
+         * 接收数据的临时数组
+         */
+        protected _tmpList: Recyclable<NetData>[];
+        /**
+         * 读取的字节缓存
+         */
+        protected _readBuffer: ByteArray;
+        /**
+         * 发送的字节缓存
+         */
+        protected _sendBuffer: ByteArray;
+        protected _tempBytes: ByteArray;
+        /**
+         * 接收消息的创建器
+         *
+         */
+        protected _receiveMSG: {
+            [index: number]: string | number;
+        };
+        /**
+         * 设置地址
+         *
+         * @abstract
+         * @param {string} actionUrl
+         */
+        abstract setUrl(actionUrl: string): any;
+        constructor();
+        protected netChange: () => void;
+        /**
+         * 基础连接时间
+         *
+         *
+         * @memberOf NetService
+         */
+        baseConTime: number;
+        /**
+         * 最大连接时间
+         *
+         *
+         * @memberOf NetService
+         */
+        maxConTime: Time;
+        /**
+         * 重连次数
+         *
+         * @private
+         * @type {number}
+         * @memberOf NetService
+         */
+        protected _reconCount: number;
+        /**
+         * 下次自动拉取请求的时间戳
+         */
+        protected _nextAutoTime: number;
+        /**
+         * 下次自动请求的最短
+         */
+        protected _autoTimeDelay: number;
+        protected showReconnect(): void;
+        protected onawake(): void;
+        /**
+         * 基础类型消息
+         */
+        regReceiveMSGRef(cmd: number, ref: string | number): void;
+        /**
+         * 注册处理器
+         * @param {number} cmd 协议号
+         * @param {INetHandler} handler 处理网络数据的处理器
+         * @param {number} [priority=0] 处理优先级
+         */
+        register(cmd: number, handler: INetHandler, priotity?: number): boolean;
+        /**
+         * 注册单次执行的处理器
+         * @param {number} cmd 协议号
+         * @param {INetHandler} handler 处理网络数据的处理器
+         * @param {number} [priority=0] 处理优先级
+         */
+        regOnce(cmd: number, handler: INetHandler, priotity?: number): boolean;
+        /**
+         * 移除协议号和处理器的监听
+         *
+         * @param {number} cmd 协议号
+         * @param {INetHandler} handler 处理网络数据的处理器
+         */
+        remove(cmd: number, handler: INetHandler): void;
+        protected _register(cmd: number, handler: INetHandler, priotity: number, once: boolean): boolean;
+        /**
+         * 即时发送指令<br/>
+         * 用于处理角色主动操作的请求，如点击合成道具，使用物品等
+         * @param {number} cmd 协议号
+         * @param {any} [data] 数据，简单数据(number,boolean,string)复合数据
+         * @param {string} [msgType] 如果是复合数据，必须有此值
+         * @param {number} [limit] 客户端发送时间限制，默认500毫秒
+         */
+        send(cmd: number, data?: any, msgType?: string | number, limit?: number): void;
+        /**
+         * 即时发送指令
+         */
+        protected abstract _send(cmd: number, data: any, msgType: string | number): any;
+        /**
+         * 断开连接
+         */
+        disconnect(): void;
+        /**
+         * 消极发送指令
+         * 如果使用通协议的指令，有堆积的指令，先合并，新的替换旧的
+         * __`请勿将一些用户操作使用此指令发送`__
+         * 处理一些实时性要求不高的指令，这些指令先缓存堆积，等到用户主动发指令的时候，一起发送
+         * @param {number} cmd 协议号
+         * @param {any} [data] 数据，简单数据(number,boolean,string)复合数据
+         * @param {string} [msgType] 如果是复合数据，必须有此值
+         */
+        sendPassive(cmd: number, data?: any, msgType?: string | number): void;
+        /**
+         * 向缓冲数组中写入数据
+         */
+        protected writeToBuffer(bytes: ByteArray, data: NetSendData): void;
+        /**
+         * @private
+         * @param bytes
+         * @param out
+         */
+        protected decodeBytes(bytes: ByteArray): void;
+        /**
+         * 解析头部信息
+         *
+         * @protected
+         * @param {ByteArray} bytes
+         * @param {NSHeader} header
+         * @returns 是否可以继续  true    继续后续解析
+         *                       false   取消后续解析
+         * @memberof NetService
+         */
+        protected decodeHeader(bytes: ByteArray, header: NSHeader): boolean;
+        /**
+         * 存储数据长度
+         *
+         * @protected
+         * @param {ByteArray} bytes
+         * @param {number} val
+         * @memberof NetService
+         */
+        protected writeBytesLength(bytes: ByteArray, val: number): void;
+        /**
+         *
+         * 模拟服务端
+         * @param {number} cmd
+         * @param {*} [data]
+         */
+        route(cmd: number, data?: any): void;
+    }
+    interface ReconectEvent extends egret.Event {
+        /**
+         * 重连次数
+         *
+         * @type {number}
+         * @memberOf ReconectEvent
+         */
+        data: number;
     }
 }
 declare module junyou {
@@ -3111,203 +3136,108 @@ declare module junyou {
         onRecycle(): void;
     }
 }
-/**
- * 参考createjs和白鹭的tween
- * 调整tick的驱动方式
- * https://github.com/CreateJS/TweenJS
- * @author 3tion
- */
 declare module junyou {
-    class TweenManager {
-        protected _tweens: Tween[];
+    /**
+     * 场景单位域的类型
+     *
+     * @export
+     * @enum {number}
+     */
+    const enum UnitDomainType {
         /**
-         * 注册过的插件列表
-         * Key      {string}            属性
-         * Value    {ITweenPlugin[]}    插件列表
-         *
-         * @type {{ [index: string]: ITweenPlugin[] }}
+         * 所有单位
          */
-        _plugins: {
-            [index: string]: ITweenPlugin[];
+        All = 0,
+        /**
+         * 角色
+         */
+        Role = 1,
+        /**
+         * 怪物
+         */
+        Monster = 2,
+    }
+    type UnitDomain = $UnitDomain<Unit>;
+    type $UnitDomain<T extends Unit> = {
+        [guid: string]: T;
+    };
+    /**
+     * 单位管理器
+     * @author 3tion
+     *
+     */
+    class UnitController<T extends Unit> {
+        /**
+         * 按类型存放的域
+         *
+         * @protected
+         * @type {{ [unitDomainType: number]: $UnitDomain<T> }}
+         */
+        protected _domains: {
+            [unitDomainType: number]: $UnitDomain<T>;
         };
         /**
-         * Returns a new tween instance. This is functionally identical to using "new Tween(...)", but looks cleaner
-         * with the chained syntax of TweenJS.
-         * <h4>Example</h4>
+         * 用于存放单位数量的字典
          *
-         *		var tween = createjs. this.get(target);
-        *
-        * @method get
-        * @param {Object} target The target object that will have its properties tweened.
-        * @param {TweenOption} [props] The configuration properties to apply to this tween instance (ex. `{loop:true, paused:true}`).
-        * All properties default to `false`. Supported props are:
-        * <UL>
-        *    <LI> loop: sets the loop property on this tween.</LI>
-        *    <LI> useTicks: uses ticks for all durations instead of milliseconds.</LI>
-        *    <LI> ignoreGlobalPause: sets the {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}} property on
-        *    this tween.</LI>
-        *    <LI> override: if true, `createjs. this.removeTweens(target)` will be called to remove any other tweens with
-        *    the same target.
-        *    <LI> paused: indicates whether to start the tween paused.</LI>
-        *    <LI> position: indicates the initial position for this tween.</LI>
-        *    <LI> onChange: specifies a listener for the {{#crossLink "Tween/change:event"}}{{/crossLink}} event.</LI>
-        * </UL>
-        * @param {Object} [pluginData] An object containing data for use by installed plugins. See individual plugins'
-        * documentation for details.
-        * @param {Boolean} [override=false] If true, any previous tweens on the same target will be removed. This is the
-        * same as calling ` this.removeTweens(target)`.
-        * @return {Tween} A reference to the created tween. Additional chained tweens, method calls, or callbacks can be
-        * applied to the returned tween instance.
-        * @static
-        */
-        get(target: any, props?: TweenOption, pluginData?: any, override?: boolean): Tween;
-        /**
-         * 移除指定对象的所有tween
-         * Removes all existing tweens for a target. This is called automatically by new tweens if the `override`
-         * property is `true`.
-         * @method removeTweens
-         * @param {Object} target The target object to remove existing tweens from.
-         * @static
+         * @protected
+         * @type {{ [unitDomainType: number]: number }}
          */
-        removeTweens(target: any): void;
+        protected _domainCounts: {
+            [unitDomainType: number]: number;
+        };
         /**
-         * 移除单个tween
+         * 所有单位存放的域
          *
-         * @param {Tween} twn
+         * @protected
+         * @type {UnitDomain}
+         */
+        protected _domainAll: $UnitDomain<T>;
+        constructor();
+        /**
+         * 注册一个单位
+         * @param unit
+         * @param domains
+         *
+         */
+        registerUnit(unit: T, ...domains: any[]): any;
+        /**
+         * 移除单位
+         * @param guid
+         * @return
+         *
+         */
+        removeUnit(guid: Key): T;
+        /**
+         *
+         * 获取指定域的单位集合
+         * @param {number} domain 指定域
          * @returns
+         */
+        get(domain: number): $UnitDomain<T>;
+        /**
+         * 获取指定域的单位数量
+         * @param domain
+         * @return
          *
-         * @memberOf TweenManager
          */
-        removeTween(twn: Tween): void;
+        getCount(domain: number): number;
         /**
-         * 暂停某个对象的全部Tween
+         * 根据GUID获取JUnit
+         * @param guid
+         * @return
          *
-         * @static
-         * @param {*} target 指定对象
          */
-        pauseTweens(target: any): void;
+        getUnit(guid: Key): T;
         /**
-         * 恢复某个对象的全部Tween
          *
-         * @static
-         * @param {*} target 指定对象
+         * 清理对象
+         * @param {...Key[]} exceptGuids 需要保留的单位的GUID列表
          */
-        resumeTweens(target: any): void;
-        /**
-         * 由外部进行调用，进行心跳
-         * Advances all tweens. This typically uses the {{#crossLink "Ticker"}}{{/crossLink}} class, but you can call it
-         * manually if you prefer to use your own "heartbeat" implementation.
-         * @method tick
-         * @param {Number} delta The change in time in milliseconds since the last tick. Required unless all tweens have
-         * `useTicks` set to true.
-         * @param {Boolean} paused Indicates whether a global pause is in effect. Tweens with {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}}
-         * will ignore this, but all others will pause if this is `true`.
-         * @static
-         */
-        tick(delta: number, paused?: boolean): void;
-        /**
-         * 将tween注册/注销到管理器中，
-         *
-         * @param {Tween} tween
-         * @param {boolean} [value] (description)
-         * @returns {void}
-         * @private 此方法只允许tween调用
-         */
-        _register(tween: Tween, value?: boolean): void;
-        /**
-         * Stop and remove all existing tweens.
-         * 终止并移除所有的tween
-         * @method removeAllTweens
-         * @static
-         * @since 0.4.1
-         */
-        removeAllTweens(): void;
-        /**
-         * Indicates whether there are any active tweens (and how many) on the target object (if specified) or in general.
-         * @method hasActiveTweens
-         * @param {Object} [target] The target to check for active tweens. If not specified, the return value will indicate
-         * if there are any active tweens on any target.
-         * @return {Boolean} If there are active tweens.
-         * @static
-         */
-        hasActiveTweens(target: any): boolean;
-        /**
-         * Installs a plugin, which can modify how certain properties are handled when tweened. See the {{#crossLink "CSSPlugin"}}{{/crossLink}}
-         * for an example of how to write TweenJS plugins.
-         * @method installPlugin
-         * @static
-         * @param {Object} plugin The plugin class to install
-         * @param {Array} properties An array of properties that the plugin will handle.
-         */
-        installPlugin(plugin: ITweenPlugin, properties: string[]): void;
+        clear(...exceptGuids: Key[]): void;
     }
 }
 declare module junyou {
-    /**
-      * 基于时间回收的资源
-      */
-    interface IResource {
-        /**
-         * 是否为静态不销毁资源
-         */
-        isStatic?: boolean;
-        /**
-         * 最后使用的时间戳
-         */
-        lastUseTime: number;
-        /**
-         * 资源id
-         */
-        resID: string;
-        /**
-         * 资源路径
-         */
-        url: string;
-        /**
-         * 销毁资源
-         */
-        dispose(): any;
-    }
-}
-declare module junyou {
-    const enum LocalResConst {
-        /**
-         * hash资源存储的key
-         */
-        ResHashKey = "$$hash$$",
-    }
-    /**
-     *  尝试启用本地资源缓存
-     * @author 3tion(https://github.com/eos3tion/)
-     * @export
-     * @param {number} [version=1]
-     * @returns
-     */
-    function tryLocalRes(version?: number): {
-        save(data: RES.ResourceItem, callback?: (ev: Event | Error) => any): void;
-        get(url: string, callback: (data: RES.ResourceItem, url?: string) => any): void;
-        delete(url: string, callback?: (url: string, ev: Event | Error) => any): void;
-        clear(callback?: (ev: Event | Error) => any): void;
-    };
-}
-declare namespace RES {
-    interface ResourceItem {
-        /**
-         * 本地缓存的数据
-         *
-         * @type {boolean}
-         * @memberOf ResourceItem
-         */
-        local?: any;
-        uri?: string;
-        /**
-         * 版本号
-         */
-        version?: number;
-    }
-}
-declare module junyou {
-    const ResourceManager: {
+    const ResManager: {
         get: <T extends IResource>(resid: string, noResHandler: (...args: any[]) => T, thisObj?: any, ...args: any[]) => any;
         getTextureRes(resID: string, noWebp?: boolean): TextureResource;
         getResource: (resID: string) => IResource;
@@ -3331,11 +3261,12 @@ declare module junyou {
         /**
          * 资源id
          */
-        resID: string;
+        readonly uri: string;
         /**
          * 资源最终路径
          */
-        url: string;
+        readonly url: string;
+        constructor(uri: string, noWebp?: boolean);
         /**
          *
          * 是否为静态不销毁的资源
@@ -3366,7 +3297,7 @@ declare module junyou {
         /**
          * 资源加载完成
          */
-        loadComplete(res: egret.Texture, key: string): void;
+        loadComplete(item: Res.ResItem): void;
         /**
          * 销毁资源
          */
@@ -4180,6 +4111,7 @@ declare module junyou {
     const Global: {
         initTick: () => void;
         nextTick: (callback: Function, thisObj?: any, ...args: any[]) => void;
+        nextTick2: (callback: CallbackInfo<Function>) => void;
         callLater: (callback: Function, time?: number, thisObj?: any, ...args: any[]) => void;
         clearCallLater: (callback: Function, thisObj?: any) => any;
         getTween: (target: any, props?: TweenOption, pluginData?: any, override?: boolean) => Tween;
@@ -4872,50 +4804,6 @@ declare module junyou {
     const RPC: RPCInterface;
 }
 declare module junyou {
-    const enum SoundDomain {
-        All = 0,
-    }
-    interface SoundOption {
-        startTime: number;
-        /**
-         * 调用play的时间戳
-         *
-         * @type {number}
-         * @memberOf SoundOption
-         */
-        playStart: number;
-        loop: number;
-        timeout: number;
-    }
-    const SoundManager: {
-        play: (url: string, domain?: SoundDomain, loop?: number, timeout?: number, startTime?: number) => number;
-        preload: (url: string) => void;
-        stopSound: (id: number, useTween?: boolean) => void;
-        stopSounds: (domain: number, useTween?: boolean) => void;
-        volume: (volume: number, id: number) => void;
-    };
-    interface Sound {
-        url: string;
-        state: RequestState;
-        sound: egret.Sound;
-        promises?: number[];
-    }
-    interface SoundChannel {
-        id: number;
-        /**
-         * 如果当前Sound未加载完毕，则此时间为声音播放的过期时间
-         *
-         * @type {number}
-         * @memberOf SoundChannel
-         */
-        option?: SoundOption;
-        url: string;
-        channel?: egret.SoundChannel;
-        domain: number;
-        actions?: [Function, any[]][];
-    }
-}
-declare module junyou {
     /**
      * 临时对象
      * @author 3tion
@@ -5296,7 +5184,8 @@ declare module junyou {
          */
         state: RequestState;
         protected _refList: AniRender[];
-        protected url: string;
+        url: string;
+        uri: string;
         constructor();
         /**
          * 绑定渲染器
@@ -5306,7 +5195,7 @@ declare module junyou {
         /**
          * 资源加载完成
          */
-        dataLoadComplete(data: any[], key: string): void;
+        dataLoadComplete(item: Res.ResItem): void;
         /**
          * 和渲染器解除绑定
          * @param render
@@ -5815,7 +5704,7 @@ declare module junyou {
         /**
         * 资源id
         */
-        resID: string;
+        uri: string;
         url: string;
         /**
          * 资源最后使用时间
@@ -5854,7 +5743,7 @@ declare module junyou {
         /**
          * 资源加载完成
          */
-        loadComplete(res: JTexture, key: string): void;
+        loadComplete(item: Res.ResItem): void;
         dispose(): void;
     }
 }
@@ -5882,6 +5771,7 @@ declare module junyou {
          * 纹理的配置文件的加载地址
          */
         readonly url: string;
+        readonly uri: string;
         /**
          * 资源打包分隔信息
          */
@@ -5891,7 +5781,7 @@ declare module junyou {
          * 获取数据
          */
         private _datas;
-        constructor(uri: string, splitInfo: SplitInfo);
+        constructor(key: string, splitInfo: SplitInfo);
         /**
          * 解析数据
          */
@@ -5903,7 +5793,7 @@ declare module junyou {
         /**
          * 资源加载完成
          */
-        dataLoadComplete(data: Object, key: string): void;
+        dataLoadComplete(item: Res.ResItem): void;
         /**
          * 将资源渲染到位图容器中
          *
@@ -5928,10 +5818,10 @@ declare module junyou {
         isResOK(direction: number, action: number): boolean;
         /**
          * 遍历Res所有资源
-         * @param { (uri: string, adKey: number): boolean } forEach 如果 forEach 方法返回 true，则停止遍历
+         * @param { (uri: string, adKey: number): any } forEach 如果 forEach 方法返回 真 ，则停止遍历
          */
         checkRes(forEach: {
-            (uri: string, adKey: number): boolean;
+            (uri: string, adKey: number): any;
         }): void;
     }
 }
@@ -6464,7 +6354,7 @@ declare module junyou {
         /**
          * 资源唯一标识
          */
-        private uri;
+        uri: string;
         /**
          *
          * 是否为静态资源
@@ -6478,14 +6368,13 @@ declare module junyou {
          * @type {string}
          */
         url: string;
-        readonly resID: string;
         constructor();
         reset(col: number, row: number, uri: string): void;
         load(): void;
         /**
          * 资源加载完成
          */
-        loadComplete(res: egret.Texture, key: string): void;
+        loadComplete(item: Res.ResItem): void;
         dispose(): void;
     }
 }
@@ -6684,6 +6573,7 @@ declare module junyou {
             skin: Path;
             [indes: string]: Path;
         };
+        preload?: Res.ResItem[];
     }
     /**
      * 配置工具
@@ -6699,7 +6589,6 @@ declare module junyou {
         }): void;
         getResVer: (uri: string) => number;
         getResUrl(uri: string): string;
-        getResUri(url: string): string;
         getParam(key: string): any;
         getSkinPath: (key: string, fileName: string) => string;
         getSkinFile(key: string, fileName: string): string;
@@ -7402,104 +7291,159 @@ declare module junyou {
     }
 }
 declare module junyou {
-    /**
-     * 场景单位域的类型
-     *
-     * @export
-     * @enum {number}
-     */
-    const enum UnitDomainType {
+    interface DataUtilsType {
         /**
-         * 所有单位
+         * 将配置from中 type		data1	data2	data3	data4...这些配置，解析存储到
+         * 配置VO为：
+         * ```typescript
+         * class Cfg {
+         * 		type:int;
+         * 		datas:any[];
+         * }
+         * ```
+         * 上面示例中
+         * typeKey 为 `type`
+         * dataKey 为 `data`
+         * checkStart 为 `1`
+         * checkEnd 为 `4`
+         * toDatasKey 为 `data`
+         * to的type  `datas数组中`
+         * @param {object} to 要写入的配置
+         * @param {object} from 配置的数据源
+         * @param {number} checkStart 数据源起始值	data **`1`**
+         * @param {number} checkEnd 数据源结束值	data **`4`**
+         * @param {string} dataKey 数据源数值的前缀	**`data`**
+         * @param {string} typeKey 数据源/配置的 类型 上例为 **`type`**
+         * @param {string} toDatasKey  配置的数值存储的数据的数组属性名，上例为 **`datas`**
+         * @memberof DataUtilsType
          */
-        All = 0,
+        parseDatas(to: object, from: object, checkStart: number, checkEnd: number, dataKey: string, typeKey: string, toDatasKey: string): void;
         /**
-         * 角色
+         * 将配置from中 type		data1	data2	data3	data4...这些配置，解析存储到
+         * 配置VO为：
+         * ```typescript
+         * class Cfg {
+         * 		type:int;
+         * 		datas:any[];
+         * }
+         * ```
+         * 上面示例中
+         * typeKey 为 `type`
+         * dataKey 为 `data`
+         * checkStart 为 `1`
+         * checkEnd 为 `4`
+         * toDatasKey 为 `data`
+         * to的type  `datas数组中`
+         * @param {*} to                要写入的配置
+         * @param {any[]} valueList     配置的数据源的值列表
+         * @param {string[]} keyList    配置数据的属性key列表
+         * @param {number} checkStart 数据源起始值	data **`1`**
+         * @param {number} checkEnd 数据源结束值	data **`4`**
+         * @param {string} dataKey 数据源数值的前缀	**`data`**
+         * @param {string} typeKey 数据源/配置的 类型 上例为 **`type`**
+         * @param {string} toDatasKey  配置的数值存储的数据的数组属性名，上例为 **`datas`**
+         * @memberof DataUtilsType
          */
-        Role = 1,
+        parseDatas2(to: any, valueList: any[], keyList: string[], checkStart: number, checkEnd: number, dataKey: string, typeKey: string, toDatasKey: string): any;
         /**
-         * 怪物
+         * 从数据集中获取key-value的数据
+         *
+         * @param {any[]} valueList 数据集合
+         * @param {string[]} keyList 属性列表
+         * @param {Object} [o]
+         * @returns {*}
+         * @memberof DataUtilsType
          */
-        Monster = 2,
+        getData(valueList: any[], keyList: string[], o?: Object): any;
+        /**
+         * 从数据集中获取key-value的数据 的数组
+         *
+         * @param {any[][]} dataList 数据集合
+         * @param {string[]} keyList 属性列表
+         * @returns {any[]}
+         * @memberof DataUtilsType
+         */
+        getDataList(dataList: any[][], keyList: string[]): any[];
+        /**
+         * 处理数据
+         *
+         * @param {any[][]} dataList 数据集合
+         * @param {string[]} keyList 属性列表
+         * @param {(t: Object, args: any[], idx?: number) => any} forEach 处理器
+         * @param {*} thisObj
+         * @param {...any[]} args 附加参数
+         * @memberof DataUtilsType
+         */
+        parseDataList(dataList: any[][], keyList: string[], forEach: (t: Object, args: any[], idx?: number) => any, thisObj: any, ...args: any[]): any;
+        /**
+         * 将`valueList` 按 `keyList`向 `to` 拷贝数据
+         *
+         * @template T
+         * @param {T} to 目标对象
+         * @param {any[]} valueList 数据集
+         * @param {(keyof T)[]} keyList 属性列表
+         * @memberof DataUtilsType
+         */
+        copyData<T>(to: T, valueList: any[], keyList: (keyof T)[]): any;
+        /**
+         * 拷贝一组数据
+         *
+         * @template T
+         * @param {Creator<T>} creator
+         * @param {any[][]} dataList
+         * @param {(keyof T)[]} keyList
+         * @param {(t: T, args: any[], idx?: number) => any} forEach
+         * @param {*} thisObj
+         * @param {...any[]} args
+         * @memberof DataUtilsType
+         */
+        copyDataList<T>(creator: Creator<T>, dataList: any[][], keyList: (keyof T)[], forEach: (t: T, args: any[], idx?: number) => any, thisObj: any, ...args: any[]): any;
+        /**
+         * 获取一组坐标
+         *
+         * @param {any[][]} data
+         * @param {Point[]} out
+         * @memberof DataUtilsType
+         */
+        getZuobiaos(data: any[][], out: Point[]): any;
+        /**
+         * 根据 [x,y] 这样的数组，获取点Point
+         *
+         * @param {number[]} data
+         * @memberof DataUtilsType
+         */
+        getZuobiao(data: number[]): Point;
+        /**
+         *
+         * 解析配置为"x1""x2"....."x100"这样的属性  横向配置
+         * @static
+         * @param {object} from 被解析的配置数据
+         * @param {object} xattr 最终会变成  xattr.x1=100  xattr.x2=123这样的数据
+         * @param {boolean} [delOriginKey=true]  是否删除原始数据中的key
+         * @param {RegExp} [xReg=/^x\d+$/] 测试用字段，必须经过 test成功，才会进行处理
+         * @returns {number} 成功解析到的key的数量
+         */
+        parseXAttr(from: object, xattr: object, delOriginKey?: boolean, xReg?: RegExp): number;
+        /**
+         *
+         * 解析配置为 pro1  provalue1   pro2  provalue2 ..... pro100 provalue100  这样的纵向配置属性的配置
+         * @static
+         * @param {Object} from 被解析的配置数据
+         * @param {Object} xattr 最终会变成  xattr.x1=100  xattr.x2=123这样的数据
+         * @param {string} errPrefix
+         * @param {string} [keyPrefix="pro"]
+         * @param {string} [valuePrefix="provalue"]
+         * @param {boolean} [delOriginKey=true] 是否删除原始数据中的key
+         * @returns {number} 成功解析到的key的数量
+         */
+        parseXAttr2(from: object, xattr: object, keyPrefix?: string, valuePrefix?: string, delOriginKey?: boolean): number;
     }
-    type UnitDomain = $UnitDomain<Unit>;
-    type $UnitDomain<T extends Unit> = {
-        [guid: string]: T;
-    };
     /**
-     * 单位管理器
-     * @author 3tion
+     *
+     * @author 君游项目解析工具
      *
      */
-    class UnitController<T extends Unit> {
-        /**
-         * 按类型存放的域
-         *
-         * @protected
-         * @type {{ [unitDomainType: number]: $UnitDomain<T> }}
-         */
-        protected _domains: {
-            [unitDomainType: number]: $UnitDomain<T>;
-        };
-        /**
-         * 用于存放单位数量的字典
-         *
-         * @protected
-         * @type {{ [unitDomainType: number]: number }}
-         */
-        protected _domainCounts: {
-            [unitDomainType: number]: number;
-        };
-        /**
-         * 所有单位存放的域
-         *
-         * @protected
-         * @type {UnitDomain}
-         */
-        protected _domainAll: $UnitDomain<T>;
-        constructor();
-        /**
-         * 注册一个单位
-         * @param unit
-         * @param domains
-         *
-         */
-        registerUnit(unit: T, ...domains: any[]): any;
-        /**
-         * 移除单位
-         * @param guid
-         * @return
-         *
-         */
-        removeUnit(guid: Key): T;
-        /**
-         *
-         * 获取指定域的单位集合
-         * @param {number} domain 指定域
-         * @returns
-         */
-        get(domain: number): $UnitDomain<T>;
-        /**
-         * 获取指定域的单位数量
-         * @param domain
-         * @return
-         *
-         */
-        getCount(domain: number): number;
-        /**
-         * 根据GUID获取JUnit
-         * @param guid
-         * @return
-         *
-         */
-        getUnit(guid: Key): T;
-        /**
-         *
-         * 清理对象
-         * @param {...Key[]} exceptGuids 需要保留的单位的GUID列表
-         */
-        clear(...exceptGuids: Key[]): void;
-    }
+    const DataUtils: DataUtilsType;
 }
 declare module junyou {
     /**
@@ -8271,120 +8215,67 @@ declare module junyou {
     }
 }
 declare module junyou {
-    interface DataUtilsType {
-        /**
-         * 将配置from中 type		data1	data2	data3	data4...这些配置，解析存储到
-         * 配置VO为：
-         * ```typescript
-         * class Cfg {
-         * 		type:int;
-         * 		datas:any[];
-         * }
-         * ```
-         * 上面示例中
-         * typeKey 为 `type`
-         * dataKey 为 `data`
-         * checkStart 为 `1`
-         * checkEnd 为 `4`
-         * toDatasKey 为 `data`
-         * to的type  `datas数组中`
-         * @param {object} to 要写入的配置
-         * @param {object} from 配置的数据源
-         * @param {number} checkStart 数据源起始值	data **`1`**
-         * @param {number} checkEnd 数据源结束值	data **`4`**
-         * @param {string} dataKey 数据源数值的前缀	**`data`**
-         * @param {string} typeKey 数据源/配置的 类型 上例为 **`type`**
-         * @param {string} toDatasKey  配置的数值存储的数据的数组属性名，上例为 **`datas`**
-         * @memberof DataUtilsType
-         */
-        parseDatas(to: object, from: object, checkStart: number, checkEnd: number, dataKey: string, typeKey: string, toDatasKey: string): void;
-        /**
-         * 将配置from中 type		data1	data2	data3	data4...这些配置，解析存储到
-         * 配置VO为：
-         * ```typescript
-         * class Cfg {
-         * 		type:int;
-         * 		datas:any[];
-         * }
-         * ```
-         * 上面示例中
-         * typeKey 为 `type`
-         * dataKey 为 `data`
-         * checkStart 为 `1`
-         * checkEnd 为 `4`
-         * toDatasKey 为 `data`
-         * to的type  `datas数组中`
-         * @param {*} to                要写入的配置
-         * @param {any[]} valueList     配置的数据源的值列表
-         * @param {string[]} keyList    配置数据的属性key列表
-         * @param {number} checkStart 数据源起始值	data **`1`**
-         * @param {number} checkEnd 数据源结束值	data **`4`**
-         * @param {string} dataKey 数据源数值的前缀	**`data`**
-         * @param {string} typeKey 数据源/配置的 类型 上例为 **`type`**
-         * @param {string} toDatasKey  配置的数值存储的数据的数组属性名，上例为 **`datas`**
-         * @memberof DataUtilsType
-         */
-        parseDatas2(to: any, valueList: any[], keyList: string[], checkStart: number, checkEnd: number, dataKey: string, typeKey: string, toDatasKey: string): any;
-        /**
-         * 从数据集中获取key-value的数据
-         *
-         * @param {any[]} valueList 数据集合
-         * @param {string[]} keyList 属性列表
-         * @param {Object} [o]
-         * @returns {*}
-         * @memberof DataUtilsType
-         */
-        getData(valueList: any[], keyList: string[], o?: Object): any;
-        /**
-         * 从数据集中获取key-value的数据 的数组
-         *
-         * @param {any[][]} dataList 数据集合
-         * @param {string[]} keyList 属性列表
-         * @returns {any[]}
-         * @memberof DataUtilsType
-         */
-        getDataList(dataList: any[][], keyList: string[]): any[];
-        /**
-         * 处理数据
-         *
-         * @param {any[][]} dataList 数据集合
-         * @param {string[]} keyList 属性列表
-         * @param {(t: Object, args: any[], idx?: number) => any} forEach 处理器
-         * @param {*} thisObj
-         * @param {...any[]} args 附加参数
-         * @memberof DataUtilsType
-         */
-        parseDataList(dataList: any[][], keyList: string[], forEach: (t: Object, args: any[], idx?: number) => any, thisObj: any, ...args: any[]): any;
-        /**
-         * 将`valueList` 按 `keyList`向 `to` 拷贝数据
-         *
-         * @template T
-         * @param {T} to 目标对象
-         * @param {any[]} valueList 数据集
-         * @param {(keyof T)[]} keyList 属性列表
-         * @memberof DataUtilsType
-         */
-        copyData<T>(to: T, valueList: any[], keyList: (keyof T)[]): any;
-        /**
-         * 拷贝一组数据
-         *
-         * @template T
-         * @param {Creator<T>} creator
-         * @param {any[][]} dataList
-         * @param {(keyof T)[]} keyList
-         * @param {(t: T, args: any[], idx?: number) => any} forEach
-         * @param {*} thisObj
-         * @param {...any[]} args
-         * @memberof DataUtilsType
-         */
-        copyDataList<T>(creator: Creator<T>, dataList: any[][], keyList: (keyof T)[], forEach: (t: T, args: any[], idx?: number) => any, thisObj: any, ...args: any[]): any;
-    }
     /**
-     *
-     * @author 君游项目解析工具
-     *
+     * 网络事件的常量集
+     * @author
+     * -100~ -199
      */
-    const DataUtils: DataUtilsType;
+    const enum EventConst {
+        /**
+         * 登录成功
+         */
+        LOGIN_COMPLETE = -199,
+        /**
+         * 登录失败
+         */
+        LOGIN_FAILED = -198,
+        /**
+         * 连接服务器成功
+         */
+        Connected = -197,
+        /**
+         * 连接服务器失败
+         */
+        ConnectFailed = -196,
+        /**
+         * 服务器断开连接
+         */
+        Disconnect = -195,
+        ShowReconnect = -194,
+        /**
+         * 纹理加载完成
+         */
+        Texture_Complete = -193,
+        /**
+         * 网络上线
+         */
+        Online = -192,
+        /**
+         * 网络断线
+         */
+        Offline = -191,
+        /**
+         * 手机从休眠状态中被唤醒
+         */
+        Awake = -190,
+        /**
+         * 频繁发送协议提示
+         */
+        NetServiceSendLimit = -189,
+        /**
+         * 解析资源版本hash的时候派发
+         */
+        ParseResHash = -188,
+        /**
+         * 资源加载失败
+         * data {ResItem}
+         */
+        ResLoadFailed = -187,
+        /**
+         * 资源加载完成
+         */
+        ResLoadSuccess = -186,
+    }
 }
 declare module junyou {
     /**
@@ -8489,46 +8380,63 @@ declare module junyou {
     }
 }
 declare module junyou {
-    interface DataUtilsType {
+    type $CallbackInfo = CallbackInfo<Function>;
+    /**
+     * 回调信息，用于存储回调数据
+     * @author 3tion
+     *
+     */
+    class CallbackInfo<T extends Function> implements IRecyclable {
+        callback: T;
+        args: any[];
+        thisObj: any;
+        doRecycle: boolean;
         /**
-         * 获取一组坐标
-         *
-         * @param {any[][]} data
-         * @param {Point[]} out
-         * @memberof DataUtilsType
+         * 待执行的时间
          */
-        getZuobiaos(data: any[][], out: Point[]): any;
+        time: number;
+        constructor();
+        init(callback: T, thisObj?: any, args?: any[]): void;
         /**
-         * 根据 [x,y] 这样的数组，获取点Point
-         *
-         * @param {number[]} data
-         * @memberof DataUtilsType
+         * 检查回调是否一致，只检查参数和this对象,不检查参数
          */
-        getZuobiao(data: number[]): Point;
+        checkHandle(callback: T, thisObj: any): boolean;
         /**
-         *
-         * 解析配置为"x1""x2"....."x100"这样的属性  横向配置
-         * @static
-         * @param {object} from 被解析的配置数据
-         * @param {object} xattr 最终会变成  xattr.x1=100  xattr.x2=123这样的数据
-         * @param {boolean} [delOriginKey=true]  是否删除原始数据中的key
-         * @param {RegExp} [xReg=/^x\d+$/] 测试用字段，必须经过 test成功，才会进行处理
-         * @returns {number} 成功解析到的key的数量
+         * 执行回调
+         * 回调函数，将以args作为参数，callback作为函数执行
+         * @param {boolean} [doRecycle] 是否回收CallbackInfo，默认为true
          */
-        parseXAttr(from: object, xattr: object, delOriginKey?: boolean, xReg?: RegExp): number;
+        execute(doRecycle?: boolean): any;
         /**
-         *
-         * 解析配置为 pro1  provalue1   pro2  provalue2 ..... pro100 provalue100  这样的纵向配置属性的配置
-         * @static
-         * @param {Object} from 被解析的配置数据
-         * @param {Object} xattr 最终会变成  xattr.x1=100  xattr.x2=123这样的数据
-         * @param {string} errPrefix
-         * @param {string} [keyPrefix="pro"]
-         * @param {string} [valuePrefix="provalue"]
-         * @param {boolean} [delOriginKey=true] 是否删除原始数据中的key
-         * @returns {number} 成功解析到的key的数量
+         * 用于执行其他参数
+         * 初始的参数会按顺序放在末位
+         * @param args (description)
          */
-        parseXAttr2(from: object, xattr: object, keyPrefix?: string, valuePrefix?: string, delOriginKey?: boolean): number;
+        call(...args: any[]): any;
+        /**
+         * 用于执行其他参数
+         * 初始的参数会按顺序放在末位
+         * 此方法会回收callbackInfo
+         * @param {any} args
+         */
+        callAndRecycle(...args: any[]): any;
+        onRecycle(): void;
+        recycle: {
+            ();
+        };
+        /**
+         * 获取CallbackInfo的实例
+         */
+        static get<T extends Function>(callback: T, thisObj?: any, ...args: any[]): CallbackInfo<T>;
+        /**
+         * 加入到数组
+         * 检查是否有this和handle相同的callback，如果有，就用新的参数替换旧参数
+         * @param list
+         * @param handle
+         * @param args
+         * @param thisObj
+         */
+        static addToList<T extends Function>(list: CallbackInfo<T>[], handle: T, thisObj?: any, ...args: any[]): CallbackInfo<T>;
     }
 }
 declare module junyou {
@@ -8598,56 +8506,50 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     * 网络事件的常量集
-     * @author
-     * -100~ -199
+     * 平台数据
+     * @author 3tion
+     *
      */
-    const enum EventConst {
+    class AuthData {
         /**
-         * 登录成功
+         * 平台标识
          */
-        LOGIN_COMPLETE = -199,
+        pid: string;
         /**
-         * 登录失败
+         * 平台账号
          */
-        LOGIN_FAILED = -198,
+        puid: string;
         /**
-         * 连接服务器成功
+         * 服务器标识
          */
-        Connected = -197,
+        sid: number;
         /**
-         * 连接服务器失败
+         * 会话标识
          */
-        ConnectFailed = -196,
+        sessionID: string;
         /**
-         * 服务器断开连接
+         * 验证信息
          */
-        Disconnect = -195,
-        ShowReconnect = -194,
+        sign: string;
         /**
-         * 纹理加载完成
+         * 认证次数
+         *
+         * @type {number}
+         * @memberOf AuthData
          */
-        Texture_Complete = -193,
+        count: number;
         /**
-         * 网络上线
+         *
+         * 如果是老账号，有角色列表
+         * @type {{ sid: number, _id: number, lastLogin: number }[]}
          */
-        Online = -192,
-        /**
-         * 网络断线
-         */
-        Offline = -191,
-        /**
-         * 手机从休眠状态中被唤醒
-         */
-        Awake = -190,
-        /**
-         * 频繁发送协议提示
-         */
-        NetServiceSendLimit = -189,
-        /**
-         * 解析资源版本hash的时候派发
-         */
-        ParseResHash = -188,
+        roles: {
+            sid: number;
+            _id: number;
+            lastLogin: number;
+        }[];
+        constructor();
+        toURLString(): string;
     }
 }
 declare module junyou {
@@ -9630,111 +9532,74 @@ declare const enum ScrollDirection {
     Horizon = 1,
 }
 declare module junyou {
-    type $CallbackInfo = CallbackInfo<Function>;
     /**
-     * 回调信息，用于存储回调数据
+     * 用户认证
      * @author 3tion
      *
      */
-    class CallbackInfo<T extends Function> implements IRecyclable {
-        callback: T;
-        args: any[];
-        thisObj: any;
+    const enum AuthState {
         /**
-         * 待执行的时间
+         * 认证成功
          */
-        time: number;
-        constructor();
-        init(callback: T, thisObj?: any, args?: any[]): void;
+        AUTH_SUCCESS = 0,
         /**
-         * 检查回调是否一致，只检查参数和this对象,不检查参数
+         * 票据验证失败，要求客户端重新登录
          */
-        checkHandle(callback: T, thisObj: any): boolean;
+        AUTH_FAILED = 1,
         /**
-         * 执行回调
-         * 回调函数，将以args作为参数，callback作为函数执行
-         * @param {boolean} [doRecycle=true] 是否回收CallbackInfo，默认为true
+         * 认证服务器忙
          */
-        execute(doRecycle?: boolean): any;
-        /**
-         * 用于执行其他参数
-         * 初始的参数会按顺序放在末位
-         * @param args (description)
-         */
-        call(...args: any[]): any;
-        /**
-         * 用于执行其他参数
-         * 初始的参数会按顺序放在末位
-         * 此方法会回收callbackInfo
-         * @param {any} args
-         */
-        callAndRecycle(...args: any[]): any;
-        onRecycle(): void;
-        recycle: {
-            ();
-        };
-        /**
-         * 获取CallbackInfo的实例
-         */
-        static get<T extends Function>(callback: T, thisObj?: any, ...args: any[]): CallbackInfo<T>;
-        /**
-         * 加入到数组
-         * 检查是否有this和handle相同的callback，如果有，就用新的参数替换旧参数
-         * @param list
-         * @param handle
-         * @param args
-         * @param thisObj
-         */
-        static addToList<T extends Function>(list: CallbackInfo<T>[], handle: T, thisObj?: any, ...args: any[]): CallbackInfo<T>;
+        AUTH_SERVER_BUSY = 2,
     }
 }
-declare module junyou {
+interface ExternalParam {
     /**
-     * 平台数据
-     * @author 3tion
+     * 用户标识
      *
+     * @type {string}
+     * @memberOf $ep
      */
-    class AuthData {
-        /**
-         * 平台标识
-         */
-        pid: string;
-        /**
-         * 平台账号
-         */
-        puid: string;
-        /**
-         * 服务器标识
-         */
-        sid: number;
-        /**
-         * 会话标识
-         */
-        sessionID: string;
-        /**
-         * 验证信息
-         */
-        sign: string;
-        /**
-         * 认证次数
-         *
-         * @type {number}
-         * @memberOf AuthData
-         */
-        count: number;
-        /**
-         *
-         * 如果是老账号，有角色列表
-         * @type {{ sid: number, _id: number, lastLogin: number }[]}
-         */
-        roles: {
-            sid: number;
-            _id: number;
-            lastLogin: number;
-        }[];
-        constructor();
-        toURLString(): string;
-    }
+    uid: string;
+    /**
+     * 服务器id
+     *
+     * @type {string}
+     * @memberOf $ep
+     */
+    sid: string;
+    /**
+     * 服务器地址，如：
+     * `xxxx.com`
+     * `xxxxx.com:123`
+     * `192.168.0.140:8888`
+     * `192.168.0.140:8888/gate`
+     * `192.168.0.140:8888/gate/pdk`
+     * `xxxxx.com:123/gate`
+     * @type {string}
+     * @memberOf $ep
+     */
+    host: string;
+    /**
+     * 平台标识
+     *
+     * @type {string}
+     * @memberOf $ep
+     */
+    pid: string;
+    /**
+     * 验证标识
+     *
+     * @type {string}
+     * @memberOf $ep
+     */
+    sign?: string;
+    /**
+     * 其他参数
+     *
+     * @type {*}
+     * @memberOf $ep
+     */
+    other?: any;
 }
 declare module junyou {
     /**
@@ -9999,23 +9864,70 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     * 用户认证
+     * 使用http进行通信的网络服务
      * @author 3tion
      *
      */
-    const enum AuthState {
+    class HttpNetService extends NetService {
+        protected _loader: XMLHttpRequest;
+        protected _state: RequestState;
         /**
-         * 认证成功
+         * 未发送的请求
          */
-        AUTH_SUCCESS = 0,
+        protected _unsendRequest: Recyclable<NetSendData>[];
         /**
-         * 票据验证失败，要求客户端重新登录
+         * 正在发送的数据
          */
-        AUTH_FAILED = 1,
+        protected _sendingList: Recyclable<NetSendData>[];
         /**
-         * 认证服务器忙
+         * 请求发送成功的次数
          */
-        AUTH_SERVER_BUSY = 2,
+        protected _success: number;
+        /**
+         * 请求连续发送失败的次数
+         */
+        protected _cerror: number;
+        /**
+         * 请求失败次数
+         */
+        protected _error: number;
+        constructor();
+        /**
+         * 重置
+         * @param actionUrl             请求地址
+         * @param autoTimeDelay         自动发送的最短延迟时间
+         */
+        setUrl(actionUrl: string, autoTimeDelay?: number): void;
+        /**
+        * @protected
+        */
+        protected onReadyStateChange(): void;
+        /**
+         * 发生错误
+         */
+        protected errorHandler(): void;
+        protected complete(): void;
+        /**
+         * 检查在发送过程中的请求
+         */
+        protected checkUnsend(): void;
+        protected _send(cmd: number, data: any, msgType: string): void;
+        /**
+         * 发送消息之前，用于预处理一些http头信息等
+         *
+         * @protected
+         */
+        protected onBeforeSend(): void;
+        /**
+         * 接收到服务端Response，用于预处理一些信息
+         *
+         * @protected
+         */
+        protected onBeforeSolveData(): void;
+        /**
+         * 尝试发送
+         */
+        protected trySend(): void;
     }
 }
 declare module junyou {
@@ -10031,54 +9943,39 @@ declare module junyou {
         size: egret.Rectangle;
     }): void;
 }
-interface ExternalParam {
+declare module junyou {
     /**
-     * 用户标识
+     * 用于发送的网络数据<br/>
+     * @author 3tion
+     */
+    class NetSendData implements IRecyclable {
+        /**
+         * 协议号
+         */
+        cmd: number;
+        /**
+         * 数据
+         */
+        data: any;
+        /**
+         *
+         * protobuf message的类型
+         * @type {string | number}
+         */
+        msgType: string | number;
+        onRecycle(): void;
+    }
+    /**
+     * 网络数据，类似AS3项目中Stream<br/>
+     * @author 3tion
      *
-     * @type {string}
-     * @memberOf $ep
      */
-    uid: string;
-    /**
-     * 服务器id
-     *
-     * @type {string}
-     * @memberOf $ep
-     */
-    sid: string;
-    /**
-     * 服务器地址，如：
-     * `xxxx.com`
-     * `xxxxx.com:123`
-     * `192.168.0.140:8888`
-     * `192.168.0.140:8888/gate`
-     * `192.168.0.140:8888/gate/pdk`
-     * `xxxxx.com:123/gate`
-     * @type {string}
-     * @memberOf $ep
-     */
-    host: string;
-    /**
-     * 平台标识
-     *
-     * @type {string}
-     * @memberOf $ep
-     */
-    pid: string;
-    /**
-     * 验证标识
-     *
-     * @type {string}
-     * @memberOf $ep
-     */
-    sign?: string;
-    /**
-     * 其他参数
-     *
-     * @type {*}
-     * @memberOf $ep
-     */
-    other?: any;
+    class NetData extends NetSendData {
+        /**
+         *  是否停止传播
+         */
+        stopPropagation: Boolean;
+    }
 }
 declare module junyou {
     /**
@@ -10214,31 +10111,21 @@ declare module junyou {
         bmd: egret.BitmapData;
         textures: egret.Texture[];
         bmdState: RequestState;
-        /**
-         * 最大纹理加载失败次数
-         *
-         * @protected
-         * @memberof SuiBmd
-         */
-        protected _maxErrCount: number;
-        protected _url: string;
         readonly url: string;
         /**
          * 使用计数
          */
         using: number;
         readonly isStatic: boolean;
-        private _uri;
-        readonly resID: string;
+        readonly uri: string;
         lastUseTime: number;
         /**
          * 未加载的时候，请求的位图
          */
         loading: SuiBmdCallback[];
-        protected _errCount: number;
         constructor(uri: string, url: string);
         loadBmd(): void;
-        protected checkBitmap(tex: egret.Texture, key: string): void;
+        protected checkBitmap(item: Res.ResItem): void;
         checkExpire(expiredUseTime: number): void;
         dispose(): void;
     }
@@ -10283,6 +10170,7 @@ declare module junyou {
          * 加载地址
          */
         url: string;
+        uri: string;
         /**
          * 位图数据
          */
@@ -10411,6 +10299,10 @@ declare module junyou {
          */
         loadData(key: string, callback: SuiDataCallback): void;
         /**
+         * 数据加载完成
+         */
+        protected checkData(item: Res.ResItem): void;
+        /**
          *
          * 直接将已经加载好的内置数据，和key进行绑定
          * @param {string} key
@@ -10425,10 +10317,6 @@ declare module junyou {
          * @param {SuiData} suiData
          */
         private _initSuiData(data, suiData);
-        /**
-         * 数据加载完成
-         */
-        protected checkData(data: any, key: string): void;
         /**
          * 处理控件数据
          */
@@ -10705,105 +10593,159 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     * 使用http进行通信的网络服务
+     *
      * @author 3tion
      *
      */
-    class HttpNetService extends NetService {
-        protected _loader: XMLHttpRequest;
-        protected _state: RequestState;
+    class NetRouter {
         /**
-         * 未发送的请求
+         * key      协议号<br/>
+         * value    NetBin的数组
          */
-        protected _unsendRequest: Recyclable<NetSendData>[];
-        /**
-         * 正在发送的数据
-         */
-        protected _sendingList: Recyclable<NetSendData>[];
-        /**
-         * 请求发送成功的次数
-         */
-        protected _success: number;
-        /**
-         * 请求连续发送失败的次数
-         */
-        protected _cerror: number;
-        /**
-         * 请求失败次数
-         */
-        protected _error: number;
+        private _listenerMaps;
         constructor();
         /**
-         * 重置
-         * @param actionUrl             请求地址
-         * @param autoTimeDelay         自动发送的最短延迟时间
+         * 注册一cmd侦听;
+         * @param cmd      协议号
+         * @param handler   处理器
+         * @param priority  越大越优先
+         * @param once      是否只执行一次
+         * @return boolean true 做为新的兼听添加进去，false 原来就有处理器
+         *
          */
-        setUrl(actionUrl: string, autoTimeDelay?: number): void;
+        register(cmd: number, handler: INetHandler, priority?: number, once?: boolean): boolean;
         /**
-        * @protected
+         * 删除兼听处理器
+         * @param cmd      协议号
+         * @param handler   处理器
+         * @return boolean true 删除成功  <br/>
+         *                 false 没有这个兼听
+         */
+        remove(cmd: number, handler: INetHandler): boolean;
+        private dispatchList;
+        /**
+        * 调用列表
         */
-        protected onReadyStateChange(): void;
-        /**
-         * 发生错误
-         */
-        protected errorHandler(): void;
-        protected complete(): void;
-        /**
-         * 检查在发送过程中的请求
-         */
-        protected checkUnsend(): void;
-        protected _send(cmd: number, data: any, msgType: string): void;
-        /**
-         * 发送消息之前，用于预处理一些http头信息等
-         *
-         * @protected
-         */
-        protected onBeforeSend(): void;
-        /**
-         * 接收到服务端Response，用于预处理一些信息
-         *
-         * @protected
-         */
-        protected onBeforeSolveData(): void;
-        /**
-         * 尝试发送
-         */
-        protected trySend(): void;
+        dispatch(data: Recyclable<NetData>): void;
+        private _dispatch(data);
+    }
+    /**
+     * 协议处理函数
+     */
+    interface INetHandler {
+        (data: NetData): void;
     }
 }
 declare module junyou {
     /**
-     * 用于发送的网络数据<br/>
-     * @author 3tion
+     * 创建器
      */
-    class NetSendData implements IRecyclable {
+    type Creator<T> = {
+        new(): T;
+    } | {
+            (): T;
+        };
+    /**
+     *
+     * 调整ClassFactory
+     * @export
+     * @class ClassFactory
+     * @template T
+     */
+    class ClassFactory<T> {
+        private _creator;
+        private _props;
         /**
-         * 协议号
+         * @param {Creator<T>} creator
+         * @param {Partial<T>} [props] 属性模板
+         * @memberof ClassFactory
          */
-        cmd: number;
+        constructor(creator: Creator<T>, props?: Partial<T>);
         /**
-         * 数据
-         */
-        data: any;
-        /**
+         * 获取实例
          *
-         * protobuf message的类型
-         * @type {string | number}
+         * @returns
          */
-        msgType: string | number;
-        onRecycle(): void;
+        get(): any;
     }
     /**
-     * 网络数据，类似AS3项目中Stream<br/>
+     * 可回收的对象
+     *
+     * @export
+     * @interface IRecyclable
+     */
+    interface IRecyclable {
+        /**
+         * 回收时触发
+         */
+        onRecycle?: {
+            ();
+        };
+        /**
+         * 启用时触发
+         */
+        onSpawn?: {
+            ();
+        };
+        /**
+         * 回收对象的唯一自增标识
+         * 从回收池取出后，会变化
+         * 此属性只有在`DEBUG`时有效
+         */
+        _insid?: number;
+    }
+    /**
+     * 回收池
      * @author 3tion
      *
      */
-    class NetData extends NetSendData {
+    class RecyclablePool<T> {
+        private _pool;
+        private _max;
+        private _creator;
+        get(): T;
         /**
-         *  是否停止传播
+         * 回收
          */
-        stopPropagation: Boolean;
+        recycle(t: T): void;
+        constructor(TCreator: Creator<T>, max?: number);
     }
+    type Recyclable<T> = T & {
+        recycle(): void;
+    };
+    /**
+     * 获取一个recyclable的对象
+     *
+     * @export
+     * @template T
+     * @param {({ new(): T & { _pool?: RecyclablePool<T> } })} clazz
+     */
+    function recyclable<T>(clazz: {
+        new(): T & {
+            _pool?: RecyclablePool<T>;
+        };
+    }): Recyclable<T>;
+    /**
+     * 使用创建函数进行创建
+     *
+     * @export
+     * @template T
+     * @param {({ (): T & { _pool?: RecyclablePool<T> } })} clazz
+     * @param {true} addInstanceRecycle
+     */
+    function recyclable<T>(clazz: {
+        (): T & {
+            _pool?: RecyclablePool<T>;
+        };
+    }, addInstanceRecycle?: boolean): Recyclable<T>;
+    /**
+     * 单例工具
+     * @param clazz 要做单例的类型
+     */
+    function singleton<T>(clazz: {
+        new(): T;
+        _instance?: T;
+    }): T;
 }
 declare module junyou {
     /**
@@ -11547,49 +11489,16 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     *
-     * @author 3tion
-     *
-     */
-    class NetRouter {
-        /**
-         * key      协议号<br/>
-         * value    NetBin的数组
-         */
-        private _listenerMaps;
-        constructor();
-        /**
-         * 注册一cmd侦听;
-         * @param cmd      协议号
-         * @param handler   处理器
-         * @param priority  越大越优先
-         * @param once      是否只执行一次
-         * @return boolean true 做为新的兼听添加进去，false 原来就有处理器
-         *
-         */
-        register(cmd: number, handler: INetHandler, priority?: number, once?: boolean): boolean;
-        /**
-         * 删除兼听处理器
-         * @param cmd      协议号
-         * @param handler   处理器
-         * @return boolean true 删除成功  <br/>
-         *                 false 没有这个兼听
-         */
-        remove(cmd: number, handler: INetHandler): boolean;
-        private dispatchList;
-        /**
-        * 调用列表
-        */
-        dispatch(data: Recyclable<NetData>): void;
-        private _dispatch(data);
-    }
-    /**
-     * 协议处理函数
-     */
-    interface INetHandler {
-        (data: NetData): void;
-    }
+    *
+    * 发起可以不需要回调响应的跨域get请求
+    * @param {string} url          发起请求的地址
+    * @param {boolean} [always]    是否总是发起请求
+    *                              false（默认） 请求已经在列队中，则不会重复发起请求
+    *                              true 不管相同地址的请求之前是否已经发起，继续发起请求
+    */
+    const sendToUrl: (url: string, always?: boolean) => void;
 }
+declare function $(): (url: string, always?: boolean) => void;
 declare var $useDPR: boolean;
 declare var dpr: number;
 declare module junyou {
@@ -11734,114 +11643,43 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     * 创建器
-     */
-    type Creator<T> = {
-        new(): T;
-    } | {
-            (): T;
-        };
-    /**
-     *
-     * 调整ClassFactory
-     * @export
-     * @class ClassFactory
-     * @template T
-     */
-    class ClassFactory<T> {
-        private _creator;
-        private _props;
-        /**
-         * @param {Creator<T>} creator
-         * @param {Partial<T>} [props] 属性模板
-         * @memberof ClassFactory
-         */
-        constructor(creator: Creator<T>, props?: Partial<T>);
-        /**
-         * 获取实例
-         *
-         * @returns
-         */
-        get(): any;
-    }
-    /**
-     * 可回收的对象
-     *
-     * @export
-     * @interface IRecyclable
-     */
-    interface IRecyclable {
-        /**
-         * 回收时触发
-         */
-        onRecycle?: {
-            ();
-        };
-        /**
-         * 启用时触发
-         */
-        onSpawn?: {
-            ();
-        };
-        /**
-         * 回收对象的唯一自增标识
-         * 从回收池取出后，会变化
-         * 此属性只有在`DEBUG`时有效
-         */
-        _insid?: number;
-    }
-    /**
-     * 回收池
+     * WebSocket版本的NetService
      * @author 3tion
-     *
      */
-    class RecyclablePool<T> {
-        private _pool;
-        private _max;
-        private _creator;
-        get(): T;
+    class WSNetService extends NetService {
+        protected _ws: WebSocket;
+        constructor();
         /**
-         * 回收
+         *
+         * 设置websocket地址
+         * @param {string} actionUrl
          */
-        recycle(t: T): void;
-        constructor(TCreator: Creator<T>, max?: number);
+        setUrl(actionUrl: string): void;
+        /**
+         * 打开新的连接
+         */
+        connect(): void;
+        protected onOpen: () => void;
+        /**
+         *
+         * 发生错误
+         * @protected
+         */
+        protected onError: (ev: ErrorEvent) => void;
+        /**
+         *
+         * 断开连接
+         * @protected
+         */
+        protected onClose: (ev: CloseEvent) => void;
+        /**
+         *
+         * 收到消息
+         * @protected
+         */
+        protected onData: (ev: MessageEvent) => void;
+        protected _send(cmd: number, data: any, msgType: string): void;
     }
-    type Recyclable<T> = T & {
-        recycle(): void;
-    };
-    /**
-     * 获取一个recyclable的对象
-     *
-     * @export
-     * @template T
-     * @param {({ new(): T & { _pool?: RecyclablePool<T> } })} clazz
-     */
-    function recyclable<T>(clazz: {
-        new(): T & {
-            _pool?: RecyclablePool<T>;
-        };
-    }): Recyclable<T>;
-    /**
-     * 使用创建函数进行创建
-     *
-     * @export
-     * @template T
-     * @param {({ (): T & { _pool?: RecyclablePool<T> } })} clazz
-     * @param {true} addInstanceRecycle
-     */
-    function recyclable<T>(clazz: {
-        (): T & {
-            _pool?: RecyclablePool<T>;
-        };
-    }, addInstanceRecycle?: boolean): Recyclable<T>;
-    /**
-     * 单例工具
-     * @param clazz 要做单例的类型
-     */
-    function singleton<T>(clazz: {
-        new(): T;
-        _instance?: T;
-    }): T;
 }
 declare module junyou {
     /**
@@ -12126,16 +11964,31 @@ declare module junyou {
 }
 declare module junyou {
     /**
-    *
-    * 发起可以不需要回调响应的跨域get请求
-    * @param {string} url          发起请求的地址
-    * @param {boolean} [always]    是否总是发起请求
-    *                              false（默认） 请求已经在列队中，则不会重复发起请求
-    *                              true 不管相同地址的请求之前是否已经发起，继续发起请求
-    */
-    const sendToUrl: (url: string, always?: boolean) => void;
+      * 基于时间回收的资源
+      */
+    interface IResource {
+        /**
+         * 是否为静态不销毁资源
+         */
+        isStatic?: boolean;
+        /**
+         * 最后使用的时间戳
+         */
+        lastUseTime: number;
+        /**
+         * 资源id
+         */
+        uri: string;
+        /**
+         * 资源路径
+         */
+        url: string;
+        /**
+         * 销毁资源
+         */
+        dispose(): any;
+    }
 }
-declare function $(): (url: string, always?: boolean) => void;
 declare module junyou {
     /**
      * 绑定按钮和文本框，让文本框的点击，可以触发按钮的选中事件
@@ -12639,45 +12492,230 @@ declare module junyou {
         onRecycle(): void;
     }
 }
-declare module junyou {
+declare module junyou.Res {
     /**
-     * WebSocket版本的NetService
-     * @author 3tion
+     * 资源类型
      */
-    class WSNetService extends NetService {
-        protected _ws: WebSocket;
-        constructor();
-        /**
-         *
-         * 设置websocket地址
-         * @param {string} actionUrl
-         */
-        setUrl(actionUrl: string): void;
-        /**
-         * 打开新的连接
-         */
-        connect(): void;
-        protected onOpen: () => void;
-        /**
-         *
-         * 发生错误
-         * @protected
-         */
-        protected onError: (ev: ErrorEvent) => void;
-        /**
-         *
-         * 断开连接
-         * @protected
-         */
-        protected onClose: (ev: CloseEvent) => void;
-        /**
-         *
-         * 收到消息
-         * @protected
-         */
-        protected onData: (ev: MessageEvent) => void;
-        protected _send(cmd: number, data: any, msgType: string): void;
+    const enum ResItemType {
+        Binary = 0,
+        Text = 1,
+        Image = 2,
+        Json = 3,
     }
+    /**
+     * 资源加载的回调
+     */
+    type ResCallback = CallbackInfo<{
+        (resItem: ResItem, ...args);
+    }>;
+    interface ResBase {
+        /**
+         * 资源标识
+         */
+        uri: string;
+        /**
+         * 资源路径
+         */
+        url: string;
+        /**
+         * 数据
+         */
+        data?: any;
+        version?: number;
+    }
+    interface ResItem extends ResBase {
+        /**
+         * 资源类型
+         */
+        type?: ResItemType;
+        /**
+         * 是否已存储本地缓存
+         */
+        local?: boolean;
+        /**
+         * 不使用本地缓存
+         */
+        noLocal?: boolean;
+        /**
+         * 资源正在加载时所在的组
+         * 加载完成后清理此值
+         */
+        qid?: ResQueueID;
+        /**
+         * 失败重试次数
+         */
+        retry?: number;
+        /**
+         * 资源加载状态
+         * 默认为 UnRequest
+         */
+        state?: RequestState;
+        /**
+         * 是否被移除
+         */
+        removed?: boolean;
+        /**
+         * 分组标识
+         * 用于对资源进行区分
+         */
+        group?: Key;
+        /**
+         * 资源回调列队
+         */
+        callbacks?: ResCallback[];
+    }
+    const enum QueueLoadType {
+        /**
+         * 先入后出
+         */
+        FILO = 0,
+        /**
+         * 先入先出
+         */
+        FIFO = 1,
+    }
+    /**
+     * 资源分组
+     */
+    interface ResQueue {
+        /**
+         * 分组名称
+         */
+        id: Key;
+        /**
+         * 分组优先级
+         */
+        priority?: number;
+        /**
+         * 分组中的列表
+         */
+        list: ResItem[];
+        /**
+         * 加载类型
+         */
+        type: QueueLoadType;
+    }
+    /**
+     * 内置的资源分组
+     */
+    const enum ResQueueID {
+        /**
+         * 常规资源，使用 FIFO
+         * 适合当前地图块，普通怪物资源，特效资源等
+         */
+        Normal = 0,
+        /**
+         * 后台加载资源，使用 FILO
+         * 用于后台加载，最低优先级
+         */
+        Backgroud = 1,
+        /**
+         * 高优先级资源
+         * FIFO
+         */
+        Highway = 2,
+    }
+    /**
+     * 资源加载完成的回调
+     */
+    type ResLoadCallback = CallbackInfo<{
+        (item: ResItem, ...args: any[]);
+    }>;
+    interface ResLoader {
+        /**
+         * 加载完成的回调
+         */
+        loadFile(resItem: ResItem, callback: ResLoadCallback): any;
+    }
+    interface ResRequest {
+        item?: ResItem;
+        resCB?: ResLoadCallback;
+    }
+    type ResHttpRequest = Recyclable<egret.HttpRequest & ResRequest>;
+    class BinLoader implements ResLoader {
+        type: XMLHttpRequestResponseType;
+        constructor(type?: XMLHttpRequestResponseType);
+        loadFile(resItem: ResItem, callback: ResLoadCallback): void;
+        onLoadFinish(event: egret.Event): void;
+    }
+    type ResImgRequest = Recyclable<egret.ImageLoader & ResRequest>;
+    class ImageLoader implements ResLoader {
+        loadFile(resItem: ResItem, callback: ResLoadCallback): void;
+        onLoadFinish(event: egret.Event): void;
+    }
+    /**
+     * 设置最大失败重试次数，默认为3
+     * @param val
+     */
+    function setMaxRetry(val: number): void;
+    /**
+     * 设置最大加载线程  默认为 6
+     * @param val
+     */
+    function setMaxThread(val: number): void;
+    /**
+    * 获取资源的扩展名
+    * @param url
+    */
+    function getExt(url: string): string;
+    /**
+     * 内联绑定
+     * @param ext 扩展名
+     * @param type 类型
+     */
+    function bindExtType(ext: string, type: ResItemType): void;
+    /**
+     * 注册资源分析器
+     * @param type 分析器类型
+     * @param analyzer 分析器
+     */
+    function regAnalyzer(type: ResItemType, analyzer: ResLoader): void;
+    /**
+     * 添加资源
+     * @param {ResItem} resItem
+     * @param {ResQueueID} [queueID=ResQueueID.Normal]
+     * @returns {boolean} true 表示此资源成功添加到列队
+     */
+    function addRes(resItem: ResItem, queueID?: ResQueueID): boolean;
+    /**
+     * 加载资源
+     * @param {string} uri 资源标识
+     * @param {ResCallback} callback 加载完成的回调
+     * @param {string} [url] 资源路径
+     * @param {ResQueueID} [queueID=ResQueueID.Normal]
+     */
+    function load(uri: string, url?: string, callback?: ResCallback, queueID?: ResQueueID): void;
+    interface LoadResListOption {
+        callback: CallbackInfo<{
+            (flag: boolean);
+        }>;
+        group: Key;
+        onProgress?: $CallbackInfo;
+    }
+    function loadList(list: ResItem[], opt: LoadResListOption, queueID?: ResQueueID): void;
+    /**
+     * 同步获取某个资源，如果资源未加载完成，则返回空
+     * @param uri 资源标识
+     */
+    function get(uri: string): any;
+    /**
+     * 移除某个资源
+     * @param uri
+     */
+    function remove(uri: string): void;
+    /**
+     *  尝试启用本地资源缓存
+     * @author 3tion(https://github.com/eos3tion/)
+     * @export
+     * @param {number} [version=1]
+     * @returns
+     */
+    function tryLocal(version?: number): {
+        save(data: ResItem, callback?: (ev: Event | Error) => any): void;
+        get(url: string, callback: (data: ResItem, url?: string) => any): void;
+        delete(url: string, callback?: (url: string, ev: Event | Error) => any): void;
+        clear(callback?: (ev: Event | Error) => any): void;
+    };
 }
 declare module junyou {
     interface MotionGuidePluginTween extends Tween {
