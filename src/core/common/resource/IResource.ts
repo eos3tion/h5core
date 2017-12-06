@@ -14,7 +14,7 @@ module junyou {
         /**
          * 资源id
          */
-        resID: string;
+        uri: string;
 
         /**
          * 资源路径

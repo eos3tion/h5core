@@ -16,6 +16,10 @@ module junyou {
     export const enum SuiResConst {
         DataFile = "s.json"
     }
+
+    function getSuiDataUri(key: string) {
+        return "$SuiData$_" + key;
+    }
 	/**
 	 * 用于管理位图和数据
 	 * @author 3tion
@@ -100,11 +104,35 @@ module junyou {
                     //先加载配置
                     var url = ConfigUtils.getSkinFile(key, SuiResConst.DataFile);
                     suiData.url = url;
-                    this._urlKey[url] = suiData;
-                    RES.getResByUrl(url, this.checkData, this);
+                    let uri = getSuiDataUri(key);
+                    this._urlKey[uri] = suiData;
+                    suiData.uri = uri;
+                    Res.load(uri, url, CallbackInfo.get(this.checkData, this));
+                    // RES.getResByUrl(url, this.checkData, this);
                 }
                 callbacks.pushOnce(callback);
             }
+        }
+
+		/**
+		 * 数据加载完成
+		 */
+        protected checkData(item: Res.ResItem) {
+            let { uri, data } = item;
+            var suiData = this._urlKey[uri];
+            if (!data) {//加载失败
+                suiData.state = RequestState.FAILED;
+                let callbacks = suiData.callbacks;
+                if (callbacks) {
+                    for (let i = 0; i < callbacks.length; i++) {
+                        let callback = callbacks[i];
+                        callback.suiDataFailed(suiData);
+                    }
+                    delete suiData.callbacks;
+                }
+                return;
+            }
+            this._initSuiData(data, suiData);
         }
 
         /**
@@ -114,12 +142,13 @@ module junyou {
          * @param {*} data
          */
         public setInlineData(key: string, data: any) {
-            var url = ConfigUtils.getSkinFile(key, SuiResConst.DataFile);
-            var suiData = this._urlKey[url];
+            let uri = getSuiDataUri(key);
+            let suiData = this._urlKey[uri];
             if (!suiData) {
                 suiData = new SuiData();
                 suiData.key = key;
-                suiData.url = url;
+                suiData.uri = uri;
+                suiData.url = ConfigUtils.getSkinFile(key, SuiResConst.DataFile);
                 this._suiDatas[key] = suiData;
             }
             this._initSuiData(data, suiData);
@@ -201,26 +230,6 @@ module junyou {
             }
         }
 
-
-		/**
-		 * 数据加载完成
-		 */
-        protected checkData(data: any, key: string) {
-            var suiData = this._urlKey[key];
-            if (!data) {//加载失败
-                suiData.state = RequestState.FAILED;
-                let callbacks = suiData.callbacks;
-                if (callbacks) {
-                    for (let i = 0; i < callbacks.length; i++) {
-                        let callback = callbacks[i];
-                        callback.suiDataFailed(suiData);
-                    }
-                    delete suiData.callbacks;
-                }
-                return;
-            }
-            this._initSuiData(data, suiData);
-        }
 
         /**
          * 处理控件数据

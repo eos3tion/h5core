@@ -12,7 +12,9 @@ module junyou {
 
         protected _refList: AniRender[];
 
-        protected url: string;
+        url: string;
+
+        uri: string;
 
         public constructor() {
             super();
@@ -31,9 +33,9 @@ module junyou {
                 }
                 this._refList.push(render);
                 if (state == RequestState.UNREQUEST) {
-                    let uri = ResPrefix.Ani + this.key + "/" + UnitResourceConst.CfgFile;
-                    this.url = ConfigUtils.getResUrl(uri);
-                    RES.getResByUrl(this.url, this.dataLoadComplete, this, EgretResType.TYPE_JSON);
+                    let uri = this.uri = ResPrefix.Ani + this.key + "/" + UnitResourceConst.CfgFile;
+                    let url = this.url = ConfigUtils.getResUrl(uri);
+                    Res.load(uri, url, CallbackInfo.get(this.dataLoadComplete, this));
                     this.state = RequestState.REQUESTING;
                 }
             }
@@ -42,8 +44,9 @@ module junyou {
 		/**
          * 资源加载完成
          */
-        dataLoadComplete(data: any[], key: string) {
-            if (key == this.url) {
+        dataLoadComplete(item: Res.ResItem) {
+            let { uri, data } = item;
+            if (uri == this.uri) {
                 if (data) {
                     this.init(this.key, data);
                     if (this._refList) {

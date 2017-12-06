@@ -28,7 +28,7 @@ module junyou {
          * 纹理的配置文件的加载地址
          */
         readonly url: string;
-
+        readonly uri: string;
         /**
          * 资源打包分隔信息
          */
@@ -41,9 +41,10 @@ module junyou {
          */
         private _datas: { [index: number]: JTexture[][] };
 
-        constructor(uri: string, splitInfo: SplitInfo) {
-            this.key = uri;
-            this.url = ConfigUtils.getResUrl(uri + "/" + UnitResourceConst.CfgFile);
+        constructor(key: string, splitInfo: SplitInfo) {
+            this.key = key;
+            let uri = this.uri = key + "/" + UnitResourceConst.CfgFile;
+            this.url = ConfigUtils.getResUrl(uri);
             this.sInfo = splitInfo;
         }
 
@@ -94,15 +95,17 @@ module junyou {
         public loadData() {
             if (this.state == RequestState.UNREQUEST) {
                 this.state = RequestState.REQUESTING;
-                RES.getResByUrl(this.url, this.dataLoadComplete, this, EgretResType.TYPE_JSON);
+                // RES.getResByUrl(this.url, this.dataLoadComplete, this, EgretResType.TYPE_JSON);
+                Res.load(this.uri, this.url, CallbackInfo.get(this.dataLoadComplete, this));
             }
         }
 
         /**
          * 资源加载完成
          */
-        dataLoadComplete(data: Object, key: string) {
-            if (key == this.url) {
+        dataLoadComplete(item: Res.ResItem) {
+            let { uri, data } = item;
+            if (uri == this.uri) {
                 this.decodeData(data);
             }
         }
@@ -162,7 +165,7 @@ module junyou {
         loadRes(direction: number, action: number) {
             let r = this.sInfo.getResKey(direction, action);
             let uri = this.getUri2(r);
-            return ResourceManager.get(uri, this.noRes, this, uri, r) as SplitUnitResource;
+            return ResManager.get(uri, this.noRes, this, uri, r) as SplitUnitResource;
         }
 
         noRes(uri: string, r: string) {
@@ -183,7 +186,7 @@ module junyou {
         }
         isResOK(direction: number, action: number) {
             let uri = this.getUri(direction, action);
-            let res = ResourceManager.getResource(uri) as SplitUnitResource;
+            let res = ResManager.getResource(uri) as SplitUnitResource;
             return !!(res && res.bmd);
         }
 

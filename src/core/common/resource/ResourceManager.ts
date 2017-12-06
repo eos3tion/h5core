@@ -28,12 +28,8 @@ module junyou {
         }
         return res;
     }
-    export const ResourceManager = {
+    export const ResManager = {
         get,
-        // addChecker(checker: ResourceChecker) {
-        //     _checkers.pushOnce(checker);
-        // },
-
         /**
          * 获取纹理资源
          * 
@@ -51,9 +47,7 @@ module junyou {
                 }
             }
             if (!res) {
-                res = new TextureResource();
-                res.resID = resID;
-                res.url = ConfigUtils.getResUrl(resID + (!noWebp ? Global.webp : ""));
+                res = new TextureResource(resID, noWebp);
                 resources[resID] = res;
             }
             return res;
@@ -91,7 +85,7 @@ module junyou {
                     let res = <IResource>reses[key];
                     if (res) {
                         res.dispose();
-                        RES.destroyRes(res.url);
+                        Res.remove(res.uri);
                         delete reses[key];
                     }
                 }

@@ -14,20 +14,7 @@ module junyou {
 
         public bmdState: RequestState = RequestState.UNREQUEST;
 
-        /**
-         * 最大纹理加载失败次数
-         * 
-         * @protected
-         * @memberof SuiBmd
-         */
-        protected _maxErrCount = 3;
-
-        protected _url: string;
-
-        public get url() {
-            return this._url;
-        }
-
+        readonly url: string;
         /**
          * 使用计数
          */
@@ -37,11 +24,7 @@ module junyou {
             return this.using > 0;
         }
 
-        private _uri: string;
-
-        public get resID() {
-            return this._uri;
-        }
+        readonly uri: string;
 
         public lastUseTime: number = 0;
 
@@ -50,52 +33,47 @@ module junyou {
          */
         public loading: SuiBmdCallback[] = [];
 
-        protected _errCount: number;
-
         public constructor(uri: string, url: string) {
-            this._uri = uri;
-            this._url = url;
+            this.uri = uri;
+            this.url = url;
         }
 
         public loadBmd() {
             if (this.bmdState <= RequestState.UNREQUEST) {
-                RES.getResByUrl(this._url, this.checkBitmap, this, EgretResType.TYPE_IMAGE);
+                Res.load(this.uri, this.url, CallbackInfo.get(this.checkBitmap, this))
                 this.bmdState = RequestState.REQUESTING;
             }
         }
 
-        protected checkBitmap(tex: egret.Texture, key: string) {
-            if (!tex) {
-                //加载失败尝试3次重新加载资源
-                this.bmdState = RequestState.FAILED;
-                let _errCount = ~~this._errCount;
-                _errCount++;
-                this._errCount = _errCount;
-                if (_errCount <this._maxErrCount) {
-                    this.loadBmd();
-                } else {
-                    ThrowError(`尝试${_errCount}次加载资源[${this._url}]失败`);
-                    dispatch(EventConst.SuiBmdLoadFailed,this._uri);
+        protected checkBitmap(item: Res.ResItem) {
+            let { uri, data } = item;
+            if (this.uri == uri) {
+                if (!data) {
+                    dispatch(EventConst.SuiBmdLoadFailed, this.uri);
+                    if (DEBUG) {
+                        data = ErrorTexture;
+                    } else {
+                        return;
+                    }
                 }
-                return
-            }
-            let bmd = tex.bitmapData;
-            let imgs = this.textures;
-            this.bmd = bmd;
+                let bmd = data.bitmapData;
+                let imgs = this.textures;
+                this.bmd = bmd;
 
-            for (let tex of imgs) {
-                tex._bitmapData = bmd;
-            }
-
-            let loading = this.loading;
-            if (loading) {
-                //将绑定的位图，全部重新设置一次
-                for (let bmp of loading) {
-                    bmp.refreshBMD();
+                for (let tex of imgs) {
+                    tex._bitmapData = bmd;
                 }
-                loading.length = 0;
+
+                let loading = this.loading;
+                if (loading) {
+                    //将绑定的位图，全部重新设置一次
+                    for (let bmp of loading) {
+                        bmp.refreshBMD();
+                    }
+                    loading.length = 0;
+                }
+                this.bmdState = RequestState.COMPLETE;
             }
-            this.bmdState = RequestState.COMPLETE;
         }
 
         public checkExpire(expiredUseTime: number) {
@@ -110,7 +88,7 @@ module junyou {
             if (bmd) {
                 bmd.$dispose();
                 this.bmd = undefined;
-                RES.destroyRes(this._url);
+                Res.remove(this.uri);
             }
         }
 
