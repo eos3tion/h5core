@@ -39,7 +39,7 @@ module junyou {
         }
 
         let i = 0;
-        let get = ResourceManager.get;
+        let get = ResManager.get;
         for (let r = sr; r <= er; r++) {
             for (let c = sc; c <= ec; c++) {
                 let uri = map.getMapUri(c, r);
@@ -112,7 +112,7 @@ module junyou {
 
         protected addMap(uri: string, c: number, r: number, pW: number, pH: number) {
             const map = this.currentMap;
-            let tm = ResourceManager.get(uri, this.noRes, this, uri, c, r, pW, pH);
+            let tm = ResManager.get(uri, this.noRes, this, uri, c, r, pW, pH);
             // 舞台上的标记为静态
             tm.isStatic = true;
             let idx = this._idx;
@@ -224,7 +224,7 @@ module junyou {
         /**
          * 资源唯一标识
          */
-        private uri: string;
+        uri: string;
 
         /**
          * 
@@ -240,12 +240,7 @@ module junyou {
          * 资源路径
          * @type {string}
          */
-        public url: string;
-
-        get resID() {
-            return this.uri;
-        }
-
+        url: string;
 
         constructor() {
             super();
@@ -259,15 +254,16 @@ module junyou {
         }
 
         load() {
-            RES.getResByUrl(this.url, this.loadComplete, this, RES.ResourceItem.TYPE_IMAGE);
+            Res.load(this.uri, this.url, CallbackInfo.get(this.loadComplete, this));
         }
 
         /**
          * 资源加载完成
          */
-        loadComplete(res: egret.Texture, key: string) {
-            if (key == this.url) {
-                this.texture = res;
+        loadComplete(item: Res.ResItem) {
+            let { data, uri } = item;
+            if (uri == this.uri) {
+                this.texture = data;
             }
         }
 
