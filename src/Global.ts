@@ -68,7 +68,11 @@ module junyou {
 	}
 
 	function nextTick(callback: Function, thisObj?: any, ...args) {
-		_nextTicks.push(CallbackInfo.get(callback, thisObj, ...args));
+		nextTick2(CallbackInfo.get(callback, thisObj, ...args))
+	}
+
+	function nextTick2(callback: $CallbackInfo) {
+		_nextTicks.push(callback);
 	}
 
 	/**
@@ -141,7 +145,7 @@ module junyou {
 	 *
 	 */
 	export const Global = {
-		initTick, nextTick, callLater, clearCallLater, getTween, removeTween, removeTweens,
+		initTick, nextTick, nextTick2, callLater, clearCallLater, getTween, removeTween, removeTweens,
 		get isNative() {
 			return _isNative;
 		},
