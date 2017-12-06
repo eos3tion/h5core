@@ -10251,10 +10251,10 @@ var junyou;
     }
     if (false) {
         mpt.getImgUri = function (uri) {
-            return "m2/" /* ReleaseMapPath */ + "/" + this.path + "/" + uri;
+            return "" + "m2/" /* ReleaseMapPath */ + this.path + "/" + uri;
         };
         mpt.getMapUri = function (col, row) {
-            return "m2/" /* ReleaseMapPath */ + "/" + this.path + "/" + row + "_" + col + ".jpg" /* JPG */ + webp;
+            return "" + "m2/" /* ReleaseMapPath */ + this.path + "/" + row + "_" + col + ".jpg" /* JPG */ + webp;
         };
     }
 })(junyou || (junyou = {}));

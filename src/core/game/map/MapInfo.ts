@@ -119,10 +119,10 @@ module junyou {
     }
     if (RELEASE) {
         mpt.getImgUri = function (this: MapInfo, uri: string) {
-            return `${MapConst.ReleaseMapPath}/${this.path}/${uri}`;
+            return `${MapConst.ReleaseMapPath}${this.path}/${uri}`;
         }
         mpt.getMapUri = function (this: MapInfo, col: number, row: number) {
-            return `${MapConst.ReleaseMapPath}/${this.path}/${row}_${col}${Ext.JPG}${webp}`;
+            return `${MapConst.ReleaseMapPath}${this.path}/${row}_${col}${Ext.JPG}${webp}`;
         }
     }
 }
