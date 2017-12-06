@@ -408,7 +408,7 @@ module junyou {
          * @param {AniOption} [option] 动画的参数
          * @returns (description)
          */
-        public static getAni(uri: string, option?: AniOption) {
+        public static getAni(uri: string, option?: AniOption, qid?: Res.ResQueueID) {
             if (DEBUG && !uri) {
                 DEBUG && ThrowError(`创建了没有uri的AniRender`);
             }
@@ -419,6 +419,9 @@ module junyou {
                 aniInfo.key = uri;
                 aniDict[uri] = aniInfo;
             }
+            aniInfo.qid = qid;
+            let res = aniInfo.getResource();
+            res && (res.qid = qid);
             let display = recyclable(ResourceBitmap);
             let ani = recyclable(AniRender);
             let guid: number, stop: boolean;

@@ -526,12 +526,17 @@ module junyou.Res {
             next = failedList.shift();
         } else {
             //得到优先级最大并且
-            let min = -Infinity;
+            let high = -Infinity;
             let highQueue: ResQueue;
             for (let key in queues) {//同优先级的列队，基于hash规则加载，一般来说只用内置的3个列队即可解决常规问题
                 let queue = queues[key];
-                if (queue.list.length && queue.priority > min) {
-                    highQueue = queue;
+
+                if (queue.list.length) {
+                    let priority = queue.priority;
+                    if (priority > high) {
+                        high = priority;
+                        highQueue = queue;
+                    }
                 }
             }
             if (highQueue) {

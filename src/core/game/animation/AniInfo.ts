@@ -16,6 +16,10 @@ module junyou {
 
         uri: string;
 
+        /**
+         * 资源加载列队，用于控制加载优先级
+         */
+        qid?: Res.ResQueueID;
         public constructor() {
             super();
         }
@@ -35,7 +39,7 @@ module junyou {
                 if (state == RequestState.UNREQUEST) {
                     let uri = this.uri = ResPrefix.Ani + this.key + "/" + UnitResourceConst.CfgFile;
                     let url = this.url = ConfigUtils.getResUrl(uri);
-                    Res.load(uri, url, CallbackInfo.get(this.dataLoadComplete, this));
+                    Res.load(uri, url, CallbackInfo.get(this.dataLoadComplete, this), this.qid);
                     this.state = RequestState.REQUESTING;
                 }
             }
@@ -76,6 +80,7 @@ module junyou {
         public init(key: string, data: any[]) {
             super.init(key, data[0]);
             let res: UnitResource = new UnitResource(ResPrefix.Ani + key, this.splitInfo);
+            res.qid = this.qid;
             res.decodeData(data[1]);
             this._resources = res;
             this.state = RequestState.COMPLETE;

@@ -7,9 +7,11 @@ module junyou {
         /**
         * 资源id
         */
-        uri: string;
+        readonly uri: string;
 
-        url: string;
+        readonly url: string;
+
+        qid: Res.ResQueueID;
 
         /**
          * 资源最后使用时间
@@ -79,7 +81,7 @@ module junyou {
         public load() {
             if (this.state == RequestState.UNREQUEST) {
                 this.state = RequestState.REQUESTING;
-                Res.load(this.uri, this.url, CallbackInfo.get(this.loadComplete, this));
+                Res.load(this.uri, this.url, CallbackInfo.get(this.loadComplete, this), this.qid);
             }
         }
 

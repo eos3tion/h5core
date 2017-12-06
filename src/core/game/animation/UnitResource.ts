@@ -23,7 +23,10 @@ module junyou {
          * 资源标识
          */
         key: string;
-
+        /**
+         * 加载列队
+         */
+        qid?: Res.ResQueueID;
         /**
          * 纹理的配置文件的加载地址
          */
@@ -95,8 +98,7 @@ module junyou {
         public loadData() {
             if (this.state == RequestState.UNREQUEST) {
                 this.state = RequestState.REQUESTING;
-                // RES.getResByUrl(this.url, this.dataLoadComplete, this, EgretResType.TYPE_JSON);
-                Res.load(this.uri, this.url, CallbackInfo.get(this.dataLoadComplete, this));
+                Res.load(this.uri, this.url, CallbackInfo.get(this.dataLoadComplete, this), this.qid);
             }
         }
 
@@ -170,6 +172,7 @@ module junyou {
 
         noRes(uri: string, r: string) {
             let tmp = new SplitUnitResource(uri, this.getUrl(uri));
+            tmp.qid = this.qid;
             tmp.bindTextures(this._datas, this.sInfo.adDict[r]);
             tmp.load();
             return tmp;
