@@ -12,6 +12,10 @@ module junyou {
          */
 		uri: string;
 		/**
+		 * 设置图片的加载列队优先级
+		 */
+		qid?: Res.ResQueueID;
+		/**
 		 * 在flash中设置的大小
 		 * 
 		 * @type {egret.Rectangle}
@@ -31,6 +35,7 @@ module junyou {
 			if (this.uri) {
 				let res = ResManager.getTextureRes(this.uri, this.noWebp);
 				if (res) {
+					res.qid = this.qid;
 					res.bind(this);
 					res.load();
 				}
