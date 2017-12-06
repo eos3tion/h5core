@@ -16795,7 +16795,7 @@ var junyou;
         SuiData.prototype.createBmpLoader = function (ispng, textures) {
             var file = "d" + (ispng ? ".png" /* PNG */ : ".jpg" /* JPG */);
             //增加一个skin前缀
-            var uri = "skin/" + junyou.ConfigUtils.getSkinPath(this.key, file);
+            var uri = this.skinUri || "skin/" + junyou.ConfigUtils.getSkinPath(this.key, file);
             var tmp = junyou.ResManager.get(uri, this.noRes, this, uri, file, textures);
             ispng ? this.pngbmd = tmp : this.jpgbmd = tmp;
         };
@@ -16970,13 +16970,14 @@ var junyou;
          * @param {string} key
          * @param {*} data
          */
-        SuiResManager.prototype.setInlineData = function (key, data) {
+        SuiResManager.prototype.setInlineData = function (key, data, skinUri) {
             var uri = getSuiDataUri(key);
             var suiData = this._urlKey[uri];
             if (!suiData) {
                 suiData = new junyou.SuiData();
                 suiData.key = key;
                 suiData.uri = uri;
+                suiData.skinUri = skinUri;
                 suiData.url = junyou.ConfigUtils.getSkinFile(key, "s.json" /* DataFile */);
                 this._suiDatas[key] = suiData;
             }
@@ -21601,7 +21602,7 @@ var junyou;
             addRes(resItem, queueID);
             var state = resItem.state;
             if (state == 2 /* COMPLETE */) {
-                return callback.callAndRecycle(resItem);
+                return callback && callback.callAndRecycle(resItem);
             }
             resItem.removed = false;
             if (callback) {
@@ -21613,6 +21614,7 @@ var junyou;
             }
             return next();
         }
+        Res.loadRes = loadRes;
         /**
          * 获取下一个要加载的资源
          */

@@ -10163,6 +10163,10 @@ declare module junyou {
      */
     class SuiData {
         /**
+         * 强制设置的皮肤标识
+         */
+        skinUri?: string;
+        /**
          * fla的名字
          */
         key: string;
@@ -10308,7 +10312,7 @@ declare module junyou {
          * @param {string} key
          * @param {*} data
          */
-        setInlineData(key: string, data: any): void;
+        setInlineData(key: string, data: any, skinUri?: string): void;
         /**
          *
          * 初始化数据
@@ -12703,6 +12707,12 @@ declare module junyou.Res {
      * @param uri
      */
     function remove(uri: string): void;
+    /**
+     * 加载资源
+     * @param {ResItem} resItem
+     * @param {ResQueueID} [queueID=ResQueueID.Normal]
+     */
+    function loadRes(resItem: ResItem, callback?: ResCallback, queueID?: ResQueueID): any;
     /**
      *  尝试启用本地资源缓存
      * @author 3tion(https://github.com/eos3tion/)
