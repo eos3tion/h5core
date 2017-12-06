@@ -54,5 +54,14 @@ module junyou {
 		 * 解析资源版本hash的时候派发
 		 */
 		ParseResHash,
+		/**
+		 * 资源加载失败
+		 * data {ResItem}
+		 */
+		ResLoadFailed,
+		/**
+		 * 资源加载完成
+		 */
+		ResLoadSuccess,
 	}
 }

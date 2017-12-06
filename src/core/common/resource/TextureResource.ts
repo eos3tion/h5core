@@ -24,13 +24,17 @@ module junyou {
         /**
          * 资源id
          */
-        resID: string;
+        readonly uri: string;
 
         /**
          * 资源最终路径
          */
-        url: string;
+        readonly url: string;
 
+        constructor(uri: string, noWebp?: boolean) {
+            this.uri = uri;
+            this.url = ConfigUtils.getResUrl(uri + (!noWebp ? Global.webp : ""))
+        }
         /**
          * 
          * 是否为静态不销毁的资源
@@ -74,28 +78,20 @@ module junyou {
             this.lastUseTime = Global.now;
         }
 
-        // /**
-        //  * 
-        //  * 纹理
-        //  * @type {egret.Texture}
-        //  */
-        // public get texture(): egret.Texture {
-        //     return this._tex;
-        // }
-
         load() {
-            RES.getResByUrl(this.url, this.loadComplete, this, EgretResType.TYPE_IMAGE);
+            Res.load(this.uri, this.url, CallbackInfo.get(this.loadComplete, this));
         }
 
         /**
          * 资源加载完成
          */
-        loadComplete(res: egret.Texture, key: string) {
-            if (key == this.url) {
-                this._tex = res;
+        loadComplete(item: Res.ResItem) {
+            let { data, uri } = item;
+            if (uri == this.uri) {
+                this._tex = data;
                 for (let bmp of this._list) {
-                    bmp.texture = res;
-                    if (DEBUG && !res) {
+                    bmp.texture = data;
+                    if (DEBUG && !data) {
                         bmp.texture = ErrorTexture;
                         let rect = bmp.suiRawRect;
                         if (rect) {

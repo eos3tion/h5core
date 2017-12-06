@@ -58,8 +58,8 @@ module junyou {
          * 解析打包的配置
          */
         parsePakedDatas(type?: number) {
-            let configs = RES.getRes("cfgs");
-            RES.destroyRes("cfgs");
+            let configs = Res.get("cfgs");
+            Res.remove("cfgs");
             if (type == 1) {
                 configs = decodePakCfgs(new ByteArray(configs as ArrayBuffer));
             }

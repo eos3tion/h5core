@@ -65,6 +65,8 @@ module junyou {
             skin: Path,
             [indes: string]: Path
         };
+
+        preload?: Res.ResItem[];
     }
 
 
@@ -125,10 +127,6 @@ module junyou {
      */
     const uriDict: { [index: string]: string } = {};
 
-    /**
-     * 根据url缓存uri的字典
-     */
-    const urlDict: { [index: string]: string } = {};
 
     /**
      * 获取资源版本号
@@ -236,17 +234,8 @@ module junyou {
                 }
                 url = getUrlWithPath(uri, _res);
                 uriDict[uri] = url;
-                urlDict[url] = uri;
             }
             return url;
-        },
-        /**
-         * 根据res的url获取uri
-         * @param {string} url 
-         * @returns {string}
-         */
-        getResUri(url: string): string {
-            return urlDict[url];
         },
         /**
          * 获取参数

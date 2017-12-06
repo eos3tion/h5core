@@ -29,7 +29,7 @@ module junyou {
 
 		addedToStage() {
 			if (this.uri) {
-				let res = ResourceManager.getTextureRes(this.uri, this.noWebp);
+				let res = ResManager.getTextureRes(this.uri, this.noWebp);
 				if (res) {
 					res.bind(this);
 					res.load();
@@ -39,7 +39,7 @@ module junyou {
 
 		removedFromStage() {
 			if (this.uri) {
-				let res = <TextureResource>ResourceManager.getResource(this.uri);
+				let res = <TextureResource>ResManager.getResource(this.uri);
 				if (res) {
 					res.loose(this);
 				}

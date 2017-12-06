@@ -47,6 +47,8 @@ module junyou {
         public callback: T;
         public args: any[];
         public thisObj: any;
+
+        public doRecycle = true;
         /**
          * 待执行的时间
          */
@@ -85,11 +87,14 @@ module junyou {
         /**
          * 执行回调
          * 回调函数，将以args作为参数，callback作为函数执行
-         * @param {boolean} [doRecycle=true] 是否回收CallbackInfo，默认为true
+         * @param {boolean} [doRecycle] 是否回收CallbackInfo，默认为true
          */
-        public execute(doRecycle = true) {
+        public execute(doRecycle?: boolean) {
             let callback = this.callback;
             let result = call(this);
+            if (doRecycle == undefined) {
+                doRecycle = this.doRecycle;
+            }
             if (doRecycle) {
                 this.recycle();
             }
@@ -123,6 +128,7 @@ module junyou {
             this.callback = undefined;
             this.args = undefined;
             this.thisObj = undefined;
+            this.doRecycle = true;
         }
 
 

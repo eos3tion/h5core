@@ -7,7 +7,7 @@ module junyou {
         /**
         * 资源id
         */
-        resID: string;
+        uri: string;
 
         url: string;
 
@@ -38,7 +38,7 @@ module junyou {
         }
 
         constructor(uri: string, url: string) {
-            this.resID = uri;
+            this.uri = uri;
             this.url = url;
             this.textures = [];
         }
@@ -79,18 +79,18 @@ module junyou {
         public load() {
             if (this.state == RequestState.UNREQUEST) {
                 this.state = RequestState.REQUESTING;
-                //后续尝试直接用ImageLoader加载
-                RES.getResByUrl(this.url, this.loadComplete, this, EgretResType.TYPE_IMAGE);
+                Res.load(this.uri, this.url, CallbackInfo.get(this.loadComplete, this));
             }
         }
 
         /**
          * 资源加载完成
          */
-        loadComplete(res: JTexture, key: string) {
-            if (key == this.url) {
-                if (res) {
-                    var bmd = res.bitmapData;
+        loadComplete(item: Res.ResItem) {
+            let { uri, data } = item;
+            if (uri == this.uri) {
+                if (data) {
+                    let bmd = data.bitmapData as egret.BitmapData;
                     this.bmd = bmd;
                     this.state = RequestState.COMPLETE;
                     //将已经请求的位图设置为加载完成的位图

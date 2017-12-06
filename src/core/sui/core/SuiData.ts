@@ -47,6 +47,8 @@ module junyou {
          */
         public url: string;
 
+        public uri: string;
+
         /**
     	 * 位图数据
     	 */
@@ -114,7 +116,7 @@ module junyou {
             let file = "d" + (ispng ? Ext.PNG : Ext.JPG);
             //增加一个skin前缀
             let uri = "skin/" + ConfigUtils.getSkinPath(this.key, file);
-            let tmp = ResourceManager.get(uri, this.noRes, this, uri, file, textures);
+            let tmp = ResManager.get(uri, this.noRes, this, uri, file, textures);
             ispng ? this.pngbmd = tmp : this.jpgbmd = tmp;
         }
 
