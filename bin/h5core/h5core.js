@@ -11084,7 +11084,7 @@ var junyou;
                 var engine = junyou.GameEngine.instance;
                 var layer = engine.getLayer(1000 /* Game */);
                 if (cur != shake) {
-                    shake.setShakeTarget(layer);
+                    shake.setShakeTarget(layer).setTargetPos();
                 }
                 shake.start();
                 this._st = junyou.Global.now;

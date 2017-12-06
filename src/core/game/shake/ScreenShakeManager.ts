@@ -61,7 +61,7 @@ module junyou {
                 let engine = GameEngine.instance;
                 let layer = engine.getLayer(GameLayerID.Game);
                 if (cur != shake) {
-                    shake.setShakeTarget(layer);
+                    shake.setShakeTarget(layer).setTargetPos();
                 }
                 shake.start();
                 this._st = Global.now;

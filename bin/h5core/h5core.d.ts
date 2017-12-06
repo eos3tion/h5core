@@ -6828,6 +6828,10 @@ declare module junyou {
          * @memberOf Shake
          */
         setShakeTarget(target: ShakeTarget): Shake;
+        /**
+         * 设置震动中心点
+         */
+        setTargetPos(cx?: number, cy?: number): Shake;
         readonly target: ShakeTarget;
         /**
          *
