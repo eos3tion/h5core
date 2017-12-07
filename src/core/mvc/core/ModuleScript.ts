@@ -45,8 +45,8 @@ module junyou {
         /**
          * 配置加载完成之后
          */
-        protected onScriptLoaded() {
-            this.state = RequestState.COMPLETE;
+        protected onScriptLoaded(isError?: boolean) {
+            this.state = isError ? RequestState.FAILED : RequestState.COMPLETE;
             let callbacks = this.callbacks.concat();
             this.callbacks.length = 0;
             for (let callback of callbacks) {
