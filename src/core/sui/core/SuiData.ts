@@ -43,14 +43,14 @@ module junyou {
     	/**
     	 * fla的名字
     	 */
-        public key: string;
+        readonly key: string;
 
         /**
          * 加载地址
          */
-        public url: string;
+        readonly url: string;
 
-        public uri: string;
+        readonly uri: string;
 
         /**
     	 * 位图数据
@@ -115,6 +115,12 @@ module junyou {
          */
         public sourceComponentData: Object;
 
+        constructor(key: string) {
+            this.key = key;
+            this.url = ConfigUtils.getSkinFile(key, SuiResConst.DataFile);
+            this.uri = getSuiDataUri(key);
+        }
+
         public createBmpLoader(ispng: boolean, textures: egret.Texture[]) {
             let file = "d" + (ispng ? Ext.PNG : Ext.JPG);
             //增加一个skin前缀
@@ -167,8 +173,8 @@ module junyou {
             }
         }
 
-        public loadBmd<T extends Function>(callback: CallbackInfo<T>) {
-            let bin = {} as any;
+        public loadBmd<T extends Function>(callback?: CallbackInfo<T>) {
+            let bin = recyclable(CallbackBin)
             let count = 0;
             //检查bmd状态
             this.jpgbmd && !this.checkRefreshBmp(bin, true) && count++;
@@ -176,17 +182,30 @@ module junyou {
             if (count) {
                 bin.count = count;
                 bin.callback = callback;
-                bin.refreshBMD = refreshBMD;
             } else {
-                callback.execute(true);
+                bin.recycle();
+                callback && callback.execute(true);
             }
-            function refreshBMD(this: { count: number, callback: CallbackInfo<T> }) {
-                let count = this.count;
-                if (!--count) {
-                    this.callback.execute(true);
-                } else {
-                    this.count = count;
+        }
+    }
+
+    class CallbackBin {
+        /**
+         * 计数器
+         */
+        count: number;
+
+        callback?: $CallbackInfo;
+        refreshBMD() {
+            let count = this.count;
+            if (!--count) {
+                let callback = this.callback;
+                if (callback) {
+                    this.callback = undefined;
+                    callback.execute(true);
                 }
+            } else {
+                this.count = count;
             }
         }
     }

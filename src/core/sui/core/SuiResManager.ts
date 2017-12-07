@@ -17,7 +17,7 @@ module junyou {
         DataFile = "s.json"
     }
 
-    function getSuiDataUri(key: string) {
+    export function getSuiDataUri(key: string) {
         return "$SuiData$_" + key;
     }
 	/**
@@ -84,33 +84,27 @@ module junyou {
 		/**
 		 * 加载数据
 		 */
-        public loadData(key: string, callback: SuiDataCallback) {
-            var suiData = this._suiDatas[key];
+        public loadData(key: string, callback?: SuiDataCallback, qid?: Res.ResQueueID) {
+            let suiData = this._suiDatas[key];
             if (!suiData) {
-                suiData = new SuiData();
-                suiData.key = key;
-                this._suiDatas[key] = suiData;
+                suiData = this.createSuiData(key);
             }
-            var state = suiData.state;
+            let state = suiData.state;
             if (state == RequestState.FAILED) {
-                callback.suiDataFailed(suiData);
+                callback && callback.suiDataFailed(suiData);
             } else if (state == RequestState.COMPLETE) {
-                callback.suiDataComplete(suiData);
+                callback && callback.suiDataComplete(suiData);
             } else {
-                var callbacks = suiData.callbacks;
+                let callbacks = suiData.callbacks;
                 if (state == RequestState.UNREQUEST) {
                     suiData.state = RequestState.REQUESTING;
-                    suiData.callbacks = callbacks = [];
+                    if (!callbacks) {
+                        suiData.callbacks = callbacks = [];
+                    }
                     //先加载配置
-                    var url = ConfigUtils.getSkinFile(key, SuiResConst.DataFile);
-                    suiData.url = url;
-                    let uri = getSuiDataUri(key);
-                    this._urlKey[uri] = suiData;
-                    suiData.uri = uri;
-                    Res.load(uri, url, CallbackInfo.get(this.checkData, this));
-                    // RES.getResByUrl(url, this.checkData, this);
+                    Res.load(suiData.uri, suiData.url, CallbackInfo.get(this.checkData, this), qid);
                 }
-                callbacks.pushOnce(callback);
+                callback && callbacks.pushOnce(callback);
             }
         }
 
@@ -139,20 +133,24 @@ module junyou {
          * 
          * 直接将已经加载好的内置数据，和key进行绑定
          * @param {string} key
-         * @param {*} data
+         * @param {any} data
+         * @param {string} [skinUri] 皮肤标识
          */
         public setInlineData(key: string, data: any, skinUri?: string) {
             let uri = getSuiDataUri(key);
             let suiData = this._urlKey[uri];
             if (!suiData) {
-                suiData = new SuiData();
-                suiData.key = key;
-                suiData.uri = uri;
-                suiData.skinUri = skinUri;
-                suiData.url = ConfigUtils.getSkinFile(key, SuiResConst.DataFile);
-                this._suiDatas[key] = suiData;
+                suiData = this.createSuiData(key);
             }
+            suiData.skinUri = skinUri;
             this._initSuiData(data, suiData);
+        }
+
+        createSuiData(key: string) {
+            let suiData = new SuiData(key);
+            this._suiDatas[key] = suiData;
+            this._urlKey[suiData.uri] = suiData;
+            return suiData;
         }
 
         /**
