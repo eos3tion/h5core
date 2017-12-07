@@ -8393,7 +8393,7 @@ declare module junyou {
         /**
          * 配置加载完成之后
          */
-        protected onScriptLoaded(): void;
+        protected onScriptLoaded(isError?: boolean): void;
     }
 }
 declare module junyou {
@@ -10190,12 +10190,12 @@ declare module junyou {
         /**
          * fla的名字
          */
-        key: string;
+        readonly key: string;
         /**
          * 加载地址
          */
-        url: string;
-        uri: string;
+        readonly url: string;
+        readonly uri: string;
         /**
          * 位图数据
          */
@@ -10254,6 +10254,7 @@ declare module junyou {
          * 未经过解析的源组件数据
          */
         sourceComponentData: Object;
+        constructor(key: string);
         createBmpLoader(ispng: boolean, textures: egret.Texture[]): void;
         noRes(uri: string, file: string, textures: egret.Texture[]): SuiBmd;
         /**
@@ -10265,7 +10266,7 @@ declare module junyou {
         checkRefreshBmp(bmp: SuiBmdCallback, isjpg?: boolean): boolean;
         /**获取对应索引位置的texture */
         getTexture(index: number): egret.Texture;
-        loadBmd<T extends Function>(callback: CallbackInfo<T>): void;
+        loadBmd<T extends Function>(callback?: CallbackInfo<T>): void;
     }
 }
 declare module egret {
@@ -10284,6 +10285,7 @@ declare module junyou {
     const enum SuiResConst {
         DataFile = "s.json",
     }
+    function getSuiDataUri(key: string): string;
     /**
      * 用于管理位图和数据
      * @author 3tion
@@ -10322,7 +10324,7 @@ declare module junyou {
         /**
          * 加载数据
          */
-        loadData(key: string, callback: SuiDataCallback): void;
+        loadData(key: string, callback?: SuiDataCallback, qid?: Res.ResQueueID): void;
         /**
          * 数据加载完成
          */
@@ -10331,9 +10333,11 @@ declare module junyou {
          *
          * 直接将已经加载好的内置数据，和key进行绑定
          * @param {string} key
-         * @param {*} data
+         * @param {any} data
+         * @param {string} [skinUri] 皮肤标识
          */
         setInlineData(key: string, data: any, skinUri?: string): void;
+        createSuiData(key: string): SuiData;
         /**
          *
          * 初始化数据

@@ -13700,8 +13700,8 @@ var junyou;
         /**
          * 配置加载完成之后
          */
-        ModuleScript.prototype.onScriptLoaded = function () {
-            this.state = 2 /* COMPLETE */;
+        ModuleScript.prototype.onScriptLoaded = function (isError) {
+            this.state = isError ? -1 /* FAILED */ : 2 /* COMPLETE */;
             var callbacks = this.callbacks.concat();
             this.callbacks.length = 0;
             for (var _i = 0, callbacks_1 = callbacks; _i < callbacks_1.length; _i++) {
@@ -16782,7 +16782,7 @@ var junyou;
      *
      */
     var SuiData = (function () {
-        function SuiData() {
+        function SuiData(key) {
             /**
              * 数据加载状态
              * 0 未加载
@@ -16796,6 +16796,9 @@ var junyou;
              * value    皮肤数据<br/>
              */
             this.lib = {};
+            this.key = key;
+            this.url = junyou.ConfigUtils.getSkinFile(key, "s.json" /* DataFile */);
+            this.uri = junyou.getSuiDataUri(key);
         }
         SuiData.prototype.createBmpLoader = function (ispng, textures) {
             var file = "d" + (ispng ? ".png" /* PNG */ : ".jpg" /* JPG */);
@@ -16847,7 +16850,7 @@ var junyou;
             }
         };
         SuiData.prototype.loadBmd = function (callback) {
-            var bin = {};
+            var bin = junyou.recyclable(CallbackBin);
             var count = 0;
             //检查bmd状态
             this.jpgbmd && !this.checkRefreshBmp(bin, true) && count++;
@@ -16855,25 +16858,35 @@ var junyou;
             if (count) {
                 bin.count = count;
                 bin.callback = callback;
-                bin.refreshBMD = refreshBMD;
             }
             else {
-                callback.execute(true);
-            }
-            function refreshBMD() {
-                var count = this.count;
-                if (!--count) {
-                    this.callback.execute(true);
-                }
-                else {
-                    this.count = count;
-                }
+                bin.recycle();
+                callback && callback.execute(true);
             }
         };
         return SuiData;
     }());
     junyou.SuiData = SuiData;
     __reflect(SuiData.prototype, "junyou.SuiData");
+    var CallbackBin = (function () {
+        function CallbackBin() {
+        }
+        CallbackBin.prototype.refreshBMD = function () {
+            var count = this.count;
+            if (!--count) {
+                var callback = this.callback;
+                if (callback) {
+                    this.callback = undefined;
+                    callback.execute(true);
+                }
+            }
+            else {
+                this.count = count;
+            }
+        };
+        return CallbackBin;
+    }());
+    __reflect(CallbackBin.prototype, "CallbackBin");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -16881,6 +16894,7 @@ var junyou;
     function getSuiDataUri(key) {
         return "$SuiData$_" + key;
     }
+    junyou.getSuiDataUri = getSuiDataUri;
     /**
      * 用于管理位图和数据
      * @author 3tion
@@ -16918,35 +16932,29 @@ var junyou;
         /**
          * 加载数据
          */
-        SuiResManager.prototype.loadData = function (key, callback) {
+        SuiResManager.prototype.loadData = function (key, callback, qid) {
             var suiData = this._suiDatas[key];
             if (!suiData) {
-                suiData = new junyou.SuiData();
-                suiData.key = key;
-                this._suiDatas[key] = suiData;
+                suiData = this.createSuiData(key);
             }
             var state = suiData.state;
             if (state == -1 /* FAILED */) {
-                callback.suiDataFailed(suiData);
+                callback && callback.suiDataFailed(suiData);
             }
             else if (state == 2 /* COMPLETE */) {
-                callback.suiDataComplete(suiData);
+                callback && callback.suiDataComplete(suiData);
             }
             else {
                 var callbacks = suiData.callbacks;
                 if (state == 0 /* UNREQUEST */) {
                     suiData.state = 1 /* REQUESTING */;
-                    suiData.callbacks = callbacks = [];
+                    if (!callbacks) {
+                        suiData.callbacks = callbacks = [];
+                    }
                     //先加载配置
-                    var url = junyou.ConfigUtils.getSkinFile(key, "s.json" /* DataFile */);
-                    suiData.url = url;
-                    var uri = getSuiDataUri(key);
-                    this._urlKey[uri] = suiData;
-                    suiData.uri = uri;
-                    junyou.Res.load(uri, url, junyou.CallbackInfo.get(this.checkData, this));
-                    // RES.getResByUrl(url, this.checkData, this);
+                    junyou.Res.load(suiData.uri, suiData.url, junyou.CallbackInfo.get(this.checkData, this), qid);
                 }
-                callbacks.pushOnce(callback);
+                callback && callbacks.pushOnce(callback);
             }
         };
         /**
@@ -16973,20 +16981,23 @@ var junyou;
          *
          * 直接将已经加载好的内置数据，和key进行绑定
          * @param {string} key
-         * @param {*} data
+         * @param {any} data
+         * @param {string} [skinUri] 皮肤标识
          */
         SuiResManager.prototype.setInlineData = function (key, data, skinUri) {
             var uri = getSuiDataUri(key);
             var suiData = this._urlKey[uri];
             if (!suiData) {
-                suiData = new junyou.SuiData();
-                suiData.key = key;
-                suiData.uri = uri;
-                suiData.skinUri = skinUri;
-                suiData.url = junyou.ConfigUtils.getSkinFile(key, "s.json" /* DataFile */);
-                this._suiDatas[key] = suiData;
+                suiData = this.createSuiData(key);
             }
+            suiData.skinUri = skinUri;
             this._initSuiData(data, suiData);
+        };
+        SuiResManager.prototype.createSuiData = function (key) {
+            var suiData = new junyou.SuiData(key);
+            this._suiDatas[key] = suiData;
+            this._urlKey[suiData.uri] = suiData;
+            return suiData;
         };
         /**
          *
