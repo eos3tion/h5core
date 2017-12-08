@@ -162,9 +162,14 @@ module junyou.Res {
          * 加载完成的回调
          */
         loadFile(resItem: ResItem, callback: ResLoadCallback);
+
+        /**
+         * 加载完成的回调
+         */
+        onLoadFinish(e: egret.Event);
     }
 
-    export interface ResRequest {
+    export interface ResRequest extends egret.EventDispatcher {
         item?: ResItem;
         resCB?: ResLoadCallback
     }
@@ -179,6 +184,21 @@ module junyou.Res {
         return state;
     }
 
+    function bindRequest(loader: ResLoader, request: Recyclable<ResRequest>, item: ResItem, callback: ResLoadCallback) {
+        request.on(EgretEvent.COMPLETE, loader.onLoadFinish, loader);
+        request.on(EgretEvent.IO_ERROR, loader.onLoadFinish, loader);
+        request.item = item;
+        request.resCB = callback;
+    }
+
+    function looseRequest(loader: ResLoader, request: Recyclable<ResRequest>) {
+        request.off(EgretEvent.COMPLETE, loader.onLoadFinish, loader);
+        request.off(EgretEvent.IO_ERROR, loader.onLoadFinish, loader);
+        request.item = undefined;
+        request.resCB = undefined;
+        request.recycle();
+    }
+
     export class BinLoader implements ResLoader {
         type: XMLHttpRequestResponseType;
         constructor(type: XMLHttpRequestResponseType = "arraybuffer") {
@@ -186,26 +206,21 @@ module junyou.Res {
         }
         loadFile(resItem: ResItem, callback: ResLoadCallback) {
             let request = recyclable(egret.HttpRequest) as ResHttpRequest;
-            request.once(EgretEvent.COMPLETE, this.onLoadFinish, this);
-            request.once(EgretEvent.IO_ERROR, this.onLoadFinish, this);
-            request.open(resItem.url);
+            bindRequest(this, request, resItem, callback);
             request.responseType = this.type;
-            request.item = resItem;
-            request.resCB = callback;
+            request.open(resItem.url);
             request.send();
         }
 
         onLoadFinish(event: egret.Event): void {
             let request = event.target as ResHttpRequest;
-            let { item, resCB } = request;
-            request.item = undefined;
-            request.resCB = undefined;
+            let { item, resCB, response } = request;
+            looseRequest(this, request);
             let state = checkItemState(item, event);
             if (state == RequestState.COMPLETE) {
-                item.data = request.response;
+                item.data = response;
             }
-            resCB.call(item);
-            resCB.recycle();
+            resCB.callAndRecycle(item);
         }
     }
 
@@ -214,26 +229,21 @@ module junyou.Res {
     export class ImageLoader implements ResLoader {
         loadFile(resItem: ResItem, callback: ResLoadCallback) {
             let request = recyclable(egret.ImageLoader) as ResImgRequest;
-            request.once(EgretEvent.COMPLETE, this.onLoadFinish, this);
-            request.once(EgretEvent.IO_ERROR, this.onLoadFinish, this);
-            request.item = resItem;
-            request.resCB = callback;
+            bindRequest(this, request, resItem, callback);
             request.load(resItem.url);
         }
 
         onLoadFinish(event: egret.Event): void {
             let request = event.target as ResImgRequest;
-            let { item, resCB } = request;
-            request.item = undefined;
-            request.resCB = undefined;
+            let { item, resCB, data } = request;
+            looseRequest(this, request);
             let state = checkItemState(item, event);
             if (state == RequestState.COMPLETE) {
                 let texture = new egret.Texture();
-                texture._setBitmapData(request.data);
+                texture._setBitmapData(data);
                 item.data = texture;
             }
-            resCB.call(item);
-            resCB.recycle();
+            resCB.callAndRecycle(item);
         }
     }
 
@@ -266,11 +276,6 @@ module junyou.Res {
      * 加载列队的总数
      */
     const queues: { [groupID: string]: ResQueue } = {};
-
-    /**
-     * 当前正在加载的数量
-     */
-    let loadingCount = 0;
 
     /**
      * 最大加载数量
@@ -555,13 +560,19 @@ module junyou.Res {
         return next;
     }
 
+    /**
+     * 正在加载的资源列队
+     */
+    const loading: ResItem[] = [];
+
     function next() {
-        while (loadingCount < maxThread) {
+        while (loading.length < maxThread) {
             let item = getNext();
             if (!item) break;
-            loadingCount++;
+            loading.pushOnce(item);
             let state = ~~item.state;
             switch (state) {
+                case RequestState.FAILED:
                 case RequestState.COMPLETE:
                     onItemComplete(item);
                     break;
@@ -598,7 +609,7 @@ module junyou.Res {
     }
 
     function onItemComplete(item: ResItem) {
-        loadingCount--;
+        loading.remove(item);
         let state = ~~item.state;
         if (state == RequestState.FAILED) {
             let retry = item.retry || 1;
@@ -607,6 +618,7 @@ module junyou.Res {
                 return dispatch(EventConst.ResLoadFailed, item);
             }
             item.retry = retry + 1;
+            item.state = RequestState.UNREQUEST;
             failedList.push(item);
         } else if (state == RequestState.COMPLETE) {
             /**
@@ -822,13 +834,12 @@ module junyou.Res {
 
         BApt.onLoadFinish = function (event: egret.Event) {
             let request = event.target as ResHttpRequest;
-            let { item, resCB } = request;
-            request.item = undefined;
-            request.resCB = undefined;
+            let { item, resCB, response } = request;
+            looseRequest(this, request);
             let state = checkItemState(item, event);
             let data;
             if (state == RequestState.COMPLETE) {
-                data = request.response;
+                data = response;
             }
             let uri = item.uri;
             if (data && !item.local && uri) {
@@ -836,8 +847,7 @@ module junyou.Res {
                 saveLocal(item, data);
             }
             item.data = data;
-            resCB.call(item);
-            resCB.recycle();
+            resCB.callAndRecycle(item);
         }
 
 
@@ -884,10 +894,9 @@ module junyou.Res {
 
         IApt.onLoadFinish = function (event: egret.Event) {
             let request = event.target as LocalResImgRequest;
-            let { item, resCB, blob } = request;
-            request.item = undefined;
-            request.resCB = undefined;
+            let { item, resCB, blob, data: dat } = request;
             request.blob = undefined;
+            looseRequest(this, request);
             let uri = item.uri;
             if (!item.local) {
                 item.local = true;
@@ -896,7 +905,6 @@ module junyou.Res {
                 if (!local) {
                     // 普通图片
                     // 尝试转换成DataURL，此方法为同步方法，可能会影响性能
-                    let dat = request.data as egret.BitmapData;
                     if (dat instanceof egret.BitmapData) {
                         let img = dat.source as HTMLImageElement;
                         if (!img) {
@@ -937,11 +945,10 @@ module junyou.Res {
             let state = checkItemState(item, event);
             if (state == RequestState.COMPLETE) {
                 let texture = new egret.Texture();
-                texture._setBitmapData(request.data);
+                texture._setBitmapData(dat);
                 item.data = texture;
             }
-            resCB.call(item);
-            resCB.recycle();
+            resCB.callAndRecycle(item);
         }
         return db;
     }
