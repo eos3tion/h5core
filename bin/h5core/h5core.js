@@ -19268,7 +19268,7 @@ var junyou;
          * 获取类型2的数量处理方法
          * @static
          */
-        Slot.getCountString = function (count) { return count < 1 ? "" : count < 10000 ? count + "" : junyou.LangUtil.getMsg("$_wan", Math.floor(count / 10000)); };
+        Slot.getCountString = function (count) { return count <= 1 ? "" : count < 10000 ? count + "" : junyou.LangUtil.getMsg("$_wan", Math.floor(count / 10000)); };
         return Slot;
     }(junyou.Component));
     junyou.Slot = Slot;
