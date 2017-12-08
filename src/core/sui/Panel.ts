@@ -71,8 +71,6 @@ module junyou {
          * @type {string[]}
          */
         protected _depends: string[];
-
-        protected _ready: boolean;
         /**
          * 模态
          * 
@@ -94,6 +92,8 @@ module junyou {
          */
         public preloadImage: boolean;
 
+        protected _readyState: RequestState = RequestState.UNREQUEST;
+
 
         public constructor() {
             super();
@@ -101,7 +101,7 @@ module junyou {
         }
 
         public get isReady() {
-            return this._ready;
+            return this._readyState == RequestState.COMPLETE;
         }
 
         protected init() {
@@ -117,13 +117,16 @@ module junyou {
         }
 
         public startSync() {
-            if (this._otherDepends) {
-                this._depends = this._otherDepends.concat();
-            } else {
-                this._depends = [];
+            if (this._readyState == RequestState.UNREQUEST) {
+                if (this._otherDepends) {
+                    this._depends = this._otherDepends.concat();
+                } else {
+                    this._depends = [];
+                }
+                this._depends.push(this._key);
+                this._readyState = RequestState.REQUESTING;
+                this.loadNext();
             }
-            this._depends.push(this._key);
-            this.loadNext();
         }
 
         protected loadNext() {
@@ -171,7 +174,7 @@ module junyou {
                 }
             }
 
-            this._ready = true;
+            this._readyState = RequestState.COMPLETE;
             if (this._asyncHelper) {
                 this._asyncHelper.readyNow();
             }
