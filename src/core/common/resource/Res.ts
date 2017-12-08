@@ -621,18 +621,7 @@ module junyou.Res {
         return next();
     }
 
-    declare type LocalResImgRequest = ResImgRequest & { blob?: Blob };
-    /**
-     *  尝试启用本地资源缓存
-     * @author 3tion(https://github.com/eos3tion/)
-     * @export
-     * @param {number} [version=1] 
-     * @returns 
-     */
-    export function tryLocal(version = 1) {
-        if (egret.Capabilities.supportVersion != "Unknown") {//不处理native的情况
-            return;
-        }
+    export function getLocalDB(version: number, keyPath: string, storeName: string) {
         //检查浏览器是否支持IndexedDB
         let w = window as any;
         w.indexedDB = w.indexedDB ||
@@ -643,6 +632,12 @@ module junyou.Res {
             //不支持indexedDB，不对白鹭的RES做任何调整，直接return
             return;
         }
+        try {
+            var request = indexedDB.open(storeName, version);
+        } catch (e) {
+            DEBUG && ThrowError(`无法开启 indexedDB,error:`, e);
+            return;
+        }
         w.IDBTransaction = w.IDBTransaction ||
             w.webkitIDBTransaction ||
             w.msIDBTransaction;
@@ -651,136 +646,145 @@ module junyou.Res {
             w.msIDBKeyRange;
 
         w.URL = window.URL || w.webkitURL;
-        //当前ios10还不支持IndexedDB的Blob存储，所以如果是ios，则此值为false
-        const canUseBlob = egret.Capabilities.os == "iOS" ? false : !!(window.Blob && window.URL);
-
-        /**
-         * 本地数据库操作
-         */
-        const db = (function (version: number) {
-            const keyPath = "uri";
-            const RW = "readwrite";
-            const R = "readonly";
-            const storeName = 'res';
-            return {
-                /**
-                 * 存储资源
-                 * 
-                 * @param {ResItem} data 
-                 * @param {(this: IDBRequest, ev: Event) => any} callback 存储资源执行完成后的回调
-                 */
-                save(data: ResItem, callback?: { (ev: Event | Error) }) {
-                    open(result => {
-                        let store = getObjectStore(result, RW);
-                        try {
-                            let request = data.uri ? store.put(data) : store.add(data);
-                            if (callback) {
-                                request.onsuccess = callback;
-                                request.onerror = callback;
-                            }
-                        } catch (e) {
-                            return callback && callback(e);
+        const RW = "readwrite";
+        const R = "readonly";
+        return {
+            /**
+             * 存储资源
+             * 
+             * @param {ResItem} data 
+             * @param {(this: IDBRequest, ev: Event) => any} callback 存储资源执行完成后的回调
+             */
+            save(data: ResItem, callback?: { (ev: Event | Error) }) {
+                open(result => {
+                    let store = getObjectStore(result, RW);
+                    try {
+                        let request = data.uri ? store.put(data) : store.add(data);
+                        if (callback) {
+                            request.onsuccess = callback;
+                            request.onerror = callback;
                         }
-                    }, e => { callback && callback(e) });
-                },
+                    } catch (e) {
+                        return callback && callback(e);
+                    }
+                }, e => { callback && callback(e) });
+            },
 
-                /**
-                 * 获取资源
-                 * 
-                 * @param {string} url 
-                 * @param {{ (data: ResItem) }} callback 
-                 */
-                get(url: string, callback: { (data: ResItem, url?: string) }) {
-                    open(result => {
-                        let store = getObjectStore(result, R);
-                        try {
-                            let request = store.get(url);
-                            request.onsuccess = function (e: Event) {
-                                callback((e.target as IDBRequest).result, url);
-                            };
-                            request.onerror = () => {
-                                callback(null, url);
-                            }
-                        } catch (e) {
-                            DEBUG && ThrowError(`indexedDB error`, e);
+            /**
+             * 获取资源
+             * 
+             * @param {string} url 
+             * @param {{ (data: ResItem) }} callback 
+             */
+            get(url: string, callback: { (data: ResItem, url?: string) }) {
+                open(result => {
+                    let store = getObjectStore(result, R);
+                    try {
+                        let request = store.get(url);
+                        request.onsuccess = function (e: Event) {
+                            callback((e.target as IDBRequest).result, url);
+                        };
+                        request.onerror = () => {
                             callback(null, url);
                         }
-                    }, e => { callback(null, url) });
-                },
-                /**
-                 * 删除指定资源
-                 * 
-                 * @param {string} url 
-                 * @param {{ (this: IDBRequest, ev: Event) }} callback 删除指定资源执行完成后的回调
-                 */
-                delete(url: string, callback?: { (url: string, ev: Event | Error) }) {
-                    open(result => {
-                        let store = getObjectStore(result, RW);
-                        try {
-                            let request = store.delete(url);
-                            if (callback) {
-                                request.onerror = request.onsuccess = e => { callback(url, e) };
-                            }
-                        } catch (e) {
-                            return callback && callback(url, e);
-                        }
-                    }, e => { callback && callback(url, e) });
-                },
-                /**
-                 * 删除全部资源
-                 * 
-                 * @param {{ (this: IDBRequest, ev: Event) }} callback 删除全部资源执行完成后的回调
-                 */
-                clear(callback?: { (ev: Event | Error) }) {
-                    open(result => {
-                        let store = getObjectStore(result, RW);
-                        try {
-                            let request = store.clear();
-                            if (callback) {
-                                request.onsuccess = callback;
-                                request.onerror = callback;
-                            }
-                        } catch (e) {
-                            return callback(e);
-                        }
-                    }, callback);
-                },
-            }
-            function open(callback: { (result: IDBDatabase) }, onError?: { (e: Error) }) {
-                try {
-                    var request = indexedDB.open(storeName, version);
-                } catch (e) {
-                    DEBUG && ThrowError(`indexedDB error`, e);
-                    return onError && onError(e);
-                }
-                request.onerror = (e: ErrorEvent) => {
-                    onError && onError(e.error);
-                    errorHandler(e);
-                }
-                request.onupgradeneeded = e => {
-                    let _db = (e.target as IDBOpenDBRequest).result as IDBDatabase;
-                    let names = _db.objectStoreNames;
-                    if (!names.contains(storeName)) {
-                        _db.createObjectStore(storeName, { keyPath: keyPath });
+                    } catch (e) {
+                        DEBUG && ThrowError(`indexedDB error`, e);
+                        callback(null, url);
                     }
-                };
-                request.onsuccess = function (e: Event) {
-                    let result = request.result as IDBDatabase;
-                    result.onerror = errorHandler;
-                    callback(result);
-                };
+                }, e => { callback(null, url) });
+            },
+            /**
+             * 删除指定资源
+             * 
+             * @param {string} url 
+             * @param {{ (this: IDBRequest, ev: Event) }} callback 删除指定资源执行完成后的回调
+             */
+            delete(url: string, callback?: { (url: string, ev: Event | Error) }) {
+                open(result => {
+                    let store = getObjectStore(result, RW);
+                    try {
+                        let request = store.delete(url);
+                        if (callback) {
+                            request.onerror = request.onsuccess = e => { callback(url, e) };
+                        }
+                    } catch (e) {
+                        return callback && callback(url, e);
+                    }
+                }, e => { callback && callback(url, e) });
+            },
+            /**
+             * 删除全部资源
+             * 
+             * @param {{ (this: IDBRequest, ev: Event) }} callback 删除全部资源执行完成后的回调
+             */
+            clear(callback?: { (ev: Event | Error) }) {
+                open(result => {
+                    let store = getObjectStore(result, RW);
+                    try {
+                        let request = store.clear();
+                        if (callback) {
+                            request.onsuccess = callback;
+                            request.onerror = callback;
+                        }
+                    } catch (e) {
+                        return callback(e);
+                    }
+                }, callback);
+            },
+        }
+        function open(callback: { (result: IDBDatabase) }, onError?: { (e: Error) }) {
+            try {
+                var request = indexedDB.open(storeName, version);
+            } catch (e) {
+                DEBUG && ThrowError(`indexedDB error`, e);
+                return onError && onError(e);
             }
-
-            function getObjectStore(result: IDBDatabase, mode: IDBTransactionMode) {
-                return result.transaction(storeName, mode).objectStore(storeName);
+            request.onerror = (e: ErrorEvent) => {
+                onError && onError(e.error);
+                errorHandler(e);
             }
+            request.onupgradeneeded = e => {
+                let _db = (e.target as IDBOpenDBRequest).result as IDBDatabase;
+                let names = _db.objectStoreNames;
+                if (!names.contains(storeName)) {
+                    _db.createObjectStore(storeName, { keyPath: keyPath });
+                }
+            };
+            request.onsuccess = function (e: Event) {
+                let result = request.result as IDBDatabase;
+                result.onerror = errorHandler;
+                callback(result);
+            };
+        }
 
-            function errorHandler(ev: ErrorEvent) {
-                ThrowError(`indexedDB error`, ev.error);
-            }
-        })(version);
+        function getObjectStore(result: IDBDatabase, mode: IDBTransactionMode) {
+            return result.transaction(storeName, mode).objectStore(storeName);
+        }
 
+        function errorHandler(ev: ErrorEvent) {
+            ThrowError(`indexedDB error`, ev.error);
+        }
+    }
 
+    declare type LocalResImgRequest = ResImgRequest & { blob?: Blob };
+    /**
+     *  尝试启用本地资源缓存
+     * @author 3tion(https://github.com/eos3tion/)
+     * @export
+     * @param {number} [version=1] 
+     * @returns 
+     */
+    export function tryLocal(version = 1, keyPath = "uri", storeName = "res") {
+        if (egret.Capabilities.supportVersion != "Unknown") {//不处理native的情况
+            return;
+        }
+        const db = getLocalDB(version, keyPath, storeName);
+        //尝试
+        if (!db) {//无法开启 indexedDB，不做后续注入操作
+            return;
+        }
+        //当前ios10还不支持IndexedDB的Blob存储，所以如果是ios，则此值为false
+        const canUseBlob = egret.Capabilities.os == "iOS" ? false : !!(window.Blob && window.URL);
 
         function saveLocal(item: ResItem, data: any) {
             item.local = true;
