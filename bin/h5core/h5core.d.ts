@@ -9094,7 +9094,6 @@ declare module junyou {
          * @type {string[]}
          */
         protected _depends: string[];
-        protected _ready: boolean;
         /**
          * 模态
          *
@@ -9114,6 +9113,7 @@ declare module junyou {
          * @type {boolean}
          */
         preloadImage: boolean;
+        protected _readyState: RequestState;
         constructor();
         readonly isReady: boolean;
         protected init(): void;

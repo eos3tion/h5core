@@ -14520,6 +14520,7 @@ var junyou;
         __extends(Panel, _super);
         function Panel() {
             var _this = _super.call(this) || this;
+            _this._readyState = 0 /* UNREQUEST */;
             _this.init();
             return _this;
         }
@@ -14545,7 +14546,7 @@ var junyou;
         });
         Object.defineProperty(Panel.prototype, "isReady", {
             get: function () {
-                return this._ready;
+                return this._readyState == 2 /* COMPLETE */;
             },
             enumerable: true,
             configurable: true
@@ -14565,14 +14566,17 @@ var junyou;
             this._otherDepends = otherDepends;
         };
         Panel.prototype.startSync = function () {
-            if (this._otherDepends) {
-                this._depends = this._otherDepends.concat();
+            if (this._readyState == 0 /* UNREQUEST */) {
+                if (this._otherDepends) {
+                    this._depends = this._otherDepends.concat();
+                }
+                else {
+                    this._depends = [];
+                }
+                this._depends.push(this._key);
+                this._readyState = 1 /* REQUESTING */;
+                this.loadNext();
             }
-            else {
-                this._depends = [];
-            }
-            this._depends.push(this._key);
-            this.loadNext();
         };
         Panel.prototype.loadNext = function () {
             if (this._depends.length) {
@@ -14616,7 +14620,7 @@ var junyou;
                     bg.touchEnabled = true;
                 }
             }
-            this._ready = true;
+            this._readyState = 2 /* COMPLETE */;
             if (this._asyncHelper) {
                 this._asyncHelper.readyNow();
             }
