@@ -21319,6 +21319,19 @@ var junyou;
             item.state = state;
             return state;
         }
+        function bindRequest(loader, request, item, callback) {
+            request.on("complete" /* COMPLETE */, loader.onLoadFinish, loader);
+            request.on("ioError" /* IO_ERROR */, loader.onLoadFinish, loader);
+            request.item = item;
+            request.resCB = callback;
+        }
+        function looseRequest(loader, request) {
+            request.off("complete" /* COMPLETE */, loader.onLoadFinish, loader);
+            request.off("ioError" /* IO_ERROR */, loader.onLoadFinish, loader);
+            request.item = undefined;
+            request.resCB = undefined;
+            request.recycle();
+        }
         var BinLoader = (function () {
             function BinLoader(type) {
                 if (type === void 0) { type = "arraybuffer"; }
@@ -21326,25 +21339,20 @@ var junyou;
             }
             BinLoader.prototype.loadFile = function (resItem, callback) {
                 var request = junyou.recyclable(egret.HttpRequest);
-                request.once("complete" /* COMPLETE */, this.onLoadFinish, this);
-                request.once("ioError" /* IO_ERROR */, this.onLoadFinish, this);
-                request.open(resItem.url);
+                bindRequest(this, request, resItem, callback);
                 request.responseType = this.type;
-                request.item = resItem;
-                request.resCB = callback;
+                request.open(resItem.url);
                 request.send();
             };
             BinLoader.prototype.onLoadFinish = function (event) {
                 var request = event.target;
-                var item = request.item, resCB = request.resCB;
-                request.item = undefined;
-                request.resCB = undefined;
+                var item = request.item, resCB = request.resCB, response = request.response;
+                looseRequest(this, request);
                 var state = checkItemState(item, event);
                 if (state == 2 /* COMPLETE */) {
-                    item.data = request.response;
+                    item.data = response;
                 }
-                resCB.call(item);
-                resCB.recycle();
+                resCB.callAndRecycle(item);
             };
             return BinLoader;
         }());
@@ -21355,25 +21363,20 @@ var junyou;
             }
             ImageLoader.prototype.loadFile = function (resItem, callback) {
                 var request = junyou.recyclable(egret.ImageLoader);
-                request.once("complete" /* COMPLETE */, this.onLoadFinish, this);
-                request.once("ioError" /* IO_ERROR */, this.onLoadFinish, this);
-                request.item = resItem;
-                request.resCB = callback;
+                bindRequest(this, request, resItem, callback);
                 request.load(resItem.url);
             };
             ImageLoader.prototype.onLoadFinish = function (event) {
                 var request = event.target;
-                var item = request.item, resCB = request.resCB;
-                request.item = undefined;
-                request.resCB = undefined;
+                var item = request.item, resCB = request.resCB, data = request.data;
+                looseRequest(this, request);
                 var state = checkItemState(item, event);
                 if (state == 2 /* COMPLETE */) {
                     var texture = new egret.Texture();
-                    texture._setBitmapData(request.data);
+                    texture._setBitmapData(data);
                     item.data = texture;
                 }
-                resCB.call(item);
-                resCB.recycle();
+                resCB.callAndRecycle(item);
             };
             return ImageLoader;
         }());
@@ -21402,10 +21405,6 @@ var junyou;
          * 加载列队的总数
          */
         var queues = {};
-        /**
-         * 当前正在加载的数量
-         */
-        var loadingCount = 0;
         /**
          * 最大加载数量
          * 目前所有主流浏览器针对 http 1.1 单域名最大加载数均为6个
@@ -21672,14 +21671,19 @@ var junyou;
             }
             return next;
         }
+        /**
+         * 正在加载的资源列队
+         */
+        var loading = [];
         function next() {
-            while (loadingCount < maxThread) {
+            while (loading.length < maxThread) {
                 var item = getNext();
                 if (!item)
                     break;
-                loadingCount++;
+                loading.pushOnce(item);
                 var state = ~~item.state;
                 switch (state) {
+                    case -1 /* FAILED */:
                     case 2 /* COMPLETE */:
                         onItemComplete(item);
                         break;
@@ -21714,7 +21718,7 @@ var junyou;
             }
         }
         function onItemComplete(item) {
-            loadingCount--;
+            loading.remove(item);
             var state = ~~item.state;
             if (state == -1 /* FAILED */) {
                 var retry = item.retry || 1;
@@ -21723,6 +21727,7 @@ var junyou;
                     return junyou.dispatch(-187 /* ResLoadFailed */, item);
                 }
                 item.retry = retry + 1;
+                item.state = 0 /* UNREQUEST */;
                 failedList.push(item);
             }
             else if (state == 2 /* COMPLETE */) {
@@ -21941,13 +21946,12 @@ var junyou;
             };
             BApt.onLoadFinish = function (event) {
                 var request = event.target;
-                var item = request.item, resCB = request.resCB;
-                request.item = undefined;
-                request.resCB = undefined;
+                var item = request.item, resCB = request.resCB, response = request.response;
+                looseRequest(this, request);
                 var state = checkItemState(item, event);
                 var data;
                 if (state == 2 /* COMPLETE */) {
-                    data = request.response;
+                    data = response;
                 }
                 var uri = item.uri;
                 if (data && !item.local && uri) {
@@ -21955,8 +21959,7 @@ var junyou;
                     saveLocal(item, data);
                 }
                 item.data = data;
-                resCB.call(item);
-                resCB.recycle();
+                resCB.callAndRecycle(item);
             };
             var eWeb = egret.web;
             if (eWeb) {
@@ -22003,10 +22006,9 @@ var junyou;
             };
             IApt.onLoadFinish = function (event) {
                 var request = event.target;
-                var item = request.item, resCB = request.resCB, blob = request.blob;
-                request.item = undefined;
-                request.resCB = undefined;
+                var item = request.item, resCB = request.resCB, blob = request.blob, dat = request.data;
                 request.blob = undefined;
+                looseRequest(this, request);
                 var uri = item.uri;
                 if (!item.local) {
                     item.local = true;
@@ -22015,7 +22017,6 @@ var junyou;
                     if (!local) {
                         // 普通图片
                         // 尝试转换成DataURL，此方法为同步方法，可能会影响性能
-                        var dat = request.data;
                         if (dat instanceof egret.BitmapData) {
                             var img = dat.source;
                             if (!img) {
@@ -22059,11 +22060,10 @@ var junyou;
                 var state = checkItemState(item, event);
                 if (state == 2 /* COMPLETE */) {
                     var texture = new egret.Texture();
-                    texture._setBitmapData(request.data);
+                    texture._setBitmapData(dat);
                     item.data = texture;
                 }
-                resCB.call(item);
-                resCB.recycle();
+                resCB.callAndRecycle(item);
             };
             return db;
         }
