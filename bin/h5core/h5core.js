@@ -21733,18 +21733,7 @@ var junyou;
             }
             return next();
         }
-        /**
-         *  尝试启用本地资源缓存
-         * @author 3tion(https://github.com/eos3tion/)
-         * @export
-         * @param {number} [version=1]
-         * @returns
-         */
-        function tryLocal(version) {
-            if (version === void 0) { version = 1; }
-            if (egret.Capabilities.supportVersion != "Unknown") {
-                return;
-            }
+        function getLocalDB(version, keyPath, storeName) {
             //检查浏览器是否支持IndexedDB
             var w = window;
             w.indexedDB = w.indexedDB ||
@@ -21755,6 +21744,13 @@ var junyou;
                 //不支持indexedDB，不对白鹭的RES做任何调整，直接return
                 return;
             }
+            try {
+                var request = indexedDB.open(storeName, version);
+            }
+            catch (e) {
+                true && junyou.ThrowError("\u65E0\u6CD5\u5F00\u542F indexedDB,error:", e);
+                return;
+            }
             w.IDBTransaction = w.IDBTransaction ||
                 w.webkitIDBTransaction ||
                 w.msIDBTransaction;
@@ -21762,135 +21758,149 @@ var junyou;
                 w.webkitIDBKeyRange ||
                 w.msIDBKeyRange;
             w.URL = window.URL || w.webkitURL;
+            var RW = "readwrite";
+            var R = "readonly";
+            return {
+                /**
+                 * 存储资源
+                 *
+                 * @param {ResItem} data
+                 * @param {(this: IDBRequest, ev: Event) => any} callback 存储资源执行完成后的回调
+                 */
+                save: function (data, callback) {
+                    open(function (result) {
+                        var store = getObjectStore(result, RW);
+                        try {
+                            var request_1 = data.uri ? store.put(data) : store.add(data);
+                            if (callback) {
+                                request_1.onsuccess = callback;
+                                request_1.onerror = callback;
+                            }
+                        }
+                        catch (e) {
+                            return callback && callback(e);
+                        }
+                    }, function (e) { callback && callback(e); });
+                },
+                /**
+                 * 获取资源
+                 *
+                 * @param {string} url
+                 * @param {{ (data: ResItem) }} callback
+                 */
+                get: function (url, callback) {
+                    open(function (result) {
+                        var store = getObjectStore(result, R);
+                        try {
+                            var request_2 = store.get(url);
+                            request_2.onsuccess = function (e) {
+                                callback(e.target.result, url);
+                            };
+                            request_2.onerror = function () {
+                                callback(null, url);
+                            };
+                        }
+                        catch (e) {
+                            true && junyou.ThrowError("indexedDB error", e);
+                            callback(null, url);
+                        }
+                    }, function (e) { callback(null, url); });
+                },
+                /**
+                 * 删除指定资源
+                 *
+                 * @param {string} url
+                 * @param {{ (this: IDBRequest, ev: Event) }} callback 删除指定资源执行完成后的回调
+                 */
+                delete: function (url, callback) {
+                    open(function (result) {
+                        var store = getObjectStore(result, RW);
+                        try {
+                            var request_3 = store.delete(url);
+                            if (callback) {
+                                request_3.onerror = request_3.onsuccess = function (e) { callback(url, e); };
+                            }
+                        }
+                        catch (e) {
+                            return callback && callback(url, e);
+                        }
+                    }, function (e) { callback && callback(url, e); });
+                },
+                /**
+                 * 删除全部资源
+                 *
+                 * @param {{ (this: IDBRequest, ev: Event) }} callback 删除全部资源执行完成后的回调
+                 */
+                clear: function (callback) {
+                    open(function (result) {
+                        var store = getObjectStore(result, RW);
+                        try {
+                            var request_4 = store.clear();
+                            if (callback) {
+                                request_4.onsuccess = callback;
+                                request_4.onerror = callback;
+                            }
+                        }
+                        catch (e) {
+                            return callback(e);
+                        }
+                    }, callback);
+                },
+            };
+            function open(callback, onError) {
+                try {
+                    var request = indexedDB.open(storeName, version);
+                }
+                catch (e) {
+                    true && junyou.ThrowError("indexedDB error", e);
+                    return onError && onError(e);
+                }
+                request.onerror = function (e) {
+                    onError && onError(e.error);
+                    errorHandler(e);
+                };
+                request.onupgradeneeded = function (e) {
+                    var _db = e.target.result;
+                    var names = _db.objectStoreNames;
+                    if (!names.contains(storeName)) {
+                        _db.createObjectStore(storeName, { keyPath: keyPath });
+                    }
+                };
+                request.onsuccess = function (e) {
+                    var result = request.result;
+                    result.onerror = errorHandler;
+                    callback(result);
+                };
+            }
+            function getObjectStore(result, mode) {
+                return result.transaction(storeName, mode).objectStore(storeName);
+            }
+            function errorHandler(ev) {
+                junyou.ThrowError("indexedDB error", ev.error);
+            }
+        }
+        Res.getLocalDB = getLocalDB;
+        /**
+         *  尝试启用本地资源缓存
+         * @author 3tion(https://github.com/eos3tion/)
+         * @export
+         * @param {number} [version=1]
+         * @returns
+         */
+        function tryLocal(version, keyPath, storeName) {
+            if (version === void 0) { version = 1; }
+            if (keyPath === void 0) { keyPath = "uri"; }
+            if (storeName === void 0) { storeName = "res"; }
+            if (egret.Capabilities.supportVersion != "Unknown") {
+                return;
+            }
+            var db = getLocalDB(version, keyPath, storeName);
+            //尝试
+            if (!db) {
+                return;
+            }
             //当前ios10还不支持IndexedDB的Blob存储，所以如果是ios，则此值为false
             var canUseBlob = egret.Capabilities.os == "iOS" ? false : !!(window.Blob && window.URL);
-            /**
-             * 本地数据库操作
-             */
-            var db = (function (version) {
-                var keyPath = "uri";
-                var RW = "readwrite";
-                var R = "readonly";
-                var storeName = 'res';
-                return {
-                    /**
-                     * 存储资源
-                     *
-                     * @param {ResItem} data
-                     * @param {(this: IDBRequest, ev: Event) => any} callback 存储资源执行完成后的回调
-                     */
-                    save: function (data, callback) {
-                        open(function (result) {
-                            var store = getObjectStore(result, RW);
-                            try {
-                                var request = data.uri ? store.put(data) : store.add(data);
-                                if (callback) {
-                                    request.onsuccess = callback;
-                                    request.onerror = callback;
-                                }
-                            }
-                            catch (e) {
-                                return callback && callback(e);
-                            }
-                        }, function (e) { callback && callback(e); });
-                    },
-                    /**
-                     * 获取资源
-                     *
-                     * @param {string} url
-                     * @param {{ (data: ResItem) }} callback
-                     */
-                    get: function (url, callback) {
-                        open(function (result) {
-                            var store = getObjectStore(result, R);
-                            try {
-                                var request = store.get(url);
-                                request.onsuccess = function (e) {
-                                    callback(e.target.result, url);
-                                };
-                                request.onerror = function () {
-                                    callback(null, url);
-                                };
-                            }
-                            catch (e) {
-                                true && junyou.ThrowError("indexedDB error", e);
-                                callback(null, url);
-                            }
-                        }, function (e) { callback(null, url); });
-                    },
-                    /**
-                     * 删除指定资源
-                     *
-                     * @param {string} url
-                     * @param {{ (this: IDBRequest, ev: Event) }} callback 删除指定资源执行完成后的回调
-                     */
-                    delete: function (url, callback) {
-                        open(function (result) {
-                            var store = getObjectStore(result, RW);
-                            try {
-                                var request = store.delete(url);
-                                if (callback) {
-                                    request.onerror = request.onsuccess = function (e) { callback(url, e); };
-                                }
-                            }
-                            catch (e) {
-                                return callback && callback(url, e);
-                            }
-                        }, function (e) { callback && callback(url, e); });
-                    },
-                    /**
-                     * 删除全部资源
-                     *
-                     * @param {{ (this: IDBRequest, ev: Event) }} callback 删除全部资源执行完成后的回调
-                     */
-                    clear: function (callback) {
-                        open(function (result) {
-                            var store = getObjectStore(result, RW);
-                            try {
-                                var request = store.clear();
-                                if (callback) {
-                                    request.onsuccess = callback;
-                                    request.onerror = callback;
-                                }
-                            }
-                            catch (e) {
-                                return callback(e);
-                            }
-                        }, callback);
-                    },
-                };
-                function open(callback, onError) {
-                    try {
-                        var request = indexedDB.open(storeName, version);
-                    }
-                    catch (e) {
-                        true && junyou.ThrowError("indexedDB error", e);
-                        return onError && onError(e);
-                    }
-                    request.onerror = function (e) {
-                        onError && onError(e.error);
-                        errorHandler(e);
-                    };
-                    request.onupgradeneeded = function (e) {
-                        var _db = e.target.result;
-                        var names = _db.objectStoreNames;
-                        if (!names.contains(storeName)) {
-                            _db.createObjectStore(storeName, { keyPath: keyPath });
-                        }
-                    };
-                    request.onsuccess = function (e) {
-                        var result = request.result;
-                        result.onerror = errorHandler;
-                        callback(result);
-                    };
-                }
-                function getObjectStore(result, mode) {
-                    return result.transaction(storeName, mode).objectStore(storeName);
-                }
-                function errorHandler(ev) {
-                    junyou.ThrowError("indexedDB error", ev.error);
-                }
-            })(version);
             function saveLocal(item, data) {
                 item.local = true;
                 var uri = item.uri;
@@ -22007,12 +22017,12 @@ var junyou;
                             if (!img) {
                                 return;
                             }
-                            var w_1 = img.width;
+                            var w = img.width;
                             var h = img.height;
                             var type = "image/" + url.substring(url.lastIndexOf(".") + 1);
-                            canvas.width = w_1;
+                            canvas.width = w;
                             canvas.height = h;
-                            context.clearRect(0, 0, w_1, h);
+                            context.clearRect(0, 0, w, h);
                             context.drawImage(img, 0, 0);
                             try {
                                 if (canUseBlob && url.indexOf("wxLocalResource:") != 0) {

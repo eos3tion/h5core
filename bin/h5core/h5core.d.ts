@@ -12738,6 +12738,12 @@ declare module junyou.Res {
      * @param {ResQueueID} [queueID=ResQueueID.Normal]
      */
     function loadRes(resItem: ResItem, callback?: ResCallback, queueID?: ResQueueID): any;
+    function getLocalDB(version: number, keyPath: string, storeName: string): {
+        save(data: ResItem, callback?: (ev: Event | Error) => any): void;
+        get(url: string, callback: (data: ResItem, url?: string) => any): void;
+        delete(url: string, callback?: (url: string, ev: Event | Error) => any): void;
+        clear(callback?: (ev: Event | Error) => any): void;
+    };
     /**
      *  尝试启用本地资源缓存
      * @author 3tion(https://github.com/eos3tion/)
@@ -12745,7 +12751,7 @@ declare module junyou.Res {
      * @param {number} [version=1]
      * @returns
      */
-    function tryLocal(version?: number): {
+    function tryLocal(version?: number, keyPath?: string, storeName?: string): {
         save(data: ResItem, callback?: (ev: Event | Error) => any): void;
         get(url: string, callback: (data: ResItem, url?: string) => any): void;
         delete(url: string, callback?: (url: string, ev: Event | Error) => any): void;
