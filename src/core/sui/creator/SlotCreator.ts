@@ -43,7 +43,7 @@ module junyou {
          * 获取类型2的数量处理方法
          * @static
          */
-        public static getCountString = (count: number) => count < 1 ? "" : count < 10000 ? count + "" : LangUtil.getMsg("$_wan", Math.floor(count / 10000));
+        public static getCountString = (count: number) => count <= 1 ? "" : count < 10000 ? count + "" : LangUtil.getMsg("$_wan", Math.floor(count / 10000));
 
         public set data(value: any) {
             this.$setData(value);
