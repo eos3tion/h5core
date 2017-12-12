@@ -39,7 +39,7 @@ module junyou {
 		let delta = 0 | 1000 / ticker.$frameRate;
 		let temp: CallbackInfo<Function>[] = [];
 		ticker.render = function () {
-			let _now = Date.now();
+			let _now = DateUtils.serverTime;
 			let dis = _now - now;
 			now = _now;
 			if (dis > 2000) {
