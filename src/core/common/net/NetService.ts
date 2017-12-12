@@ -742,45 +742,43 @@ module junyou {
                 if (type !== undefined) {
                     let flag = true;
                     let data = undefined;
-                    if (len > 0) {
-                        if (type in NSBytesLen) {
-                            let blen = NSBytesLen[type];
-                            if (DEBUG && blen != len) {
-                                Log(`解析指令时，类型[${type}]的指令长度[${len}]和预设的长度[${blen}]不匹配`);
-                            }
-                            if (len < blen) {
-                                flag = false;
-                            }
+                    if (len > 0 && type in NSBytesLen) {
+                        let blen = NSBytesLen[type];
+                        if (DEBUG && blen != len) {
+                            Log(`解析指令时，类型[${type}]的指令长度[${len}]和预设的长度[${blen}]不匹配`);
                         }
-                        if (flag) {
-                            switch (type) {
-                                case NSType.Null:
-                                    break;
-                                case NSType.Boolean:
-                                    data = bytes.readBoolean();
-                                    break;
-                                case NSType.Double:
-                                    data = bytes.readDouble();
-                                    break;
-                                case NSType.Int32:
-                                    data = bytes.readInt();
-                                    break;
-                                case NSType.Uint32:
-                                    data = bytes.readUnsignedInt();
-                                    break;
-                                case NSType.Int64:
-                                    data = bytes.readInt64();
-                                    break;
-                                case NSType.String:
-                                    data = bytes.readUTFBytes(len);
-                                    break;
-                                case NSType.Bytes:
-                                    data = bytes.readByteArray(len);
-                                    break;
-                                default:
-                                    data = PBUtils.readFrom(<string>type, bytes, len);
-                                    break;
-                            }
+                        if (len < blen) {
+                            flag = false;
+                        }
+                    }
+                    if (flag) {
+                        switch (type) {
+                            case NSType.Null:
+                                break;
+                            case NSType.Boolean:
+                                data = bytes.readBoolean();
+                                break;
+                            case NSType.Double:
+                                data = bytes.readDouble();
+                                break;
+                            case NSType.Int32:
+                                data = bytes.readInt();
+                                break;
+                            case NSType.Uint32:
+                                data = bytes.readUnsignedInt();
+                                break;
+                            case NSType.Int64:
+                                data = bytes.readInt64();
+                                break;
+                            case NSType.String:
+                                data = bytes.readUTFBytes(len);
+                                break;
+                            case NSType.Bytes:
+                                data = bytes.readByteArray(len);
+                                break;
+                            default:
+                                data = PBUtils.readFrom(<string>type, bytes, len);
+                                break;
                         }
                     }
                     if (flag) {
