@@ -129,14 +129,18 @@ module junyou {
          *
          * @static
          */
-		readonly serverTime: number;
+		readonly utcServerTime: number;
+		/**
+		 * 通过UTC偏移过的Date
+		 */
+		readonly utcServerDate: Date;
         /**
          * 获取当前时间戳，用于和服务端的时间戳进行比较
          *
          * @readonly
          * @static
          */
-		readonly rawServerTime: number;
+		readonly serverTime: number;
         /**
          * 通过UTC偏移过的当前时间戳的Date对象
          */
@@ -200,6 +204,12 @@ module junyou {
 	 */
 
 	const _sharedDate = new Date();
+
+	/**
+	 * 获取运行时间  
+	 * 此时间为进程运行时间，不会随着调整系统时间而变动
+	 */
+	const getTimer = window.performance ? () => ~~performance.now() : Date.now;
 
 	let _defaultCountFormats: { [index: number]: CountDownFormatOption };
 	/**
@@ -271,16 +281,16 @@ module junyou {
 		 * @param {number} time
 		 */
 		setServerTime(time: number) {
-			_serverUTCTime = time - Date.now() + _utcOffset;
+			_serverUTCTime = time - getTimer() + _utcOffset;
 		},
 
 		/**
-		 * 通过UTC偏移过的当前时间戳
+		 * 通过UTC偏移过的当前时间戳，用于时间显示
 		 * 
 		 * @static
 		 */
-		get serverTime() {
-			return _serverUTCTime + Date.now();
+		get utcServerTime() {
+			return _serverUTCTime + getTimer();
 		},
 
 		/**
@@ -289,12 +299,19 @@ module junyou {
 		 * @readonly
 		 * @static
 		 */
-		get rawServerTime() {
-			return this.serverTime - _utcOffset;
+		get serverTime() {
+			return this.utcServerTime - _utcOffset;
 		},
 
 		/**
 		 * 通过UTC偏移过的当前时间戳的Date对象
+		 */
+		get utcServerDate() {
+			_sharedDate.setTime(this.utcServerTime);
+			return _sharedDate;
+		},
+		/**
+		 * 获取当前时间戳的Date对象，用于和服务端的时间戳进行比较
 		 */
 		get serverDate() {
 			_sharedDate.setTime(this.serverTime);
@@ -312,7 +329,7 @@ module junyou {
 		 */
 		getFormatTime(time: number, format: string, isRaw = true) {
 			if (isRaw) {
-				time = this.getUTCTime(time);
+				time = DateUtils.getUTCTime(time);
 			}
 			_sharedDate.setTime(time);
 			return _sharedDate.format(format);
@@ -327,7 +344,7 @@ module junyou {
 		 * @returns {number} 指定时间的当天结束(23:59:59'999)UTC强制偏移时间戳
 		 */
 		getDayEnd(utcTime?: number) {
-			if (utcTime === undefined) utcTime = this.serverTime;
+			if (utcTime === undefined) utcTime = DateUtils.serverTime;
 			_sharedDate.setTime(utcTime);
 			return _sharedDate.setUTCHours(23, 59, 59, 999);
 		},
@@ -340,7 +357,7 @@ module junyou {
 		 * @returns {Date} 指定时间的当天开始的UTC(0:0:0'0)强制偏移时间戳
 		 */
 		getDayStart(utcTime?: number) {
-			if (utcTime === undefined) utcTime = this.serverTime;
+			if (utcTime === undefined) utcTime = DateUtils.serverTime;
 			_sharedDate.setTime(utcTime);
 			return _sharedDate.setUTCHours(0, 0, 0, 0);
 		},
