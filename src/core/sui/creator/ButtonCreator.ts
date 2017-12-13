@@ -107,12 +107,16 @@ module junyou {
          * 设置按钮上的标签
          */
         public set label(value: string) {
+            if (this._label != value) {
+                this.$setLabel(value);
+            }
+        }
+
+        $setLabel(value: string) {
             let tf = this.txtLabel;
             if (tf) {
-                if (this._label != value) {
-                    tf.text = value;
-                    this._label = value;
-                }
+                tf.text = value;
+                this._label = value;
             }
         }
 
