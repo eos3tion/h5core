@@ -30,40 +30,25 @@ module junyou {
         /**
          * 模块ID
          */
-        public moduleID: string | number;
+        public moduleID: Key;
 
         /**
          * 设置原始大小和坐标
          */
-        public set suiRawRect(value: egret.Rectangle) {
-            this._baseRect = value;
-        }
-        /**
-         * 
-         * 面板在fla中的原始坐标
-         * @readonly
-         * 
-         * @memberOf Panel
-         */
-        public get suiRawRect() {
-            return this._baseRect;
-        }
-        /**
-         * 面板在fla中的原始坐标
-         * 
-         * @protected
-         * @type {egret.Rectangle}
-         */
-        protected _baseRect: egret.Rectangle;
+        suiRawRect: egret.Rectangle;
+
         /**
          * 自己的key(fla的文件名)
          */
-        protected _key: string;
+        suiLib: string;
+        /**
+         * 类名
+         */
+        suiClass: string;
         /**
          * 依赖的除lib,自己以外的其他fla
          */
         protected _otherDepends: string[];
-        protected _className: string;
         /**
          * 所有依赖的fla资源
          * 
@@ -111,8 +96,8 @@ module junyou {
         }
 
         public bind(key: string, className: string, ...otherDepends: string[]) {
-            this._key = key;
-            this._className = className;
+            this.suiLib = key;
+            this.suiClass = className;
             this._otherDepends = otherDepends;
         }
 
@@ -123,7 +108,7 @@ module junyou {
                 } else {
                     this._depends = [];
                 }
-                this._depends.push(this._key);
+                this._depends.push(this.suiLib);
                 this._readyState = RequestState.REQUESTING;
                 this.loadNext();
             }
@@ -157,7 +142,7 @@ module junyou {
 		 * 绑定皮肤
 		 */
         protected bindComponent() {
-            singleton(SuiResManager).createComponents(this._key, this._className, this);
+            singleton(SuiResManager).createComponents(this.suiLib, this.suiClass, this);
         }
 
 		/**

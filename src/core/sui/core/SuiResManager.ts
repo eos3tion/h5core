@@ -7,6 +7,14 @@ module egret {
          * @memberOf DisplayObject
          */
         suiRawRect?: egret.Rectangle;
+        /**
+         * sui的资源名称
+         */
+        suiLib?: string;
+        /**
+         * sui的引用名称
+         */
+        suiClass?: string;
     }
 }
 
@@ -315,7 +323,10 @@ module junyou {
                 let creator = suiData.lib[className];
                 if (creator) {
                     creator.setBaseData(baseData);
-                    return creator.get();
+                    let disp = creator.get();
+                    disp.suiClass = className;
+                    disp.suiLib = uri;
+                    return disp;
                 } else if (DEBUG) {
                     ThrowError(`没有在[${suiData.key}]找到对应组件[${className}]`);
                 }
@@ -343,7 +354,9 @@ module junyou {
                 if (cRef) {
                     let creator = new cRef();
                     creator.parseData(data, suiData);
-                    return creator.get();
+                    let dis = creator.get();
+                    dis.suiLib = suiData.key;
+                    return dis;
                 } else if (DEBUG) {
                     ThrowError(`createElement时，没有找到对应组件，索引：[${+data[0]}]`);
                 }
@@ -500,6 +513,8 @@ module junyou {
                     if (panelData) {
                         const [sizeData, compsData] = panelData;
                         view.suiRawRect = new egret.Rectangle(sizeData[0], sizeData[1], sizeData[2], sizeData[3]);
+                        view.suiClass = className;
+                        view.suiLib = key;
                         this._createComponents(suiData, view, compsData);
                     }
                 }
@@ -580,6 +595,8 @@ module junyou {
                     if (type == ExportType.ExportedContainer) {
                         let className = suiData.panelNames[~~sd];
                         let v = new View(libKey, className);
+                        v.suiClass = className;
+                        v.suiLib = libKey;
                         SuiResManager.initBaseData(v, bd);
                         return v;
                     } else {
