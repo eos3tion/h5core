@@ -238,7 +238,7 @@ module junyou {
                 let list = [];
                 let j = 0;
                 for (let i = node.step; i > 0; i--) {
-                    list[j++] = node;
+                    list[i - 1] = node;
                     node = node.prev;
                 }
                 return list;

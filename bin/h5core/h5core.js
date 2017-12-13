@@ -4179,45 +4179,43 @@ var junyou;
                 if (type !== undefined) {
                     var flag = true;
                     var data = undefined;
-                    if (len > 0) {
-                        if (type in junyou.NSBytesLen) {
-                            var blen = junyou.NSBytesLen[type];
-                            if (true && blen != len) {
-                                junyou.Log("\u89E3\u6790\u6307\u4EE4\u65F6\uFF0C\u7C7B\u578B[" + type + "]\u7684\u6307\u4EE4\u957F\u5EA6[" + len + "]\u548C\u9884\u8BBE\u7684\u957F\u5EA6[" + blen + "]\u4E0D\u5339\u914D");
-                            }
-                            if (len < blen) {
-                                flag = false;
-                            }
+                    if (len > 0 && type in junyou.NSBytesLen) {
+                        var blen = junyou.NSBytesLen[type];
+                        if (true && blen != len) {
+                            junyou.Log("\u89E3\u6790\u6307\u4EE4\u65F6\uFF0C\u7C7B\u578B[" + type + "]\u7684\u6307\u4EE4\u957F\u5EA6[" + len + "]\u548C\u9884\u8BBE\u7684\u957F\u5EA6[" + blen + "]\u4E0D\u5339\u914D");
                         }
-                        if (flag) {
-                            switch (type) {
-                                case 0 /* Null */:
-                                    break;
-                                case 1 /* Boolean */:
-                                    data = bytes.readBoolean();
-                                    break;
-                                case 5 /* Double */:
-                                    data = bytes.readDouble();
-                                    break;
-                                case 6 /* Int32 */:
-                                    data = bytes.readInt();
-                                    break;
-                                case 7 /* Uint32 */:
-                                    data = bytes.readUnsignedInt();
-                                    break;
-                                case 8 /* Int64 */:
-                                    data = bytes.readInt64();
-                                    break;
-                                case 2 /* String */:
-                                    data = bytes.readUTFBytes(len);
-                                    break;
-                                case 4 /* Bytes */:
-                                    data = bytes.readByteArray(len);
-                                    break;
-                                default:
-                                    data = junyou.PBUtils.readFrom(type, bytes, len);
-                                    break;
-                            }
+                        if (len < blen) {
+                            flag = false;
+                        }
+                    }
+                    if (flag) {
+                        switch (type) {
+                            case 0 /* Null */:
+                                break;
+                            case 1 /* Boolean */:
+                                data = bytes.readBoolean();
+                                break;
+                            case 5 /* Double */:
+                                data = bytes.readDouble();
+                                break;
+                            case 6 /* Int32 */:
+                                data = bytes.readInt();
+                                break;
+                            case 7 /* Uint32 */:
+                                data = bytes.readUnsignedInt();
+                                break;
+                            case 8 /* Int64 */:
+                                data = bytes.readInt64();
+                                break;
+                            case 2 /* String */:
+                                data = bytes.readUTFBytes(len);
+                                break;
+                            case 4 /* Bytes */:
+                                data = bytes.readByteArray(len);
+                                break;
+                            default:
+                                data = junyou.PBUtils.readFrom(type, bytes, len);
+                                break;
                         }
                     }
                     if (flag) {
@@ -6664,7 +6662,7 @@ var junyou;
         var delta = 0 | 1000 / ticker.$frameRate;
         var temp = [];
         ticker.render = function () {
-            var _now = Date.now();
+            var _now = junyou.DateUtils.serverTime;
             var dis = _now - now;
             now = _now;
             if (dis > 2000) {
@@ -6806,6 +6804,11 @@ var junyou;
      * DateUtils
      */
     var _sharedDate = new Date();
+    /**
+     * 获取运行时间
+     * 此时间为进程运行时间，不会随着调整系统时间而变动
+     */
+    var getTimer = window.performance ? function () { return ~~performance.now(); } : Date.now;
     var _defaultCountFormats;
     /**
      * 基于UTC的时间偏移
@@ -6873,15 +6876,15 @@ var junyou;
          * @param {number} time
          */
         setServerTime: function (time) {
-            _serverUTCTime = time - Date.now() + _utcOffset;
+            _serverUTCTime = time - getTimer() + _utcOffset;
         },
         /**
-         * 通过UTC偏移过的当前时间戳
+         * 通过UTC偏移过的当前时间戳，用于时间显示
          *
          * @static
          */
-        get serverTime() {
-            return _serverUTCTime + Date.now();
+        get utcServerTime() {
+            return _serverUTCTime + getTimer();
         },
         /**
          * 获取当前时间戳，用于和服务端的时间戳进行比较
@@ -6889,11 +6892,18 @@ var junyou;
          * @readonly
          * @static
          */
-        get rawServerTime() {
-            return this.serverTime - _utcOffset;
+        get serverTime() {
+            return this.utcServerTime - _utcOffset;
         },
         /**
          * 通过UTC偏移过的当前时间戳的Date对象
+         */
+        get utcServerDate() {
+            _sharedDate.setTime(this.utcServerTime);
+            return _sharedDate;
+        },
+        /**
+         * 获取当前时间戳的Date对象，用于和服务端的时间戳进行比较
          */
         get serverDate() {
             _sharedDate.setTime(this.serverTime);
@@ -6911,7 +6921,7 @@ var junyou;
         getFormatTime: function (time, format, isRaw) {
             if (isRaw === void 0) { isRaw = true; }
             if (isRaw) {
-                time = this.getUTCTime(time);
+                time = junyou.DateUtils.getUTCTime(time);
             }
             _sharedDate.setTime(time);
             return _sharedDate.format(format);
@@ -6925,7 +6935,7 @@ var junyou;
          */
         getDayEnd: function (utcTime) {
             if (utcTime === undefined)
-                utcTime = this.serverTime;
+                utcTime = junyou.DateUtils.serverTime;
             _sharedDate.setTime(utcTime);
             return _sharedDate.setUTCHours(23, 59, 59, 999);
         },
@@ -6938,7 +6948,7 @@ var junyou;
          */
         getDayStart: function (utcTime) {
             if (utcTime === undefined)
-                utcTime = this.serverTime;
+                utcTime = junyou.DateUtils.serverTime;
             _sharedDate.setTime(utcTime);
             return _sharedDate.setUTCHours(0, 0, 0, 0);
         },
@@ -10597,7 +10607,7 @@ var junyou;
                 var list = [];
                 var j = 0;
                 for (var i = node.step; i > 0; i--) {
-                    list[j++] = node;
+                    list[i - 1] = node;
                     node = node.prev;
                 }
                 return list;
