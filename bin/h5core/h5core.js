@@ -2381,6 +2381,7 @@ var junyou;
          */
         UnitAction.prototype.start = function (unit, now) {
             this._isEnd = false;
+            return true;
         };
         /**
          * 动作执行数据计算<br/>
@@ -11632,9 +11633,19 @@ var junyou;
                 flag = true;
             }
             if (flag) {
-                currentAction = action;
-                currentAction.start(this, now);
+                if (action.start(this, now)) {
+                    currentAction = action;
+                }
+                else {
+                    action.recycle();
+                    currentAction = this.aStandBy;
+                }
                 this._currentAction = currentAction;
+                var next = this._nextAction;
+                if (next) {
+                    next.recycle();
+                    this._nextAction = undefined; //成功切换了动作，清理下一个动作
+                }
             }
             currentAction.playAction(this, this._mountType, now);
             return flag;

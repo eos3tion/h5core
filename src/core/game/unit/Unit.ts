@@ -434,9 +434,18 @@ module junyou {
                 flag = true;
             }
             if (flag) {
-                currentAction = action;
-                currentAction.start(this, now);
+                if (action.start(this, now)) {//无法执行
+                    currentAction = action;
+                } else {
+                    action.recycle();
+                    currentAction = this.aStandBy;
+                }
                 this._currentAction = currentAction;
+                let next = this._nextAction;
+                if (next) {
+                    next.recycle();
+                    this._nextAction = undefined;//成功切换了动作，清理下一个动作
+                }
             }
             currentAction.playAction(this, this._mountType, now);
             return flag;

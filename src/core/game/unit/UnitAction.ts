@@ -77,6 +77,7 @@ module junyou {
          */
         public start(unit: Unit, now: number) {
             this._isEnd = false;
+            return true;
         }
 
         /**
