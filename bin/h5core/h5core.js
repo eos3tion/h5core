@@ -4398,17 +4398,20 @@ var junyou;
              * 设置按钮上的标签
              */
             set: function (value) {
-                var tf = this.txtLabel;
-                if (tf) {
-                    if (this._label != value) {
-                        tf.text = value;
-                        this._label = value;
-                    }
+                if (this._label != value) {
+                    this.$setLabel(value);
                 }
             },
             enumerable: true,
             configurable: true
         });
+        Button.prototype.$setLabel = function (value) {
+            var tf = this.txtLabel;
+            if (tf) {
+                tf.text = value;
+                this._label = value;
+            }
+        };
         Button.prototype.$setEnabled = function (value) {
             _super.prototype.$setEnabled.call(this, value);
             this.refresh();
@@ -14545,26 +14548,6 @@ var junyou;
             _this.init();
             return _this;
         }
-        Object.defineProperty(Panel.prototype, "suiRawRect", {
-            /**
-             *
-             * 面板在fla中的原始坐标
-             * @readonly
-             *
-             * @memberOf Panel
-             */
-            get: function () {
-                return this._baseRect;
-            },
-            /**
-             * 设置原始大小和坐标
-             */
-            set: function (value) {
-                this._baseRect = value;
-            },
-            enumerable: true,
-            configurable: true
-        });
         Object.defineProperty(Panel.prototype, "isReady", {
             get: function () {
                 return this._readyState == 2 /* COMPLETE */;
@@ -14582,8 +14565,8 @@ var junyou;
             for (var _i = 2; _i < arguments.length; _i++) {
                 otherDepends[_i - 2] = arguments[_i];
             }
-            this._key = key;
-            this._className = className;
+            this.suiLib = key;
+            this.suiClass = className;
             this._otherDepends = otherDepends;
         };
         Panel.prototype.startSync = function () {
@@ -14594,7 +14577,7 @@ var junyou;
                 else {
                     this._depends = [];
                 }
-                this._depends.push(this._key);
+                this._depends.push(this.suiLib);
                 this._readyState = 1 /* REQUESTING */;
                 this.loadNext();
             }
@@ -14625,7 +14608,7 @@ var junyou;
          * 绑定皮肤
          */
         Panel.prototype.bindComponent = function () {
-            junyou.singleton(junyou.SuiResManager).createComponents(this._key, this._className, this);
+            junyou.singleton(junyou.SuiResManager).createComponents(this.suiLib, this.suiClass, this);
         };
         /**
          * 皮肤数据加载完成
@@ -17181,7 +17164,10 @@ var junyou;
                 var creator = suiData.lib[className];
                 if (creator) {
                     creator.setBaseData(baseData);
-                    return creator.get();
+                    var disp = creator.get();
+                    disp.suiClass = className;
+                    disp.suiLib = uri;
+                    return disp;
                 }
                 else if (true) {
                     junyou.ThrowError("\u6CA1\u6709\u5728[" + suiData.key + "]\u627E\u5230\u5BF9\u5E94\u7EC4\u4EF6[" + className + "]");
@@ -17209,7 +17195,9 @@ var junyou;
                 if (cRef) {
                     var creator = new cRef();
                     creator.parseData(data, suiData);
-                    return creator.get();
+                    var dis = creator.get();
+                    dis.suiLib = suiData.key;
+                    return dis;
                 }
                 else if (true) {
                     junyou.ThrowError("createElement\u65F6\uFF0C\u6CA1\u6709\u627E\u5230\u5BF9\u5E94\u7EC4\u4EF6\uFF0C\u7D22\u5F15\uFF1A[" + +data[0] + "]");
@@ -17357,6 +17345,8 @@ var junyou;
                     if (panelData) {
                         var sizeData = panelData[0], compsData = panelData[1];
                         view.suiRawRect = new egret.Rectangle(sizeData[0], sizeData[1], sizeData[2], sizeData[3]);
+                        view.suiClass = className;
+                        view.suiLib = key;
                         this._createComponents(suiData, view, compsData);
                     }
                 }
@@ -17437,6 +17427,8 @@ var junyou;
                     if (type == 18 /* ExportedContainer */) {
                         var className = suiData.panelNames[~~sd];
                         var v = new junyou.View(libKey, className);
+                        v.suiClass = className;
+                        v.suiLib = libKey;
                         SuiResManager.initBaseData(v, bd);
                         return v;
                     }

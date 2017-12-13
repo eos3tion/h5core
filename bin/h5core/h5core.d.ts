@@ -2940,6 +2940,7 @@ declare module junyou {
          * 设置按钮上的标签
          */
         label: string;
+        $setLabel(value: string): void;
         protected $setEnabled(value: boolean): void;
         /**
          * 获取当前按钮选中状态
@@ -9063,34 +9064,23 @@ declare module junyou {
         /**
          * 模块ID
          */
-        moduleID: string | number;
-        /**
-         *
-         * 面板在fla中的原始坐标
-         * @readonly
-         *
-         * @memberOf Panel
-         */
+        moduleID: Key;
         /**
          * 设置原始大小和坐标
          */
         suiRawRect: egret.Rectangle;
         /**
-         * 面板在fla中的原始坐标
-         *
-         * @protected
-         * @type {egret.Rectangle}
-         */
-        protected _baseRect: egret.Rectangle;
-        /**
          * 自己的key(fla的文件名)
          */
-        protected _key: string;
+        suiLib: string;
+        /**
+         * 类名
+         */
+        suiClass: string;
         /**
          * 依赖的除lib,自己以外的其他fla
          */
         protected _otherDepends: string[];
-        protected _className: string;
         /**
          * 所有依赖的fla资源
          *
@@ -10282,6 +10272,14 @@ declare module egret {
          * @memberOf DisplayObject
          */
         suiRawRect?: egret.Rectangle;
+        /**
+         * sui的资源名称
+         */
+        suiLib?: string;
+        /**
+         * sui的引用名称
+         */
+        suiClass?: string;
     }
 }
 declare module junyou {
