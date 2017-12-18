@@ -360,6 +360,7 @@ interface StringConstructor {
 }
 
 String.zeroize = zeroize;
+String.subHandler = {};
 
 String.regSubHandler = function (key, handler) {
     if (DEBUG) {
