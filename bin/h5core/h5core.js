@@ -4943,110 +4943,73 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
-     * 单位管理器
-     * @author 3tion
-     *
+     * 模型(纸娃娃)渲染器
      */
-    var UnitController = (function () {
-        function UnitController() {
-            this._domains = {};
-            this._domainCounts = {};
-            this._domains[0 /* All */] = this._domainAll = {};
-            this._domainCounts[0 /* All */] = 0;
+    var UnitRender = (function (_super) {
+        __extends(UnitRender, _super);
+        function UnitRender(unit) {
+            var _this = _super.call(this) || this;
+            _this.faceTo = 0;
+            _this.nextRenderTime = 0;
+            _this.renderedTime = 0;
+            _this.unit = unit;
+            _this.reset(junyou.Global.now);
+            return _this;
         }
-        UnitController.prototype.registerUnit = function () {
-            var args = arguments;
-            var unit = args[0];
-            var guid = unit.guid;
-            var _a = this, _domains = _a._domains, _domainCounts = _a._domainCounts;
-            for (var i = 1; i < args.length; i++) {
-                var domain = args[i];
-                var dom = _domains[domain];
-                if (!dom) {
-                    dom = {};
-                    _domains[domain] = dom;
-                    _domainCounts[domain] = 0;
-                }
-                dom[guid] = unit;
-            }
-            this._domainAll[guid] = unit;
+        UnitRender.prototype.reset = function (now) {
+            this.renderedTime = now;
+            this.nextRenderTime = now;
+            this.idx = 0;
         };
         /**
-         * 移除单位
-         * @param guid
-         * @return
+         * 处理数据
          *
+         * @param {number} now 时间戳
          */
-        UnitController.prototype.removeUnit = function (guid) {
-            var unit = this._domainAll[guid];
-            if (unit) {
-                var _a = this, _domainCounts = _a._domainCounts, _domains = _a._domains;
-                _domainCounts[0 /* All */]--;
-                for (var key in _domains) {
-                    var domain = _domains[key];
-                    var tunit = domain[guid];
-                    if (tunit) {
-                        _domainCounts[key]--;
-                        delete domain[guid];
-                    }
-                }
+        UnitRender.prototype.doData = function (now) {
+            var actionInfo = this.actionInfo;
+            if (actionInfo) {
+                this.onData(actionInfo, now);
             }
-            return unit;
         };
-        /**
-         *
-         * 获取指定域的单位集合
-         * @param {number} domain 指定域
-         * @returns
-         */
-        UnitController.prototype.get = function (domain) {
-            return this._domains[domain];
-        };
-        /**
-         * 获取指定域的单位数量
-         * @param domain
-         * @return
-         *
-         */
-        UnitController.prototype.getCount = function (domain) {
-            return this._domainCounts[domain];
-        };
-        /**
-         * 根据GUID获取JUnit
-         * @param guid
-         * @return
-         *
-         */
-        UnitController.prototype.getUnit = function (guid) {
-            return this._domainAll[guid];
-        };
-        /**
-         *
-         * 清理对象
-         * @param {...Key[]} exceptGuids 需要保留的单位的GUID列表
-         */
-        UnitController.prototype.clear = function () {
-            var exceptGuids = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                exceptGuids[_i] = arguments[_i];
+        UnitRender.prototype.render = function (now) {
+            var actionInfo = this.actionInfo;
+            if (actionInfo) {
+                this.onData(actionInfo, now);
+                this.doRender(now);
             }
-            var gcList = junyou.Temp.SharedArray1;
-            var i = 0;
-            for (var guid in this._domainAll) {
-                if (!exceptGuids || !~exceptGuids.indexOf(guid)) {
-                    gcList[i++] = guid;
-                }
-            }
-            gcList.length = i;
-            while (--i >= 0) {
-                this.removeUnit(gcList[i]);
-            }
-            gcList.length = 0;
         };
-        return UnitController;
-    }());
-    junyou.UnitController = UnitController;
-    __reflect(UnitController.prototype, "junyou.UnitController");
+        UnitRender.prototype.onData = function (actionInfo, now) {
+            _super.prototype.onData.call(this, actionInfo, now);
+            this.unit.lastFrame = this.willRenderFrame;
+        };
+        UnitRender.prototype.clearRes = function () {
+            //清空显示
+            for (var _i = 0, _a = this.model.$children; _i < _a.length; _i++) {
+                var res = _a[_i];
+                res.bitmapData = undefined;
+            }
+        };
+        UnitRender.prototype.renderFrame = function (frame, now) {
+            var flag = this.model.renderFrame(frame, now, this.faceTo, this);
+            this.unit.onRenderFrame(now);
+            if (flag) {
+                this.willRenderFrame = undefined;
+            }
+        };
+        UnitRender.prototype.dispatchEvent = function (event, now) {
+            this.unit.fire(event, now);
+        };
+        UnitRender.prototype.doComplete = function (now) {
+            this.unit.playComplete(now);
+        };
+        UnitRender.prototype.dispose = function () {
+            this.unit = undefined;
+        };
+        return UnitRender;
+    }(junyou.BaseRender));
+    junyou.UnitRender = UnitRender;
+    __reflect(UnitRender.prototype, "junyou.UnitRender");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -12244,6 +12207,114 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
+    /**
+     * 单位管理器
+     * @author 3tion
+     *
+     */
+    var UnitController = (function () {
+        function UnitController() {
+            this._domains = {};
+            this._domainCounts = {};
+            this._domains[0 /* All */] = this._domainAll = {};
+            this._domainCounts[0 /* All */] = 0;
+        }
+        UnitController.prototype.registerUnit = function () {
+            var args = arguments;
+            var unit = args[0];
+            var guid = unit.guid;
+            var _a = this, _domains = _a._domains, _domainCounts = _a._domainCounts;
+            for (var i = 1; i < args.length; i++) {
+                var domain = args[i];
+                var dom = _domains[domain];
+                if (!dom) {
+                    dom = {};
+                    _domains[domain] = dom;
+                    _domainCounts[domain] = 0;
+                }
+                dom[guid] = unit;
+            }
+            this._domainAll[guid] = unit;
+        };
+        /**
+         * 移除单位
+         * @param guid
+         * @return
+         *
+         */
+        UnitController.prototype.removeUnit = function (guid) {
+            var unit = this._domainAll[guid];
+            if (unit) {
+                var _a = this, _domainCounts = _a._domainCounts, _domains = _a._domains;
+                _domainCounts[0 /* All */]--;
+                for (var key in _domains) {
+                    var domain = _domains[key];
+                    var tunit = domain[guid];
+                    if (tunit) {
+                        _domainCounts[key]--;
+                        delete domain[guid];
+                    }
+                }
+            }
+            return unit;
+        };
+        /**
+         *
+         * 获取指定域的单位集合
+         * @param {number} domain 指定域
+         * @returns
+         */
+        UnitController.prototype.get = function (domain) {
+            return this._domains[domain];
+        };
+        /**
+         * 获取指定域的单位数量
+         * @param domain
+         * @return
+         *
+         */
+        UnitController.prototype.getCount = function (domain) {
+            return this._domainCounts[domain];
+        };
+        /**
+         * 根据GUID获取JUnit
+         * @param guid
+         * @return
+         *
+         */
+        UnitController.prototype.getUnit = function (guid) {
+            return this._domainAll[guid];
+        };
+        /**
+         *
+         * 清理对象
+         * @param {...Key[]} exceptGuids 需要保留的单位的GUID列表
+         */
+        UnitController.prototype.clear = function () {
+            var exceptGuids = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                exceptGuids[_i] = arguments[_i];
+            }
+            var gcList = junyou.Temp.SharedArray1;
+            var i = 0;
+            for (var guid in this._domainAll) {
+                if (!exceptGuids || !~exceptGuids.indexOf(guid)) {
+                    gcList[i++] = guid;
+                }
+            }
+            gcList.length = i;
+            while (--i >= 0) {
+                this.removeUnit(gcList[i]);
+            }
+            gcList.length = 0;
+        };
+        return UnitController;
+    }());
+    junyou.UnitController = UnitController;
+    __reflect(UnitController.prototype, "junyou.UnitController");
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
     function getData(valueList, keyList, o) {
         o = o || {};
         for (var i = 0, len = keyList.length; i < len; i++) {
@@ -12416,77 +12487,6 @@ var junyou;
             }
         }
     };
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * 模型(纸娃娃)渲染器
-     */
-    var UnitRender = (function (_super) {
-        __extends(UnitRender, _super);
-        function UnitRender(unit) {
-            var _this = _super.call(this) || this;
-            _this.faceTo = 0;
-            _this.nextRenderTime = 0;
-            _this.renderedTime = 0;
-            _this.unit = unit;
-            _this.reset(junyou.Global.now);
-            return _this;
-        }
-        UnitRender.prototype.reset = function (now) {
-            this.renderedTime = now;
-            this.nextRenderTime = now;
-            this.idx = 0;
-        };
-        /**
-         * 处理数据
-         *
-         * @param {number} now 时间戳
-         */
-        UnitRender.prototype.doData = function (now) {
-            var actionInfo = this.actionInfo;
-            if (actionInfo) {
-                this.onData(actionInfo, now);
-            }
-        };
-        UnitRender.prototype.render = function (now) {
-            var actionInfo = this.actionInfo;
-            if (actionInfo) {
-                this.onData(actionInfo, now);
-                this.doRender(now);
-            }
-        };
-        UnitRender.prototype.onData = function (actionInfo, now) {
-            _super.prototype.onData.call(this, actionInfo, now);
-            this.unit.lastFrame = this.willRenderFrame;
-        };
-        UnitRender.prototype.clearRes = function () {
-            //清空显示
-            for (var _i = 0, _a = this.model.$children; _i < _a.length; _i++) {
-                var res = _a[_i];
-                res.bitmapData = undefined;
-            }
-        };
-        UnitRender.prototype.renderFrame = function (frame, now) {
-            var flag = this.model.renderFrame(frame, now, this.faceTo, this);
-            this.unit.onRenderFrame(now);
-            if (flag) {
-                this.willRenderFrame = undefined;
-            }
-        };
-        UnitRender.prototype.dispatchEvent = function (event, now) {
-            this.unit.fire(event, now);
-        };
-        UnitRender.prototype.doComplete = function (now) {
-            this.unit.playComplete(now);
-        };
-        UnitRender.prototype.dispose = function () {
-            this.unit = undefined;
-        };
-        return UnitRender;
-    }(junyou.BaseRender));
-    junyou.UnitRender = UnitRender;
-    __reflect(UnitRender.prototype, "junyou.UnitRender");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -20505,6 +20505,74 @@ var junyou;
     }());
     junyou.ToolTipManager = ToolTipManager;
     __reflect(ToolTipManager.prototype, "junyou.ToolTipManager");
+})(junyou || (junyou = {}));
+/**
+ * JavaScript code to detect available availability of a
+ * particular font in a browser using JavaScript and CSS.
+ *
+ * Author : Lalit Patel
+ * Website: http://www.lalit.org/lab/javascript-css-font-detect/
+ * License: Apache Software License 2.0
+ *          http://www.apache.org/licenses/LICENSE-2.0
+ * Version: 0.15 (21 Sep 2009)
+ *          Changed comparision font to default from sans-default-default,
+ *          as in FF3.0 font of child element didn't fallback
+ *          to parent element if the font is missing.
+ * Version: 0.2 (04 Mar 2012)
+ *          Comparing font against all the 3 generic font families ie,
+ *          'monospace', 'sans-serif' and 'sans'. If it doesn't match all 3
+ *          then that font is 100% not available in the system
+ * Version: 0.3 (24 Mar 2012)
+ *          Replaced sans with serif in the list of baseFonts
+ */
+/**
+ * Usage: d = new Detector();
+ *        d.detect('font name');
+ */
+var junyou;
+(function (junyou) {
+    var Font;
+    (function (Font) {
+        // a font will be compared against all the three default fonts.
+        // and if it doesn't match all 3 then that font is not available.
+        var baseFonts = ['monospace', 'sans-serif', 'serif'];
+        //we use m or w because these two characters take up the maximum width.
+        // And we use a LLi so that the same matching fonts can get separated
+        var testString = "mmmmmmmmmmlli";
+        //we test using 72px font size, we may use any size. I guess larger the better.
+        var testSize = '72px';
+        var h = document.getElementsByTagName("body")[0];
+        // create a SPAN in the document to get the width of the text we use to test
+        var s = document.createElement("span");
+        s.style.fontSize = testSize;
+        s.innerHTML = testString;
+        var defaultWidth = {};
+        var defaultHeight = {};
+        for (var index in baseFonts) {
+            //get the default width for the three base fonts
+            s.style.fontFamily = baseFonts[index];
+            h.appendChild(s);
+            defaultWidth[baseFonts[index]] = s.offsetWidth; //width for the default font
+            defaultHeight[baseFonts[index]] = s.offsetHeight; //height for the defualt font
+            h.removeChild(s);
+        }
+        /**
+         * 检查是否有系统字体
+         * @param font
+         */
+        function detect(font) {
+            var detected = false;
+            for (var index in baseFonts) {
+                s.style.fontFamily = font + ',' + baseFonts[index]; // name of the font along with the base font for fallback.
+                h.appendChild(s);
+                var matched = (s.offsetWidth != defaultWidth[baseFonts[index]] || s.offsetHeight != defaultHeight[baseFonts[index]]);
+                h.removeChild(s);
+                detected = detected || matched;
+            }
+            return detected;
+        }
+        Font.detect = detect;
+    })(Font = junyou.Font || (junyou.Font = {}));
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {

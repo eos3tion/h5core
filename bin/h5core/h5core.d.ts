@@ -3139,102 +3139,31 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     * 场景单位域的类型
-     *
-     * @export
-     * @enum {number}
+     * 模型(纸娃娃)渲染器
      */
-    const enum UnitDomainType {
+    class UnitRender extends BaseRender {
+        faceTo: number;
+        /**单位**/
+        protected unit: Unit;
+        actionInfo: ActionInfo;
+        model: UModel;
+        protected nextRenderTime: number;
+        protected renderedTime: number;
+        constructor(unit: Unit);
+        reset(now: number): void;
         /**
-         * 所有单位
-         */
-        All = 0,
-        /**
-         * 角色
-         */
-        Role = 1,
-        /**
-         * 怪物
-         */
-        Monster = 2,
-    }
-    type UnitDomain = $UnitDomain<Unit>;
-    type $UnitDomain<T extends Unit> = {
-        [guid: string]: T;
-    };
-    /**
-     * 单位管理器
-     * @author 3tion
-     *
-     */
-    class UnitController<T extends Unit> {
-        /**
-         * 按类型存放的域
+         * 处理数据
          *
-         * @protected
-         * @type {{ [unitDomainType: number]: $UnitDomain<T> }}
+         * @param {number} now 时间戳
          */
-        protected _domains: {
-            [unitDomainType: number]: $UnitDomain<T>;
-        };
-        /**
-         * 用于存放单位数量的字典
-         *
-         * @protected
-         * @type {{ [unitDomainType: number]: number }}
-         */
-        protected _domainCounts: {
-            [unitDomainType: number]: number;
-        };
-        /**
-         * 所有单位存放的域
-         *
-         * @protected
-         * @type {UnitDomain}
-         */
-        protected _domainAll: $UnitDomain<T>;
-        constructor();
-        /**
-         * 注册一个单位
-         * @param unit
-         * @param domains
-         *
-         */
-        registerUnit(unit: T, ...domains: any[]): any;
-        /**
-         * 移除单位
-         * @param guid
-         * @return
-         *
-         */
-        removeUnit(guid: Key): T;
-        /**
-         *
-         * 获取指定域的单位集合
-         * @param {number} domain 指定域
-         * @returns
-         */
-        get(domain: number): $UnitDomain<T>;
-        /**
-         * 获取指定域的单位数量
-         * @param domain
-         * @return
-         *
-         */
-        getCount(domain: number): number;
-        /**
-         * 根据GUID获取JUnit
-         * @param guid
-         * @return
-         *
-         */
-        getUnit(guid: Key): T;
-        /**
-         *
-         * 清理对象
-         * @param {...Key[]} exceptGuids 需要保留的单位的GUID列表
-         */
-        clear(...exceptGuids: Key[]): void;
+        doData(now: number): void;
+        render(now: number): void;
+        onData(actionInfo: ActionInfo, now: number): void;
+        clearRes(): void;
+        renderFrame(frame: FrameInfo, now: number): void;
+        dispatchEvent(event: string, now: number): void;
+        doComplete(now: number): void;
+        dispose(): void;
     }
 }
 declare module junyou {
@@ -7313,6 +7242,106 @@ declare module junyou {
     }
 }
 declare module junyou {
+    /**
+     * 场景单位域的类型
+     *
+     * @export
+     * @enum {number}
+     */
+    const enum UnitDomainType {
+        /**
+         * 所有单位
+         */
+        All = 0,
+        /**
+         * 角色
+         */
+        Role = 1,
+        /**
+         * 怪物
+         */
+        Monster = 2,
+    }
+    type UnitDomain = $UnitDomain<Unit>;
+    type $UnitDomain<T extends Unit> = {
+        [guid: string]: T;
+    };
+    /**
+     * 单位管理器
+     * @author 3tion
+     *
+     */
+    class UnitController<T extends Unit> {
+        /**
+         * 按类型存放的域
+         *
+         * @protected
+         * @type {{ [unitDomainType: number]: $UnitDomain<T> }}
+         */
+        protected _domains: {
+            [unitDomainType: number]: $UnitDomain<T>;
+        };
+        /**
+         * 用于存放单位数量的字典
+         *
+         * @protected
+         * @type {{ [unitDomainType: number]: number }}
+         */
+        protected _domainCounts: {
+            [unitDomainType: number]: number;
+        };
+        /**
+         * 所有单位存放的域
+         *
+         * @protected
+         * @type {UnitDomain}
+         */
+        protected _domainAll: $UnitDomain<T>;
+        constructor();
+        /**
+         * 注册一个单位
+         * @param unit
+         * @param domains
+         *
+         */
+        registerUnit(unit: T, ...domains: any[]): any;
+        /**
+         * 移除单位
+         * @param guid
+         * @return
+         *
+         */
+        removeUnit(guid: Key): T;
+        /**
+         *
+         * 获取指定域的单位集合
+         * @param {number} domain 指定域
+         * @returns
+         */
+        get(domain: number): $UnitDomain<T>;
+        /**
+         * 获取指定域的单位数量
+         * @param domain
+         * @return
+         *
+         */
+        getCount(domain: number): number;
+        /**
+         * 根据GUID获取JUnit
+         * @param guid
+         * @return
+         *
+         */
+        getUnit(guid: Key): T;
+        /**
+         *
+         * 清理对象
+         * @param {...Key[]} exceptGuids 需要保留的单位的GUID列表
+         */
+        clear(...exceptGuids: Key[]): void;
+    }
+}
+declare module junyou {
     interface DataUtilsType {
         /**
          * 将配置from中 type		data1	data2	data3	data4...这些配置，解析存储到
@@ -7466,35 +7495,6 @@ declare module junyou {
      *
      */
     const DataUtils: DataUtilsType;
-}
-declare module junyou {
-    /**
-     * 模型(纸娃娃)渲染器
-     */
-    class UnitRender extends BaseRender {
-        faceTo: number;
-        /**单位**/
-        protected unit: Unit;
-        actionInfo: ActionInfo;
-        model: UModel;
-        protected nextRenderTime: number;
-        protected renderedTime: number;
-        constructor(unit: Unit);
-        reset(now: number): void;
-        /**
-         * 处理数据
-         *
-         * @param {number} now 时间戳
-         */
-        doData(now: number): void;
-        render(now: number): void;
-        onData(actionInfo: ActionInfo, now: number): void;
-        clearRes(): void;
-        renderFrame(frame: FrameInfo, now: number): void;
-        dispatchEvent(event: string, now: number): void;
-        doComplete(now: number): void;
-        dispose(): void;
-    }
 }
 declare module junyou {
     class UnitSetting {
@@ -11955,6 +11955,38 @@ declare module junyou {
          * @param {egret.DisplayObject} dis 可视对象
          */
         static remove(dis: egret.DisplayObject): void;
+    }
+}
+/**
+ * JavaScript code to detect available availability of a
+ * particular font in a browser using JavaScript and CSS.
+ *
+ * Author : Lalit Patel
+ * Website: http://www.lalit.org/lab/javascript-css-font-detect/
+ * License: Apache Software License 2.0
+ *          http://www.apache.org/licenses/LICENSE-2.0
+ * Version: 0.15 (21 Sep 2009)
+ *          Changed comparision font to default from sans-default-default,
+ *          as in FF3.0 font of child element didn't fallback
+ *          to parent element if the font is missing.
+ * Version: 0.2 (04 Mar 2012)
+ *          Comparing font against all the 3 generic font families ie,
+ *          'monospace', 'sans-serif' and 'sans'. If it doesn't match all 3
+ *          then that font is 100% not available in the system
+ * Version: 0.3 (24 Mar 2012)
+ *          Replaced sans with serif in the list of baseFonts
+ */
+/**
+ * Usage: d = new Detector();
+ *        d.detect('font name');
+ */
+declare module junyou {
+    namespace Font {
+        /**
+         * 检查是否有系统字体
+         * @param font
+         */
+        function detect(font: string): boolean;
     }
 }
 declare module junyou {
