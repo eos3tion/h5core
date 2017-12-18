@@ -191,6 +191,7 @@ Object.defineProperties(String.prototype, {
     }
 });
 String.zeroize = zeroize;
+String.subHandler = {};
 String.regSubHandler = function (key, handler) {
     if (true) {
         if (handler.length != 1) {
