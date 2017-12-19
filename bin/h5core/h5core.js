@@ -3210,9 +3210,6 @@ var junyou;
             this._st = now;
             this._lastMoveTime = now;
             this._lastTargetPos = pos;
-            if (content instanceof egret.DisplayObjectContainer) {
-                this._touchChildren = content.touchChildren;
-            }
             content.stage.on("touchMove" /* TOUCH_MOVE */, this.moveOnContent, this);
             content.on("touchEnd" /* TOUCH_END */, this.endTouchContent, this);
             content.on("touchReleaseOutside" /* TOUCH_RELEASE_OUTSIDE */, this.endTouchContent, this);
@@ -3231,7 +3228,7 @@ var junyou;
             sub = Math.abs(sub);
             var now = junyou.Global.now;
             var subTime = now - this._lastMoveTime;
-            if (now - this._st > this.touchTapTime && this._touchChildren != undefined) {
+            if (now - this._st > this.touchTapTime) {
                 this._content.touchChildren = false;
             }
             this._lastMoveTime = now;
@@ -3272,8 +3269,7 @@ var junyou;
                 return;
             }
             if (content instanceof egret.DisplayObjectContainer) {
-                content.touchChildren = this._touchChildren;
-                this._touchChildren = undefined;
+                content.touchChildren = true;
             }
             var stage = content.stage || egret.sys.$TempStage;
             stage.off("touchMove" /* TOUCH_MOVE */, this.moveOnContent, this);

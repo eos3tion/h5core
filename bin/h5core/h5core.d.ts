@@ -2158,7 +2158,6 @@ declare module junyou {
          *
          */
         touchTapTime: number;
-        protected _touchChildren: boolean;
         protected _scrollbar: ScrollBar;
         protected _content: egret.DisplayObject;
         protected _scrollType: ScrollDirection;
