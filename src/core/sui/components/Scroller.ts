@@ -14,8 +14,6 @@ module junyou {
          * 
          */
         public touchTapTime = 500;
-        protected _touchChildren: boolean;
-
         protected _scrollbar: ScrollBar;
 
         protected _content: egret.DisplayObject;
@@ -206,9 +204,6 @@ module junyou {
             this._st = now;
             this._lastMoveTime = now;
             this._lastTargetPos = pos;
-            if (content instanceof egret.DisplayObjectContainer) {
-                this._touchChildren = content.touchChildren;
-            }
             content.stage.on(EgretEvent.TOUCH_MOVE, this.moveOnContent, this);
             content.on(EgretEvent.TOUCH_END, this.endTouchContent, this);
             content.on(EgretEvent.TOUCH_RELEASE_OUTSIDE, this.endTouchContent, this);
@@ -228,7 +223,7 @@ module junyou {
             sub = Math.abs(sub);
             let now = Global.now;
             let subTime = now - this._lastMoveTime;
-            if (now - this._st > this.touchTapTime && this._touchChildren != undefined) {
+            if (now - this._st > this.touchTapTime) {
                 (this._content as egret.DisplayObjectContainer).touchChildren = false;
             }
             this._lastMoveTime = now;
@@ -272,8 +267,7 @@ module junyou {
                 return;
             }
             if (content instanceof egret.DisplayObjectContainer) {
-                content.touchChildren = this._touchChildren;
-                this._touchChildren = undefined;
+                content.touchChildren = true;
             }
             let stage = content.stage || egret.sys.$TempStage;
             stage.off(EgretEvent.TOUCH_MOVE, this.moveOnContent, this);
