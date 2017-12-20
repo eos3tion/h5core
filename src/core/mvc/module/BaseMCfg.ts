@@ -14,7 +14,6 @@ module junyou {
 		 * 服务器认为此功能开放
 		 */
         serverOpen: boolean = true;
-        showtype: number;
 		/**
 		 * 显示限制数据
 		 */
@@ -24,7 +23,6 @@ module junyou {
 		 * 使用限制数据
 		 */
         limits: any[];
-        limittype: number;
         /**
          * 
          * 子模块的id列表
@@ -39,10 +37,8 @@ module junyou {
             from = from || this;
             //解析显示限制
             DataUtils.parseDatas(this, from, 0, 3, "showlimit", "showlimits");
-            this.showtype = from.showtype;
             //解析功能使用限制
             DataUtils.parseDatas(this, from, 0, 3, "limit", "limits");
-            this.limittype = from.showtype;
         }
     }
 }
