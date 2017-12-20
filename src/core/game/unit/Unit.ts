@@ -399,8 +399,13 @@ module junyou {
             if (this.state != UnitState.Stage) {
                 return;
             }
-            if (!action) {
-                action = this.aStandBy;
+            let next = this._nextAction;
+            if (next != action) {
+                if (next) {
+                    next.recycle();
+                }
+                this._nextAction = action;
+                next = action;
             }
             now = now || Global.now;
             let currentAction = this._currentAction;
@@ -409,7 +414,7 @@ module junyou {
              */
             let flag = false;
             if (currentAction) {
-                if (currentAction != action) {
+                if (currentAction != next) {
                     if (currentAction.isEnd) {//已结束
                         currentAction.recycle();
                         flag = true;
@@ -418,35 +423,25 @@ module junyou {
                         currentAction.recycle();
                         flag = true;
                     }
-                    else {//不可结束，检查下一个动作      
-                        let next = this._nextAction;
-                        if (next) {
-                            if (next != action) {
-                                next.recycle();
-                                this._nextAction = action; //覆盖下一个动作
-                            }
-                        } else {
-                            this._nextAction = action;
-                        }
-                    }
                 }
             } else {
                 flag = true;
             }
             if (flag) {
-                if (action.start(this, now)) {//无法执行
-                    currentAction = action;
-                } else {
-                    action.recycle();
-                    currentAction = this.aStandBy;
-                }
-                this._currentAction = currentAction;
-                let next = this._nextAction;
+                currentAction = undefined;
                 if (next) {
-                    next.recycle();
-                    this._nextAction = undefined;//成功切换了动作，清理下一个动作
+                    if (next.start(this, now)) {//无法执行
+                        currentAction = next;
+                    } else {
+                        next.recycle();
+                        this._nextAction = undefined;
+                    }
                 }
             }
+            if (!currentAction) {
+                currentAction = this.aStandBy;
+            }
+            this._currentAction = currentAction;
             currentAction.playAction(this, this._mountType, now);
             return flag;
         }
@@ -457,7 +452,11 @@ module junyou {
          * @param {number} [now] 
          */
         public stopUnitAction(now?: number) {
-            this._nextAction = undefined;
+            let next = this._nextAction;
+            if (next) {
+                next.recycle();
+                this._nextAction = undefined;
+            }
             this.startUnitAction(null, now, true);
         }
 

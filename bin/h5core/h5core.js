@@ -9677,7 +9677,7 @@ var junyou;
             var rw = _rect.width, rh = _rect.height, rx = _rect.x, ry = _rect.y;
             var changed;
             if (_hScroll) {
-                x = x - (rw >> 1);
+                x = x - (rw * .5);
                 x = Math.clamp(x, _lx, _lw - rw);
                 if (x != rx) {
                     _rect.x = x;
@@ -9685,7 +9685,7 @@ var junyou;
                 }
             }
             if (_vScroll) {
-                y = y - (rh >> 1);
+                y = y - (rh * .5);
                 y = Math.clamp(y, _ly, _lh - rh);
                 if (y != ry) {
                     _rect.y = y;
@@ -11558,8 +11558,13 @@ var junyou;
             if (this.state != 1 /* Stage */) {
                 return;
             }
-            if (!action) {
-                action = this.aStandBy;
+            var next = this._nextAction;
+            if (next != action) {
+                if (next) {
+                    next.recycle();
+                }
+                this._nextAction = action;
+                next = action;
             }
             now = now || junyou.Global.now;
             var currentAction = this._currentAction;
@@ -11568,7 +11573,7 @@ var junyou;
              */
             var flag = false;
             if (currentAction) {
-                if (currentAction != action) {
+                if (currentAction != next) {
                     if (currentAction.isEnd) {
                         currentAction.recycle();
                         flag = true;
@@ -11578,38 +11583,27 @@ var junyou;
                         currentAction.recycle();
                         flag = true;
                     }
-                    else {
-                        var next = this._nextAction;
-                        if (next) {
-                            if (next != action) {
-                                next.recycle();
-                                this._nextAction = action; //覆盖下一个动作
-                            }
-                        }
-                        else {
-                            this._nextAction = action;
-                        }
-                    }
                 }
             }
             else {
                 flag = true;
             }
             if (flag) {
-                if (action.start(this, now)) {
-                    currentAction = action;
-                }
-                else {
-                    action.recycle();
-                    currentAction = this.aStandBy;
-                }
-                this._currentAction = currentAction;
-                var next = this._nextAction;
+                currentAction = undefined;
                 if (next) {
-                    next.recycle();
-                    this._nextAction = undefined; //成功切换了动作，清理下一个动作
+                    if (next.start(this, now)) {
+                        currentAction = next;
+                    }
+                    else {
+                        next.recycle();
+                        this._nextAction = undefined;
+                    }
                 }
             }
+            if (!currentAction) {
+                currentAction = this.aStandBy;
+            }
+            this._currentAction = currentAction;
             currentAction.playAction(this, this._mountType, now);
             return flag;
         };
@@ -11619,7 +11613,11 @@ var junyou;
          * @param {number} [now]
          */
         Unit.prototype.stopUnitAction = function (now) {
-            this._nextAction = undefined;
+            var next = this._nextAction;
+            if (next) {
+                next.recycle();
+                this._nextAction = undefined;
+            }
             this.startUnitAction(null, now, true);
         };
         Unit.prototype.setMountType = function (value) {
@@ -11723,7 +11721,7 @@ var junyou;
              * 此方法只允许 UnitAction调用
              */
             set: function (value) {
-                value = value >> 0;
+                // value = value >> 0;
                 if (this._x != value) {
                     this._x = value;
                     this.checkPosition();
@@ -11740,7 +11738,7 @@ var junyou;
              * 此方法只允许 UnitAction调用
              */
             set: function (value) {
-                value = value >> 0;
+                // value = value >> 0;
                 if (this._y != value) {
                     this._y = value;
                     this.checkPosition();
