@@ -8585,7 +8585,6 @@ declare module junyou {
          * 服务器认为此功能开放
          */
         serverOpen: boolean;
-        showtype: number;
         /**
          * 显示限制数据
          */
@@ -8594,7 +8593,6 @@ declare module junyou {
          * 使用限制数据
          */
         limits: any[];
-        limittype: number;
         /**
          *
          * 子模块的id列表

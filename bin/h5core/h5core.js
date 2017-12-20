@@ -14038,10 +14038,8 @@ var junyou;
             from = from || this;
             //解析显示限制
             junyou.DataUtils.parseDatas(this, from, 0, 3, "showlimit", "showlimits");
-            this.showtype = from.showtype;
             //解析功能使用限制
             junyou.DataUtils.parseDatas(this, from, 0, 3, "limit", "limits");
-            this.limittype = from.showtype;
         };
         return BaseMCfg;
     }());
