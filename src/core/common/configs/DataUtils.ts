@@ -23,11 +23,10 @@ module junyou {
          * @param {number} checkStart 数据源起始值	data **`1`**
          * @param {number} checkEnd 数据源结束值	data **`4`**
          * @param {string} dataKey 数据源数值的前缀	**`data`**
-         * @param {string} typeKey 数据源/配置的 类型 上例为 **`type`**
-         * @param {string} toDatasKey  配置的数值存储的数据的数组属性名，上例为 **`datas`**
+          * @param {string} toDatasKey  配置的数值存储的数据的数组属性名，上例为 **`datas`**
          * @memberof DataUtilsType
          */
-        parseDatas(to: object, from: object, checkStart: number, checkEnd: number, dataKey: string, typeKey: string, toDatasKey: string): void;
+        parseDatas(to: object, from: object, checkStart: number, checkEnd: number, dataKey: string, toDatasKey: string): void;
 
         /**
          * 将配置from中 type		data1	data2	data3	data4...这些配置，解析存储到  
@@ -51,11 +50,10 @@ module junyou {
          * @param {number} checkStart 数据源起始值	data **`1`**
          * @param {number} checkEnd 数据源结束值	data **`4`**
          * @param {string} dataKey 数据源数值的前缀	**`data`**
-         * @param {string} typeKey 数据源/配置的 类型 上例为 **`type`**
          * @param {string} toDatasKey  配置的数值存储的数据的数组属性名，上例为 **`datas`**
          * @memberof DataUtilsType
          */
-        parseDatas2(to: any, valueList: any[], keyList: string[], checkStart: number, checkEnd: number, dataKey: string, typeKey: string, toDatasKey: string);
+        parseDatas2(to: any, valueList: any[], keyList: string[], checkStart: number, checkEnd: number, dataKey: string, toDatasKey: string);
         /**
          * 从数据集中获取key-value的数据
          * 
@@ -138,7 +136,7 @@ module junyou {
     export const DataUtils = {
 
 
-        parseDatas(to: Object, from: Object, checkStart: number, checkEnd: number, dataKey: string, typeKey: string, toDatasKey: string) {
+        parseDatas(to: Object, from: Object, checkStart: number, checkEnd: number, dataKey: string, toDatasKey: string) {
             var arr: any[];
             for (var i = checkStart; i <= checkEnd; i++) {
                 var key: string = dataKey + i;
@@ -149,17 +147,9 @@ module junyou {
                     arr[i] = from[key];
                 }
             }
-            if (!arr) {
-                if (typeKey in from) {
-                    arr = [];
-                    to[typeKey] = from[typeKey];
-                }
-            }
-            if (arr) {
-                to[toDatasKey] = arr;
-            }
+            to[toDatasKey] = arr || [];
         },
-        parseDatas2(to: any, valueList: any[], keyList: string[], checkStart: number, checkEnd: number, dataKey: string, typeKey: string, toDatasKey: string) {
+        parseDatas2(to: any, valueList: any[], keyList: string[], checkStart: number, checkEnd: number, dataKey: string, toDatasKey: string) {
             let arr: any[];
             for (var i = checkStart; i <= checkEnd; i++) {
                 var key: string = dataKey + i;
@@ -171,17 +161,7 @@ module junyou {
                     arr[i] = valueList[idx];
                 }
             }
-            if (!arr) {
-                // 数据中有列表值
-                let idx = keyList.indexOf(typeKey);
-                if (~idx) {
-                    arr = [];
-                    to[typeKey] = valueList[idx];
-                }
-            }
-            if (arr) {
-                to[toDatasKey] = arr;
-            }
+            to[toDatasKey] = arr || [];
         },
         getData,
         getDataList(dataList: any[][], keyList: string[]): any[] {
