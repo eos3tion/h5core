@@ -8,29 +8,29 @@ module junyou {
         /**
          * 当前显示状态
          */
-        public showState: ModuleShowState = ModuleShowState.HIDE;
+        showState: ModuleShowState = ModuleShowState.HIDE;
 
 		/**
 		 * 服务器认为此功能开放
 		 */
-        public serverOpen: boolean = true;
-
+        serverOpen: boolean = true;
+        showtype: number;
 		/**
 		 * 显示限制数据
 		 */
-        public showlimits: any[];
+        showlimits: any[];
 
 		/**
 		 * 使用限制数据
 		 */
-        public limits: any[];
-
+        limits: any[];
+        limittype: number;
         /**
          * 
          * 子模块的id列表
          * @type {string[]}
          */
-        public children: string[];
+        children: string[];
 
         constructor() {
         }
@@ -38,9 +38,11 @@ module junyou {
         protected init(from?: any) {
             from = from || this;
             //解析显示限制
-            DataUtils.parseDatas(this, from, 0, 3, "showlimit", "showtype", "showlimits");
+            DataUtils.parseDatas(this, from, 0, 3, "showlimit", "showlimits");
+            this.showtype = from.showtype;
             //解析功能使用限制
-            DataUtils.parseDatas(this, from, 0, 3, "limit", "limittype", "limits");
+            DataUtils.parseDatas(this, from, 0, 3, "limit", "limits");
+            this.limittype = from.showtype;
         }
     }
 }
