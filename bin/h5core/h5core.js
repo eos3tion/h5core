@@ -12337,7 +12337,7 @@ var junyou;
      *
      */
     junyou.DataUtils = {
-        parseDatas: function (to, from, checkStart, checkEnd, dataKey, typeKey, toDatasKey) {
+        parseDatas: function (to, from, checkStart, checkEnd, dataKey, toDatasKey) {
             var arr;
             for (var i = checkStart; i <= checkEnd; i++) {
                 var key = dataKey + i;
@@ -12348,17 +12348,9 @@ var junyou;
                     arr[i] = from[key];
                 }
             }
-            if (!arr) {
-                if (typeKey in from) {
-                    arr = [];
-                    to[typeKey] = from[typeKey];
-                }
-            }
-            if (arr) {
-                to[toDatasKey] = arr;
-            }
+            to[toDatasKey] = arr || [];
         },
-        parseDatas2: function (to, valueList, keyList, checkStart, checkEnd, dataKey, typeKey, toDatasKey) {
+        parseDatas2: function (to, valueList, keyList, checkStart, checkEnd, dataKey, toDatasKey) {
             var arr;
             for (var i = checkStart; i <= checkEnd; i++) {
                 var key = dataKey + i;
@@ -12370,17 +12362,7 @@ var junyou;
                     arr[i] = valueList[idx];
                 }
             }
-            if (!arr) {
-                // 数据中有列表值
-                var idx = keyList.indexOf(typeKey);
-                if (~idx) {
-                    arr = [];
-                    to[typeKey] = valueList[idx];
-                }
-            }
-            if (arr) {
-                to[toDatasKey] = arr;
-            }
+            to[toDatasKey] = arr || [];
         },
         getData: getData,
         getDataList: function (dataList, keyList) {
@@ -14055,9 +14037,11 @@ var junyou;
         BaseMCfg.prototype.init = function (from) {
             from = from || this;
             //解析显示限制
-            junyou.DataUtils.parseDatas(this, from, 0, 3, "showlimit", "showtype", "showlimits");
+            junyou.DataUtils.parseDatas(this, from, 0, 3, "showlimit", "showlimits");
+            this.showtype = from.showtype;
             //解析功能使用限制
-            junyou.DataUtils.parseDatas(this, from, 0, 3, "limit", "limittype", "limits");
+            junyou.DataUtils.parseDatas(this, from, 0, 3, "limit", "limits");
+            this.limittype = from.showtype;
         };
         return BaseMCfg;
     }());
