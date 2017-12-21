@@ -4055,6 +4055,8 @@ declare module junyou {
         readonly now: number;
         readonly frameNow: number;
         readonly webp: "" | Ext.WEBP;
+        addInterval(callback: CallbackInfo<Function>): void;
+        removeInterval(callback: CallbackInfo<Function>): void;
     };
 }
 declare const enum Time {

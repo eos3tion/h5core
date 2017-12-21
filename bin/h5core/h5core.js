@@ -6616,6 +6616,7 @@ var junyou;
     var _callLater = new junyou.CallLater();
     var tweenManager = new junyou.TweenManager();
     var _nextTicks = [];
+    var _intervals = [];
     /**
      * 注入白鹭的全局Ticker
      */
@@ -6638,7 +6639,12 @@ var junyou;
                 frameNow += delta;
             }
             //执行顺序  nextTick  callLater TimerUtil  tween  最后是白鹭的更新
-            var len = _nextTicks.length;
+            var len = _intervals.length;
+            for (var i = 0; i < len; i++) {
+                var cb = _intervals[i];
+                cb.execute(false);
+            }
+            len = _nextTicks.length;
             var tmp = temp;
             for (var i = 0; i < len; i++) {
                 tmp[i] = _nextTicks[i];
@@ -6758,7 +6764,13 @@ var junyou;
          */
         get webp() {
             return _webp;
-        }
+        },
+        addInterval: function (callback) {
+            _intervals.pushOnce(callback);
+        },
+        removeInterval: function (callback) {
+            _intervals.remove(callback);
+        },
     };
 })(junyou || (junyou = {}));
 var junyou;
@@ -9677,7 +9689,7 @@ var junyou;
             var rw = _rect.width, rh = _rect.height, rx = _rect.x, ry = _rect.y;
             var changed;
             if (_hScroll) {
-                x = x - (rw * .5);
+                x -= rw * .5;
                 x = Math.clamp(x, _lx, _lw - rw);
                 if (x != rx) {
                     _rect.x = x;
@@ -9685,7 +9697,7 @@ var junyou;
                 }
             }
             if (_vScroll) {
-                y = y - (rh * .5);
+                y -= rh * .5;
                 y = Math.clamp(y, _ly, _lh - rh);
                 if (y != ry) {
                     _rect.y = y;
@@ -11584,6 +11596,9 @@ var junyou;
                         flag = true;
                     }
                 }
+                else {
+                    this._nextAction = undefined;
+                }
             }
             else {
                 flag = true;
@@ -11613,11 +11628,6 @@ var junyou;
          * @param {number} [now]
          */
         Unit.prototype.stopUnitAction = function (now) {
-            var next = this._nextAction;
-            if (next) {
-                next.recycle();
-                this._nextAction = undefined;
-            }
             this.startUnitAction(null, now, true);
         };
         Unit.prototype.setMountType = function (value) {
@@ -11645,9 +11655,7 @@ var junyou;
                 flag = true;
             }
             if (flag) {
-                var next = this._nextAction;
-                this._nextAction = undefined;
-                this.startUnitAction(next, now);
+                this.startUnitAction(this._nextAction, now);
             }
         };
         /**
@@ -11721,7 +11729,7 @@ var junyou;
              * 此方法只允许 UnitAction调用
              */
             set: function (value) {
-                // value = value >> 0;
+                value = value || 0;
                 if (this._x != value) {
                     this._x = value;
                     this.checkPosition();
@@ -11738,7 +11746,7 @@ var junyou;
              * 此方法只允许 UnitAction调用
              */
             set: function (value) {
-                // value = value >> 0;
+                value = value || 0;
                 if (this._y != value) {
                     this._y = value;
                     this.checkPosition();
@@ -11756,7 +11764,7 @@ var junyou;
              * 此方法只允许 UnitAction调用
              */
             set: function (value) {
-                value = value >> 0;
+                value = value || 0;
                 if (this._z != value) {
                     this._z = value;
                     this.checkPosition();
