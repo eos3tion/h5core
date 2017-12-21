@@ -6961,17 +6961,26 @@ var junyou;
             if (tmp) {
                 var hour = leftTime / 3600000 /* ONE_HOUR */ >> 0;
                 leftTime = leftTime - hour * 3600000 /* ONE_HOUR */;
+                if (format.hh) {
+                    hour = hour.zeroize(2);
+                }
                 out += tmp.substitute(hour);
             }
             tmp = format.m;
             if (tmp) {
                 var minute = leftTime / 60000 /* ONE_MINUTE */ >> 0;
                 leftTime = leftTime - minute * 60000 /* ONE_MINUTE */;
+                if (format.mm) {
+                    minute = minute.zeroize(2);
+                }
                 out += tmp.substitute(minute);
             }
             tmp = format.s;
             if (tmp) {
                 var second = leftTime / 1000 /* ONE_SECOND */ >> 0;
+                if (format.ss) {
+                    second = second.zeroize(2);
+                }
                 out += tmp.substitute(second);
             }
             return out;

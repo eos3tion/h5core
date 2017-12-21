@@ -4147,6 +4147,18 @@ declare module junyou {
          * @type {string}@memberof CountDownFormatOption
          */
         s?: string;
+        /**
+         * 小时补0
+         */
+        hh?: boolean;
+        /**
+         * 分钟补0
+         */
+        mm?: boolean;
+        /**
+         * 秒补0
+         */
+        ss?: boolean;
     }
     interface DateUtilsInterface {
         /**
