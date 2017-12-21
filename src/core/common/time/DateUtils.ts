@@ -89,7 +89,22 @@ module junyou {
 		 * 
 		 * @type {string}@memberof CountDownFormatOption
 		 */
-		s?: string
+		s?: string;
+
+		/**
+		 * 小时补0
+		 */
+		hh?: boolean;
+
+		/**
+		 * 分钟补0
+		 */
+		mm?: boolean;
+
+		/**
+		 * 秒补0
+		 */
+		ss?: boolean;
 	}
 	export interface DateUtilsInterface {
         /**
@@ -394,19 +409,28 @@ module junyou {
 			}
 			tmp = format.h;
 			if (tmp) {// 需要显示小时
-				let hour = leftTime / Time.ONE_HOUR >> 0;
-				leftTime = leftTime - hour * Time.ONE_HOUR
+				let hour: any = leftTime / Time.ONE_HOUR >> 0;
+				leftTime = leftTime - hour * Time.ONE_HOUR;
+				if (format.hh) {
+					hour = hour.zeroize(2);
+				}
 				out += tmp.substitute(hour);
 			}
 			tmp = format.m;
 			if (tmp) {// 需要显示分钟
-				let minute = leftTime / Time.ONE_MINUTE >> 0;
+				let minute: any = leftTime / Time.ONE_MINUTE >> 0;
 				leftTime = leftTime - minute * Time.ONE_MINUTE;
+				if (format.mm) {
+					minute = minute.zeroize(2);
+				}
 				out += tmp.substitute(minute);
 			}
 			tmp = format.s;
 			if (tmp) {
-				let second = leftTime / Time.ONE_SECOND >> 0;
+				let second: any = leftTime / Time.ONE_SECOND >> 0;
+				if (format.ss) {
+					second = second.zeroize(2);
+				}
 				out += tmp.substitute(second);
 			}
 			return out;
