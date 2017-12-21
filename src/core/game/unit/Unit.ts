@@ -423,6 +423,8 @@ module junyou {
                         currentAction.recycle();
                         flag = true;
                     }
+                } else {
+                    this._nextAction = undefined;
                 }
             } else {
                 flag = true;
@@ -452,11 +454,6 @@ module junyou {
          * @param {number} [now] 
          */
         public stopUnitAction(now?: number) {
-            let next = this._nextAction;
-            if (next) {
-                next.recycle();
-                this._nextAction = undefined;
-            }
             this.startUnitAction(null, now, true);
         }
 
@@ -477,18 +474,14 @@ module junyou {
                 currentAction.playComplete(this, now);
                 if (currentAction.isEnd) {
                     flag = true;
-                }
-                else {
+                } else {
                     currentAction.playAction(this, this._mountType, now);
                 }
-            }
-            else {
+            } else {
                 flag = true;
             }
             if (flag) {
-                let next = this._nextAction;
-                this._nextAction = undefined;
-                this.startUnitAction(next, now);
+                this.startUnitAction(this._nextAction, now);
             }
         }
 
@@ -496,13 +489,12 @@ module junyou {
          * 动作进行渲染的时候
          */
         public onRenderFrame(now: number) {
-            var currentAction = this._currentAction;
+            let currentAction = this._currentAction;
             if (currentAction) {
                 if (currentAction.isEnd) {
                     this.startUnitAction(this._nextAction, now);
                 }
-            }
-            else {
+            } else {
                 this.startUnitAction(this._nextAction, now);
             }
         }
@@ -580,7 +572,7 @@ module junyou {
          * 此方法只允许 UnitAction调用
          */
         public set x(value: number) {
-            value = value >> 0;
+            value = value || 0;
             if (this._x != value) {
                 this._x = value;
                 this.checkPosition();
@@ -595,7 +587,7 @@ module junyou {
          * 此方法只允许 UnitAction调用
          */
         public set y(value: number) {
-            value = value >> 0;
+            value = value || 0;
             if (this._y != value) {
                 this._y = value;
                 this.checkPosition();
@@ -612,7 +604,7 @@ module junyou {
          * 此方法只允许 UnitAction调用
          */
         public set z(value: number) {
-            value = value >> 0;
+            value = value || 0;
             if (this._z != value) {
                 this._z = value;
                 this.checkPosition();
