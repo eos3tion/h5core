@@ -28,6 +28,8 @@ module junyou {
 
 	let _nextTicks: CallbackInfo<Function>[] = [];
 
+	let _intervals: CallbackInfo<Function>[] = [];
+
 
 	/**
 	 * 注入白鹭的全局Ticker
@@ -50,7 +52,12 @@ module junyou {
 				frameNow += delta;
 			}
 			//执行顺序  nextTick  callLater TimerUtil  tween  最后是白鹭的更新
-			let len = _nextTicks.length;
+			let len = _intervals.length;
+			for (let i = 0; i < len; i++) {
+				let cb = _intervals[i];
+				cb.execute(false);
+			}
+			len = _nextTicks.length;
 			let tmp = temp;
 			for (let i = 0; i < len; i++) {
 				tmp[i] = _nextTicks[i];
@@ -66,6 +73,7 @@ module junyou {
 			update.call(ticker);
 		}
 	}
+
 
 	function nextTick(callback: Function, thisObj?: any, ...args) {
 		nextTick2(CallbackInfo.get(callback, thisObj, ...args))
@@ -169,6 +177,13 @@ module junyou {
 		 */
 		get webp() {
 			return _webp;
-		}
+		},
+		addInterval(callback: $CallbackInfo) {
+			_intervals.pushOnce(callback);
+		},
+
+		removeInterval(callback: $CallbackInfo) {
+			_intervals.remove(callback);
+		},
 	};
 }

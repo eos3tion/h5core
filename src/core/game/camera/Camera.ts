@@ -156,7 +156,7 @@ module junyou {
             let { width: rw, height: rh, x: rx, y: ry } = _rect;
             let changed: boolean;
             if (_hScroll) {
-                x = x - (rw >> 1);
+                x -= rw * .5;
                 x = Math.clamp(x, _lx, _lw - rw);
                 if (x != rx) {
                     _rect.x = x;
@@ -164,7 +164,7 @@ module junyou {
                 }
             }
             if (_vScroll) {
-                y = y - (rh >> 1);
+                y -= rh * .5;
                 y = Math.clamp(y, _ly, _lh - rh);
                 if (y != ry) {
                     _rect.y = y;
