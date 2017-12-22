@@ -8613,6 +8613,10 @@ declare module junyou {
          * @type {string[]}
          */
         children: string[];
+        /**
+         * 当模块开启时绑定的回调函数
+         */
+        onOpen?: $CallbackInfo[];
         constructor();
         protected init(from?: any): void;
     }
@@ -8709,6 +8713,10 @@ declare module junyou {
          *
          */
         close: ModuleCloseState;
+        /**
+         * 当模块开启时绑定的回调函数
+         */
+        onOpen?: $CallbackInfo[];
     }
     const enum ModuleCloseState {
         /**
@@ -8934,6 +8942,7 @@ declare module junyou {
          * @param {boolean} state       模块状态
          */
         serverChangeModuleState(mid: string | number, state: boolean): void;
+        regModuleOpen(mid: Key, callback: $CallbackInfo): void;
     }
 }
 declare module junyou {

@@ -14342,10 +14342,11 @@ var junyou;
             }
             this._needCheckShow = false;
             var changed = false;
-            var _unshowns = this._unshowns;
+            var _a = this, _allById = _a._allById, _unshowns = _a._unshowns;
             for (var i = _unshowns.length - 1; i >= 0; i--) {
                 var id = _unshowns[i];
-                if (this.isModuleShow(id)) {
+                var cfg = _allById[id];
+                if (this.isModuleShow(cfg)) {
                     var displays = this._bindedIOById[id];
                     if (displays) {
                         for (var _i = 0, displays_2 = displays; _i < displays_2.length; _i++) {
@@ -14356,6 +14357,14 @@ var junyou;
                     changed = true;
                     _unshowns.splice(i, 1);
                     junyou.dispatch(-991 /* MODULE_SHOW */, id);
+                    var onOpen = cfg.onOpen;
+                    if (onOpen) {
+                        for (var j = 0; j < onOpen.length; j++) {
+                            var callback = onOpen[j];
+                            callback.execute();
+                        }
+                        cfg.onOpen = undefined;
+                    }
                 }
             }
             if (changed) {
@@ -14431,6 +14440,21 @@ var junyou;
                 if (state != mcfg.serverOpen) {
                     mcfg.serverOpen = state;
                     junyou.dispatch(state ? -995 /* MODULE_SERVER_OPEN */ : -996 /* MODULE_SERVER_CLOSE */, mid);
+                }
+            }
+        };
+        ModuleManager.prototype.regModuleOpen = function (mid, callback) {
+            var cfg = this._allById[mid];
+            if (cfg) {
+                if (this.isModuleOpened(cfg, false)) {
+                    callback.execute();
+                }
+                else {
+                    var onOpen = cfg.onOpen;
+                    if (!onOpen) {
+                        cfg.onOpen = onOpen = [];
+                    }
+                    onOpen.pushOnce(callback);
                 }
             }
         };
