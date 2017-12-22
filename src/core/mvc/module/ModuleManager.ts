@@ -118,8 +118,7 @@ module junyou {
             let cfg: IModuleCfg = this._allById[id];
             if (cfg) {
                 this._handlersById[id] = handler;
-            }
-            else {
+            } else {
                 ThrowError("ModuleManager 注册模块处理函数时，没有找到对应的模块配置，模块id:" + id);
             }
         }
@@ -189,8 +188,7 @@ module junyou {
                                     }
                                 }
                             }
-                        }
-                        else {
+                        } else {
                             if (DEBUG) {
                                 limitWarn += cfg.id + " ";
                             }
@@ -348,10 +346,11 @@ module junyou {
             }
             this._needCheckShow = false;
             let changed = false;
-            let _unshowns = this._unshowns;
-            for (var i = _unshowns.length - 1; i >= 0; i--) {
-                var id = _unshowns[i];
-                if (this.isModuleShow(id)) {
+            let { _allById, _unshowns } = this;
+            for (let i = _unshowns.length - 1; i >= 0; i--) {
+                let id = _unshowns[i];
+                let cfg = _allById[id];
+                if (this.isModuleShow(cfg)) {
                     let displays = this._bindedIOById[id];
                     if (displays) {
                         for (let dis of displays) {
@@ -361,6 +360,14 @@ module junyou {
                     changed = true;
                     _unshowns.splice(i, 1);
                     dispatch(EventConst.MODULE_SHOW, id);
+                    let onOpen = cfg.onOpen;
+                    if (onOpen) {
+                        for (let j = 0; j < onOpen.length; j++) {
+                            const callback = onOpen[j];
+                            callback.execute();
+                        }
+                        cfg.onOpen = undefined;
+                    }
                 }
             }
             if (changed) {
@@ -439,6 +446,21 @@ module junyou {
                 if (state != mcfg.serverOpen) {
                     mcfg.serverOpen = state;
                     dispatch(state ? EventConst.MODULE_SERVER_OPEN : EventConst.MODULE_SERVER_CLOSE, mid);
+                }
+            }
+        }
+
+        regModuleOpen(mid: Key, callback: $CallbackInfo) {
+            let cfg = this._allById[mid];
+            if (cfg) {
+                if (this.isModuleOpened(cfg, false)) {
+                    callback.execute();
+                } else {
+                    let onOpen = cfg.onOpen;
+                    if (!onOpen) {
+                        cfg.onOpen = onOpen = [];
+                    }
+                    onOpen.pushOnce(callback);
                 }
             }
         }
