@@ -30,6 +30,10 @@ module junyou {
          */
         children: string[];
 
+        /**
+         * 当模块开启时绑定的回调函数
+         */
+        onOpen?: $CallbackInfo[];
         constructor() {
         }
 
