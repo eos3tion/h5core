@@ -12408,31 +12408,25 @@ var junyou;
      */
     junyou.DataUtils = {
         parseDatas: function (to, from, checkStart, checkEnd, dataKey, toDatasKey) {
-            var arr;
-            for (var i = checkStart; i <= checkEnd; i++) {
+            var arr = [];
+            for (var i = checkStart, j = 0; i <= checkEnd; i++) {
                 var key = dataKey + i;
                 if (key in from) {
-                    if (!arr) {
-                        arr = [];
-                    }
-                    arr[i] = from[key];
+                    arr[j++] = from[key];
                 }
             }
-            to[toDatasKey] = arr || [];
+            to[toDatasKey] = arr;
         },
         parseDatas2: function (to, valueList, keyList, checkStart, checkEnd, dataKey, toDatasKey) {
-            var arr;
-            for (var i = checkStart; i <= checkEnd; i++) {
+            var arr = [];
+            for (var i = checkStart, j = 0; i <= checkEnd; i++) {
                 var key = dataKey + i;
                 var idx = keyList.indexOf(key);
                 if (~idx) {
-                    if (!arr) {
-                        arr = [];
-                    }
-                    arr[i] = valueList[idx];
+                    arr[j++] = valueList[idx];
                 }
             }
-            to[toDatasKey] = arr || [];
+            to[toDatasKey] = arr;
         },
         getData: getData,
         getDataList: function (dataList, keyList) {
