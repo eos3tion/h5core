@@ -1341,10 +1341,10 @@ var junyou;
             if (!isRepeated || (tag & 7) != 7) {
                 switch (type) {
                     case 1 /* Double */:
-                        value = bytes.readDouble();
+                        value = bytes.readPBDouble();
                         break;
                     case 2 /* Float */:
-                        value = bytes.readFloat();
+                        value = bytes.readPBFloat();
                         break;
                     case 3 /* Int64 */:
                     case 4 /* UInt64 */:
@@ -1523,10 +1523,10 @@ var junyou;
                 bytes.writeSFix32(checkInt32(value, type));
                 break;
             case 2 /* Float */:
-                bytes.writeFloat(value);
+                bytes.writePBFloat(value);
                 break;
             case 1 /* Double */:
-                bytes.writeDouble(value);
+                bytes.writePBDouble(value);
                 break;
             case 6 /* Fixed64 */: //理论上项目不使用
             case 16 /* SFixed64 */://理论上项目不使用
@@ -6269,23 +6269,6 @@ var junyou;
             this.position += length;
             return this.buffer.slice(start, this.position);
         };
-        ByteArray.prototype.writeInt64 = function (value) {
-            this.validateBuffer(8 /* SIZE_OF_INT64 */);
-            var i64 = junyou.Int64.fromNumber(value);
-            var high = i64.high, low = i64.low;
-            var flag = this.$endian == 0 /* LITTLE_ENDIAN */;
-            var data = this.data;
-            var pos = this._position;
-            if (flag) {
-                data.setUint32(pos, low, flag);
-                data.setUint32(pos + 4 /* SIZE_OF_UINT32 */, high, flag);
-            }
-            else {
-                data.setUint32(pos, high, flag);
-                data.setUint32(pos + 4 /* SIZE_OF_UINT32 */, low, flag);
-            }
-            this.position = pos + 8 /* SIZE_OF_INT64 */;
-        };
         ByteArray.prototype.readInt64 = function () {
             if (this.validate(8 /* SIZE_OF_INT64 */)) {
                 var low = void 0, high = void 0;
@@ -6303,6 +6286,65 @@ var junyou;
                 this.position = pos + 8 /* SIZE_OF_INT64 */;
                 return junyou.Int64.toNumber(low, high);
             }
+        };
+        ByteArray.prototype.writeInt64 = function (value) {
+            this.validateBuffer(8 /* SIZE_OF_INT64 */);
+            var i64 = junyou.Int64.fromNumber(value);
+            var high = i64.high, low = i64.low;
+            var flag = this.$endian == 0 /* LITTLE_ENDIAN */;
+            var data = this.data;
+            var pos = this._position;
+            if (flag) {
+                data.setUint32(pos, low, flag);
+                data.setUint32(pos + 4 /* SIZE_OF_UINT32 */, high, flag);
+            }
+            else {
+                data.setUint32(pos, high, flag);
+                data.setUint32(pos + 4 /* SIZE_OF_UINT32 */, low, flag);
+            }
+            this.position = pos + 8 /* SIZE_OF_INT64 */;
+        };
+        /**
+         * 读取ProtoBuf的`Double`
+         * protobuf封装是使用littleEndian的，不受Endian影响
+         */
+        ByteArray.prototype.readPBDouble = function () {
+            if (this.validate(8 /* SIZE_OF_DOUBLE */)) {
+                var value = this.data.getFloat64(this._position, true);
+                this.position += 8 /* SIZE_OF_DOUBLE */;
+                return value;
+            }
+        };
+        /**
+         * 写入ProtoBuf的`Double`
+         * protobuf封装是使用littleEndian的，不受Endian影响
+         * @param value
+         */
+        ByteArray.prototype.writePBDouble = function (value) {
+            this.validateBuffer(8 /* SIZE_OF_DOUBLE */);
+            this.data.setFloat64(this._position, value, true);
+            this.position += 8 /* SIZE_OF_DOUBLE */;
+        };
+        /**
+         * 读取ProtoBuf的`Float`
+         * protobuf封装是使用littleEndian的，不受Endian影响
+         */
+        ByteArray.prototype.readPBFloat = function () {
+            if (this.validate(4 /* SIZE_OF_FLOAT */)) {
+                var value = this.data.getFloat32(this._position, true);
+                this.position += 4 /* SIZE_OF_FLOAT */;
+                return value;
+            }
+        };
+        /**
+          * 写入ProtoBuf的`Float`
+          * protobuf封装是使用littleEndian的，不受Endian影响
+          * @param value
+          */
+        ByteArray.prototype.writePBFloat = function (value) {
+            this.validateBuffer(4 /* SIZE_OF_FLOAT */);
+            this.data.setFloat32(this._position, value, true);
+            this.position += 4 /* SIZE_OF_FLOAT */;
         };
         ByteArray.prototype.readFix32 = function () {
             if (this.validate(4 /* SIZE_OF_FIX32 */)) {

@@ -3871,6 +3871,8 @@ declare module junyou {
         SIZE_OF_UINT32 = 4,
         SIZE_OF_FIX64 = 8,
         SIZE_OF_INT64 = 8,
+        SIZE_OF_DOUBLE = 8,
+        SIZE_OF_FLOAT = 4,
         SIZE_OF_FIX32 = 4,
         SIZE_OF_SFIX32 = 4,
         SIZE_OF_UINT16 = 2,
@@ -3898,8 +3900,30 @@ declare module junyou {
          * @returns {Buffer}
          */
         readBuffer(length: number): ArrayBuffer;
-        writeInt64(value: number): void;
         readInt64(): number;
+        writeInt64(value: number): void;
+        /**
+         * 读取ProtoBuf的`Double`
+         * protobuf封装是使用littleEndian的，不受Endian影响
+         */
+        readPBDouble(): number;
+        /**
+         * 写入ProtoBuf的`Double`
+         * protobuf封装是使用littleEndian的，不受Endian影响
+         * @param value
+         */
+        writePBDouble(value: number): void;
+        /**
+         * 读取ProtoBuf的`Float`
+         * protobuf封装是使用littleEndian的，不受Endian影响
+         */
+        readPBFloat(): number;
+        /**
+          * 写入ProtoBuf的`Float`
+          * protobuf封装是使用littleEndian的，不受Endian影响
+          * @param value
+          */
+        writePBFloat(value: number): void;
         readFix32(): number;
         writeFix32(value: number): void;
         readSFix32(): number;
