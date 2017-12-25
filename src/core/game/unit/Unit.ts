@@ -407,6 +407,9 @@ module junyou {
                 this._nextAction = action;
                 next = action;
             }
+            if (!next) {
+                next = this.aStandBy;
+            }
             now = now || Global.now;
             let currentAction = this._currentAction;
             /**
@@ -634,11 +637,11 @@ module junyou {
         public set rotation(value: number) {
             if (this._rotation != value) {
                 this._rotation = value;
-                if (this._model.scaleX >= 0) {
-                    this._model.rotation = value;
-                }
-                else {
-                    this._model.rotation = -value;
+                let model = this._model;
+                if (model.scaleX >= 0) {
+                    model.rotation = value;
+                } else {
+                    model.rotation = -value;
                 }
             }
         }

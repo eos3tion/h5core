@@ -11642,6 +11642,9 @@ var junyou;
                 this._nextAction = action;
                 next = action;
             }
+            if (!next) {
+                next = this.aStandBy;
+            }
             now = now || junyou.Global.now;
             var currentAction = this._currentAction;
             /**
@@ -11864,11 +11867,12 @@ var junyou;
             set: function (value) {
                 if (this._rotation != value) {
                     this._rotation = value;
-                    if (this._model.scaleX >= 0) {
-                        this._model.rotation = value;
+                    var model = this._model;
+                    if (model.scaleX >= 0) {
+                        model.rotation = value;
                     }
                     else {
-                        this._model.rotation = -value;
+                        model.rotation = -value;
                     }
                 }
             },
