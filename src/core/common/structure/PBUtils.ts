@@ -316,10 +316,10 @@ module junyou {
             if (!isRepeated || (tag & 0b111) != 7) {//自定义  tag & 0b111 == 7 为 数组中 undefined的情况
                 switch (type) {
                     case PBType.Double:
-                        value = bytes.readDouble();
+                        value = bytes.readPBDouble();
                         break;
                     case PBType.Float:
-                        value = bytes.readFloat();
+                        value = bytes.readPBFloat();
                         break;
                     case PBType.Int64:
                     case PBType.UInt64:
@@ -504,14 +504,14 @@ module junyou {
                 bytes.writeSFix32(checkInt32(value, type));
                 break;
             case PBType.Float:
-                bytes.writeFloat(value as number);
+                bytes.writePBFloat(value);
                 break;
             case PBType.Double:
-                bytes.writeDouble(value as number);
+                bytes.writePBDouble(value);
                 break;
             case PBType.Fixed64://理论上项目不使用
             case PBType.SFixed64://理论上项目不使用
-                bytes.writeFix64(value as number);
+                bytes.writeFix64(value);
                 break;
             case PBType.Int32:
                 value = checkInt32(value, type);
@@ -531,7 +531,7 @@ module junyou {
             case PBType.Int64:
             case PBType.SInt64:
             case PBType.UInt64:
-                bytes.writeVarint64(value as number);
+                bytes.writeVarint64(value);
                 break;
             case PBType.Bool:
                 bytes.writeVarint(value ? 1 : 0);
