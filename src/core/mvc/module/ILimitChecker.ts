@@ -12,6 +12,6 @@ module junyou {
 		 * @return
 		 *
 		 */
-		check(data: any[],showtip: boolean): boolean
+		check(data: any, showtip: boolean): boolean
 	}
 }
