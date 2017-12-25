@@ -480,6 +480,10 @@ module junyou {
             on(EventConst.Awake, this.onawake, this);
         }
 
+        public setEndian(endian) {
+            this._sendBuffer.$endian = this._readBuffer.$endian = this._tempBytes.$endian = endian;
+        }
+
         protected netChange = () => {
             if (navigator.onLine) {
                 dispatch(EventConst.Online);

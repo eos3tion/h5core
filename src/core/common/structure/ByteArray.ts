@@ -16,6 +16,9 @@ module junyou {
 	 *
 	 */
     export class ByteArray extends egret.ByteArray {
+
+        public $endian: egret.EndianConst;
+
         public constructor(buffer?: ArrayBuffer, ext?: number) {
             super(buffer, ext);
         }
@@ -136,7 +139,9 @@ module junyou {
          * @returns {ByteArray}
          */
         public readByteArray(length: number, ext = 0): ByteArray {
-            return new junyou.ByteArray(this.readBuffer(length), ext);
+            let ba = new junyou.ByteArray(this.readBuffer(length), ext);
+            ba.$endian = this.$endian;
+            return ba;
         }
 		/**
 		 * 向字节流中写入64位的可变长度的整数(Protobuf)
