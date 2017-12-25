@@ -2747,7 +2747,7 @@ var junyou;
      * @template K
      * @template B
      * @param {{ prototype: A }} clazzA     要被扩展的类型
-     * @param {{ prototype: B }} clazzB     扩展的模板
+     * @param {{ prototype: B }} clazzB     扩展的模板，已经模板的父类型也会作为模板
      * @param {...K[]} keys      如果没有参数，则将B的全部属性复制给类型A
      * @returns {(A & Record<K, B>)}
      */
@@ -2756,19 +2756,24 @@ var junyou;
         for (var _i = 2; _i < arguments.length; _i++) {
             keys[_i - 2] = arguments[_i];
         }
-        var pt = clazzA.prototype;
-        var bpt = clazzB.prototype;
-        for (var _a = 0, _b = Object.getOwnPropertyNames(bpt); _a < _b.length; _a++) {
-            var name_5 = _b[_a];
+        _expand(clazzA.prototype, clazzB.prototype, keys);
+        return clazzA;
+    }
+    junyou.expand = expand;
+    function _expand(pt, bpt, keys) {
+        for (var _i = 0, _a = Object.getOwnPropertyNames(bpt); _i < _a.length; _i++) {
+            var name_5 = _a[_i];
             if (!keys || ~keys.indexOf(name_5)) {
                 if (!(name_5 in pt)) {
                     pt[name_5] = bpt[name_5];
                 }
             }
         }
-        return clazzA;
+        var sup = Object.getPrototypeOf(bpt);
+        if (sup) {
+            return _expand(pt, sup, keys);
+        }
     }
-    junyou.expand = expand;
     /**
      * 获取一个复合类型
      *
@@ -3975,6 +3980,9 @@ var junyou;
         };
         NetService.get = function () {
             return this._ins;
+        };
+        NetService.prototype.setEndian = function (endian) {
+            this._sendBuffer.$endian = this._readBuffer.$endian = this._tempBytes.$endian = endian;
         };
         NetService.prototype.showReconnect = function () {
             this._reconCount += 1;
@@ -6348,7 +6356,9 @@ var junyou;
          */
         ByteArray.prototype.readByteArray = function (length, ext) {
             if (ext === void 0) { ext = 0; }
-            return new junyou.ByteArray(this.readBuffer(length), ext);
+            var ba = new junyou.ByteArray(this.readBuffer(length), ext);
+            ba.$endian = this.$endian;
+            return ba;
         };
         /**
          * 向字节流中写入64位的可变长度的整数(Protobuf)
@@ -15248,6 +15258,7 @@ var junyou;
             else {
                 this.inited = true;
             }
+            this.checkInject();
         };
         ListItemRenderer.prototype.onTouchTap = function () {
             this.dispatch(-1001 /* ITEM_TOUCH_TAP */);
@@ -15492,7 +15503,7 @@ var junyou;
     }(egret.EventDispatcher));
     junyou.ListItemRenderer = ListItemRenderer;
     __reflect(ListItemRenderer.prototype, "junyou.ListItemRenderer", ["junyou.ListItemRender", "egret.EventDispatcher", "junyou.SelectableComponents"]);
-    junyou.expand(ListItemRenderer, junyou.ViewController, "addReadyExecute", "addDepend", "stageHandler", "interest");
+    junyou.expand(ListItemRenderer, junyou.ViewController, "addReadyExecute", "addDepend", "stageHandler", "interest", "checkInject");
     // export abstract class AListItemRenderer<T, S extends egret.DisplayObject> extends ListItemRenderer<T, S> implements SuiDataCallback {
     //     /**
     //      * 子类重写设置皮肤

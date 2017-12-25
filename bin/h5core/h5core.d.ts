@@ -475,7 +475,7 @@ declare module junyou {
          *
          * @memberOf FHost
          */
-        protected checkInject(): void;
+        checkInject(): void;
         /**
          * 异步的Helper
          */
@@ -1950,7 +1950,7 @@ declare module junyou {
      * @template K
      * @template B
      * @param {{ prototype: A }} clazzA     要被扩展的类型
-     * @param {{ prototype: B }} clazzB     扩展的模板
+     * @param {{ prototype: B }} clazzB     扩展的模板，已经模板的父类型也会作为模板
      * @param {...K[]} keys      如果没有参数，则将B的全部属性复制给类型A
      * @returns {(A & Record<K, B>)}
      */
@@ -2692,6 +2692,7 @@ declare module junyou {
          */
         abstract setUrl(actionUrl: string): any;
         constructor();
+        setEndian(endian: any): void;
         protected netChange: () => void;
         /**
          * 基础连接时间
@@ -3882,6 +3883,7 @@ declare module junyou {
      *
      */
     class ByteArray extends egret.ByteArray {
+        $endian: egret.EndianConst;
         constructor(buffer?: ArrayBuffer, ext?: number);
         /**
          * 替换缓冲区
