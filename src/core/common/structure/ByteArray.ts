@@ -3,6 +3,8 @@ module junyou {
         SIZE_OF_UINT32 = 4,
         SIZE_OF_FIX64 = 8,
         SIZE_OF_INT64 = 8,
+        SIZE_OF_DOUBLE = 8,
+        SIZE_OF_FLOAT = 4,
         SIZE_OF_FIX32 = 4,
         SIZE_OF_SFIX32 = 4,
 
@@ -47,6 +49,24 @@ module junyou {
             return this.buffer.slice(start, this.position);
         }
 
+        public readInt64() {
+            if (this.validate(ByteArraySize.SIZE_OF_INT64)) {
+                let low: number, high: number;
+                let flag = this.$endian == egret.EndianConst.LITTLE_ENDIAN;
+                let data = this.data;
+                let pos = this._position;
+                if (flag) {
+                    low = data.getUint32(pos, flag);
+                    high = data.getUint32(pos + ByteArraySize.SIZE_OF_UINT32, flag);
+                } else {
+                    high = data.getUint32(pos, flag);
+                    low = data.getUint32(pos + ByteArraySize.SIZE_OF_UINT32, flag);
+                }
+                this.position = pos + ByteArraySize.SIZE_OF_INT64;
+                return Int64.toNumber(low, high);
+            }
+        }
+
         public writeInt64(value: number): void {
             this.validateBuffer(ByteArraySize.SIZE_OF_INT64);
             let i64 = Int64.fromNumber(value);
@@ -64,22 +84,50 @@ module junyou {
             this.position = pos + ByteArraySize.SIZE_OF_INT64;
         }
 
-        public readInt64() {
-            if (this.validate(ByteArraySize.SIZE_OF_INT64)) {
-                let low: number, high: number;
-                let flag = this.$endian == egret.EndianConst.LITTLE_ENDIAN;
-                let data = this.data;
-                let pos = this._position;
-                if (flag) {
-                    low = data.getUint32(pos, flag);
-                    high = data.getUint32(pos + ByteArraySize.SIZE_OF_UINT32, flag);
-                } else {
-                    high = data.getUint32(pos, flag);
-                    low = data.getUint32(pos + ByteArraySize.SIZE_OF_UINT32, flag);
-                }
-                this.position = pos + ByteArraySize.SIZE_OF_INT64;
-                return Int64.toNumber(low, high);
+        /**
+         * 读取ProtoBuf的`Double`
+         * protobuf封装是使用littleEndian的，不受Endian影响
+         */
+        public readPBDouble() {
+            if (this.validate(ByteArraySize.SIZE_OF_DOUBLE)) {
+                let value = this.data.getFloat64(this._position, true);
+                this.position += ByteArraySize.SIZE_OF_DOUBLE;
+                return value;
             }
+        }
+
+        /**
+         * 写入ProtoBuf的`Double`
+         * protobuf封装是使用littleEndian的，不受Endian影响
+         * @param value 
+         */
+        public writePBDouble(value: number) {
+            this.validateBuffer(ByteArraySize.SIZE_OF_DOUBLE);
+            this.data.setFloat64(this._position, value, true);
+            this.position += ByteArraySize.SIZE_OF_DOUBLE;
+        }
+
+        /**
+         * 读取ProtoBuf的`Float`
+         * protobuf封装是使用littleEndian的，不受Endian影响
+         */
+        public readPBFloat() {
+            if (this.validate(ByteArraySize.SIZE_OF_FLOAT)) {
+                let value = this.data.getFloat32(this._position, true);
+                this.position += ByteArraySize.SIZE_OF_FLOAT;
+                return value;
+            }
+        }
+
+        /**
+          * 写入ProtoBuf的`Float`
+          * protobuf封装是使用littleEndian的，不受Endian影响
+          * @param value 
+          */
+        public writePBFloat(value: number) {
+            this.validateBuffer(ByteArraySize.SIZE_OF_FLOAT);
+            this.data.setFloat32(this._position, value, true);
+            this.position += ByteArraySize.SIZE_OF_FLOAT;
         }
 
         public readFix32() {
