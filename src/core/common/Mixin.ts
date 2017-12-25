@@ -60,22 +60,29 @@ module junyou {
      * @template K
      * @template B
      * @param {{ prototype: A }} clazzA     要被扩展的类型
-     * @param {{ prototype: B }} clazzB     扩展的模板
+     * @param {{ prototype: B }} clazzB     扩展的模板，已经模板的父类型也会作为模板
      * @param {...K[]} keys      如果没有参数，则将B的全部属性复制给类型A
      * @returns {(A & Record<K, B>)}
      */
     export function expand<A, B, K extends keyof B>(clazzA: { prototype: A }, clazzB: { prototype: B }, ...keys: K[]): A & Record<K, B> {
-        let pt = clazzA.prototype;
-        let bpt = clazzB.prototype;
+        _expand(clazzA.prototype, clazzB.prototype, keys);
+        return <any>clazzA as A & Record<K, B>;
+    }
+
+    function _expand(pt: any, bpt: any, keys: string[]) {
         for (let name of Object.getOwnPropertyNames(bpt)) {
-            if (!keys || ~keys.indexOf(<K>name)) {
+            if (!keys || ~keys.indexOf(name)) {
                 if (!(name in pt)) {
                     pt[name] = bpt[name];
                 }
             }
         }
-        return <any>clazzA as A & Record<K, B>;
+        let sup = Object.getPrototypeOf(bpt);
+        if (sup) {
+            return _expand(pt, sup, keys);
+        }
     }
+
     export type Constructor<T> = new (...args: any[]) => T;
     export type MixinCtor<A, B> = new () => A & B & { constructor: MixinCtor<A, B> };
 
