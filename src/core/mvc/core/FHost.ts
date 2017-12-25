@@ -54,7 +54,7 @@ module junyou {
          * 
          * @memberOf FHost
          */
-        protected checkInject() {
+        checkInject() {
             //此注入是对原型进行的注入，无法直接删除，也不要直接做清理
 
             let idp = this._injectProxys;
