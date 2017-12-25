@@ -6908,6 +6908,7 @@ declare module junyou {
          * @memberof UModel
          */
         renderFrame(frame: FrameInfo, now: number, face: number, info: IDrawInfo): boolean;
+        draw(info: IDrawInfo, now: number): boolean;
         clear(): void;
         onRecycle(): void;
     }

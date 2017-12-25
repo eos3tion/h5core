@@ -73,6 +73,10 @@ module junyou {
             } else {
                 info.d = d;
             }
+            return this.draw(info, now);
+        }
+
+        draw(info: IDrawInfo, now: number) {
             let flag = true;
             //渲染
             for (let res of <ResourceBitmap[]>this.$children) {

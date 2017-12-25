@@ -11244,6 +11244,9 @@ var junyou;
             else {
                 info.d = d;
             }
+            return this.draw(info, now);
+        };
+        UModel.prototype.draw = function (info, now) {
             var flag = true;
             //渲染
             for (var _i = 0, _a = this.$children; _i < _a.length; _i++) {
