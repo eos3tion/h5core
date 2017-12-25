@@ -180,34 +180,26 @@ module junyou {
      *
      */
     export const DataUtils = {
-
-
         parseDatas(to: Object, from: Object, checkStart: number, checkEnd: number, dataKey: string, toDatasKey: string) {
-            var arr: any[];
-            for (var i = checkStart; i <= checkEnd; i++) {
-                var key: string = dataKey + i;
+            let arr: any[] = [];
+            for (let i = checkStart, j = 0; i <= checkEnd; i++) {
+                let key: string = dataKey + i;
                 if (key in from) {
-                    if (!arr) {
-                        arr = [];
-                    }
-                    arr[i] = from[key];
+                    arr[j++] = from[key];
                 }
             }
-            to[toDatasKey] = arr || [];
+            to[toDatasKey] = arr;
         },
         parseDatas2(to: any, valueList: any[], keyList: string[], checkStart: number, checkEnd: number, dataKey: string, toDatasKey: string) {
-            let arr: any[];
-            for (var i = checkStart; i <= checkEnd; i++) {
-                var key: string = dataKey + i;
+            let arr: any[] = [];
+            for (let i = checkStart, j = 0; i <= checkEnd; i++) {
+                let key: string = dataKey + i;
                 let idx = keyList.indexOf(key);
                 if (~idx) {
-                    if (!arr) {
-                        arr = [];
-                    }
-                    arr[i] = valueList[idx];
+                    arr[j++] = valueList[idx];
                 }
             }
-            to[toDatasKey] = arr || [];
+            to[toDatasKey] = arr;
         },
         getData,
         getDataList(dataList: any[][], keyList: string[]): any[] {
