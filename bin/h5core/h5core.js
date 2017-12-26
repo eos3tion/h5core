@@ -20208,7 +20208,6 @@ var junyou;
                 if (true) {
                     console.log("socket断开连接");
                 }
-                junyou.dispatch(-195 /* Disconnect */);
                 egret.callLater(junyou.dispatch, junyou, -195 /* Disconnect */);
             };
             /**
