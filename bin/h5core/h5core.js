@@ -20266,10 +20266,7 @@ var junyou;
         WSNetService.prototype.connect = function () {
             var ws = this._ws;
             if (ws) {
-                ws.onclose = null;
-                ws.onerror = null;
-                ws.onmessage = null;
-                ws.onopen = null;
+                this.loose(ws);
             }
             this._ws = ws = new WebSocket(this._actionUrl);
             ws.binaryType = "arraybuffer";
@@ -20301,6 +20298,21 @@ var junyou;
             //清空被动数据
             pcmdList.length = 0;
             ws.send(sendBuffer.outBytes);
+        };
+        WSNetService.prototype.disconnect = function () {
+            var ws = this._ws;
+            if (!ws || ws.readyState != WebSocket.OPEN) {
+                return;
+            }
+            this.loose(ws);
+            this._ws = null;
+            ws.close();
+        };
+        WSNetService.prototype.loose = function (ws) {
+            ws.onclose = null;
+            ws.onerror = null;
+            ws.onmessage = null;
+            ws.onopen = null;
         };
         return WSNetService;
     }(junyou.NetService));

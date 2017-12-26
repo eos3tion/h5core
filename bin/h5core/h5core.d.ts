@@ -11757,6 +11757,8 @@ declare module junyou {
          */
         protected onData: (ev: MessageEvent) => void;
         protected _send(cmd: number, data: any, msgType: string): void;
+        disconnect(): void;
+        loose(ws: WebSocket): void;
     }
 }
 declare module junyou {
