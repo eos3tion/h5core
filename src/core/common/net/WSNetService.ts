@@ -109,10 +109,7 @@ module junyou {
         public connect() {
             let ws = this._ws;
             if (ws) {
-                ws.onclose = null;
-                ws.onerror = null;
-                ws.onmessage = null;
-                ws.onopen = null;
+                this.loose(ws);
             }
             this._ws = ws = new WebSocket(this._actionUrl);
             ws.binaryType = "arraybuffer";
@@ -208,6 +205,23 @@ module junyou {
             //清空被动数据
             pcmdList.length = 0;
             ws.send(sendBuffer.outBytes);
+        }
+
+        disconnect() {
+            let ws = this._ws;
+            if (!ws || ws.readyState != WebSocket.OPEN) {
+                return;
+            }
+            this.loose(ws);
+            this._ws = null;
+            ws.close();
+        }
+
+        loose(ws: WebSocket) {
+            ws.onclose = null;
+            ws.onerror = null;
+            ws.onmessage = null;
+            ws.onopen = null;
         }
     }
 }
