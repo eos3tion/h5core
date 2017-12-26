@@ -151,7 +151,6 @@ module junyou {
             if (DEBUG) {
                 console.log("socket断开连接");
             }
-            dispatch(EventConst.Disconnect);
             egret.callLater(dispatch, junyou, EventConst.Disconnect);
         }
 
