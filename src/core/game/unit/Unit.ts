@@ -261,6 +261,7 @@ module junyou {
                 this._resDict[part] = res;
                 this.invalidateResList();
             }
+            return res;
         }
 
         /**
