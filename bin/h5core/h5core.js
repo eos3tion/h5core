@@ -9441,6 +9441,15 @@ var junyou;
  */
 var junyou;
 (function (junyou) {
+    function setJTexture(bmp, texture) {
+        bmp.texture = texture;
+        var tx, ty;
+        if (texture) {
+            (tx = texture.tx, ty = texture.ty);
+        }
+        bmp.anchorOffsetX = tx || 0;
+        bmp.anchorOffsetY = ty || 0;
+    }
     /**
      * 单位资源<br/>
      * 图片按动作或者方向的序列帧，装箱处理后的图片位图资源<br/>
@@ -9531,19 +9540,16 @@ var junyou;
                 var res = this.loadRes(d, a);
                 res.lastUseTime = junyou.Global.now;
                 if (frame.bitmapData) {
-                    bitmap.texture = frame;
-                    bitmap.anchorOffsetX = frame.tx;
-                    bitmap.anchorOffsetY = frame.ty;
+                    setJTexture(bitmap, frame);
                     return true;
                 }
                 else {
                     if (res.state == 2 /* COMPLETE */) {
                         res.bindTexture(frame);
                     }
-                    bitmap.texture = undefined;
                 }
             }
-            //TODO 绘制未加载的代理图片
+            setJTexture(bitmap, this.placehoder);
         };
         /**
          * 根据 `动作``方向``帧数`获取纹理数据
@@ -11522,6 +11528,7 @@ var junyou;
                 this._resDict[part] = res;
                 this.invalidateResList();
             }
+            return res;
         };
         /**
          * 资源列表发生改变

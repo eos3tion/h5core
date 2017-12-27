@@ -5754,6 +5754,10 @@ declare module junyou {
          */
         qid?: Res.ResQueueID;
         /**
+         * 占位用的纹理
+         */
+        placehoder: JTexture;
+        /**
          * 纹理的配置文件的加载地址
          */
         readonly url: string;
@@ -7080,7 +7084,7 @@ declare module junyou {
          * @param {string} [uri] 资源路径，不传则清空部位
          * @param {string} [pst] 通过其他pst配置进行加载
          */
-        protected setRes(part: Key, uri?: string, pst?: string): void;
+        protected setRes(part: Key, uri?: string, pst?: string): UnitResource;
         /**
          * 资源列表发生改变
          */
