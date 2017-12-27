@@ -11,6 +11,16 @@ module junyou {
         CfgFile = "d.json"
     }
 
+    function setJTexture(bmp: egret.Bitmap, texture: JTexture) {
+        bmp.texture = texture;
+        let tx: number, ty: number;
+        if (texture) {
+            ({ tx, ty } = texture);
+        }
+        bmp.anchorOffsetX = tx || 0;
+        bmp.anchorOffsetY = ty || 0;
+    }
+
 
 	/**
 	 * 单位资源<br/>
@@ -27,6 +37,11 @@ module junyou {
          * 加载列队
          */
         qid?: Res.ResQueueID;
+
+        /**
+         * 占位用的纹理
+         */
+        placehoder: JTexture;
         /**
          * 纹理的配置文件的加载地址
          */
@@ -129,18 +144,15 @@ module junyou {
                 let res = this.loadRes(d, a);
                 res.lastUseTime = Global.now;
                 if (frame.bitmapData) {
-                    bitmap.texture = frame;
-                    bitmap.anchorOffsetX = frame.tx;
-                    bitmap.anchorOffsetY = frame.ty;
+                    setJTexture(bitmap, frame);
                     return true;
                 } else {
                     if (res.state == RequestState.COMPLETE) {
                         res.bindTexture(frame);
                     }
-                    bitmap.texture = undefined;
                 }
             }
-            //TODO 绘制未加载的代理图片
+            setJTexture(bitmap, this.placehoder);
         }
 
         /**
