@@ -1287,7 +1287,20 @@ var junyou;
                     for (var name_1 in dict) {
                         var struct = dict[name_1];
                         if (typeof struct != "object") {
-                            struct = dict[struct];
+                            var cycle = [name_1, struct];
+                            while (true) {
+                                struct = dict[struct];
+                                if (struct == null) {
+                                    return true && junyou.Log("\u6DFB\u52A0ProtoBuf\u5B57\u5178\u6709\u8BEF\uFF0C\u8BF7\u68C0\u67E5\u6570\u636E");
+                                }
+                                if (typeof struct == "object") {
+                                    break;
+                                }
+                                if (~cycle.indexOf(struct)) {
+                                    return true && junyou.Log("\u6DFB\u52A0ProtoBuf\u5B57\u5178\u6709\u8BEF\uFF0C\u51FA\u73B0\u5FAA\u73AF\u7684\u914D\u7F6E");
+                                }
+                                cycle.push(struct);
+                            }
                         }
                         regStruct(name_1, struct);
                     }
@@ -8579,7 +8592,8 @@ var junyou;
         };
         Object.defineProperty(AniInfo.prototype, "actionInfo", {
             get: function () {
-                return this.frames[0];
+                var frames = this.frames;
+                return frames && frames[0];
             },
             enumerable: true,
             configurable: true
@@ -8835,13 +8849,7 @@ var junyou;
             var _aniInfo = this._aniInfo;
             if (_aniInfo) {
                 var _a = this, f = _a.f, loop = _a.loop, display = _a.display, state = _a.state;
-                var actionInfo = _aniInfo.actionInfo;
-                if (loop || (loop == undefined && actionInfo.isCircle)) {
-                    var total = _aniInfo.actionInfo.frames.length;
-                    if (f > total) {
-                        f = f % total;
-                    }
-                }
+                this.idx = checkStart(_aniInfo, loop, f);
                 display.res = _aniInfo.getResource();
                 if (state == 1 /* Playing */) {
                     this.checkPlay();
@@ -9012,7 +9020,8 @@ var junyou;
                         parent_1.addChildAt(display, idx);
                     }
                 }
-                ani.loop = option.loop;
+                var loop = option.loop;
+                ani.loop = loop;
                 ani.handler = option.handler;
                 var recyclePolicy = option.recyclePolicy;
                 if (recyclePolicy == undefined) {
@@ -9020,7 +9029,7 @@ var junyou;
                 }
                 ani.recyclePolicy = recyclePolicy;
                 ani.waitTexture = !!option.waitTexture;
-                ani.f = option.start >>> 0; //强制为正整数
+                ani.idx = checkStart(aniInfo, loop, option.start >>> 0); //强制为正整数
             }
             !guid && (guid = this.guid++);
             this._renderByGuid[guid] = ani;
@@ -9054,6 +9063,16 @@ var junyou;
     }(junyou.BaseRender));
     junyou.AniRender = AniRender;
     __reflect(AniRender.prototype, "junyou.AniRender", ["junyou.IRecyclable"]);
+    function checkStart(aniInfo, loop, startFrame) {
+        var actionInfo = aniInfo.actionInfo;
+        if (loop || (loop == undefined && actionInfo && actionInfo.isCircle)) {
+            var total = aniInfo.actionInfo.frames.length;
+            if (startFrame > total) {
+                startFrame = startFrame % total;
+            }
+        }
+        return startFrame;
+    }
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {

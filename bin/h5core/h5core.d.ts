@@ -1425,7 +1425,7 @@ declare module junyou {
         /**
          * 数组的索引
          */
-        protected idx: number;
+        idx: number;
         /**
          * 下一次需要重新计算渲染的时间
          */
