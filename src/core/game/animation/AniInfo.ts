@@ -91,7 +91,8 @@ module junyou {
         }
 
         public get actionInfo(): ActionInfo {
-            return this.frames[0]
+            let frames = this.frames;
+            return frames && frames[0]
         }
     }
 }
