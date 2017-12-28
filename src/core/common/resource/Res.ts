@@ -501,6 +501,24 @@ module junyou.Res {
     }
 
     /**
+     * 阻止尝试某个资源加载，目前是还未加载的资源，从列队中做移除，其他状态不处理
+     * @param uri 
+     */
+    export function cancel(uri: string) {
+        let item = resDict[uri];
+        if (item) {
+            if (item.state == RequestState.UNREQUEST) {
+                let qid = item.qid;
+                let queue = queues[qid];
+                if (queue) {
+                    queue.list.remove(item);
+                }
+                doCallback(item);
+            }
+        }
+    }
+
+    /**
      * 加载资源
      * @param {ResItem} resItem 
      * @param {ResQueueID} [queueID=ResQueueID.Normal]
