@@ -269,13 +269,7 @@ module junyou {
             let _aniInfo = this._aniInfo;
             if (_aniInfo) {
                 let { f, loop, display, state } = this;
-                let actionInfo = _aniInfo.actionInfo;
-                if (loop || (loop == undefined && actionInfo.isCircle)) {
-                    let total = _aniInfo.actionInfo.frames.length;
-                    if (f > total) {
-                        f = f % total;
-                    }
-                }
+                this.idx = checkStart(_aniInfo, loop, f);
                 display.res = _aniInfo.getResource();
                 if (state == AniPlayState.Playing) {
                     this.checkPlay();
@@ -453,7 +447,8 @@ module junyou {
                         parent.addChildAt(display, idx);
                     }
                 }
-                ani.loop = option.loop;
+                let loop = option.loop;
+                ani.loop = loop;
                 ani.handler = option.handler
                 let recyclePolicy = option.recyclePolicy;
                 if (recyclePolicy == undefined) {
@@ -461,7 +456,7 @@ module junyou {
                 }
                 ani.recyclePolicy = recyclePolicy;
                 ani.waitTexture = !!option.waitTexture;
-                ani.f = option.start >>> 0;//强制为正整数
+                ani.idx = checkStart(aniInfo, loop, option.start >>> 0);//强制为正整数
             }
             !guid && (guid = this.guid++);
             this._renderByGuid[guid] = ani;
@@ -491,6 +486,17 @@ module junyou {
                 ani.recycle();
             }
         }
+    }
+
+    function checkStart(aniInfo: AniInfo, loop: number, startFrame: number) {
+        let actionInfo = aniInfo.actionInfo;
+        if (loop || (loop == undefined && actionInfo && actionInfo.isCircle)) {
+            let total = aniInfo.actionInfo.frames.length;
+            if (startFrame > total) {
+                startFrame = startFrame % total;
+            }
+        }
+        return startFrame;
     }
     export interface AniOption {
         guid?: number;

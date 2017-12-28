@@ -260,8 +260,21 @@ module junyou {
                 if (!dict.$$inted) {//检查字典是否初始化过
                     for (let name in dict) {
                         let struct = dict[name];
-                        if (typeof struct != "object") {//用于支持索引式的结构 http://192.168.0.205:1234/h5ToolsForJava/ProtoTools/issues/2
-                            struct = dict[struct] as PBStruct;
+                        if (typeof struct != "object") {
+                            let cycle = [name, struct];
+                            while (true) {//防止出现多重关联的情况 
+                                struct = dict[struct] as PBStruct;
+                                if (struct == null) {//或者undefiend
+                                    return DEBUG && Log(`添加ProtoBuf字典有误，请检查数据`);
+                                }
+                                if (typeof struct == "object") {
+                                    break;
+                                }
+                                if (~cycle.indexOf(struct)) {
+                                    return DEBUG && Log(`添加ProtoBuf字典有误，出现循环的配置`);
+                                }
+                                cycle.push(struct);
+                            }
                         }
                         regStruct(name, struct);
                     }
