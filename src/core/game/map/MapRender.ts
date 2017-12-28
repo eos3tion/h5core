@@ -52,6 +52,7 @@ module junyou {
     * 用于处理地图平铺的渲染
     */
     export class TileMapLayer extends GameLayer {
+        miniUri: string;
 
         /**
          * 扩展预加载的图块数量  
@@ -66,12 +67,18 @@ module junyou {
         currentMap: MapInfo;
 
         /**
+         * mini的纹理
+         */
+        mini: egret.Texture;
+
+        miniTexDict: { [key: number]: egret.Texture }
+
+        /**
          * 
          * 显示中的地图
-         * @private
          * @type {TileMap[]}
          */
-        private _showing: TileMap[] = [];
+        protected _showing: TileMap[] = [];
         protected drawGrid?: { (x: number, y: number, w: number, h: number, cM: MapInfo): void };
 
         protected gridPane?: egret.Shape;
@@ -160,9 +167,31 @@ module junyou {
 
         protected noRes(uri: string, c: number, r: number, pW: number, pH: number) {
             let tmp = new TileMap();
+            //检查是否有小地图，如果有，先设置一份texture
+            let { mini, miniTexDict } = this;
+            let x = c * pW;
+            let y = r * pH;
+            if (mini) {
+                let texKey = getPosHash2(c, r);
+                let tex = miniTexDict[texKey];
+                if (!tex) {
+                    let { textureWidth, textureHeight } = mini;
+                    let { width, height } = this.currentMap;
+                    miniTexDict[texKey] = tex = new egret.Texture();
+                    let dw = textureWidth / width;
+                    let dh = textureHeight / height;
+                    let sw = pW * dw;
+                    let sh = pH * dh;
+                    tex.$initData(x * dw, y * dh, sw, sh, 0, 0, sw, sh, sw, sh);
+                    tex._bitmapData = mini.bitmapData;
+                }
+                tmp.texture = tex;
+                tmp.width = pW;
+                tmp.height = pH;
+            }
             tmp.reset(c, r, uri);
-            tmp.x = c * pW;
-            tmp.y = r * pH;
+            tmp.x = x;
+            tmp.y = y;
             tmp.load();
             return tmp;
         }
@@ -198,6 +227,31 @@ module junyou {
                     }
 
                 }
+            }
+        }
+
+        /**
+         * 设置小地图
+         * @param uri 
+         */
+        setMini(uri: string) {
+            let miniUri = this.currentMap.getImgUri(uri);
+            let old = this.miniUri;
+            if (old != miniUri) {
+                if (old) {
+                    Res.cancel(old);
+                }
+                this.miniUri = miniUri;
+                this.mini = undefined;
+                this.miniTexDict = {};
+                Res.load(miniUri, ConfigUtils.getResUrl(miniUri), CallbackInfo.get(this.miniLoad, this), Res.ResQueueID.Highway);
+            }
+        }
+
+        miniLoad(item: Res.ResItem) {
+            let { data, uri } = item;
+            if (uri == this.miniUri) {
+                this.mini = data;
             }
         }
 
