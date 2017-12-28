@@ -10276,6 +10276,10 @@ var junyou;
         function MapInfo() {
             var _this = _super.call(this) || this;
             /**
+             * 图片扩展
+             */
+            _this.ext = ".jpg" /* JPG */;
+            /**
              * 单张底图的宽度
              */
             _this.pWidth = 256 /* DefaultSize */;
@@ -10299,7 +10303,7 @@ var junyou;
             return "m/" /* DebugMapPath */ + this.path + "/" + uri;
         };
         mpt.getMapUri = function (col, row) {
-            return "m/" /* DebugMapPath */ + this.path + "/" + row.zeroize(3) + col.zeroize(3) + ".jpg" /* JPG */;
+            return "m/" /* DebugMapPath */ + this.path + "/" + row.zeroize(3) + col.zeroize(3) + this.ext;
         };
     }
     if (false) {
@@ -10307,7 +10311,7 @@ var junyou;
             return "" + "m2/" /* ReleaseMapPath */ + this.path + "/" + uri;
         };
         mpt.getMapUri = function (col, row) {
-            return "" + "m2/" /* ReleaseMapPath */ + this.path + "/" + row + "_" + col + ".jpg" /* JPG */ + webp;
+            return "" + "m2/" /* ReleaseMapPath */ + this.path + "/" + row + "_" + col + this.ext + webp;
         };
     }
 })(junyou || (junyou = {}));
@@ -10363,7 +10367,6 @@ var junyou;
             /**
              *
              * 显示中的地图
-             * @private
              * @type {TileMap[]}
              */
             _this._showing = [];
@@ -10447,11 +10450,56 @@ var junyou;
         };
         TileMapLayer.prototype.noRes = function (uri, c, r, pW, pH) {
             var tmp = new TileMap();
+            //检查是否有小地图，如果有，先设置一份texture
+            var _a = this, mini = _a.mini, miniTexDict = _a.miniTexDict;
+            var x = c * pW;
+            var y = r * pH;
+            if (mini) {
+                var texKey = junyou.getPosHash2(c, r);
+                var tex = miniTexDict[texKey];
+                if (!tex) {
+                    var textureWidth = mini.textureWidth, textureHeight = mini.textureHeight;
+                    var _b = this.currentMap, width = _b.width, height = _b.height;
+                    miniTexDict[texKey] = tex = new egret.Texture();
+                    var dw = textureWidth / width;
+                    var dh = textureHeight / height;
+                    var sw = pW * dw;
+                    var sh = pH * dh;
+                    tex.$initData(x * dw, y * dh, sw, sh, 0, 0, sw, sh, sw, sh);
+                    tex._bitmapData = mini.bitmapData;
+                }
+                tmp.texture = tex;
+                tmp.width = pW;
+                tmp.height = pH;
+            }
             tmp.reset(c, r, uri);
-            tmp.x = c * pW;
-            tmp.y = r * pH;
+            tmp.x = x;
+            tmp.y = y;
             tmp.load();
             return tmp;
+        };
+        /**
+         * 设置小地图
+         * @param uri
+         */
+        TileMapLayer.prototype.setMini = function (uri) {
+            var miniUri = this.currentMap.getImgUri(uri);
+            var old = this.miniUri;
+            if (old != miniUri) {
+                if (old) {
+                    junyou.Res.cancel(old);
+                }
+                this.miniUri = miniUri;
+                this.mini = undefined;
+                this.miniTexDict = {};
+                junyou.Res.load(miniUri, junyou.ConfigUtils.getResUrl(miniUri), junyou.CallbackInfo.get(this.miniLoad, this), 2 /* Highway */);
+            }
+        };
+        TileMapLayer.prototype.miniLoad = function (item) {
+            var data = item.data, uri = item.uri;
+            if (uri == this.miniUri) {
+                this.mini = data;
+            }
         };
         TileMapLayer.prototype.removeChildren = function () {
             //重置显示的地图序列
@@ -21783,6 +21831,24 @@ var junyou;
             }
         }
         Res.remove = remove;
+        /**
+         * 阻止尝试某个资源加载，目前是还未加载的资源，从列队中做移除，其他状态不处理
+         * @param uri
+         */
+        function cancel(uri) {
+            var item = resDict[uri];
+            if (item) {
+                if (item.state == 0 /* UNREQUEST */) {
+                    var qid = item.qid;
+                    var queue = queues[qid];
+                    if (queue) {
+                        queue.list.remove(item);
+                    }
+                    doCallback(item);
+                }
+            }
+        }
+        Res.cancel = cancel;
         /**
          * 加载资源
          * @param {ResItem} resItem

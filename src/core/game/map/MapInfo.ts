@@ -20,6 +20,11 @@ module junyou {
 	 */
     export class MapInfo extends egret.HashObject {
 
+        /**
+         * 图片扩展
+         */
+        ext = Ext.JPG;
+
     	/**
     	 * 地图唯一标识
     	 */
@@ -114,7 +119,7 @@ module junyou {
             return MapConst.DebugMapPath + this.path + "/" + uri;
         }
         mpt.getMapUri = function (this: MapInfo, col: number, row: number): string {
-            return MapConst.DebugMapPath + this.path + "/" + row.zeroize(3) + col.zeroize(3) + Ext.JPG;
+            return MapConst.DebugMapPath + this.path + "/" + row.zeroize(3) + col.zeroize(3) + this.ext;
         }
     }
     if (RELEASE) {
@@ -122,7 +127,7 @@ module junyou {
             return `${MapConst.ReleaseMapPath}${this.path}/${uri}`;
         }
         mpt.getMapUri = function (this: MapInfo, col: number, row: number) {
-            return `${MapConst.ReleaseMapPath}${this.path}/${row}_${col}${Ext.JPG}${webp}`;
+            return `${MapConst.ReleaseMapPath}${this.path}/${row}_${col}${this.ext}${webp}`;
         }
     }
 }

@@ -6179,6 +6179,10 @@ declare module junyou {
      */
     class MapInfo extends egret.HashObject {
         /**
+         * 图片扩展
+         */
+        ext: Ext;
+        /**
          * 地图唯一标识
          */
         id: Key;
@@ -6268,6 +6272,7 @@ declare module junyou {
     * 用于处理地图平铺的渲染
     */
     class TileMapLayer extends GameLayer {
+        miniUri: string;
         /**
          * 扩展预加载的图块数量
          *
@@ -6283,12 +6288,18 @@ declare module junyou {
          */
         currentMap: MapInfo;
         /**
+         * mini的纹理
+         */
+        mini: egret.Texture;
+        miniTexDict: {
+            [key: number]: egret.Texture;
+        };
+        /**
          *
          * 显示中的地图
-         * @private
          * @type {TileMap[]}
          */
-        private _showing;
+        protected _showing: TileMap[];
         protected drawGrid?: {
             (x: number, y: number, w: number, h: number, cM: MapInfo): void;
         };
@@ -6327,6 +6338,12 @@ declare module junyou {
         setRect(rect: egret.Rectangle): void;
         protected noRes(uri: string, c: number, r: number, pW: number, pH: number): TileMap;
         constructor(id: number);
+        /**
+         * 设置小地图
+         * @param uri
+         */
+        setMini(uri: string): void;
+        miniLoad(item: Res.ResItem): void;
         removeChildren(): void;
     }
     /**
@@ -12823,6 +12840,11 @@ declare module junyou.Res {
      * @param uri
      */
     function remove(uri: string): void;
+    /**
+     * 阻止尝试某个资源加载，目前是还未加载的资源，从列队中做移除，其他状态不处理
+     * @param uri
+     */
+    function cancel(uri: string): void;
     /**
      * 加载资源
      * @param {ResItem} resItem
