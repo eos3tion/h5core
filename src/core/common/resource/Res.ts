@@ -662,20 +662,19 @@ module junyou.Res {
             //不支持indexedDB，不对白鹭的RES做任何调整，直接return
             return;
         }
-        try {
-            var request = indexedDB.open(storeName, version);
-        } catch (e) {
-            DEBUG && ThrowError(`无法开启 indexedDB,error:`, e);
-            return;
-        }
         w.IDBTransaction = w.IDBTransaction ||
             w.webkitIDBTransaction ||
             w.msIDBTransaction;
         w.IDBKeyRange = w.IDBKeyRange ||
             w.webkitIDBKeyRange ||
             w.msIDBKeyRange;
+        try {
+            indexedDB.open(storeName, version);
+        } catch (e) {
+            DEBUG && ThrowError(`无法开启 indexedDB,error:`, e);
+            return;
+        }
 
-        w.URL = window.URL || w.webkitURL;
         const RW = "readwrite";
         const R = "readonly";
         return {
@@ -813,6 +812,9 @@ module junyou.Res {
         if (!db) {//无法开启 indexedDB，不做后续注入操作
             return;
         }
+
+        let w = window as any;
+        w.URL = window.URL || w.webkitURL;
         //当前ios10还不支持IndexedDB的Blob存储，所以如果是ios，则此值为false
         const canUseBlob = egret.Capabilities.os == "iOS" ? false : !!(window.Blob && window.URL);
 
