@@ -22029,20 +22029,19 @@ var junyou;
                 //不支持indexedDB，不对白鹭的RES做任何调整，直接return
                 return;
             }
-            try {
-                var request = indexedDB.open(storeName, version);
-            }
-            catch (e) {
-                true && junyou.ThrowError("\u65E0\u6CD5\u5F00\u542F indexedDB,error:", e);
-                return;
-            }
             w.IDBTransaction = w.IDBTransaction ||
                 w.webkitIDBTransaction ||
                 w.msIDBTransaction;
             w.IDBKeyRange = w.IDBKeyRange ||
                 w.webkitIDBKeyRange ||
                 w.msIDBKeyRange;
-            w.URL = window.URL || w.webkitURL;
+            try {
+                indexedDB.open(storeName, version);
+            }
+            catch (e) {
+                true && junyou.ThrowError("\u65E0\u6CD5\u5F00\u542F indexedDB,error:", e);
+                return;
+            }
             var RW = "readwrite";
             var R = "readonly";
             return {
@@ -22056,10 +22055,10 @@ var junyou;
                     open(function (result) {
                         var store = getObjectStore(result, RW);
                         try {
-                            var request_1 = data.uri ? store.put(data) : store.add(data);
+                            var request = data.uri ? store.put(data) : store.add(data);
                             if (callback) {
-                                request_1.onsuccess = callback;
-                                request_1.onerror = callback;
+                                request.onsuccess = callback;
+                                request.onerror = callback;
                             }
                         }
                         catch (e) {
@@ -22077,11 +22076,11 @@ var junyou;
                     open(function (result) {
                         var store = getObjectStore(result, R);
                         try {
-                            var request_2 = store.get(url);
-                            request_2.onsuccess = function (e) {
+                            var request = store.get(url);
+                            request.onsuccess = function (e) {
                                 callback(e.target.result, url);
                             };
-                            request_2.onerror = function () {
+                            request.onerror = function () {
                                 callback(null, url);
                             };
                         }
@@ -22101,9 +22100,9 @@ var junyou;
                     open(function (result) {
                         var store = getObjectStore(result, RW);
                         try {
-                            var request_3 = store.delete(url);
+                            var request = store.delete(url);
                             if (callback) {
-                                request_3.onerror = request_3.onsuccess = function (e) { callback(url, e); };
+                                request.onerror = request.onsuccess = function (e) { callback(url, e); };
                             }
                         }
                         catch (e) {
@@ -22120,10 +22119,10 @@ var junyou;
                     open(function (result) {
                         var store = getObjectStore(result, RW);
                         try {
-                            var request_4 = store.clear();
+                            var request = store.clear();
                             if (callback) {
-                                request_4.onsuccess = callback;
-                                request_4.onerror = callback;
+                                request.onsuccess = callback;
+                                request.onerror = callback;
                             }
                         }
                         catch (e) {
@@ -22184,6 +22183,8 @@ var junyou;
             if (!db) {
                 return;
             }
+            var w = window;
+            w.URL = window.URL || w.webkitURL;
             //当前ios10还不支持IndexedDB的Blob存储，所以如果是ios，则此值为false
             var canUseBlob = egret.Capabilities.os == "iOS" ? false : !!(window.Blob && window.URL);
             function saveLocal(item, data) {
@@ -22298,12 +22299,12 @@ var junyou;
                             if (!img) {
                                 return;
                             }
-                            var w = img.width;
+                            var w_1 = img.width;
                             var h = img.height;
                             var type = "image/" + url.substring(url.lastIndexOf(".") + 1);
-                            canvas.width = w;
+                            canvas.width = w_1;
                             canvas.height = h;
-                            context.clearRect(0, 0, w, h);
+                            context.clearRect(0, 0, w_1, h);
                             context.drawImage(img, 0, 0);
                             try {
                                 if (canUseBlob && url.indexOf("wxLocalResource:") != 0) {
