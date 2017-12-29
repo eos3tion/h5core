@@ -423,7 +423,7 @@ module junyou {
          * 接收消息的创建器
          * 
          */
-        protected _receiveMSG: { [index: number]: string | number };
+        _receiveMSG: { [index: number]: string | number };
 
         /**
          * 设置地址
