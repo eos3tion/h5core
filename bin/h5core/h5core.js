@@ -22053,8 +22053,8 @@ var junyou;
                  */
                 save: function (data, callback) {
                     open(function (result) {
-                        var store = getObjectStore(result, RW);
                         try {
+                            var store = getObjectStore(result, RW);
                             var request = data.uri ? store.put(data) : store.add(data);
                             if (callback) {
                                 request.onsuccess = callback;
@@ -22074,8 +22074,8 @@ var junyou;
                  */
                 get: function (url, callback) {
                     open(function (result) {
-                        var store = getObjectStore(result, R);
                         try {
+                            var store = getObjectStore(result, R);
                             var request = store.get(url);
                             request.onsuccess = function (e) {
                                 callback(e.target.result, url);
@@ -22098,8 +22098,8 @@ var junyou;
                  */
                 delete: function (url, callback) {
                     open(function (result) {
-                        var store = getObjectStore(result, RW);
                         try {
+                            var store = getObjectStore(result, RW);
                             var request = store.delete(url);
                             if (callback) {
                                 request.onerror = request.onsuccess = function (e) { callback(url, e); };
@@ -22117,8 +22117,8 @@ var junyou;
                  */
                 clear: function (callback) {
                     open(function (result) {
-                        var store = getObjectStore(result, RW);
                         try {
+                            var store = getObjectStore(result, RW);
                             var request = store.clear();
                             if (callback) {
                                 request.onsuccess = callback;
@@ -22157,7 +22157,7 @@ var junyou;
                 };
             }
             function getObjectStore(result, mode) {
-                return result.transaction(storeName, mode).objectStore(storeName);
+                return result.transaction([storeName], mode).objectStore(storeName);
             }
             function errorHandler(ev) {
                 junyou.ThrowError("indexedDB error", ev.error);
