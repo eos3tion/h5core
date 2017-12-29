@@ -2681,7 +2681,7 @@ declare module junyou {
          * 接收消息的创建器
          *
          */
-        protected _receiveMSG: {
+        _receiveMSG: {
             [index: number]: string | number;
         };
         /**
@@ -8536,7 +8536,7 @@ declare module junyou {
      * @author 3tion
      */
     abstract class Service extends Proxy {
-        protected _ns: NetService;
+        _ns: NetService;
         constructor(name: string | number);
         onRegister(): void;
         _startSync(): void;
