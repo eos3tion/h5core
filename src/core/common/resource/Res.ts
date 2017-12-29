@@ -674,7 +674,6 @@ module junyou.Res {
             DEBUG && ThrowError(`无法开启 indexedDB,error:`, e);
             return;
         }
-
         const RW = "readwrite";
         const R = "readonly";
         return {
@@ -686,8 +685,8 @@ module junyou.Res {
              */
             save(data: ResItem, callback?: { (ev: Event | Error) }) {
                 open(result => {
-                    let store = getObjectStore(result, RW);
                     try {
+                        let store = getObjectStore(result, RW);
                         let request = data.uri ? store.put(data) : store.add(data);
                         if (callback) {
                             request.onsuccess = callback;
@@ -707,8 +706,8 @@ module junyou.Res {
              */
             get(url: string, callback: { (data: ResItem, url?: string) }) {
                 open(result => {
-                    let store = getObjectStore(result, R);
                     try {
+                        let store = getObjectStore(result, R);
                         let request = store.get(url);
                         request.onsuccess = function (e: Event) {
                             callback((e.target as IDBRequest).result, url);
@@ -730,8 +729,8 @@ module junyou.Res {
              */
             delete(url: string, callback?: { (url: string, ev: Event | Error) }) {
                 open(result => {
-                    let store = getObjectStore(result, RW);
                     try {
+                        let store = getObjectStore(result, RW);
                         let request = store.delete(url);
                         if (callback) {
                             request.onerror = request.onsuccess = e => { callback(url, e) };
@@ -748,8 +747,8 @@ module junyou.Res {
              */
             clear(callback?: { (ev: Event | Error) }) {
                 open(result => {
-                    let store = getObjectStore(result, RW);
                     try {
+                        let store = getObjectStore(result, RW);
                         let request = store.clear();
                         if (callback) {
                             request.onsuccess = callback;
@@ -787,7 +786,7 @@ module junyou.Res {
         }
 
         function getObjectStore(result: IDBDatabase, mode: IDBTransactionMode) {
-            return result.transaction(storeName, mode).objectStore(storeName);
+            return result.transaction([storeName], mode).objectStore(storeName);
         }
 
         function errorHandler(ev: ErrorEvent) {
