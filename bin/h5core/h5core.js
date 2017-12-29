@@ -11870,15 +11870,18 @@ var junyou;
              * 此方法只允许 UnitAction调用
              */
             set: function (value) {
-                value = value || 0;
-                if (this._x != value) {
-                    this._x = value;
-                    this.checkPosition();
-                }
+                this.$setX(value);
             },
             enumerable: true,
             configurable: true
         });
+        Unit.prototype.$setX = function (value) {
+            value = value || 0;
+            if (this._x != value) {
+                this._x = value;
+                this.checkPosition();
+            }
+        };
         Object.defineProperty(Unit.prototype, "y", {
             get: function () {
                 return this._y;
@@ -11887,16 +11890,19 @@ var junyou;
              * 此方法只允许 UnitAction调用
              */
             set: function (value) {
-                value = value || 0;
-                if (this._y != value) {
-                    this._y = value;
-                    this.checkPosition();
-                    junyou.GameEngine.invalidateSort();
-                }
+                this.$setY(value);
             },
             enumerable: true,
             configurable: true
         });
+        Unit.prototype.$setY = function (value) {
+            value = value || 0;
+            if (this._y != value) {
+                this._y = value;
+                this.checkPosition();
+                junyou.GameEngine.invalidateSort();
+            }
+        };
         Object.defineProperty(Unit.prototype, "z", {
             get: function () {
                 return this._z;
@@ -11905,15 +11911,18 @@ var junyou;
              * 此方法只允许 UnitAction调用
              */
             set: function (value) {
-                value = value || 0;
-                if (this._z != value) {
-                    this._z = value;
-                    this.checkPosition();
-                }
+                this.$setZ(value);
             },
             enumerable: true,
             configurable: true
         });
+        Unit.prototype.$setZ = function (value) {
+            value = value || 0;
+            if (this._z != value) {
+                this._z = value;
+                this.checkPosition();
+            }
+        };
         /**
          * 检查模型和其他的y轴
          */

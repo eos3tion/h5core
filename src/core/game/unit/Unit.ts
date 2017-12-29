@@ -576,6 +576,10 @@ module junyou {
          * 此方法只允许 UnitAction调用
          */
         public set x(value: number) {
+            this.$setX(value);
+        }
+
+        $setX(value: number) {
             value = value || 0;
             if (this._x != value) {
                 this._x = value;
@@ -591,6 +595,10 @@ module junyou {
          * 此方法只允许 UnitAction调用
          */
         public set y(value: number) {
+            this.$setY(value);
+        }
+
+        $setY(value: number) {
             value = value || 0;
             if (this._y != value) {
                 this._y = value;
@@ -608,6 +616,10 @@ module junyou {
          * 此方法只允许 UnitAction调用
          */
         public set z(value: number) {
+            this.$setZ(value);
+        }
+
+        $setZ(value: number) {
             value = value || 0;
             if (this._z != value) {
                 this._z = value;

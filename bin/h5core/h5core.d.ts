@@ -7202,14 +7202,17 @@ declare module junyou {
          * 此方法只允许 UnitAction调用
          */
         x: number;
+        $setX(value: number): void;
         /**
          * 此方法只允许 UnitAction调用
          */
         y: number;
+        $setY(value: number): void;
         /**
          * 此方法只允许 UnitAction调用
          */
         z: number;
+        $setZ(value: number): void;
         /**
          * 检查模型和其他的y轴
          */
