@@ -5848,7 +5848,7 @@ declare module junyou {
         /**
          * 镜头要跟随的目标
          */
-        protected _target: {
+        protected _host: {
             x: number;
             y: number;
         };
@@ -5871,6 +5871,13 @@ declare module junyou {
          * @param target 镜头要跟随的目标
          */
         lookat(target: Point): Boolean;
+        /**
+         * 获取当前镜头绑定的单位
+         */
+        readonly host: {
+            x: number;
+            y: number;
+        };
         /**
          * 设置相机的可视区域宽度和高度
          * @param width 可视区宽

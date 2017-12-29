@@ -9678,7 +9678,7 @@ var junyou;
         }
         Object.defineProperty(Camera.prototype, "changed", {
             get: function () {
-                var target = this._target;
+                var target = this._host;
                 if (target) {
                     var pos = getPosHash(target);
                     if (pos != this._lastPos) {
@@ -9710,9 +9710,19 @@ var junyou;
          * @param target 镜头要跟随的目标
          */
         Camera.prototype.lookat = function (target) {
-            this._target = target;
+            this._host = target;
             return !!target;
         };
+        Object.defineProperty(Camera.prototype, "host", {
+            /**
+             * 获取当前镜头绑定的单位
+             */
+            get: function () {
+                return this._host;
+            },
+            enumerable: true,
+            configurable: true
+        });
         /**
          * 设置相机的可视区域宽度和高度
          * @param width 可视区宽
@@ -9798,7 +9808,7 @@ var junyou;
              * 获取相机显示区域
              */
             get: function () {
-                var target = this._target;
+                var target = this._host;
                 if (target) {
                     this.moveTo(target.x, target.y);
                 }
