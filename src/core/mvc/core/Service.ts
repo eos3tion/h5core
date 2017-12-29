@@ -5,7 +5,7 @@ module junyou {
      */
     export abstract class Service extends Proxy {
 
-        protected _ns: NetService;
+        _ns: NetService;
 
         constructor(name: string | number) {
             super(name);
