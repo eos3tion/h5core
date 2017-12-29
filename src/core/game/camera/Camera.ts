@@ -36,13 +36,13 @@ module junyou {
         /**
          * 镜头要跟随的目标
          */
-        protected _target: { x: number, y: number };
+        protected _host: { x: number, y: number };
         private _lastPos: number;
 
         protected _changed: boolean;
 
         get changed(): boolean {
-            const target = this._target;
+            const target = this._host;
             if (target) {
                 let pos = getPosHash(target);
                 if (pos != this._lastPos) {
@@ -87,8 +87,15 @@ module junyou {
          * @param target 镜头要跟随的目标          
          */
         public lookat(target: Point): Boolean {
-            this._target = target;
+            this._host = target;
             return !!target;
+        }
+
+        /**
+         * 获取当前镜头绑定的单位
+         */
+        get host() {
+            return this._host;
         }
 
         /**
@@ -179,7 +186,7 @@ module junyou {
          * 获取相机显示区域
          */
         get rect(): egret.Rectangle {
-            let target = this._target;
+            let target = this._host;
             if (target) {
                 this.moveTo(target.x, target.y);
             }
