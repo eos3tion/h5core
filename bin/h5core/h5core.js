@@ -19823,6 +19823,12 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
+    var _unSendList = [];
+    var img = new window.Image(); //使用Image，在https下，不会因为最终请求地址为http，导致浏览器将请求拦截，详情参考 https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content
+    var _requestState = 0 /* UNREQUEST */;
+    img.crossOrigin = "anonymous";
+    img.onerror = callBack(-1 /* FAILED */);
+    img.onload = callBack(2 /* COMPLETE */);
     /**
     *
     * 发起可以不需要回调响应的跨域get请求
@@ -19831,15 +19837,6 @@ var junyou;
     *                              false（默认） 请求已经在列队中，则不会重复发起请求
     *                              true 不管相同地址的请求之前是否已经发起，继续发起请求
     */
-    junyou.sendToUrl = $();
-})(junyou || (junyou = {}));
-function $() {
-    var _unSendList = [];
-    var img = new Image(); //使用Image，在https下，不会因为最终请求地址为http，导致浏览器将请求拦截，详情参考 https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content
-    var _requestState = 0 /* UNREQUEST */;
-    img.onerror = callBack(this, -1 /* FAILED */);
-    img.onload = callBack(this, 2 /* COMPLETE */);
-    return sendToUrl;
     function sendToUrl(url, always) {
         if (_requestState == 1 /* REQUESTING */) {
             if (always) {
@@ -19853,8 +19850,9 @@ function $() {
         _requestState = 1 /* REQUESTING */;
         img.src = url;
     }
+    junyou.sendToUrl = sendToUrl;
     ;
-    function callBack(self, state) {
+    function callBack(state) {
         return function () {
             _requestState = state;
             if (true) {
@@ -19865,7 +19863,7 @@ function $() {
             }
         };
     }
-}
+})(junyou || (junyou = {}));
 var $useDPR = true;
 var dpr = 1;
 if (window.$useDPR) {

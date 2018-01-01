@@ -11596,6 +11596,11 @@ declare module junyou {
         getTipLayoutPos: (disWidth: number, disHeight: number, parentWidth: number, parentHeight: number, point: Point, result?: Point, padx?: number, pady?: number) => Point;
     };
 }
+interface Window {
+    Image: {
+        new(width?: number, height?: number): HTMLImageElement;
+    };
+}
 declare module junyou {
     /**
     *
@@ -11605,9 +11610,8 @@ declare module junyou {
     *                              false（默认） 请求已经在列队中，则不会重复发起请求
     *                              true 不管相同地址的请求之前是否已经发起，继续发起请求
     */
-    const sendToUrl: (url: string, always?: boolean) => void;
+    function sendToUrl(url: string, always?: boolean): void;
 }
-declare function $(): (url: string, always?: boolean) => void;
 declare var $useDPR: boolean;
 declare var dpr: number;
 declare module junyou {
