@@ -39,7 +39,9 @@ function getDescriptor(descriptor, enumerable, writable, configurable) {
     if (enumerable === void 0) { enumerable = false; }
     if (writable === void 0) { writable = true; }
     if (configurable === void 0) { configurable = true; }
-    descriptor.writable = writable;
+    if (!descriptor.set && !descriptor.get) {
+        descriptor.writable = writable;
+    }
     descriptor.configurable = configurable;
     descriptor.enumerable = enumerable;
     return descriptor;
