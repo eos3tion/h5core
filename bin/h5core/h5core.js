@@ -26,7 +26,38 @@ function zeroize(value, length) {
     }
     return zeros + str;
 }
-Object.defineProperties(Object.prototype, {
+/**
+ * 获取完整的 PropertyDescriptor
+ *
+ * @param {Partial<PropertyDescriptor>} descriptor
+ * @param {boolean} [enumerable=false]
+ * @param {boolean} [writable]
+ * @param {boolean} [configurable=true]
+ * @returns
+ */
+function getDescriptor(descriptor, enumerable, writable, configurable) {
+    if (enumerable === void 0) { enumerable = false; }
+    if (writable === void 0) { writable = true; }
+    if (configurable === void 0) { configurable = true; }
+    descriptor.writable = writable;
+    descriptor.configurable = configurable;
+    descriptor.enumerable = enumerable;
+    return descriptor;
+}
+function makeDefDescriptors(descriptors, enumerable, writable, configurable) {
+    if (enumerable === void 0) { enumerable = false; }
+    if (writable === void 0) { writable = true; }
+    if (configurable === void 0) { configurable = true; }
+    for (var key in descriptors) {
+        var desc = descriptors[key];
+        var enumer = desc.enumerable == undefined ? enumerable : desc.enumerable;
+        var write = desc.writable == undefined ? writable : desc.writable;
+        var config = desc.configurable == undefined ? configurable : desc.configurable;
+        descriptors[key] = getDescriptor(desc, enumer, write, config);
+    }
+    return descriptors;
+}
+Object.defineProperties(Object.prototype, makeDefDescriptors({
     clone: {
         value: function () {
             var o = {};
@@ -34,8 +65,7 @@ Object.defineProperties(Object.prototype, {
                 o[n] = this[n];
             }
             return o;
-        },
-        writable: true
+        }
     },
     getPropertyDescriptor: {
         value: function (property) {
@@ -47,9 +77,7 @@ Object.defineProperties(Object.prototype, {
             if (prototype) {
                 return prototype.getPropertyDescriptor(property);
             }
-            return;
-        },
-        writable: true
+        }
     },
     copyto: {
         value: function (to) {
@@ -59,8 +87,7 @@ Object.defineProperties(Object.prototype, {
                     to[p] = this[p];
                 }
             }
-        },
-        writable: true
+        }
     },
     equals: {
         value: function (checker) {
@@ -78,11 +105,10 @@ Object.defineProperties(Object.prototype, {
                 }
             }
             return true;
-        },
-        writable: true
+        }
     }
-});
-Object.defineProperties(Function.prototype, {
+}));
+Object.defineProperties(Function.prototype, makeDefDescriptors({
     isSubClass: {
         value: function (testBase) {
             if (typeof testBase !== "function") {
@@ -98,10 +124,9 @@ Object.defineProperties(Function.prototype, {
                 base = base.prototype;
             }
             return true;
-        },
-        writable: true
+        }
     }
-});
+}));
 Math.DEG_TO_RAD = Math.PI / 180;
 Math.RAD_TO_DEG = 180 / Math.PI;
 Math.PI2 = 2 * Math.PI;
@@ -124,20 +149,17 @@ Math.random3 = function (center, delta) {
 if (!Number.isSafeInteger) {
     Number.isSafeInteger = function (value) { return value < 9007199254740991 /*Number.MAX_SAFE_INTEGER*/ && value >= -9007199254740991; }; /*Number.MIN_SAFE_INTEGER*/
 }
-Object.defineProperties(Number.prototype, {
+Object.defineProperties(Number.prototype, makeDefDescriptors({
+    zeroize: getDescriptor({
+        value: function (length) { return zeroize(this, length); }
+    }),
+    between: getDescriptor({
+        value: function (min, max) { return min <= this && max >= this; }
+    })
+}));
+Object.defineProperties(String.prototype, makeDefDescriptors({
     zeroize: {
         value: function (length) { return zeroize(this, length); },
-        writable: true
-    },
-    between: {
-        value: function (min, max) { return min <= this && max >= this; },
-        writable: true
-    }
-});
-Object.defineProperties(String.prototype, {
-    zeroize: {
-        value: function (length) { return zeroize(this, length); },
-        writable: true
     },
     substitute: {
         value: function () {
@@ -168,8 +190,7 @@ Object.defineProperties(String.prototype, {
                 }
             }
             return this.toString(); //防止生成String对象，ios反射String对象会当成一个NSDictionary处理
-        },
-        writable: true
+        }
     },
     hash: {
         value: function () {
@@ -179,17 +200,15 @@ Object.defineProperties(String.prototype, {
                 hash += (hash << 5) + this.charCodeAt(i);
             }
             return hash & 0xffffffff;
-        },
-        writable: true
+        }
     },
     trueLength: {
         value: function () {
             var arr = this.match(/[\u2E80-\u9FBF]/ig);
             return this.length + (arr ? arr.length : 0);
-        },
-        writable: true
+        }
     }
-});
+}));
 String.zeroize = zeroize;
 String.subHandler = {};
 String.regSubHandler = function (key, handler) {
@@ -203,7 +222,7 @@ String.regSubHandler = function (key, handler) {
     }
     this.subHandler[key] = handler;
 };
-Object.defineProperties(Date.prototype, {
+Object.defineProperties(Date.prototype, makeDefDescriptors({
     format: {
         value: function (mask, local) {
             var d = this;
@@ -232,10 +251,9 @@ Object.defineProperties(Date.prototype, {
             function gH() { return local ? d.getHours() : d.getUTCHours(); }
             function gm() { return local ? d.getMinutes() : d.getUTCMinutes(); }
             function gs() { return local ? d.getSeconds() : d.getUTCSeconds(); }
-        },
-        writable: true
+        }
     }
-});
+}));
 Array.binaryInsert = function (partArr, item, filter) {
     var args = [];
     for (var _i = 3; _i < arguments.length; _i++) {
@@ -265,7 +283,7 @@ Array.SORT_DEFAULT = {
     boolean: false
 };
 Object.freeze(Array.SORT_DEFAULT);
-Object.defineProperties(Array.prototype, {
+Object.defineProperties(Array.prototype, makeDefDescriptors({
     cloneTo: {
         value: function (b) {
             b.length = this.length;
@@ -274,8 +292,7 @@ Object.defineProperties(Array.prototype, {
             for (var i = 0; i < len; i++) {
                 b[i] = this[i];
             }
-        },
-        writable: true
+        }
     },
     appendTo: {
         value: function (b) {
@@ -283,8 +300,7 @@ Object.defineProperties(Array.prototype, {
             for (var i = 0; i < len; i++) {
                 b.push(this[i]);
             }
-        },
-        writable: true
+        }
     },
     pushOnce: {
         value: function (t) {
@@ -294,8 +310,7 @@ Object.defineProperties(Array.prototype, {
                 this[idx] = t;
             }
             return idx;
-        },
-        writable: true
+        }
     },
     remove: {
         value: function (t) {
@@ -331,8 +346,7 @@ Object.defineProperties(Array.prototype, {
             else {
                 return this.sort(function (a, b) { return descend ? b - a : a - b; });
             }
-        },
-        writable: true
+        }
     },
     multiSort: {
         value: function (kArr, dArr) {
@@ -378,10 +392,9 @@ Object.defineProperties(Array.prototype, {
                 }
                 return 0;
             });
-        },
-        writable: true
+        }
     }
-});
+}));
 var junyou;
 (function (junyou) {
     function is(instance, ref) {
@@ -547,8 +560,8 @@ var egret;
         egret.DisplayObject.$enterFrameCallBackList.remove(this);
         egret.DisplayObject.$renderCallBackList.remove(this);
     };
-    Object.defineProperties(dpt, {
-        "bright": {
+    Object.defineProperties(dpt, makeDefDescriptors({
+        bright: {
             set: function (value) {
                 value = Math.clamp(value, -1, 1);
                 if (this["_bright" /* PrivateKey */] == value) {
@@ -581,13 +594,11 @@ var egret;
             },
             get: function () {
                 return this["_bright" /* PrivateKey */] || 0;
-            },
-            enumerable: false,
-            configurable: true
+            }
         },
-        "sRectX": setScrollRectPos("x"),
-        "sRectY": setScrollRectPos("y"),
-    });
+        sRectX: setScrollRectPos("x"),
+        sRectY: setScrollRectPos("y"),
+    }));
     function setScrollRectPos(key) {
         return {
             set: function (value) {
@@ -600,9 +611,7 @@ var egret;
             get: function () {
                 var scroll = this.scrollRect;
                 return scroll && scroll[key] || 0;
-            },
-            enumerable: false,
-            configurable: true
+            }
         };
     }
 })(egret || (egret = {}));

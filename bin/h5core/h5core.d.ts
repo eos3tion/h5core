@@ -6,6 +6,17 @@ declare function parseInt(s: number, radix?: number): number;
  * @return 补0之后的字符串
  */
 declare function zeroize(value: number | string, length?: number): string;
+/**
+ * 获取完整的 PropertyDescriptor
+ *
+ * @param {Partial<PropertyDescriptor>} descriptor
+ * @param {boolean} [enumerable=false]
+ * @param {boolean} [writable]
+ * @param {boolean} [configurable=true]
+ * @returns
+ */
+declare function getDescriptor(descriptor: PropertyDescriptor, enumerable?: boolean, writable?: boolean, configurable?: boolean): PropertyDescriptor;
+declare function makeDefDescriptors(descriptors: object, enumerable?: boolean, writable?: boolean, configurable?: boolean): PropertyDescriptorMap;
 /****************************************扩展Object****************************************/
 interface Object {
     /**
