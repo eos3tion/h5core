@@ -24,7 +24,9 @@ function zeroize(value: number | string, length: number = 2): string {
  * @returns 
  */
 function getDescriptor(descriptor: PropertyDescriptor, enumerable = false, writable = true, configurable = true) {
-    descriptor.writable = writable;
+    if (!descriptor.set && !descriptor.get) {
+        descriptor.writable = writable;
+    }
     descriptor.configurable = configurable;
     descriptor.enumerable = enumerable;
     return descriptor;
