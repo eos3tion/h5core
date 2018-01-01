@@ -20724,7 +20724,7 @@ var junyou;
         var testString = "mmmmmmmmmmlli";
         //we test using 72px font size, we may use any size. I guess larger the better.
         var testSize = '72px';
-        var h = document.getElementsByTagName("body")[0];
+        var h = document.documentElement;
         // create a SPAN in the document to get the width of the text we use to test
         var s = document.createElement("span");
         s.style.fontSize = testSize;
