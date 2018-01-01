@@ -14,6 +14,32 @@ function zeroize(value: number | string, length: number = 2): string {
     }
     return zeros + str;
 }
+/**
+ * 获取完整的 PropertyDescriptor
+ * 
+ * @param {Partial<PropertyDescriptor>} descriptor 
+ * @param {boolean} [enumerable=false] 
+ * @param {boolean} [writable]
+ * @param {boolean} [configurable=true] 
+ * @returns 
+ */
+function getDescriptor(descriptor: PropertyDescriptor, enumerable = false, writable = true, configurable = true) {
+    descriptor.writable = writable;
+    descriptor.configurable = configurable;
+    descriptor.enumerable = enumerable;
+    return descriptor;
+}
+
+function makeDefDescriptors(descriptors: object, enumerable = false, writable = true, configurable = true) {
+    for (let key in descriptors) {
+        let desc: PropertyDescriptor = descriptors[key];
+        let enumer = desc.enumerable == undefined ? enumerable : desc.enumerable;
+        let write = desc.writable == undefined ? writable : desc.writable;
+        let config = desc.configurable == undefined ? configurable : desc.configurable;
+        descriptors[key] = getDescriptor(desc, enumer, write, config);
+    }
+    return descriptors as PropertyDescriptorMap;
+}
 /****************************************扩展Object****************************************/
 interface Object {
     /**
@@ -45,7 +71,7 @@ interface Object {
     equals(checker: Object, ...args: (keyof this)[]);
 }
 
-Object.defineProperties(Object.prototype, {
+Object.defineProperties(Object.prototype, makeDefDescriptors({
     clone: {
         value: function () {
             let o = {};
@@ -53,8 +79,7 @@ Object.defineProperties(Object.prototype, {
                 o[n] = this[n];
             }
             return o;
-        },
-        writable: true
+        }
     },
     getPropertyDescriptor: {
         value: function (property: string): any {
@@ -66,9 +91,7 @@ Object.defineProperties(Object.prototype, {
             if (prototype) {
                 return prototype.getPropertyDescriptor(property);
             }
-            return;
-        },
-        writable: true
+        }
     },
     copyto: {
         value: function (to: Object) {
@@ -78,8 +101,7 @@ Object.defineProperties(Object.prototype, {
                     to[p] = this[p];
                 }
             }
-        },
-        writable: true
+        }
     },
     equals: {
         value: function (checker: Object, ...args: string[]) {
@@ -93,10 +115,9 @@ Object.defineProperties(Object.prototype, {
                 }
             }
             return true;
-        },
-        writable: true
+        }
     }
-});
+}));
 interface Function {
 
     /**
@@ -109,7 +130,7 @@ interface Function {
      */
     isSubClass(testBase: Function): boolean;
 }
-Object.defineProperties(Function.prototype, {
+Object.defineProperties(Function.prototype, makeDefDescriptors({
     isSubClass: {
         value: function (testBase: Function) {
             if (typeof testBase !== "function") {
@@ -125,10 +146,9 @@ Object.defineProperties(Function.prototype, {
                 base = base.prototype;
             }
             return true;
-        },
-        writable: true
+        }
     }
-});
+}));
 
 /****************************************扩展Math****************************************/
 interface Math {
@@ -240,16 +260,14 @@ interface Number {
     between(min: number, max: number): boolean;
 }
 
-Object.defineProperties(Number.prototype, {
-    zeroize: {
-        value: function (this: number, length: number) { return zeroize(this, length) },
-        writable: true
-    },
-    between: {
-        value: function (this: number, min: number, max: number) { return min <= this && max >= this },
-        writable: true
-    }
-});
+Object.defineProperties(Number.prototype, makeDefDescriptors({
+    zeroize: getDescriptor({
+        value: function (this: number, length: number) { return zeroize(this, length) }
+    }),
+    between: getDescriptor({
+        value: function (this: number, min: number, max: number) { return min <= this && max >= this }
+    })
+}));
 
 /****************************************扩展String****************************************/
 interface String {
@@ -277,10 +295,9 @@ interface String {
 }
 
 
-Object.defineProperties(String.prototype, {
+Object.defineProperties(String.prototype, makeDefDescriptors({
     zeroize: {
         value: function (length) { return zeroize(this, length) },
-        writable: true
     },
     substitute: {
         value: function (this: string) {
@@ -310,8 +327,7 @@ Object.defineProperties(String.prototype, {
                 }
             }
             return this.toString();//防止生成String对象，ios反射String对象会当成一个NSDictionary处理
-        },
-        writable: true
+        }
     },
     hash: {
         value: function () {
@@ -321,17 +337,15 @@ Object.defineProperties(String.prototype, {
                 hash += (hash << 5) + this.charCodeAt(i);
             }
             return hash & 0xffffffff;
-        },
-        writable: true
+        }
     },
     trueLength: {
         value: function () {
             let arr: string[] = this.match(/[\u2E80-\u9FBF]/ig);
             return this.length + (arr ? arr.length : 0);
-        },
-        writable: true
+        }
     }
-});
+}));
 interface StringConstructor {
     /**
      * 对数字进行补0操作
@@ -389,7 +403,7 @@ interface Date {
     format(mask: string, local?: boolean): string;
 }
 
-Object.defineProperties(Date.prototype, {
+Object.defineProperties(Date.prototype, makeDefDescriptors({
     format: {
         value: function (mask, local?: boolean) {
             let d: Date = this;
@@ -418,10 +432,9 @@ Object.defineProperties(Date.prototype, {
             function gH() { return local ? d.getHours() : d.getUTCHours() }
             function gm() { return local ? d.getMinutes() : d.getUTCMinutes() }
             function gs() { return local ? d.getSeconds() : d.getUTCSeconds() }
-        },
-        writable: true
+        }
     }
-});
+}));
 
 /****************************************扩展Array****************************************/
 const enum ArraySort {
@@ -529,7 +542,7 @@ interface Array<T> {
     appendTo<T>(to: Array<T>);
 }
 
-Object.defineProperties(Array.prototype, {
+Object.defineProperties(Array.prototype, makeDefDescriptors({
     cloneTo: {
         value: function <T>(this: T[], b: any[]) {
             b.length = this.length;
@@ -538,8 +551,7 @@ Object.defineProperties(Array.prototype, {
             for (let i = 0; i < len; i++) {
                 b[i] = this[i];
             }
-        },
-        writable: true
+        }
     },
     appendTo: {
         value: function <T>(this: T[], b: any[]) {
@@ -547,8 +559,7 @@ Object.defineProperties(Array.prototype, {
             for (let i = 0; i < len; i++) {
                 b.push(this[i]);
             }
-        },
-        writable: true
+        }
     },
     pushOnce: {
         value: function <T>(this: T[], t: T) {
@@ -558,8 +569,7 @@ Object.defineProperties(Array.prototype, {
                 this[idx] = t;
             }
             return idx;
-        },
-        writable: true
+        }
     },
     remove: {
         value: function <T>(this: T[], t: T) {
@@ -593,8 +603,7 @@ Object.defineProperties(Array.prototype, {
             } else {
                 return this.sort((a: any, b: any) => descend ? b - a : a - b);
             }
-        },
-        writable: true
+        }
     },
     multiSort: {
         value: function (kArr: string[], dArr?: boolean[] | boolean) {
@@ -637,10 +646,9 @@ Object.defineProperties(Array.prototype, {
                 }
                 return 0;
             });
-        },
-        writable: true
+        }
     }
-});
+}));
 module junyou {
     export function is(instance: any, ref: { new(): any }): boolean {
         return egret.is(instance, egret.getQualifiedClassName(ref));
@@ -964,8 +972,8 @@ module egret {
         DisplayObject.$renderCallBackList.remove(this);
     }
 
-    Object.defineProperties(dpt, {
-        "bright": {
+    Object.defineProperties(dpt, makeDefDescriptors({
+        bright: {
             set: function (this: egret.DisplayObject, value: number) {
                 value = Math.clamp(value, -1, 1);
                 if (this[BrightConst.PrivateKey] == value) {
@@ -996,14 +1004,11 @@ module egret {
             },
             get: function () {
                 return this[BrightConst.PrivateKey] || 0;
-            },
-            enumerable: false,
-            configurable: true
+            }
         },
-        "sRectX": setScrollRectPos("x"),
-        "sRectY": setScrollRectPos("y"),
-    })
-
+        sRectX: setScrollRectPos("x"),
+        sRectY: setScrollRectPos("y"),
+    }))
 
     function setScrollRectPos(key: "x" | "y") {
         return {
@@ -1017,9 +1022,7 @@ module egret {
             get: function (this: egret.DisplayObject) {
                 let scroll = this.scrollRect;
                 return scroll && scroll[key] || 0;
-            },
-            enumerable: false,
-            configurable: true
+            }
         }
     }
 
