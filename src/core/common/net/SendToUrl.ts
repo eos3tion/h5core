@@ -1,4 +1,13 @@
+interface Window {
+    Image: { new(width?: number, height?: number): HTMLImageElement };
+}
 module junyou {
+    const _unSendList = [];
+    const img = new window.Image();//使用Image，在https下，不会因为最终请求地址为http，导致浏览器将请求拦截，详情参考 https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content
+    let _requestState = junyou.RequestState.UNREQUEST;
+    img.crossOrigin = "anonymous";
+    img.onerror = callBack(RequestState.FAILED);
+    img.onload = callBack(RequestState.COMPLETE);
     /**
     * 
     * 发起可以不需要回调响应的跨域get请求
@@ -7,18 +16,8 @@ module junyou {
     *                              false（默认） 请求已经在列队中，则不会重复发起请求  
     *                              true 不管相同地址的请求之前是否已经发起，继续发起请求
     */
-    export const sendToUrl = $();
-}
-
-function $() {
-    const _unSendList = [];
-    const img = new Image();//使用Image，在https下，不会因为最终请求地址为http，导致浏览器将请求拦截，详情参考 https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content
-    let _requestState = junyou.RequestState.UNREQUEST;
-    img.onerror = callBack(this, junyou.RequestState.FAILED);
-    img.onload = callBack(this, junyou.RequestState.COMPLETE);
-    return sendToUrl;
-    function sendToUrl(url: string, always?: boolean) {
-        if (_requestState == junyou.RequestState.REQUESTING) {
+    export function sendToUrl(url: string, always?: boolean) {
+        if (_requestState == RequestState.REQUESTING) {
             if (always) {
                 _unSendList.push(url);
             } else {
@@ -26,11 +25,11 @@ function $() {
             }
             return;
         }
-        _requestState = junyou.RequestState.REQUESTING;
+        _requestState = RequestState.REQUESTING;
         img.src = url;
     };
 
-    function callBack(self, state: junyou.RequestState) {
+    function callBack(state: RequestState) {
         return () => {
             _requestState = state;
             if (DEBUG) {
@@ -42,4 +41,3 @@ function $() {
         }
     }
 }
-
