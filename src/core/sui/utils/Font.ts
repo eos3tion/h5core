@@ -36,7 +36,7 @@ module junyou {
         //we test using 72px font size, we may use any size. I guess larger the better.
         const testSize = '72px';
 
-        const h = document.getElementsByTagName("body")[0];
+        const h = document.documentElement;
 
         // create a SPAN in the document to get the width of the text we use to test
         const s = document.createElement("span");
