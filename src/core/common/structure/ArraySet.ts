@@ -96,13 +96,17 @@ module junyou {
          * @memberOf ArraySet
          */
         public set(key: Key, value: V) {
-            let list = this._list;
-            let idx = list.indexOf(value);
-            if (idx == -1) {
-                idx = list.length;
-                list[idx] = value;
+            let { _dict, _list } = this;
+            let old = _dict[key];
+            let idx: number
+            if (old != value) {
+                this.delete(key);
+                idx = _list.length;
+                _list[idx] = value;
+                _dict[key] = value;
+            } else {
+                idx = _list.indexOf(value);
             }
-            this._dict[key] = value;
             return idx;
         }
 
