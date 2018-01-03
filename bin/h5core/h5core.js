@@ -108,6 +108,38 @@ Object.defineProperties(Object.prototype, makeDefDescriptors({
             }
             return true;
         }
+    },
+    copyWith: {
+        value: function (to) {
+            var proNames = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                proNames[_i - 1] = arguments[_i];
+            }
+            for (var _a = 0, proNames_1 = proNames; _a < proNames_1.length; _a++) {
+                var p = proNames_1[_a];
+                if (p in this) {
+                    to[p] = this[p];
+                }
+            }
+        }
+    },
+    getSpecObject: {
+        value: function () {
+            var proNames = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                proNames[_i] = arguments[_i];
+            }
+            var obj = {};
+            for (var _a = 0, proNames_2 = proNames; _a < proNames_2.length; _a++) {
+                var p = proNames_2[_a];
+                if (p in this) {
+                    if (this[p] != null) {
+                        obj[p] = this[p];
+                    }
+                }
+            }
+            return obj;
+        }
     }
 }));
 Object.defineProperties(Function.prototype, makeDefDescriptors({
