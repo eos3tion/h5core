@@ -6222,13 +6222,18 @@ var junyou;
          * @memberOf ArraySet
          */
         ArraySet.prototype.set = function (key, value) {
-            var list = this._list;
-            var idx = list.indexOf(value);
-            if (idx == -1) {
-                idx = list.length;
-                list[idx] = value;
+            var _a = this, _dict = _a._dict, _list = _a._list;
+            var old = _dict[key];
+            var idx;
+            if (old != value) {
+                this.delete(key);
+                idx = _list.length;
+                _list[idx] = value;
+                _dict[key] = value;
             }
-            this._dict[key] = value;
+            else {
+                idx = _list.indexOf(value);
+            }
             return idx;
         };
         /**
