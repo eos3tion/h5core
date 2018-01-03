@@ -65,12 +65,27 @@ interface Object {
     /**
      * 检查两个对象是否相等，只检查一层
      * 
-     * @param {Object} checker 
+     * @param {object} checker 
      * @param {...(keyof this)[]} args  如果不设置key列表，则使用checker可遍历的key进行检查
      * 
      * @memberOf Object
      */
-    equals(checker: Object, ...args: (keyof this)[]);
+    equals(checker: object, ...args: (keyof this)[]);
+
+    /**
+     * 
+     * 拷贝指定的属性到目标对象
+     * @param {object} to           目标对象
+     * @param {...string[]} proNames   指定的属性
+     */
+    copyWith<T>(this: T, to: object, ...proNames: (keyof T)[]): void;
+    /**
+     * 
+     * 获取指定的属性的Object
+     * @param {...string[]} proNames 指定的属性
+     * @returns {object}
+     */
+    getSpecObject<T>(this: T, ...proNames: (keyof T)[]): object;
 }
 
 Object.defineProperties(Object.prototype, makeDefDescriptors({
@@ -117,6 +132,28 @@ Object.defineProperties(Object.prototype, makeDefDescriptors({
                 }
             }
             return true;
+        }
+    },
+    copyWith: {
+        value: function (to: object, ...proNames: string[]) {
+            for (let p of proNames) {
+                if (p in this) {
+                    to[p] = this[p];
+                }
+            }
+        }
+    },
+    getSpecObject: {
+        value: function (...proNames: string[]) {
+            let obj = {};
+            for (let p of proNames) {
+                if (p in this) {
+                    if (this[p] != null) {
+                        obj[p] = this[p];
+                    }
+                }
+            }
+            return obj;
         }
     }
 }));
