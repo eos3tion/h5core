@@ -40,6 +40,7 @@ module junyou {
 		let update = ticker.render;
 		let delta = 0 | 1000 / ticker.$frameRate;
 		let temp: CallbackInfo<Function>[] = [];
+
 		ticker.render = function () {
 			let _now = DateUtils.serverTime;
 			let dis = _now - now;
@@ -51,27 +52,35 @@ module junyou {
 			} else {
 				frameNow += delta;
 			}
-			//执行顺序  nextTick  callLater TimerUtil  tween  最后是白鹭的更新
-			let len = _intervals.length;
-			for (let i = 0; i < len; i++) {
-				let cb = _intervals[i];
-				cb.execute(false);
+			try {
+				//执行顺序  nextTick  callLater TimerUtil  tween  最后是白鹭的更新
+				let len = _intervals.length;
+				for (let i = 0; i < len; i++) {
+					let cb = _intervals[i];
+					cb.execute(false);
+				}
+				len = _nextTicks.length;
+				let tmp = temp;
+				for (let i = 0; i < len; i++) {
+					tmp[i] = _nextTicks[i];
+				}
+				_nextTicks.length = 0;
+				//先复制再操作是为了防止回调过程中，有新增的nextTick
+				for (let i = 0; i < len; i++) {
+					tmp[i].execute();
+				}
+				_callLater.tick(_now);
+				TimerUtil.tick(_now);
+				tweenManager.tick(dis);
 			}
-			len = _nextTicks.length;
-			let tmp = temp;
-			for (let i = 0; i < len; i++) {
-				tmp[i] = _nextTicks[i];
+			catch (e) {
+				ThrowError(`ticker.render`, e);
 			}
-			_nextTicks.length = 0;
-			//先复制再操作是为了防止回调过程中，有新增的nextTick
-			for (let i = 0; i < len; i++) {
-				tmp[i].execute();
-			}
-			_callLater.tick(_now);
-			TimerUtil.tick(_now);
-			tweenManager.tick(dis);
 			update.call(ticker);
+
 		}
+
+
 	}
 
 
