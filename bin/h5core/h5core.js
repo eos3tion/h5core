@@ -6751,25 +6751,30 @@ var junyou;
             else {
                 frameNow += delta;
             }
-            //执行顺序  nextTick  callLater TimerUtil  tween  最后是白鹭的更新
-            var len = _intervals.length;
-            for (var i = 0; i < len; i++) {
-                var cb = _intervals[i];
-                cb.execute(false);
+            try {
+                //执行顺序  nextTick  callLater TimerUtil  tween  最后是白鹭的更新
+                var len = _intervals.length;
+                for (var i = 0; i < len; i++) {
+                    var cb = _intervals[i];
+                    cb.execute(false);
+                }
+                len = _nextTicks.length;
+                var tmp = temp;
+                for (var i = 0; i < len; i++) {
+                    tmp[i] = _nextTicks[i];
+                }
+                _nextTicks.length = 0;
+                //先复制再操作是为了防止回调过程中，有新增的nextTick
+                for (var i = 0; i < len; i++) {
+                    tmp[i].execute();
+                }
+                _callLater.tick(_now);
+                junyou.TimerUtil.tick(_now);
+                tweenManager.tick(dis);
             }
-            len = _nextTicks.length;
-            var tmp = temp;
-            for (var i = 0; i < len; i++) {
-                tmp[i] = _nextTicks[i];
+            catch (e) {
+                junyou.ThrowError("ticker.render", e);
             }
-            _nextTicks.length = 0;
-            //先复制再操作是为了防止回调过程中，有新增的nextTick
-            for (var i = 0; i < len; i++) {
-                tmp[i].execute();
-            }
-            _callLater.tick(_now);
-            junyou.TimerUtil.tick(_now);
-            tweenManager.tick(dis);
             update.call(ticker);
         };
     }
