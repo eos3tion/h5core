@@ -11405,23 +11405,25 @@ var junyou;
          * @memberof UModel
          */
         UModel.prototype.renderFrame = function (frame, now, face, info) {
-            var ns = face > 4;
-            var d = ns ? 8 - face : face;
+            var d;
             if (frame) {
-                var scale = face > 4 ? -1 : 1;
-                if (frame.d == -1) {
-                    this.scaleX = scale;
-                    info.d = d;
-                }
-                else {
-                    info.d = frame.d;
+                d = frame.d;
+                if (d == -1) {
+                    d = face;
                 }
                 info.f = frame.f;
                 info.a = frame.a;
             }
             else {
-                info.d = d;
+                d = face;
             }
+            var scale = 1;
+            if (d > 4) {
+                scale = -1;
+                d = 8 - d;
+            }
+            info.d = d;
+            this.scaleX = scale;
             return this.draw(info, now);
         };
         UModel.prototype.draw = function (info, now) {
