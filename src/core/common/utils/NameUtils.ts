@@ -28,6 +28,9 @@ module junyou {
 	 * index（0：男名，1：女名）
 	 */
 	let C = [, [], []];
+
+	let inited: boolean;
+
 	export class NameUtils {
 
 		private _random: Function;
@@ -36,21 +39,28 @@ module junyou {
 		 * @param randomFunc	随机算法
 		 *
 		 */
-		public constructor(randomFunc?: Function) {
-			this.setRandomFunc(randomFunc);
+		constructor(randomFunc?: Function) {
+			this.setRandom(randomFunc);
 		}
 
-		public static loadNameLib(url: string) {
-			loadScript(url, () => {
-				if ($nl_nc) {
-					//a：姓,b:符号,c1:男名,c2:女名
-					const {a, b, c1, c2} = $nl_nc;
-					let split = ";";
-					a && (A = a.split(split));
-					b && (B = b.split(split));
-					c1 && (C[Sex.Male] = c1.split(split));
-					c2 && (C[Sex.Female] = c2.split(split));
-					$nl_nc = undefined;
+		static loadNameLib(url: string, callback?: $CallbackInfo): void {
+			if (inited) {
+				return callback && callback.execute();
+			}
+			loadScript(url, err => {
+				if (!err) {
+					if ($nl_nc) {
+						//a：姓,b:符号,c1:男名,c2:女名
+						const { a, b, c1, c2 } = $nl_nc;
+						let split = ";";
+						a && (A = a.split(split));
+						b && (B = b.split(split));
+						c1 && (C[Sex.Male] = c1.split(split));
+						c2 && (C[Sex.Female] = c2.split(split));
+						$nl_nc = undefined;
+						inited = true;
+						return callback && callback.execute();
+					}
 				}
 			})
 		}
@@ -60,11 +70,10 @@ module junyou {
 		 * @param randomFunc
 		 *
 		 */
-		public setRandomFunc(randomFunc: Function) {
+		setRandom(randomFunc: Function) {
 			if (randomFunc != null) {
 				this._random = randomFunc;
-			}
-			else {
+			} else {
 				this._random = Math.random;
 			}
 		}
@@ -75,7 +84,7 @@ module junyou {
 		 * @return
 		 *
 		 */
-		public getName(sex = Sex.Male) {
+		getName(sex = Sex.Male) {
 			let name = "";
 			let SC = C[sex];
 			if (!SC) {
@@ -94,7 +103,7 @@ module junyou {
 			return name;
 		}
 
-		public dispose() {
+		dispose() {
 			this._random = null;
 		}
 	}
