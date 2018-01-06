@@ -4670,13 +4670,13 @@ declare module junyou {
          *
          */
         constructor(randomFunc?: Function);
-        static loadNameLib(url: string): void;
+        static loadNameLib(url: string, callback?: $CallbackInfo): void;
         /**
          * 设置随机算法
          * @param randomFunc
          *
          */
-        setRandomFunc(randomFunc: Function): void;
+        setRandom(randomFunc: Function): void;
         /**
          * 获取名字
          * @param sex 1 男  2 女

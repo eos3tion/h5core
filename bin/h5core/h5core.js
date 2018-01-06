@@ -7737,6 +7737,7 @@ var junyou;
      * index（0：男名，1：女名）
      */
     var C = [, [], []];
+    var inited;
     var NameUtils = (function () {
         /**
          *
@@ -7744,19 +7745,26 @@ var junyou;
          *
          */
         function NameUtils(randomFunc) {
-            this.setRandomFunc(randomFunc);
+            this.setRandom(randomFunc);
         }
-        NameUtils.loadNameLib = function (url) {
-            loadScript(url, function () {
-                if ($nl_nc) {
-                    //a：姓,b:符号,c1:男名,c2:女名
-                    var a = $nl_nc.a, b = $nl_nc.b, c1 = $nl_nc.c1, c2 = $nl_nc.c2;
-                    var split = ";";
-                    a && (A = a.split(split));
-                    b && (B = b.split(split));
-                    c1 && (C[1 /* Male */] = c1.split(split));
-                    c2 && (C[2 /* Female */] = c2.split(split));
-                    $nl_nc = undefined;
+        NameUtils.loadNameLib = function (url, callback) {
+            if (inited) {
+                return callback && callback.execute();
+            }
+            loadScript(url, function (err) {
+                if (!err) {
+                    if ($nl_nc) {
+                        //a：姓,b:符号,c1:男名,c2:女名
+                        var a = $nl_nc.a, b = $nl_nc.b, c1 = $nl_nc.c1, c2 = $nl_nc.c2;
+                        var split = ";";
+                        a && (A = a.split(split));
+                        b && (B = b.split(split));
+                        c1 && (C[1 /* Male */] = c1.split(split));
+                        c2 && (C[2 /* Female */] = c2.split(split));
+                        $nl_nc = undefined;
+                        inited = true;
+                        return callback && callback.execute();
+                    }
                 }
             });
         };
@@ -7765,7 +7773,7 @@ var junyou;
          * @param randomFunc
          *
          */
-        NameUtils.prototype.setRandomFunc = function (randomFunc) {
+        NameUtils.prototype.setRandom = function (randomFunc) {
             if (randomFunc != null) {
                 this._random = randomFunc;
             }
