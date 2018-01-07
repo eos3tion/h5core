@@ -14,18 +14,18 @@ module junyou {
          * 
          * @type {number}
          */
-        public currentPage: number = 1;
+        public currentPage = 1;
 
-        public autoScrollSpeed: number = 1;
+        public autoScrollSpeed = 1;
 
-        public minPageScrollSpeed: number = 0.05;
+        public minPageScrollSpeed = 0.05;
 
         /**
          * 总共将显示对象切割成几页
          * 
          * @type {number}
          */
-        private _totalpageCount: number = 1;
+        private _totalpageCount = 1;
 
         private _firstTouchPos: number;
 
@@ -60,22 +60,21 @@ module junyou {
             super.bindObj(content, scrollRect, null);
         }
 
-        protected onTargetTouchBegin(e: egret.TouchEvent) {
+        protected onDragStart(e: egret.TouchEvent) {
             if (this._scrollType == 0) {
                 this._firstTouchPos = e.stageY;
             } else {
                 this._firstTouchPos = e.stageX;
             }
-            super.onTargetTouchBegin(e);
+            super.onDragStart(e);
 
         }
 
-        protected endTouchContent(e: egret.TouchEvent) {
+        protected onDragEnd(e: egret.TouchEvent) {
             let _content = this._content;
             let stage = _content.stage || egret.sys.$TempStage;
-            stage.off(EgretEvent.TOUCH_MOVE, this.moveOnContent, this);
-            _content.off(EgretEvent.TOUCH_END, this.endTouchContent, this);
-            _content.off(EgretEvent.TOUCH_RELEASE_OUTSIDE, this.endTouchContent, this);
+            stage.off(EgretEvent.TOUCH_MOVE, this.onDragMove, this);
+            _content.off(EgretEvent.TOUCH_END, this.onDragEnd, this);
             let now: number = Global.now;
             let nowPos: number;
             if (this._scrollType == 0) {
@@ -103,14 +102,14 @@ module junyou {
             else {
                 pos = this._content.scrollRect.x;
             }
-            let page: number = Math.round(pos / this._pageSize) + 1;
+            let page = Math.round(pos / this._pageSize) + 1;
             if (page < 1) {
                 page = 1;
             }
             if (page > this._totalpageCount) {
                 page = this._totalpageCount;
             }
-            let pagederiction: number = page > this.currentPage ? -1 : 1;
+            let pagederiction = page > this.currentPage ? -1 : 1;
             this._scrollToPage = page;
             this._lastFrameTime = Global.now;
             if (now - this._lastMoveTime < 150) {
