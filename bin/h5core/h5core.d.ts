@@ -10090,6 +10090,16 @@ declare module junyou {
         stopPropagation: Boolean;
     }
 }
+declare module egret {
+    interface TouchEvent {
+        deltaX?: number;
+        deltaY?: number;
+        /**
+         * 时间差值
+         */
+        deltaTime?: number;
+    }
+}
 declare module junyou {
     /**
      *

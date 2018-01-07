@@ -16883,13 +16883,28 @@ var junyou;
 var junyou;
 (function (junyou) {
     var TouchEvent = egret.TouchEvent;
+    var Event = egret.Event;
     var key = "$__$Drag";
-    function dispatchTouchEvent(target, type, e) {
-        TouchEvent.dispatchTouchEvent(target, type, true, true, e.stageX, e.stageY, e.touchPointID, e.touchDown);
+    function dispatchTouchEvent(target, type, e, deltaX, deltaY, deltaTime) {
+        if (!target.hasEventListener(type)) {
+            return true;
+        }
+        var event = Event.create(TouchEvent, type, true, true);
+        event.$initTo(e.stageX, e.stageY, e.touchPointID);
+        event.touchDown = e.touchDown;
+        event.deltaX = deltaX;
+        event.deltaY = deltaY;
+        event.deltaTime = deltaTime;
+        var result = target.dispatchEvent(event);
+        Event.release(event);
+        event.deltaX = undefined;
+        event.deltaY = undefined;
+        event.deltaTime = undefined;
+        return result;
     }
     var stage;
     function onStart(e) {
-        this.st = Date.now();
+        this.lt = Date.now();
         this.lx = e.stageX;
         this.ly = e.stageY;
         stage.on("touchMove" /* TOUCH_MOVE */, onMove, this);
@@ -16899,32 +16914,38 @@ var junyou;
         if (!e.touchDown) {
             return onEnd.call(this, e);
         }
+        var nx = e.stageX;
+        var ny = e.stageY;
+        var dx = nx - this.lx;
+        var dy = ny - this.ly;
+        var now = Date.now();
+        var delta = now - this.lt;
         var _a = this, dragStart = _a.dragStart, host = _a.host;
         if (dragStart) {
             if (this.isCon) {
                 host.touchChildren = false;
             }
-            dispatchTouchEvent(host, -1089 /* DragMove */, e);
+            dispatchTouchEvent(host, -1089 /* DragMove */, e, dx, dy, delta);
         }
         else {
-            var nx = e.stageX;
-            var ny = e.stageY;
-            var delta = Date.now() - this.st;
             if (delta > this.minDragTime) {
                 dragStart = true;
             }
             else {
-                var dx = nx - this.lx;
-                var dy = ny - this.ly;
                 var dist = dx * dx + dy * dy;
                 if (dist > this.minSqDist) {
                     dragStart = true;
                 }
             }
             if (dragStart) {
-                dispatchTouchEvent(host, -1090 /* DragStart */, e);
+                dispatchTouchEvent(host, -1090 /* DragStart */, e, dx, dy, delta);
             }
             this.dragStart = dragStart;
+        }
+        if (dragStart) {
+            this.lx = nx;
+            this.ly = ny;
+            this.lt = now;
         }
     }
     function onEnd(e) {
