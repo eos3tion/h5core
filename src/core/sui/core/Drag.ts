@@ -1,13 +1,39 @@
+module egret {
+    export interface TouchEvent {
+        deltaX?: number;
+        deltaY?: number;
+
+        /**
+         * 时间差值
+         */
+        deltaTime?: number;
+    }
+}
 module junyou {
     import TouchEvent = egret.TouchEvent;
+    import Event = egret.Event;
     const key = "$__$Drag";
-    function dispatchTouchEvent(target: egret.DisplayObject, type: any, e: egret.TouchEvent) {
-        TouchEvent.dispatchTouchEvent(target, type, true, true, e.stageX, e.stageY, e.touchPointID, e.touchDown);
+    function dispatchTouchEvent(target: egret.DisplayObject, type: any, e: egret.TouchEvent, deltaX?: number, deltaY?: number, deltaTime?: number) {
+        if (!target.hasEventListener(type)) {
+            return true;
+        }
+        let event: TouchEvent = Event.create(TouchEvent, type, true, true);
+        event.$initTo(e.stageX, e.stageY, e.touchPointID);
+        event.touchDown = e.touchDown;
+        event.deltaX = deltaX;
+        event.deltaY = deltaY;
+        event.deltaTime = deltaTime;
+        let result = target.dispatchEvent(event);
+        Event.release(event);
+        event.deltaX = undefined;
+        event.deltaY = undefined;
+        event.deltaTime = undefined;
+        return result;
     }
 
     interface DragDele {
         host: egret.DisplayObject;
-        st?: number;
+        lt?: number;
         lx?: number;
         ly?: number;
         dragStart?: boolean;
@@ -24,41 +50,46 @@ module junyou {
     let stage: egret.Stage;
 
     function onStart(this: DragDele, e: TouchEvent) {
-        this.st = Date.now();
+        this.lt = Date.now();
         this.lx = e.stageX;
         this.ly = e.stageY;
         stage.on(EgretEvent.TOUCH_MOVE, onMove, this);
         stage.on(EgretEvent.TOUCH_END, onEnd, this);
     }
     function onMove(this: DragDele, e: TouchEvent) {
-
         if (!e.touchDown) {
             return onEnd.call(this, e);
         }
+        let nx = e.stageX;
+        let ny = e.stageY;
+        let dx = nx - this.lx;
+        let dy = ny - this.ly;
+        let now = Date.now();
+        let delta = now - this.lt;
         let { dragStart, host } = this;
         if (dragStart) {
             if (this.isCon) {
                 (host as egret.DisplayObjectContainer).touchChildren = false;
             }
-            dispatchTouchEvent(host, EventConst.DragMove, e);
+            dispatchTouchEvent(host, EventConst.DragMove, e, dx, dy, delta);
         } else {
-            let nx = e.stageX;
-            let ny = e.stageY;
-            let delta = Date.now() - this.st;
             if (delta > this.minDragTime) {
                 dragStart = true;
             } else {
-                let dx = nx - this.lx;
-                let dy = ny - this.ly;
                 let dist = dx * dx + dy * dy;
                 if (dist > this.minSqDist) {
                     dragStart = true;
                 }
             }
             if (dragStart) {
-                dispatchTouchEvent(host, EventConst.DragStart, e);
+                dispatchTouchEvent(host, EventConst.DragStart, e, dx, dy, delta);
             }
             this.dragStart = dragStart;
+        }
+        if (dragStart) {
+            this.lx = nx;
+            this.ly = ny;
+            this.lt = now;
         }
     }
     function onEnd(this: DragDele, e: egret.TouchEvent) {
