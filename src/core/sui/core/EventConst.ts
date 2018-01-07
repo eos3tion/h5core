@@ -63,5 +63,22 @@ module junyou {
          * event.data 为资源的 uri
          */
         SuiBmdLoadFailed = -1070,
+
+        /*========================================Drag =======================================*/
+        /**
+         * 开始拖拽
+         * data {egret.TouchEvent} touch事件
+         */
+        DragStart = -1090,
+        /**
+         * 拖拽移动
+         * data {egret.TouchEvent} touch事件
+         */
+        DragMove,
+        /**
+         * 拖拽结束
+         * data {egret.TouchEvent} touch事件
+         */
+        DragEnd,
     }
 }
