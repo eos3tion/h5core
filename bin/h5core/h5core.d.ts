@@ -2178,11 +2178,6 @@ declare module junyou {
          * @type {number}
          */
         protected _st: number;
-        /**
-         * touchTap的超时时间，如果超过此时间，则不会触发子对象的touchTap事件
-         *
-         */
-        touchTapTime: number;
         protected _scrollbar: ScrollBar;
         protected _content: egret.DisplayObject;
         protected _scrollType: ScrollDirection;
@@ -2230,12 +2225,12 @@ declare module junyou {
          */
         drawTouchArea(content?: egret.Shape): void;
         bindObj2(content: egret.DisplayObject, scrollRect: egret.Rectangle, scrollbar?: ScrollBar): void;
-        protected contentSizeChange(): void;
-        protected onTargetTouchBegin(e: egret.TouchEvent): void;
-        protected moveOnContent(e: egret.TouchEvent): void;
+        protected onResize(): void;
+        protected onDragStart(e: egret.TouchEvent): void;
+        protected onDragMove(e: egret.TouchEvent): void;
         stopTouchTween(): void;
-        protected onEnterFrame(): void;
-        protected endTouchContent(e: egret.TouchEvent): void;
+        protected onRender(): void;
+        protected onDragEnd(e: egret.TouchEvent): void;
         showBar(): void;
         hideBar(): void;
         /**
@@ -9640,8 +9635,8 @@ declare module junyou {
          */
         readonly totalpageCount: number;
         bindObj(content: egret.DisplayObject, scrollRect: egret.Rectangle, scrollbar?: ScrollBar): void;
-        protected onTargetTouchBegin(e: egret.TouchEvent): void;
-        protected endTouchContent(e: egret.TouchEvent): void;
+        protected onDragStart(e: egret.TouchEvent): void;
+        protected onDragEnd(e: egret.TouchEvent): void;
         private autoScrollToNextPage(e);
     }
 }
@@ -10097,6 +10092,17 @@ declare module junyou {
 }
 declare module junyou {
     /**
+     *
+     * @param {egret.DisplayObject} host 要被拖拽的对象
+     * @param {boolean} [stopChildren=true] 是否屏蔽子控件的
+     * @param {number} [minDragTime=300] 最小拖拽事件
+     * @param {number} [minSqDist=400] 最小
+     */
+    function bindDrag(host: egret.DisplayObject, stopChildren?: boolean, minDragTime?: number, minSqDist?: number): void;
+    function looseDrag(host: egret.DisplayObject): void;
+}
+declare module junyou {
+    /**
      * 区段 -1000 - -1999
      *
      * @export
@@ -10144,6 +10150,21 @@ declare module junyou {
          * event.data 为资源的 uri
          */
         SuiBmdLoadFailed = -1070,
+        /**
+         * 开始拖拽
+         * data {egret.TouchEvent} touch事件
+         */
+        DragStart = -1090,
+        /**
+         * 拖拽移动
+         * data {egret.TouchEvent} touch事件
+         */
+        DragMove = -1089,
+        /**
+         * 拖拽结束
+         * data {egret.TouchEvent} touch事件
+         */
+        DragEnd = -1088,
     }
 }
 declare module junyou {

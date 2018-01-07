@@ -3102,11 +3102,6 @@ var junyou;
         __extends(Scroller, _super);
         function Scroller() {
             var _this = _super.call(this) || this;
-            /**
-             * touchTap的超时时间，如果超过此时间，则不会触发子对象的touchTap事件
-             *
-             */
-            _this.touchTapTime = 500;
             _this._scrollType = 0 /* Vertical */;
             /**鼠标每移动1像素，元件移动的像素 */
             _this.globalspeed = 1;
@@ -3185,20 +3180,23 @@ var junyou;
             var old = this._content;
             if (old != content) {
                 if (old) {
-                    old.off("touchBegin" /* TOUCH_BEGIN */, this.onTargetTouchBegin, this);
-                    old.off(-1999 /* Resize */, this.contentSizeChange, this);
-                    content.stage.off("touchMove" /* TOUCH_MOVE */, this.moveOnContent, this);
-                    content.off("touchEnd" /* TOUCH_END */, this.endTouchContent, this);
-                    content.off("touchReleaseOutside" /* TOUCH_RELEASE_OUTSIDE */, this.endTouchContent, this);
+                    old.off("enterFrame" /* ENTER_FRAME */, this.onRender, this);
+                    old.off(-1999 /* Resize */, this.onResize, this);
+                    junyou.looseDrag(old);
+                    old.off(-1090 /* DragStart */, this.onDragStart, this);
+                    old.off(-1089 /* DragMove */, this.onDragMove, this);
+                    old.off(-1088 /* DragEnd */, this.onDragEnd, this);
                 }
+                this._content = content;
             }
-            this._content = content;
             if ("scroller" in content) {
                 content["scroller"] = this;
             }
-            content.touchEnabled = true;
-            content.on("touchBegin" /* TOUCH_BEGIN */, this.onTargetTouchBegin, this);
-            content.on(-1999 /* Resize */, this.contentSizeChange, this);
+            junyou.bindDrag(content);
+            content.on(-1090 /* DragStart */, this.onDragStart, this);
+            content.on(-1089 /* DragMove */, this.onDragMove, this);
+            content.on(-1088 /* DragEnd */, this.onDragEnd, this);
+            content.on(-1999 /* Resize */, this.onResize, this);
             if (scrollbar) {
                 this._scrollbar = scrollbar;
                 this._useScrollBar = true;
@@ -3243,12 +3241,12 @@ var junyou;
             scrollRect.y = 0;
             this.bindObj(content, scrollRect, scrollbar);
         };
-        Scroller.prototype.contentSizeChange = function () {
+        Scroller.prototype.onResize = function () {
             if (this._useScrollBar) {
                 this.scaleBar();
             }
         };
-        Scroller.prototype.onTargetTouchBegin = function (e) {
+        Scroller.prototype.onDragStart = function (e) {
             var content = this._content;
             if (!content) {
                 return;
@@ -3271,12 +3269,9 @@ var junyou;
             this._st = now;
             this._lastMoveTime = now;
             this._lastTargetPos = pos;
-            content.stage.on("touchMove" /* TOUCH_MOVE */, this.moveOnContent, this);
-            content.on("touchEnd" /* TOUCH_END */, this.endTouchContent, this);
-            content.on("touchReleaseOutside" /* TOUCH_RELEASE_OUTSIDE */, this.endTouchContent, this);
             this.showBar();
         };
-        Scroller.prototype.moveOnContent = function (e) {
+        Scroller.prototype.onDragMove = function (e) {
             var currentPos;
             if (this._scrollType == 0 /* Vertical */) {
                 currentPos = e.stageY;
@@ -3289,9 +3284,6 @@ var junyou;
             sub = Math.abs(sub);
             var now = junyou.Global.now;
             var subTime = now - this._lastMoveTime;
-            if (now - this._st > this.touchTapTime) {
-                this._content.touchChildren = false;
-            }
             this._lastMoveTime = now;
             this._lastTargetPos = currentPos;
             this._moveSpeed = subTime > 0 ? sub / subTime : 0;
@@ -3300,15 +3292,15 @@ var junyou;
         };
         Scroller.prototype.stopTouchTween = function () {
             this._moveSpeed = 0;
-            this._content.off("enterFrame" /* ENTER_FRAME */, this.onEnterFrame, this);
+            this._content.off("enterFrame" /* ENTER_FRAME */, this.onRender, this);
         };
-        Scroller.prototype.onEnterFrame = function () {
+        Scroller.prototype.onRender = function () {
             var content = this._content;
             if (!content) {
                 return;
             }
             if (this._moveSpeed == 0) {
-                content.off("enterFrame" /* ENTER_FRAME */, this.onEnterFrame, this);
+                content.off("enterFrame" /* ENTER_FRAME */, this.onRender, this);
                 this.hideBar();
                 return;
             }
@@ -3324,21 +3316,14 @@ var junyou;
             }
             this._moveSpeed = moveSpeed;
         };
-        Scroller.prototype.endTouchContent = function (e) {
+        Scroller.prototype.onDragEnd = function (e) {
             var content = this._content;
             if (!content) {
                 return;
             }
-            if (content instanceof egret.DisplayObjectContainer) {
-                content.touchChildren = true;
-            }
-            var stage = content.stage || egret.sys.$TempStage;
-            stage.off("touchMove" /* TOUCH_MOVE */, this.moveOnContent, this);
-            content.off("touchEnd" /* TOUCH_END */, this.endTouchContent, this);
-            content.off("touchReleaseOutside" /* TOUCH_RELEASE_OUTSIDE */, this.endTouchContent, this);
             var now = junyou.Global.now;
             if (now - this._lastMoveTime < 150) {
-                content.on("enterFrame" /* ENTER_FRAME */, this.onEnterFrame, this);
+                content.on("enterFrame" /* ENTER_FRAME */, this.onRender, this);
                 this._lastFrameTime = this._lastMoveTime;
             }
             else {
@@ -3439,7 +3424,7 @@ var junyou;
             }
             if (this._moveSpeed > 0) {
                 this._moveSpeed = 0;
-                content.off("enterFrame" /* ENTER_FRAME */, this.onEnterFrame, this);
+                content.off("enterFrame" /* ENTER_FRAME */, this.onRender, this);
             }
             var rect = content.scrollRect;
             var scrollbar = this._scrollbar;
@@ -15778,21 +15763,20 @@ var junyou;
         PageScroller.prototype.bindObj = function (content, scrollRect, scrollbar) {
             _super.prototype.bindObj.call(this, content, scrollRect, null);
         };
-        PageScroller.prototype.onTargetTouchBegin = function (e) {
+        PageScroller.prototype.onDragStart = function (e) {
             if (this._scrollType == 0) {
                 this._firstTouchPos = e.stageY;
             }
             else {
                 this._firstTouchPos = e.stageX;
             }
-            _super.prototype.onTargetTouchBegin.call(this, e);
+            _super.prototype.onDragStart.call(this, e);
         };
-        PageScroller.prototype.endTouchContent = function (e) {
+        PageScroller.prototype.onDragEnd = function (e) {
             var _content = this._content;
             var stage = _content.stage || egret.sys.$TempStage;
-            stage.off("touchMove" /* TOUCH_MOVE */, this.moveOnContent, this);
-            _content.off("touchEnd" /* TOUCH_END */, this.endTouchContent, this);
-            _content.off("touchReleaseOutside" /* TOUCH_RELEASE_OUTSIDE */, this.endTouchContent, this);
+            stage.off("touchMove" /* TOUCH_MOVE */, this.onDragMove, this);
+            _content.off("touchEnd" /* TOUCH_END */, this.onDragEnd, this);
             var now = junyou.Global.now;
             var nowPos;
             if (this._scrollType == 0) {
@@ -16895,6 +16879,100 @@ var junyou;
     }(NetSendData));
     junyou.NetData = NetData;
     __reflect(NetData.prototype, "junyou.NetData");
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    var TouchEvent = egret.TouchEvent;
+    var key = "$__$Drag";
+    function dispatchTouchEvent(target, type, e) {
+        TouchEvent.dispatchTouchEvent(target, type, true, true, e.stageX, e.stageY, e.touchPointID, e.touchDown);
+    }
+    var stage;
+    function onStart(e) {
+        this.st = Date.now();
+        this.lx = e.stageX;
+        this.ly = e.stageY;
+        stage.on("touchMove" /* TOUCH_MOVE */, onMove, this);
+        stage.on("touchEnd" /* TOUCH_END */, onEnd, this);
+    }
+    function onMove(e) {
+        if (!e.touchDown) {
+            return onEnd.call(this, e);
+        }
+        var _a = this, dragStart = _a.dragStart, host = _a.host;
+        if (dragStart) {
+            if (this.isCon) {
+                host.touchChildren = false;
+            }
+            dispatchTouchEvent(host, -1089 /* DragMove */, e);
+        }
+        else {
+            var nx = e.stageX;
+            var ny = e.stageY;
+            var delta = Date.now() - this.st;
+            if (delta > this.minDragTime) {
+                dragStart = true;
+            }
+            else {
+                var dx = nx - this.lx;
+                var dy = ny - this.ly;
+                var dist = dx * dx + dy * dy;
+                if (dist > this.minSqDist) {
+                    dragStart = true;
+                }
+            }
+            if (dragStart) {
+                dispatchTouchEvent(host, -1090 /* DragStart */, e);
+            }
+            this.dragStart = dragStart;
+        }
+    }
+    function onEnd(e) {
+        if (this.dragStart) {
+            e.preventDefault(); //阻止普通点击事件发生
+            e.stopImmediatePropagation();
+            var host = this.host;
+            if (this.isCon) {
+                host.touchChildren = true;
+            }
+            dispatchTouchEvent(host, -1088 /* DragEnd */, e);
+        }
+        this.dragStart = false;
+        stage.off("touchMove" /* TOUCH_MOVE */, onMove, this);
+        stage.off("touchEnd" /* TOUCH_END */, onEnd, this);
+    }
+    /**
+     *
+     * @param {egret.DisplayObject} host 要被拖拽的对象
+     * @param {boolean} [stopChildren=true] 是否屏蔽子控件的
+     * @param {number} [minDragTime=300] 最小拖拽事件
+     * @param {number} [minSqDist=400] 最小
+     */
+    function bindDrag(host, stopChildren, minDragTime, minSqDist) {
+        if (stopChildren === void 0) { stopChildren = true; }
+        if (minDragTime === void 0) { minDragTime = 300; }
+        if (minSqDist === void 0) { minSqDist = 400; }
+        stage = stage || egret.sys.$TempStage;
+        var isCon = stopChildren && host instanceof egret.DisplayObjectContainer;
+        host.touchEnabled = true;
+        var dele = { host: host, isCon: isCon, minDragTime: minDragTime, minSqDist: minSqDist };
+        host.on("touchBegin" /* TOUCH_BEGIN */, onStart, dele);
+        host[key] = dele;
+    }
+    junyou.bindDrag = bindDrag;
+    function looseDrag(host) {
+        var dele = host[key];
+        if (dele) {
+            stage.off("touchMove" /* TOUCH_MOVE */, onMove, dele);
+            stage.off("touchEnd" /* TOUCH_END */, onEnd, dele);
+            dele.host.off("touchBegin" /* TOUCH_BEGIN */, onStart, dele);
+            if (dele.isCon) {
+                host.touchChildren = true;
+            }
+            delete host[key];
+        }
+    }
+    junyou.looseDrag = looseDrag;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
