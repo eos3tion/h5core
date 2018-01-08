@@ -2171,13 +2171,6 @@ declare module junyou {
 }
 declare module junyou {
     class Scroller extends egret.EventDispatcher {
-        /**
-         * touchdown的起始时间
-         *
-         * @protected
-         * @type {number}
-         */
-        protected _st: number;
         protected _scrollbar: ScrollBar;
         protected _content: egret.DisplayObject;
         protected _scrollType: ScrollDirection;
@@ -2199,6 +2192,7 @@ declare module junyou {
         protected _deriction: ScrollDirection;
         protected _key: PosKey;
         protected _sizeKey: SizeKey;
+        protected _measureKey: string;
         constructor();
         /**
          * 滚动条方式 0：垂直，1：水平 defalut:0

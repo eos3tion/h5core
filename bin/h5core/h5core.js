@@ -3113,6 +3113,7 @@ var junyou;
             _this._deriction = 0 /* Vertical */;
             _this._key = "y";
             _this._sizeKey = "height";
+            _this._measureKey = "measuredHeight";
             return _this;
         }
         Object.defineProperty(Scroller.prototype, "scrollType", {
@@ -3128,17 +3129,20 @@ var junyou;
             set: function (value) {
                 if (this._scrollType != value) {
                     this._scrollType = value;
-                    var key = void 0, sizeKey = void 0;
+                    var key = void 0, sizeKey = void 0, measureKey = void 0;
                     if (value == 0 /* Vertical */) {
                         key = "y";
                         sizeKey = "height";
+                        measureKey = "measuredHeight";
                     }
                     else {
                         key = "x";
                         sizeKey = "width";
+                        measureKey = "measuredWidth";
                     }
                     this._sizeKey = sizeKey;
                     this._key = key;
+                    this._measureKey = measureKey;
                     this.checkScrollBarView();
                 }
             },
@@ -3188,15 +3192,17 @@ var junyou;
                     old.off(-1088 /* DragEnd */, this.onDragEnd, this);
                 }
                 this._content = content;
+                if (content) {
+                    junyou.bindDrag(content);
+                    content.on(-1090 /* DragStart */, this.onDragStart, this);
+                    content.on(-1089 /* DragMove */, this.onDragMove, this);
+                    content.on(-1088 /* DragEnd */, this.onDragEnd, this);
+                    content.on(-1999 /* Resize */, this.onResize, this);
+                }
+                if ("scroller" in content) {
+                    content["scroller"] = this;
+                }
             }
-            if ("scroller" in content) {
-                content["scroller"] = this;
-            }
-            junyou.bindDrag(content);
-            content.on(-1090 /* DragStart */, this.onDragStart, this);
-            content.on(-1089 /* DragMove */, this.onDragMove, this);
-            content.on(-1088 /* DragEnd */, this.onDragEnd, this);
-            content.on(-1999 /* Resize */, this.onResize, this);
             if (scrollbar) {
                 this._scrollbar = scrollbar;
                 this._useScrollBar = true;
@@ -3253,21 +3259,20 @@ var junyou;
             }
             var scrollRect = content.scrollRect;
             var pos;
+            var data = content[this._measureKey];
             if (this._scrollType == 0 /* Vertical */) {
-                if (content.measuredHeight < scrollRect.height) {
+                if (data < scrollRect.height) {
                     return;
                 }
                 pos = e.stageY;
             }
             else {
-                if (content.measuredWidth < scrollRect.width) {
+                if (data < scrollRect.width) {
                     return;
                 }
                 pos = e.stageX;
             }
-            var now = junyou.Global.now;
-            this._st = now;
-            this._lastMoveTime = now;
+            this._lastMoveTime = junyou.Global.now;
             this._lastTargetPos = pos;
             this.showBar();
         };
@@ -3465,13 +3470,7 @@ var junyou;
             if (!content) {
                 return;
             }
-            var contentSize;
-            if (this._scrollType == 0 /* Vertical */) {
-                contentSize = content.measuredHeight;
-            }
-            else {
-                contentSize = content.measuredWidth;
-            }
+            var contentSize = content[this._measureKey];
             var scrollbar = this._scrollbar;
             var bgSize = scrollbar.bgSize;
             var scale = bgSize / contentSize;
@@ -3494,16 +3493,9 @@ var junyou;
                 if (!content) {
                     return 0;
                 }
-                var contentSize, scrollSize;
                 var rect = content.scrollRect;
-                if (this._scrollType == 0 /* Vertical */) {
-                    contentSize = content.measuredHeight;
-                    scrollSize = rect.height;
-                }
-                else {
-                    contentSize = content.measuredWidth;
-                    scrollSize = rect.width;
-                }
+                var contentSize = content[this._measureKey];
+                var scrollSize = rect[this._sizeKey];
                 return contentSize - scrollSize;
             },
             enumerable: true,
