@@ -118,8 +118,6 @@ module junyou {
                 if (content) {
                     bindDrag(content);
                     content.on(EventConst.DragStart, this.onDragStart, this);
-                    content.on(EventConst.DragMove, this.onDragMove, this);
-                    content.on(EventConst.DragEnd, this.onDragEnd, this);
                     content.on(EventConst.Resize, this.onResize, this);
                 }
                 if ("scroller" in content) {
@@ -201,6 +199,8 @@ module junyou {
             this._lastMoveTime = Global.now;
             this._lastTargetPos = pos;
             this.showBar();
+            content.on(EventConst.DragMove, this.onDragMove, this);
+            content.on(EventConst.DragEnd, this.onDragEnd, this);
         }
 
 
@@ -264,6 +264,8 @@ module junyou {
             else {
                 this.hideBar();
             }
+            content.off(EventConst.DragMove, this.onDragMove, this);
+            content.off(EventConst.DragEnd, this.onDragEnd, this);
         }
 
         public showBar() {
