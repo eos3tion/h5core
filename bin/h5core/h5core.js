@@ -3195,8 +3195,6 @@ var junyou;
                 if (content) {
                     junyou.bindDrag(content);
                     content.on(-1090 /* DragStart */, this.onDragStart, this);
-                    content.on(-1089 /* DragMove */, this.onDragMove, this);
-                    content.on(-1088 /* DragEnd */, this.onDragEnd, this);
                     content.on(-1999 /* Resize */, this.onResize, this);
                 }
                 if ("scroller" in content) {
@@ -3275,6 +3273,8 @@ var junyou;
             this._lastMoveTime = junyou.Global.now;
             this._lastTargetPos = pos;
             this.showBar();
+            content.on(-1089 /* DragMove */, this.onDragMove, this);
+            content.on(-1088 /* DragEnd */, this.onDragEnd, this);
         };
         Scroller.prototype.onDragMove = function (e) {
             var currentPos;
@@ -3334,6 +3334,8 @@ var junyou;
             else {
                 this.hideBar();
             }
+            content.off(-1089 /* DragMove */, this.onDragMove, this);
+            content.off(-1088 /* DragEnd */, this.onDragEnd, this);
         };
         Scroller.prototype.showBar = function () {
             if (this._useScrollBar) {
