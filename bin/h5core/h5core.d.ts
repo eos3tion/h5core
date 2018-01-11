@@ -1382,6 +1382,8 @@ declare module junyou {
          * @param {*} [thisObj] (description)
          */
         clearCallLater(callback: Function, thisObj?: any): any;
+        callLater2(callback: $CallbackInfo, now?: number, time?: number): void;
+        clearCallLater2(callback: $CallbackInfo): any;
     }
 }
 declare module junyou {
@@ -4076,28 +4078,106 @@ declare module junyou {
     var Location: LocationConstructor;
 }
 declare module junyou {
+    interface GlobalInstance {
+        initTick: () => void;
+        nextTick: (callback: Function, thisObj?: any, ...args: any[]) => void;
+        nextTick2: (callback: CallbackInfo<Function>) => void;
+        /**
+         * 延迟执行
+         * @param {Function} callback 回调函数
+         * @param {number} [time=0] 延迟执行的时间
+         * @param {*} [thisObj] 回调的`this`指针
+         * @param args 回调参数列表
+         */
+        callLater(callback: Function, time?: number, thisObj?: any, ...args: any[]): any;
+        /**
+         * 延迟执行
+         * @param {$CallbackInfo} callback 回调函数
+         * @param {number} [time=0] 延迟执行的时间
+         */
+        callLater2(callback: $CallbackInfo, time?: number): any;
+        /**
+         * 清理延迟
+         * @param {Function} callback 回调函数
+         * @param {*} [thisObj]  回调的`this`指针
+         */
+        clearCallLater(callback: Function, thisObj?: any): any;
+        /**
+         * 清理延迟
+         * @param {$CallbackInfo} callback 要清理的回调
+         */
+        clearCallLater2(callback: $CallbackInfo): any;
+        /**
+         * 获取Tween
+         *
+         * @static
+         * @param {*} target 要对那个对象做Tween处理
+         * @param {TweenOption} props Tween的附加属性 (如： `{loop:true, paused:true}`).
+         * All properties default to `false`. Supported props are:
+         * <UL>
+         *    <LI> loop: sets the loop property on this tween.</LI>
+         *    <LI> useTicks: uses ticks for all durations instead of milliseconds.</LI>
+         *    <LI> ignoreGlobalPause: sets the {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}} property on
+         *    this tween.</LI>
+         *    <LI> override: if true, `createjs. this.removeTweens(target)` will be called to remove any other tweens with
+         *    the same target.
+         *    <LI> paused: indicates whether to start the tween paused.</LI>
+         *    <LI> position: indicates the initial position for this tween.</LI>
+         *    <LI> onChange: specifies a listener for the {{#crossLink "Tween/change:event"}}{{/crossLink}} event.</LI>
+         * </UL>
+         * @param {*} pluginData 插件数据
+         * @param {boolean} override 是否覆盖
+         * @returns {Tween} tween的实例
+         */
+        getTween(target: any, props?: TweenOption, pluginData?: any, override?: boolean): Tween;
+        /**
+         * 移除指定的Tween
+         *
+         * @param {Tween} tween
+         * @returns
+         */
+        removeTween(tween: Tween): any;
+        /**
+         * 移除指定目标的所有Tween
+         *
+         * @param {any} target
+         * @returns
+         */
+        removeTweens(target: any): any;
+        /**
+         * 判断是否为Native的版本
+         */
+        readonly isNative: boolean;
+        tweenManager: TweenManager;
+        /**
+         *  当前这一帧的时间
+         */
+        readonly now: number;
+        /**
+         * 按照帧，应该走的时间
+         * 每帧根据帧率加固定时间
+         * 用于处理逐帧同步用
+         */
+        readonly frameNow: number;
+        /**
+         * 是否支持webp
+         */
+        readonly webp: "" | Ext.WEBP;
+        /**
+         * 添加每帧执行回调
+         */
+        addInterval(callback: CallbackInfo<Function>): void;
+        /**
+         * 移除每帧执行回调
+         */
+        removeInterval(callback: CallbackInfo<Function>): void;
+    }
     /**
      * 动画的全局对象
      * @author 3tion
      *
      */
-    const Global: {
-        initTick: () => void;
-        nextTick: (callback: Function, thisObj?: any, ...args: any[]) => void;
-        nextTick2: (callback: CallbackInfo<Function>) => void;
-        callLater: (callback: Function, time?: number, thisObj?: any, ...args: any[]) => void;
-        clearCallLater: (callback: Function, thisObj?: any) => any;
-        getTween: (target: any, props?: TweenOption, pluginData?: any, override?: boolean) => Tween;
-        removeTween: (tween: Tween) => void;
-        removeTweens: (target: any) => void;
-        readonly isNative: boolean;
-        tweenManager: TweenManager;
-        readonly now: number;
-        readonly frameNow: number;
-        readonly webp: "" | Ext.WEBP;
-        addInterval(callback: CallbackInfo<Function>): void;
-        removeInterval(callback: CallbackInfo<Function>): void;
-    };
+    const Global: GlobalInstance;
 }
 declare const enum Time {
     /**

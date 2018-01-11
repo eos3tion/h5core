@@ -1729,6 +1729,15 @@ var junyou;
                 }
             }
         };
+        CallLater.prototype.callLater2 = function (callback, now, time) {
+            if (time === void 0) { time = 0; }
+            this._callLaters.pushOnce(callback);
+            callback.time = now + (time || 0);
+        };
+        CallLater.prototype.clearCallLater2 = function (callback) {
+            this._callLaters.remove(callback);
+            return callback.recycle();
+        };
         return CallLater;
     }());
     junyou.CallLater = CallLater;
@@ -6768,97 +6777,49 @@ var junyou;
         _nextTicks.push(callback);
     }
     /**
-     * 延迟执行
-     *
-     * @static
-     * @param {Function} callback (description)
-     * @param {number} [time] 延迟执行的时间
-     * @param {*} [thisObj] (description)
-     * @param args (description)
-     */
-    function callLater(callback, time, thisObj) {
-        var args = [];
-        for (var _i = 3; _i < arguments.length; _i++) {
-            args[_i - 3] = arguments[_i];
-        }
-        return _callLater.callLater.apply(_callLater, [callback, now, time, thisObj].concat(args));
-    }
-    /**
-     * 清理延迟
-     *
-     * @static
-     * @param {Function} callback (description)
-     * @param {*} [thisObj] (description)
-     * @returns (description)
-     */
-    function clearCallLater(callback, thisObj) {
-        return _callLater.clearCallLater(callback, thisObj);
-    }
-    /**
-     * 获取Tween
-     *
-     * @static
-     * @param {*} target 要对那个对象做Tween处理
-     * @param {TweenOption} props Tween的附加属性 (如： `{loop:true, paused:true}`).
-     * All properties default to `false`. Supported props are:
-     * <UL>
-     *    <LI> loop: sets the loop property on this tween.</LI>
-     *    <LI> useTicks: uses ticks for all durations instead of milliseconds.</LI>
-     *    <LI> ignoreGlobalPause: sets the {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}} property on
-     *    this tween.</LI>
-     *    <LI> override: if true, `createjs. this.removeTweens(target)` will be called to remove any other tweens with
-     *    the same target.
-     *    <LI> paused: indicates whether to start the tween paused.</LI>
-     *    <LI> position: indicates the initial position for this tween.</LI>
-     *    <LI> onChange: specifies a listener for the {{#crossLink "Tween/change:event"}}{{/crossLink}} event.</LI>
-     * </UL>
-     * @param {*} pluginData 插件数据
-     * @param {boolean} override 是否覆盖
-     * @returns {Tween} tween的实例
-     */
-    function getTween(target, props, pluginData, override) {
-        return tweenManager.get(target, props, pluginData, override);
-    }
-    /**
-     * 移除指定的Tween
-     *
-     * @param {Tween} tween
-     * @returns
-     */
-    function removeTween(tween) {
-        return tweenManager.removeTween(tween);
-    }
-    function removeTweens(target) {
-        return tweenManager.removeTweens(target);
-    }
-    /**
      * 动画的全局对象
      * @author 3tion
      *
      */
     junyou.Global = {
-        initTick: initTick, nextTick: nextTick, nextTick2: nextTick2, callLater: callLater, clearCallLater: clearCallLater, getTween: getTween, removeTween: removeTween, removeTweens: removeTweens,
+        initTick: initTick,
+        nextTick: nextTick,
+        nextTick2: nextTick2,
+        callLater: function (callback, time, thisObj) {
+            var args = [];
+            for (var _i = 3; _i < arguments.length; _i++) {
+                args[_i - 3] = arguments[_i];
+            }
+            return _callLater.callLater.apply(_callLater, [callback, now, time, thisObj].concat(args));
+        },
+        clearCallLater: function (callback, thisObj) {
+            return _callLater.clearCallLater(callback, thisObj);
+        },
+        callLater2: function (callback, time) {
+            return _callLater.callLater2(callback, now, time);
+        },
+        clearCallLater2: function (callback) {
+            return _callLater.clearCallLater2(callback);
+        },
+        getTween: function (target, props, pluginData, override) {
+            return tweenManager.get(target, props, pluginData, override);
+        },
+        removeTween: function (tween) {
+            return tweenManager.removeTween(tween);
+        },
+        removeTweens: function (target) {
+            return tweenManager.removeTweens(target);
+        },
         get isNative() {
             return _isNative;
         },
         tweenManager: tweenManager,
-        /**
-         *  当前这一帧的时间
-         */
         get now() {
             return now;
         },
-        /**
-         * 按照帧，应该走的时间
-         * 每帧根据帧率加固定时间
-         * 用于处理逐帧同步用
-         */
         get frameNow() {
             return frameNow;
         },
-        /**
-         * 是否支持webp
-         */
         get webp() {
             return _webp;
         },
