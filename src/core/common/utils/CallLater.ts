@@ -60,5 +60,15 @@ module junyou {
                 }
             }
         }
+
+        public callLater2(callback: $CallbackInfo, now?: number, time = 0) {
+            this._callLaters.pushOnce(callback);
+            callback.time = now + (time || 0);
+        }
+
+        public clearCallLater2(callback: $CallbackInfo) {
+            this._callLaters.remove(callback);
+            return callback.recycle();
+        }
     }
 }
