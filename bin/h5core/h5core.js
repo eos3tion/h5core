@@ -9326,13 +9326,6 @@ var junyou;
                 return res.draw(this, drawInfo, now);
             }
         };
-        Object.defineProperty(ResourceBitmap.prototype, "rotation", {
-            set: function (value) {
-                _super.prototype.$setRotation.call(this, value);
-            },
-            enumerable: true,
-            configurable: true
-        });
         ResourceBitmap.prototype.onRecycle = function () {
             junyou.removeDisplay(this);
             this.removeAllListeners();

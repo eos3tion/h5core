@@ -5766,7 +5766,6 @@ declare module junyou {
          * @memberof ResourceBitmap
          */
         draw(drawInfo: IDrawInfo, now: number): boolean;
-        rotation: number;
         onRecycle(): void;
     }
 }
