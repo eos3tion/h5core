@@ -32,10 +32,6 @@ module junyou {
             }
         }
 
-        public set rotation(value: number) {
-            super.$setRotation(value);
-        }
-
         public onRecycle() {
             removeDisplay(this);
             this.removeAllListeners();
