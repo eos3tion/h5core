@@ -17,6 +17,14 @@ module junyou {
             return this.y + this.z;
         }
 
+        /**
+         * 当前资源是否成功渲染
+         * 
+         * @param {IDrawInfo} drawInfo 
+         * @param {number} now 
+         * @returns 
+         * @memberof ResourceBitmap
+         */
         public draw(drawInfo: IDrawInfo, now: number) {
             let res = this.res;
             if (res) {
