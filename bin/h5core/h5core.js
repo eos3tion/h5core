@@ -7634,15 +7634,25 @@ var junyou;
          * @param {any} args 其他参数  替换字符串中{0}{1}{2}{a} {b}这样的数据，用obj对应key替换，或者是数组中对应key的数据替换
          * @returns 显示信息
          */
-        getMsg: function (code) {
-            var args = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                args[_i - 1] = arguments[_i];
+        getMsg: function () {
+            var argus = arguments;
+            var code = argus[0];
+            var len = argus.length;
+            var args;
+            if (len == 2) {
+                args = argus[1];
+            }
+            else if (len > 2) {
+                args = [];
+                var j = 0;
+                for (var i = 1; i < len; i++) {
+                    args[j++] = argus[i];
+                }
             }
             if (code in _msgDict) {
                 return _msgDict[code].substitute(args);
             }
-            return typeof code === "string" ? code.substitute.apply(code, args) : code + "";
+            return typeof code === "string" ? code.substitute(args) : code + "";
         },
         has: function (code) {
             return code in _msgDict;

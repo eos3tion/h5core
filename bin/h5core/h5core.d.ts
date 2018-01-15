@@ -4694,6 +4694,7 @@ declare module junyou {
          * @returns 显示信息
          */
         getMsg(code: number | string, ...args: any[]): string;
+        getMsg(code: number | string, args: any): string;
         /**
          *
          * 注册语言字典
