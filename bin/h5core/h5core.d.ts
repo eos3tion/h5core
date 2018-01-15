@@ -6486,6 +6486,15 @@ declare module junyou {
     }
 }
 declare module junyou {
+    interface PathFinderCallback {
+        /**
+         *
+         * @param {Point[]} path 路径集
+         * @param {boolean} isEnd 路径是否到达结束点
+         * @param {any[]} args
+         */
+        (path: Point[], isEnd?: boolean, ...args: any[]): any;
+    }
     /**
      *
      * 寻路算法
@@ -6513,9 +6522,7 @@ declare module junyou {
          *
          * @memberOf PathFinder
          */
-        getPath(fx: number, fy: number, tx: number, ty: number, callback: CallbackInfo<{
-            (path: PathNode[], ...args);
-        }>): any;
+        getPath(fx: number, fy: number, tx: number, ty: number, callback: CallbackInfo<PathFinderCallback>): any;
     }
     /**
      * 寻路的节点
@@ -6605,16 +6612,14 @@ declare module junyou {
          * @param {number} fy               起点坐标y
          * @param {number} tx               终点坐标x
          * @param {number} ty               终点坐标y
-         * @param {{ (path: PathNode[], ...args) }: void } callback    寻找到目标后的 回调方法
+         * @param {{ (path: PathNode[], noEnd?: boolean, ...args) }: void } callback    寻找到目标后的 回调方法
          * @param {any} args                回调函数的其他参数
          *
          * @memberOf PathFinder
          */
-        getPath(fx: number, fy: number, tx: number, ty: number, callback: CallbackInfo<{
-            (path: PathNode[], ...args);
-        }>): {
-                stop: boolean;
-            };
+        getPath(fx: number, fy: number, tx: number, ty: number, callback: CallbackInfo<PathFinderCallback>): {
+            stop: boolean;
+        };
     }
 }
 declare module junyou {

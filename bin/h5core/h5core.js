@@ -10609,14 +10609,14 @@ var junyou;
          * @param {number} fy               起点坐标y
          * @param {number} tx               终点坐标x
          * @param {number} ty               终点坐标y
-         * @param {{ (path: PathNode[], ...args) }: void } callback    寻找到目标后的 回调方法
+         * @param {{ (path: PathNode[], noEnd?: boolean, ...args) }: void } callback    寻找到目标后的 回调方法
          * @param {any} args                回调函数的其他参数
          *
          * @memberOf PathFinder
          */
         Astar.prototype.getPath = function (fx, fy, tx, ty, callback) {
             if (fx == tx && fy == ty) {
-                callback.callAndRecycle(null);
+                callback.callAndRecycle(null, true);
                 return;
             }
             var map = this._map;
@@ -10624,7 +10624,7 @@ var junyou;
             var h = map.rows;
             var maxLength = this._maxLength;
             if (fx > w || fy > h) {
-                callback.callAndRecycle(null);
+                callback.callAndRecycle(null, false);
                 return;
             }
             /**
@@ -10668,7 +10668,7 @@ var junyou;
                     closedList[key] = true;
                     if (x == tx && y == ty) {
                         stage.off("enterFrame" /* ENTER_FRAME */, onTick, null);
-                        return { value: callback.callAndRecycle(end(minNode)) };
+                        return { value: callback.callAndRecycle(end(minNode), true) };
                     }
                     aSurOff.forEach(function (element) {
                         var tmpx = element[0] + x;
@@ -10713,7 +10713,7 @@ var junyou;
                     if (state_1 === "break")
                         break;
                 }
-                return callback.callAndRecycle(end(minNode));
+                return callback.callAndRecycle(end(minNode), false);
             }
             function end(node) {
                 // 移除监听
