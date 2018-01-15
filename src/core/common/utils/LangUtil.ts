@@ -9,6 +9,7 @@ module junyou {
          * @returns 显示信息
          */
         getMsg(code: number | string, ...args): string;
+        getMsg(code: number | string, args: any): string;
         /**
          * 
          * 注册语言字典
@@ -40,11 +41,24 @@ module junyou {
          * @param {any} args 其他参数  替换字符串中{0}{1}{2}{a} {b}这样的数据，用obj对应key替换，或者是数组中对应key的数据替换
          * @returns 显示信息
          */
-        getMsg(code: Key, ...args) {
+        getMsg() {
+            const argus = arguments;
+            let code = argus[0];
+            let len = argus.length;
+            let args;
+            if (len == 2) {
+                args = argus[1];
+            } else if (len > 2) {
+                args = [];
+                let j = 0;
+                for (let i = 1; i < len; i++) {
+                    args[j++] = argus[i];
+                }
+            }
             if (code in _msgDict) {
                 return _msgDict[code].substitute(args)
             }
-            return typeof code === "string" ? code.substitute(...args) : code + "";
+            return typeof code === "string" ? code.substitute(args) : code + "";
         },
         has(code: Key) {
             return code in _msgDict;
