@@ -1,5 +1,16 @@
 module junyou {
 
+    export interface PathFinderCallback {
+
+        /**
+         * 
+         * @param {Point[]} path 路径集
+         * @param {boolean} isEnd 路径是否到达结束点
+         * @param {any[]} args 
+         */
+        (path: Point[], isEnd?: boolean, ...args);
+    }
+
     /**
      * 
      * 寻路算法
@@ -29,8 +40,10 @@ module junyou {
          * 
          * @memberOf PathFinder
          */
-        getPath(fx: number, fy: number, tx: number, ty: number, callback: CallbackInfo<{ (path: PathNode[], ...args) }>);
+        getPath(fx: number, fy: number, tx: number, ty: number, callback: CallbackInfo<PathFinderCallback>);
     }
+
+
 
     /**
      * 寻路的节点
@@ -132,22 +145,22 @@ module junyou {
          * @param {number} fy               起点坐标y
          * @param {number} tx               终点坐标x
          * @param {number} ty               终点坐标y
-         * @param {{ (path: PathNode[], ...args) }: void } callback    寻找到目标后的 回调方法
+         * @param {{ (path: PathNode[], noEnd?: boolean, ...args) }: void } callback    寻找到目标后的 回调方法
          * @param {any} args                回调函数的其他参数
          * 
          * @memberOf PathFinder
          */
-        public getPath(fx: number, fy: number, tx: number, ty: number, callback: CallbackInfo<{ (path: PathNode[], ...args) }>) {
+        public getPath(fx: number, fy: number, tx: number, ty: number, callback: CallbackInfo<PathFinderCallback>) {
             if (fx == tx && fy == ty) {
-                callback.callAndRecycle(null);
+                callback.callAndRecycle(null, true);
                 return;
             }
             const map = this._map;
             const w = map.columns;
             const h = map.rows;
             const maxLength = this._maxLength;
-            if (fx > w || fy > h) {
-                callback.callAndRecycle(null);
+            if (fx > w || fy > h) {//超过最大格位数量
+                callback.callAndRecycle(null, false);
                 return;
             }
             /**
@@ -191,7 +204,7 @@ module junyou {
                     closedList[key] = true;
                     if (x == tx && y == ty) {//找到终点
                         stage.off(EgretEvent.ENTER_FRAME, onTick, null);
-                        return callback.callAndRecycle(end(minNode));
+                        return callback.callAndRecycle(end(minNode), true);
                     }
 
                     aSurOff.forEach(element => {
@@ -230,7 +243,7 @@ module junyou {
                         return;
                     }
                 }
-                return callback.callAndRecycle(end(minNode));
+                return callback.callAndRecycle(end(minNode), false);
             }
             function end(node: PathNode): PathNode[] {
                 // 移除监听
