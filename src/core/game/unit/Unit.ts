@@ -400,6 +400,10 @@ module junyou {
             if (this.state != UnitState.Stage) {
                 return;
             }
+            this._startUA(action, now, override);
+        }
+
+        protected _startUA(action?: UnitAction, now?: number, override?: boolean) {
             let next = this._nextAction;
             if (next != action) {
                 if (next) {
@@ -458,7 +462,7 @@ module junyou {
          * @param {number} [now] 
          */
         public stopUnitAction(now?: number) {
-            this.startUnitAction(null, now, true);
+            this._startUA(null, now, true);
         }
 
         public setMountType(value: MountType) {
