@@ -2056,7 +2056,7 @@ var junyou;
          * 获取施法点
          * @param {number} action 动作标识
          * @param {number} direction 方向
-         * @return {egret.Point} 如果有施法点
+         * @return {Point} 如果有施法点
          */
         PstInfo.prototype.getCastPoint = function (action, direction) {
             if (this.castPoints) {
@@ -2096,10 +2096,7 @@ var junyou;
                         for (var d = 0; d < 8; d++) {
                             var pInfo = aInfo[d > 4 ? 8 - d : d];
                             if (pInfo) {
-                                var pt = new egret.Point();
-                                castPoints[junyou.ADKey.get(+a, d)] = pt;
-                                pt.x = +pInfo[0];
-                                pt.y = +pInfo[1];
+                                castPoints[junyou.ADKey.get(+a, d)] = { x: +pInfo[0], y: +pInfo[1] };
                             }
                         }
                     }
@@ -11724,6 +11721,9 @@ var junyou;
             if (this.state != 1 /* Stage */) {
                 return;
             }
+            this._startUA(action, now, override);
+        };
+        Unit.prototype._startUA = function (action, now, override) {
             var next = this._nextAction;
             if (next != action) {
                 if (next) {
@@ -11785,7 +11785,7 @@ var junyou;
          * @param {number} [now]
          */
         Unit.prototype.stopUnitAction = function (now) {
-            this.startUnitAction(null, now, true);
+            this._startUA(null, now, true);
         };
         Unit.prototype.setMountType = function (value) {
             if (value != this._mountType) {

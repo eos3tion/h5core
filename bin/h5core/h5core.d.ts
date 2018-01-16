@@ -1556,18 +1556,18 @@ declare module junyou {
          * 施法点
          * KEY      {number}        action << 8 | direction
          * VALUE    {egret.Point}   施法点坐标
-         * @type {[adKey:string]:egret.Point}
+         * @type {[adKey:string]:Point}
          */
         protected castPoints: {
-            [adKey: number]: egret.Point;
+            [adKey: number]: Point;
         };
         /**
          * 获取施法点
          * @param {number} action 动作标识
          * @param {number} direction 方向
-         * @return {egret.Point} 如果有施法点
+         * @return {Point} 如果有施法点
          */
-        getCastPoint(action: number, direction: number): egret.Point;
+        getCastPoint(action: number, direction: number): Point;
         splitInfo: SplitInfo;
         constructor();
         init(key: string, data: any[]): void;
@@ -1578,11 +1578,11 @@ declare module junyou {
         decodeImageDatas(data: {
             [index: string]: {};
         }): void;
-        getResource(uri: string): UnitResource;
+        getResource(uri: string): any;
         /**
          * 获取单位资源
          */
-        getUnitResource(uri: any): UnitResource;
+        getUnitResource(uri: any): any;
     }
     /**
      * 资源打包分隔信息
@@ -7266,6 +7266,7 @@ declare module junyou {
          *         false    未成功执行动作，将动作覆盖到下一个动作
          */
         startUnitAction(action?: UnitAction, now?: number, override?: boolean): boolean;
+        protected _startUA(action?: UnitAction, now?: number, override?: boolean): boolean;
         /**
          * 停止单位当前动作，做待机动作
          *
