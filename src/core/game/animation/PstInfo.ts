@@ -81,16 +81,16 @@ module junyou {
          * 施法点
          * KEY      {number}        action << 8 | direction
          * VALUE    {egret.Point}   施法点坐标
-         * @type {[adKey:string]:egret.Point}
+         * @type {[adKey:string]:Point}
          */
-        protected castPoints: { [adKey: number]: egret.Point };
+        protected castPoints: { [adKey: number]: Point };
 
 
         /**
          * 获取施法点
          * @param {number} action 动作标识
          * @param {number} direction 方向
-         * @return {egret.Point} 如果有施法点
+         * @return {Point} 如果有施法点
          */
         public getCastPoint(action: number, direction: number) {
             if (this.castPoints) {
@@ -130,17 +130,14 @@ module junyou {
                 this.hurtY = +extra[1];
                 let castInfo: { [adKey: number]: number[][] } = extra[2];
                 if (castInfo) {
-                    let castPoints: { [adKey: number]: egret.Point } = {};
+                    let castPoints: { [adKey: number]: Point } = {};
                     this.castPoints = castPoints;
                     for (let a in castInfo) {
                         let aInfo = castInfo[a];
                         for (let d = 0; d < 8; d++) {
-                            let pInfo: number[] = aInfo[d > 4 ? 8 - d : d];
+                            let pInfo = aInfo[d > 4 ? 8 - d : d];
                             if (pInfo) {
-                                let pt: egret.Point = new egret.Point();
-                                castPoints[ADKey.get(+a, d)] = pt;
-                                pt.x = +pInfo[0];
-                                pt.y = +pInfo[1];
+                                castPoints[ADKey.get(+a, d)] = { x: +pInfo[0], y: +pInfo[1] };
                             }
                         }
                     }
@@ -154,14 +151,14 @@ module junyou {
          * 用于批量处理数据
          */
         public decodeImageDatas(data: { [index: string]: {} }) {
-            for (var uri in data) {
-                var res = this.getResource(uri);
+            for (let uri in data) {
+                let res = this.getResource(uri);
                 res.decodeData(data[uri]);
             }
         }
 
-        getResource(uri: string): UnitResource {
-            var res: UnitResource = this._resources[uri];
+        getResource(uri: string) {
+            let res = this._resources[uri];
             if (!res) {
                 res = new UnitResource(uri, this.splitInfo);
                 this._resources[uri] = res;
@@ -172,7 +169,7 @@ module junyou {
         /**
          * 获取单位资源
          */
-        public getUnitResource(uri): UnitResource {
+        public getUnitResource(uri) {
             var res = this.getResource(uri);
             res.loadData();
             return res;
