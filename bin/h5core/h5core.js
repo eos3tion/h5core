@@ -10589,6 +10589,7 @@ var junyou;
         /*←*/ [-1, 0], /*    ㊥    */ /*→*/ [1, 0],
         /*↙*/ [-1, 1], /*↓*/ [0, 1], /*↘*/ [1, 1]
     ];
+    var empty = junyou.Temp.EmptyObject;
     /**
      * A星寻路算法
      * @author 3tion
@@ -10621,7 +10622,7 @@ var junyou;
          *
          * @memberOf PathFinder
          */
-        Astar.prototype.getPath = function (fx, fy, tx, ty, callback) {
+        Astar.prototype.getPath = function (fx, fy, tx, ty, callback, opt) {
             if (fx == tx && fy == ty) {
                 callback.callAndRecycle(null, true);
                 return;
@@ -10629,7 +10630,6 @@ var junyou;
             var map = this._map;
             var w = map.columns;
             var h = map.rows;
-            var maxLength = this._maxLength;
             if (fx > w || fy > h) {
                 callback.callAndRecycle(null, false);
                 return;
@@ -10657,14 +10657,25 @@ var junyou;
             var ctrl = { stop: false };
             add(fx, fy, 0, (Math.abs(tx - fx) + Math.abs(ty - fy)) * 10);
             var stage = egret.sys.$TempStage;
-            stage.on("enterFrame" /* ENTER_FRAME */, onTick, null);
+            var _a = opt || empty, sync = _a.sync, max = _a.max;
+            var maxLength = max || this._maxLength;
+            if (sync) {
+                var result = void 0;
+                do {
+                    result = onTick();
+                } while (!result);
+            }
+            else {
+                stage.on("enterFrame" /* ENTER_FRAME */, onTick, null);
+            }
             return ctrl;
             function onTick() {
                 var t = Date.now();
                 var _loop_1 = function () {
                     if (ctrl.stop) {
                         stage.off("enterFrame" /* ENTER_FRAME */, onTick, null);
-                        return { value: void 0 };
+                        callback.callAndRecycle(end(minNode), false); //现在外部结束，也给个结果，不过认为没结束
+                        return { value: true };
                     }
                     var node = openList.shift();
                     var x = node.x, y = node.y, g = node.g, key = node.key;
@@ -10675,7 +10686,8 @@ var junyou;
                     closedList[key] = true;
                     if (x == tx && y == ty) {
                         stage.off("enterFrame" /* ENTER_FRAME */, onTick, null);
-                        return { value: callback.callAndRecycle(end(minNode), true) };
+                        callback.callAndRecycle(end(minNode), true);
+                        return { value: true };
                     }
                     aSurOff.forEach(function (element) {
                         var tmpx = element[0] + x;
@@ -10720,7 +10732,8 @@ var junyou;
                     if (state_1 === "break")
                         break;
                 }
-                return callback.callAndRecycle(end(minNode), false);
+                callback.callAndRecycle(end(minNode), false);
+                return true;
             }
             function end(node) {
                 // 移除监听

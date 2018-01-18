@@ -11,6 +11,17 @@ module junyou {
         (path: Point[], isEnd?: boolean, ...args);
     }
 
+    export interface PathFinderOption {
+        /**
+         * 是否同步处理
+         */
+        sync?: boolean;
+        /**
+         * 默认当前地图格子总数
+         */
+        max?: number;
+    }
+
     /**
      * 
      * 寻路算法
@@ -40,7 +51,7 @@ module junyou {
          * 
          * @memberOf PathFinder
          */
-        getPath(fx: number, fy: number, tx: number, ty: number, callback: CallbackInfo<PathFinderCallback>);
+        getPath(fx: number, fy: number, tx: number, ty: number, callback: CallbackInfo<PathFinderCallback>, opt?: PathFinderOption);
     }
 
 
@@ -116,6 +127,8 @@ module junyou {
             /*↖*/[-1, -1], /*↑*/[0, -1], /*↗*/[1, -1],
             /*←*/[-1, 0], /*    ㊥    */ /*→*/[1, 0],
             /*↙*/[-1, 1], /*↓*/[0, 1],   /*↘*/[1, 1]];
+
+    const empty = Temp.EmptyObject as PathFinderOption;
     /**
      * A星寻路算法
      * @author 3tion
@@ -150,7 +163,7 @@ module junyou {
          * 
          * @memberOf PathFinder
          */
-        public getPath(fx: number, fy: number, tx: number, ty: number, callback: CallbackInfo<PathFinderCallback>) {
+        public getPath(fx: number, fy: number, tx: number, ty: number, callback: CallbackInfo<PathFinderCallback>, opt?: PathFinderOption) {
             if (fx == tx && fy == ty) {
                 callback.callAndRecycle(null, true);
                 return;
@@ -158,7 +171,7 @@ module junyou {
             const map = this._map;
             const w = map.columns;
             const h = map.rows;
-            const maxLength = this._maxLength;
+
             if (fx > w || fy > h) {//超过最大格位数量
                 callback.callAndRecycle(null, false);
                 return;
@@ -186,14 +199,25 @@ module junyou {
             const ctrl = { stop: false };
             add(fx, fy, 0, (Math.abs(tx - fx) + Math.abs(ty - fy)) * 10);
             const stage = egret.sys.$TempStage;
-            stage.on(EgretEvent.ENTER_FRAME, onTick, null);
+            let { sync, max } = opt || empty;
+            const maxLength = max || this._maxLength;
+            if (sync) {
+                let result: boolean;
+                do {
+                    result = onTick();
+                }
+                while (!result)
+            } else {
+                stage.on(EgretEvent.ENTER_FRAME, onTick, null);
+            }
             return ctrl;
             function onTick() {
                 let t = Date.now();
                 while (openList.length) {
                     if (ctrl.stop) {//如果外部控制结束
                         stage.off(EgretEvent.ENTER_FRAME, onTick, null);
-                        return;
+                        callback.callAndRecycle(end(minNode), false);//现在外部结束，也给个结果，不过认为没结束
+                        return true;
                     }
                     let node = openList.shift();
                     const { x, y, g, key } = node;
@@ -204,7 +228,8 @@ module junyou {
                     closedList[key] = true;
                     if (x == tx && y == ty) {//找到终点
                         stage.off(EgretEvent.ENTER_FRAME, onTick, null);
-                        return callback.callAndRecycle(end(minNode), true);
+                        callback.callAndRecycle(end(minNode), true);
+                        return true;
                     }
 
                     aSurOff.forEach(element => {
@@ -243,7 +268,8 @@ module junyou {
                         return;
                     }
                 }
-                return callback.callAndRecycle(end(minNode), false);
+                callback.callAndRecycle(end(minNode), false);
+                return true;
             }
             function end(node: PathNode): PathNode[] {
                 // 移除监听

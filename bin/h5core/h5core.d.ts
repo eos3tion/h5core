@@ -6496,6 +6496,16 @@ declare module junyou {
          */
         (path: Point[], isEnd?: boolean, ...args: any[]): any;
     }
+    interface PathFinderOption {
+        /**
+         * 是否同步处理
+         */
+        sync?: boolean;
+        /**
+         * 默认当前地图格子总数
+         */
+        max?: number;
+    }
     /**
      *
      * 寻路算法
@@ -6523,7 +6533,7 @@ declare module junyou {
          *
          * @memberOf PathFinder
          */
-        getPath(fx: number, fy: number, tx: number, ty: number, callback: CallbackInfo<PathFinderCallback>): any;
+        getPath(fx: number, fy: number, tx: number, ty: number, callback: CallbackInfo<PathFinderCallback>, opt?: PathFinderOption): any;
     }
     /**
      * 寻路的节点
@@ -6618,7 +6628,7 @@ declare module junyou {
          *
          * @memberOf PathFinder
          */
-        getPath(fx: number, fy: number, tx: number, ty: number, callback: CallbackInfo<PathFinderCallback>): {
+        getPath(fx: number, fy: number, tx: number, ty: number, callback: CallbackInfo<PathFinderCallback>, opt?: PathFinderOption): {
             stop: boolean;
         };
     }
