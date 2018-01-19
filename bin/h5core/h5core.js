@@ -1753,7 +1753,7 @@ var junyou;
         __extends(GameLayer, _super);
         function GameLayer(id) {
             var _this = _super.call(this) || this;
-            _this.id = id;
+            _this.id = +id;
             return _this;
         }
         return GameLayer;
@@ -21829,7 +21829,9 @@ var junyou;
         * @param url
         */
         function getExt(url) {
-            var ext = url.substr(url.lastIndexOf("."));
+            var hash = url.lastIndexOf("?");
+            hash == -1 && (hash = undefined);
+            var ext = url.substr(url.lastIndexOf("."), hash);
             return ext.toLocaleLowerCase();
         }
         Res.getExt = getExt;
