@@ -402,12 +402,12 @@ module junyou {
             let oldPos: number, endPos: number, max: number;
             if (this._scrollType == ScrollDirection.Vertical) {
                 oldPos = rect.y;
-                endPos = v.y;
+                endPos = v.y + v.height;
                 max = this._h - v.height;
 
             } else {
                 oldPos = rect.x;
-                endPos = v.x;
+                endPos = v.x + v.width;
                 max = this._w - v.width;
             }
 
