@@ -317,7 +317,7 @@ module junyou.Res {
     export function getExt(url: string) {
         let hash = url.lastIndexOf("?");
         hash == -1 && (hash = undefined);
-        let ext = url.substr(url.lastIndexOf("."), hash);
+        let ext = url.substring(url.lastIndexOf("."), hash);
         return ext.toLocaleLowerCase();
     }
 
