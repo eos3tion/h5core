@@ -21831,7 +21831,7 @@ var junyou;
         function getExt(url) {
             var hash = url.lastIndexOf("?");
             hash == -1 && (hash = undefined);
-            var ext = url.substr(url.lastIndexOf("."), hash);
+            var ext = url.substring(url.lastIndexOf("."), hash);
             return ext.toLocaleLowerCase();
         }
         Res.getExt = getExt;
