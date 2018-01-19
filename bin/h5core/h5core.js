@@ -16199,12 +16199,12 @@ var junyou;
             var oldPos, endPos, max;
             if (this._scrollType == 0 /* Vertical */) {
                 oldPos = rect.y;
-                endPos = v.y;
+                endPos = v.y + v.height;
                 max = this._h - v.height;
             }
             else {
                 oldPos = rect.x;
-                endPos = v.x;
+                endPos = v.x + v.width;
                 max = this._w - v.width;
             }
             if (endPos > max) {
