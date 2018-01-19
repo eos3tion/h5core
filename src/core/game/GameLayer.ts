@@ -13,7 +13,7 @@ module junyou {
 
         constructor(id: number) {
             super();
-            this.id = id;
+            this.id = +id;
         }
     }
 
