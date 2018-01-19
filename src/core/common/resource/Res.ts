@@ -315,7 +315,9 @@ module junyou.Res {
     * @param url 
     */
     export function getExt(url: string) {
-        let ext = url.substr(url.lastIndexOf("."));
+        let hash = url.lastIndexOf("?");
+        hash == -1 && (hash = undefined);
+        let ext = url.substr(url.lastIndexOf("."), hash);
         return ext.toLocaleLowerCase();
     }
 
