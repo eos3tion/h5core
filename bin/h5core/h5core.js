@@ -1884,18 +1884,6 @@ var junyou;
             if (nextRenderTime < now) {
                 var renderedTime = this.renderedTime;
                 var delta = now - nextRenderTime;
-                if (delta > 2000) {
-                    if (nextRenderTime != 0) {
-                        if (true) {
-                            console.log("Render\u4E0A\u6B21\u6267\u884C\u65F6\u95F4\u548C\u5F53\u524D\u65F6\u95F4\u5DEE\u503C\u8FC7\u957F[" + delta + "]\uFF0C\u53EF\u4EE5\u6267\u884C[" + delta / actionInfo.totalTime + "\u6B21\u603B\u5E8F\u5217]");
-                        }
-                        if (BaseRender.dispatchSlowRender) {
-                            junyou.Global.callLater(BaseRender.onSlowRender);
-                        }
-                    }
-                    nextRenderTime = now;
-                    renderedTime = now;
-                }
                 var frames_1 = actionInfo.frames;
                 //当前帧
                 var idx = this.idx;
@@ -1904,6 +1892,18 @@ var junyou;
                 var ps = this.playSpeed * BaseRender.globalPlaySpeed;
                 var frame = void 0;
                 if (ps > 0) {
+                    if (delta > 2000) {
+                        if (nextRenderTime != 0) {
+                            if (true) {
+                                console.log("Render\u4E0A\u6B21\u6267\u884C\u65F6\u95F4\u548C\u5F53\u524D\u65F6\u95F4\u5DEE\u503C\u8FC7\u957F[" + delta + "]\uFF0C\u53EF\u4EE5\u6267\u884C[" + delta / actionInfo.totalTime + "\u6B21\u603B\u5E8F\u5217]");
+                            }
+                            if (BaseRender.dispatchSlowRender) {
+                                junyou.Global.callLater(BaseRender.onSlowRender);
+                            }
+                        }
+                        nextRenderTime = now;
+                        renderedTime = now;
+                    }
                     ps = 1 / ps;
                     if (ps < 0.01) {
                         ps = 0.01;
