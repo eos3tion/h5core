@@ -8486,17 +8486,18 @@ var junyou;
         GameEngine.prototype.addLayerToContainer = function (layer, container) {
             var children = container.$children;
             var id = layer.id;
-            var i = 0;
-            for (var len = children.length; i < len; i++) {
+            var j = 0;
+            for (var i = 0, len = children.length; i < len; i++) {
                 var child = children[i];
                 if (layer != child) {
                     var childLayer = child;
                     if (childLayer.id > id) {
                         break;
                     }
+                    j++;
                 }
             }
-            container.addChildAt(layer, i);
+            container.addChildAt(layer, j);
         };
         GameEngine.prototype.init = function () {
         };
