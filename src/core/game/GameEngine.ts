@@ -118,17 +118,18 @@ module junyou {
         protected addLayerToContainer(layer: GameLayer, container: egret.DisplayObjectContainer): void {
             let children = container.$children;
             let id = layer.id;
-            let i = 0;
-            for (let len = children.length; i < len; i++) {
+            let j = 0;
+            for (let i = 0, len = children.length; i < len; i++) {
                 let child = children[i];
                 if (layer != child) {
                     let childLayer = <GameLayer>child;
                     if (childLayer.id > id) {
                         break;
                     }
+                    j++;
                 }
             }
-            container.addChildAt(layer, i);
+            container.addChildAt(layer, j);
         }
 
         constructor(stage: egret.Stage) {
