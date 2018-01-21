@@ -11,7 +11,7 @@ module junyou {
         protected static layerConfigs: { [index: number]: LayerConfig } = {};
         static instance: GameEngine;
 
-        static init(stage: egret.Stage, ref?: { new (stage: egret.Stage): GameEngine }) {
+        static init(stage: egret.Stage, ref?: { new(stage: egret.Stage): GameEngine }) {
             ref = ref || GameEngine;
             GameEngine.instance = new ref(stage);
         }
@@ -107,7 +107,7 @@ module junyou {
 
         protected addLayer(layer: GameLayer, cfg: LayerConfig) {
             if (cfg && cfg.parentid) {
-                var parent = this.getLayer(cfg.parentid);
+                let parent = this.getLayer(cfg.parentid);
                 this.addLayerToContainer(layer, parent);
             } else {
                 this.addLayerToContainer(layer, this._stage);
@@ -121,7 +121,7 @@ module junyou {
             let i = 0;
             for (let len = children.length; i < len; i++) {
                 let child = children[i];
-                if (child instanceof GameLayer) {
+                if (layer != child) {
                     let childLayer = <GameLayer>child;
                     if (childLayer.id > id) {
                         break;
