@@ -8476,8 +8476,8 @@ var junyou;
         };
         GameEngine.prototype.addLayer = function (layer, cfg) {
             if (cfg && cfg.parentid) {
-                var parent = this.getLayer(cfg.parentid);
-                this.addLayerToContainer(layer, parent);
+                var parent_1 = this.getLayer(cfg.parentid);
+                this.addLayerToContainer(layer, parent_1);
             }
             else {
                 this.addLayerToContainer(layer, this._stage);
@@ -8489,7 +8489,7 @@ var junyou;
             var i = 0;
             for (var len = children.length; i < len; i++) {
                 var child = children[i];
-                if (child instanceof junyou.GameLayer) {
+                if (layer != child) {
                     var childLayer = child;
                     if (childLayer.id > id) {
                         break;
@@ -9018,14 +9018,14 @@ var junyou;
                     display.scaleX = display.scaleY = scale;
                 }
                 stop = option.stop;
-                var parent_1 = option.parent;
-                if (parent_1) {
+                var parent_2 = option.parent;
+                if (parent_2) {
                     var idx = option.childIdx;
                     if (idx == undefined) {
-                        parent_1.addChild(display);
+                        parent_2.addChild(display);
                     }
                     else {
-                        parent_1.addChildAt(display, idx);
+                        parent_2.addChildAt(display, idx);
                     }
                 }
                 var loop = option.loop;
@@ -10892,9 +10892,9 @@ var junyou;
             function getPath(p) {
                 var parentKey = p.parent;
                 if (parentKey) {
-                    var parent_2 = paths[parentKey];
-                    if (parent_2) {
-                        return getPath(parent_2) + p.path;
+                    var parent_3 = paths[parentKey];
+                    if (parent_3) {
+                        return getPath(parent_3) + p.path;
                     }
                     else if (true) {
                         junyou.ThrowError("\u8DEF\u5F84[" + p.path + "]\u914D\u7F6E\u4E86\u7236\u7EA7(parent)\uFF0C\u4F46\u662F\u627E\u4E0D\u5230\u5BF9\u5E94\u7684\u7236\u7EA7");
