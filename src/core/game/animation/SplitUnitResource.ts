@@ -36,7 +36,7 @@ module junyou {
         public textures: JTexture[];
 
         public get isStatic() {
-            return this.state != RequestState.REQUESTING;//加载中，本次不允许卸载
+            return this.state == RequestState.REQUESTING;//加载中，本次不允许卸载
         }
 
         constructor(uri: string, url: string) {
