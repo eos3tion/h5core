@@ -10365,7 +10365,6 @@ declare module junyou {
         constructor(uri: string, url: string);
         loadBmd(): void;
         protected checkBitmap(item: Res.ResItem): void;
-        checkExpire(expiredUseTime: number): void;
         dispose(): void;
     }
 }

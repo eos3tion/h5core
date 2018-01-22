@@ -4674,6 +4674,7 @@ var junyou;
          * @returns
          */
         LayoutContainer.prototype.remove = function (dis) {
+            dis.$layoutHost = undefined;
             return this.$layoutBins.delete(dis.hashCode);
         };
         LayoutContainer.prototype.addLayout = function (dis, type, size, hoffset, voffset, outerV, outerH, hide) {
@@ -4684,6 +4685,7 @@ var junyou;
             if (list.get(key)) {
                 return;
             }
+            dis.$layoutHost = this;
             var bin = { dis: dis, type: type, hoffset: hoffset, voffset: voffset, outerV: outerV, outerH: outerH, size: size };
             list.set(key, bin);
             if (hide) {
@@ -9371,7 +9373,7 @@ var junyou;
         }
         Object.defineProperty(SplitUnitResource.prototype, "isStatic", {
             get: function () {
-                return this.state != 1 /* REQUESTING */; //加载中，本次不允许卸载
+                return this.state == 1 /* REQUESTING */; //加载中，本次不允许卸载
             },
             enumerable: true,
             configurable: true
@@ -17062,11 +17064,6 @@ var junyou;
                 this.bmdState = 2 /* COMPLETE */;
             }
         };
-        SuiBmd.prototype.checkExpire = function (expiredUseTime) {
-            if (this.bmdState != 0 /* UNREQUEST */ && !this.using && this.lastUseTime < expiredUseTime) {
-                this.dispose();
-            }
-        };
         SuiBmd.prototype.dispose = function () {
             var bmd = this.bmd;
             this.bmdState = 0 /* UNREQUEST */;
@@ -17607,27 +17604,6 @@ var junyou;
                 dis.alpha = alpha;
             }
         };
-        // /**
-        //  * 
-        //  * 进行资源检查
-        //  * @param {number} expiredUseTime
-        //  * 
-        //  * @memberOf ResourceChecker
-        //  */
-        // public resCheck(expiredUseTime: number) {
-        //     const suiDatas = this._suiDatas;
-        //     for (let key in suiDatas) {
-        //         let suiData = suiDatas[key];
-        //         let bmd = suiData.pngbmd;
-        //         if (bmd) {
-        //             bmd.checkExpire(expiredUseTime);
-        //         }
-        //         bmd = suiData.jpgbmd;
-        //         if (bmd) {
-        //             bmd.checkExpire(expiredUseTime);
-        //         }
-        //     }
-        // }
         /**
          * 创建子控件
          *
