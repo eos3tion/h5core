@@ -97,10 +97,6 @@ module junyou {
             if (~j) {
                 list.splice(j, 1);
             }
-            if (!list.length) {
-                clearInterval(timer.tid);
-                delete _timeobj[time];
-            }
         }
     }
 
