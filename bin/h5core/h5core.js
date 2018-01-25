@@ -12493,7 +12493,7 @@ var junyou;
             var gcList = junyou.Temp.SharedArray1;
             var i = 0;
             for (var guid in this._domainAll) {
-                if (!exceptGuids || !~exceptGuids.indexOf(guid)) {
+                if (!exceptGuids || ~exceptGuids.indexOf(guid)) {
                     gcList[i++] = guid;
                 }
             }

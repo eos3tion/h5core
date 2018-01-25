@@ -148,7 +148,7 @@ module junyou {
             let gcList = Temp.SharedArray1;
             let i = 0;
             for (let guid in this._domainAll) {
-                if (!exceptGuids || !~exceptGuids.indexOf(guid)) {
+                if (!exceptGuids || ~exceptGuids.indexOf(guid)) {
                     gcList[i++] = guid;
                 }
             }
