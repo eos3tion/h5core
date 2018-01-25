@@ -93,6 +93,7 @@ module junyou {
                     layers[id] = undefined;
                 }
                 layers[newid] = layer;
+                layer.id = newid;
                 this.awakeLayer(newid);
             }
         }
