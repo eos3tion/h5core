@@ -20,7 +20,7 @@ module junyou {
             let lc = <LayerConfig>{};
             lc.id = id;
             lc.parentid = parentid;
-            lc.ref = ref || GameLayer;
+            lc.ref = ref || BaseLayer;
             GameEngine.layerConfigs[id] = lc;
         }
 
@@ -85,6 +85,18 @@ module junyou {
             return layer;
         }
 
+        changeId(layer: GameLayer, newid: number) {
+            let id = layer.id;
+            if (id != newid) {
+                let layers = this._layers;
+                if (layers[id] == layer) {//清理旧的id数据
+                    layers[id] = undefined;
+                }
+                layers[newid] = layer;
+                this.awakeLayer(newid);
+            }
+        }
+
         /**
          * 将指定
          * 
@@ -100,15 +112,17 @@ module junyou {
         public awakeLayer(layerID: GameLayerID) {
             let layer = this._layers[layerID];
             let cfg = GameEngine.layerConfigs[layerID];
-            if (layer && cfg) {
+            if (layer) {
                 this.addLayer(layer, cfg);
             }
         }
 
-        protected addLayer(layer: GameLayer, cfg: LayerConfig) {
+        protected addLayer(layer: GameLayer, cfg?: LayerConfig) {
             if (cfg && cfg.parentid) {
                 let parent = this.getLayer(cfg.parentid);
-                this.addLayerToContainer(layer, parent);
+                if (parent instanceof egret.DisplayObjectContainer) {
+                    this.addLayerToContainer(layer, parent);
+                }
             } else {
                 this.addLayerToContainer(layer, this._stage);
             }

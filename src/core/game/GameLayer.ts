@@ -1,10 +1,14 @@
 module junyou {
 
+    export interface GameLayer extends egret.DisplayObject {
+        id: number;
+    }
+
     /**
-    * GameLayer
-    * 用于后期扩展
-    */
-    export class GameLayer extends egret.Sprite {
+     * GameLayer
+     * 用于后期扩展
+     */
+    export class BaseLayer extends egret.Sprite {
 
         /**
          * 层id
@@ -24,7 +28,7 @@ module junyou {
      * @class UILayer
      * @extends {GameLayer}
      */
-    export class UILayer extends GameLayer {
+    export class UILayer extends BaseLayer {
         get width() {
             return egret.sys.$TempStage.stageWidth;
         }
@@ -38,7 +42,7 @@ module junyou {
     /**
      * 需要对子对象排序的层
      */
-    export class SortedLayer extends GameLayer {
+    export class SortedLayer extends BaseLayer {
 
         $doAddChild(child: egret.DisplayObject, index: number, notifyListeners: boolean = true): egret.DisplayObject {
             if ("depth" in child) {
