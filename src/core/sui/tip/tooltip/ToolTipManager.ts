@@ -60,7 +60,7 @@ module junyou {
 				map.set(dis, data);
 			}
 			if (!container) {
-				container = GameEngine.instance.getLayer(GameLayerID.Tip);
+				container = GameEngine.instance.getLayer(GameLayerID.Tip) as BaseLayer;
 			}
 			data.register(dis, msg, tooltip, container);
 			return true;
