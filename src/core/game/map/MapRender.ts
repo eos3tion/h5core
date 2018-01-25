@@ -51,7 +51,7 @@ module junyou {
     * MapRender
     * 用于处理地图平铺的渲染
     */
-    export class TileMapLayer extends GameLayer {
+    export class TileMapLayer extends BaseLayer {
         miniUri: string;
 
         /**
