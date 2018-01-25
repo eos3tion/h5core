@@ -144,11 +144,24 @@ module junyou {
          * 清理对象
          * @param {...Key[]} exceptGuids 需要保留的单位的GUID列表
          */
-        public clear(...exceptGuids: Key[]): void {
+        clear(...exceptGuids: Key[])
+        clear() {
+            let exceptGuids = {};
+            let args = arguments;
+            for (let i = 0; i < args.length; i++) {
+                let guid = args[i];
+                if (guid) {
+                    exceptGuids[guid] = true;
+                }
+            }
             let gcList = Temp.SharedArray1;
             let i = 0;
             for (let guid in this._domainAll) {
-                if (!exceptGuids || ~exceptGuids.indexOf(guid)) {
+                let aguid: any = guid;
+                if (aguid == +aguid) {
+                    aguid = +aguid;
+                }
+                if (!exceptGuids || !exceptGuids[guid]) {
                     gcList[i++] = guid;
                 }
             }

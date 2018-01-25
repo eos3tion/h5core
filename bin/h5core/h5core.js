@@ -12480,20 +12480,23 @@ var junyou;
         UnitController.prototype.getUnit = function (guid) {
             return this._domainAll[guid];
         };
-        /**
-         *
-         * 清理对象
-         * @param {...Key[]} exceptGuids 需要保留的单位的GUID列表
-         */
         UnitController.prototype.clear = function () {
-            var exceptGuids = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                exceptGuids[_i] = arguments[_i];
+            var exceptGuids = {};
+            var args = arguments;
+            for (var i_1 = 0; i_1 < args.length; i_1++) {
+                var guid = args[i_1];
+                if (guid) {
+                    exceptGuids[guid] = true;
+                }
             }
             var gcList = junyou.Temp.SharedArray1;
             var i = 0;
             for (var guid in this._domainAll) {
-                if (!exceptGuids || ~exceptGuids.indexOf(guid)) {
+                var aguid = guid;
+                if (aguid == +aguid) {
+                    aguid = +aguid;
+                }
+                if (!exceptGuids || !exceptGuids[guid]) {
                     gcList[i++] = guid;
                 }
             }
@@ -12515,12 +12518,12 @@ var junyou;
             var _a = this, _domains = _a._domains, _domainCounts = _a._domainCounts;
             var gcList = junyou.Temp.SharedArray1;
             var i = 0;
-            for (var i_1 = 1; i_1 < domains.length; i_1++) {
-                var domain = domains[i_1];
+            for (var i_2 = 1; i_2 < domains.length; i_2++) {
+                var domain = domains[i_2];
                 var dom = _domains[domain];
                 if (dom) {
                     for (var guid in dom) {
-                        gcList[i_1++] = guid;
+                        gcList[i_2++] = guid;
                     }
                 }
             }
@@ -14105,8 +14108,8 @@ var junyou;
                 var handler = args[i + 2];
                 handler = handler.bind(this);
                 if (Array.isArray(cmd)) {
-                    for (var i_2 = 0; i_2 < cmd.length; i_2++) {
-                        doReg(cmd[i_2], handler, ref);
+                    for (var i_3 = 0; i_3 < cmd.length; i_3++) {
+                        doReg(cmd[i_3], handler, ref);
                     }
                 }
                 else {
