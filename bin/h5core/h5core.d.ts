@@ -1387,11 +1387,14 @@ declare module junyou {
     }
 }
 declare module junyou {
+    interface GameLayer extends egret.DisplayObject {
+        id: number;
+    }
     /**
-    * GameLayer
-    * 用于后期扩展
-    */
-    class GameLayer extends egret.Sprite {
+     * GameLayer
+     * 用于后期扩展
+     */
+    class BaseLayer extends egret.Sprite {
         /**
          * 层id
          */
@@ -1405,14 +1408,14 @@ declare module junyou {
      * @class UILayer
      * @extends {GameLayer}
      */
-    class UILayer extends GameLayer {
+    class UILayer extends BaseLayer {
         readonly width: number;
         readonly height: number;
     }
     /**
      * 需要对子对象排序的层
      */
-    class SortedLayer extends GameLayer {
+    class SortedLayer extends BaseLayer {
         $doAddChild(child: egret.DisplayObject, index: number, notifyListeners?: boolean): egret.DisplayObject;
         /**
          * 进行排序
@@ -5106,6 +5109,7 @@ declare module junyou {
          * 获取或创建容器
          */
         getLayer(id: GameLayerID): GameLayer;
+        changeId(layer: GameLayer, newid: number): void;
         /**
          * 将指定
          *
@@ -5115,7 +5119,7 @@ declare module junyou {
          */
         sleepLayer(layerID: GameLayerID): void;
         awakeLayer(layerID: GameLayerID): void;
-        protected addLayer(layer: GameLayer, cfg: LayerConfig): void;
+        protected addLayer(layer: GameLayer, cfg?: LayerConfig): void;
         protected addLayerToContainer(layer: GameLayer, container: egret.DisplayObjectContainer): void;
         constructor(stage: egret.Stage);
         protected init(): void;
@@ -6372,7 +6376,7 @@ declare module junyou {
     * MapRender
     * 用于处理地图平铺的渲染
     */
-    class TileMapLayer extends GameLayer {
+    class TileMapLayer extends BaseLayer {
         miniUri: string;
         /**
          * 扩展预加载的图块数量
@@ -7520,6 +7524,11 @@ declare module junyou {
          * @param {...Key[]} exceptGuids 需要保留的单位的GUID列表
          */
         clear(...exceptGuids: Key[]): void;
+        /**
+         * 清理指定的域
+         * @param domains
+         */
+        clearDomain(...domains: any[]): void;
     }
 }
 declare module junyou {

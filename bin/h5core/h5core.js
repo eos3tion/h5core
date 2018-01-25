@@ -1746,20 +1746,20 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
-    * GameLayer
-    * 用于后期扩展
-    */
-    var GameLayer = (function (_super) {
-        __extends(GameLayer, _super);
-        function GameLayer(id) {
+     * GameLayer
+     * 用于后期扩展
+     */
+    var BaseLayer = (function (_super) {
+        __extends(BaseLayer, _super);
+        function BaseLayer(id) {
             var _this = _super.call(this) || this;
             _this.id = +id;
             return _this;
         }
-        return GameLayer;
+        return BaseLayer;
     }(egret.Sprite));
-    junyou.GameLayer = GameLayer;
-    __reflect(GameLayer.prototype, "junyou.GameLayer");
+    junyou.BaseLayer = BaseLayer;
+    __reflect(BaseLayer.prototype, "junyou.BaseLayer");
     /**
      * UI使用的层级，宽度和高度设定为和stage一致
      *
@@ -1787,7 +1787,7 @@ var junyou;
             configurable: true
         });
         return UILayer;
-    }(GameLayer));
+    }(BaseLayer));
     junyou.UILayer = UILayer;
     __reflect(UILayer.prototype, "junyou.UILayer");
     /**
@@ -1816,7 +1816,7 @@ var junyou;
             this.$children.doSort("depth");
         };
         return SortedLayer;
-    }(GameLayer));
+    }(BaseLayer));
     junyou.SortedLayer = SortedLayer;
     __reflect(SortedLayer.prototype, "junyou.SortedLayer");
 })(junyou || (junyou = {}));
@@ -8415,7 +8415,7 @@ var junyou;
             var lc = {};
             lc.id = id;
             lc.parentid = parentid;
-            lc.ref = ref || junyou.GameLayer;
+            lc.ref = ref || junyou.BaseLayer;
             GameEngine.layerConfigs[id] = lc;
         };
         /**
@@ -8458,6 +8458,17 @@ var junyou;
             }
             return layer;
         };
+        GameEngine.prototype.changeId = function (layer, newid) {
+            var id = layer.id;
+            if (id != newid) {
+                var layers = this._layers;
+                if (layers[id] == layer) {
+                    layers[id] = undefined;
+                }
+                layers[newid] = layer;
+                this.awakeLayer(newid);
+            }
+        };
         /**
          * 将指定
          *
@@ -8472,14 +8483,16 @@ var junyou;
         GameEngine.prototype.awakeLayer = function (layerID) {
             var layer = this._layers[layerID];
             var cfg = GameEngine.layerConfigs[layerID];
-            if (layer && cfg) {
+            if (layer) {
                 this.addLayer(layer, cfg);
             }
         };
         GameEngine.prototype.addLayer = function (layer, cfg) {
             if (cfg && cfg.parentid) {
                 var parent_1 = this.getLayer(cfg.parentid);
-                this.addLayerToContainer(layer, parent_1);
+                if (parent_1 instanceof egret.DisplayObjectContainer) {
+                    this.addLayerToContainer(layer, parent_1);
+                }
             }
             else {
                 this.addLayerToContainer(layer, this._stage);
@@ -10540,7 +10553,7 @@ var junyou;
             _super.prototype.removeChildren.call(this);
         };
         return TileMapLayer;
-    }(junyou.GameLayer));
+    }(junyou.BaseLayer));
     junyou.TileMapLayer = TileMapLayer;
     __reflect(TileMapLayer.prototype, "junyou.TileMapLayer");
     TileMapLayer.checkRect = checkRect;
@@ -12493,6 +12506,33 @@ var junyou;
             }
             gcList.length = 0;
         };
+        /**
+         * 清理指定的域
+         * @param domains
+         */
+        UnitController.prototype.clearDomain = function () {
+            var domains = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                domains[_i] = arguments[_i];
+            }
+            var _a = this, _domains = _a._domains, _domainCounts = _a._domainCounts;
+            var gcList = junyou.Temp.SharedArray1;
+            var i = 0;
+            for (var i_1 = 1; i_1 < domains.length; i_1++) {
+                var domain = domains[i_1];
+                var dom = _domains[domain];
+                if (dom) {
+                    for (var guid in dom) {
+                        gcList[i_1++] = guid;
+                    }
+                }
+            }
+            gcList.length = i;
+            while (--i >= 0) {
+                this.removeUnit(gcList[i]);
+            }
+            gcList.length = 0;
+        };
         return UnitController;
     }());
     junyou.UnitController = UnitController;
@@ -14068,8 +14108,8 @@ var junyou;
                 var handler = args[i + 2];
                 handler = handler.bind(this);
                 if (Array.isArray(cmd)) {
-                    for (var i_1 = 0; i_1 < cmd.length; i_1++) {
-                        doReg(cmd[i_1], handler, ref);
+                    for (var i_2 = 0; i_2 < cmd.length; i_2++) {
+                        doReg(cmd[i_2], handler, ref);
                     }
                 }
                 else {
