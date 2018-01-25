@@ -158,5 +158,29 @@ module junyou {
             }
             gcList.length = 0;
         }
+
+        /**
+         * 清理指定的域
+         * @param domains 
+         */
+        clearDomain(...domains) {
+            const { _domains, _domainCounts } = this;
+            let gcList = Temp.SharedArray1;
+            let i = 0;
+            for (let i = 1; i < domains.length; i++) {
+                let domain = domains[i];
+                let dom = _domains[domain];
+                if (dom) {
+                    for (let guid in dom) {
+                        gcList[i++] = guid;
+                    }
+                }
+            }
+            gcList.length = i;
+            while (--i >= 0) {
+                this.removeUnit(gcList[i]);
+            }
+            gcList.length = 0;
+        }
     }
 }
