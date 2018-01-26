@@ -609,12 +609,6 @@ declare module junyou {
      */
     class Component extends egret.Sprite {
         /**
-         * 组件原始的大小，从`flash`导出的矩形大小
-         *
-         * @type {egret.Rectangle}@memberof Component
-         */
-        suiRawRect?: egret.Rectangle;
-        /**
          * 附加的数据
          *
          * @type {*}@memberof Component
@@ -7523,7 +7517,7 @@ declare module junyou {
          * 清理对象
          * @param {...Key[]} exceptGuids 需要保留的单位的GUID列表
          */
-        clear(...exceptGuids: Key[]): void;
+        clear(...exceptGuids: Key[]): any;
         /**
          * 清理指定的域
          * @param domains
@@ -9263,10 +9257,6 @@ declare module junyou {
          */
         moduleID: Key;
         /**
-         * 设置原始大小和坐标
-         */
-        suiRawRect: egret.Rectangle;
-        /**
          * 自己的key(fla的文件名)
          */
         suiLib: string;
@@ -9499,13 +9489,6 @@ declare module junyou {
          * 设置图片的加载列队优先级
          */
         qid?: Res.ResQueueID;
-        /**
-         * 在flash中设置的大小
-         *
-         * @type {egret.Rectangle}
-         * @memberOf Image
-         */
-        suiRawRect?: egret.Rectangle;
         noWebp?: boolean;
         constructor();
         addedToStage(): void;
@@ -10499,11 +10482,11 @@ declare module egret {
     interface DisplayObject {
         /**
          * 扩展sui的可视对象，的原始尺寸和坐标
-         *
-         * @type {egret.Rectangle}
+         * 由flash导出的原始视图尺寸
+         * @type {SuiRawRect}
          * @memberOf DisplayObject
          */
-        suiRawRect?: egret.Rectangle;
+        suiRawRect?: junyou.SuiRawRect;
         /**
          * sui的资源名称
          */
@@ -10516,6 +10499,8 @@ declare module egret {
 }
 declare module junyou {
     import Texture = egret.Texture;
+    interface SuiRawRect extends egret.Rectangle {
+    }
     const enum SuiResConst {
         DataFile = "s.json",
     }
