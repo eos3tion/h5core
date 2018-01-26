@@ -76,12 +76,6 @@ module junyou {
             }
         }
 
-        public checkExpire(expiredUseTime: number) {
-            if (this.bmdState != RequestState.UNREQUEST && !this.using && this.lastUseTime < expiredUseTime) {
-                this.dispose();
-            }
-        }
-
         public dispose() {
             let bmd = this.bmd;
             this.bmdState = RequestState.UNREQUEST;

@@ -58,6 +58,7 @@ module junyou {
          * @returns 
          */
         public remove(dis: egret.DisplayObject) {
+            dis.$layoutHost = undefined;
             return this.$layoutBins.delete(dis.hashCode);
         }
 
@@ -68,6 +69,7 @@ module junyou {
             if (list.get(key)) {
                 return;
             }
+            dis.$layoutHost = this;
             let bin = { dis, type, hoffset, voffset, outerV, outerH, size } as LayoutBin;
             list.set(key, bin);
             if (hide) {

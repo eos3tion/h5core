@@ -475,28 +475,6 @@ module junyou {
             }
         }
 
-        // /**
-        //  * 
-        //  * 进行资源检查
-        //  * @param {number} expiredUseTime
-        //  * 
-        //  * @memberOf ResourceChecker
-        //  */
-        // public resCheck(expiredUseTime: number) {
-        //     const suiDatas = this._suiDatas;
-        //     for (let key in suiDatas) {
-        //         let suiData = suiDatas[key];
-        //         let bmd = suiData.pngbmd;
-        //         if (bmd) {
-        //             bmd.checkExpire(expiredUseTime);
-        //         }
-        //         bmd = suiData.jpgbmd;
-        //         if (bmd) {
-        //             bmd.checkExpire(expiredUseTime);
-        //         }
-        //     }
-        // }
-
         /**
          * 创建子控件
          * 

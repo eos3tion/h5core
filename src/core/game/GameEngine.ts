@@ -11,7 +11,7 @@ module junyou {
         protected static layerConfigs: { [index: number]: LayerConfig } = {};
         static instance: GameEngine;
 
-        static init(stage: egret.Stage, ref?: { new (stage: egret.Stage): GameEngine }) {
+        static init(stage: egret.Stage, ref?: { new(stage: egret.Stage): GameEngine }) {
             ref = ref || GameEngine;
             GameEngine.instance = new ref(stage);
         }
@@ -20,7 +20,7 @@ module junyou {
             let lc = <LayerConfig>{};
             lc.id = id;
             lc.parentid = parentid;
-            lc.ref = ref || GameLayer;
+            lc.ref = ref || BaseLayer;
             GameEngine.layerConfigs[id] = lc;
         }
 
@@ -85,6 +85,19 @@ module junyou {
             return layer;
         }
 
+        changeId(layer: GameLayer, newid: number) {
+            let id = layer.id;
+            if (id != newid) {
+                let layers = this._layers;
+                if (layers[id] == layer) {//清理旧的id数据
+                    layers[id] = undefined;
+                }
+                layers[newid] = layer;
+                layer.id = newid;
+                this.awakeLayer(newid);
+            }
+        }
+
         /**
          * 将指定
          * 
@@ -100,15 +113,17 @@ module junyou {
         public awakeLayer(layerID: GameLayerID) {
             let layer = this._layers[layerID];
             let cfg = GameEngine.layerConfigs[layerID];
-            if (layer && cfg) {
+            if (layer) {
                 this.addLayer(layer, cfg);
             }
         }
 
-        protected addLayer(layer: GameLayer, cfg: LayerConfig) {
+        protected addLayer(layer: GameLayer, cfg?: LayerConfig) {
             if (cfg && cfg.parentid) {
-                var parent = this.getLayer(cfg.parentid);
-                this.addLayerToContainer(layer, parent);
+                let parent = this.getLayer(cfg.parentid);
+                if (parent instanceof egret.DisplayObjectContainer) {
+                    this.addLayerToContainer(layer, parent);
+                }
             } else {
                 this.addLayerToContainer(layer, this._stage);
             }
@@ -118,17 +133,18 @@ module junyou {
         protected addLayerToContainer(layer: GameLayer, container: egret.DisplayObjectContainer): void {
             let children = container.$children;
             let id = layer.id;
-            let i = 0;
-            for (let len = children.length; i < len; i++) {
+            let j = 0;
+            for (let i = 0, len = children.length; i < len; i++) {
                 let child = children[i];
-                if (child instanceof GameLayer) {
+                if (layer != child) {
                     let childLayer = <GameLayer>child;
                     if (childLayer.id > id) {
                         break;
                     }
+                    j++;
                 }
             }
-            container.addChildAt(layer, i);
+            container.addChildAt(layer, j);
         }
 
         constructor(stage: egret.Stage) {
