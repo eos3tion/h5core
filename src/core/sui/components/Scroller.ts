@@ -21,7 +21,7 @@ module junyou {
         public alwaysShowBar: boolean;
 
         /**最小的滑动速度，当前值低于此值后不再滚动 */
-        public minEndSpeed = 0.0001;
+        public minEndSpeed = 0.08;
 
         /**速度递减速率 */
         public blockSpeed = 0.98;

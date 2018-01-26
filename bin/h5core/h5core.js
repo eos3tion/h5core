@@ -3112,7 +3112,7 @@ var junyou;
             /**鼠标每移动1像素，元件移动的像素 */
             _this.globalspeed = 1;
             /**最小的滑动速度，当前值低于此值后不再滚动 */
-            _this.minEndSpeed = 0.0001;
+            _this.minEndSpeed = 0.08;
             /**速度递减速率 */
             _this.blockSpeed = 0.98;
             _this._moveSpeed = 0;
