@@ -10,13 +10,6 @@ module junyou {
     export class Component extends egret.Sprite {
 
         /**
-         * 组件原始的大小，从`flash`导出的矩形大小
-         * 
-         * @type {egret.Rectangle}@memberof Component
-         */
-        public suiRawRect?: egret.Rectangle;
-
-        /**
          * 附加的数据
          * 
          * @type {*}@memberof Component

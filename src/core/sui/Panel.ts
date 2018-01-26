@@ -33,11 +33,6 @@ module junyou {
         public moduleID: Key;
 
         /**
-         * 设置原始大小和坐标
-         */
-        suiRawRect: egret.Rectangle;
-
-        /**
          * 自己的key(fla的文件名)
          */
         suiLib: string;
