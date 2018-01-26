@@ -1,12 +1,12 @@
 module egret {
     export interface DisplayObject {
         /**
-         * 扩展sui的可视对象，的原始尺寸和坐标
-         * 
-         * @type {egret.Rectangle}
+         * 扩展sui的可视对象，的原始尺寸和坐标  
+         * 由flash导出的原始视图尺寸
+         * @type {SuiRawRect}
          * @memberOf DisplayObject
          */
-        suiRawRect?: egret.Rectangle;
+        suiRawRect?: junyou.SuiRawRect;
         /**
          * sui的资源名称
          */
@@ -20,6 +20,8 @@ module egret {
 
 module junyou {
     import Texture = egret.Texture;
+    export interface SuiRawRect extends egret.Rectangle {
+    }
 
     export const enum SuiResConst {
         DataFile = "s.json"
