@@ -128,6 +128,10 @@ module junyou {
             this._idx = idx;
         }
 
+        reset() {
+            this.lsc = this.lsr = this.lec = this.ler = undefined;
+        }
+
         protected check(sc: number, sr: number, ec: number, er: number) {
             if (sc == this.lsc && sr == this.lsr && ec == this.lec && er == this.ler) {//要加载的块没有发生任何变更
                 return;

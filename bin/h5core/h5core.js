@@ -10456,6 +10456,9 @@ var junyou;
             this._showing[idx++] = tm;
             this._idx = idx;
         };
+        TileMapLayer.prototype.reset = function () {
+            this.lsc = this.lsr = this.lec = this.ler = undefined;
+        };
         TileMapLayer.prototype.check = function (sc, sr, ec, er) {
             if (sc == this.lsc && sr == this.lsr && ec == this.lec && er == this.ler) {
                 return;

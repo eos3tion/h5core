@@ -6433,6 +6433,7 @@ declare module junyou {
         protected ler: number;
         protected _idx: number;
         protected addMap(uri: string, c: number, r: number, pW: number, pH: number): void;
+        reset(): void;
         protected check(sc: number, sr: number, ec: number, er: number): boolean;
         setRect(rect: egret.Rectangle): void;
         protected noRes(uri: string, c: number, r: number, pW: number, pH: number): TileMap;
