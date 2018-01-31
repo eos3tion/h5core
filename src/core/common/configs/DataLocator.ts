@@ -69,6 +69,7 @@ module junyou {
                 let data = parser(configs[key]);
                 if (data) { // 支持一些void的情况
                     $DD[key] = data;
+                    dispatch(EventConst.OneCfgComplete, key);
                 }
             }
 

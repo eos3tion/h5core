@@ -63,5 +63,10 @@ module junyou {
 		 * 资源加载完成
 		 */
 		ResLoadSuccess,
+		/**
+		 * 单个配置加载成功  
+		 * data {string} 配置的Key
+		 */
+		OneCfgComplete,
 	}
 }
