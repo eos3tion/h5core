@@ -12070,6 +12070,7 @@ var junyou;
                 var data = parser(configs[key]);
                 if (data) {
                     $DD[key] = data;
+                    junyou.dispatch(-185 /* OneCfgComplete */, key);
                 }
             }
             var extraData = {};
