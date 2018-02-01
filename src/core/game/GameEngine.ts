@@ -85,7 +85,13 @@ module junyou {
             return layer;
         }
 
-        changeId(layer: GameLayer, newid: number) {
+        /**
+         * 
+         * @param {GameLayer} layer 要调整的层级
+         * @param {number} newid 新的层级id
+         * @param {boolean} [awake=true] 是否执行一次awake
+         */
+        changeId(layer: GameLayer, newid: number, awake = true) {
             let id = layer.id;
             if (id != newid) {
                 let layers = this._layers;
@@ -94,8 +100,8 @@ module junyou {
                 }
                 layers[newid] = layer;
                 layer.id = newid;
-                this.awakeLayer(newid);
             }
+            awake && this.awakeLayer(newid);
         }
 
         /**
