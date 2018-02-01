@@ -1,16 +1,13 @@
 var __reflect = (this && this.__reflect) || function (p, c, t) {
     p.__class__ = c, t ? t.push(c) : t = [c], p.__types__ = p.__types__ ? t.concat(p.__types__) : t;
 };
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
+var __extends = this && this.__extends || function __extends(t, e) { 
+ function r() { 
+ this.constructor = t;
+}
+for (var i in e) e.hasOwnProperty(i) && (t[i] = e[i]);
+r.prototype = e.prototype, t.prototype = new r();
+};
 /**
  * 对数字进行补0操作
  * @param value 要补0的数值
@@ -8454,7 +8451,14 @@ var junyou;
             }
             return layer;
         };
-        GameEngine.prototype.changeId = function (layer, newid) {
+        /**
+         *
+         * @param {GameLayer} layer 要调整的层级
+         * @param {number} newid 新的层级id
+         * @param {boolean} [awake=true] 是否执行一次awake
+         */
+        GameEngine.prototype.changeId = function (layer, newid, awake) {
+            if (awake === void 0) { awake = true; }
             var id = layer.id;
             if (id != newid) {
                 var layers = this._layers;
@@ -8463,8 +8467,8 @@ var junyou;
                 }
                 layers[newid] = layer;
                 layer.id = newid;
-                this.awakeLayer(newid);
             }
+            awake && this.awakeLayer(newid);
         };
         /**
          * 将指定

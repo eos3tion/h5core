@@ -5103,7 +5103,13 @@ declare module junyou {
          * 获取或创建容器
          */
         getLayer(id: GameLayerID): GameLayer;
-        changeId(layer: GameLayer, newid: number): void;
+        /**
+         *
+         * @param {GameLayer} layer 要调整的层级
+         * @param {number} newid 新的层级id
+         * @param {boolean} [awake=true] 是否执行一次awake
+         */
+        changeId(layer: GameLayer, newid: number, awake?: boolean): void;
         /**
          * 将指定
          *
