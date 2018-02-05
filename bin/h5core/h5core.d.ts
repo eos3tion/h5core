@@ -4349,13 +4349,29 @@ declare module junyou {
          */
         getFormatTime(time: number, format: string, isRaw?: boolean): string;
         /**
+         * 获取指定时间的当天结束(23:59:59'999)时间戳
+         *
+         * @static
+         * @param {number} [time] 指定的utc偏移后的时间，不设置时间，则取当前服务器时间
+         * @returns {number} 指定时间的当天结束(23:59:59'999)时间戳
+         */
+        getDayEnd(time?: number): number;
+        /**
          * 获取指定时间的当天结束(23:59:59'999)UTC强制偏移时间戳
          *
          * @static
          * @param {number} [utcTime] 指定的utc偏移后的时间，不设置时间，则取当前服务器时间
          * @returns {number} 指定时间的当天结束(23:59:59'999)UTC强制偏移时间戳
          */
-        getDayEnd(utcTime?: number): number;
+        getUTCDayEnd(utcTime?: number): number;
+        /**
+         * 获取指定时间的当天开始的(0:0:0'0)时间戳
+         *
+         * @static
+         * @param {number} [time] 指定的时间，不设置时间，则取当前服务器时间
+         * @returns {Date} 指定时间的当天开始的(0:0:0'0)时间戳
+         */
+        getDayStart(time?: number): number;
         /**
          * 获取指定时间的当天开始的UTC(0:0:0'0)强制偏移时间戳
          *
@@ -4363,7 +4379,7 @@ declare module junyou {
          * @param {number} [utcTime] 指定的utc偏移后的时间，不设置时间，则取当前服务器时间
          * @returns {Date} 指定时间的当天开始的UTC(0:0:0'0)强制偏移时间戳
          */
-        getDayStart(utcTime?: number): number;
+        getUTCDayStart(utcTime?: number): number;
         /**
          * 将服务器有偏移量的时间戳，转换成显示时间相同的UTC时间戳，用于做显示
          *
@@ -4381,6 +4397,24 @@ declare module junyou {
          * format 示例：{d:"{0}天",h:"{0}小时",m:"{0}分",s:"{0}秒"}
          */
         getCountdown(leftTime: number, format: CountDownFormatOption | CountDownFormat): string;
+        /**
+         * 获取天数
+         * 如要获取开服天数
+         * 1月1日 `23点50分`开服
+         * 1月2日 `6点0分`，则算开服`第二天`
+         * @param {number} startTime 起点时间戳
+         * @param {number} [endTime] 结束时间戳
+         */
+        getDayCount(startTime: number, endTime?: number): number;
+        /**
+         * 获取天数，基于UTC时间计算
+         * 如要获取开服天数
+         * 1月1日 `23点50分`开服
+         * 1月2日 `6点0分`，则算开服`第二天`
+         * @param {number} startTime 起点时间戳
+         * @param {number} [endTime] 结束时间戳
+         */
+        getUTCDayCount(startTime: number, endTime?: number): number;
     }
     const DateUtils: DateUtilsInterface;
 }
