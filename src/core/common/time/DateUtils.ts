@@ -179,21 +179,37 @@ module junyou {
          */
 		getFormatTime(time: number, format: string, isRaw?: boolean): string;
         /**
-         * 获取指定时间的当天结束(23:59:59'999)UTC强制偏移时间戳
+         * 获取指定时间的当天结束(23:59:59'999)时间戳
          *
          * @static
-         * @param {number} [utcTime] 指定的utc偏移后的时间，不设置时间，则取当前服务器时间
-         * @returns {number} 指定时间的当天结束(23:59:59'999)UTC强制偏移时间戳
+         * @param {number} [time] 指定的utc偏移后的时间，不设置时间，则取当前服务器时间
+         * @returns {number} 指定时间的当天结束(23:59:59'999)时间戳
          */
-		getDayEnd(utcTime?: number): number;
+		getDayEnd(time?: number): number;
+		/**
+		 * 获取指定时间的当天结束(23:59:59'999)UTC强制偏移时间戳
+		 * 
+		 * @static
+		 * @param {number} [utcTime] 指定的utc偏移后的时间，不设置时间，则取当前服务器时间
+		 * @returns {number} 指定时间的当天结束(23:59:59'999)UTC强制偏移时间戳
+		 */
+		getUTCDayEnd(utcTime?: number): number;
         /**
+         * 获取指定时间的当天开始的(0:0:0'0)时间戳
+         *
+         * @static
+         * @param {number} [time] 指定的时间，不设置时间，则取当前服务器时间
+         * @returns {Date} 指定时间的当天开始的(0:0:0'0)时间戳
+         */
+		getDayStart(time?: number): number;
+		/**
          * 获取指定时间的当天开始的UTC(0:0:0'0)强制偏移时间戳
          *
          * @static
          * @param {number} [utcTime] 指定的utc偏移后的时间，不设置时间，则取当前服务器时间
          * @returns {Date} 指定时间的当天开始的UTC(0:0:0'0)强制偏移时间戳
          */
-		getDayStart(utcTime?: number): number;
+		getUTCDayStart(utcTime?: number): number;
         /**
          * 将服务器有偏移量的时间戳，转换成显示时间相同的UTC时间戳，用于做显示
          *
@@ -211,6 +227,24 @@ module junyou {
          * format 示例：{d:"{0}天",h:"{0}小时",m:"{0}分",s:"{0}秒"}
          */
 		getCountdown(leftTime: number, format: CountDownFormatOption | CountDownFormat): string;
+		/**
+		 * 获取天数  
+		 * 如要获取开服天数  
+		 * 1月1日 `23点50分`开服  
+		 * 1月2日 `6点0分`，则算开服`第二天`
+		 * @param {number} startTime 起点时间戳
+		 * @param {number} [endTime] 结束时间戳
+		 */
+		getDayCount(startTime: number, endTime?: number): number;
+		/**
+		 * 获取天数，基于UTC时间计算  
+		 * 如要获取开服天数  
+		 * 1月1日 `23点50分`开服  
+		 * 1月2日 `6点0分`，则算开服`第二天`
+		 * @param {number} startTime 起点时间戳
+		 * @param {number} [endTime] 结束时间戳
+		 */
+		getUTCDayCount(startTime: number, endTime?: number): number;
 	}
 
 	/**
@@ -252,131 +286,59 @@ module junyou {
 		get sharedDate() {
 			return _sharedDate;
 		},
-		/**
-		 * CountDownFormat
-		 * 获取默认的`倒计时`格式
-			$_ndays	{0}天  
-			$_nhours	{0}小时  
-			$_nminutes	{0}分钟  
-			$_nsecends	{0}秒  
-
-		* @static
-		* @param {CountDownFormat} format
-		* @returns {CountDownFormatOption}
-		* 
-		* @memberOf DateUtils
-		*/
 		getDefaultCDFOption,
-		/**
-		 * 注册默认的CD格式，方便后续调用
-		 * 
-		 * @param {CountDownFormat} format 
-		 * @param {CountDownFormatOption} opt 
-		 */
 		regCDFormat(format: CountDownFormat, opt: CountDownFormatOption) {
 			initDefaultCDFormats();
 			_defaultCountFormats[format] = opt;
 		},
-		/**
-		 * 初始化服务器时间
-		 * 
-		 * @static
-		 * @param {number} time 服务器时间戳
-		 * @param {number} timezoneOffset 服务器基于UTC的时区偏移  单位：分钟
-		 */
 		initServerTime(time: number, timezoneOffset: number) {
 			_utcOffset = -timezoneOffset * Time.ONE_MINUTE;
 			this.setServerTime(time);
 		},
-
-		/**
-		 * 设置服务器时间
-		 * 用于同步服务器时间
-		 * @static
-		 * @param {number} time
-		 */
 		setServerTime(time: number) {
 			_serverUTCTime = time - getTimer() + _utcOffset;
 		},
-
-		/**
-		 * 通过UTC偏移过的当前时间戳，用于时间显示
-		 * 
-		 * @static
-		 */
 		get utcServerTime() {
 			return _serverUTCTime + getTimer();
 		},
-
-		/**
-		 * 获取当前时间戳，用于和服务端的时间戳进行比较
-		 * 
-		 * @readonly
-		 * @static
-		 */
 		get serverTime() {
 			return this.utcServerTime - _utcOffset;
 		},
-
-		/**
-		 * 通过UTC偏移过的当前时间戳的Date对象
-		 */
 		get utcServerDate() {
 			_sharedDate.setTime(this.utcServerTime);
 			return _sharedDate;
 		},
-		/**
-		 * 获取当前时间戳的Date对象，用于和服务端的时间戳进行比较
-		 */
 		get serverDate() {
 			_sharedDate.setTime(this.serverTime);
 			return _sharedDate;
 		},
-
-		/**
-		 * 项目中，所有时间都需要基于UTC偏移处理
-		 * 
-		 * @static
-		 * @param {number} time			要格式化的时间，默认为UTC时间 
-		 * @param {string} format 		  格式字符串 yyyy-MM-dd HH:mm:ss
-		 * @param {boolean} [isRaw=true] 	是否为原始未使用utc偏移处理的时间，默认 true
-		 * @returns 
-		 */
 		getFormatTime(time: number, format: string, isRaw = true) {
 			if (isRaw) {
-				time = DateUtils.getUTCTime(time);
+				time = this.getUTCTime(time);
 			}
 			_sharedDate.setTime(time);
 			return _sharedDate.format(format);
 		},
-
-
-		/**
-		 * 获取指定时间的当天结束(23:59:59'999)UTC强制偏移时间戳
-		 * 
-		 * @static
-		 * @param {number} [utcTime] 指定的utc偏移后的时间，不设置时间，则取当前服务器时间
-		 * @returns {number} 指定时间的当天结束(23:59:59'999)UTC强制偏移时间戳
-		 */
-		getDayEnd(utcTime?: number) {
-			if (utcTime === undefined) utcTime = DateUtils.serverTime;
+		getDayEnd(time?: number) {
+			if (time === undefined) time = this.serverTime;
+			_sharedDate.setTime(time);
+			return _sharedDate.setHours(23, 59, 59, 999);
+		},
+		getUTCDayEnd(utcTime?: number) {
+			if (utcTime === undefined) utcTime = this.utcServerTime;
 			_sharedDate.setTime(utcTime);
 			return _sharedDate.setUTCHours(23, 59, 59, 999);
 		},
-
-		/**
-		 * 获取指定时间的当天开始的UTC(0:0:0'0)强制偏移时间戳
-		 * 
-		 * @static
-		 * @param {number} [utcTime] 指定的utc偏移后的时间，不设置时间，则取当前服务器时间
-		 * @returns {Date} 指定时间的当天开始的UTC(0:0:0'0)强制偏移时间戳
-		 */
-		getDayStart(utcTime?: number) {
-			if (utcTime === undefined) utcTime = DateUtils.serverTime;
+		getDayStart(time?: number) {
+			if (time === undefined) time = DateUtils.serverTime;
+			_sharedDate.setTime(time);
+			return _sharedDate.setHours(0, 0, 0, 0);
+		},
+		getUTCDayStart(utcTime?: number) {
+			if (utcTime === undefined) utcTime = DateUtils.utcServerTime;
 			_sharedDate.setTime(utcTime);
 			return _sharedDate.setUTCHours(0, 0, 0, 0);
 		},
-
 		/**
 		 * 将服务器有偏移量的时间戳，转换成显示时间相同的UTC时间戳，用于做显示
 		 * 
@@ -387,7 +349,15 @@ module junyou {
 		getUTCTime(time: number) {
 			return time + _utcOffset;
 		},
+		getDayCount(startTime: number, endTime?: number) {
+			endTime = DateUtils.getDayStart(endTime);
+			return Math.ceil((endTime - startTime) / Time.ONE_DAY) + 1;
+		},
 
+		getUTCDayCount(startTime: number, endTime?: number) {
+			endTime = DateUtils.getUTCDayStart(endTime);
+			return Math.ceil((endTime - startTime) / Time.ONE_DAY) + 1;
+		},
 		/**
 		 * 显示倒计时
 		 * 
