@@ -12461,30 +12461,23 @@ var junyou;
             }
             gcList.length = 0;
         };
-        /**
-         * 清理指定的域
-         * @param domains
-         */
         UnitController.prototype.clearDomain = function () {
-            var domains = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                domains[_i] = arguments[_i];
-            }
             var _a = this, _domains = _a._domains, _domainCounts = _a._domainCounts;
             var gcList = junyou.Temp.SharedArray1;
-            var i = 0;
-            for (var i_2 = 1; i_2 < domains.length; i_2++) {
-                var domain = domains[i_2];
+            var j = 0;
+            var domains = arguments;
+            for (var i = 0; i < domains.length; i++) {
+                var domain = domains[i];
                 var dom = _domains[domain];
                 if (dom) {
                     for (var guid in dom) {
-                        gcList[i_2++] = guid;
+                        gcList[j++] = guid;
                     }
                 }
             }
-            gcList.length = i;
-            while (--i >= 0) {
-                this.removeUnit(gcList[i]);
+            gcList.length = j;
+            while (--j >= 0) {
+                this.removeUnit(gcList[j]);
             }
             gcList.length = 0;
         };
@@ -14063,8 +14056,8 @@ var junyou;
                 var handler = args[i + 2];
                 handler = handler.bind(this);
                 if (Array.isArray(cmd)) {
-                    for (var i_3 = 0; i_3 < cmd.length; i_3++) {
-                        doReg(cmd[i_3], handler, ref);
+                    for (var i_2 = 0; i_2 < cmd.length; i_2++) {
+                        doReg(cmd[i_2], handler, ref);
                     }
                 }
                 else {

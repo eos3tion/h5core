@@ -174,24 +174,26 @@ module junyou {
 
         /**
          * 清理指定的域
-         * @param domains 
+         * @param {UnitDomainType[]} domains 
          */
-        clearDomain(...domains) {
+        clearDomain(...domains: UnitDomainType[])
+        clearDomain() {
             const { _domains, _domainCounts } = this;
             let gcList = Temp.SharedArray1;
-            let i = 0;
-            for (let i = 1; i < domains.length; i++) {
+            let j = 0;
+            const domains = arguments as ArrayLike<UnitDomainType>;
+            for (let i = 0; i < domains.length; i++) {
                 let domain = domains[i];
                 let dom = _domains[domain];
                 if (dom) {
                     for (let guid in dom) {
-                        gcList[i++] = guid;
+                        gcList[j++] = guid;
                     }
                 }
             }
-            gcList.length = i;
-            while (--i >= 0) {
-                this.removeUnit(gcList[i]);
+            gcList.length = j;
+            while (--j >= 0) {
+                this.removeUnit(gcList[j]);
             }
             gcList.length = 0;
         }

@@ -7561,9 +7561,9 @@ declare module junyou {
         clear(...exceptGuids: Key[]): any;
         /**
          * 清理指定的域
-         * @param domains
+         * @param {UnitDomainType[]} domains
          */
-        clearDomain(...domains: any[]): void;
+        clearDomain(...domains: UnitDomainType[]): any;
     }
 }
 declare module junyou {
