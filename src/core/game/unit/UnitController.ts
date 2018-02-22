@@ -73,18 +73,25 @@ module junyou {
             let args = arguments;
             let unit: T = args[0];
             let guid = unit.guid;
-            const { _domains, _domainCounts } = this;
+            const { _domains, _domainCounts, _domainAll } = this;
             for (let i = 1; i < args.length; i++) {
                 let domain = args[i];
                 let dom = _domains[domain];
+                let count = ~~_domainCounts[domain];
                 if (!dom) {
                     dom = {};
                     _domains[domain] = dom;
-                    _domainCounts[domain] = 0;
+                }
+                if (!dom[guid]) {//之前没有单位
+                    _domainCounts[domain] = count + 1;
                 }
                 dom[guid] = unit;
             }
-            this._domainAll[guid] = unit;
+            if (!_domainAll[guid]) {
+                let count = ~~_domainCounts[UnitDomainType.All];
+                _domainCounts[UnitDomainType.All] = count + 1;
+            }
+            _domainAll[guid] = unit;
         }
 
 		/**
@@ -97,7 +104,6 @@ module junyou {
             let unit = this._domainAll[guid];
             if (unit) {
                 let { _domainCounts, _domains } = this;
-                _domainCounts[UnitDomainType.All]--;
                 for (let key in _domains) {
                     let domain = _domains[key];
                     let tunit = domain[guid];
