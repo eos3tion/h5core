@@ -58,7 +58,7 @@ module junyou {
         clearRes() {
             //清空显示
             for (let res of <ResourceBitmap[]>this.model.$children) {
-                res.bitmapData = undefined;
+                res.texture = undefined;
             }
         }
 

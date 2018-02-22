@@ -187,7 +187,7 @@ module junyou {
                     let sw = pW * dw;
                     let sh = pH * dh;
                     tex.$initData(x * dw, y * dh, sw, sh, 0, 0, sw, sh, sw, sh);
-                    tex._bitmapData = mini.bitmapData;
+                    tex.$bitmapData = mini.bitmapData;
                 }
                 tmp.texture = tex;
                 tmp.width = pW;

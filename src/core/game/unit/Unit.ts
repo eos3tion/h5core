@@ -539,7 +539,7 @@ module junyou {
          */
         public addedToEngine(doRender = true) {
             // 子类实现其他层的添加
-            GameEngine.instance.getLayer(GameLayerID.Sorted).addChild(this.body);
+            (GameEngine.instance.getLayer(GameLayerID.Sorted) as BaseLayer).addChild(this.body);
             if (doRender) {
                 this.model.on(EgretEvent.ENTER_FRAME, this.$render, this);
             }
@@ -637,9 +637,9 @@ module junyou {
         protected checkPosition() {
             var body = this.body;
             if (body) {
-                body.depth = this._depth + this._y;
-                body.y = this._y + this._z;
-                body.x = this._x;
+                body.depth = this._depth + this._y || 0;
+                body.y = (this._y + this._z) || 0;//防止赋值成undefined
+                body.x = this._x || 0;//防止赋值成undefined
             }
         }
 
