@@ -805,7 +805,7 @@ module junyou.Res {
      * @returns 
      */
     export function tryLocal(version = 1, keyPath = "uri", storeName = "res") {
-        if (egret.Capabilities.supportVersion != "Unknown") {//不处理native的情况
+        if (egret.Capabilities.runtimeType != egret.RuntimeType.WEB) {//不处理native的情况
             return;
         }
         const db = getLocalDB(version, keyPath, storeName);

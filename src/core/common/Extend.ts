@@ -924,11 +924,10 @@ module egret {
     let $rawRefreshImageData = Bitmap.prototype.$refreshImageData;
     bpt.$refreshImageData = function () {
         $rawRefreshImageData.call(this);
-        let values = this.$Bitmap;
-        let bmd = values[egret.sys.BitmapKeys.image];
+        let bmd = this.$bitmapData;
         if (bmd) {
-            values[egret.sys.BitmapKeys.sourceWidth] = bmd.width;
-            values[egret.sys.BitmapKeys.sourceHeight] = bmd.height;
+            this.$sourceWidth = bmd.width;
+            this.$sourceHeight = bmd.height;
         }
     }
     const htmlTextParser = new HtmlTextParser();
