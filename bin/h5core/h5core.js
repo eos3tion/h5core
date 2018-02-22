@@ -530,11 +530,10 @@ var egret;
     var $rawRefreshImageData = egret.Bitmap.prototype.$refreshImageData;
     bpt.$refreshImageData = function () {
         $rawRefreshImageData.call(this);
-        var values = this.$Bitmap;
-        var bmd = values[1 /* image */];
+        var bmd = this.$bitmapData;
         if (bmd) {
-            values[13 /* sourceWidth */] = bmd.width;
-            values[14 /* sourceHeight */] = bmd.height;
+            this.$sourceWidth = bmd.width;
+            this.$sourceHeight = bmd.height;
         }
     };
     var htmlTextParser = new egret.HtmlTextParser();
@@ -5031,7 +5030,7 @@ var junyou;
             //清空显示
             for (var _i = 0, _a = this.model.$children; _i < _a.length; _i++) {
                 var res = _a[_i];
-                res.bitmapData = undefined;
+                res.texture = undefined;
             }
         };
         UnitRender.prototype.renderFrame = function (frame, now) {
@@ -6699,7 +6698,7 @@ var junyou;
     }
     catch (err) { }
     var _webp = supportWebp ? ".webp" /* WEBP */ : "";
-    var _isNative = egret.Capabilities.supportVersion != "Unknown";
+    var _isNative = egret.Capabilities.engineVersion != "Unknown";
     /**
      *  当前这一帧的时间
      */
@@ -6719,7 +6718,7 @@ var junyou;
      */
     function initTick() {
         //@ts-ignore
-        var ticker = egret.ticker || egret.sys.$ticker;
+        var ticker = egret.ticker;
         var update = ticker.render;
         var delta = 0 | 1000 / ticker.$frameRate;
         var temp = [];
@@ -9366,7 +9365,7 @@ var junyou;
             if (!~textures.indexOf(tex)) {
                 textures.push(tex);
                 if (this.bmd) {
-                    tex._bitmapData = this.bmd;
+                    tex.$bitmapData = this.bmd;
                 }
             }
         };
@@ -9391,7 +9390,7 @@ var junyou;
                     for (var i = 0; i < textures.length; i++) {
                         var texture = textures[i];
                         if (texture) {
-                            texture._bitmapData = bmd;
+                            texture.$bitmapData = bmd;
                         }
                     }
                 }
@@ -10463,7 +10462,7 @@ var junyou;
                     var sw = pW * dw;
                     var sh = pH * dh;
                     tex.$initData(x * dw, y * dh, sw, sh, 0, 0, sw, sh, sw, sh);
-                    tex._bitmapData = mini.bitmapData;
+                    tex.$bitmapData = mini.bitmapData;
                 }
                 tmp.texture = tex;
                 tmp.width = pW;
@@ -11925,9 +11924,9 @@ var junyou;
         Unit.prototype.checkPosition = function () {
             var body = this.body;
             if (body) {
-                body.depth = this._depth + this._y;
-                body.y = this._y + this._z;
-                body.x = this._x;
+                body.depth = this._depth + this._y || 0;
+                body.y = (this._y + this._z) || 0; //防止赋值成undefined
+                body.x = this._x || 0; //防止赋值成undefined
             }
         };
         Object.defineProperty(Unit.prototype, "rotation", {
@@ -12373,18 +12372,25 @@ var junyou;
             var args = arguments;
             var unit = args[0];
             var guid = unit.guid;
-            var _a = this, _domains = _a._domains, _domainCounts = _a._domainCounts;
+            var _a = this, _domains = _a._domains, _domainCounts = _a._domainCounts, _domainAll = _a._domainAll;
             for (var i = 1; i < args.length; i++) {
                 var domain = args[i];
                 var dom = _domains[domain];
+                var count = ~~_domainCounts[domain];
                 if (!dom) {
                     dom = {};
                     _domains[domain] = dom;
-                    _domainCounts[domain] = 0;
+                }
+                if (!dom[guid]) {
+                    _domainCounts[domain] = count + 1;
                 }
                 dom[guid] = unit;
             }
-            this._domainAll[guid] = unit;
+            if (!_domainAll[guid]) {
+                var count = ~~_domainCounts[0 /* All */];
+                _domainCounts[0 /* All */] = count + 1;
+            }
+            _domainAll[guid] = unit;
         };
         /**
          * 移除单位
@@ -12396,7 +12402,6 @@ var junyou;
             var unit = this._domainAll[guid];
             if (unit) {
                 var _a = this, _domainCounts = _a._domainCounts, _domains = _a._domains;
-                _domainCounts[0 /* All */]--;
                 for (var key in _domains) {
                     var domain = _domains[key];
                     var tunit = domain[guid];
@@ -16538,7 +16543,7 @@ var junyou;
     __reflect(PageList.prototype, "junyou.PageList");
     var define = {
         set: function (rect) {
-            egret.Sprite.prototype.$setScrollRect.call(this, rect);
+            egret.DisplayObject.prototype.$setScrollRect.call(this, rect);
             this.$_page.checkViewRect();
         },
         get: function () {
@@ -17038,7 +17043,7 @@ var junyou;
                 this.bmd = bmd;
                 for (var _i = 0, imgs_1 = imgs; _i < imgs_1.length; _i++) {
                     var tex = imgs_1[_i];
-                    tex._bitmapData = bmd;
+                    tex.$bitmapData = bmd;
                 }
                 var loading = this.loading;
                 if (loading) {
@@ -18823,12 +18828,11 @@ var junyou;
         * @param context
         */
         ScaleBitmap.prototype.$render = function () {
-            var image = this.$Bitmap[0 /* bitmapData */];
+            var image = this.$bitmapData;
             if (!image) {
                 return;
             }
-            var values = this.$Bitmap;
-            egret.sys.BitmapNode.$updateTextureData(this.$renderNode, this.texture.bitmapData, values[2 /* bitmapX */], values[3 /* bitmapY */], values[4 /* bitmapWidth */], values[5 /* bitmapHeight */], values[6 /* offsetX */], values[7 /* offsetY */], values[8 /* textureWidth */], values[9 /* textureHeight */], this.width, this.height, values[13 /* sourceWidth */], values[14 /* sourceHeight */], this.scale9Grid, this.$fillMode, values[10 /* smoothing */]);
+            egret.sys.BitmapNode.$updateTextureDataWithScale9Grid(this.$renderNode, this.texture.bitmapData, this.scale9Grid, this.$bitmapX, this.$bitmapY, this.$bitmapWidth, this.$bitmapHeight, this.$offsetX, this.$offsetY, this.$textureWidth, this.$textureHeight, this.width, this.height, this.$sourceWidth, this.$sourceHeight, this.$smoothing);
         };
         return ScaleBitmap;
     }(egret.Bitmap));
@@ -22273,7 +22277,7 @@ var junyou;
             if (version === void 0) { version = 1; }
             if (keyPath === void 0) { keyPath = "uri"; }
             if (storeName === void 0) { storeName = "res"; }
-            if (egret.Capabilities.supportVersion != "Unknown") {
+            if (egret.Capabilities.runtimeType != egret.RuntimeType.WEB) {
                 return;
             }
             var db = getLocalDB(version, keyPath, storeName);

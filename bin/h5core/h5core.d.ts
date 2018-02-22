@@ -9272,7 +9272,6 @@ declare module junyou {
 }
 declare module junyou {
     interface Panel extends IAsync {
-        $propagateFlagsDown(flags: egret.sys.DisplayObjectFlags, cachedBreak?: boolean): void;
     }
     /**
      * 模块面板
