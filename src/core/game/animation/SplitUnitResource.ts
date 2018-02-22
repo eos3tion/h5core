@@ -73,7 +73,7 @@ module junyou {
             if (!~textures.indexOf(tex)) {
                 textures.push(tex);
                 if (this.bmd) {
-                    tex._bitmapData = this.bmd;
+                    tex.$bitmapData = this.bmd;
                 }
             }
         }
@@ -100,7 +100,7 @@ module junyou {
                     for (let i = 0; i < textures.length; i++) {
                         let texture = textures[i];
                         if (texture) {
-                            texture._bitmapData = bmd;
+                            texture.$bitmapData = bmd;
                         }
                     }
                 }

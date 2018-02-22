@@ -61,7 +61,7 @@ module junyou {
                 this.bmd = bmd;
 
                 for (let tex of imgs) {
-                    tex._bitmapData = bmd;
+                    tex.$bitmapData = bmd;
                 }
 
                 let loading = this.loading;

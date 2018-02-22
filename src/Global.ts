@@ -5,7 +5,7 @@ module junyou {
 
 	const _webp = supportWebp ? Ext.WEBP : "";
 
-	var _isNative = egret.Capabilities.supportVersion != "Unknown";
+	var _isNative = egret.Capabilities.engineVersion != "Unknown";
 
 	/**
 	 *  当前这一帧的时间
@@ -36,7 +36,7 @@ module junyou {
 	 */
 	function initTick() {
 		//@ts-ignore
-		let ticker = egret.ticker || egret.sys.$ticker as any;
+		let ticker = egret.ticker as any;
 		let update = ticker.render;
 		let delta = 0 | 1000 / ticker.$frameRate;
 		let temp: CallbackInfo<Function>[] = [];

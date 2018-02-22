@@ -766,7 +766,7 @@ module junyou {
 
     const define = {
         set(rect: egret.Rectangle) {
-            egret.Sprite.prototype.$setScrollRect.call(this, rect);
+            (egret.DisplayObject.prototype as any).$setScrollRect.call(this, rect);
             this.$_page.checkViewRect();
         },
         get() {
