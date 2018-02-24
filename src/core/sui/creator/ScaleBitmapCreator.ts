@@ -1,41 +1,5 @@
 module junyou {
-    /**
-     * 
-     * 用于处理从Flash中导出的带九宫缩放的位图
-     * @export
-     * @class ScaleBitmap
-     * @extends {egret.Bitmap}
-     * @author gushuai
-     */
-    export class ScaleBitmap extends egret.Bitmap {
-
-        public width: number;
-
-        public height: number;
-
-        public constructor() {
-            super();
-        }
-
-
-        /**
-        * @private
-        *
-        * @param context
-        */
-        $render(): void {
-            var image = this.$bitmapData;
-            if (!image) {
-                return;
-            }
-            egret.sys.BitmapNode.$updateTextureDataWithScale9Grid(<egret.sys.NormalBitmapNode>this.$renderNode, this.texture.bitmapData, this.scale9Grid,
-                this.$bitmapX, this.$bitmapY, this.$bitmapWidth, this.$bitmapHeight,
-                this.$offsetX, this.$offsetY, this.$textureWidth, this.$textureHeight,
-                this.width, this.height, this.$sourceWidth, this.$sourceHeight, this.$smoothing);
-        }
-
-    }
-
+    export declare type ScaleBitmap = egret.Bitmap;
     export class ScaleBitmapCreator extends BitmapCreator<ScaleBitmap>{
 
         public constructor() {
@@ -56,9 +20,9 @@ module junyou {
             if (rectData) {
                 var rect = new egret.Rectangle(rectData[0], rectData[1], rectData[2], rectData[3]);
             }
-            this._createT = (): ScaleBitmap => {
+            this._createT = () => {
                 let suiData = this._suiData;
-                let bitmap: ScaleBitmap = new ScaleBitmap();
+                let bitmap = new egret.Bitmap();
                 // let inx = textureIndex;
                 // let img = suiData.pngtexs;
                 // if(!this.ispng){
