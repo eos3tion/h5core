@@ -11286,25 +11286,7 @@ declare module junyou {
     }
 }
 declare module junyou {
-    /**
-     *
-     * 用于处理从Flash中导出的带九宫缩放的位图
-     * @export
-     * @class ScaleBitmap
-     * @extends {egret.Bitmap}
-     * @author gushuai
-     */
-    class ScaleBitmap extends egret.Bitmap {
-        width: number;
-        height: number;
-        constructor();
-        /**
-        * @private
-        *
-        * @param context
-        */
-        $render(): void;
-    }
+    type ScaleBitmap = egret.Bitmap;
     class ScaleBitmapCreator extends BitmapCreator<ScaleBitmap> {
         constructor();
         parseSelfData(data: any): void;

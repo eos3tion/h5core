@@ -18809,35 +18809,6 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    /**
-     *
-     * 用于处理从Flash中导出的带九宫缩放的位图
-     * @export
-     * @class ScaleBitmap
-     * @extends {egret.Bitmap}
-     * @author gushuai
-     */
-    var ScaleBitmap = (function (_super) {
-        __extends(ScaleBitmap, _super);
-        function ScaleBitmap() {
-            return _super.call(this) || this;
-        }
-        /**
-        * @private
-        *
-        * @param context
-        */
-        ScaleBitmap.prototype.$render = function () {
-            var image = this.$bitmapData;
-            if (!image) {
-                return;
-            }
-            egret.sys.BitmapNode.$updateTextureDataWithScale9Grid(this.$renderNode, this.texture.bitmapData, this.scale9Grid, this.$bitmapX, this.$bitmapY, this.$bitmapWidth, this.$bitmapHeight, this.$offsetX, this.$offsetY, this.$textureWidth, this.$textureHeight, this.width, this.height, this.$sourceWidth, this.$sourceHeight, this.$smoothing);
-        };
-        return ScaleBitmap;
-    }(egret.Bitmap));
-    junyou.ScaleBitmap = ScaleBitmap;
-    __reflect(ScaleBitmap.prototype, "junyou.ScaleBitmap");
     var ScaleBitmapCreator = (function (_super) {
         __extends(ScaleBitmapCreator, _super);
         function ScaleBitmapCreator() {
@@ -18860,7 +18831,7 @@ var junyou;
             }
             this._createT = function () {
                 var suiData = _this._suiData;
-                var bitmap = new ScaleBitmap();
+                var bitmap = new egret.Bitmap();
                 // let inx = textureIndex;
                 // let img = suiData.pngtexs;
                 // if(!this.ispng){
