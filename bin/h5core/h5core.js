@@ -22532,11 +22532,11 @@ var junyou;
                         case "cw": // mix in the original rotation
                         case "ccw":
                         case "auto":
-                            tween.target.rotation += data.rotOffS + data.rotDelta * ratio;
+                            tween.target.rotation += data.rotOffS + data.rotDelta * ratio || 0;
                             break;
                         case "fixed": // follow fixed behaviour to solve potential issues
                         default:
-                            tween.target.rotation += data.rotOffS;
+                            tween.target.rotation += data.rotOffS || 0;
                             break;
                     }
                     data.lastRatio = ratio;
@@ -22566,9 +22566,9 @@ var junyou;
             }
             // Process rotation properties
             var data = tween.__guideData;
-            var rotGlobalD = tween.__rotGlobalE - tween.__rotGlobalS;
-            var rotPathD = tween.__rotPathE - tween.__rotPathS;
-            var rot = rotGlobalD - rotPathD;
+            var rotGlobalD = tween.__rotGlobalE - tween.__rotGlobalS || 0;
+            var rotPathD = tween.__rotPathE - tween.__rotPathS || 0;
+            var rot = rotGlobalD - rotPathD || 0;
             if (data.orient == "auto") {
                 if (rot > 180) {
                     rot -= 360;
