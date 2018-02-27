@@ -60,6 +60,7 @@ module junyou {
         return msg.replace(filterWords, replaceDirty);
     }
     function checkWord1(msg: string) {
+        filterWords.lastIndex = 0;
         return filterWords.test(msg);
     }
 
