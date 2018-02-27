@@ -21969,8 +21969,8 @@ var junyou;
             if (queueID === void 0) { queueID = 0 /* Normal */; }
             addRes(resItem, queueID);
             var state = resItem.state;
-            if (state == 2 /* COMPLETE */) {
-                return callback && callback.callAndRecycle(resItem);
+            if (state == 2 /* COMPLETE */ || state == -1 /* FAILED */ && resItem.retry > maxRetry) {
+                return callback && junyou.Global.nextTick(callback.callAndRecycle, callback, resItem); // callback.callAndRecycle(resItem);
             }
             resItem.removed = false;
             if (callback) {

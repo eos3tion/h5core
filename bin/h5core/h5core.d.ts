@@ -13030,7 +13030,7 @@ declare module junyou.Res {
      * @param {ResItem} resItem
      * @param {ResQueueID} [queueID=ResQueueID.Normal]
      */
-    function loadRes(resItem: ResItem, callback?: ResCallback, queueID?: ResQueueID): any;
+    function loadRes(resItem: ResItem, callback?: ResCallback, queueID?: ResQueueID): void;
     function getLocalDB(version: number, keyPath: string, storeName: string): {
         save(data: ResItem, callback?: (ev: Event | Error) => any): void;
         get(url: string, callback: (data: ResItem, url?: string) => any): void;
