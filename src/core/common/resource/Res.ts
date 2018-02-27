@@ -528,8 +528,8 @@ module junyou.Res {
     export function loadRes(resItem: ResItem, callback?: ResCallback, queueID = ResQueueID.Normal) {
         addRes(resItem, queueID);
         let state = resItem.state;
-        if (state == RequestState.COMPLETE) {//已经加载完成的资源，直接在下一帧回调
-            return callback && callback.callAndRecycle(resItem);
+        if (state == RequestState.COMPLETE || state == RequestState.FAILED && resItem.retry > maxRetry) {//已经加载完成的资源，直接在下一帧回调
+            return callback && Global.nextTick(callback.callAndRecycle, callback, resItem);// callback.callAndRecycle(resItem);
         }
         resItem.removed = false;
         if (callback) {
