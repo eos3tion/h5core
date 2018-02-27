@@ -8144,6 +8144,7 @@ var junyou;
         return msg.replace(filterWords, replaceDirty);
     }
     function checkWord1(msg) {
+        filterWords.lastIndex = 0;
         return filterWords.test(msg);
     }
     //_filterList 版
