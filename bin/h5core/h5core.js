@@ -5258,26 +5258,68 @@ var junyou;
      * 绑定属性名，当属性值发生改变时，可自动对外抛eventType事件
      *
      * @export
-     * @param {(string | number)} eventType     事件类型
+     * @param {Key} eventType     事件类型
      * @param {boolean} [selfDispatch]          默认false，使用Facade抛事件，event.data为实例本身
      *                                          如果为true，需要为EventDispatcher的实现，会使用自身抛事件
      * @returns
      */
     function d_fire(eventType, selfDispatch) {
-        return function (target, value) {
-            new Watcher(value, function () {
-                if (selfDispatch) {
-                    if (typeof this.dispatch === "function") {
-                        this.dispatch(eventType);
+        return function (host, property) {
+            var data = host.getPropertyDescriptor(property);
+            if (data && !data.configurable) {
+                return true && junyou.ThrowError("\u65E0\u6CD5\u7ED1\u5B9A" + host + "," + property + ",\u8BE5\u5C5E\u6027\u4E0D\u53EF\u8BBE\u7F6E");
+            }
+            var key = "$d_fire_e$" + property;
+            var events = host[key];
+            var needSet;
+            if (!events) {
+                host[key] = events = [];
+                needSet = true;
+            }
+            events.push(eventType, selfDispatch);
+            if (needSet) {
+                if (data && data.set && data.get) {
+                    var orgSet_1 = data.set;
+                    data.set = function (value) {
+                        if (this[property] != value) {
+                            orgSet_1.call(this, value);
+                            fire(this, events);
+                        }
+                    };
+                }
+                else if (!data || (!data.get && !data.set)) {
+                    var newProp_1 = "$d_fire_p$" + property;
+                    host[newProp_1] = data && data.value;
+                    data = { enumerable: true, configurable: true };
+                    data.get = function () {
+                        return this[newProp_1];
+                    };
+                    data.set = function (value) {
+                        if (this[newProp_1] != value) {
+                            this[newProp_1] = value;
+                            fire(this, events);
+                        }
+                    };
+                }
+                else {
+                    return true && junyou.ThrowError("\u65E0\u6CD5\u7ED1\u5B9A" + host + "," + property);
+                }
+                Object.defineProperty(host, property, data);
+            }
+        };
+        function fire(host, events) {
+            for (var i = 0; i < events.length; i += 2) {
+                var eventType_1 = events[i];
+                if (events[i + 1]) {
+                    if (typeof host.dispatch === "function") {
+                        host.dispatch(eventType_1);
                     }
                 }
                 else {
-                    junyou.dispatch(eventType, this);
+                    junyou.dispatch(eventType_1, host);
                 }
-            }).reset(target);
-            //此处的target为prototype
-            //事件回调时候，this为实例
-        };
+            }
+        }
     }
     junyou.d_fire = d_fire;
     /**
@@ -5322,652 +5364,6 @@ var junyou;
         };
     }
     junyou.d_memoize = d_memoize;
-    /**
-     * @private
-     */
-    var _$l = "__listeners__";
-    /**
-     * @private
-     */
-    var _$b = "__bindables__";
-    /**
-     * @private
-     */
-    var _$c = 0;
-    function notifyListener(host, property) {
-        var list = host[_$l];
-        var length = list.length;
-        for (var i = 0; i < length; i += 2) {
-            var listener = list[i];
-            var target = list[i + 1];
-            listener.call(target, property, host);
-        }
-    }
-    /**
-     * @language en_US
-     * The Watcher class defines utility method that you can use with bindable properties.
-     * These methods let you define an event handler that is executed whenever a bindable property is updated.
-     *
-     * @version Egret 2.4
-     * @version eui 1.0
-     * @platform Web,Native
-     * @includeExample extension/eui/binding/WatcherExample.ts
-     */
-    /**
-     * @language zh_CN
-     * Watcher 类能够监视可绑定属性的改变，您可以定义一个事件处理函数作为 Watcher 的回调方法，在每次可绑定属性的值改变时都执行此函数。
-     *
-     * @version Egret 2.4
-     * @version eui 1.0
-     * @platform Web,Native
-     * @includeExample extension/eui/binding/WatcherExample.ts
-     */
-    var Watcher = (function () {
-        /**
-         * Creates an instance of Watcher.
-         *
-         * @param {string} property                 监听的属性
-         * @param {(value: any) => void} handler    回调函数
-         * @param {*} [thisObject]                  回调函数的this对象，如果不设置this，则当监听对象属性变化时，将以监听的对象作为this参数，进行回调
-         * @param {Watcher} [next]
-         */
-        function Watcher(property, handler, thisObject, next) {
-            /**
-             * @private
-             */
-            this.isExecuting = false;
-            this.property = property;
-            this.handler = handler;
-            this.next = next;
-            this.thisObject = thisObject;
-        }
-        /**
-         * @language en_US
-         * Creates and starts a Watcher instance.
-         * The Watcher can only watch the property of a Object which host is instance of egret.IEventDispatcher.
-         * @param host The object that hosts the property or property chain to be watched.
-         * You can use the use the <code>reset()</code> method to change the value of the <code>host</code> argument
-         * after creating the Watcher instance.
-         * The <code>host</code> maintains a list of <code>handlers</code> to invoke when <code>prop</code> changes.
-         * @param chain A value specifying the property or chain to be watched.
-         * For example, to watch the property <code>host.a.b.c</code>,
-         * call the method as: <code>watch(host, ["a","b","c"], ...)</code>.
-         * @param handler  An event handler function called when the value of the watched property
-         * (or any property in a watched chain) is modified.
-         * @param thisObject <code>this</code> object of which binding with handler
-         * @returns he ChangeWatcher instance, if at least one property name has been specified to
-         * the <code>chain</code> argument; null otherwise.
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        /**
-         * @language zh_CN
-         * 创建并启动 Watcher 实例。注意：Watcher 只能监视 host 为 egret.IEventDispatcher 对象的属性改变。若属性链中某个属性所对应的实例不是 egret.IEventDispatcher，
-         * 则属性链中在它之后的属性改变将无法检测到。
-         * @param host 用于承载要监视的属性或属性链的对象。
-         * 创建Watcher实例后，您可以利用<code>reset()</code>方法更改<code>host</code>参数的值。
-         * 当<code>prop</code>改变的时候，会使得host对应的一系列<code>handlers</code>被触发。
-         * @param chain 用于指定要监视的属性链的值。例如，要监视属性 host.a.b.c，需按以下形式调用此方法：watch¬(host, ["a","b","c"], ...)。
-         * @param handler 在监视的目标属性链中任何属性的值发生改变时调用的事件处理函数。
-         * @param thisObject handler 方法绑定的this对象
-         * @returns 如果已为 chain 参数至少指定了一个属性名称，则返回 Watcher 实例；否则返回 null。
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        Watcher.watch = function (host, chain, handler, thisObject) {
-            if (true) {
-                if (!chain) {
-                    egret.$error(1003, "chain");
-                }
-            }
-            if (chain.length > 0) {
-                var property = chain.shift();
-                var next = Watcher.watch(null, chain, handler, thisObject);
-                var watcher = new Watcher(property, handler, thisObject, next);
-                watcher.reset(host);
-                return watcher;
-            }
-            else {
-                return;
-            }
-        };
-        /**
-         * @private
-         * 检查属性是否可以绑定。若还未绑定，尝试添加绑定事件。若是只读或只写属性，返回false。
-         */
-        Watcher.checkBindable = function (host, property) {
-            var list = host[_$b];
-            if (list && list.indexOf(property) != -1) {
-                return true;
-            }
-            var isEventDispatcher = egret.is(host, "egret.IEventDispatcher");
-            if (!isEventDispatcher && !host[_$l]) {
-                host[_$l] = [];
-            }
-            var data = host.getPropertyDescriptor(property);
-            if (data && data.set && data.get) {
-                var orgSet_1 = data.set;
-                data.set = function (value) {
-                    if (this[property] != value) {
-                        orgSet_1.call(this, value);
-                        if (isEventDispatcher) {
-                            junyou.PropertyEvent.dispatchPropertyEvent(this, -2000 /* PROPERTY_CHANGE */, property);
-                        }
-                        else {
-                            notifyListener(this, property);
-                        }
-                    }
-                };
-            }
-            else if (!data || (!data.get && !data.set)) {
-                _$c++;
-                var newProp_1 = "_" + _$c + property;
-                host[newProp_1] = data ? data.value : null;
-                data = { enumerable: true, configurable: true };
-                data.get = function () {
-                    return this[newProp_1];
-                };
-                data.set = function (value) {
-                    if (this[newProp_1] != value) {
-                        this[newProp_1] = value;
-                        if (isEventDispatcher) {
-                            junyou.PropertyEvent.dispatchPropertyEvent(this, -2000 /* PROPERTY_CHANGE */, property);
-                        }
-                        else {
-                            notifyListener(this, property);
-                        }
-                    }
-                };
-            }
-            else {
-                return false;
-            }
-            Object.defineProperty(host, property, data);
-            junyou.registerBindable(host, property);
-        };
-        /**
-         * @language en_US
-         * Detaches this Watcher instance, and its handler function, from the current host.
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        /**
-         * @language zh_CN
-         * 从当前宿主中断开此 Watcher 实例及其处理函数。
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        Watcher.prototype.unwatch = function () {
-            this.reset(null);
-            this.handler = null;
-            if (this.next) {
-                this.next.handler = null;
-            }
-        };
-        /**
-         * @language en_US
-         * Retrieves the current value of the watched property or property chain, or null if the host object is null.
-         * @example
-         * <pre>
-         * watch(obj, ["a","b","c"], ...).getValue() === obj.a.b.c
-         * </pre>
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        /**
-         * @language zh_CN
-         * 检索观察的属性或属性链的当前值，当宿主对象为空时此值为空。
-         * @example
-         * <pre>
-         * watch(obj, ["a","b","c"], ...).getValue() === obj.a.b.c
-         * </pre>
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        Watcher.prototype.getValue = function () {
-            if (this.next) {
-                return this.next.getValue();
-            }
-            return this.getHostPropertyValue();
-        };
-        /**
-         * @language en_US
-         * Sets the handler function.s
-         * @param handler The handler function. This argument must not be null.
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        /**
-         * @language zh_CN
-         * 设置处理函数。
-         * @param handler 处理函数，此参数必须为非空。
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        Watcher.prototype.setHandler = function (handler, thisObject) {
-            this.handler = handler;
-            this.thisObject = thisObject;
-            if (this.next) {
-                this.next.setHandler(handler, thisObject);
-            }
-        };
-        /**
-         * @language en_US
-         * Resets this ChangeWatcher instance to use a new host object.
-         * You can call this method to reuse a watcher instance on a different host.
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        /**
-         * @language zh_CN
-         * 重置此 Watcher 实例使用新的宿主对象。
-         * 您可以通过该方法实现一个Watcher实例用于不同的宿主。
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        Watcher.prototype.reset = function (newHost) {
-            var oldHost = this.host;
-            if (oldHost) {
-                if (oldHost instanceof egret.EventDispatcher) {
-                    oldHost.off(-2000 /* PROPERTY_CHANGE */, this.wrapHandler, this);
-                }
-                else {
-                    var list = oldHost[_$l];
-                    var index = list.indexOf(this);
-                    list.splice(index - 1, 2);
-                }
-            }
-            this.host = newHost;
-            if (newHost) {
-                Watcher.checkBindable(newHost, this.property);
-                if (newHost instanceof egret.EventDispatcher) {
-                    newHost.on(-2000 /* PROPERTY_CHANGE */, this.wrapHandler, this, false, 100);
-                }
-                else {
-                    var list = newHost[_$l];
-                    list.push(this.onPropertyChange);
-                    list.push(this);
-                }
-            }
-            if (this.next) {
-                this.next.reset(this.getHostPropertyValue());
-            }
-            return this;
-        };
-        /**
-         * @private
-         *
-         * @returns
-         */
-        Watcher.prototype.getHostPropertyValue = function () {
-            return this.host ? this.host[this.property] : null;
-        };
-        /**
-         * @private
-         */
-        Watcher.prototype.wrapHandler = function (event) {
-            this.onPropertyChange(event.property, event.currentTarget);
-        };
-        /**
-         * @private
-         */
-        Watcher.prototype.onPropertyChange = function (property, dispatcher) {
-            if (property == this.property && !this.isExecuting) {
-                try {
-                    this.isExecuting = true;
-                    if (this.next)
-                        this.next.reset(this.getHostPropertyValue());
-                    if (this.thisObject) {
-                        this.handler.call(this.thisObject, this.getValue());
-                    }
-                    else {
-                        this.handler.call(dispatcher, this.getValue());
-                    }
-                }
-                finally {
-                    this.isExecuting = false;
-                }
-            }
-        };
-        return Watcher;
-    }());
-    junyou.Watcher = Watcher;
-    __reflect(Watcher.prototype, "junyou.Watcher");
-})(junyou || (junyou = {}));
-//////////////////////////////////////////////////////////////////////////////////////
-//
-//  Copyright (c) 2014-2015, Egret Technology Inc.
-//  All rights reserved.
-//  Redistribution and use in source and binary forms, with or without
-//  modification, are permitted provided that the following conditions are met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above copyright
-//       notice, this list of conditions and the following disclaimer in the
-//       documentation and/or other materials provided with the distribution.
-//     * Neither the name of the Egret nor the
-//       names of its contributors may be used to endorse or promote products
-//       derived from this software without specific prior written permission.
-//
-//  THIS SOFTWARE IS PROVIDED BY EGRET AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
-//  OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-//  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-//  IN NO EVENT SHALL EGRET AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-//  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-//  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;LOSS OF USE, DATA,
-//  OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-//  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-//  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-//  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-//////////////////////////////////////////////////////////////////////////////////////
-(function (junyou) {
-    /**
-     * @language en_US
-     * The Binding class defines utility methods for performing data binding.
-     * You can use the methods defined in this class to configure data bindings.
-     * @version Egret 2.4
-     * @version eui 1.0
-     * @platform Web,Native
-     * @includeExample extension/eui/binding/BindingExample.ts
-     */
-    /**
-     * @language zh_CN
-     * 绑定工具类，用于执行数据绑定用的方法集。您可以使用此类中定义的方法来配置数据绑定。
-     * @version Egret 2.4
-     * @version eui 1.0
-     * @platform Web,Native
-     * @includeExample extension/eui/binding/BindingExample.ts
-     */
-    var Binding = (function () {
-        function Binding() {
-        }
-        /**
-         * @language en_US
-         * Binds a property, <prop>prop</code> on the <code>target</code> Object, to a bindable property or peoperty chain.
-         * @param host The object that hosts the property or property chain to be watched.
-         * The <code>host</code> maintains a list of <code>targets</code> to update theirs <code>prop</code> when <code>chain</code> changes.
-         * @param chain A value specifying the property or chain to be watched. For example, when watch the property <code>host.a.b.c</code>,
-         * you need call the method like this: <code>indProperty(host, ["a","b","c"], ...)</code>
-         * @param target The Object defining the property to be bound to <code>chain</code>.
-         * @param prop The name of the public property defined in the <code>site</code> Object to be bound.
-         * @returns A ChangeWatcher instance, if at least one property name has been specified
-         * to the <code>chain</code> argument; null otherwise.
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        /**
-         * @language zh_CN
-         * 绑定一个对象的属性值到要监视的对象属性上。
-         * @param host 用于承载要监视的属性或属性链的对象。
-         * 当 <code>host</code>上<code>chain</code>所对应的值发生改变时，<code>target</code>上的<code>prop</code>属性将被自动更新。
-         * @param chain 用于指定要监视的属性链的值。例如，要监视属性 <code>host.a.b.c</code>，需按以下形式调用此方法：<code>bindProperty(host, ["a","b","c"], ...)。</code>
-         * @param target 本次绑定要更新的目标对象。
-         * @param prop 本次绑定要更新的目标属性名称。
-         * @returns 如果已为 chain 参数至少指定了一个属性名称，则返回 Watcher 实例；否则返回 null。
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        Binding.bindProperty = function (host, chain, target, prop) {
-            var watcher = junyou.Watcher.watch(host, chain, null, null);
-            if (watcher) {
-                var assign = function (value) {
-                    target[prop] = value;
-                };
-                watcher.setHandler(assign, null);
-                assign(watcher.getValue());
-            }
-            return watcher;
-        };
-        /**
-         * @language en_US
-         * Binds a callback, <prop>handler</code> on the <code>target</code> Object, to a bindable property or peoperty chain.
-         * Callback method to invoke with an argument of the current value of <code>chain</code> when that value changes.
-         * @param host The object that hosts the property or property chain to be watched.
-         * @param chain A value specifying the property or chain to be watched. For example, when watch the property <code>host.a.b.c</code>,
-         * you need call the method like this: <code>indProperty(host, ["a","b","c"], ...)</code>
-         * @param handler method to invoke with an argument of the current value of <code>chain</code> when that value changes.
-         * @param thisObject <code>this</code> object of binding method
-         * @returns A ChangeWatcher instance, if at least one property name has been  specified to the <code>chain</code> argument; null otherwise.
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        /**
-         * @language zh_CN
-         * 绑定一个回调函数到要监视的对象属性上。当 host上 chain 所对应的值发生改变时，handler 方法将被自动调用。
-         * @param host 用于承载要监视的属性或属性链的对象。
-         * @param chain 用于指定要监视的属性链的值。例如，要监视属性 host.a.b.c，需按以下形式调用此方法：bindSetter(host, ["a","b","c"], ...)。
-         * @param handler 在监视的目标属性链中任何属性的值发生改变时调用的事件处理函数。
-         * @param thisObject handler 方法绑定的this对象
-         * @returns 如果已为 chain 参数至少指定了一个属性名称，则返回 Watcher 实例；否则返回 null。
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        Binding.bindHandler = function (host, chain, handler, thisObject) {
-            var watcher = junyou.Watcher.watch(host, chain, handler, thisObject);
-            if (watcher) {
-                handler.call(thisObject, watcher.getValue());
-            }
-            return watcher;
-        };
-        return Binding;
-    }());
-    junyou.Binding = Binding;
-    __reflect(Binding.prototype, "junyou.Binding");
-})(junyou || (junyou = {}));
-//////////////////////////////////////////////////////////////////////////////////////
-//
-//  Copyright (c) 2014-2015, Egret Technology Inc.
-//  All rights reserved.
-//  Redistribution and use in source and binary forms, with or without
-//  modification, are permitted provided that the following conditions are met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above copyright
-//       notice, this list of conditions and the following disclaimer in the
-//       documentation and/or other materials provided with the distribution.
-//     * Neither the name of the Egret nor the
-//       names of its contributors may be used to endorse or promote products
-//       derived from this software without specific prior written permission.
-//
-//  THIS SOFTWARE IS PROVIDED BY EGRET AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
-//  OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-//  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-//  IN NO EVENT SHALL EGRET AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-//  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-//  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;LOSS OF USE, DATA,
-//  OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-//  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-//  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-//  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-//////////////////////////////////////////////////////////////////////////////////////
-(function (junyou) {
-    /**
-     * @language en_US
-     * The PropertyChangeEvent class represents the event object
-     * passed to the event listener when one of the properties of
-     * an object has changed, and provides information about the change.
-     *
-     * @version Egret 2.4
-     * @version eui 1.0
-     * @platform Web,Native
-     * @includeExample  extension/eui/events/PropertyEventExample.ts
-     */
-    /**
-     * @language zh_CN
-     * 对象的一个属性发生更改时传递到事件侦听器的事件。
-     *
-     * @version Egret 2.4
-     * @version eui 1.0
-     * @platform Web,Native
-     * @includeExample  extension/eui/events/PropertyEventExample.ts
-     */
-    var PropertyEvent = (function (_super) {
-        __extends(PropertyEvent, _super);
-        /**
-         * @language en_US
-         * Constructor.
-         *
-         * @param type The event type; indicates the action that triggered the event.
-         * @param bubbles Specifies whether the event can bubble
-         * up the display list hierarchy.
-         * @param cancelable Specifies whether the behavior
-         * associated with the event can be prevented.
-         * @param property Name of the property that changed.
-         *
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        /**
-         * @language zh_CN
-         * 创建一个属性改变事件。
-         *
-         * @param type 事件类型；指示触发事件的动作。
-         * @param bubbles 指定该事件是否可以在显示列表层次结构得到冒泡处理。
-         * @param cancelable 指定是否可以防止与事件相关联的行为。
-         * @param property 发生改变的属性名称。
-         *
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        function PropertyEvent(type, bubbles, cancelable, property) {
-            var _this = _super.call(this, type, bubbles, cancelable) || this;
-            _this.property = property;
-            return _this;
-        }
-        /**
-         * @language en_US
-         * Dispatch an event with specified EventDispatcher. The dispatched event will be cached in the object pool,
-         * for the next cycle of reuse.
-         *
-         * @param target the target of event dispatcher.
-         * @param eventType The event type; indicates the action that triggered the event.
-         * @param property Name of the property that changed.
-         *
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        /**
-         * @language zh_CN
-         * 使用指定的 EventDispatcher 对象来抛出事件对象。抛出的对象将会缓存在对象池上，供下次循环复用。
-         *
-         * @param target 事件派发目标
-         * @param eventType 事件类型；指示触发事件的动作。
-         * @param property 发生改变的属性名称。
-         *
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        PropertyEvent.dispatchPropertyEvent = function (target, eventType, property) {
-            if (!target.hasListen(eventType)) {
-                return true;
-            }
-            var event = egret.Event.create(PropertyEvent, eventType);
-            event.property = property;
-            var result = target.dispatchEvent(event);
-            egret.Event.release(event);
-            return result;
-        };
-        return PropertyEvent;
-    }(egret.Event));
-    junyou.PropertyEvent = PropertyEvent;
-    __reflect(PropertyEvent.prototype, "junyou.PropertyEvent");
-})(junyou || (junyou = {}));
-//////////////////////////////////////////////////////////////////////////////////////
-//
-//  Copyright (c) 2014-2015, Egret Technology Inc.
-//  All rights reserved.
-//  Redistribution and use in source and binary forms, with or without
-//  modification, are permitted provided that the following conditions are met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above copyright
-//       notice, this list of conditions and the following disclaimer in the
-//       documentation and/or other materials provided with the distribution.
-//     * Neither the name of the Egret nor the
-//       names of its contributors may be used to endorse or promote products
-//       derived from this software without specific prior written permission.
-//
-//  THIS SOFTWARE IS PROVIDED BY EGRET AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
-//  OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-//  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-//  IN NO EVENT SHALL EGRET AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-//  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-//  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;LOSS OF USE, DATA,
-//  OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-//  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-//  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-//  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-//////////////////////////////////////////////////////////////////////////////////////
-(function (junyou) {
-    var key = "__bindables__";
-    /**
-     * @language en_US
-     * Register a property of an instance is can be bound.
-     * This method is ususally invoked by Watcher class.
-     *
-     * @param instance the instance to be registered.
-     * @param property the property of specified instance to be registered.
-     *
-     * @version Egret 2.4
-     * @version eui 1.0
-     * @platform Web,Native
-     */
-    /**
-     * @language zh_CN
-     * 标记实例的一个属性是可绑定的,此方法通常由 Watcher 类调用。
-     *
-     * @param instance 要标记的实例
-     * @param property 可绑定的属性。
-     *
-     * @version Egret 2.4
-     * @version eui 1.0
-     * @platform Web,Native
-     */
-    function registerBindable(instance, property) {
-        if (true) {
-            if (!instance) {
-                egret.$error(1003, "instance");
-            }
-            if (!property) {
-                egret.$error(1003, "property");
-            }
-        }
-        if (instance.hasOwnProperty(key)) {
-            instance[key].push(property);
-        }
-        else {
-            var list = [property];
-            if (instance[key]) {
-                list = instance[key].concat(list);
-            }
-            instance[key] = list;
-        }
-    }
-    junyou.registerBindable = registerBindable;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
