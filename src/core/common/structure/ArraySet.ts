@@ -96,16 +96,22 @@ module junyou {
          * @memberOf ArraySet
          */
         public set(key: Key, value: V) {
-            let { _dict, _list } = this;
-            let old = _dict[key];
-            let idx: number
-            if (old != value) {
-                this.delete(key);
+            const { _dict, _list } = this;
+            let idx: number;
+            let changed: boolean;
+            if (key in _dict) {//有原始数据
+                let old = _dict[key];
+                idx = _list.indexOf(old);
+                if (old != value) {
+                    changed = true;
+                }
+            } else {
                 idx = _list.length;
+                changed = true;
+            }
+            if (changed) {
                 _list[idx] = value;
                 _dict[key] = value;
-            } else {
-                idx = _list.indexOf(value);
             }
             return idx;
         }
@@ -130,12 +136,13 @@ module junyou {
          * @memberOf ArraySet
          */
         public delete(key: Key) {
-            let old = this._dict[key];
-            delete this._dict[key];
+            const { _dict, _list } = this;
+            let old = _dict[key];
+            delete _dict[key];
             if (old) {
-                let idx = this._list.indexOf(old);
+                let idx = _list.indexOf(old);
                 if (idx > -1) {
-                    this._list.splice(idx, 1);
+                    _list.splice(idx, 1);
                 }
             }
             return old;
