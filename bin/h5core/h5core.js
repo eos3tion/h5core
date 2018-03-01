@@ -5602,16 +5602,22 @@ var junyou;
          */
         ArraySet.prototype.set = function (key, value) {
             var _a = this, _dict = _a._dict, _list = _a._list;
-            var old = _dict[key];
             var idx;
-            if (old != value) {
-                this.delete(key);
-                idx = _list.length;
-                _list[idx] = value;
-                _dict[key] = value;
+            var changed;
+            if (key in _dict) {
+                var old = _dict[key];
+                idx = _list.indexOf(old);
+                if (old != value) {
+                    changed = true;
+                }
             }
             else {
-                idx = _list.indexOf(value);
+                idx = _list.length;
+                changed = true;
+            }
+            if (changed) {
+                _list[idx] = value;
+                _dict[key] = value;
             }
             return idx;
         };
@@ -5634,12 +5640,13 @@ var junyou;
          * @memberOf ArraySet
          */
         ArraySet.prototype.delete = function (key) {
-            var old = this._dict[key];
-            delete this._dict[key];
+            var _a = this, _dict = _a._dict, _list = _a._list;
+            var old = _dict[key];
+            delete _dict[key];
             if (old) {
-                var idx = this._list.indexOf(old);
+                var idx = _list.indexOf(old);
                 if (idx > -1) {
-                    this._list.splice(idx, 1);
+                    _list.splice(idx, 1);
                 }
             }
             return old;
