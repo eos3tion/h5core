@@ -162,6 +162,12 @@ module junyou.Res {
          * 加载完成的回调
          */
         loadFile(resItem: ResItem, callback: ResLoadCallback);
+    }
+
+    /** 
+     * 内部实现的ResLoader
+     */
+    interface InternalResLoader extends ResLoader {
 
         /**
          * 加载完成的回调
@@ -184,14 +190,14 @@ module junyou.Res {
         return state;
     }
 
-    function bindRequest(loader: ResLoader, request: Recyclable<ResRequest>, item: ResItem, callback: ResLoadCallback) {
+    function bindRequest(loader: InternalResLoader, request: Recyclable<ResRequest>, item: ResItem, callback: ResLoadCallback) {
         request.on(EgretEvent.COMPLETE, loader.onLoadFinish, loader);
         request.on(EgretEvent.IO_ERROR, loader.onLoadFinish, loader);
         request.item = item;
         request.resCB = callback;
     }
 
-    function looseRequest(loader: ResLoader, request: Recyclable<ResRequest>) {
+    function looseRequest(loader: InternalResLoader, request: Recyclable<ResRequest>) {
         request.off(EgretEvent.COMPLETE, loader.onLoadFinish, loader);
         request.off(EgretEvent.IO_ERROR, loader.onLoadFinish, loader);
         request.item = undefined;
