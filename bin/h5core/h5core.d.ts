@@ -4281,17 +4281,23 @@ declare module junyou {
     };
 }
 declare module junyou {
+    interface FilterUtilsType {
+        /**
+         * 共享灰度滤镜列表
+         */
+        gray: egret.Filter[];
+        /**共享暗淡滤镜 */
+        dark: egret.Filter[];
+        /**共享模糊滤镜 */
+        blur: egret.Filter[];
+    }
     /**
      * 滤镜辅助
      *
      * @export
      * @class FilterUtils
      */
-    const FilterUtils: {
-        gray: egret.ColorMatrixFilter[];
-        dark: egret.ColorMatrixFilter[];
-        blur: egret.BlurFilter[];
-    };
+    const FilterUtils: FilterUtilsType;
 }
 declare module junyou {
     /**
