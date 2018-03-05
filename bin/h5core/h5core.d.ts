@@ -12555,10 +12555,6 @@ declare module junyou.Res {
          * 加载完成的回调
          */
         loadFile(resItem: ResItem, callback: ResLoadCallback): any;
-        /**
-         * 加载完成的回调
-         */
-        onLoadFinish(e: egret.Event): any;
     }
     interface ResRequest extends egret.EventDispatcher {
         item?: ResItem;
