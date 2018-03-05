@@ -491,6 +491,13 @@ module junyou.Res {
         }
     }
 
+    export function set(uri: string, item: ResItem) {
+        if (!resDict[uri]) {
+            resDict[uri] = item;
+            return true;
+        }
+    }
+
     /**
      * 移除某个资源
      * @param uri 
