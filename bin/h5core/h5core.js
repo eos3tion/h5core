@@ -562,7 +562,9 @@ var egret;
     ept.on = ept.addEventListener;
     ept.off = ept.removeEventListener;
     ept.hasListen = ept.hasEventListener;
-    ept.dispatch = ept.dispatchEventWith;
+    ept.dispatch = function (type, data) {
+        return this.dispatchEventWith(type, false, data);
+    };
     egret.Graphics.prototype.drawRectangle = function (rect) {
         this.drawRect(rect.x, rect.y, rect.width, rect.height);
     };
@@ -3113,9 +3115,9 @@ var junyou;
             _this.blockSpeed = 0.98;
             _this._moveSpeed = 0;
             _this._deriction = 0 /* Vertical */;
-            _this._key = "y";
-            _this._sizeKey = "height";
-            _this._measureKey = "measuredHeight";
+            _this._key = "y" /* Y */;
+            _this._sizeKey = "height" /* Height */;
+            _this._measureKey = "measuredHeight" /* Height */;
             return _this;
         }
         Object.defineProperty(Scroller.prototype, "scrollType", {
@@ -3133,14 +3135,14 @@ var junyou;
                     this._scrollType = value;
                     var key = void 0, sizeKey = void 0, measureKey = void 0;
                     if (value == 0 /* Vertical */) {
-                        key = "y";
-                        sizeKey = "height";
-                        measureKey = "measuredHeight";
+                        key = "y" /* Y */;
+                        sizeKey = "height" /* Height */;
+                        measureKey = "measuredHeight" /* Height */;
                     }
                     else {
-                        key = "x";
-                        sizeKey = "width";
-                        measureKey = "measuredWidth";
+                        key = "x" /* X */;
+                        sizeKey = "width" /* Width */;
+                        measureKey = "measuredWidth" /* Width */;
                     }
                     this._sizeKey = sizeKey;
                     this._key = key;
@@ -3167,12 +3169,7 @@ var junyou;
             scrollbar[_key] = content[_key];
         };
         Scroller.prototype.onScrollBarAdded = function () {
-            if (this.alwaysShowBar) {
-                this._scrollbar.alpha = 1;
-            }
-            else {
-                this._scrollbar.alpha = 0;
-            }
+            this._scrollbar.alpha = ~~this.alwaysShowBar;
         };
         /**
          * 绑定目标与滚动条
@@ -3257,35 +3254,21 @@ var junyou;
             if (!content) {
                 return;
             }
-            var scrollRect = content.scrollRect;
-            var pos;
-            var data = content[this._measureKey];
-            if (this._scrollType == 0 /* Vertical */) {
-                if (data < scrollRect.height) {
-                    return;
-                }
-                pos = e.stageY;
+            if (content[this._measureKey] < content.scrollRect[this._sizeKey]) {
+                return;
             }
-            else {
-                if (data < scrollRect.width) {
-                    return;
-                }
-                pos = e.stageX;
-            }
+            this._lastTargetPos = this._startPos = this.getDragPos(e);
             this._lastMoveTime = junyou.Global.now;
-            this._lastTargetPos = pos;
             this.showBar();
             content.on(-1089 /* DragMove */, this.onDragMove, this);
             content.on(-1088 /* DragEnd */, this.onDragEnd, this);
+            this.dispatch(-1051 /* ScrollerDragStart */);
+        };
+        Scroller.prototype.getDragPos = function (e) {
+            return this._scrollType == 0 /* Vertical */ ? e.stageY : e.stageX;
         };
         Scroller.prototype.onDragMove = function (e) {
-            var currentPos;
-            if (this._scrollType == 0 /* Vertical */) {
-                currentPos = e.stageY;
-            }
-            else {
-                currentPos = e.stageX;
-            }
+            var currentPos = this.getDragPos(e);
             var sub = currentPos - this._lastTargetPos;
             this._deriction = sub > 0 ? 1 : -1;
             sub = Math.abs(sub);
@@ -3328,6 +3311,7 @@ var junyou;
             if (!content) {
                 return;
             }
+            var currentPos = this.getDragPos(e);
             var now = junyou.Global.now;
             if (now - this._lastMoveTime < 150) {
                 content.on("enterFrame" /* ENTER_FRAME */, this.onRender, this);
@@ -3338,21 +3322,16 @@ var junyou;
             }
             content.off(-1089 /* DragMove */, this.onDragMove, this);
             content.off(-1088 /* DragEnd */, this.onDragEnd, this);
+            this.dispatch(-1050 /* ScrollerDragEnd */, currentPos - this._startPos);
         };
         Scroller.prototype.showBar = function () {
-            if (this._useScrollBar) {
-                if (!this.alwaysShowBar) {
-                    var tween = junyou.Global.getTween(this._scrollbar, undefined, undefined, true);
-                    tween.to({ alpha: 1 }, 500);
-                }
+            if (this._useScrollBar && !this.alwaysShowBar) {
+                junyou.Global.getTween(this._scrollbar, null, null, true).to({ alpha: 1 }, 500);
             }
         };
         Scroller.prototype.hideBar = function () {
-            if (this._useScrollBar) {
-                if (!this.alwaysShowBar) {
-                    var tween = junyou.Global.getTween(this._scrollbar, undefined, undefined, true);
-                    tween.to({ alpha: 0 }, 1000);
-                }
+            if (this._useScrollBar && !this.alwaysShowBar) {
+                junyou.Global.getTween(this._scrollbar, null, null, true).to({ alpha: 0 }, 1000);
             }
         };
         /**
@@ -6827,13 +6806,8 @@ var junyou;
      * @class FilterUtils
      */
     junyou.FilterUtils = {
-        /**
-         * 共享灰度滤镜列表
-         */
         gray: [new egret.ColorMatrixFilter([0.3086, 0.6094, 0.0820, 0, 0, 0.3086, 0.6094, 0.0820, 0, 0, 0.3086, 0.6094, 0.0820, 0, 0, 0, 0, 0, 1, 0])],
-        /**暗淡滤镜 */
         dark: [new egret.ColorMatrixFilter([0.5, 0, 0, 0, 6.75, 0, 0.5, 0, 0, 6.75, 0, 0, 0.5, 0, 6.75, 0, 0, 0, 1, 0])],
-        /**模糊滤镜 */
         blur: [new egret.BlurFilter(5, 5)]
     };
 })(junyou || (junyou = {}));
@@ -13083,7 +13057,7 @@ var junyou;
      * @param {*} [data]        数据
      */
     function dispatch(type, data) {
-        junyou.facade.dispatch(type, false, data);
+        junyou.facade.dispatch(type, data);
     }
     junyou.dispatch = dispatch;
     /**
@@ -14992,12 +14966,12 @@ var junyou;
             this._selected = value;
             this.dispatch(-1000 /* CHOOSE_STATE_CHANGE */);
         };
-        ListItemRenderer.prototype.dispatch = function (type, bubbles, data, cancelable) {
+        ListItemRenderer.prototype.dispatch = function (type, data) {
             var s = this._skin;
             if (s) {
-                s.dispatch(type, bubbles, data, cancelable);
+                s.dispatch(type, data);
             }
-            return _super.prototype.dispatch.call(this, type, bubbles, data, cancelable);
+            return _super.prototype.dispatch.call(this, type, data);
         };
         /**
          * 子类重写
@@ -15396,16 +15370,23 @@ var junyou;
             option = option || junyou.Temp.EmptyObject;
             var hgap = option.hgap, vgap = option.vgap, type = option.type, itemWidth = option.itemWidth, itemHeight = option.itemHeight, columnCount = option.columnCount, staticSize = option.staticSize;
             this.staticSize = staticSize;
+            type = ~~type;
             columnCount = ~~columnCount;
             if (columnCount < 1) {
-                columnCount = 1;
+                if (type == 1 /* Horizon */) {
+                    columnCount = Infinity;
+                }
+                else {
+                    columnCount = 1;
+                }
             }
             this._columncount = columnCount;
             this._hgap = ~~hgap;
             this._vgap = ~~vgap;
             this.itemWidth = itemWidth;
             this.itemHeight = itemHeight;
-            this._scrollType = ~~type;
+            //@ts-ignore
+            this.scrollType = type;
             this.container = option.con || new egret.Sprite();
         };
         PageList.prototype.displayList = function (data) {
@@ -15477,6 +15458,16 @@ var junyou;
                 this.once("enterFrame" /* ENTER_FRAME */, this.reCalc, this);
             }
         };
+        PageList.prototype.getSize = function (v) {
+            var size = v;
+            if (this.staticSize) {
+                var rect = v.suiRawRect;
+                if (rect) {
+                    size = rect;
+                }
+            }
+            return size;
+        };
         /**
          * 重新计算Render的坐标
          *
@@ -15511,15 +15502,24 @@ var junyou;
                     var v = render.view;
                     var w = 0;
                     if (v) {
-                        var size = v;
-                        if (staticSize) {
-                            var rect = v.suiRawRect;
-                            if (rect) {
-                                size = rect;
-                            }
+                        var size = void 0;
+                        if (itemWidth) {
+                            w = itemWidth;
                         }
-                        w = size.width;
-                        var vh = size.height;
+                        else {
+                            size = this.getSize(v);
+                            w = size.width;
+                        }
+                        var vh = void 0;
+                        if (itemHeight) {
+                            vh = itemHeight;
+                        }
+                        else {
+                            if (!size) {
+                                size = this.getSize(v);
+                            }
+                            vh = size.height;
+                        }
                         v.x = ox;
                         v.y = oy;
                         var rright = v.x + w;
@@ -15530,7 +15530,7 @@ var junyou;
                             lineMaxHeight = vh;
                         }
                     }
-                    ox += _hgap + (itemWidth || w);
+                    ox += _hgap + w;
                 }
                 var mh = oy + lineMaxHeight;
                 if (maxHeight < mh) {
@@ -15597,21 +15597,29 @@ var junyou;
                 return;
             }
             var oldPos, endPos, max;
-            if (this._scrollType == 0 /* Vertical */) {
+            if (this.scrollType == 0 /* Vertical */) {
                 oldPos = rect.y;
-                endPos = v.y + v.height;
-                max = this._h - v.height;
+                var d = this.itemHeight;
+                if (!d) {
+                    d = this.getSize(v).height;
+                }
+                endPos = v.y + d;
+                max = this._h;
             }
             else {
                 oldPos = rect.x;
-                endPos = v.x + v.width;
-                max = this._w - v.width;
+                var d = this.itemWidth;
+                if (!d) {
+                    d = this.getSize(v).width;
+                }
+                endPos = v.x + d;
+                max = this._w;
             }
             if (endPos > max) {
                 endPos = max;
             }
             if (rect) {
-                if (this._scrollType == 0 /* Vertical */) {
+                if (this.scrollType == 0 /* Vertical */) {
                     endPos = endPos - rect.height;
                 }
                 else {
@@ -15625,10 +15633,11 @@ var junyou;
             if (scroller) {
                 scroller.stopTouchTween();
             }
+            junyou.Global.removeTweens(this);
             if (this.useTweenIndex) {
-                var tween = junyou.Global.getTween(this, null, null, true);
-                var result = this._scrollType == 1 /* Horizon */ ? { tweenX: endPos } : { tweenY: endPos };
-                tween.to(result, 500, junyou.Ease.quadOut);
+                this.useTweenIndex = false;
+                var result = this.scrollType == 1 /* Horizon */ ? { tweenX: endPos } : { tweenY: endPos };
+                var tween = junyou.Global.getTween(this).to(result, 500, junyou.Ease.quadOut);
                 if (scroller) {
                     scroller.showBar();
                     tween.call(scroller.hideBar, scroller);
@@ -15638,7 +15647,7 @@ var junyou;
                 if (scroller) {
                     scroller.doMoveScrollBar(oldPos - endPos);
                 }
-                if (this._scrollType == 0 /* Vertical */) {
+                if (this.scrollType == 0 /* Vertical */) {
                     rect.y = endPos;
                 }
                 else {
@@ -15791,6 +15800,30 @@ var junyou;
             this._w = 0;
             this._h = 0;
         };
+        Object.defineProperty(PageList.prototype, "showStart", {
+            /**
+             * 在舞台之上的起始索引
+             *
+             * @readonly
+             */
+            get: function () {
+                return this._showStart;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(PageList.prototype, "showEnd", {
+            /**
+             * 在舞台之上的结束索引
+             *
+             * @readonly
+             */
+            get: function () {
+                return this._showEnd;
+            },
+            enumerable: true,
+            configurable: true
+        });
         PageList.prototype.checkViewRect = function () {
             var _con = this._con;
             var rect = _con.scrollRect;
@@ -15815,10 +15848,10 @@ var junyou;
             var checkStart, inc;
             if (lastRect) {
                 //检查滚动方向
-                var key1 = "x", key2 = "width";
-                if (this._scrollType == 0 /* Vertical */) {
-                    key1 = "y";
-                    key2 = "height";
+                var key1 = "x" /* X */, key2 = "width" /* Width */;
+                if (this.scrollType == 0 /* Vertical */) {
+                    key1 = "y" /* Y */;
+                    key2 = "height" /* Height */;
                 }
                 var delta = rect[key1] - lastRect[key1];
                 if (delta == 0 && rect[key2] == lastRect[key2]) {
@@ -15878,7 +15911,7 @@ var junyou;
                  *  直到找到最后一个和rect相交的render，再往后则无需检测
                  */
                 for (var i = checkStart; i < len; i++) {
-                    if (check(i)) {
+                    if (check(i, this)) {
                         break;
                     }
                 }
@@ -15893,7 +15926,7 @@ var junyou;
                 fIdx = len_1;
                 lIdx = 0;
                 for (var i = checkStart; i >= 0; i--) {
-                    if (check(i)) {
+                    if (check(i, this)) {
                         break;
                     }
                 }
@@ -15906,7 +15939,7 @@ var junyou;
             }
             tmp.length = 0;
             return;
-            function check(i) {
+            function check(i, d) {
                 var render = list[i];
                 var v = render.view;
                 if (v) {
@@ -15916,8 +15949,8 @@ var junyou;
                         rec.x = v.x;
                         rec.y = v.y;
                         var suiRect = v.suiRawRect;
-                        rec.width = suiRect.width;
-                        rec.height = suiRect.height;
+                        rec.width = d.itemWidth || suiRect.width;
+                        rec.height = d.itemHeight || suiRect.height;
                     }
                     else {
                         rec = v;
@@ -21329,6 +21362,13 @@ var junyou;
             }
         }
         Res.get = get;
+        function set(uri, item) {
+            if (!resDict[uri]) {
+                resDict[uri] = item;
+                return true;
+            }
+        }
+        Res.set = set;
         /**
          * 移除某个资源
          * @param uri

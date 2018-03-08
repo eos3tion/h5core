@@ -343,13 +343,11 @@ declare module egret {
          * @language zh_CN
          * 派发一个指定参数的事件。
          * @param type {string | number} 事件类型
-         * @param bubbles {boolean} 确定 Event 对象是否参与事件流的冒泡阶段。默认值为 false。
          * @param data {any} 事件data
-         * @param cancelable {boolean} 确定是否可以取消 Event 对象。默认值为 false。
          * @version Egret 2.4
          * @platform Web,Native
          */
-        dispatch(type: string | number, bubbles?: boolean, data?: any, cancelable?: boolean): boolean;
+        dispatch(type: junyou.Key, data?: any): boolean;
         /**
          * 移除指定type的监听器
          *
@@ -2170,6 +2168,10 @@ declare module junyou {
 }
 declare module junyou {
     class Scroller extends egret.EventDispatcher {
+        /**
+         * 开始拖拽时的坐标
+         */
+        _startPos: number;
         protected _scrollbar: ScrollBar;
         protected _content: egret.DisplayObject;
         protected _scrollType: ScrollDirection;
@@ -2191,7 +2193,7 @@ declare module junyou {
         protected _deriction: ScrollDirection;
         protected _key: PosKey;
         protected _sizeKey: SizeKey;
-        protected _measureKey: string;
+        protected _measureKey: EgretMeasureSizeKey;
         constructor();
         /**
          * 滚动条方式 0：垂直，1：水平 defalut:0
@@ -2220,6 +2222,7 @@ declare module junyou {
         bindObj2(content: egret.DisplayObject, scrollRect: egret.Rectangle, scrollbar?: ScrollBar): void;
         protected onResize(): void;
         protected onDragStart(e: egret.TouchEvent): void;
+        protected getDragPos(e: egret.TouchEvent): number;
         protected onDragMove(e: egret.TouchEvent): void;
         stopTouchTween(): void;
         protected onRender(): void;
@@ -3599,8 +3602,18 @@ declare module junyou {
     }
 }
 declare module junyou {
-    type PosKey = "x" | "y";
-    type SizeKey = "width" | "height";
+    const enum PosKey {
+        X = "x",
+        Y = "y",
+    }
+    const enum SizeKey {
+        Width = "width",
+        Height = "height",
+    }
+    const enum EgretMeasureSizeKey {
+        Height = "measuredHeight",
+        Width = "measuredWidth",
+    }
     /**
      * 有`width` `height` 2个属性
      *
@@ -9311,7 +9324,7 @@ declare module junyou {
             y: number;
         }): any;
         protected $setSelected(value: boolean): void;
-        dispatch(type: Key, bubbles?: boolean, data?: any, cancelable?: boolean): boolean;
+        dispatch(type: Key, data?: any): boolean;
         /**
          * 子类重写
          * 销毁组件
@@ -9505,8 +9518,9 @@ declare module junyou {
          */
         vgap?: number;
         /**
-         * 列表共有几列（最小1最大9999）
-         *
+         * 列表共有几列
+         * 如果 `type` 为 ScrollDirection.Horizon 则 默认`Infinity`
+         * 如果 `type` 为 ScrollDirection.Vertical 则 默认`1`
          * @type {number}
          * @memberof PageListOption
          */
@@ -9581,7 +9595,7 @@ declare module junyou {
         protected _sizeChanged: boolean;
         scroller: Scroller;
         /**0纵向，1横向 */
-        private _scrollType;
+        readonly scrollType: ScrollDirection;
         private _waitForSetIndex;
         private _waitIndex;
         private renderChange;
@@ -9633,6 +9647,7 @@ declare module junyou {
         protected onChange(): void;
         protected _get(index: number): R;
         protected onSizeChange(): void;
+        getSize(v: egret.DisplayObject): Size;
         /**
          * 重新计算Render的坐标
          *
@@ -9686,8 +9701,20 @@ declare module junyou {
          * @type {number}
          */
         protected _showEnd: number;
+        /**
+         * 在舞台之上的起始索引
+         *
+         * @readonly
+         */
+        readonly showStart: number;
+        /**
+         * 在舞台之上的结束索引
+         *
+         * @readonly
+         */
+        readonly showEnd: number;
         protected _lastRect: egret.Rectangle;
-        protected checkViewRect(): void;
+        checkViewRect(): void;
     }
 }
 declare module junyou {
@@ -9841,10 +9868,16 @@ declare module junyou {
 }
 declare module egret {
     interface TouchEvent {
+        /**
+         * 和上一帧的 X偏移量
+         */
         deltaX?: number;
+        /**
+         * 和上一帧的 Y偏移量
+         */
         deltaY?: number;
         /**
-         * 时间差值
+         * 和上一帧的 时间差值
          */
         deltaTime?: number;
     }
@@ -9898,7 +9931,19 @@ declare module junyou {
         VALUE_CHANGE = -1040,
         PAGE_CHANGE = -1050,
         SCROLL_POSITION_CHANGE = -1051,
+        /**
+         * PageList 选中目标后触发
+         */
         ITEM_SELECTED = -1052,
+        /**
+         * Scroller 开始拖拽
+         */
+        ScrollerDragStart = -1051,
+        /**
+         * Scroller 停止拖拽
+         * data {number} 停止拖拽时的坐标和开始拖拽时坐标的差值
+         */
+        ScrollerDragEnd = -1050,
         /**
          * 翻页操作结束
          * event.data 背面面积/正面面积
@@ -12633,6 +12678,7 @@ declare module junyou.Res {
      * @param uri 资源标识
      */
     function get(uri: string): any;
+    function set(uri: string, item: ResItem): boolean;
     /**
      * 移除某个资源
      * @param uri
