@@ -189,6 +189,7 @@ module junyou {
             this.showBar();
             content.on(EventConst.DragMove, this.onDragMove, this);
             content.on(EventConst.DragEnd, this.onDragEnd, this);
+            this.dispatch(EventConst.ScrollerDragStart);
         }
 
         protected getDragPos(e: egret.TouchEvent) {

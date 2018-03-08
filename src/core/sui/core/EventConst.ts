@@ -50,6 +50,10 @@ module junyou {
          * PageList 选中目标后触发
          */
         ITEM_SELECTED = -1052,
+        /**
+         * Scroller 开始拖拽
+         */
+        ScrollerDragStart,
         /** 
          * Scroller 停止拖拽
          * data {number} 停止拖拽时的坐标和开始拖拽时坐标的差值

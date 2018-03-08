@@ -16,8 +16,9 @@ module junyou {
          */
         vgap?: number;
         /**
-         * 列表共有几列（最小1最大9999）
-         * 
+         * 列表共有几列
+         * 如果 `type` 为 ScrollDirection.Horizon 则 默认`Infinity`
+         * 如果 `type` 为 ScrollDirection.Vertical 则 默认`1`
          * @type {number}
          * @memberof PageListOption
          */
@@ -105,7 +106,7 @@ module junyou {
 
         public scroller: Scroller = null;//站位用，便于对Scroller的绑定
         /**0纵向，1横向 */
-        private _scrollType: ScrollDirection;
+        readonly scrollType: ScrollDirection;
 
         private _waitForSetIndex: boolean = false;
         private _waitIndex: number;
@@ -170,16 +171,22 @@ module junyou {
             option = option || Temp.EmptyObject as PageListOption;
             let { hgap, vgap, type, itemWidth, itemHeight, columnCount, staticSize } = option;
             this.staticSize = staticSize;
+            type = ~~type;
             columnCount = ~~columnCount;
             if (columnCount < 1) {
-                columnCount = 1;
+                if (type == ScrollDirection.Horizon) {
+                    columnCount = Infinity;
+                } else {
+                    columnCount = 1;
+                }
             }
             this._columncount = columnCount;
             this._hgap = ~~hgap;
             this._vgap = ~~vgap;
             this.itemWidth = itemWidth;
             this.itemHeight = itemHeight;
-            this._scrollType = ~~type;
+            //@ts-ignore
+            this.scrollType = type;
             this.container = option.con || new egret.Sprite();
         }
 
@@ -417,7 +424,7 @@ module junyou {
                 return;
             }
             let oldPos: number, endPos: number, max: number;
-            if (this._scrollType == ScrollDirection.Vertical) {
+            if (this.scrollType == ScrollDirection.Vertical) {
                 oldPos = rect.y;
                 let d = this.itemHeight;
                 if (!d) {
@@ -441,7 +448,7 @@ module junyou {
                 endPos = max;
             }
             if (rect) {
-                if (this._scrollType == ScrollDirection.Vertical) {
+                if (this.scrollType == ScrollDirection.Vertical) {
                     endPos = endPos - rect.height;
                 } else {
                     endPos = endPos - rect.width;
@@ -458,7 +465,7 @@ module junyou {
             Global.removeTweens(this);
             if (this.useTweenIndex) {
                 this.useTweenIndex = false;
-                let result = this._scrollType == ScrollDirection.Horizon ? { tweenX: endPos } : { tweenY: endPos };
+                let result = this.scrollType == ScrollDirection.Horizon ? { tweenX: endPos } : { tweenY: endPos };
                 let tween = Global.getTween(this).to(result, 500, Ease.quadOut);
                 if (scroller) {
                     scroller.showBar();
@@ -468,7 +475,7 @@ module junyou {
                 if (scroller) {
                     scroller.doMoveScrollBar(oldPos - endPos);
                 }
-                if (this._scrollType == ScrollDirection.Vertical) {
+                if (this.scrollType == ScrollDirection.Vertical) {
                     rect.y = endPos;
                 } else {
                     rect.x = endPos;
@@ -656,7 +663,7 @@ module junyou {
 
         protected _lastRect: egret.Rectangle;
 
-        protected checkViewRect() {
+        checkViewRect() {
             const _con = this._con;
             let rect = _con.scrollRect;
             let list = this._list;
@@ -681,7 +688,7 @@ module junyou {
             if (lastRect) {
                 //检查滚动方向
                 let key1 = PosKey.X, key2 = SizeKey.Width;
-                if (this._scrollType == ScrollDirection.Vertical) {
+                if (this.scrollType == ScrollDirection.Vertical) {
                     key1 = PosKey.Y;
                     key2 = SizeKey.Height;
                 }
