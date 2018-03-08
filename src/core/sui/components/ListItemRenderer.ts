@@ -327,12 +327,12 @@ module junyou {
             this.dispatch(EventConst.CHOOSE_STATE_CHANGE);
         }
 
-        public dispatch(type: Key, bubbles?: boolean, data?: any, cancelable?: boolean) {
+        public dispatch(type: Key, data?: any) {
             let s = this._skin;
             if (s) {
-                s.dispatch(type, bubbles, data, cancelable);
+                s.dispatch(type, data);
             }
-            return super.dispatch(type, bubbles, data, cancelable);
+            return super.dispatch(type, data);
         }
 
         public get selected() {

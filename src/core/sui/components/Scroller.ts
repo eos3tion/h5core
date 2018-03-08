@@ -1,6 +1,11 @@
 module junyou {
 
+
     export class Scroller extends egret.EventDispatcher {
+        /**
+         * 开始拖拽时的坐标
+         */
+        _startPos: number;
         protected _scrollbar: ScrollBar;
 
         protected _content: egret.DisplayObject;
@@ -34,10 +39,9 @@ module junyou {
         protected _lastFrameTime: number;
 
         protected _deriction = ScrollDirection.Vertical;
-        protected _key: PosKey = "y";
-        protected _sizeKey: SizeKey = "height";
-
-        protected _measureKey: string = "measuredHeight";
+        protected _key = PosKey.Y;
+        protected _sizeKey = SizeKey.Height;
+        protected _measureKey = EgretMeasureSizeKey.Height;
 
         public constructor() {
             super();
@@ -48,15 +52,15 @@ module junyou {
         public set scrollType(value: ScrollDirection) {
             if (this._scrollType != value) {
                 this._scrollType = value;
-                let key: PosKey, sizeKey: SizeKey, measureKey: string;
+                let key: PosKey, sizeKey: SizeKey, measureKey: EgretMeasureSizeKey;
                 if (value == ScrollDirection.Vertical) {
-                    key = "y";
-                    sizeKey = "height";
-                    measureKey = "measuredHeight";
+                    key = PosKey.Y;
+                    sizeKey = SizeKey.Height;
+                    measureKey = EgretMeasureSizeKey.Height;
                 } else {
-                    key = "x";
-                    sizeKey = "width";
-                    measureKey = "measuredWidth";
+                    key = PosKey.X;
+                    sizeKey = SizeKey.Width;
+                    measureKey = EgretMeasureSizeKey.Width;
                 }
                 this._sizeKey = sizeKey;
                 this._key = key;
@@ -88,11 +92,7 @@ module junyou {
         }
 
         protected onScrollBarAdded() {
-            if (this.alwaysShowBar) {
-                this._scrollbar.alpha = 1;
-            } else {
-                this._scrollbar.alpha = 0;
-            }
+            this._scrollbar.alpha = ~~this.alwaysShowBar;
         }
 
         /**
@@ -181,36 +181,22 @@ module junyou {
             if (!content) {
                 return;
             }
-            let scrollRect = content.scrollRect;
-            let pos: number;
-            let data = content[this._measureKey];
-            if (this._scrollType == ScrollDirection.Vertical) {
-                if (data < scrollRect.height) {
-                    return;
-                }
-                pos = e.stageY;
-
-            } else {
-                if (data < scrollRect.width) {
-                    return;
-                }
-                pos = e.stageX;
+            if (content[this._measureKey] < content.scrollRect[this._sizeKey]) {
+                return
             }
+            this._lastTargetPos = this._startPos = this.getDragPos(e);
             this._lastMoveTime = Global.now;
-            this._lastTargetPos = pos;
             this.showBar();
             content.on(EventConst.DragMove, this.onDragMove, this);
             content.on(EventConst.DragEnd, this.onDragEnd, this);
         }
 
+        protected getDragPos(e: egret.TouchEvent) {
+            return this._scrollType == ScrollDirection.Vertical ? e.stageY : e.stageX;
+        }
 
         protected onDragMove(e: egret.TouchEvent) {
-            let currentPos: number;
-            if (this._scrollType == ScrollDirection.Vertical) {
-                currentPos = e.stageY;
-            } else {
-                currentPos = e.stageX;
-            }
+            let currentPos = this.getDragPos(e);
             let sub = currentPos - this._lastTargetPos;
             this._deriction = sub > 0 ? 1 : -1;
             sub = Math.abs(sub);
@@ -256,6 +242,7 @@ module junyou {
             if (!content) {
                 return;
             }
+            let currentPos = this.getDragPos(e);
             let now = Global.now;
             if (now - this._lastMoveTime < 150) {
                 content.on(EgretEvent.ENTER_FRAME, this.onRender, this);
@@ -266,23 +253,18 @@ module junyou {
             }
             content.off(EventConst.DragMove, this.onDragMove, this);
             content.off(EventConst.DragEnd, this.onDragEnd, this);
+            this.dispatch(EventConst.ScrollerDragEnd, currentPos - this._startPos);
         }
 
         public showBar() {
-            if (this._useScrollBar) {
-                if (!this.alwaysShowBar) {
-                    let tween: junyou.Tween = Global.getTween(this._scrollbar, undefined, undefined, true);
-                    tween.to({ alpha: 1 }, 500);
-                }
+            if (this._useScrollBar && !this.alwaysShowBar) {
+                Global.getTween(this._scrollbar, null, null, true).to({ alpha: 1 }, 500);
             }
         }
 
         public hideBar() {
-            if (this._useScrollBar) {
-                if (!this.alwaysShowBar) {
-                    let tween = Global.getTween(this._scrollbar, undefined, undefined, true);
-                    tween.to({ alpha: 0 }, 1000);
-                }
+            if (this._useScrollBar && !this.alwaysShowBar) {
+                Global.getTween(this._scrollbar, null, null, true).to({ alpha: 0 }, 1000);
             }
         }
 

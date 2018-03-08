@@ -46,8 +46,15 @@ module junyou {
         PAGE_CHANGE = -1050,
 
         SCROLL_POSITION_CHANGE = -1051,
-
+        /** 
+         * PageList 选中目标后触发
+         */
         ITEM_SELECTED = -1052,
+        /** 
+         * Scroller 停止拖拽
+         * data {number} 停止拖拽时的坐标和开始拖拽时坐标的差值
+         */
+        ScrollerDragEnd,
 
         /*=====================================FLIP======================================== */
         /**

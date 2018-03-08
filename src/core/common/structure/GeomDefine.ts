@@ -1,6 +1,19 @@
 module junyou {
-    export declare type PosKey = "x" | "y";
-    export declare type SizeKey = "width" | "height";
+    export const enum PosKey {
+        X = "x",
+        Y = "y"
+    }
+
+    export const enum SizeKey {
+        Width = "width",
+        Height = "height"
+    }
+
+    export const enum EgretMeasureSizeKey {
+        Height = "measuredHeight",
+        Width = "measuredWidth",
+    }
+
     /**
      * 有`width` `height` 2个属性
      * 
