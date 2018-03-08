@@ -565,7 +565,7 @@ module junyou {
      * @param {*} [data]        数据
      */
     export function dispatch(type: Key, data?: any) {
-        facade.dispatch(type, false, data);
+        facade.dispatch(type, data);
     }
     /**
      * 

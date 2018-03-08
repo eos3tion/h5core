@@ -828,13 +828,11 @@ module egret {
          * @language zh_CN
          * 派发一个指定参数的事件。
          * @param type {string | number} 事件类型
-         * @param bubbles {boolean} 确定 Event 对象是否参与事件流的冒泡阶段。默认值为 false。
          * @param data {any} 事件data
-         * @param cancelable {boolean} 确定是否可以取消 Event 对象。默认值为 false。
          * @version Egret 2.4
          * @platform Web,Native
          */
-        dispatch(type: string | number, bubbles?: boolean, data?: any, cancelable?: boolean): boolean;
+        dispatch(type: junyou.Key, data?: any): boolean;
         /**
          * 移除指定type的监听器
          * 
@@ -955,7 +953,9 @@ module egret {
     ept.on = ept.addEventListener;
     ept.off = ept.removeEventListener;
     ept.hasListen = ept.hasEventListener;
-    ept.dispatch = ept.dispatchEventWith;
+    ept.dispatch = function (this: EventDispatcher, type, data) {
+        return this.dispatchEventWith(type as any, false, data);
+    }
 
 
 

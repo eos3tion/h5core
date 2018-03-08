@@ -275,6 +275,17 @@ module junyou {
             }
         }
 
+        getSize(v: egret.DisplayObject) {
+            let size: Size = v;
+            if (this.staticSize) {
+                let rect = v.suiRawRect;
+                if (rect) {
+                    size = rect;
+                }
+            }
+            return size;
+        }
+
         /**
          * 重新计算Render的坐标
          * 
@@ -310,16 +321,22 @@ module junyou {
 
                     let w = 0;
                     if (v) {
-                        let size: Size = v;
-                        if (staticSize) {
-                            let rect = v.suiRawRect;
-                            if (rect) {
-                                size = rect;
-                            }
+                        let size: Size;
+                        if (itemWidth) {
+                            w = itemWidth;
+                        } else {
+                            size = this.getSize(v);
+                            w = size.width;
                         }
-                        w = size.width;
-                        let vh = size.height;
-
+                        let vh: number;
+                        if (itemHeight) {
+                            vh = itemHeight;
+                        } else {
+                            if (!size) {
+                                size = this.getSize(v);
+                            }
+                            vh = size.height;
+                        }
                         v.x = ox;
                         v.y = oy;
 
@@ -332,7 +349,7 @@ module junyou {
                             lineMaxHeight = vh;
                         }
                     }
-                    ox += _hgap + (itemWidth || w);
+                    ox += _hgap + w;
                 }
                 let mh = oy + lineMaxHeight;
                 if (maxHeight < mh) {
@@ -402,13 +419,21 @@ module junyou {
             let oldPos: number, endPos: number, max: number;
             if (this._scrollType == ScrollDirection.Vertical) {
                 oldPos = rect.y;
-                endPos = v.y + v.height;
-                max = this._h - v.height;
+                let d = this.itemHeight;
+                if (!d) {
+                    d = this.getSize(v).height;
+                }
+                endPos = v.y + d;
+                max = this._h;
 
             } else {
                 oldPos = rect.x;
-                endPos = v.x + v.width;
-                max = this._w - v.width;
+                let d = this.itemWidth;
+                if (!d) {
+                    d = this.getSize(v).width;
+                }
+                endPos = v.x + d;
+                max = this._w;
             }
 
 
@@ -430,11 +455,11 @@ module junyou {
             if (scroller) {
                 scroller.stopTouchTween();
             }
+            Global.removeTweens(this);
             if (this.useTweenIndex) {
-
-                let tween = Global.getTween(this, null, null, true);
+                this.useTweenIndex = false;
                 let result = this._scrollType == ScrollDirection.Horizon ? { tweenX: endPos } : { tweenY: endPos };
-                tween.to(result, 500, Ease.quadOut);
+                let tween = Global.getTween(this).to(result, 500, Ease.quadOut);
                 if (scroller) {
                     scroller.showBar();
                     tween.call(scroller.hideBar, scroller);
@@ -612,6 +637,22 @@ module junyou {
          * @type {number}
          */
         protected _showEnd: number;
+        /**
+         * 在舞台之上的起始索引
+         * 
+         * @readonly
+         */
+        get showStart() {
+            return this._showStart;
+        }
+        /**
+         * 在舞台之上的结束索引
+         * 
+         * @readonly
+         */
+        get showEnd() {
+            return this._showEnd;
+        }
 
         protected _lastRect: egret.Rectangle;
 
@@ -639,10 +680,10 @@ module junyou {
             let checkStart: number, inc: boolean;
             if (lastRect) {
                 //检查滚动方向
-                let key1 = "x", key2 = "width";
+                let key1 = PosKey.X, key2 = SizeKey.Width;
                 if (this._scrollType == ScrollDirection.Vertical) {
-                    key1 = "y";
-                    key2 = "height";
+                    key1 = PosKey.Y;
+                    key2 = SizeKey.Height;
                 }
                 let delta = rect[key1] - lastRect[key1];
                 if (delta == 0 && rect[key2] == lastRect[key2]) {//没有任何变化
@@ -702,7 +743,7 @@ module junyou {
                  *  直到找到最后一个和rect相交的render，再往后则无需检测
                  */
                 for (let i = checkStart; i < len; i++) {
-                    if (check(i)) {
+                    if (check(i, this)) {
                         break;
                     }
                 }
@@ -716,7 +757,7 @@ module junyou {
                 fIdx = len_1;
                 lIdx = 0;
                 for (let i = checkStart; i >= 0; i--) {
-                    if (check(i)) {
+                    if (check(i, this)) {
                         break;
                     }
                 }
@@ -729,7 +770,7 @@ module junyou {
             }
             tmp.length = 0;
             return;
-            function check(i) {
+            function check(i, d: PageList<T, ListItemRender<T>>) {
                 let render = list[i];
                 let v = render.view;
                 if (v) {
@@ -739,8 +780,8 @@ module junyou {
                         rec.x = v.x;
                         rec.y = v.y;
                         let suiRect = v.suiRawRect;
-                        rec.width = suiRect.width;
-                        rec.height = suiRect.height;
+                        rec.width = d.itemWidth || suiRect.width;
+                        rec.height = d.itemHeight || suiRect.height;
                     } else {
                         rec = v;
                     }

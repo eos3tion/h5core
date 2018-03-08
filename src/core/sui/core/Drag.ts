@@ -1,10 +1,16 @@
 module egret {
     export interface TouchEvent {
+        /** 
+         * 和上一帧的 X偏移量
+         */
         deltaX?: number;
+        /**
+         * 和上一帧的 Y偏移量
+         */
         deltaY?: number;
 
         /**
-         * 时间差值
+         * 和上一帧的 时间差值
          */
         deltaTime?: number;
     }
