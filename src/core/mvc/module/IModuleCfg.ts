@@ -78,6 +78,11 @@ module junyou {
 		 * 当模块开启时绑定的回调函数
 		 */
 		onOpen?: $CallbackInfo[];
+
+		/**
+		 * 当模块显示时绑定的回调函数
+		 */
+		onShow?: $CallbackInfo[];
 	}
 
 	export const enum ModuleCloseState {

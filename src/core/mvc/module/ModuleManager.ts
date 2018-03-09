@@ -34,14 +34,19 @@ module junyou {
 
 
         /**
-         * 需要检查显示
+         * 需要检查显示/开启
          */
         _needCheckShow = false;
 
         /**
 		 * 未显示的按钮的模块
 		 */
-        _unshowns: (string | number)[];
+        _unshowns: Key[];
+
+        /**
+         * 未开放的模块
+         */
+        _unopens: Key[];
 
 
         /**
@@ -80,9 +85,10 @@ module junyou {
             this._checkers = [];
             this._allById = {};
             this._unshowns = [];
+            this._unopens = [];
             this._handlersById = {};
             this._ioBind = new Map<egret.DisplayObject, string | number>();
-            on(EventConst.MODULE_NEED_CHECK_SHOW, this.checkShowHandler, this);
+            on(EventConst.MODULE_NEED_CHECK_SHOW, this.check, this);
         }
 
         /**
@@ -193,8 +199,7 @@ module junyou {
                                 limitWarn += cfg.id + " ";
                             }
                         }
-                        if (!this.isModuleShow(cfg)) //
-                        {
+                        if (!this.isModuleShow(cfg)) {
                             let id = cfg.id;
                             this._unshowns.push(id);
                             let displays = this._bindedIOById[id];
@@ -203,6 +208,9 @@ module junyou {
                                     io.visible = false;
                                 }
                             }
+                        }
+                        if (!this.isModuleOpened(cfg)) {
+                            this._unopens.push(id);
                         }
                     }
 
@@ -249,18 +257,18 @@ module junyou {
          * @param module    {string | number | IModuleCfg}    模块或者模块配置
          * @param showtip   是否显示Tip
          */
-        isModuleOpened(module: string | number | IModuleCfg, showtip: boolean): boolean {
-            let cfg: IModuleCfg = this.getCfg(module);
+        isModuleOpened(module: string | number | IModuleCfg, showtip?: boolean): boolean {
+            let cfg = this.getCfg(module);
             if (DEBUG) {
                 if (!cfg) {
                     ThrowError(`没有找到对应的功能配置[${module}]`);
                 }
             }
             if (RELEASE || ClientCheck.isClientCheck) { //屏蔽客户端检测只针对open，不针对show
-                var flag = cfg && !cfg.close && cfg.serverOpen;
+                let flag = cfg && !cfg.close && cfg.serverOpen;
                 if (flag) {
                     if (this._checkers) {
-                        var checker: IModuleChecker = this._checkers[cfg.limittype] as IModuleChecker;
+                        let checker = this._checkers[cfg.limittype];
                         if (checker) {
                             flag = checker.check(cfg.limits, showtip);
                         }
@@ -331,26 +339,35 @@ module junyou {
         }
 
         /**
-		 * 检查显示
+		 * 检查显示/开启
 		 * @param event
 		 *
 		 */
-        checkShowHandler(): void {
+        check(): void {
             this._needCheckShow = true;
-            egret.callLater(this._checkShowHandler, this);
+            egret.callLater(this._check, this);
         }
 
-        _checkShowHandler() {
+        _check() {
             if (!this._needCheckShow) {
                 return;
             }
             this._needCheckShow = false;
             let changed = false;
-            let { _allById, _unshowns } = this;
-            for (let i = _unshowns.length - 1; i >= 0; i--) {
+            let { _allById, _unshowns, _unopens } = this;
+            let j = 0;
+            for (let i = 0; i < _unshowns.length; i++) {
                 let id = _unshowns[i];
                 let cfg = _allById[id];
                 if (this.isModuleShow(cfg)) {
+                    let onShow = cfg.onShow;
+                    if (onShow) {
+                        cfg.onShow = undefined;
+                        for (let d = 0; d < onShow.length; d++) {
+                            const callback = onShow[d];
+                            callback.execute();
+                        }
+                    }
                     let displays = this._bindedIOById[id];
                     if (displays) {
                         for (let dis of displays) {
@@ -358,18 +375,29 @@ module junyou {
                         }
                     }
                     changed = true;
-                    _unshowns.splice(i, 1);
-                    dispatch(EventConst.MODULE_SHOW, id);
-                    let onOpen = cfg.onOpen;
-                    if (onOpen) {
-                        for (let j = 0; j < onOpen.length; j++) {
-                            const callback = onOpen[j];
-                            callback.execute();
-                        }
-                        cfg.onOpen = undefined;
-                    }
+                } else {
+                    _unshowns[j++] = id;
                 }
             }
+            _unshowns.length = j;
+            j = 0;
+            for (let i = 0; i < _unopens.length; i++) {
+                let id = _unopens[i];
+                let cfg = _allById[id];
+                if (this.isModuleOpened(cfg)) {
+                    let onOpen = cfg.onOpen;
+                    if (onOpen) {
+                        cfg.onOpen = undefined;
+                        for (let d = 0; d < onOpen.length; d++) {
+                            const callback = onOpen[d];
+                            callback.execute();
+                        }
+                    }
+                } else {
+                    _unopens[j++] = id;
+                }
+            }
+            _unopens.length = j;
             if (changed) {
                 dispatch(EventConst.MODULE_SHOW_CHANGED, _unshowns.length);
             }
@@ -449,11 +477,16 @@ module junyou {
                 }
             }
         }
-
+        /**
+         * 注册模块开启的回调函数，如果模块已经开启，则直接执行回调
+         * 
+         * @param {Key} mid 
+         * @param {$CallbackInfo} callback 
+         */
         regModuleOpen(mid: Key, callback: $CallbackInfo) {
             let cfg = this._allById[mid];
             if (cfg) {
-                if (this.isModuleOpened(cfg, false)) {
+                if (this.isModuleOpened(cfg)) {
                     callback.execute();
                 } else {
                     let onOpen = cfg.onOpen;
@@ -461,6 +494,26 @@ module junyou {
                         cfg.onOpen = onOpen = [];
                     }
                     onOpen.pushOnce(callback);
+                }
+            }
+        }
+        /**
+         * 注册模块显示的回调函数，如果模块已经开启，则直接执行回调
+         * 
+         * @param {Key} mid 
+         * @param {$CallbackInfo} callback 
+         */
+        regModuleShow(mid: Key, callback: $CallbackInfo) {
+            let cfg = this._allById[mid];
+            if (cfg) {
+                if (this.isModuleShow(cfg)) {
+                    callback.execute();
+                } else {
+                    let onShow = cfg.onShow;
+                    if (!onShow) {
+                        cfg.onShow = onShow = [];
+                    }
+                    onShow.pushOnce(callback);
                 }
             }
         }

@@ -41,7 +41,7 @@ module junyou {
         MODULE_SHOW_CHANGED,
 
 		/**
-		 * 有模块需要检查是否会造成显示变化
+		 * 有模块需要检查是否会造成显示变化或者功能开启发生变更
 		 */
         MODULE_NEED_CHECK_SHOW,
 
