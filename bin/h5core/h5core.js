@@ -13615,7 +13615,7 @@ var junyou;
              */
             this._needCheck = false;
             /**
-             * 需要检查显示
+             * 需要检查显示/开启
              */
             this._needCheckShow = false;
         }
@@ -13625,9 +13625,10 @@ var junyou;
             this._checkers = [];
             this._allById = {};
             this._unshowns = [];
+            this._unopens = [];
             this._handlersById = {};
             this._ioBind = new Map();
-            junyou.on(-993 /* MODULE_NEED_CHECK_SHOW */, this.checkShowHandler, this);
+            junyou.on(-993 /* MODULE_NEED_CHECK_SHOW */, this.check, this);
         };
         /**
          * 设置模块配置数据
@@ -13744,6 +13745,9 @@ var junyou;
                                     io.visible = false;
                                 }
                             }
+                        }
+                        if (!this.isModuleOpened(cfg)) {
+                            this._unopens.push(id);
                         }
                     }
                     if (true) {
@@ -13867,25 +13871,34 @@ var junyou;
             this.toggle(this._ioBind.get(event.currentTarget));
         };
         /**
-         * 检查显示
+         * 检查显示/开启
          * @param event
          *
          */
-        ModuleManager.prototype.checkShowHandler = function () {
+        ModuleManager.prototype.check = function () {
             this._needCheckShow = true;
-            egret.callLater(this._checkShowHandler, this);
+            egret.callLater(this._check, this);
         };
-        ModuleManager.prototype._checkShowHandler = function () {
+        ModuleManager.prototype._check = function () {
             if (!this._needCheckShow) {
                 return;
             }
             this._needCheckShow = false;
             var changed = false;
-            var _a = this, _allById = _a._allById, _unshowns = _a._unshowns;
-            for (var i = _unshowns.length - 1; i >= 0; i--) {
+            var _a = this, _allById = _a._allById, _unshowns = _a._unshowns, _unopens = _a._unopens;
+            var j = 0;
+            for (var i = 0; i < _unshowns.length; i++) {
                 var id = _unshowns[i];
                 var cfg = _allById[id];
                 if (this.isModuleShow(cfg)) {
+                    var onShow = cfg.onShow;
+                    if (onShow) {
+                        cfg.onShow = undefined;
+                        for (var d = 0; d < onShow.length; d++) {
+                            var callback = onShow[d];
+                            callback.execute();
+                        }
+                    }
                     var displays = this._bindedIOById[id];
                     if (displays) {
                         for (var _i = 0, displays_2 = displays; _i < displays_2.length; _i++) {
@@ -13894,18 +13907,31 @@ var junyou;
                         }
                     }
                     changed = true;
-                    _unshowns.splice(i, 1);
-                    junyou.dispatch(-991 /* MODULE_SHOW */, id);
-                    var onOpen = cfg.onOpen;
-                    if (onOpen) {
-                        for (var j = 0; j < onOpen.length; j++) {
-                            var callback = onOpen[j];
-                            callback.execute();
-                        }
-                        cfg.onOpen = undefined;
-                    }
+                }
+                else {
+                    _unshowns[j++] = id;
                 }
             }
+            _unshowns.length = j;
+            j = 0;
+            for (var i = 0; i < _unopens.length; i++) {
+                var id = _unopens[i];
+                var cfg = _allById[id];
+                if (this.isModuleOpened(cfg)) {
+                    var onOpen = cfg.onOpen;
+                    if (onOpen) {
+                        cfg.onOpen = undefined;
+                        for (var d = 0; d < onOpen.length; d++) {
+                            var callback = onOpen[d];
+                            callback.execute();
+                        }
+                    }
+                }
+                else {
+                    _unopens[j++] = id;
+                }
+            }
+            _unopens.length = j;
             if (changed) {
                 junyou.dispatch(-994 /* MODULE_SHOW_CHANGED */, _unshowns.length);
             }
@@ -13982,10 +14008,16 @@ var junyou;
                 }
             }
         };
+        /**
+         * 注册模块开启的回调函数，如果模块已经开启，则直接执行回调
+         *
+         * @param {Key} mid
+         * @param {$CallbackInfo} callback
+         */
         ModuleManager.prototype.regModuleOpen = function (mid, callback) {
             var cfg = this._allById[mid];
             if (cfg) {
-                if (this.isModuleOpened(cfg, false)) {
+                if (this.isModuleOpened(cfg)) {
                     callback.execute();
                 }
                 else {
@@ -13994,6 +14026,27 @@ var junyou;
                         cfg.onOpen = onOpen = [];
                     }
                     onOpen.pushOnce(callback);
+                }
+            }
+        };
+        /**
+         * 注册模块显示的回调函数，如果模块已经开启，则直接执行回调
+         *
+         * @param {Key} mid
+         * @param {$CallbackInfo} callback
+         */
+        ModuleManager.prototype.regModuleShow = function (mid, callback) {
+            var cfg = this._allById[mid];
+            if (cfg) {
+                if (this.isModuleShow(cfg)) {
+                    callback.execute();
+                }
+                else {
+                    var onShow = cfg.onShow;
+                    if (!onShow) {
+                        cfg.onShow = onShow = [];
+                    }
+                    onShow.pushOnce(callback);
                 }
             }
         };

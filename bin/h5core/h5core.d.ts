@@ -7743,7 +7743,7 @@ declare module junyou {
          */
         MODULE_SHOW_CHANGED = -994,
         /**
-         * 有模块需要检查是否会造成显示变化
+         * 有模块需要检查是否会造成显示变化或者功能开启发生变更
          */
         MODULE_NEED_CHECK_SHOW = -993,
         /**
@@ -8569,6 +8569,10 @@ declare module junyou {
          * 当模块开启时绑定的回调函数
          */
         onOpen?: $CallbackInfo[];
+        /**
+         * 当模块显示时绑定的回调函数
+         */
+        onShow?: $CallbackInfo[];
     }
     const enum ModuleCloseState {
         /**
@@ -8665,13 +8669,17 @@ declare module junyou {
          */
         _needCheck: boolean;
         /**
-         * 需要检查显示
+         * 需要检查显示/开启
          */
         _needCheckShow: boolean;
         /**
          * 未显示的按钮的模块
          */
-        _unshowns: (string | number)[];
+        _unshowns: Key[];
+        /**
+         * 未开放的模块
+         */
+        _unopens: Key[];
         /**
          * Key      {number} 模块id<br/>
          * Value    {egret.DisplayObject[]} 绑定在同一个模块上的按钮的数组
@@ -8750,7 +8758,7 @@ declare module junyou {
          * @param module    {string | number | IModuleCfg}    模块或者模块配置
          * @param showtip   是否显示Tip
          */
-        isModuleOpened(module: string | number | IModuleCfg, showtip: boolean): boolean;
+        isModuleOpened(module: string | number | IModuleCfg, showtip?: boolean): boolean;
         /**
          * 将交互对象和功能id进行绑定，当交互对象抛出事件后，会执行功能对应的处理器
          * @param id					功能id
@@ -8766,12 +8774,12 @@ declare module junyou {
          */
         ioHandler(event: egret.Event): void;
         /**
-         * 检查显示
+         * 检查显示/开启
          * @param event
          *
          */
-        checkShowHandler(): void;
-        _checkShowHandler(): void;
+        check(): void;
+        _check(): void;
         /**
          *
          * 打开/关闭指定模块
@@ -8794,7 +8802,20 @@ declare module junyou {
          * @param {boolean} state       模块状态
          */
         serverChangeModuleState(mid: string | number, state: boolean): void;
+        /**
+         * 注册模块开启的回调函数，如果模块已经开启，则直接执行回调
+         *
+         * @param {Key} mid
+         * @param {$CallbackInfo} callback
+         */
         regModuleOpen(mid: Key, callback: $CallbackInfo): void;
+        /**
+         * 注册模块显示的回调函数，如果模块已经开启，则直接执行回调
+         *
+         * @param {Key} mid
+         * @param {$CallbackInfo} callback
+         */
+        regModuleShow(mid: Key, callback: $CallbackInfo): void;
     }
 }
 declare module junyou {
