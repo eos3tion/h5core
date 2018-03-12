@@ -9287,6 +9287,7 @@ declare module junyou {
          * 初始化组件
          * 一定要super调一下
          */
+        private _bind();
         bindComponent(): void;
         private onTouchTap();
         protected $setData(value: T): void;

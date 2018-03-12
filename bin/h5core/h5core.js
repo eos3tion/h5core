@@ -14831,7 +14831,7 @@ var junyou;
          * 初始化组件
          * 一定要super调一下
          */
-        ListItemRenderer.prototype.bindComponent = function () {
+        ListItemRenderer.prototype._bind = function () {
             if (!this._skin) {
                 if (this.skinlib && this.skinClass) {
                     this.skin = junyou.singleton(junyou.SuiResManager).createDisplayObject(this.skinlib, this.skinClass);
@@ -14841,7 +14841,9 @@ var junyou;
                 this.inited = true;
             }
             this.checkInject();
+            this.bindComponent();
         };
+        ListItemRenderer.prototype.bindComponent = function () { };
         ListItemRenderer.prototype.onTouchTap = function () {
             this.dispatch(-1001 /* ITEM_TOUCH_TAP */);
             this.dispatchEventWith("touchTap" /* TOUCH_TAP */);
@@ -14849,7 +14851,7 @@ var junyou;
         ListItemRenderer.prototype.$setData = function (value) {
             this._data = value;
             if (!this.inited) {
-                this.bindComponent();
+                this._bind();
             }
         };
         Object.defineProperty(ListItemRenderer.prototype, "data", {
@@ -14923,7 +14925,7 @@ var junyou;
             if (c) {
                 c.addChild(value);
             }
-            this.bindComponent();
+            this._bind();
         };
         /**
          * 根据数据处理视图
