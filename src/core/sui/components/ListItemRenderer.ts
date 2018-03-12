@@ -129,7 +129,7 @@ module junyou {
          * 初始化组件
          * 一定要super调一下
          */
-        bindComponent() {
+        private _bind() {
             if (!this._skin) {
                 if (this.skinlib && this.skinClass) {
                     this.skin = singleton(SuiResManager).createDisplayObject(this.skinlib, this.skinClass) as S;
@@ -138,7 +138,10 @@ module junyou {
                 this.inited = true;
             }
             this.checkInject();
+            this.bindComponent();
         }
+
+        bindComponent() { }
 
         private onTouchTap() {
             this.dispatch(EventConst.ITEM_TOUCH_TAP);
@@ -148,7 +151,7 @@ module junyou {
         protected $setData(value: T) {
             this._data = value;
             if (!this.inited) {
-                this.bindComponent();
+                this._bind();
             }
         }
 
@@ -216,7 +219,7 @@ module junyou {
             if (c) {
                 c.addChild(value);
             }
-            this.bindComponent();
+            this._bind();
         }
 
         public get skin() {
