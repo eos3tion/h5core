@@ -15423,7 +15423,7 @@ var junyou;
         });
         PageList.prototype.init = function (option) {
             option = option || junyou.Temp.EmptyObject;
-            var hgap = option.hgap, vgap = option.vgap, type = option.type, itemWidth = option.itemWidth, itemHeight = option.itemHeight, columnCount = option.columnCount, staticSize = option.staticSize;
+            var hgap = option.hgap, vgap = option.vgap, type = option.type, itemWidth = option.itemWidth, itemHeight = option.itemHeight, columnCount = option.columnCount, staticSize = option.staticSize, noScroller = option.noScroller, con = option.con;
             this.staticSize = staticSize;
             type = ~~type;
             columnCount = ~~columnCount;
@@ -15442,7 +15442,12 @@ var junyou;
             this.itemHeight = itemHeight;
             //@ts-ignore
             this.scrollType = type;
-            this.container = option.con || new egret.Sprite();
+            this.container = con || new egret.Sprite();
+            if (!noScroller) {
+                var scroller = this.scroller = new junyou.Scroller();
+                scroller.scrollType = this.scrollType;
+                scroller.bindObj2(con, con.suiRawRect);
+            }
         };
         PageList.prototype.displayList = function (data) {
             this._selectedIndex = -1;

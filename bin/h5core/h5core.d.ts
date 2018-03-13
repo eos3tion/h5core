@@ -9582,6 +9582,10 @@ declare module junyou {
          * @memberof PageListOption
          */
         con?: egret.Sprite;
+        /**
+         * 是否 不创建默认的 scroller
+         */
+        noScroller?: boolean;
     }
     class PageList<T, R extends ListItemRender<T>> extends AbsPageList<T, R> {
         protected _factory: ClassFactory<R>;
