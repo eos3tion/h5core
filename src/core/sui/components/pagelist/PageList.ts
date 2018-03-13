@@ -62,6 +62,11 @@ module junyou {
          * @memberof PageListOption
          */
         con?: egret.Sprite;
+
+        /**
+         * 是否 不创建默认的 scroller
+         */
+        noScroller?: boolean;
     }
 
     export class PageList<T, R extends ListItemRender<T>> extends AbsPageList<T, R> {
@@ -169,7 +174,7 @@ module junyou {
 
         protected init(option: PageListOption) {
             option = option || Temp.EmptyObject as PageListOption;
-            let { hgap, vgap, type, itemWidth, itemHeight, columnCount, staticSize } = option;
+            let { hgap, vgap, type, itemWidth, itemHeight, columnCount, staticSize, noScroller, con } = option;
             this.staticSize = staticSize;
             type = ~~type;
             columnCount = ~~columnCount;
@@ -187,7 +192,12 @@ module junyou {
             this.itemHeight = itemHeight;
             //@ts-ignore
             this.scrollType = type;
-            this.container = option.con || new egret.Sprite();
+            this.container = con || new egret.Sprite();
+            if (!noScroller) {
+                let scroller = this.scroller = new Scroller();
+                scroller.scrollType = this.scrollType;
+                scroller.bindObj2(con, con.suiRawRect);
+            }
         }
 
         public set container(con: egret.Sprite) {
