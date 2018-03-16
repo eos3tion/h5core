@@ -123,7 +123,8 @@ module junyou {
      * 在sleep时，从事件监听列表中移除
      * @param {Key} type                         关注的事件
      * @param {(e?: Event) => void} handler          回调函数
-     * @param {boolean} [triggerOnStage=false]      添加到舞台的时候，会立即执行一次，<font color="#f00">注意，处理回调必须能支持不传event的情况</font>
+     * @param {boolean} [triggerOnStage=false]      添加到舞台的时候，会立即执行一次，`<font color="#f00">`注意，处理回调必须能支持不传event的情况`
+     * @param {boolean} [isPrivate=false]           是否为私有方法，如果标记为私有方法，则不会被子类的关注继承
      * @param {number} [priority=0]                 优先级，默认为0
      */
     export function d_interest(eventType: Key, triggerOnStage?: boolean, isPrivate?: boolean, priority?: number) {
