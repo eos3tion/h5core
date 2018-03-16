@@ -109,40 +109,43 @@ module junyou {
          * @type {boolean}
          */
         trigger: boolean;
+
+        /**
+         * 是否为私有监听，此值设置为true则子类不会继承事件监听  
+         * 否则子类将继承事件监听
+         */
+        isPri?: boolean;
     }
+
     /**
-     * 使用注入的方法
-     * 添加关注
+     * 使用@d_interest 注入 添加关注
      * 关注为事件处理回调，只会在awake时，添加到事件监听列表
      * 在sleep时，从事件监听列表中移除
-     * @param {string} type                         关注的事件
+     * @param {Key} type                         关注的事件
      * @param {(e?: Event) => void} handler          回调函数
      * @param {boolean} [triggerOnStage=false]      添加到舞台的时候，会立即执行一次，<font color="#f00">注意，处理回调必须能支持不传event的情况</font>
      * @param {number} [priority=0]                 优先级，默认为0
      */
-    export function interest(eventType: string | number, triggerOnStage?: boolean, priority?: number) {
+    export function d_interest(eventType: Key, triggerOnStage?: boolean, isPrivate?: boolean, priority?: number) {
+        const pKey = "_interests";
         return function (target: any, key: string, value: any) {
-            let _interests = target._interests;
-            if (!_interests) {
-                target._interests = _interests = {};
+            let _interests: { [eventType: string]: Interest };
+            if (target.hasOwnProperty(pKey)) {
+                _interests = target[pKey];
+            } else {
+                //未赋值前，先取值，可取到父级数据，避免使用  Object.getPrototypeOf(target)，ES5没此方法
+                const inherit: { [eventType: string]: Interest } = target[pKey];
+                target[pKey] = _interests = {};
+                if (inherit) {//继承父级可继承的关注列表
+                    for (let k in inherit) {
+                        let int = inherit[k];
+                        if (!int.isPri) {
+                            _interests[k] = int;
+                        }
+                    }
+                }
             }
-            let ins = <Interest>{};
-            ins.handler = value.value;
-            ins.priority = priority || 0;
-            ins.trigger = triggerOnStage;
-            _interests[eventType] = ins;
+            _interests[eventType] = { handler: value.value, priority, trigger: triggerOnStage, isPri: isPrivate };
         }
     }
-}
-module junyou {
-    /**
-    * 使用@d_interest 注入 添加关注
-    * 关注为事件处理回调，只会在awake时，添加到事件监听列表
-    * 在sleep时，从事件监听列表中移除
-    * @param {string} type                         关注的事件
-    * @param {(e?: Event) => void} handler          回调函数
-    * @param {boolean} [triggerOnStage=false]      添加到舞台的时候，会立即执行一次，<font color="#f00">注意，处理回调必须能支持不传event的情况</font>
-    * @param {number} [priority=0]                 优先级，默认为0
-    */
-    export var d_interest = interest;
 }
