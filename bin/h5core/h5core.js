@@ -3064,41 +3064,38 @@ var junyou;
     junyou.ViewController = ViewController;
     __reflect(ViewController.prototype, "junyou.ViewController");
     /**
-     * 使用注入的方法
-     * 添加关注
+     * 使用@d_interest 注入 添加关注
      * 关注为事件处理回调，只会在awake时，添加到事件监听列表
      * 在sleep时，从事件监听列表中移除
-     * @param {string} type                         关注的事件
+     * @param {Key} type                         关注的事件
      * @param {(e?: Event) => void} handler          回调函数
      * @param {boolean} [triggerOnStage=false]      添加到舞台的时候，会立即执行一次，<font color="#f00">注意，处理回调必须能支持不传event的情况</font>
      * @param {number} [priority=0]                 优先级，默认为0
      */
-    function interest(eventType, triggerOnStage, priority) {
+    function d_interest(eventType, triggerOnStage, isPrivate, priority) {
+        var pKey = "_interests";
         return function (target, key, value) {
-            var _interests = target._interests;
-            if (!_interests) {
-                target._interests = _interests = {};
+            var _interests;
+            if (target.hasOwnProperty(pKey)) {
+                _interests = target[pKey];
             }
-            var ins = {};
-            ins.handler = value.value;
-            ins.priority = priority || 0;
-            ins.trigger = triggerOnStage;
-            _interests[eventType] = ins;
+            else {
+                //未赋值前，先取值，可取到父级数据，避免使用  Object.getPrototypeOf(target)，ES5没此方法
+                var inherit = target[pKey];
+                target[pKey] = _interests = {};
+                if (inherit) {
+                    for (var k in inherit) {
+                        var int = inherit[k];
+                        if (!int.isPri) {
+                            _interests[k] = int;
+                        }
+                    }
+                }
+            }
+            _interests[eventType] = { handler: value.value, priority: priority, trigger: triggerOnStage, isPri: isPrivate };
         };
     }
-    junyou.interest = interest;
-})(junyou || (junyou = {}));
-(function (junyou) {
-    /**
-    * 使用@d_interest 注入 添加关注
-    * 关注为事件处理回调，只会在awake时，添加到事件监听列表
-    * 在sleep时，从事件监听列表中移除
-    * @param {string} type                         关注的事件
-    * @param {(e?: Event) => void} handler          回调函数
-    * @param {boolean} [triggerOnStage=false]      添加到舞台的时候，会立即执行一次，<font color="#f00">注意，处理回调必须能支持不传event的情况</font>
-    * @param {number} [priority=0]                 优先级，默认为0
-    */
-    junyou.d_interest = junyou.interest;
+    junyou.d_interest = d_interest;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {

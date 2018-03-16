@@ -2141,30 +2141,22 @@ declare module junyou {
          * @type {boolean}
          */
         trigger: boolean;
+        /**
+         * 是否为私有监听，此值设置为true则子类不会继承事件监听
+         * 否则子类将继承事件监听
+         */
+        isPri?: boolean;
     }
     /**
-     * 使用注入的方法
-     * 添加关注
+     * 使用@d_interest 注入 添加关注
      * 关注为事件处理回调，只会在awake时，添加到事件监听列表
      * 在sleep时，从事件监听列表中移除
-     * @param {string} type                         关注的事件
+     * @param {Key} type                         关注的事件
      * @param {(e?: Event) => void} handler          回调函数
      * @param {boolean} [triggerOnStage=false]      添加到舞台的时候，会立即执行一次，<font color="#f00">注意，处理回调必须能支持不传event的情况</font>
      * @param {number} [priority=0]                 优先级，默认为0
      */
-    function interest(eventType: string | number, triggerOnStage?: boolean, priority?: number): (target: any, key: string, value: any) => void;
-}
-declare module junyou {
-    /**
-    * 使用@d_interest 注入 添加关注
-    * 关注为事件处理回调，只会在awake时，添加到事件监听列表
-    * 在sleep时，从事件监听列表中移除
-    * @param {string} type                         关注的事件
-    * @param {(e?: Event) => void} handler          回调函数
-    * @param {boolean} [triggerOnStage=false]      添加到舞台的时候，会立即执行一次，<font color="#f00">注意，处理回调必须能支持不传event的情况</font>
-    * @param {number} [priority=0]                 优先级，默认为0
-    */
-    var d_interest: typeof interest;
+    function d_interest(eventType: Key, triggerOnStage?: boolean, isPrivate?: boolean, priority?: number): (target: any, key: string, value: any) => void;
 }
 declare module junyou {
     class Scroller extends egret.EventDispatcher {
