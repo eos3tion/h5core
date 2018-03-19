@@ -230,8 +230,11 @@ module junyou {
             stage.on(EgretEvent.RESIZE, this.onModalResize, this);
             width = width || stage.stageWidth;
             height = height || stage.stageHeight;
-            let sx = rect.x - (width - rect.width >> 1);
-            let sy = rect.y - (height - rect.height >> 1);
+            let { scaleX, scaleY } = this;
+            width /= scaleX;
+            height /= scaleY;
+            let sx = rect.x - (width - rect.width / scaleX >> 1);
+            let sy = rect.y - (height - rect.height / scaleX >> 1);
             g.drawRect(sx, sy, width, height);
             g.endFill();
             this.addChildAt(m, 0);
