@@ -1,8 +1,7 @@
-var $useDPR = true;
-var dpr = 1;
-if ((window as any).$useDPR) {
+let dpr = 1;
+function $useDPR() {
     dpr = window.devicePixelRatio || 1;
-    var origin = egret.sys.DefaultScreenAdapter.prototype.calculateStageSize;
+    let origin = egret.sys.DefaultScreenAdapter.prototype.calculateStageSize;
     egret.sys.screenAdapter = {
         calculateStageSize(scaleMode: string, screenWidth: number, screenHeight: number, contentWidth: number, contentHeight: number) {
             let result = origin(scaleMode, screenWidth, screenHeight, contentWidth, contentHeight);
