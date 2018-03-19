@@ -11464,8 +11464,8 @@ declare module junyou {
     */
     function sendToUrl(url: string, always?: boolean): void;
 }
-declare var $useDPR: boolean;
-declare var dpr: number;
+declare let dpr: number;
+declare function $useDPR(): void;
 declare module junyou {
     /**
      * ## 主体UI的容器

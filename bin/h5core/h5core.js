@@ -3069,7 +3069,8 @@ var junyou;
      * 在sleep时，从事件监听列表中移除
      * @param {Key} type                         关注的事件
      * @param {(e?: Event) => void} handler          回调函数
-     * @param {boolean} [triggerOnStage=false]      添加到舞台的时候，会立即执行一次，<font color="#f00">注意，处理回调必须能支持不传event的情况</font>
+     * @param {boolean} [triggerOnStage=false]      添加到舞台的时候，会立即执行一次，`<font color="#f00">`注意，处理回调必须能支持不传event的情况`
+     * @param {boolean} [isPrivate=false]           是否为私有方法，如果标记为私有方法，则不会被子类的关注继承
      * @param {number} [priority=0]                 优先级，默认为0
      */
     function d_interest(eventType, triggerOnStage, isPrivate, priority) {
@@ -14306,8 +14307,11 @@ var junyou;
             stage.on("resize" /* RESIZE */, this.onModalResize, this);
             width = width || stage.stageWidth;
             height = height || stage.stageHeight;
-            var sx = rect.x - (width - rect.width >> 1);
-            var sy = rect.y - (height - rect.height >> 1);
+            var _a = this, scaleX = _a.scaleX, scaleY = _a.scaleY;
+            width /= scaleX;
+            height /= scaleY;
+            var sx = rect.x - (width - rect.width / scaleX >> 1);
+            var sy = rect.y - (height - rect.height / scaleX >> 1);
             g.drawRect(sx, sy, width, height);
             g.endFill();
             this.addChildAt(m, 0);
@@ -19431,9 +19435,8 @@ var junyou;
         };
     }
 })(junyou || (junyou = {}));
-var $useDPR = true;
 var dpr = 1;
-if (window.$useDPR) {
+function $useDPR() {
     dpr = window.devicePixelRatio || 1;
     var origin = egret.sys.DefaultScreenAdapter.prototype.calculateStageSize;
     egret.sys.screenAdapter = {
