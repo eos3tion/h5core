@@ -8,6 +8,147 @@ var __extends = this && this.__extends || function __extends(t, e) {
 for (var i in e) e.hasOwnProperty(i) && (t[i] = e[i]);
 r.prototype = e.prototype, t.prototype = new r();
 };
+var junyou;
+(function (junyou) {
+    /**
+     * Mediator和Proxy的基类
+     * @author 3tion
+     *
+     */
+    var FHost = (function () {
+        function FHost(name) {
+            this._name = name;
+            this.checkInject();
+            if (true) {
+                var classes = $gm.$;
+                if (!classes) {
+                    $gm.$ = classes = {};
+                }
+                classes[this["constructor"]["name"]] = this;
+            }
+        }
+        Object.defineProperty(FHost.prototype, "name", {
+            /**
+             * 唯一标识
+             */
+            get: function () {
+                return this._name;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         * 检查依赖注入的数据
+         *
+         * @protected
+         *
+         * @memberOf FHost
+         */
+        FHost.prototype.checkInject = function () {
+            //此注入是对原型进行的注入，无法直接删除，也不要直接做清理
+            var idp = this._injectProxys;
+            if (idp) {
+                var proxyName = void 0;
+                //检查Proxy
+                for (var key in idp) {
+                    var ref = idp[key];
+                    if (typeof ref === "object") {
+                        proxyName = junyou.Facade.getNameOfInline(ref);
+                    }
+                    else {
+                        proxyName = ref;
+                    }
+                    var proxy = junyou.proxyCall(proxyName);
+                    this[key] = proxy;
+                    proxy._$isDep = true;
+                    this.addDepend(proxy);
+                }
+            }
+        };
+        FHost.prototype.addReadyExecute = function (handle, thisObj) {
+            var args = [];
+            for (var _i = 2; _i < arguments.length; _i++) {
+                args[_i - 2] = arguments[_i];
+            }
+            var _asyncHelper = this._asyncHelper;
+            if (!_asyncHelper) {
+                this._asyncHelper = _asyncHelper = new junyou.AsyncHelper();
+                _asyncHelper._ready = this.isReady;
+            }
+            _asyncHelper.addReadyExecute.apply(_asyncHelper, [handle, thisObj].concat(args));
+        };
+        Object.defineProperty(FHost.prototype, "isReady", {
+            get: function () {
+                return false;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        FHost.prototype.startSync = function () {
+        };
+        /**
+         * 添加依赖项
+         */
+        FHost.prototype.addDepend = function (async) {
+            if (!this._dependerHelper) {
+                this._dependerHelper = new junyou.DependerHelper(this, this.dependerReadyCheck);
+            }
+            this._dependerHelper.addDepend(async);
+        };
+        /**
+         * 依赖项，加载完成后的检查
+         */
+        FHost.prototype.dependerReadyCheck = function () {
+        };
+        /**
+         * 模块在Facade注册时执行
+         */
+        FHost.prototype.onRegister = function () {
+        };
+        /**
+         * 模块从Facade注销时
+         */
+        FHost.prototype.onRemove = function () {
+        };
+        /**
+         * 全部加载好以后要处理的事情<br/>
+         * 包括依赖项加载完毕
+         */
+        FHost.prototype.afterAllReady = function () {
+            // to be override
+        };
+        return FHost;
+    }());
+    junyou.FHost = FHost;
+    __reflect(FHost.prototype, "junyou.FHost", ["junyou.IDepender", "junyou.IAsync"]);
+    /**
+     *
+     * 附加依赖的Proxy
+     * @export
+     * @param {({ new (): IAsync } | string)} ref 如果注册的是Class，必须是Inline方式注册的Proxy
+     * @returns
+     */
+    function __dependProxy(ref) {
+        return function (target, key) {
+            var _injectProxys = target._injectProxys;
+            if (!_injectProxys) {
+                target._injectProxys = _injectProxys = {};
+            }
+            _injectProxys[key] = ref;
+        };
+    }
+    junyou.__dependProxy = __dependProxy;
+})(junyou || (junyou = {}));
+(function (junyou) {
+    /**
+     *
+     * 附加依赖的Proxy
+     * @export
+     * @param {({ new (): IAsync } | string)} ref
+     * @returns
+     */
+    junyou.d_dependProxy = junyou.__dependProxy;
+})(junyou || (junyou = {}));
 /**
  * 对数字进行补0操作
  * @param value 要补0的数值
@@ -647,147 +788,6 @@ var egret;
         };
     }
 })(egret || (egret = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * Mediator和Proxy的基类
-     * @author 3tion
-     *
-     */
-    var FHost = (function () {
-        function FHost(name) {
-            this._name = name;
-            this.checkInject();
-            if (true) {
-                var classes = $gm.$;
-                if (!classes) {
-                    $gm.$ = classes = {};
-                }
-                classes[this["constructor"]["name"]] = this;
-            }
-        }
-        Object.defineProperty(FHost.prototype, "name", {
-            /**
-             * 唯一标识
-             */
-            get: function () {
-                return this._name;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        /**
-         * 检查依赖注入的数据
-         *
-         * @protected
-         *
-         * @memberOf FHost
-         */
-        FHost.prototype.checkInject = function () {
-            //此注入是对原型进行的注入，无法直接删除，也不要直接做清理
-            var idp = this._injectProxys;
-            if (idp) {
-                var proxyName = void 0;
-                //检查Proxy
-                for (var key in idp) {
-                    var ref = idp[key];
-                    if (typeof ref === "object") {
-                        proxyName = junyou.Facade.getNameOfInline(ref);
-                    }
-                    else {
-                        proxyName = ref;
-                    }
-                    var proxy = junyou.proxyCall(proxyName);
-                    this[key] = proxy;
-                    proxy._$isDep = true;
-                    this.addDepend(proxy);
-                }
-            }
-        };
-        FHost.prototype.addReadyExecute = function (handle, thisObj) {
-            var args = [];
-            for (var _i = 2; _i < arguments.length; _i++) {
-                args[_i - 2] = arguments[_i];
-            }
-            var _asyncHelper = this._asyncHelper;
-            if (!_asyncHelper) {
-                this._asyncHelper = _asyncHelper = new junyou.AsyncHelper();
-                _asyncHelper._ready = this.isReady;
-            }
-            _asyncHelper.addReadyExecute.apply(_asyncHelper, [handle, thisObj].concat(args));
-        };
-        Object.defineProperty(FHost.prototype, "isReady", {
-            get: function () {
-                return false;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        FHost.prototype.startSync = function () {
-        };
-        /**
-         * 添加依赖项
-         */
-        FHost.prototype.addDepend = function (async) {
-            if (!this._dependerHelper) {
-                this._dependerHelper = new junyou.DependerHelper(this, this.dependerReadyCheck);
-            }
-            this._dependerHelper.addDepend(async);
-        };
-        /**
-         * 依赖项，加载完成后的检查
-         */
-        FHost.prototype.dependerReadyCheck = function () {
-        };
-        /**
-         * 模块在Facade注册时执行
-         */
-        FHost.prototype.onRegister = function () {
-        };
-        /**
-         * 模块从Facade注销时
-         */
-        FHost.prototype.onRemove = function () {
-        };
-        /**
-         * 全部加载好以后要处理的事情<br/>
-         * 包括依赖项加载完毕
-         */
-        FHost.prototype.afterAllReady = function () {
-            // to be override
-        };
-        return FHost;
-    }());
-    junyou.FHost = FHost;
-    __reflect(FHost.prototype, "junyou.FHost", ["junyou.IDepender", "junyou.IAsync"]);
-    /**
-     *
-     * 附加依赖的Proxy
-     * @export
-     * @param {({ new (): IAsync } | string)} ref 如果注册的是Class，必须是Inline方式注册的Proxy
-     * @returns
-     */
-    function __dependProxy(ref) {
-        return function (target, key) {
-            var _injectProxys = target._injectProxys;
-            if (!_injectProxys) {
-                target._injectProxys = _injectProxys = {};
-            }
-            _injectProxys[key] = ref;
-        };
-    }
-    junyou.__dependProxy = __dependProxy;
-})(junyou || (junyou = {}));
-(function (junyou) {
-    /**
-     *
-     * 附加依赖的Proxy
-     * @export
-     * @param {({ new (): IAsync } | string)} ref
-     * @returns
-     */
-    junyou.d_dependProxy = junyou.__dependProxy;
-})(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
     /**
@@ -2767,134 +2767,6 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
-     * 扩展一个实例，如果A类型实例本身并没有B类型的方法，则直接对实例的属性进行赋值，否则将不会赋值
-     *
-     * @export
-     * @template A
-     * @template B
-     * @param {A} instance                  要扩展的实例
-     * @param {{ prototype: B }} clazzB     需要扩展的对象方法
-     * @param {boolean} override            是否强制覆盖原有方法
-     * @returns {(A & B)}
-     */
-    function expandInstance(instance, clazzB) {
-        var keys = [];
-        for (var _i = 2; _i < arguments.length; _i++) {
-            keys[_i - 2] = arguments[_i];
-        }
-        var bpt = clazzB.prototype;
-        for (var _a = 0, _b = Object.getOwnPropertyNames(bpt); _a < _b.length; _a++) {
-            var name_4 = _b[_a];
-            if (!keys || ~keys.indexOf(name_4)) {
-                var define = bpt.getPropertyDescriptor(name_4);
-                if (define) {
-                    Object.defineProperty(instance, name_4, define);
-                }
-                else {
-                    instance[name_4] = bpt[name_4];
-                }
-            }
-        }
-        return instance;
-    }
-    junyou.expandInstance = expandInstance;
-    /**
-     * 将类型A扩展类型B的指定属性，并返回引用
-     *
-     * @export
-     * @template A
-     * @template B
-     * @template K
-     * @template B
-     * @param {{ prototype: A }} clazzA     要被扩展的类型
-     * @param {{ prototype: B }} clazzB     扩展的模板，已经模板的父类型也会作为模板
-     * @param {...K[]} keys      如果没有参数，则将B的全部属性复制给类型A
-     * @returns {(A & Record<K, B>)}
-     */
-    function expand(clazzA, clazzB) {
-        var keys = [];
-        for (var _i = 2; _i < arguments.length; _i++) {
-            keys[_i - 2] = arguments[_i];
-        }
-        _expand(clazzA.prototype, clazzB.prototype, keys);
-        return clazzA;
-    }
-    junyou.expand = expand;
-    function _expand(pt, bpt, keys) {
-        for (var _i = 0, _a = Object.getOwnPropertyNames(bpt); _i < _a.length; _i++) {
-            var name_5 = _a[_i];
-            if (!keys || ~keys.indexOf(name_5)) {
-                if (!(name_5 in pt)) {
-                    pt[name_5] = bpt[name_5];
-                }
-            }
-        }
-        var sup = Object.getPrototypeOf(bpt);
-        if (sup) {
-            return _expand(pt, sup, keys);
-        }
-    }
-    /**
-     * 获取一个复合类型
-     *
-     * @export
-     * @template A
-     * @template B
-     * @param {{ prototype: A }} clazzA     类型A
-     * @param {{ prototype: B }} clazzB     类型B
-     * @returns
-     */
-    function getMixin(clazzA, clazzB) {
-        var merged = function () { };
-        if (Object.assign) {
-            Object.assign(merged.prototype, clazzA.prototype, clazzB.prototype);
-        }
-        else {
-            merged = expand(merged, clazzA);
-            merged = expand(merged, clazzB);
-        }
-        return merged;
-    }
-    junyou.getMixin = getMixin;
-    /**
-     * 拷贝属性
-     *
-     * @export
-     * @template To
-     * @template From
-     * @param {To} to
-     * @param {From} from
-     * @param {keyof B} key
-     */
-    function copyProperty(to, from, key) {
-        Object.defineProperty(to, key, Object.getOwnPropertyDescriptor(from, key));
-    }
-    junyou.copyProperty = copyProperty;
-    /**
-     * 批量拷贝属性
-     *
-     * @export
-     * @template To
-     * @template From
-     * @param {To} to
-     * @param {From} from
-     * @param {...(keyof From)[]} keys
-     */
-    function copyProperties(to, from) {
-        var keys = [];
-        for (var _i = 2; _i < arguments.length; _i++) {
-            keys[_i - 2] = arguments[_i];
-        }
-        for (var i = 0; i < keys.length; i++) {
-            var key = keys[i];
-            copyProperty(to, from, key);
-        }
-    }
-    junyou.copyProperties = copyProperties;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
      * 用于君游项目数据同步，后台运行<br/>
      * 只有注册和注销，没有awake和sleep
      * @author 3tion
@@ -3760,6 +3632,134 @@ var junyou;
     }(egret.EventDispatcher));
     junyou.AbsPageList = AbsPageList;
     __reflect(AbsPageList.prototype, "junyou.AbsPageList");
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 扩展一个实例，如果A类型实例本身并没有B类型的方法，则直接对实例的属性进行赋值，否则将不会赋值
+     *
+     * @export
+     * @template A
+     * @template B
+     * @param {A} instance                  要扩展的实例
+     * @param {{ prototype: B }} clazzB     需要扩展的对象方法
+     * @param {boolean} override            是否强制覆盖原有方法
+     * @returns {(A & B)}
+     */
+    function expandInstance(instance, clazzB) {
+        var keys = [];
+        for (var _i = 2; _i < arguments.length; _i++) {
+            keys[_i - 2] = arguments[_i];
+        }
+        var bpt = clazzB.prototype;
+        for (var _a = 0, _b = Object.getOwnPropertyNames(bpt); _a < _b.length; _a++) {
+            var name_4 = _b[_a];
+            if (!keys || ~keys.indexOf(name_4)) {
+                var define = bpt.getPropertyDescriptor(name_4);
+                if (define) {
+                    Object.defineProperty(instance, name_4, define);
+                }
+                else {
+                    instance[name_4] = bpt[name_4];
+                }
+            }
+        }
+        return instance;
+    }
+    junyou.expandInstance = expandInstance;
+    /**
+     * 将类型A扩展类型B的指定属性，并返回引用
+     *
+     * @export
+     * @template A
+     * @template B
+     * @template K
+     * @template B
+     * @param {{ prototype: A }} clazzA     要被扩展的类型
+     * @param {{ prototype: B }} clazzB     扩展的模板，已经模板的父类型也会作为模板
+     * @param {...K[]} keys      如果没有参数，则将B的全部属性复制给类型A
+     * @returns {(A & Record<K, B>)}
+     */
+    function expand(clazzA, clazzB) {
+        var keys = [];
+        for (var _i = 2; _i < arguments.length; _i++) {
+            keys[_i - 2] = arguments[_i];
+        }
+        _expand(clazzA.prototype, clazzB.prototype, keys);
+        return clazzA;
+    }
+    junyou.expand = expand;
+    function _expand(pt, bpt, keys) {
+        for (var _i = 0, _a = Object.getOwnPropertyNames(bpt); _i < _a.length; _i++) {
+            var name_5 = _a[_i];
+            if (!keys || ~keys.indexOf(name_5)) {
+                if (!(name_5 in pt)) {
+                    pt[name_5] = bpt[name_5];
+                }
+            }
+        }
+        var sup = Object.getPrototypeOf(bpt);
+        if (sup) {
+            return _expand(pt, sup, keys);
+        }
+    }
+    /**
+     * 获取一个复合类型
+     *
+     * @export
+     * @template A
+     * @template B
+     * @param {{ prototype: A }} clazzA     类型A
+     * @param {{ prototype: B }} clazzB     类型B
+     * @returns
+     */
+    function getMixin(clazzA, clazzB) {
+        var merged = function () { };
+        if (Object.assign) {
+            Object.assign(merged.prototype, clazzA.prototype, clazzB.prototype);
+        }
+        else {
+            merged = expand(merged, clazzA);
+            merged = expand(merged, clazzB);
+        }
+        return merged;
+    }
+    junyou.getMixin = getMixin;
+    /**
+     * 拷贝属性
+     *
+     * @export
+     * @template To
+     * @template From
+     * @param {To} to
+     * @param {From} from
+     * @param {keyof B} key
+     */
+    function copyProperty(to, from, key) {
+        Object.defineProperty(to, key, Object.getOwnPropertyDescriptor(from, key));
+    }
+    junyou.copyProperty = copyProperty;
+    /**
+     * 批量拷贝属性
+     *
+     * @export
+     * @template To
+     * @template From
+     * @param {To} to
+     * @param {From} from
+     * @param {...(keyof From)[]} keys
+     */
+    function copyProperties(to, from) {
+        var keys = [];
+        for (var _i = 2; _i < arguments.length; _i++) {
+            keys[_i - 2] = arguments[_i];
+        }
+        for (var i = 0; i < keys.length; i++) {
+            var key = keys[i];
+            copyProperty(to, from, key);
+        }
+    }
+    junyou.copyProperties = copyProperties;
 })(junyou || (junyou = {}));
 if (true) {
     var $gm = $gm || {};
@@ -4962,171 +4962,45 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    /**
-     * 模型(纸娃娃)渲染器
-     */
-    var UnitRender = (function (_super) {
-        __extends(UnitRender, _super);
-        function UnitRender(unit) {
-            var _this = _super.call(this) || this;
-            _this.faceTo = 0;
-            _this.nextRenderTime = 0;
-            _this.renderedTime = 0;
-            _this.unit = unit;
-            _this.reset(junyou.Global.now);
-            return _this;
+    var UnitSetting = (function () {
+        function UnitSetting() {
+            /**
+             * 是否添加UI层
+             */
+            this.hasUILayer = true;
+            /**
+             * 是否添加Buff容器
+             */
+            this.hasBuffLayer = true;
+            /**
+             * 是否添加光环容器
+             */
+            this.hasHaloLayer = true;
+            /**
+             * 是否添加到游戏场景中
+             */
+            this.addToEngine = true;
+            /**
+             * 深度的参数A
+             */
+            this.depthA = 0;
+            /**
+             * 深度的参数B
+             */
+            this.depthB = 0.19;
         }
-        UnitRender.prototype.reset = function (now) {
-            this.renderedTime = now;
-            this.nextRenderTime = now;
-            this.idx = 0;
+        //防止同一坐标的单位排序深度相同，出现闪烁的情况
+        UnitSetting.prototype.getDepth = function () {
+            return this.depthA + Math.random() * this.depthB;
         };
-        /**
-         * 处理数据
-         *
-         * @param {number} now 时间戳
-         */
-        UnitRender.prototype.doData = function (now) {
-            var actionInfo = this.actionInfo;
-            if (actionInfo) {
-                this.onData(actionInfo, now);
-            }
-        };
-        UnitRender.prototype.render = function (now) {
-            var actionInfo = this.actionInfo;
-            if (actionInfo) {
-                this.onData(actionInfo, now);
-                this.doRender(now);
-            }
-        };
-        UnitRender.prototype.onData = function (actionInfo, now) {
-            _super.prototype.onData.call(this, actionInfo, now);
-            this.unit.lastFrame = this.willRenderFrame;
-        };
-        UnitRender.prototype.clearRes = function () {
-            //清空显示
-            for (var _i = 0, _a = this.model.$children; _i < _a.length; _i++) {
-                var res = _a[_i];
-                res.texture = undefined;
-            }
-        };
-        UnitRender.prototype.renderFrame = function (frame, now) {
-            var flag = this.model.renderFrame(frame, now, this.faceTo, this);
-            this.unit.onRenderFrame(now);
-            if (flag) {
-                this.willRenderFrame = undefined;
-            }
-        };
-        UnitRender.prototype.dispatchEvent = function (event, now) {
-            this.unit.fire(event, now);
-        };
-        UnitRender.prototype.doComplete = function (now) {
-            this.unit.playComplete(now);
-        };
-        UnitRender.prototype.dispose = function () {
-            this.unit = undefined;
-        };
-        return UnitRender;
-    }(junyou.BaseRender));
-    junyou.UnitRender = UnitRender;
-    __reflect(UnitRender.prototype, "junyou.UnitRender");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+        return UnitSetting;
+    }());
+    junyou.UnitSetting = UnitSetting;
+    __reflect(UnitSetting.prototype, "junyou.UnitSetting");
     /**
-     * 资源管理器
+     * 默认的单位设置
      */
-    var _resources = {};
-    function get(resid, noResHandler, thisObj) {
-        var res = getResource(resid);
-        if (!res) {
-            var args = [];
-            for (var i = 3; i < arguments.length; i++) {
-                args[i - 3] = arguments[i];
-            }
-            res = noResHandler.apply(thisObj, args);
-            regResource(resid, res);
-        }
-        return res;
-    }
-    junyou.ResManager = {
-        get: get,
-        /**
-         * 获取纹理资源
-         *
-         * @param {string} resID 资源id
-         * @param {boolean} [noWebp] 是否不加webp后缀
-         * @returns {TextureResource}
-         */
-        getTextureRes: function (resID, noWebp) {
-            var resources = _resources;
-            var res = resources[resID];
-            if (res) {
-                if (!(res instanceof junyou.TextureResource)) {
-                    junyou.ThrowError("[" + resID + "]\u8D44\u6E90\u6709\u8BEF\uFF0C\u4E0D\u662FTextureResource");
-                    res = undefined;
-                }
-            }
-            if (!res) {
-                res = new junyou.TextureResource(resID, noWebp);
-                resources[resID] = res;
-            }
-            return res;
-        },
-        /**
-         * 获取资源
-         */
-        getResource: getResource,
-        // /**
-        //  * 注册资源
-        //  */
-        // regResource,
-        //按时间检测资源
-        init: function () {
-            var tobeDele = [];
-            junyou.TimerUtil.addCallback(30000 /* CheckTime */, function () {
-                var expire = junyou.Global.now - 300000 /* DisposeTime */;
-                var reses = _resources;
-                var delLen = 0;
-                for (var key in reses) {
-                    var res = reses[key];
-                    if (!res.isStatic && res.lastUseTime < expire) {
-                        tobeDele[delLen++] = key;
-                    }
-                }
-                // //对附加的checker进行检查
-                // for (let i = 0; i < _checkers.length; i++) {
-                //     _checkers[i].resCheck(expire);
-                // }
-                for (var i = 0; i < delLen; i++) {
-                    var key = tobeDele[i];
-                    var res = reses[key];
-                    if (res) {
-                        res.dispose();
-                        junyou.Res.remove(res.uri);
-                        delete reses[key];
-                    }
-                }
-            });
-        }
-    };
-    /**
-     * 获取资源
-     */
-    function getResource(resID) {
-        return _resources[resID];
-    }
-    /**
-     * 注册资源
-     */
-    function regResource(resID, res) {
-        var resources = _resources;
-        if (resID in resources) {
-            return resources[resID] === res;
-        }
-        resources[resID] = res;
-        return true;
-    }
+    junyou.defaultUnitSetting = new UnitSetting();
 })(junyou || (junyou = {}));
 if (true) {
     var ErrorTexture = new egret.Texture();
@@ -5232,115 +5106,132 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
-     * 绑定属性名，当属性值发生改变时，可自动对外抛eventType事件
      *
+     * 调整ClassFactory
      * @export
-     * @param {Key} eventType     事件类型
-     * @param {boolean} [selfDispatch]          默认false，使用Facade抛事件，event.data为实例本身
-     *                                          如果为true，需要为EventDispatcher的实现，会使用自身抛事件
-     * @returns
+     * @class ClassFactory
+     * @template T
      */
-    function d_fire(eventType, selfDispatch) {
-        return function (host, property) {
-            var data = host.getPropertyDescriptor(property);
-            if (data && !data.configurable) {
-                return true && junyou.ThrowError("\u65E0\u6CD5\u7ED1\u5B9A" + host + "," + property + ",\u8BE5\u5C5E\u6027\u4E0D\u53EF\u8BBE\u7F6E");
+    var ClassFactory = (function () {
+        /**
+         * @param {Creator<T>} creator
+         * @param {Partial<T>} [props] 属性模板
+         * @memberof ClassFactory
+         */
+        function ClassFactory(creator, props) {
+            this._creator = creator;
+            this._props = props;
+        }
+        /**
+         * 获取实例
+         *
+         * @returns
+         */
+        ClassFactory.prototype.get = function () {
+            var ins = new this._creator();
+            var p = this._props;
+            for (var key in p) {
+                ins[key] = p[key];
             }
-            var key = "$d_fire_e$" + property;
-            var events = host[key];
-            var needSet;
-            if (!events) {
-                host[key] = events = [];
-                needSet = true;
+            return ins;
+        };
+        return ClassFactory;
+    }());
+    junyou.ClassFactory = ClassFactory;
+    __reflect(ClassFactory.prototype, "junyou.ClassFactory");
+    /**
+     * 回收池
+     * @author 3tion
+     *
+     */
+    var RecyclablePool = (function () {
+        function RecyclablePool(TCreator, max) {
+            if (max === void 0) { max = 100; }
+            this._pool = [];
+            this._max = max;
+            this._creator = TCreator;
+        }
+        RecyclablePool.prototype.get = function () {
+            var ins;
+            var pool = this._pool;
+            if (pool.length) {
+                ins = pool.pop();
             }
-            events.push(eventType, selfDispatch);
-            if (needSet) {
-                if (data && data.set && data.get) {
-                    var orgSet_1 = data.set;
-                    data.set = function (value) {
-                        if (this[property] != value) {
-                            orgSet_1.call(this, value);
-                            fire(this, events);
-                        }
-                    };
+            else {
+                ins = new this._creator();
+            }
+            if (typeof ins.onSpawn === "function") {
+                ins.onSpawn();
+            }
+            if (true) {
+                ins._insid = _recid++;
+            }
+            return ins;
+        };
+        /**
+         * 回收
+         */
+        RecyclablePool.prototype.recycle = function (t) {
+            var pool = this._pool;
+            var idx = pool.indexOf(t);
+            if (!~idx) {
+                if (typeof t.onRecycle === "function") {
+                    t.onRecycle();
                 }
-                else if (!data || (!data.get && !data.set)) {
-                    var newProp_1 = "$d_fire_p$" + property;
-                    host[newProp_1] = data && data.value;
-                    data = { enumerable: true, configurable: true };
-                    data.get = function () {
-                        return this[newProp_1];
-                    };
-                    data.set = function (value) {
-                        if (this[newProp_1] != value) {
-                            this[newProp_1] = value;
-                            fire(this, events);
-                        }
-                    };
+                if (pool.length < this._max) {
+                    pool.push(t);
                 }
-                else {
-                    return true && junyou.ThrowError("\u65E0\u6CD5\u7ED1\u5B9A" + host + "," + property);
-                }
-                Object.defineProperty(host, property, data);
             }
         };
-        function fire(host, events) {
-            for (var i = 0; i < events.length; i += 2) {
-                var eventType_1 = events[i];
-                if (events[i + 1]) {
-                    if (typeof host.dispatch === "function") {
-                        host.dispatch(eventType_1);
-                    }
-                }
-                else {
-                    junyou.dispatch(eventType_1, host);
-                }
-            }
-        }
+        return RecyclablePool;
+    }());
+    junyou.RecyclablePool = RecyclablePool;
+    __reflect(RecyclablePool.prototype, "junyou.RecyclablePool");
+    if (true) {
+        var _recid = 0;
     }
-    junyou.d_fire = d_fire;
-    /**
-     * 使用微软vs code中使用的代码
-     * 用于一些 lazy 的调用
-     * https://github.com/Microsoft/vscode/blob/master/src/vs/base/common/decorators.ts
-     *
-     * @export
-     * @param {*} target
-     * @param {string} key
-     * @param {*} descriptor
-     */
-    function d_memoize(target, key, descriptor) {
-        var fnKey = null;
-        var fn = null;
-        if (typeof descriptor.value === 'function') {
-            fnKey = 'value';
-            fn = descriptor.value;
-        }
-        else if (typeof descriptor.get === 'function') {
-            fnKey = 'get';
-            fn = descriptor.get;
-        }
-        if (!fn) {
-            throw new Error('not supported');
-        }
-        var memoizeKey = "$memoize$" + key;
-        descriptor[fnKey] = function () {
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
-            }
-            if (!this.hasOwnProperty(memoizeKey)) {
-                Object.defineProperty(this, memoizeKey, {
-                    configurable: false,
-                    enumerable: false,
-                    writable: false,
-                    value: fn.apply(this, args)
+    function recyclable(clazz, addInstanceRecycle) {
+        var pool = clazz._pool;
+        if (!pool) {
+            if (addInstanceRecycle) {
+                pool = new RecyclablePool(function () {
+                    var ins = new clazz();
+                    ins.recycle = recycle;
+                    return ins;
                 });
             }
-            return this[memoizeKey];
-        };
+            else {
+                pool = new RecyclablePool(clazz);
+                var pt = clazz.prototype;
+                if (pt.recycle == undefined) {
+                    pt.recycle = recycle;
+                }
+            }
+            Object.defineProperty(clazz, "_pool", {
+                value: pool
+            });
+        }
+        return pool.get();
+        function recycle() {
+            pool.recycle(this);
+        }
     }
-    junyou.d_memoize = d_memoize;
+    junyou.recyclable = recyclable;
+    /**
+     * 单例工具
+     * @param clazz 要做单例的类型
+     */
+    function singleton(clazz) {
+        var instance = clazz._instance;
+        if (!instance) {
+            instance = new clazz;
+            Object.defineProperty(clazz, "_instance", {
+                value: instance
+            });
+        }
+        return instance;
+    }
+    junyou.singleton = singleton;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -6073,138 +5964,116 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    try {
-        var supportWebp = document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') == 0;
+    /**
+     * 绑定属性名，当属性值发生改变时，可自动对外抛eventType事件
+     *
+     * @export
+     * @param {Key} eventType     事件类型
+     * @param {boolean} [selfDispatch]          默认false，使用Facade抛事件，event.data为实例本身
+     *                                          如果为true，需要为EventDispatcher的实现，会使用自身抛事件
+     * @returns
+     */
+    function d_fire(eventType, selfDispatch) {
+        return function (host, property) {
+            var data = host.getPropertyDescriptor(property);
+            if (data && !data.configurable) {
+                return true && junyou.ThrowError("\u65E0\u6CD5\u7ED1\u5B9A" + host + "," + property + ",\u8BE5\u5C5E\u6027\u4E0D\u53EF\u8BBE\u7F6E");
+            }
+            var key = "$d_fire_e$" + property;
+            var events = host[key];
+            var needSet;
+            if (!events) {
+                host[key] = events = [];
+                needSet = true;
+            }
+            events.push(eventType, selfDispatch);
+            if (needSet) {
+                if (data && data.set && data.get) {
+                    var orgSet_1 = data.set;
+                    data.set = function (value) {
+                        if (this[property] != value) {
+                            orgSet_1.call(this, value);
+                            fire(this, events);
+                        }
+                    };
+                }
+                else if (!data || (!data.get && !data.set)) {
+                    var newProp_1 = "$d_fire_p$" + property;
+                    host[newProp_1] = data && data.value;
+                    data = { enumerable: true, configurable: true };
+                    data.get = function () {
+                        return this[newProp_1];
+                    };
+                    data.set = function (value) {
+                        if (this[newProp_1] != value) {
+                            this[newProp_1] = value;
+                            fire(this, events);
+                        }
+                    };
+                }
+                else {
+                    return true && junyou.ThrowError("\u65E0\u6CD5\u7ED1\u5B9A" + host + "," + property);
+                }
+                Object.defineProperty(host, property, data);
+            }
+        };
+        function fire(host, events) {
+            for (var i = 0; i < events.length; i += 2) {
+                var eventType_1 = events[i];
+                if (events[i + 1]) {
+                    if (typeof host.dispatch === "function") {
+                        host.dispatch(eventType_1);
+                    }
+                }
+                else {
+                    junyou.dispatch(eventType_1, host);
+                }
+            }
+        }
     }
-    catch (err) { }
-    var _webp = supportWebp ? ".webp" /* WEBP */ : "";
-    var _isNative = egret.Capabilities.engineVersion != "Unknown";
+    junyou.d_fire = d_fire;
     /**
-     *  当前这一帧的时间
+     * 使用微软vs code中使用的代码
+     * 用于一些 lazy 的调用
+     * https://github.com/Microsoft/vscode/blob/master/src/vs/base/common/decorators.ts
+     *
+     * @export
+     * @param {*} target
+     * @param {string} key
+     * @param {*} descriptor
      */
-    var now = 0;
-    /**
-     * 按照帧，应该走的时间
-     * 每帧根据帧率加固定时间
-     * 用于处理逐帧同步用
-     */
-    var frameNow = 0;
-    var _callLater = new junyou.CallLater();
-    var tweenManager = new junyou.TweenManager();
-    var _nextTicks = [];
-    var _intervals = [];
-    /**
-     * 注入白鹭的全局Ticker
-     */
-    function initTick() {
-        //@ts-ignore
-        var ticker = egret.ticker;
-        var update = ticker.render;
-        var delta = 0 | 1000 / ticker.$frameRate;
-        var temp = [];
-        ticker.render = function () {
-            var _now = junyou.DateUtils.serverTime;
-            var dis = _now - now;
-            now = _now;
-            if (dis > 2000) {
-                //有2秒钟大概就是进入过休眠了
-                junyou.dispatch(-190 /* Awake */);
-                frameNow = _now;
+    function d_memoize(target, key, descriptor) {
+        var fnKey = null;
+        var fn = null;
+        if (typeof descriptor.value === 'function') {
+            fnKey = 'value';
+            fn = descriptor.value;
+        }
+        else if (typeof descriptor.get === 'function') {
+            fnKey = 'get';
+            fn = descriptor.get;
+        }
+        if (!fn) {
+            throw new Error('not supported');
+        }
+        var memoizeKey = "$memoize$" + key;
+        descriptor[fnKey] = function () {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
             }
-            else {
-                frameNow += delta;
+            if (!this.hasOwnProperty(memoizeKey)) {
+                Object.defineProperty(this, memoizeKey, {
+                    configurable: false,
+                    enumerable: false,
+                    writable: false,
+                    value: fn.apply(this, args)
+                });
             }
-            try {
-                //执行顺序  nextTick  callLater TimerUtil  tween  最后是白鹭的更新
-                var len = _intervals.length;
-                for (var i = 0; i < len; i++) {
-                    var cb = _intervals[i];
-                    cb.execute(false);
-                }
-                len = _nextTicks.length;
-                var tmp = temp;
-                for (var i = 0; i < len; i++) {
-                    tmp[i] = _nextTicks[i];
-                }
-                _nextTicks.length = 0;
-                //先复制再操作是为了防止回调过程中，有新增的nextTick
-                for (var i = 0; i < len; i++) {
-                    tmp[i].execute();
-                }
-                _callLater.tick(_now);
-                junyou.TimerUtil.tick(_now);
-                tweenManager.tick(dis);
-            }
-            catch (e) {
-                junyou.ThrowError("ticker.render", e);
-            }
-            update.call(ticker);
+            return this[memoizeKey];
         };
     }
-    function nextTick(callback, thisObj) {
-        var args = [];
-        for (var _i = 2; _i < arguments.length; _i++) {
-            args[_i - 2] = arguments[_i];
-        }
-        nextTick2(junyou.CallbackInfo.get.apply(junyou.CallbackInfo, [callback, thisObj].concat(args)));
-    }
-    function nextTick2(callback) {
-        _nextTicks.push(callback);
-    }
-    /**
-     * 动画的全局对象
-     * @author 3tion
-     *
-     */
-    junyou.Global = {
-        initTick: initTick,
-        nextTick: nextTick,
-        nextTick2: nextTick2,
-        callLater: function (callback, time, thisObj) {
-            var args = [];
-            for (var _i = 3; _i < arguments.length; _i++) {
-                args[_i - 3] = arguments[_i];
-            }
-            return _callLater.callLater.apply(_callLater, [callback, now, time, thisObj].concat(args));
-        },
-        clearCallLater: function (callback, thisObj) {
-            return _callLater.clearCallLater(callback, thisObj);
-        },
-        callLater2: function (callback, time) {
-            return _callLater.callLater2(callback, now, time);
-        },
-        clearCallLater2: function (callback) {
-            return _callLater.clearCallLater2(callback);
-        },
-        getTween: function (target, props, pluginData, override) {
-            return tweenManager.get(target, props, pluginData, override);
-        },
-        removeTween: function (tween) {
-            return tweenManager.removeTween(tween);
-        },
-        removeTweens: function (target) {
-            return tweenManager.removeTweens(target);
-        },
-        get isNative() {
-            return _isNative;
-        },
-        tweenManager: tweenManager,
-        get now() {
-            return now;
-        },
-        get frameNow() {
-            return frameNow;
-        },
-        get webp() {
-            return _webp;
-        },
-        addInterval: function (callback) {
-            _intervals.pushOnce(callback);
-        },
-        removeInterval: function (callback) {
-            _intervals.remove(callback);
-        },
-    };
+    junyou.d_memoize = d_memoize;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -6480,6 +6349,141 @@ var junyou;
     }());
     junyou.TimeVO = TimeVO;
     __reflect(TimeVO.prototype, "junyou.TimeVO");
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    try {
+        var supportWebp = document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') == 0;
+    }
+    catch (err) { }
+    var _webp = supportWebp ? ".webp" /* WEBP */ : "";
+    var _isNative = egret.Capabilities.engineVersion != "Unknown";
+    /**
+     *  当前这一帧的时间
+     */
+    var now = 0;
+    /**
+     * 按照帧，应该走的时间
+     * 每帧根据帧率加固定时间
+     * 用于处理逐帧同步用
+     */
+    var frameNow = 0;
+    var _callLater = new junyou.CallLater();
+    var tweenManager = new junyou.TweenManager();
+    var _nextTicks = [];
+    var _intervals = [];
+    /**
+     * 注入白鹭的全局Ticker
+     */
+    function initTick() {
+        //@ts-ignore
+        var ticker = egret.ticker;
+        var update = ticker.render;
+        var delta = 0 | 1000 / ticker.$frameRate;
+        var temp = [];
+        ticker.render = function () {
+            var _now = junyou.DateUtils.serverTime;
+            var dis = _now - now;
+            now = _now;
+            if (dis > 2000) {
+                //有2秒钟大概就是进入过休眠了
+                junyou.dispatch(-190 /* Awake */);
+                frameNow = _now;
+            }
+            else {
+                frameNow += delta;
+            }
+            try {
+                //执行顺序  nextTick  callLater TimerUtil  tween  最后是白鹭的更新
+                var len = _intervals.length;
+                for (var i = 0; i < len; i++) {
+                    var cb = _intervals[i];
+                    cb.execute(false);
+                }
+                len = _nextTicks.length;
+                var tmp = temp;
+                for (var i = 0; i < len; i++) {
+                    tmp[i] = _nextTicks[i];
+                }
+                _nextTicks.length = 0;
+                //先复制再操作是为了防止回调过程中，有新增的nextTick
+                for (var i = 0; i < len; i++) {
+                    tmp[i].execute();
+                }
+                _callLater.tick(_now);
+                junyou.TimerUtil.tick(_now);
+                tweenManager.tick(dis);
+            }
+            catch (e) {
+                junyou.ThrowError("ticker.render", e);
+            }
+            update.call(ticker);
+        };
+    }
+    function nextTick(callback, thisObj) {
+        var args = [];
+        for (var _i = 2; _i < arguments.length; _i++) {
+            args[_i - 2] = arguments[_i];
+        }
+        nextTick2(junyou.CallbackInfo.get.apply(junyou.CallbackInfo, [callback, thisObj].concat(args)));
+    }
+    function nextTick2(callback) {
+        _nextTicks.push(callback);
+    }
+    /**
+     * 动画的全局对象
+     * @author 3tion
+     *
+     */
+    junyou.Global = {
+        initTick: initTick,
+        nextTick: nextTick,
+        nextTick2: nextTick2,
+        callLater: function (callback, time, thisObj) {
+            var args = [];
+            for (var _i = 3; _i < arguments.length; _i++) {
+                args[_i - 3] = arguments[_i];
+            }
+            return _callLater.callLater.apply(_callLater, [callback, now, time, thisObj].concat(args));
+        },
+        clearCallLater: function (callback, thisObj) {
+            return _callLater.clearCallLater(callback, thisObj);
+        },
+        callLater2: function (callback, time) {
+            return _callLater.callLater2(callback, now, time);
+        },
+        clearCallLater2: function (callback) {
+            return _callLater.clearCallLater2(callback);
+        },
+        getTween: function (target, props, pluginData, override) {
+            return tweenManager.get(target, props, pluginData, override);
+        },
+        removeTween: function (tween) {
+            return tweenManager.removeTween(tween);
+        },
+        removeTweens: function (target) {
+            return tweenManager.removeTweens(target);
+        },
+        get isNative() {
+            return _isNative;
+        },
+        tweenManager: tweenManager,
+        get now() {
+            return now;
+        },
+        get frameNow() {
+            return frameNow;
+        },
+        get webp() {
+            return _webp;
+        },
+        addInterval: function (callback) {
+            _intervals.pushOnce(callback);
+        },
+        removeInterval: function (callback) {
+            _intervals.remove(callback);
+        },
+    };
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -11869,6 +11873,77 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
+    /**
+     * 模型(纸娃娃)渲染器
+     */
+    var UnitRender = (function (_super) {
+        __extends(UnitRender, _super);
+        function UnitRender(unit) {
+            var _this = _super.call(this) || this;
+            _this.faceTo = 0;
+            _this.nextRenderTime = 0;
+            _this.renderedTime = 0;
+            _this.unit = unit;
+            _this.reset(junyou.Global.now);
+            return _this;
+        }
+        UnitRender.prototype.reset = function (now) {
+            this.renderedTime = now;
+            this.nextRenderTime = now;
+            this.idx = 0;
+        };
+        /**
+         * 处理数据
+         *
+         * @param {number} now 时间戳
+         */
+        UnitRender.prototype.doData = function (now) {
+            var actionInfo = this.actionInfo;
+            if (actionInfo) {
+                this.onData(actionInfo, now);
+            }
+        };
+        UnitRender.prototype.render = function (now) {
+            var actionInfo = this.actionInfo;
+            if (actionInfo) {
+                this.onData(actionInfo, now);
+                this.doRender(now);
+            }
+        };
+        UnitRender.prototype.onData = function (actionInfo, now) {
+            _super.prototype.onData.call(this, actionInfo, now);
+            this.unit.lastFrame = this.willRenderFrame;
+        };
+        UnitRender.prototype.clearRes = function () {
+            //清空显示
+            for (var _i = 0, _a = this.model.$children; _i < _a.length; _i++) {
+                var res = _a[_i];
+                res.texture = undefined;
+            }
+        };
+        UnitRender.prototype.renderFrame = function (frame, now) {
+            var flag = this.model.renderFrame(frame, now, this.faceTo, this);
+            this.unit.onRenderFrame(now);
+            if (flag) {
+                this.willRenderFrame = undefined;
+            }
+        };
+        UnitRender.prototype.dispatchEvent = function (event, now) {
+            this.unit.fire(event, now);
+        };
+        UnitRender.prototype.doComplete = function (now) {
+            this.unit.playComplete(now);
+        };
+        UnitRender.prototype.dispose = function () {
+            this.unit = undefined;
+        };
+        return UnitRender;
+    }(junyou.BaseRender));
+    junyou.UnitRender = UnitRender;
+    __reflect(UnitRender.prototype, "junyou.UnitRender");
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
     function getData(valueList, keyList, o) {
         o = o || {};
         for (var i = 0, len = keyList.length; i < len; i++) {
@@ -12017,48 +12092,6 @@ var junyou;
             }
         }
     };
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    var UnitSetting = (function () {
-        function UnitSetting() {
-            /**
-             * 是否添加UI层
-             */
-            this.hasUILayer = true;
-            /**
-             * 是否添加Buff容器
-             */
-            this.hasBuffLayer = true;
-            /**
-             * 是否添加光环容器
-             */
-            this.hasHaloLayer = true;
-            /**
-             * 是否添加到游戏场景中
-             */
-            this.addToEngine = true;
-            /**
-             * 深度的参数A
-             */
-            this.depthA = 0;
-            /**
-             * 深度的参数B
-             */
-            this.depthB = 0.19;
-        }
-        //防止同一坐标的单位排序深度相同，出现闪烁的情况
-        UnitSetting.prototype.getDepth = function () {
-            return this.depthA + Math.random() * this.depthB;
-        };
-        return UnitSetting;
-    }());
-    junyou.UnitSetting = UnitSetting;
-    __reflect(UnitSetting.prototype, "junyou.UnitSetting");
-    /**
-     * 默认的单位设置
-     */
-    junyou.defaultUnitSetting = new UnitSetting();
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -13268,147 +13301,6 @@ var junyou;
     }());
     junyou.ModuleScript = ModuleScript;
     __reflect(ModuleScript.prototype, "junyou.ModuleScript");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    function call(info, ars) {
-        var args = [];
-        var i = 0;
-        if (ars) {
-            for (; i < ars.length; i++) {
-                args[i] = ars[i];
-            }
-        }
-        var argus = info.args;
-        if (argus) {
-            for (var j = 0; j < argus.length; j++) {
-                args[i++] = argus[j];
-            }
-        }
-        var callback = info.callback;
-        if (callback != undefined) {
-            try {
-                return callback.apply(info.thisObj, args);
-            }
-            catch (e) {
-                if (true) {
-                    var debug = info["_debug"];
-                    junyou.ThrowError("CallbackInfo\u6267\u884C\u62A5\u9519\uFF0C\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n}==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + e.stack);
-                    console.log.apply(console, ["参数列表"].concat(this.args));
-                }
-            }
-        }
-        else if (true) {
-            var debug = info["_debug"];
-            junyou.ThrowError("\u5BF9\u5DF2\u56DE\u6536\u7684CallbackInfo\u6267\u884C\u4E86\u56DE\u8C03\uFF0C\u6700\u540E\u4E00\u6B21\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + new Error().stack);
-        }
-    }
-    /**
-     * 回调信息，用于存储回调数据
-     * @author 3tion
-     *
-     */
-    var CallbackInfo = (function () {
-        function CallbackInfo() {
-            this.doRecycle = true;
-            if (true) {
-                var data = { enumerable: true, configurable: true };
-                data.get = function () {
-                    return this._cb;
-                };
-                data.set = function (value) {
-                    if (this._cb != value) {
-                        this._cb = value;
-                        if (value != undefined) {
-                            this._debug = { handle: value.toString(), stack: new Error().stack };
-                        }
-                    }
-                };
-                Object.defineProperty(this, "callback", data);
-            }
-        }
-        CallbackInfo.prototype.init = function (callback, thisObj, args) {
-            this.callback = callback;
-            this.args = args;
-            this.thisObj = thisObj;
-        };
-        /**
-         * 检查回调是否一致，只检查参数和this对象,不检查参数
-         */
-        CallbackInfo.prototype.checkHandle = function (callback, thisObj) {
-            return this.callback === callback && this.thisObj == thisObj /* 允许null==undefined */;
-        };
-        /**
-         * 执行回调
-         * 回调函数，将以args作为参数，callback作为函数执行
-         * @param {boolean} [doRecycle] 是否回收CallbackInfo，默认为true
-         */
-        CallbackInfo.prototype.execute = function (doRecycle) {
-            var callback = this.callback;
-            var result = call(this);
-            if (doRecycle == undefined) {
-                doRecycle = this.doRecycle;
-            }
-            if (doRecycle) {
-                this.recycle();
-            }
-            return result;
-        };
-        CallbackInfo.prototype.call = function () {
-            return call(this, arguments);
-        };
-        CallbackInfo.prototype.callAndRecycle = function () {
-            var result = call(this, arguments);
-            this.recycle();
-            return result;
-        };
-        CallbackInfo.prototype.onRecycle = function () {
-            this.callback = undefined;
-            this.args = undefined;
-            this.thisObj = undefined;
-            this.doRecycle = true;
-        };
-        /**
-         * 获取CallbackInfo的实例
-         */
-        CallbackInfo.get = function (callback, thisObj) {
-            var args = [];
-            for (var _i = 2; _i < arguments.length; _i++) {
-                args[_i - 2] = arguments[_i];
-            }
-            var info = junyou.recyclable(CallbackInfo);
-            info.init(callback, thisObj, args);
-            return info;
-        };
-        /**
-         * 加入到数组
-         * 检查是否有this和handle相同的callback，如果有，就用新的参数替换旧参数
-         * @param list
-         * @param handle
-         * @param args
-         * @param thisObj
-         */
-        CallbackInfo.addToList = function (list, handle, thisObj) {
-            var args = [];
-            for (var _i = 3; _i < arguments.length; _i++) {
-                args[_i - 3] = arguments[_i];
-            }
-            //检查是否有this和handle相同的callback
-            for (var _a = 0, list_2 = list; _a < list_2.length; _a++) {
-                var callback = list_2[_a];
-                if (callback.checkHandle(handle, thisObj)) {
-                    callback.args = args;
-                    return callback;
-                }
-            }
-            callback = this.get.apply(this, [handle, thisObj].concat(args));
-            list.push(callback);
-            return callback;
-        };
-        return CallbackInfo;
-    }());
-    junyou.CallbackInfo = CallbackInfo;
-    __reflect(CallbackInfo.prototype, "junyou.CallbackInfo", ["junyou.IRecyclable"]);
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -17566,133 +17458,144 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    /**
-     *
-     * 调整ClassFactory
-     * @export
-     * @class ClassFactory
-     * @template T
-     */
-    var ClassFactory = (function () {
-        /**
-         * @param {Creator<T>} creator
-         * @param {Partial<T>} [props] 属性模板
-         * @memberof ClassFactory
-         */
-        function ClassFactory(creator, props) {
-            this._creator = creator;
-            this._props = props;
-        }
-        /**
-         * 获取实例
-         *
-         * @returns
-         */
-        ClassFactory.prototype.get = function () {
-            var ins = new this._creator();
-            var p = this._props;
-            for (var key in p) {
-                ins[key] = p[key];
+    function call(info, ars) {
+        var args = [];
+        var i = 0;
+        if (ars) {
+            for (; i < ars.length; i++) {
+                args[i] = ars[i];
             }
-            return ins;
-        };
-        return ClassFactory;
-    }());
-    junyou.ClassFactory = ClassFactory;
-    __reflect(ClassFactory.prototype, "junyou.ClassFactory");
+        }
+        var argus = info.args;
+        if (argus) {
+            for (var j = 0; j < argus.length; j++) {
+                args[i++] = argus[j];
+            }
+        }
+        var callback = info.callback;
+        if (callback != undefined) {
+            try {
+                return callback.apply(info.thisObj, args);
+            }
+            catch (e) {
+                if (true) {
+                    var debug = info["_debug"];
+                    junyou.ThrowError("CallbackInfo\u6267\u884C\u62A5\u9519\uFF0C\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n}==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + e.stack);
+                    console.log.apply(console, ["参数列表"].concat(this.args));
+                }
+            }
+        }
+        else if (true) {
+            var debug = info["_debug"];
+            junyou.ThrowError("\u5BF9\u5DF2\u56DE\u6536\u7684CallbackInfo\u6267\u884C\u4E86\u56DE\u8C03\uFF0C\u6700\u540E\u4E00\u6B21\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + new Error().stack);
+        }
+    }
     /**
-     * 回收池
+     * 回调信息，用于存储回调数据
      * @author 3tion
      *
      */
-    var RecyclablePool = (function () {
-        function RecyclablePool(TCreator, max) {
-            if (max === void 0) { max = 100; }
-            this._pool = [];
-            this._max = max;
-            this._creator = TCreator;
-        }
-        RecyclablePool.prototype.get = function () {
-            var ins;
-            var pool = this._pool;
-            if (pool.length) {
-                ins = pool.pop();
-            }
-            else {
-                ins = new this._creator();
-            }
-            if (typeof ins.onSpawn === "function") {
-                ins.onSpawn();
-            }
+    var CallbackInfo = (function () {
+        function CallbackInfo() {
+            this.doRecycle = true;
             if (true) {
-                ins._insid = _recid++;
+                var data = { enumerable: true, configurable: true };
+                data.get = function () {
+                    return this._cb;
+                };
+                data.set = function (value) {
+                    if (this._cb != value) {
+                        this._cb = value;
+                        if (value != undefined) {
+                            this._debug = { handle: value.toString(), stack: new Error().stack };
+                        }
+                    }
+                };
+                Object.defineProperty(this, "callback", data);
             }
-            return ins;
+        }
+        CallbackInfo.prototype.init = function (callback, thisObj, args) {
+            this.callback = callback;
+            this.args = args;
+            this.thisObj = thisObj;
         };
         /**
-         * 回收
+         * 检查回调是否一致，只检查参数和this对象,不检查参数
          */
-        RecyclablePool.prototype.recycle = function (t) {
-            var pool = this._pool;
-            var idx = pool.indexOf(t);
-            if (!~idx) {
-                if (typeof t.onRecycle === "function") {
-                    t.onRecycle();
-                }
-                if (pool.length < this._max) {
-                    pool.push(t);
-                }
-            }
+        CallbackInfo.prototype.checkHandle = function (callback, thisObj) {
+            return this.callback === callback && this.thisObj == thisObj /* 允许null==undefined */;
         };
-        return RecyclablePool;
-    }());
-    junyou.RecyclablePool = RecyclablePool;
-    __reflect(RecyclablePool.prototype, "junyou.RecyclablePool");
-    if (true) {
-        var _recid = 0;
-    }
-    function recyclable(clazz, addInstanceRecycle) {
-        var pool = clazz._pool;
-        if (!pool) {
-            if (addInstanceRecycle) {
-                pool = new RecyclablePool(function () {
-                    var ins = new clazz();
-                    ins.recycle = recycle;
-                    return ins;
-                });
+        /**
+         * 执行回调
+         * 回调函数，将以args作为参数，callback作为函数执行
+         * @param {boolean} [doRecycle] 是否回收CallbackInfo，默认为true
+         */
+        CallbackInfo.prototype.execute = function (doRecycle) {
+            var callback = this.callback;
+            var result = call(this);
+            if (doRecycle == undefined) {
+                doRecycle = this.doRecycle;
             }
-            else {
-                pool = new RecyclablePool(clazz);
-                var pt = clazz.prototype;
-                if (pt.recycle == undefined) {
-                    pt.recycle = recycle;
+            if (doRecycle) {
+                this.recycle();
+            }
+            return result;
+        };
+        CallbackInfo.prototype.call = function () {
+            return call(this, arguments);
+        };
+        CallbackInfo.prototype.callAndRecycle = function () {
+            var result = call(this, arguments);
+            this.recycle();
+            return result;
+        };
+        CallbackInfo.prototype.onRecycle = function () {
+            this.callback = undefined;
+            this.args = undefined;
+            this.thisObj = undefined;
+            this.doRecycle = true;
+        };
+        /**
+         * 获取CallbackInfo的实例
+         */
+        CallbackInfo.get = function (callback, thisObj) {
+            var args = [];
+            for (var _i = 2; _i < arguments.length; _i++) {
+                args[_i - 2] = arguments[_i];
+            }
+            var info = junyou.recyclable(CallbackInfo);
+            info.init(callback, thisObj, args);
+            return info;
+        };
+        /**
+         * 加入到数组
+         * 检查是否有this和handle相同的callback，如果有，就用新的参数替换旧参数
+         * @param list
+         * @param handle
+         * @param args
+         * @param thisObj
+         */
+        CallbackInfo.addToList = function (list, handle, thisObj) {
+            var args = [];
+            for (var _i = 3; _i < arguments.length; _i++) {
+                args[_i - 3] = arguments[_i];
+            }
+            //检查是否有this和handle相同的callback
+            for (var _a = 0, list_2 = list; _a < list_2.length; _a++) {
+                var callback = list_2[_a];
+                if (callback.checkHandle(handle, thisObj)) {
+                    callback.args = args;
+                    return callback;
                 }
             }
-            Object.defineProperty(clazz, "_pool", {
-                value: pool
-            });
-        }
-        return pool.get();
-        function recycle() {
-            pool.recycle(this);
-        }
-    }
-    junyou.recyclable = recyclable;
-    /**
-     * 单例工具
-     * @param clazz 要做单例的类型
-     */
-    function singleton(clazz) {
-        var instance = clazz._instance;
-        if (!instance) {
-            instance = new clazz;
-            Object.defineProperty(clazz, "_instance", {
-                value: instance
-            });
-        }
-        return instance;
-    }
-    junyou.singleton = singleton;
+            callback = this.get.apply(this, [handle, thisObj].concat(args));
+            list.push(callback);
+            return callback;
+        };
+        return CallbackInfo;
+    }());
+    junyou.CallbackInfo = CallbackInfo;
+    __reflect(CallbackInfo.prototype, "junyou.CallbackInfo", ["junyou.IRecyclable"]);
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -19394,46 +19297,220 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
-    var _unSendList = [];
-    var img = new window.Image(); //使用Image，在https下，不会因为最终请求地址为http，导致浏览器将请求拦截，详情参考 https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content
-    var _requestState = 0 /* UNREQUEST */;
-    img.crossOrigin = "anonymous";
-    img.onerror = callBack(-1 /* FAILED */);
-    img.onload = callBack(2 /* COMPLETE */);
+    // const enum Const {
+    //     /**
+    //      * 
+    //      * ## 概述
+    //      * 首先要看TCP/IP协议，涉及到四层：链路层，网络层，传输层，应用层。  
+    //      * 其中以太网（Ethernet）的数据帧在链路层  
+    //      * IP包在网络层  
+    //      * TCP或UDP包在传输层  
+    //      * TCP或UDP中的数据（Data)在应用层  
+    //      * 它们的关系是 数据帧｛IP包｛TCP或UDP包｛Data｝｝｝  
+    //      *
+    //      * 不同的协议层对数据包有不同的称谓，在传输层叫做段(segment)，在网络层叫做数据报(datagram)，在链路层叫做帧(frame)。数据封装成帧后发到传输介质上，到达目的主机后每层协议再剥掉相应的首部，最后将应用层数据交给应用程序处理。
+    //      *
+    //      * 在应用程序中我们用到的Data的长度最大是多少，直接取决于底层的限制。  
+    //      * 我们从下到上分析一下：  
+    //      *      1. 在链路层，由以太网的物理特性决定了数据帧的长度为(46＋18)－(1500＋18)，其中的18是数据帧的头和尾，也就是说数据帧的内容最大为1500(不包括帧头和帧尾)，即MTU(Maximum Transmission Unit)为1500； 　
+    //      *      2. 在网络层，因为IP包的首部要占用20字节，所以这的MTU为1500－20＝1480；　
+    //      *      3. 在传输层，对于UDP包的首部要占用8字节，所以这的MTU为1480－8＝1472；  
+    //      * 
+    //      * 所以，在应用层，你的Data最大长度为1472。当我们的UDP包中的数据多于MTU(1472)时，发送方的IP层需要分片fragmentation进行传输，而在接收方IP层则需要进行数据报重组，由于UDP是不可靠的传输协议，如果分片丢失导致重* 组失败，将导致UDP数据包被丢弃。  
+    //      * 从上面的分析来看，在普通的局域网环境下，UDP的数据最大为1472字节最好(避免分片重组)。  
+    //      * 但在网络编程中，Internet中的路由器可能有设置成不同的值(小于默认值)，Internet上的标准MTU值为576，所以Internet的UDP编程时数据长度最好在576－20－8＝548字节以内。
+    //      *
+    //      * 
+    //      * ## TCP、UDP数据包最大值的确定
+    //      * UDP和TCP协议利用端口号实现多项应用同时发送和接收数据。数据通过源端口发送出去，通过目标端口接收。有的网络应用只能使用预留或注册的静态端口；而另外一些网络应用则可以使用未被注册的动态端口。因为UDP和TCP报头使* 用两个字节存放端口号，所以端口号的有效范围是从0到65535。动态端口的范围是从1024到65535。  
+    //      * MTU最大传输单元，这个最大传输单元实际上和链路层协议有着密切的关系，EthernetII帧的结构DMAC+SMAC+Type+Data+CRC由于以太网传输电气方面的限制，每个以太网帧都有最小的大小64Bytes最大不能超过1518Bytes，对于小* 于或者大于这个限制的以太网帧我们都可以视之为错误的数据帧，一般的以太网转发设备会丢弃这些数据帧。  
+    //      * 
+    //      * 由于以太网EthernetII最大的数据帧是1518Bytes这样，刨去以太网帧的帧头（DMAC目的MAC地址48bits=6Bytes+SMAC源MAC地址48bits=6Bytes+Type域2Bytes）14Bytes和帧尾CRC校验部分4Bytes那么剩下承载上层协议的地方也就是Data域最大就只能有1500Bytes这个值我们就把它称之为MTU。  
+    //      * UDP 包的大小就应该是 1500 - IP头(20) - UDP头(8) = 1472(Bytes)  
+    //      * TCP 包的大小就应该是 1500 - IP头(20) - TCP头(20) = 1460 (Bytes)  
+    //      * 以上内容原网址：http://blog.csdn.net/caoshangpa/article/details/51530685
+    //      * 
+    //      * WebSocket的头部字节数为 2 - 8 字节  
+    //      * 
+    //      * ```
+    //      *  0                   1                   2                   3  
+    //      *  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1  
+    //      * +-+-+-+-+-------+-+-------------+-------------------------------+  
+    //      * |F|R|R|R| opcode|M| Payload len |    Extended payload length    |  
+    //      * |I|S|S|S|  (4)  |A|     (7)     |             (16/64)           |  
+    //      * |N|V|V|V|       |S|             |   (if payload len==126/127)   |  
+    //      * | |1|2|3|       |K|             |                               |  
+    //      * +-+-+-+-+-------+-+-------------+ - - - - - - - - - - - - - - - +  
+    //      * |     Extended payload length continued, if payload len == 127  |  
+    //      * + - - - - - - - - - - - - - - - +-------------------------------+  
+    //      * |                               |Masking-key, if MASK set to 1  |  
+    //      * +-------------------------------+-------------------------------+  
+    //      * | Masking-key (continued)       |          Payload Data         |  
+    //      * +-------------------------------- - - - - - - - - - - - - - - - +  
+    //      * :                     Payload Data continued ...                :  
+    //      * + - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - +  
+    //      * |                     Payload Data continued ...                |  
+    //      * +---------------------------------------------------------------+  
+    //      * ```
+    // }
+    // 上面操作是多余的，参看netty的源码
+    // https://github.com/netty/netty/tree/4.1/codec/src/main/java/io/netty/handler/codec
+    // https://github.com/netty/netty/tree/4.1/codec-socks/src/main/java/io/netty/handler/codec/socks
+    // https://github.com/netty/netty/tree/4.1/transport/src/main/java/io/netty
+    // 参看Chrome的源码 
+    // https://src.chromium.org/viewvc/chrome/trunk/src/net/socket/
+    // https://src.chromium.org/viewvc/chrome/trunk/src/net/socket_stream/
+    // https://src.chromium.org/viewvc/chrome/trunk/src/net/websockets/
+    // 均没有针对[MTU](http://baike.baidu.com/item/mtu)进行业务层面的分帧的代码处理  
+    // 然后和服务端重新进行调试，发送大的(50003Bytes)的一帧WebSocketFrame，让服务端也开[WireShark](http://www.wireshark.org)进行捕获
+    // 发现客户端对服务端发送的数据帧是多个TCP帧的，并且每个帧都复合`MTU`，故删除以上代码
+    // 仔细研读`WireShark`的客户端向服务端发送的数据帧的说明，其中提到`[Total Length: 50051 bytes (reported as 0, presumed to be because of "TCP segmentation offload" (TSO))]`
+    // **TSO**（TCP Segment Offload）是一种利用网卡的少量处理能力，降低CPU发送数据包负载的技术，需要网卡硬件及驱动的支持。  http://baike.baidu.com/item/tso/1843452
     /**
-    *
-    * 发起可以不需要回调响应的跨域get请求
-    * @param {string} url          发起请求的地址
-    * @param {boolean} [always]    是否总是发起请求
-    *                              false（默认） 请求已经在列队中，则不会重复发起请求
-    *                              true 不管相同地址的请求之前是否已经发起，继续发起请求
-    */
-    function sendToUrl(url, always) {
-        if (_requestState == 1 /* REQUESTING */) {
-            if (always) {
-                _unSendList.push(url);
-            }
-            else {
-                _unSendList.pushOnce(url);
-            }
-            return;
+     * WebSocket版本的NetService
+     * @author 3tion
+     */
+    var WSNetService = (function (_super) {
+        __extends(WSNetService, _super);
+        function WSNetService() {
+            var _this = _super.call(this) || this;
+            _this.onOpen = function () {
+                _this._ws.onopen = null;
+                if (true) {
+                    console.log("webSocket连接成功");
+                }
+                junyou.dispatch(-197 /* Connected */);
+            };
+            /**
+             *
+             * 发生错误
+             * @protected
+             */
+            _this.onError = function (ev) {
+                if (true) {
+                    junyou.ThrowError("socket发生错误", ev.error);
+                }
+                junyou.dispatch(-196 /* ConnectFailed */);
+            };
+            /**
+             *
+             * 断开连接
+             * @protected
+             */
+            _this.onClose = function (ev) {
+                if (true) {
+                    console.log("socket断开连接");
+                }
+                egret.callLater(junyou.dispatch, junyou, -195 /* Disconnect */);
+            };
+            /**
+             *
+             * 收到消息
+             * @protected
+             */
+            _this.onData = function (ev) {
+                var readBuffer = _this._readBuffer;
+                var ab = new Uint8Array(ev.data);
+                var temp;
+                var position = readBuffer.position;
+                var buffer = readBuffer.buffer;
+                var length = buffer.byteLength;
+                if (position < length) {
+                    var rb = new Uint8Array(buffer);
+                    var rbLen = length - position;
+                    var abLen = ab.length;
+                    temp = new Uint8Array(rbLen + abLen);
+                    var i = 0, m = void 0;
+                    for (m = 0; m < rbLen; m++) {
+                        temp[i++] = rb[position + m];
+                    }
+                    for (m = 0; m < abLen; m++) {
+                        temp[i++] = ab[m];
+                    }
+                }
+                else {
+                    temp = ab;
+                }
+                readBuffer.replaceBuffer(temp.buffer);
+                readBuffer.position = 0;
+                _this.decodeBytes(readBuffer);
+            };
+            //覆盖instance
+            junyou.NetService._ins = _this;
+            return _this;
         }
-        _requestState = 1 /* REQUESTING */;
-        img.src = url;
-    }
-    junyou.sendToUrl = sendToUrl;
-    ;
-    function callBack(state) {
-        return function () {
-            _requestState = state;
-            if (true) {
-                console.log(img.src, "callBack:", state);
-            }
-            if (_unSendList.length > 0) {
-                return sendToUrl(_unSendList.shift());
+        /**
+         *
+         * 设置websocket地址
+         * @param {string} actionUrl
+         */
+        WSNetService.prototype.setUrl = function (actionUrl) {
+            if (this._actionUrl != actionUrl) {
+                this._actionUrl = actionUrl;
+                var ws = this._ws;
+                if (ws && ws.readyState <= WebSocket.OPEN) {
+                    this.connect();
+                }
             }
         };
-    }
+        /**
+         * 打开新的连接
+         */
+        WSNetService.prototype.connect = function () {
+            var ws = this._ws;
+            if (ws) {
+                this.loose(ws);
+            }
+            this._ws = ws = new WebSocket(this._actionUrl);
+            ws.binaryType = "arraybuffer";
+            ws.onclose = this.onClose;
+            ws.onerror = this.onError;
+            ws.onmessage = this.onData;
+            ws.onopen = this.onOpen;
+        };
+        WSNetService.prototype._send = function (cmd, data, msgType) {
+            var ws = this._ws;
+            if (ws.readyState != WebSocket.OPEN) {
+                return;
+            }
+            //没有同协议的指令，新增数据
+            var pdata = junyou.recyclable(junyou.NetSendData);
+            pdata.cmd = cmd;
+            pdata.data = data;
+            pdata.msgType = msgType;
+            var sendBuffer = this._sendBuffer;
+            sendBuffer.reset();
+            this.writeToBuffer(sendBuffer, pdata);
+            pdata.recycle();
+            var pcmdList = this._pcmdList;
+            for (var _i = 0, pcmdList_3 = pcmdList; _i < pcmdList_3.length; _i++) {
+                var pdata_1 = pcmdList_3[_i];
+                this.writeToBuffer(sendBuffer, pdata_1);
+                pdata_1.recycle();
+            }
+            //清空被动数据
+            pcmdList.length = 0;
+            ws.send(sendBuffer.outBytes);
+        };
+        WSNetService.prototype.disconnect = function () {
+            var ws = this._ws;
+            if (!ws || ws.readyState != WebSocket.OPEN) {
+                return;
+            }
+            this.loose(ws);
+            this._ws = null;
+            ws.close();
+        };
+        WSNetService.prototype.loose = function (ws) {
+            ws.onclose = null;
+            ws.onerror = null;
+            ws.onmessage = null;
+            ws.onopen = null;
+        };
+        return WSNetService;
+    }(junyou.NetService));
+    junyou.WSNetService = WSNetService;
+    __reflect(WSNetService.prototype, "junyou.WSNetService");
 })(junyou || (junyou = {}));
 var dpr = 1;
 function $useDPR() {
@@ -19762,223 +19839,6 @@ var junyou;
     }(egret.Sprite));
     junyou.Menu = Menu;
     __reflect(Menu.prototype, "junyou.Menu");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    // const enum Const {
-    //     /**
-    //      * 
-    //      * ## 概述
-    //      * 首先要看TCP/IP协议，涉及到四层：链路层，网络层，传输层，应用层。  
-    //      * 其中以太网（Ethernet）的数据帧在链路层  
-    //      * IP包在网络层  
-    //      * TCP或UDP包在传输层  
-    //      * TCP或UDP中的数据（Data)在应用层  
-    //      * 它们的关系是 数据帧｛IP包｛TCP或UDP包｛Data｝｝｝  
-    //      *
-    //      * 不同的协议层对数据包有不同的称谓，在传输层叫做段(segment)，在网络层叫做数据报(datagram)，在链路层叫做帧(frame)。数据封装成帧后发到传输介质上，到达目的主机后每层协议再剥掉相应的首部，最后将应用层数据交给应用程序处理。
-    //      *
-    //      * 在应用程序中我们用到的Data的长度最大是多少，直接取决于底层的限制。  
-    //      * 我们从下到上分析一下：  
-    //      *      1. 在链路层，由以太网的物理特性决定了数据帧的长度为(46＋18)－(1500＋18)，其中的18是数据帧的头和尾，也就是说数据帧的内容最大为1500(不包括帧头和帧尾)，即MTU(Maximum Transmission Unit)为1500； 　
-    //      *      2. 在网络层，因为IP包的首部要占用20字节，所以这的MTU为1500－20＝1480；　
-    //      *      3. 在传输层，对于UDP包的首部要占用8字节，所以这的MTU为1480－8＝1472；  
-    //      * 
-    //      * 所以，在应用层，你的Data最大长度为1472。当我们的UDP包中的数据多于MTU(1472)时，发送方的IP层需要分片fragmentation进行传输，而在接收方IP层则需要进行数据报重组，由于UDP是不可靠的传输协议，如果分片丢失导致重* 组失败，将导致UDP数据包被丢弃。  
-    //      * 从上面的分析来看，在普通的局域网环境下，UDP的数据最大为1472字节最好(避免分片重组)。  
-    //      * 但在网络编程中，Internet中的路由器可能有设置成不同的值(小于默认值)，Internet上的标准MTU值为576，所以Internet的UDP编程时数据长度最好在576－20－8＝548字节以内。
-    //      *
-    //      * 
-    //      * ## TCP、UDP数据包最大值的确定
-    //      * UDP和TCP协议利用端口号实现多项应用同时发送和接收数据。数据通过源端口发送出去，通过目标端口接收。有的网络应用只能使用预留或注册的静态端口；而另外一些网络应用则可以使用未被注册的动态端口。因为UDP和TCP报头使* 用两个字节存放端口号，所以端口号的有效范围是从0到65535。动态端口的范围是从1024到65535。  
-    //      * MTU最大传输单元，这个最大传输单元实际上和链路层协议有着密切的关系，EthernetII帧的结构DMAC+SMAC+Type+Data+CRC由于以太网传输电气方面的限制，每个以太网帧都有最小的大小64Bytes最大不能超过1518Bytes，对于小* 于或者大于这个限制的以太网帧我们都可以视之为错误的数据帧，一般的以太网转发设备会丢弃这些数据帧。  
-    //      * 
-    //      * 由于以太网EthernetII最大的数据帧是1518Bytes这样，刨去以太网帧的帧头（DMAC目的MAC地址48bits=6Bytes+SMAC源MAC地址48bits=6Bytes+Type域2Bytes）14Bytes和帧尾CRC校验部分4Bytes那么剩下承载上层协议的地方也就是Data域最大就只能有1500Bytes这个值我们就把它称之为MTU。  
-    //      * UDP 包的大小就应该是 1500 - IP头(20) - UDP头(8) = 1472(Bytes)  
-    //      * TCP 包的大小就应该是 1500 - IP头(20) - TCP头(20) = 1460 (Bytes)  
-    //      * 以上内容原网址：http://blog.csdn.net/caoshangpa/article/details/51530685
-    //      * 
-    //      * WebSocket的头部字节数为 2 - 8 字节  
-    //      * 
-    //      * ```
-    //      *  0                   1                   2                   3  
-    //      *  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1  
-    //      * +-+-+-+-+-------+-+-------------+-------------------------------+  
-    //      * |F|R|R|R| opcode|M| Payload len |    Extended payload length    |  
-    //      * |I|S|S|S|  (4)  |A|     (7)     |             (16/64)           |  
-    //      * |N|V|V|V|       |S|             |   (if payload len==126/127)   |  
-    //      * | |1|2|3|       |K|             |                               |  
-    //      * +-+-+-+-+-------+-+-------------+ - - - - - - - - - - - - - - - +  
-    //      * |     Extended payload length continued, if payload len == 127  |  
-    //      * + - - - - - - - - - - - - - - - +-------------------------------+  
-    //      * |                               |Masking-key, if MASK set to 1  |  
-    //      * +-------------------------------+-------------------------------+  
-    //      * | Masking-key (continued)       |          Payload Data         |  
-    //      * +-------------------------------- - - - - - - - - - - - - - - - +  
-    //      * :                     Payload Data continued ...                :  
-    //      * + - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - +  
-    //      * |                     Payload Data continued ...                |  
-    //      * +---------------------------------------------------------------+  
-    //      * ```
-    // }
-    // 上面操作是多余的，参看netty的源码
-    // https://github.com/netty/netty/tree/4.1/codec/src/main/java/io/netty/handler/codec
-    // https://github.com/netty/netty/tree/4.1/codec-socks/src/main/java/io/netty/handler/codec/socks
-    // https://github.com/netty/netty/tree/4.1/transport/src/main/java/io/netty
-    // 参看Chrome的源码 
-    // https://src.chromium.org/viewvc/chrome/trunk/src/net/socket/
-    // https://src.chromium.org/viewvc/chrome/trunk/src/net/socket_stream/
-    // https://src.chromium.org/viewvc/chrome/trunk/src/net/websockets/
-    // 均没有针对[MTU](http://baike.baidu.com/item/mtu)进行业务层面的分帧的代码处理  
-    // 然后和服务端重新进行调试，发送大的(50003Bytes)的一帧WebSocketFrame，让服务端也开[WireShark](http://www.wireshark.org)进行捕获
-    // 发现客户端对服务端发送的数据帧是多个TCP帧的，并且每个帧都复合`MTU`，故删除以上代码
-    // 仔细研读`WireShark`的客户端向服务端发送的数据帧的说明，其中提到`[Total Length: 50051 bytes (reported as 0, presumed to be because of "TCP segmentation offload" (TSO))]`
-    // **TSO**（TCP Segment Offload）是一种利用网卡的少量处理能力，降低CPU发送数据包负载的技术，需要网卡硬件及驱动的支持。  http://baike.baidu.com/item/tso/1843452
-    /**
-     * WebSocket版本的NetService
-     * @author 3tion
-     */
-    var WSNetService = (function (_super) {
-        __extends(WSNetService, _super);
-        function WSNetService() {
-            var _this = _super.call(this) || this;
-            _this.onOpen = function () {
-                _this._ws.onopen = null;
-                if (true) {
-                    console.log("webSocket连接成功");
-                }
-                junyou.dispatch(-197 /* Connected */);
-            };
-            /**
-             *
-             * 发生错误
-             * @protected
-             */
-            _this.onError = function (ev) {
-                if (true) {
-                    junyou.ThrowError("socket发生错误", ev.error);
-                }
-                junyou.dispatch(-196 /* ConnectFailed */);
-            };
-            /**
-             *
-             * 断开连接
-             * @protected
-             */
-            _this.onClose = function (ev) {
-                if (true) {
-                    console.log("socket断开连接");
-                }
-                egret.callLater(junyou.dispatch, junyou, -195 /* Disconnect */);
-            };
-            /**
-             *
-             * 收到消息
-             * @protected
-             */
-            _this.onData = function (ev) {
-                var readBuffer = _this._readBuffer;
-                var ab = new Uint8Array(ev.data);
-                var temp;
-                var position = readBuffer.position;
-                var buffer = readBuffer.buffer;
-                var length = buffer.byteLength;
-                if (position < length) {
-                    var rb = new Uint8Array(buffer);
-                    var rbLen = length - position;
-                    var abLen = ab.length;
-                    temp = new Uint8Array(rbLen + abLen);
-                    var i = 0, m = void 0;
-                    for (m = 0; m < rbLen; m++) {
-                        temp[i++] = rb[position + m];
-                    }
-                    for (m = 0; m < abLen; m++) {
-                        temp[i++] = ab[m];
-                    }
-                }
-                else {
-                    temp = ab;
-                }
-                readBuffer.replaceBuffer(temp.buffer);
-                readBuffer.position = 0;
-                _this.decodeBytes(readBuffer);
-            };
-            //覆盖instance
-            junyou.NetService._ins = _this;
-            return _this;
-        }
-        /**
-         *
-         * 设置websocket地址
-         * @param {string} actionUrl
-         */
-        WSNetService.prototype.setUrl = function (actionUrl) {
-            if (this._actionUrl != actionUrl) {
-                this._actionUrl = actionUrl;
-                var ws = this._ws;
-                if (ws && ws.readyState <= WebSocket.OPEN) {
-                    this.connect();
-                }
-            }
-        };
-        /**
-         * 打开新的连接
-         */
-        WSNetService.prototype.connect = function () {
-            var ws = this._ws;
-            if (ws) {
-                this.loose(ws);
-            }
-            this._ws = ws = new WebSocket(this._actionUrl);
-            ws.binaryType = "arraybuffer";
-            ws.onclose = this.onClose;
-            ws.onerror = this.onError;
-            ws.onmessage = this.onData;
-            ws.onopen = this.onOpen;
-        };
-        WSNetService.prototype._send = function (cmd, data, msgType) {
-            var ws = this._ws;
-            if (ws.readyState != WebSocket.OPEN) {
-                return;
-            }
-            //没有同协议的指令，新增数据
-            var pdata = junyou.recyclable(junyou.NetSendData);
-            pdata.cmd = cmd;
-            pdata.data = data;
-            pdata.msgType = msgType;
-            var sendBuffer = this._sendBuffer;
-            sendBuffer.reset();
-            this.writeToBuffer(sendBuffer, pdata);
-            pdata.recycle();
-            var pcmdList = this._pcmdList;
-            for (var _i = 0, pcmdList_3 = pcmdList; _i < pcmdList_3.length; _i++) {
-                var pdata_1 = pcmdList_3[_i];
-                this.writeToBuffer(sendBuffer, pdata_1);
-                pdata_1.recycle();
-            }
-            //清空被动数据
-            pcmdList.length = 0;
-            ws.send(sendBuffer.outBytes);
-        };
-        WSNetService.prototype.disconnect = function () {
-            var ws = this._ws;
-            if (!ws || ws.readyState != WebSocket.OPEN) {
-                return;
-            }
-            this.loose(ws);
-            this._ws = null;
-            ws.close();
-        };
-        WSNetService.prototype.loose = function (ws) {
-            ws.onclose = null;
-            ws.onerror = null;
-            ws.onmessage = null;
-            ws.onopen = null;
-        };
-        return WSNetService;
-    }(junyou.NetService));
-    junyou.WSNetService = WSNetService;
-    __reflect(WSNetService.prototype, "junyou.WSNetService");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -20401,727 +20261,6 @@ var junyou;
     }(junyou.Group));
     junyou.CheckBoxGroup = CheckBoxGroup;
     __reflect(CheckBoxGroup.prototype, "junyou.CheckBoxGroup");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * 绑定按钮和文本框，让文本框的点击，可以触发按钮的选中事件
-     *
-     * @export
-     */
-    junyou.GroupItemButton = (function () {
-        var TE = "touchTap" /* TOUCH_TAP */;
-        var ButtonKey = "$gib$btn";
-        var TextFieldKey = "$gib$txt";
-        return {
-            /**
-             *
-             * 绑定按钮和文本框
-             * @param {Button} btn
-             * @param {egret.TextField} txt
-             */
-            bind: function (btn, txt) {
-                if (!txt[ButtonKey]) {
-                    txt[ButtonKey] = btn;
-                }
-                else if (true) {
-                    junyou.ThrowError("\u91CD\u590D\u7ED1\u5B9A\u4E86\u6587\u672C\u6846\u548C\u6309\u94AE");
-                }
-                txt.touchEnabled = true;
-                txt.on(TE, onTE);
-                var old = btn[TextFieldKey];
-                if (old) {
-                    if (old[ButtonKey] == btn) {
-                        delete old[ButtonKey];
-                        old.off(TE, onTE);
-                    }
-                }
-                btn[TextFieldKey] = txt;
-            },
-            /**
-             * 接触按钮和文本框的绑定
-             *
-             * @param {Button} btn
-             */
-            loose: function (btn) {
-                var txt = btn[TextFieldKey];
-                if (txt) {
-                    delete btn[TextFieldKey];
-                    if (txt[ButtonKey] == btn) {
-                        delete txt[ButtonKey];
-                        txt.off(TE, onTE);
-                    }
-                }
-            }
-        };
-        function onTE(e) {
-            var txt = e.currentTarget;
-            var btn = txt[ButtonKey];
-            btn.dispatchEvent(e);
-        }
-    })();
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * TouchDown显示对象放大效果
-     * description
-     * @author pb
-     */
-    junyou.TouchDown = (function () {
-        var _$TDOpt = Object.freeze({ int: { x: 1, y: 1 } });
-        return {
-            /**
-             * 绑定组件
-             *
-             * @param {TouchDownItem} item
-             */
-            bindItem: function (item) {
-                if (item) {
-                    item.on("touchBegin" /* TOUCH_BEGIN */, touchBegin);
-                }
-            },
-            /**
-             * 解绑组件
-             *
-             * @param {TouchDownItem} item
-             */
-            looseItem: function (item) {
-                if (item) {
-                    item.off("touchBegin" /* TOUCH_BEGIN */, touchBegin);
-                    clearEndListener(item);
-                }
-            }
-        };
-        function clearEndListener(item) {
-            item.off("touchEnd" /* TOUCH_END */, touchEnd);
-            item.off("touchCancel" /* TOUCH_CANCEL */, touchEnd);
-            item.off("touchReleaseOutside" /* TOUCH_RELEASE_OUTSIDE */, touchEnd);
-            item.off("removedFromStage" /* REMOVED_FROM_STAGE */, touchEnd);
-        }
-        function touchBegin(e) {
-            var target = e.target;
-            target.on("touchEnd" /* TOUCH_END */, touchEnd);
-            target.on("touchCancel" /* TOUCH_CANCEL */, touchEnd);
-            target.on("touchReleaseOutside" /* TOUCH_RELEASE_OUTSIDE */, touchEnd);
-            target.on("removedFromStage" /* REMOVED_FROM_STAGE */, touchEnd);
-            var raw = target.$_tdi;
-            if (!raw) {
-                target.$_tdi = raw = {};
-                raw.x = target.x;
-                raw.y = target.y;
-            }
-            else if (raw.tween) {
-                junyou.Global.removeTween(raw.tween);
-            }
-            var tween = junyou.Global.getTween(target, _$TDOpt);
-            raw.tween = tween;
-            var tx = raw.x - target.width * 0.05 /* Multi */;
-            var ty = raw.y - target.height * 0.05 /* Multi */;
-            tween.to({ scaleX: 1.1 /* Scale */, scaleY: 1.1 /* Scale */, x: tx, y: ty }, 100, junyou.Ease.quadOut);
-        }
-        function touchEnd(e) {
-            var target = e.target;
-            clearEndListener(target);
-            var raw = target.$_tdi;
-            if (raw) {
-                var tween = junyou.Global.getTween(target, _$TDOpt, null, true);
-                raw.tween = tween;
-                tween.to({ scaleX: 1, scaleY: 1, x: raw.x, y: raw.y }, 100, junyou.Ease.quadOut).call(endComplete, null, target);
-            }
-        }
-        function endComplete(target) {
-            delete target.$_tdi;
-        }
-    })();
-})(junyou || (junyou = {}));
-/**
- * 参考createjs和白鹭的tween
- * 调整tick的驱动方式
- * https://github.com/CreateJS/TweenJS
- * @author 3tion
- */
-var junyou;
-(function (junyou) {
-    /**
-     * tween的执行效果，参考页面：http://www.cnblogs.com/cloudgamer/archive/2009/01/06/Tween.html
-     *
-     * @export
-     * @class Ease
-     */
-    var Ease = (function () {
-        function Ease() {
-        }
-        /**
-         * 根据起始值和终值，及当前进度率得到结果
-         *
-         * @static
-         * @param {number} v0       起始值
-         * @param {number} v1       终值
-         * @param {number} ratio    进度率
-         * @returns
-         */
-        Ease.getValue = function (v0, v1, ratio) {
-            if (v0 == v1 || ratio == 0 || ratio == 1 || (typeof v0 != "number")) {
-                return ratio == 1 ? v1 : v0;
-            }
-            else {
-                return v0 + (v1 - v0) * ratio;
-            }
-        };
-        Ease.get = function (amount) {
-            if (amount < -1) {
-                amount = -1;
-            }
-            if (amount > 1) {
-                amount = 1;
-            }
-            return function (t) {
-                if (amount == 0) {
-                    return t;
-                }
-                if (amount < 0) {
-                    return t * (t * -amount + 1 + amount);
-                }
-                return t * ((2 - t) * amount + (1 - amount));
-            };
-        };
-        Ease.getPowIn = function (pow) {
-            return function (t) {
-                return Math.pow(t, pow);
-            };
-        };
-        Ease.getPowOut = function (pow) {
-            return function (t) {
-                return 1 - Math.pow(1 - t, pow);
-            };
-        };
-        Ease.getPowInOut = function (pow) {
-            return function (t) {
-                if ((t *= 2) < 1)
-                    return 0.5 * Math.pow(t, pow);
-                return 1 - 0.5 * Math.abs(Math.pow(2 - t, pow));
-            };
-        };
-        Ease.sineIn = function (t) {
-            return 1 - Math.cos(t * Math.PI / 2);
-        };
-        Ease.sineOut = function (t) {
-            return Math.sin(t * Math.PI / 2);
-        };
-        Ease.sineInOut = function (t) {
-            return -0.5 * (Math.cos(Math.PI * t) - 1);
-        };
-        Ease.getBackIn = function (amount) {
-            return function (t) {
-                return t * t * ((amount + 1) * t - amount);
-            };
-        };
-        Ease.getBackOut = function (amount) {
-            return function (t) {
-                return (--t * t * ((amount + 1) * t + amount) + 1);
-            };
-        };
-        Ease.getBackInOut = function (amount) {
-            amount *= 1.525;
-            return function (t) {
-                if ((t *= 2) < 1)
-                    return 0.5 * (t * t * ((amount + 1) * t - amount));
-                return 0.5 * ((t -= 2) * t * ((amount + 1) * t + amount) + 2);
-            };
-        };
-        Ease.circIn = function (t) {
-            return -(Math.sqrt(1 - t * t) - 1);
-        };
-        Ease.circOut = function (t) {
-            return Math.sqrt(1 - (--t) * t);
-        };
-        Ease.circInOut = function (t) {
-            if ((t *= 2) < 1) {
-                return -0.5 * (Math.sqrt(1 - t * t) - 1);
-            }
-            return 0.5 * (Math.sqrt(1 - (t -= 2) * t) + 1);
-        };
-        Ease.bounceIn = function (t) {
-            return 1 - Ease.bounceOut(1 - t);
-        };
-        Ease.bounceOut = function (t) {
-            if (t < 1 / 2.75) {
-                return (7.5625 * t * t);
-            }
-            else if (t < 2 / 2.75) {
-                return (7.5625 * (t -= 1.5 / 2.75) * t + 0.75);
-            }
-            else if (t < 2.5 / 2.75) {
-                return (7.5625 * (t -= 2.25 / 2.75) * t + 0.9375);
-            }
-            else {
-                return (7.5625 * (t -= 2.625 / 2.75) * t + 0.984375);
-            }
-        };
-        Ease.bounceInOut = function (t) {
-            if (t < 0.5)
-                return Ease.bounceIn(t * 2) * .5;
-            return Ease.bounceOut(t * 2 - 1) * 0.5 + 0.5;
-        };
-        Ease.getElasticIn = function (amplitude, period) {
-            return function (t) {
-                if (t == 0 || t == 1)
-                    return t;
-                var s = period / Math.PI2 * Math.asin(1 / amplitude);
-                return -(amplitude * Math.pow(2, 10 * (t -= 1)) * Math.sin((t - s) * Math.PI2 / period));
-            };
-        };
-        Ease.getElasticOut = function (amplitude, period) {
-            return function (t) {
-                if (t == 0 || t == 1)
-                    return t;
-                var s = period / Math.PI2 * Math.asin(1 / amplitude);
-                return (amplitude * Math.pow(2, -10 * t) * Math.sin((t - s) * Math.PI2 / period) + 1);
-            };
-        };
-        Ease.getElasticInOut = function (amplitude, period) {
-            return function (t) {
-                var s = period / Math.PI2 * Math.asin(1 / amplitude);
-                if ((t *= 2) < 1)
-                    return -0.5 * (amplitude * Math.pow(2, 10 * (t -= 1)) * Math.sin((t - s) * Math.PI2 / period));
-                return amplitude * Math.pow(2, -10 * (t -= 1)) * Math.sin((t - s) * Math.PI2 / period) * 0.5 + 1;
-            };
-        };
-        Ease.quadIn = Ease.getPowIn(2);
-        Ease.quadOut = Ease.getPowOut(2);
-        Ease.quadInOut = Ease.getPowInOut(2);
-        Ease.cubicIn = Ease.getPowIn(3);
-        Ease.cubicOut = Ease.getPowOut(3);
-        Ease.cubicInOut = Ease.getPowInOut(3);
-        Ease.quartIn = Ease.getPowIn(4);
-        Ease.quartOut = Ease.getPowOut(4);
-        Ease.quartInOut = Ease.getPowInOut(4);
-        Ease.quintIn = Ease.getPowIn(5);
-        Ease.quintOut = Ease.getPowOut(5);
-        Ease.quintInOut = Ease.getPowInOut(5);
-        Ease.backIn = Ease.getBackIn(1.7);
-        Ease.backOut = Ease.getBackOut(1.7);
-        Ease.backInOut = Ease.getBackInOut(1.7);
-        Ease.elasticIn = Ease.getElasticIn(1, 0.3);
-        Ease.elasticOut = Ease.getElasticOut(1, 0.3);
-        Ease.elasticInOut = Ease.getElasticInOut(1, 0.3 * 1.5);
-        return Ease;
-    }());
-    junyou.Ease = Ease;
-    __reflect(Ease.prototype, "junyou.Ease");
-})(junyou || (junyou = {}));
-/**
- * 参考createjs和白鹭的tween
- * 调整tick的驱动方式
- * https://github.com/CreateJS/TweenJS
- * @author 3tion
- */
-var junyou;
-(function (junyou) {
-    var Tween = (function (_super) {
-        __extends(Tween, _super);
-        function Tween(target, props, pluginData, manager) {
-            var _this = _super.call(this) || this;
-            _this.loop = false;
-            _this.duration = 0;
-            _this._prevPos = -1;
-            _this.position = null;
-            _this._prevPosition = 0;
-            _this._stepPosition = 0;
-            _this.passive = false;
-            _this.initialize(target, props, pluginData, manager);
-            return _this;
-        }
-        Tween.prototype.initialize = function (target, props, pluginData, manager) {
-            this.target = target;
-            var oldManager = this._manager;
-            if (oldManager && oldManager != manager) {
-                oldManager.removeTweens(target);
-            }
-            if (props) {
-                this._useTicks = props.useTicks;
-                this.ignoreGlobalPause = props.ignoreGlobalPause;
-                this.loop = props.loop;
-                props.onChange && this.on(-1 /* TWEEN_CHANGE */, props.onChange, props.onChangeObj);
-                if (props.override) {
-                    manager.removeTweens(target);
-                }
-                this._int = props.int;
-            }
-            this._manager = manager;
-            this.pluginData = pluginData || {};
-            this._curQueueProps = {};
-            this._initQueueProps = {};
-            this._steps = [];
-            this._actions = [];
-            if (props && props.paused) {
-                this.paused = true;
-            }
-            else {
-                manager._register(this, true);
-            }
-            if (props && props.position != null) {
-                this.setPosition(props.position, 0 /* NONE */);
-            }
-        };
-        /**
-         * 将tween设置到一个指定的时间点
-         * Advances the tween to a specified position.
-         * @method setPosition
-         * @param {Number} value The position to seek to in milliseconds (or ticks if useTicks is true).
-         * @param {Number} [actionsMode=1] Specifies how actions are handled (ie. call, set, play, pause):
-         * <ul>
-         *      <li>{{#crossLink "Tween/NONE:property"}}{{/crossLink}} (0) - run no actions.</li>
-         *      <li>{{#crossLink "Tween/LOOP:property"}}{{/crossLink}} (1) - if new position is less than old, then run all
-         *      actions between old and duration, then all actions between 0 and new.</li>
-         *      <li>{{#crossLink "Tween/REVERSE:property"}}{{/crossLink}} (2) - if new position is less than old, run all
-         *      actions between them in reverse.</li>
-         * </ul>
-         * @return {Boolean} Returns `true` if the tween is complete (ie. the full tween has run & {{#crossLink "Tween/loop:property"}}{{/crossLink}}
-         * is `false`).
-         */
-        Tween.prototype.setPosition = function (value, actionsMode) {
-            if (actionsMode === void 0) { actionsMode = 1 /* LOOP */; }
-            if (value < 0) {
-                value = 0;
-            }
-            // normalize position:
-            var t = value;
-            var end = false;
-            if (t >= this.duration) {
-                if (this.loop) {
-                    t = t % this.duration;
-                }
-                else {
-                    t = this.duration;
-                    end = true;
-                }
-            }
-            if (t == this._prevPos) {
-                return end;
-            }
-            var prevPos = this._prevPos;
-            this.position = this._prevPos = t;
-            this._prevPosition = value;
-            // handle tweens:
-            if (this.target) {
-                if (end) {
-                    // addresses problems with an ending zero length step.
-                    this._updateTargetProps(null, 1);
-                }
-                else if (this._steps.length > 0) {
-                    // find our new tween index:
-                    for (var i = 0, l = this._steps.length; i < l; i++) {
-                        if (this._steps[i].t > t) {
-                            break;
-                        }
-                    }
-                    var step = this._steps[i - 1];
-                    this._updateTargetProps(step, (this._stepPosition = t - step.t) / step.d);
-                }
-            }
-            if (end) {
-                this.setPaused(true);
-            }
-            // run actions:
-            if (actionsMode != 0 /* NONE */ && this._actions.length > 0) {
-                if (this._useTicks) {
-                    // only run the actions we landed on.
-                    this._runActions(t, t);
-                }
-                else if (actionsMode == 1 /* LOOP */ && t < prevPos) {
-                    if (prevPos != this.duration) {
-                        this._runActions(prevPos, this.duration);
-                    }
-                    this._runActions(0, t, true);
-                }
-                else {
-                    this._runActions(prevPos, t);
-                }
-            }
-            this.dispatch(-1 /* TWEEN_CHANGE */);
-            return end;
-        };
-        Tween.prototype._runActions = function (startPos, endPos, includeStart) {
-            if (includeStart === void 0) { includeStart = false; }
-            var sPos = startPos;
-            var ePos = endPos;
-            var i = -1;
-            var j = this._actions.length;
-            var k = 1;
-            if (startPos > endPos) {
-                //把所有的倒置
-                sPos = endPos;
-                ePos = startPos;
-                i = j;
-                j = k = -1;
-            }
-            while ((i += k) != j) {
-                var action = this._actions[i];
-                var pos = action.t;
-                if (pos == ePos || (pos > sPos && pos < ePos) || (includeStart && pos == startPos)) {
-                    action.f.apply(action.o, action.p);
-                }
-            }
-        };
-        Tween.prototype._updateTargetProps = function (step, ratio) {
-            var p0, p1, v, v0, v1, arr;
-            if (!step && ratio == 1) {
-                this.passive = false;
-                p0 = p1 = this._curQueueProps;
-            }
-            else {
-                this.passive = !!step.v;
-                //不更新props.
-                if (this.passive) {
-                    return;
-                }
-                //使用ease
-                if (step.e) {
-                    ratio = step.e(ratio, 0, 1, 1);
-                }
-                p0 = step.p0;
-                p1 = step.p1;
-            }
-            for (var n in this._initQueueProps) {
-                if ((v0 = p0[n]) == null) {
-                    p0[n] = v0 = this._initQueueProps[n];
-                }
-                if ((v1 = p1[n]) == null) {
-                    p1[n] = v1 = v0;
-                }
-                if (v0 == v1 || ratio == 0 || ratio == 1 || (typeof v0 != "number")) {
-                    v = ratio == 1 ? v1 : v0;
-                }
-                else {
-                    v = v0 + (v1 - v0) * ratio;
-                }
-                var ignore = false;
-                if (arr = this._manager._plugins[n]) {
-                    for (var i = 0, l = arr.length; i < l; i++) {
-                        var v2 = arr[i].tween(this, n, v, p0, p1, ratio, !!step && p0 == p1, !step);
-                        if (v2 == Tween.IGNORE) {
-                            ignore = true;
-                        }
-                        else {
-                            v = v2;
-                        }
-                    }
-                }
-                if (!ignore) {
-                    if (this._int && this._int[n])
-                        v = Math.round(v);
-                    this.target[n] = v;
-                }
-            }
-        };
-        Tween.prototype._addStep = function (o) {
-            if (o.d > 0) {
-                this._steps.push(o);
-                o.t = this.duration;
-                this.duration += o.d;
-            }
-            return this;
-        };
-        Tween.prototype._appendQueueProps = function (o) {
-            var arr, oldValue, i, l, injectProps;
-            for (var n in o) {
-                if (this._initQueueProps[n] === undefined) {
-                    oldValue = this.target[n];
-                    //设置plugins
-                    if (arr = this._manager._plugins[n]) {
-                        for (i = 0, l = arr.length; i < l; i++) {
-                            oldValue = arr[i].init(this, n, oldValue);
-                        }
-                    }
-                    this._initQueueProps[n] = this._curQueueProps[n] = (oldValue === undefined) ? null : oldValue;
-                }
-                else {
-                    oldValue = this._curQueueProps[n];
-                }
-            }
-            for (var n in o) {
-                oldValue = this._curQueueProps[n];
-                if (arr = this._manager._plugins[n]) {
-                    injectProps = injectProps || {};
-                    for (i = 0, l = arr.length; i < l; i++) {
-                        if (arr[i].step) {
-                            arr[i].step(this, n, oldValue, o[n], injectProps);
-                        }
-                    }
-                }
-                this._curQueueProps[n] = o[n];
-            }
-            if (injectProps) {
-                this._appendQueueProps(injectProps);
-            }
-            return this._curQueueProps;
-        };
-        Tween.prototype._addAction = function (o) {
-            o.t = this.duration;
-            this._actions.push(o);
-            return this;
-        };
-        Tween.prototype._set = function (props, o) {
-            for (var n in props) {
-                o[n] = props[n];
-            }
-        };
-        /**
-         * 暂停或者播放tween
-         * Pauses or plays this tween.
-         * @method setPaused
-         * @param {Boolean} [value=true] Indicates whether the tween should be paused (`true`) or played (`false`). true 暂停   false 播放
-         * @return {Tween} This tween instance (for chaining calls)
-         */
-        Tween.prototype.setPaused = function (value) {
-            this.paused = value;
-            this._manager._register(this, !value);
-            return this;
-        };
-        /**
-         * 排列一个等待时间
-         * Queues a wait (essentially an empty tween).
-         * <h4>Example</h4>
-         *
-         *		//This tween will wait 1s before alpha is faded to 0.
-         *		createjs.Tween.get(target).wait(1000).to({alpha:0}, 1000);
-         *
-         * @method wait
-         * @param {Number} duration The duration of the wait in milliseconds (or in ticks if `useTicks` is true).
-         * @param {Boolean} [passive] Tween properties will not be updated during a passive wait. This
-         * is mostly useful for use with {{#crossLink "Timeline"}}{{/crossLink}} instances that contain multiple tweens
-         * affecting the same target at different times.
-         * @return {Tween} This tween instance (for chaining calls).
-         **/
-        Tween.prototype.wait = function (duration, passive) {
-            if (duration == null || duration <= 0) {
-                return this;
-            }
-            var o = this._curQueueProps.clone();
-            return this._addStep({ d: duration, p0: o, p1: o, v: passive });
-        };
-        /**
-         * 让目标在duration的时间内，按照ease的差值算法，变为指定的属性
-         * Queues a tween from the current values to the target properties. Set duration to 0 to jump to these value.
-         * Numeric properties will be tweened from their current value in the tween to the target value. Non-numeric
-         * properties will be set at the end of the specified duration.
-         * <h4>Example</h4>
-         *
-         *		createjs.Tween.get(target).to({alpha:0}, 1000);
-         *
-         * @method to
-         * @param {Object} props An object specifying property target values for this tween (Ex. `{x:300}` would tween the x
-         * property of the target to 300).
-         * @param {number} [duration=0] The duration of the wait in milliseconds (or in ticks if `useTicks` is true).
-         * @param {IEaseFunction} [ease="linear"] The easing function to use for this tween. See the {{#crossLink "Ease"}}{{/crossLink}}
-         * class for a list of built-in ease functions.
-         * @return {Tween} This tween instance (for chaining calls).
-         */
-        Tween.prototype.to = function (props, duration, ease) {
-            if (isNaN(duration) || duration < 0) {
-                duration = 0;
-            }
-            return this._addStep({ d: duration || 0, p0: this._curQueueProps.clone(), e: ease, p1: this._appendQueueProps(props).clone() });
-        };
-        /**
-         * 排列一个指定的函数进行执行
-         * Queues an action to call the specified function.
-         * <h4>Example</h4>
-         *
-         *   	//would call myFunction() after 1 second.
-         *   	myTween.wait(1000).call(myFunction);
-         *
-         * @method call
-         * @param {Function} callback The function to call.
-         * @param {Array} [params]. The parameters to call the function with. If this is omitted, then the function
-         *      will be called with a single param pointing to this tween.
-         * @param {Object} [scope]. The scope to call the function in. If omitted, it will be called in the target's
-         *      scope.
-         * @return {Tween} This tween instance (for chaining calls).
-         */
-        Tween.prototype.call = function (callback, thisObj) {
-            var params = [];
-            for (var _i = 2; _i < arguments.length; _i++) {
-                params[_i - 2] = arguments[_i];
-            }
-            return this._addAction({ f: callback, p: params, o: thisObj ? thisObj : this.target });
-        };
-        /**
-         * 设置属性
-         * Queues an action to set the specified props on the specified target. If target is null, it will use this tween's
-         * target.
-         * <h4>Example</h4>
-         *
-         *		myTween.wait(1000).set({visible:false},foo);
-         *
-         * @method set
-         * @param {Object} props The properties to set (ex. `{visible:false}`).
-         * @param {Object} [target] The target to set the properties on. If omitted, they will be set on the tween's target.
-         * @return {Tween} This tween instance (for chaining calls).
-         */
-        Tween.prototype.set = function (props, target) {
-            return this._addAction({ f: this._set, o: this, p: [props, target || this.target] });
-        };
-        /**
-         * 排列一个其他的tween来执行（如果不赋值，则执行自己）
-         * Queues an action to play (unpause) the specified tween. This enables you to sequence multiple tweens.
-         * <h4>Example</h4>
-         *
-         *		myTween.to({x:100},500).play(otherTween);
-         *
-         * @method play
-         * @param {Tween} tween The tween to play.
-         * @return {Tween} This tween instance (for chaining calls).
-         */
-        Tween.prototype.play = function (tween) {
-            if (!tween) {
-                tween = this;
-            }
-            return this.call(tween.setPaused, tween, false);
-        };
-        /**
-         * 排列一个tween的暂停操作，如果tween不赋值，则暂停自己
-         * Queues an action to pause the specified tween.
-         * @method pause
-         * @param {Tween} tween The tween to pause. If null, it pauses this tween.
-         * @return {Tween} This tween instance (for chaining calls)
-         */
-        Tween.prototype.pause = function (tween) {
-            if (!tween) {
-                tween = this;
-            }
-            return this.call(tween.setPaused, tween, true);
-        };
-        /**
-         * 进行一次tick
-         * Advances this tween by the specified amount of time in milliseconds (or ticks if`useTicks` is `true`).
-         * This is normally called automatically by the Tween engine (via {{#crossLink "Tween/tick"}}{{/crossLink}}), but is
-         * exposed for advanced uses.
-         * @method tick
-         * @param {Number} delta The time to advance in milliseconds (or ticks if `useTicks` is `true`).
-         */
-        Tween.prototype.tick = function (delta) {
-            if (this.paused) {
-                return;
-            }
-            this.setPosition(this._prevPosition + delta);
-        };
-        Tween.prototype.onRecycle = function () {
-            this._int = undefined;
-        };
-        /**
-         * Constant returned by plugins to tell the tween not to use default assignment.
-         * @property IGNORE
-         * @type Object
-         * @static
-         */
-        Tween.IGNORE = {};
-        return Tween;
-    }(egret.EventDispatcher));
-    junyou.Tween = Tween;
-    __reflect(Tween.prototype, "junyou.Tween");
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -21924,6 +21063,824 @@ var junyou;
         Res.tryLocal = tryLocal;
         var _a, _b;
     })(Res = junyou.Res || (junyou.Res = {}));
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 绑定按钮和文本框，让文本框的点击，可以触发按钮的选中事件
+     *
+     * @export
+     */
+    junyou.GroupItemButton = (function () {
+        var TE = "touchTap" /* TOUCH_TAP */;
+        var ButtonKey = "$gib$btn";
+        var TextFieldKey = "$gib$txt";
+        return {
+            /**
+             *
+             * 绑定按钮和文本框
+             * @param {Button} btn
+             * @param {egret.TextField} txt
+             */
+            bind: function (btn, txt) {
+                if (!txt[ButtonKey]) {
+                    txt[ButtonKey] = btn;
+                }
+                else if (true) {
+                    junyou.ThrowError("\u91CD\u590D\u7ED1\u5B9A\u4E86\u6587\u672C\u6846\u548C\u6309\u94AE");
+                }
+                txt.touchEnabled = true;
+                txt.on(TE, onTE);
+                var old = btn[TextFieldKey];
+                if (old) {
+                    if (old[ButtonKey] == btn) {
+                        delete old[ButtonKey];
+                        old.off(TE, onTE);
+                    }
+                }
+                btn[TextFieldKey] = txt;
+            },
+            /**
+             * 接触按钮和文本框的绑定
+             *
+             * @param {Button} btn
+             */
+            loose: function (btn) {
+                var txt = btn[TextFieldKey];
+                if (txt) {
+                    delete btn[TextFieldKey];
+                    if (txt[ButtonKey] == btn) {
+                        delete txt[ButtonKey];
+                        txt.off(TE, onTE);
+                    }
+                }
+            }
+        };
+        function onTE(e) {
+            var txt = e.currentTarget;
+            var btn = txt[ButtonKey];
+            btn.dispatchEvent(e);
+        }
+    })();
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * TouchDown显示对象放大效果
+     * description
+     * @author pb
+     */
+    junyou.TouchDown = (function () {
+        var _$TDOpt = Object.freeze({ int: { x: 1, y: 1 } });
+        return {
+            /**
+             * 绑定组件
+             *
+             * @param {TouchDownItem} item
+             */
+            bindItem: function (item) {
+                if (item) {
+                    item.on("touchBegin" /* TOUCH_BEGIN */, touchBegin);
+                }
+            },
+            /**
+             * 解绑组件
+             *
+             * @param {TouchDownItem} item
+             */
+            looseItem: function (item) {
+                if (item) {
+                    item.off("touchBegin" /* TOUCH_BEGIN */, touchBegin);
+                    clearEndListener(item);
+                }
+            }
+        };
+        function clearEndListener(item) {
+            item.off("touchEnd" /* TOUCH_END */, touchEnd);
+            item.off("touchCancel" /* TOUCH_CANCEL */, touchEnd);
+            item.off("touchReleaseOutside" /* TOUCH_RELEASE_OUTSIDE */, touchEnd);
+            item.off("removedFromStage" /* REMOVED_FROM_STAGE */, touchEnd);
+        }
+        function touchBegin(e) {
+            var target = e.target;
+            target.on("touchEnd" /* TOUCH_END */, touchEnd);
+            target.on("touchCancel" /* TOUCH_CANCEL */, touchEnd);
+            target.on("touchReleaseOutside" /* TOUCH_RELEASE_OUTSIDE */, touchEnd);
+            target.on("removedFromStage" /* REMOVED_FROM_STAGE */, touchEnd);
+            var raw = target.$_tdi;
+            if (!raw) {
+                target.$_tdi = raw = {};
+                raw.x = target.x;
+                raw.y = target.y;
+            }
+            else if (raw.tween) {
+                junyou.Global.removeTween(raw.tween);
+            }
+            var tween = junyou.Global.getTween(target, _$TDOpt);
+            raw.tween = tween;
+            var tx = raw.x - target.width * 0.05 /* Multi */;
+            var ty = raw.y - target.height * 0.05 /* Multi */;
+            tween.to({ scaleX: 1.1 /* Scale */, scaleY: 1.1 /* Scale */, x: tx, y: ty }, 100, junyou.Ease.quadOut);
+        }
+        function touchEnd(e) {
+            var target = e.target;
+            clearEndListener(target);
+            var raw = target.$_tdi;
+            if (raw) {
+                var tween = junyou.Global.getTween(target, _$TDOpt, null, true);
+                raw.tween = tween;
+                tween.to({ scaleX: 1, scaleY: 1, x: raw.x, y: raw.y }, 100, junyou.Ease.quadOut).call(endComplete, null, target);
+            }
+        }
+        function endComplete(target) {
+            delete target.$_tdi;
+        }
+    })();
+})(junyou || (junyou = {}));
+/**
+ * 参考createjs和白鹭的tween
+ * 调整tick的驱动方式
+ * https://github.com/CreateJS/TweenJS
+ * @author 3tion
+ */
+var junyou;
+(function (junyou) {
+    /**
+     * tween的执行效果，参考页面：http://www.cnblogs.com/cloudgamer/archive/2009/01/06/Tween.html
+     *
+     * @export
+     * @class Ease
+     */
+    var Ease = (function () {
+        function Ease() {
+        }
+        /**
+         * 根据起始值和终值，及当前进度率得到结果
+         *
+         * @static
+         * @param {number} v0       起始值
+         * @param {number} v1       终值
+         * @param {number} ratio    进度率
+         * @returns
+         */
+        Ease.getValue = function (v0, v1, ratio) {
+            if (v0 == v1 || ratio == 0 || ratio == 1 || (typeof v0 != "number")) {
+                return ratio == 1 ? v1 : v0;
+            }
+            else {
+                return v0 + (v1 - v0) * ratio;
+            }
+        };
+        Ease.get = function (amount) {
+            if (amount < -1) {
+                amount = -1;
+            }
+            if (amount > 1) {
+                amount = 1;
+            }
+            return function (t) {
+                if (amount == 0) {
+                    return t;
+                }
+                if (amount < 0) {
+                    return t * (t * -amount + 1 + amount);
+                }
+                return t * ((2 - t) * amount + (1 - amount));
+            };
+        };
+        Ease.getPowIn = function (pow) {
+            return function (t) {
+                return Math.pow(t, pow);
+            };
+        };
+        Ease.getPowOut = function (pow) {
+            return function (t) {
+                return 1 - Math.pow(1 - t, pow);
+            };
+        };
+        Ease.getPowInOut = function (pow) {
+            return function (t) {
+                if ((t *= 2) < 1)
+                    return 0.5 * Math.pow(t, pow);
+                return 1 - 0.5 * Math.abs(Math.pow(2 - t, pow));
+            };
+        };
+        Ease.sineIn = function (t) {
+            return 1 - Math.cos(t * Math.PI / 2);
+        };
+        Ease.sineOut = function (t) {
+            return Math.sin(t * Math.PI / 2);
+        };
+        Ease.sineInOut = function (t) {
+            return -0.5 * (Math.cos(Math.PI * t) - 1);
+        };
+        Ease.getBackIn = function (amount) {
+            return function (t) {
+                return t * t * ((amount + 1) * t - amount);
+            };
+        };
+        Ease.getBackOut = function (amount) {
+            return function (t) {
+                return (--t * t * ((amount + 1) * t + amount) + 1);
+            };
+        };
+        Ease.getBackInOut = function (amount) {
+            amount *= 1.525;
+            return function (t) {
+                if ((t *= 2) < 1)
+                    return 0.5 * (t * t * ((amount + 1) * t - amount));
+                return 0.5 * ((t -= 2) * t * ((amount + 1) * t + amount) + 2);
+            };
+        };
+        Ease.circIn = function (t) {
+            return -(Math.sqrt(1 - t * t) - 1);
+        };
+        Ease.circOut = function (t) {
+            return Math.sqrt(1 - (--t) * t);
+        };
+        Ease.circInOut = function (t) {
+            if ((t *= 2) < 1) {
+                return -0.5 * (Math.sqrt(1 - t * t) - 1);
+            }
+            return 0.5 * (Math.sqrt(1 - (t -= 2) * t) + 1);
+        };
+        Ease.bounceIn = function (t) {
+            return 1 - Ease.bounceOut(1 - t);
+        };
+        Ease.bounceOut = function (t) {
+            if (t < 1 / 2.75) {
+                return (7.5625 * t * t);
+            }
+            else if (t < 2 / 2.75) {
+                return (7.5625 * (t -= 1.5 / 2.75) * t + 0.75);
+            }
+            else if (t < 2.5 / 2.75) {
+                return (7.5625 * (t -= 2.25 / 2.75) * t + 0.9375);
+            }
+            else {
+                return (7.5625 * (t -= 2.625 / 2.75) * t + 0.984375);
+            }
+        };
+        Ease.bounceInOut = function (t) {
+            if (t < 0.5)
+                return Ease.bounceIn(t * 2) * .5;
+            return Ease.bounceOut(t * 2 - 1) * 0.5 + 0.5;
+        };
+        Ease.getElasticIn = function (amplitude, period) {
+            return function (t) {
+                if (t == 0 || t == 1)
+                    return t;
+                var s = period / Math.PI2 * Math.asin(1 / amplitude);
+                return -(amplitude * Math.pow(2, 10 * (t -= 1)) * Math.sin((t - s) * Math.PI2 / period));
+            };
+        };
+        Ease.getElasticOut = function (amplitude, period) {
+            return function (t) {
+                if (t == 0 || t == 1)
+                    return t;
+                var s = period / Math.PI2 * Math.asin(1 / amplitude);
+                return (amplitude * Math.pow(2, -10 * t) * Math.sin((t - s) * Math.PI2 / period) + 1);
+            };
+        };
+        Ease.getElasticInOut = function (amplitude, period) {
+            return function (t) {
+                var s = period / Math.PI2 * Math.asin(1 / amplitude);
+                if ((t *= 2) < 1)
+                    return -0.5 * (amplitude * Math.pow(2, 10 * (t -= 1)) * Math.sin((t - s) * Math.PI2 / period));
+                return amplitude * Math.pow(2, -10 * (t -= 1)) * Math.sin((t - s) * Math.PI2 / period) * 0.5 + 1;
+            };
+        };
+        Ease.quadIn = Ease.getPowIn(2);
+        Ease.quadOut = Ease.getPowOut(2);
+        Ease.quadInOut = Ease.getPowInOut(2);
+        Ease.cubicIn = Ease.getPowIn(3);
+        Ease.cubicOut = Ease.getPowOut(3);
+        Ease.cubicInOut = Ease.getPowInOut(3);
+        Ease.quartIn = Ease.getPowIn(4);
+        Ease.quartOut = Ease.getPowOut(4);
+        Ease.quartInOut = Ease.getPowInOut(4);
+        Ease.quintIn = Ease.getPowIn(5);
+        Ease.quintOut = Ease.getPowOut(5);
+        Ease.quintInOut = Ease.getPowInOut(5);
+        Ease.backIn = Ease.getBackIn(1.7);
+        Ease.backOut = Ease.getBackOut(1.7);
+        Ease.backInOut = Ease.getBackInOut(1.7);
+        Ease.elasticIn = Ease.getElasticIn(1, 0.3);
+        Ease.elasticOut = Ease.getElasticOut(1, 0.3);
+        Ease.elasticInOut = Ease.getElasticInOut(1, 0.3 * 1.5);
+        return Ease;
+    }());
+    junyou.Ease = Ease;
+    __reflect(Ease.prototype, "junyou.Ease");
+})(junyou || (junyou = {}));
+/**
+ * 参考createjs和白鹭的tween
+ * 调整tick的驱动方式
+ * https://github.com/CreateJS/TweenJS
+ * @author 3tion
+ */
+var junyou;
+(function (junyou) {
+    var Tween = (function (_super) {
+        __extends(Tween, _super);
+        function Tween(target, props, pluginData, manager) {
+            var _this = _super.call(this) || this;
+            _this.loop = false;
+            _this.duration = 0;
+            _this._prevPos = -1;
+            _this.position = null;
+            _this._prevPosition = 0;
+            _this._stepPosition = 0;
+            _this.passive = false;
+            _this.initialize(target, props, pluginData, manager);
+            return _this;
+        }
+        Tween.prototype.initialize = function (target, props, pluginData, manager) {
+            this.target = target;
+            var oldManager = this._manager;
+            if (oldManager && oldManager != manager) {
+                oldManager.removeTweens(target);
+            }
+            if (props) {
+                this._useTicks = props.useTicks;
+                this.ignoreGlobalPause = props.ignoreGlobalPause;
+                this.loop = props.loop;
+                props.onChange && this.on(-1 /* TWEEN_CHANGE */, props.onChange, props.onChangeObj);
+                if (props.override) {
+                    manager.removeTweens(target);
+                }
+                this._int = props.int;
+            }
+            this._manager = manager;
+            this.pluginData = pluginData || {};
+            this._curQueueProps = {};
+            this._initQueueProps = {};
+            this._steps = [];
+            this._actions = [];
+            if (props && props.paused) {
+                this.paused = true;
+            }
+            else {
+                manager._register(this, true);
+            }
+            if (props && props.position != null) {
+                this.setPosition(props.position, 0 /* NONE */);
+            }
+        };
+        /**
+         * 将tween设置到一个指定的时间点
+         * Advances the tween to a specified position.
+         * @method setPosition
+         * @param {Number} value The position to seek to in milliseconds (or ticks if useTicks is true).
+         * @param {Number} [actionsMode=1] Specifies how actions are handled (ie. call, set, play, pause):
+         * <ul>
+         *      <li>{{#crossLink "Tween/NONE:property"}}{{/crossLink}} (0) - run no actions.</li>
+         *      <li>{{#crossLink "Tween/LOOP:property"}}{{/crossLink}} (1) - if new position is less than old, then run all
+         *      actions between old and duration, then all actions between 0 and new.</li>
+         *      <li>{{#crossLink "Tween/REVERSE:property"}}{{/crossLink}} (2) - if new position is less than old, run all
+         *      actions between them in reverse.</li>
+         * </ul>
+         * @return {Boolean} Returns `true` if the tween is complete (ie. the full tween has run & {{#crossLink "Tween/loop:property"}}{{/crossLink}}
+         * is `false`).
+         */
+        Tween.prototype.setPosition = function (value, actionsMode) {
+            if (actionsMode === void 0) { actionsMode = 1 /* LOOP */; }
+            if (value < 0) {
+                value = 0;
+            }
+            // normalize position:
+            var t = value;
+            var end = false;
+            if (t >= this.duration) {
+                if (this.loop) {
+                    t = t % this.duration;
+                }
+                else {
+                    t = this.duration;
+                    end = true;
+                }
+            }
+            if (t == this._prevPos) {
+                return end;
+            }
+            var prevPos = this._prevPos;
+            this.position = this._prevPos = t;
+            this._prevPosition = value;
+            // handle tweens:
+            if (this.target) {
+                if (end) {
+                    // addresses problems with an ending zero length step.
+                    this._updateTargetProps(null, 1);
+                }
+                else if (this._steps.length > 0) {
+                    // find our new tween index:
+                    for (var i = 0, l = this._steps.length; i < l; i++) {
+                        if (this._steps[i].t > t) {
+                            break;
+                        }
+                    }
+                    var step = this._steps[i - 1];
+                    this._updateTargetProps(step, (this._stepPosition = t - step.t) / step.d);
+                }
+            }
+            if (end) {
+                this.setPaused(true);
+            }
+            // run actions:
+            if (actionsMode != 0 /* NONE */ && this._actions.length > 0) {
+                if (this._useTicks) {
+                    // only run the actions we landed on.
+                    this._runActions(t, t);
+                }
+                else if (actionsMode == 1 /* LOOP */ && t < prevPos) {
+                    if (prevPos != this.duration) {
+                        this._runActions(prevPos, this.duration);
+                    }
+                    this._runActions(0, t, true);
+                }
+                else {
+                    this._runActions(prevPos, t);
+                }
+            }
+            this.dispatch(-1 /* TWEEN_CHANGE */);
+            return end;
+        };
+        Tween.prototype._runActions = function (startPos, endPos, includeStart) {
+            if (includeStart === void 0) { includeStart = false; }
+            var sPos = startPos;
+            var ePos = endPos;
+            var i = -1;
+            var j = this._actions.length;
+            var k = 1;
+            if (startPos > endPos) {
+                //把所有的倒置
+                sPos = endPos;
+                ePos = startPos;
+                i = j;
+                j = k = -1;
+            }
+            while ((i += k) != j) {
+                var action = this._actions[i];
+                var pos = action.t;
+                if (pos == ePos || (pos > sPos && pos < ePos) || (includeStart && pos == startPos)) {
+                    action.f.apply(action.o, action.p);
+                }
+            }
+        };
+        Tween.prototype._updateTargetProps = function (step, ratio) {
+            var p0, p1, v, v0, v1, arr;
+            if (!step && ratio == 1) {
+                this.passive = false;
+                p0 = p1 = this._curQueueProps;
+            }
+            else {
+                this.passive = !!step.v;
+                //不更新props.
+                if (this.passive) {
+                    return;
+                }
+                //使用ease
+                if (step.e) {
+                    ratio = step.e(ratio, 0, 1, 1);
+                }
+                p0 = step.p0;
+                p1 = step.p1;
+            }
+            for (var n in this._initQueueProps) {
+                if ((v0 = p0[n]) == null) {
+                    p0[n] = v0 = this._initQueueProps[n];
+                }
+                if ((v1 = p1[n]) == null) {
+                    p1[n] = v1 = v0;
+                }
+                if (v0 == v1 || ratio == 0 || ratio == 1 || (typeof v0 != "number")) {
+                    v = ratio == 1 ? v1 : v0;
+                }
+                else {
+                    v = v0 + (v1 - v0) * ratio;
+                }
+                var ignore = false;
+                if (arr = this._manager._plugins[n]) {
+                    for (var i = 0, l = arr.length; i < l; i++) {
+                        var v2 = arr[i].tween(this, n, v, p0, p1, ratio, !!step && p0 == p1, !step);
+                        if (v2 == Tween.IGNORE) {
+                            ignore = true;
+                        }
+                        else {
+                            v = v2;
+                        }
+                    }
+                }
+                if (!ignore) {
+                    if (this._int && this._int[n])
+                        v = Math.round(v);
+                    this.target[n] = v;
+                }
+            }
+        };
+        Tween.prototype._addStep = function (o) {
+            if (o.d > 0) {
+                this._steps.push(o);
+                o.t = this.duration;
+                this.duration += o.d;
+            }
+            return this;
+        };
+        Tween.prototype._appendQueueProps = function (o) {
+            var arr, oldValue, i, l, injectProps;
+            for (var n in o) {
+                if (this._initQueueProps[n] === undefined) {
+                    oldValue = this.target[n];
+                    //设置plugins
+                    if (arr = this._manager._plugins[n]) {
+                        for (i = 0, l = arr.length; i < l; i++) {
+                            oldValue = arr[i].init(this, n, oldValue);
+                        }
+                    }
+                    this._initQueueProps[n] = this._curQueueProps[n] = (oldValue === undefined) ? null : oldValue;
+                }
+                else {
+                    oldValue = this._curQueueProps[n];
+                }
+            }
+            for (var n in o) {
+                oldValue = this._curQueueProps[n];
+                if (arr = this._manager._plugins[n]) {
+                    injectProps = injectProps || {};
+                    for (i = 0, l = arr.length; i < l; i++) {
+                        if (arr[i].step) {
+                            arr[i].step(this, n, oldValue, o[n], injectProps);
+                        }
+                    }
+                }
+                this._curQueueProps[n] = o[n];
+            }
+            if (injectProps) {
+                this._appendQueueProps(injectProps);
+            }
+            return this._curQueueProps;
+        };
+        Tween.prototype._addAction = function (o) {
+            o.t = this.duration;
+            this._actions.push(o);
+            return this;
+        };
+        Tween.prototype._set = function (props, o) {
+            for (var n in props) {
+                o[n] = props[n];
+            }
+        };
+        /**
+         * 暂停或者播放tween
+         * Pauses or plays this tween.
+         * @method setPaused
+         * @param {Boolean} [value=true] Indicates whether the tween should be paused (`true`) or played (`false`). true 暂停   false 播放
+         * @return {Tween} This tween instance (for chaining calls)
+         */
+        Tween.prototype.setPaused = function (value) {
+            this.paused = value;
+            this._manager._register(this, !value);
+            return this;
+        };
+        /**
+         * 排列一个等待时间
+         * Queues a wait (essentially an empty tween).
+         * <h4>Example</h4>
+         *
+         *		//This tween will wait 1s before alpha is faded to 0.
+         *		createjs.Tween.get(target).wait(1000).to({alpha:0}, 1000);
+         *
+         * @method wait
+         * @param {Number} duration The duration of the wait in milliseconds (or in ticks if `useTicks` is true).
+         * @param {Boolean} [passive] Tween properties will not be updated during a passive wait. This
+         * is mostly useful for use with {{#crossLink "Timeline"}}{{/crossLink}} instances that contain multiple tweens
+         * affecting the same target at different times.
+         * @return {Tween} This tween instance (for chaining calls).
+         **/
+        Tween.prototype.wait = function (duration, passive) {
+            if (duration == null || duration <= 0) {
+                return this;
+            }
+            var o = this._curQueueProps.clone();
+            return this._addStep({ d: duration, p0: o, p1: o, v: passive });
+        };
+        /**
+         * 让目标在duration的时间内，按照ease的差值算法，变为指定的属性
+         * Queues a tween from the current values to the target properties. Set duration to 0 to jump to these value.
+         * Numeric properties will be tweened from their current value in the tween to the target value. Non-numeric
+         * properties will be set at the end of the specified duration.
+         * <h4>Example</h4>
+         *
+         *		createjs.Tween.get(target).to({alpha:0}, 1000);
+         *
+         * @method to
+         * @param {Object} props An object specifying property target values for this tween (Ex. `{x:300}` would tween the x
+         * property of the target to 300).
+         * @param {number} [duration=0] The duration of the wait in milliseconds (or in ticks if `useTicks` is true).
+         * @param {IEaseFunction} [ease="linear"] The easing function to use for this tween. See the {{#crossLink "Ease"}}{{/crossLink}}
+         * class for a list of built-in ease functions.
+         * @return {Tween} This tween instance (for chaining calls).
+         */
+        Tween.prototype.to = function (props, duration, ease) {
+            if (isNaN(duration) || duration < 0) {
+                duration = 0;
+            }
+            return this._addStep({ d: duration || 0, p0: this._curQueueProps.clone(), e: ease, p1: this._appendQueueProps(props).clone() });
+        };
+        /**
+         * 排列一个指定的函数进行执行
+         * Queues an action to call the specified function.
+         * <h4>Example</h4>
+         *
+         *   	//would call myFunction() after 1 second.
+         *   	myTween.wait(1000).call(myFunction);
+         *
+         * @method call
+         * @param {Function} callback The function to call.
+         * @param {Array} [params]. The parameters to call the function with. If this is omitted, then the function
+         *      will be called with a single param pointing to this tween.
+         * @param {Object} [scope]. The scope to call the function in. If omitted, it will be called in the target's
+         *      scope.
+         * @return {Tween} This tween instance (for chaining calls).
+         */
+        Tween.prototype.call = function (callback, thisObj) {
+            var params = [];
+            for (var _i = 2; _i < arguments.length; _i++) {
+                params[_i - 2] = arguments[_i];
+            }
+            return this._addAction({ f: callback, p: params, o: thisObj ? thisObj : this.target });
+        };
+        /**
+         * 设置属性
+         * Queues an action to set the specified props on the specified target. If target is null, it will use this tween's
+         * target.
+         * <h4>Example</h4>
+         *
+         *		myTween.wait(1000).set({visible:false},foo);
+         *
+         * @method set
+         * @param {Object} props The properties to set (ex. `{visible:false}`).
+         * @param {Object} [target] The target to set the properties on. If omitted, they will be set on the tween's target.
+         * @return {Tween} This tween instance (for chaining calls).
+         */
+        Tween.prototype.set = function (props, target) {
+            return this._addAction({ f: this._set, o: this, p: [props, target || this.target] });
+        };
+        /**
+         * 排列一个其他的tween来执行（如果不赋值，则执行自己）
+         * Queues an action to play (unpause) the specified tween. This enables you to sequence multiple tweens.
+         * <h4>Example</h4>
+         *
+         *		myTween.to({x:100},500).play(otherTween);
+         *
+         * @method play
+         * @param {Tween} tween The tween to play.
+         * @return {Tween} This tween instance (for chaining calls).
+         */
+        Tween.prototype.play = function (tween) {
+            if (!tween) {
+                tween = this;
+            }
+            return this.call(tween.setPaused, tween, false);
+        };
+        /**
+         * 排列一个tween的暂停操作，如果tween不赋值，则暂停自己
+         * Queues an action to pause the specified tween.
+         * @method pause
+         * @param {Tween} tween The tween to pause. If null, it pauses this tween.
+         * @return {Tween} This tween instance (for chaining calls)
+         */
+        Tween.prototype.pause = function (tween) {
+            if (!tween) {
+                tween = this;
+            }
+            return this.call(tween.setPaused, tween, true);
+        };
+        /**
+         * 进行一次tick
+         * Advances this tween by the specified amount of time in milliseconds (or ticks if`useTicks` is `true`).
+         * This is normally called automatically by the Tween engine (via {{#crossLink "Tween/tick"}}{{/crossLink}}), but is
+         * exposed for advanced uses.
+         * @method tick
+         * @param {Number} delta The time to advance in milliseconds (or ticks if `useTicks` is `true`).
+         */
+        Tween.prototype.tick = function (delta) {
+            if (this.paused) {
+                return;
+            }
+            this.setPosition(this._prevPosition + delta);
+        };
+        Tween.prototype.onRecycle = function () {
+            this._int = undefined;
+        };
+        /**
+         * Constant returned by plugins to tell the tween not to use default assignment.
+         * @property IGNORE
+         * @type Object
+         * @static
+         */
+        Tween.IGNORE = {};
+        return Tween;
+    }(egret.EventDispatcher));
+    junyou.Tween = Tween;
+    __reflect(Tween.prototype, "junyou.Tween");
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
+     * 资源管理器
+     */
+    var _resources = {};
+    function get(resid, noResHandler, thisObj) {
+        var res = getResource(resid);
+        if (!res) {
+            var args = [];
+            for (var i = 3; i < arguments.length; i++) {
+                args[i - 3] = arguments[i];
+            }
+            res = noResHandler.apply(thisObj, args);
+            regResource(resid, res);
+        }
+        return res;
+    }
+    junyou.ResManager = {
+        get: get,
+        /**
+         * 获取纹理资源
+         *
+         * @param {string} resID 资源id
+         * @param {boolean} [noWebp] 是否不加webp后缀
+         * @returns {TextureResource}
+         */
+        getTextureRes: function (resID, noWebp) {
+            var resources = _resources;
+            var res = resources[resID];
+            if (res) {
+                if (!(res instanceof junyou.TextureResource)) {
+                    junyou.ThrowError("[" + resID + "]\u8D44\u6E90\u6709\u8BEF\uFF0C\u4E0D\u662FTextureResource");
+                    res = undefined;
+                }
+            }
+            if (!res) {
+                res = new junyou.TextureResource(resID, noWebp);
+                resources[resID] = res;
+            }
+            return res;
+        },
+        /**
+         * 获取资源
+         */
+        getResource: getResource,
+        // /**
+        //  * 注册资源
+        //  */
+        // regResource,
+        //按时间检测资源
+        init: function () {
+            var tobeDele = [];
+            junyou.TimerUtil.addCallback(30000 /* CheckTime */, function () {
+                var expire = junyou.Global.now - 300000 /* DisposeTime */;
+                var reses = _resources;
+                var delLen = 0;
+                for (var key in reses) {
+                    var res = reses[key];
+                    if (!res.isStatic && res.lastUseTime < expire) {
+                        tobeDele[delLen++] = key;
+                    }
+                }
+                // //对附加的checker进行检查
+                // for (let i = 0; i < _checkers.length; i++) {
+                //     _checkers[i].resCheck(expire);
+                // }
+                for (var i = 0; i < delLen; i++) {
+                    var key = tobeDele[i];
+                    var res = reses[key];
+                    if (res) {
+                        res.dispose();
+                        junyou.Res.remove(res.uri);
+                        delete reses[key];
+                    }
+                }
+            });
+        }
+    };
+    /**
+     * 获取资源
+     */
+    function getResource(resID) {
+        return _resources[resID];
+    }
+    /**
+     * 注册资源
+     */
+    function regResource(resID, res) {
+        var resources = _resources;
+        if (resID in resources) {
+            return resources[resID] === res;
+        }
+        resources[resID] = res;
+        return true;
+    }
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {

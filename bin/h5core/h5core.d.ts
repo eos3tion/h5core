@@ -1,3 +1,102 @@
+interface $gmType {
+    /**
+     * 主控类型，包括Proxy和Mediator
+     *
+     * @type {{ [index: string]: junyou.FHost }}
+     * @memberof $gmType
+     */
+    $: {
+        [index: string]: junyou.FHost;
+    };
+}
+declare module junyou {
+    type InjectProxy = {
+        new(): IAsync;
+    } | string | number;
+    /**
+     * Mediator和Proxy的基类
+     * @author 3tion
+     *
+     */
+    abstract class FHost implements IDepender {
+        protected _name: string | number;
+        /**
+         * 用于处理依赖注入的Proxy
+         *
+         * @protected
+         * @type {({[index:string]:{ new (): IAsync } | string})}
+         * @memberOf FHost
+         */
+        protected _injectProxys: {
+            [index: string]: InjectProxy;
+        };
+        /**
+         * 唯一标识
+         */
+        readonly name: string | number;
+        constructor(name: string | number);
+        /**
+         * 检查依赖注入的数据
+         *
+         * @protected
+         *
+         * @memberOf FHost
+         */
+        checkInject(): void;
+        /**
+         * 异步的Helper
+         */
+        protected _asyncHelper: AsyncHelper;
+        addReadyExecute(handle: Function, thisObj: any, ...args: any[]): void;
+        /**
+         * 作为依赖者的Helper
+         */
+        protected _dependerHelper: DependerHelper;
+        readonly isReady: boolean;
+        startSync(): void;
+        /**
+         * 添加依赖项
+         */
+        addDepend(async: IAsync): void;
+        /**
+         * 依赖项，加载完成后的检查
+         */
+        protected dependerReadyCheck(): void;
+        /**
+         * 模块在Facade注册时执行
+         */
+        onRegister(): void;
+        /**
+         * 模块从Facade注销时
+         */
+        onRemove(): void;
+        /**
+         * 全部加载好以后要处理的事情<br/>
+         * 包括依赖项加载完毕
+         */
+        protected afterAllReady(): void;
+    }
+    /**
+     *
+     * 附加依赖的Proxy
+     * @export
+     * @param {({ new (): IAsync } | string)} ref 如果注册的是Class，必须是Inline方式注册的Proxy
+     * @returns
+     */
+    function __dependProxy(ref: {
+        new(): IAsync;
+    } | string | number): (target: any, key: string) => void;
+}
+declare module junyou {
+    /**
+     *
+     * 附加依赖的Proxy
+     * @export
+     * @param {({ new (): IAsync } | string)} ref
+     * @returns
+     */
+    var d_dependProxy: typeof __dependProxy;
+}
 declare function parseInt(s: number, radix?: number): number;
 /**
  * 对数字进行补0操作
@@ -454,105 +553,6 @@ interface Storage {
     setItem(key: number | string, data: any): void;
     removeItem(key: number | string): void;
 }
-interface $gmType {
-    /**
-     * 主控类型，包括Proxy和Mediator
-     *
-     * @type {{ [index: string]: junyou.FHost }}
-     * @memberof $gmType
-     */
-    $: {
-        [index: string]: junyou.FHost;
-    };
-}
-declare module junyou {
-    type InjectProxy = {
-        new(): IAsync;
-    } | string | number;
-    /**
-     * Mediator和Proxy的基类
-     * @author 3tion
-     *
-     */
-    abstract class FHost implements IDepender {
-        protected _name: string | number;
-        /**
-         * 用于处理依赖注入的Proxy
-         *
-         * @protected
-         * @type {({[index:string]:{ new (): IAsync } | string})}
-         * @memberOf FHost
-         */
-        protected _injectProxys: {
-            [index: string]: InjectProxy;
-        };
-        /**
-         * 唯一标识
-         */
-        readonly name: string | number;
-        constructor(name: string | number);
-        /**
-         * 检查依赖注入的数据
-         *
-         * @protected
-         *
-         * @memberOf FHost
-         */
-        checkInject(): void;
-        /**
-         * 异步的Helper
-         */
-        protected _asyncHelper: AsyncHelper;
-        addReadyExecute(handle: Function, thisObj: any, ...args: any[]): void;
-        /**
-         * 作为依赖者的Helper
-         */
-        protected _dependerHelper: DependerHelper;
-        readonly isReady: boolean;
-        startSync(): void;
-        /**
-         * 添加依赖项
-         */
-        addDepend(async: IAsync): void;
-        /**
-         * 依赖项，加载完成后的检查
-         */
-        protected dependerReadyCheck(): void;
-        /**
-         * 模块在Facade注册时执行
-         */
-        onRegister(): void;
-        /**
-         * 模块从Facade注销时
-         */
-        onRemove(): void;
-        /**
-         * 全部加载好以后要处理的事情<br/>
-         * 包括依赖项加载完毕
-         */
-        protected afterAllReady(): void;
-    }
-    /**
-     *
-     * 附加依赖的Proxy
-     * @export
-     * @param {({ new (): IAsync } | string)} ref 如果注册的是Class，必须是Inline方式注册的Proxy
-     * @returns
-     */
-    function __dependProxy(ref: {
-        new(): IAsync;
-    } | string | number): (target: any, key: string) => void;
-}
-declare module junyou {
-    /**
-     *
-     * 附加依赖的Proxy
-     * @export
-     * @param {({ new (): IAsync } | string)} ref
-     * @returns
-     */
-    var d_dependProxy: typeof __dependProxy;
-}
 declare module junyou {
     /**
      * 基础创建器
@@ -711,438 +711,6 @@ declare module junyou {
         protected $setEnabled(value: boolean): void;
         readonly view: this;
     }
-}
-declare const enum EgretEvent {
-    /**************************************** egret.Event ****************************************/
-    /**
- * Dispatched when a display object is added to the on stage display list, either directly or through the addition
- * of a sub tree in which the display object is contained.
- * @version Egret 2.4
- * @platform Web,Native
- * @language en_US
- */
-    /**
-     * 在将显示对象直接添加到舞台显示列表或将包含显示对象的子树添加至舞台显示列表中时调度。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    ADDED_TO_STAGE = "addedToStage",
-    /**
-     * Dispatched when a display object is about to be removed from the display list, either directly or through the removal
-     * of a sub tree in which the display object is contained.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 在从显示列表中直接删除显示对象或删除包含显示对象的子树时调度。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    REMOVED_FROM_STAGE = "removedFromStage",
-    /**
-     * Dispatched when a display object is added to the display list.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 将显示对象添加到显示列表中时调度。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    ADDED = "added",
-    /**
-     * Dispatched when a display object is about to be removed from the display list.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 将要从显示列表中删除显示对象时调度。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    REMOVED = "removed",
-    /**
-     * [broadcast event] Dispatched when the playhead is entering a new frame.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * [广播事件] 进入新的一帧,监听此事件将会在下一帧开始时触发一次回调。这是一个广播事件，可以在任何一个显示对象上监听，无论它是否在显示列表中。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    ENTER_FRAME = "enterFrame",
-    /**
-     * Dispatched when the display list is about to be updated and rendered.
-     * Note: Every time you want to receive a render event,you must call the stage.invalidate() method.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 渲染事件，监听此事件将会在本帧末即将开始渲染的前一刻触发回调，这是一个广播事件，可以在任何一个显示对象上监听，无论它是否在显示列表中。
-     * 注意：每次您希望 Egret 发送 Event.RENDER 事件时，都必须调用 stage.invalidate() 方法，由于每帧只会触发一次屏幕刷新，
-     * 若在 Event.RENDER 回调函数执行期间再次调用stage.invalidate()，将会被忽略。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    RENDER = "render",
-    /**
-     * Dispatched when the size of stage or UIComponent is changed.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 舞台尺寸或UI组件尺寸发生改变
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    RESIZE = "resize",
-    /**
-     * Dispatched when the value or selection of a property is chaned.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 属性值或状态发生改变。通常是按钮的选中状态，或者列表的选中项索引改变。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    CHANGE = "change",
-    /**
-     * Dispatched when the value or selection of a property is going to change.you can cancel this by calling the
-     * preventDefault() method.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 属性值或状态即将发生改变,通常是按钮的选中状态，或者列表的选中项索引改变。可以通过调用 preventDefault() 方法阻止索引发生更改。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    CHANGING = "changing",
-    /**
-     * Dispatched when the net request is complete.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 网络请求加载完成
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    COMPLETE = "complete",
-    /**
-     * Dispatched when loop completed.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 循环完成。循环最后一次只派发 COMPLETE 事件，不派发 LOOP_COMPLETE 事件。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    LOOP_COMPLETE = "loopComplete",
-    /**
-     * Dispatched when the TextInput instance gets focus.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * TextInput实例获得焦点
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    FOCUS_IN = "focusIn",
-    /**
-     * Dispatched when the TextInput instance loses focus.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * TextInput实例失去焦点
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    FOCUS_OUT = "focusOut",
-    /**
-     * Dispatched when the playback is ended.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 动画声音等播放完成
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    ENDED = "ended",
-    /**
-     * 游戏激活
-     * @version Egret 2.4
-     * @platform Web,Native
-     */
-    ACTIVATE = "activate",
-    /**
-     * 取消激活
-     * @version Egret 2.4
-     * @platform Web,Native
-     */
-    DEACTIVATE = "deactivate",
-    /**
-     * Event.CLOSE 常量定义 close 事件对象的 type 属性的值。
-     * @version Egret 2.4
-     * @platform Web,Native
-     */
-    CLOSE = "close",
-    /**
-     * Event.CONNECT 常量定义 connect 事件对象的 type 属性的值。
-     * @version Egret 2.4
-     * @platform Web,Native
-     */
-    CONNECT = "connect",
-    /**
-     * Event.LEAVE_STAGE 常量定义 leaveStage 事件对象的 type 属性的值。
-     * @version Egret 2.4
-     * @platform Web,Native
-     */
-    LEAVE_STAGE = "leaveStage",
-    /**
-     * Event.SOUND_COMPLETE 常量定义 在声音完成播放后调度。
-     * @version Egret 2.4
-     * @platform Web,Native
-     */
-    SOUND_COMPLETE = "soundComplete",
-    /**************************************** egret.StageOrientationEvent ****************************************/
-    /**
-     * After screen rotation distribute events.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 屏幕旋转后派发的事件。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    ORIENTATION_CHANGE = "orientationChange",
-    /**************************************** egret.TextEvent ****************************************/
-    /**
-     * It defines the value of the type property of a link event object.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 定义 link 事件对象的 type 属性值。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    LINK = "link",
-    /**************************************** egret.TouchEvent ****************************************/
-    /**
-    * Dispatched when the user touches the device, and is continuously dispatched until the point of contact is removed.
-    * @version Egret 2.4
-    * @platform Web,Native
-    * @language en_US
-    */
-    /**
-     * 当用户触碰设备时进行调度，而且会连续调度，直到接触点被删除。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    TOUCH_MOVE = "touchMove",
-    /**
-     * Dispatched when the user first contacts a touch-enabled device (such as touches a finger to a mobile phone or tablet with a touch screen).
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 当用户第一次触摸启用触摸的设备时（例如，用手指触摸配有触摸屏的移动电话或平板电脑）调度。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    TOUCH_BEGIN = "touchBegin",
-    /**
-     * Dispatched when the user removes contact with a touch-enabled device (such as lifts a finger off a mobile phone
-     * or tablet with a touch screen).
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 当用户移除与启用触摸的设备的接触时（例如，将手指从配有触摸屏的移动电话或平板电脑上抬起）调度。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    TOUCH_END = "touchEnd",
-    /**
-     * Dispatched when an event of some kind occurred that canceled the touch.
-     * Such as the eui.Scroller will dispatch 'TOUCH_CANCEL' when it start move, the 'TOUCH_END' and 'TOUCH_TAP' will not be triggered.
-     * @version Egret 3.0.1
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 由于某个事件取消了触摸时触发。比如 eui.Scroller 在开始滚动后会触发 'TOUCH_CANCEL' 事件，不再触发后续的 'TOUCH_END' 和 'TOUCH_TAP' 事件
-     * @version Egret 3.0.1
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    TOUCH_CANCEL = "touchCancel",
-    /**
-     * Dispatched when the user lifts the point of contact over the same DisplayObject instance on which the contact
-     * was initiated on a touch-enabled device.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 当用户在触摸设备上与开始触摸的同一 DisplayObject 实例上抬起接触点时调度。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    TOUCH_TAP = "touchTap",
-    /**
-     * Dispatched when the user lifts the point of contact over the different DisplayObject instance on which the contact
-     * was initiated on a touch-enabled device (such as presses and releases a finger from a single point over a display
-     * object on a mobile phone or tablet with a touch screen).
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 当用户在触摸设备上与开始触摸的不同 DisplayObject 实例上抬起接触点时调度。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    TOUCH_RELEASE_OUTSIDE = "touchReleaseOutside",
-    /**************************************** RES.ResourceEvent ****************************************/
-    /**
- * Failure event for a load item.
- * @version Egret 2.4
- * @platform Web,Native
- * @language en_US
- */
-    /**
-     * 一个加载项加载失败事件。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    ITEM_LOAD_ERROR = "itemLoadError",
-    /**
-     * Configure file to load and parse the completion event. Note: if a configuration file is loaded, it will not be thrown out, and if you want to handle the configuration loading failure, monitor the CONFIG_LOAD_ERROR event.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 配置文件加载并解析完成事件。注意：若有配置文件加载失败，将不会抛出此事件，若要处理配置加载失败，请同时监听 CONFIG_LOAD_ERROR 事件。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    CONFIG_COMPLETE = "configComplete",
-    /**
-     * Configuration file failed to load.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 配置文件加载失败事件。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    CONFIG_LOAD_ERROR = "configLoadError",
-    /**
-     * Delay load group resource loading progress event.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 延迟加载组资源加载进度事件。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    GROUP_PROGRESS = "groupProgress",
-    /**
-     * Delay load group resource to complete event. Note: if you have a resource item loading failure, the event will not be thrown, if you want to handle the group load failure, please listen to the GROUP_LOAD_ERROR event.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 延迟加载组资源加载完成事件。注意：若组内有资源项加载失败，将不会抛出此事件，若要处理组加载失败，请同时监听 GROUP_LOAD_ERROR 事件。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    GROUP_COMPLETE = "groupComplete",
-    /**
-     * Delayed load group resource failed event.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * 延迟加载组资源加载失败事件。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    GROUP_LOAD_ERROR = "groupLoadError",
-    /**************************************** Egret.IOErrorEvent ****************************************/
-    /**
-     * io error
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language en_US
-     */
-    /**
-     * io发生错误
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @language zh_CN
-     */
-    IO_ERROR = "ioError",
 }
 declare module junyou {
     /**
@@ -1792,6 +1360,438 @@ declare module junyou {
         recycle(): void;
     }
 }
+declare const enum EgretEvent {
+    /**************************************** egret.Event ****************************************/
+    /**
+ * Dispatched when a display object is added to the on stage display list, either directly or through the addition
+ * of a sub tree in which the display object is contained.
+ * @version Egret 2.4
+ * @platform Web,Native
+ * @language en_US
+ */
+    /**
+     * 在将显示对象直接添加到舞台显示列表或将包含显示对象的子树添加至舞台显示列表中时调度。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    ADDED_TO_STAGE = "addedToStage",
+    /**
+     * Dispatched when a display object is about to be removed from the display list, either directly or through the removal
+     * of a sub tree in which the display object is contained.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 在从显示列表中直接删除显示对象或删除包含显示对象的子树时调度。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    REMOVED_FROM_STAGE = "removedFromStage",
+    /**
+     * Dispatched when a display object is added to the display list.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 将显示对象添加到显示列表中时调度。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    ADDED = "added",
+    /**
+     * Dispatched when a display object is about to be removed from the display list.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 将要从显示列表中删除显示对象时调度。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    REMOVED = "removed",
+    /**
+     * [broadcast event] Dispatched when the playhead is entering a new frame.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * [广播事件] 进入新的一帧,监听此事件将会在下一帧开始时触发一次回调。这是一个广播事件，可以在任何一个显示对象上监听，无论它是否在显示列表中。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    ENTER_FRAME = "enterFrame",
+    /**
+     * Dispatched when the display list is about to be updated and rendered.
+     * Note: Every time you want to receive a render event,you must call the stage.invalidate() method.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 渲染事件，监听此事件将会在本帧末即将开始渲染的前一刻触发回调，这是一个广播事件，可以在任何一个显示对象上监听，无论它是否在显示列表中。
+     * 注意：每次您希望 Egret 发送 Event.RENDER 事件时，都必须调用 stage.invalidate() 方法，由于每帧只会触发一次屏幕刷新，
+     * 若在 Event.RENDER 回调函数执行期间再次调用stage.invalidate()，将会被忽略。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    RENDER = "render",
+    /**
+     * Dispatched when the size of stage or UIComponent is changed.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 舞台尺寸或UI组件尺寸发生改变
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    RESIZE = "resize",
+    /**
+     * Dispatched when the value or selection of a property is chaned.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 属性值或状态发生改变。通常是按钮的选中状态，或者列表的选中项索引改变。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    CHANGE = "change",
+    /**
+     * Dispatched when the value or selection of a property is going to change.you can cancel this by calling the
+     * preventDefault() method.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 属性值或状态即将发生改变,通常是按钮的选中状态，或者列表的选中项索引改变。可以通过调用 preventDefault() 方法阻止索引发生更改。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    CHANGING = "changing",
+    /**
+     * Dispatched when the net request is complete.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 网络请求加载完成
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    COMPLETE = "complete",
+    /**
+     * Dispatched when loop completed.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 循环完成。循环最后一次只派发 COMPLETE 事件，不派发 LOOP_COMPLETE 事件。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    LOOP_COMPLETE = "loopComplete",
+    /**
+     * Dispatched when the TextInput instance gets focus.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * TextInput实例获得焦点
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    FOCUS_IN = "focusIn",
+    /**
+     * Dispatched when the TextInput instance loses focus.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * TextInput实例失去焦点
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    FOCUS_OUT = "focusOut",
+    /**
+     * Dispatched when the playback is ended.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 动画声音等播放完成
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    ENDED = "ended",
+    /**
+     * 游戏激活
+     * @version Egret 2.4
+     * @platform Web,Native
+     */
+    ACTIVATE = "activate",
+    /**
+     * 取消激活
+     * @version Egret 2.4
+     * @platform Web,Native
+     */
+    DEACTIVATE = "deactivate",
+    /**
+     * Event.CLOSE 常量定义 close 事件对象的 type 属性的值。
+     * @version Egret 2.4
+     * @platform Web,Native
+     */
+    CLOSE = "close",
+    /**
+     * Event.CONNECT 常量定义 connect 事件对象的 type 属性的值。
+     * @version Egret 2.4
+     * @platform Web,Native
+     */
+    CONNECT = "connect",
+    /**
+     * Event.LEAVE_STAGE 常量定义 leaveStage 事件对象的 type 属性的值。
+     * @version Egret 2.4
+     * @platform Web,Native
+     */
+    LEAVE_STAGE = "leaveStage",
+    /**
+     * Event.SOUND_COMPLETE 常量定义 在声音完成播放后调度。
+     * @version Egret 2.4
+     * @platform Web,Native
+     */
+    SOUND_COMPLETE = "soundComplete",
+    /**************************************** egret.StageOrientationEvent ****************************************/
+    /**
+     * After screen rotation distribute events.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 屏幕旋转后派发的事件。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    ORIENTATION_CHANGE = "orientationChange",
+    /**************************************** egret.TextEvent ****************************************/
+    /**
+     * It defines the value of the type property of a link event object.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 定义 link 事件对象的 type 属性值。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    LINK = "link",
+    /**************************************** egret.TouchEvent ****************************************/
+    /**
+    * Dispatched when the user touches the device, and is continuously dispatched until the point of contact is removed.
+    * @version Egret 2.4
+    * @platform Web,Native
+    * @language en_US
+    */
+    /**
+     * 当用户触碰设备时进行调度，而且会连续调度，直到接触点被删除。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    TOUCH_MOVE = "touchMove",
+    /**
+     * Dispatched when the user first contacts a touch-enabled device (such as touches a finger to a mobile phone or tablet with a touch screen).
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 当用户第一次触摸启用触摸的设备时（例如，用手指触摸配有触摸屏的移动电话或平板电脑）调度。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    TOUCH_BEGIN = "touchBegin",
+    /**
+     * Dispatched when the user removes contact with a touch-enabled device (such as lifts a finger off a mobile phone
+     * or tablet with a touch screen).
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 当用户移除与启用触摸的设备的接触时（例如，将手指从配有触摸屏的移动电话或平板电脑上抬起）调度。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    TOUCH_END = "touchEnd",
+    /**
+     * Dispatched when an event of some kind occurred that canceled the touch.
+     * Such as the eui.Scroller will dispatch 'TOUCH_CANCEL' when it start move, the 'TOUCH_END' and 'TOUCH_TAP' will not be triggered.
+     * @version Egret 3.0.1
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 由于某个事件取消了触摸时触发。比如 eui.Scroller 在开始滚动后会触发 'TOUCH_CANCEL' 事件，不再触发后续的 'TOUCH_END' 和 'TOUCH_TAP' 事件
+     * @version Egret 3.0.1
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    TOUCH_CANCEL = "touchCancel",
+    /**
+     * Dispatched when the user lifts the point of contact over the same DisplayObject instance on which the contact
+     * was initiated on a touch-enabled device.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 当用户在触摸设备上与开始触摸的同一 DisplayObject 实例上抬起接触点时调度。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    TOUCH_TAP = "touchTap",
+    /**
+     * Dispatched when the user lifts the point of contact over the different DisplayObject instance on which the contact
+     * was initiated on a touch-enabled device (such as presses and releases a finger from a single point over a display
+     * object on a mobile phone or tablet with a touch screen).
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 当用户在触摸设备上与开始触摸的不同 DisplayObject 实例上抬起接触点时调度。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    TOUCH_RELEASE_OUTSIDE = "touchReleaseOutside",
+    /**************************************** RES.ResourceEvent ****************************************/
+    /**
+ * Failure event for a load item.
+ * @version Egret 2.4
+ * @platform Web,Native
+ * @language en_US
+ */
+    /**
+     * 一个加载项加载失败事件。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    ITEM_LOAD_ERROR = "itemLoadError",
+    /**
+     * Configure file to load and parse the completion event. Note: if a configuration file is loaded, it will not be thrown out, and if you want to handle the configuration loading failure, monitor the CONFIG_LOAD_ERROR event.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 配置文件加载并解析完成事件。注意：若有配置文件加载失败，将不会抛出此事件，若要处理配置加载失败，请同时监听 CONFIG_LOAD_ERROR 事件。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    CONFIG_COMPLETE = "configComplete",
+    /**
+     * Configuration file failed to load.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 配置文件加载失败事件。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    CONFIG_LOAD_ERROR = "configLoadError",
+    /**
+     * Delay load group resource loading progress event.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 延迟加载组资源加载进度事件。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    GROUP_PROGRESS = "groupProgress",
+    /**
+     * Delay load group resource to complete event. Note: if you have a resource item loading failure, the event will not be thrown, if you want to handle the group load failure, please listen to the GROUP_LOAD_ERROR event.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 延迟加载组资源加载完成事件。注意：若组内有资源项加载失败，将不会抛出此事件，若要处理组加载失败，请同时监听 GROUP_LOAD_ERROR 事件。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    GROUP_COMPLETE = "groupComplete",
+    /**
+     * Delayed load group resource failed event.
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * 延迟加载组资源加载失败事件。
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    GROUP_LOAD_ERROR = "groupLoadError",
+    /**************************************** Egret.IOErrorEvent ****************************************/
+    /**
+     * io error
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language en_US
+     */
+    /**
+     * io发生错误
+     * @version Egret 2.4
+     * @platform Web,Native
+     * @language zh_CN
+     */
+    IO_ERROR = "ioError",
+}
 /**
  * 参考createjs和白鹭的tween
  * 调整tick的驱动方式
@@ -1922,106 +1922,6 @@ declare module junyou {
          */
         installPlugin(plugin: ITweenPlugin, properties: string[]): void;
     }
-}
-declare module junyou {
-    /**
-     * mixin的基类选项
-     *
-     * @export
-     * @interface MixinOption
-     * @template T
-     */
-    interface MixinOption<T> {
-        /**
-         *
-         * mixin的基类
-         * @type {{ new (): T }}
-         * @memberOf MixinOption
-         */
-        clazz: {
-            new(): T;
-        };
-        /**
-         *
-         *
-         * @type {(keyof T)[]}
-         * @memberOf MixinOption
-         */
-        keys: (keyof T)[];
-    }
-    /**
-     * 扩展一个实例，如果A类型实例本身并没有B类型的方法，则直接对实例的属性进行赋值，否则将不会赋值
-     *
-     * @export
-     * @template A
-     * @template B
-     * @param {A} instance                  要扩展的实例
-     * @param {{ prototype: B }} clazzB     需要扩展的对象方法
-     * @param {boolean} override            是否强制覆盖原有方法
-     * @returns {(A & B)}
-     */
-    function expandInstance<A, B, K extends keyof B>(instance: A, clazzB: {
-        prototype: B;
-    }, ...keys: K[]): A & B;
-    /**
-     * 将类型A扩展类型B的指定属性，并返回引用
-     *
-     * @export
-     * @template A
-     * @template B
-     * @template K
-     * @template B
-     * @param {{ prototype: A }} clazzA     要被扩展的类型
-     * @param {{ prototype: B }} clazzB     扩展的模板，已经模板的父类型也会作为模板
-     * @param {...K[]} keys      如果没有参数，则将B的全部属性复制给类型A
-     * @returns {(A & Record<K, B>)}
-     */
-    function expand<A, B, K extends keyof B>(clazzA: {
-        prototype: A;
-    }, clazzB: {
-        prototype: B;
-    }, ...keys: K[]): A & Record<K, B>;
-    type Constructor<T> = new (...args: any[]) => T;
-    type MixinCtor<A, B> = new () => A & B & {
-        constructor: MixinCtor<A, B>;
-    };
-    /**
-     * 获取一个复合类型
-     *
-     * @export
-     * @template A
-     * @template B
-     * @param {{ prototype: A }} clazzA     类型A
-     * @param {{ prototype: B }} clazzB     类型B
-     * @returns
-     */
-    function getMixin<A, B>(clazzA: {
-        prototype: A;
-    }, clazzB: {
-        prototype: B;
-    }): MixinCtor<A, B>;
-    /**
-     * 拷贝属性
-     *
-     * @export
-     * @template To
-     * @template From
-     * @param {To} to
-     * @param {From} from
-     * @param {keyof B} key
-     */
-    function copyProperty<To, From>(to: To, from: From, key: keyof From): void;
-    /**
-     * 批量拷贝属性
-     *
-     * @export
-     * @template To
-     * @template From
-     * @param {To} to
-     * @param {From} from
-     * @param {...(keyof From)[]} keys
-     */
-    function copyProperties<To, From>(to: To, from: From, ...keys: (keyof From)[]): void;
 }
 declare module junyou {
     /**
@@ -2365,28 +2265,103 @@ declare module junyou {
 }
 declare module junyou {
     /**
+     * mixin的基类选项
      *
-     * @author 3tion
-     *
+     * @export
+     * @interface MixinOption
+     * @template T
      */
-    const enum RequestState {
+    interface MixinOption<T> {
         /**
-         * 未请求/未加载 0
+         *
+         * mixin的基类
+         * @type {{ new (): T }}
+         * @memberOf MixinOption
          */
-        UNREQUEST = 0,
+        clazz: {
+            new(): T;
+        };
         /**
-         * 请求中/加载中，未获得值 1
+         *
+         *
+         * @type {(keyof T)[]}
+         * @memberOf MixinOption
          */
-        REQUESTING = 1,
-        /**
-         * 已加载/已获取到值 2
-         */
-        COMPLETE = 2,
-        /**
-         * 加载失败 -1
-         */
-        FAILED = -1,
+        keys: (keyof T)[];
     }
+    /**
+     * 扩展一个实例，如果A类型实例本身并没有B类型的方法，则直接对实例的属性进行赋值，否则将不会赋值
+     *
+     * @export
+     * @template A
+     * @template B
+     * @param {A} instance                  要扩展的实例
+     * @param {{ prototype: B }} clazzB     需要扩展的对象方法
+     * @param {boolean} override            是否强制覆盖原有方法
+     * @returns {(A & B)}
+     */
+    function expandInstance<A, B, K extends keyof B>(instance: A, clazzB: {
+        prototype: B;
+    }, ...keys: K[]): A & B;
+    /**
+     * 将类型A扩展类型B的指定属性，并返回引用
+     *
+     * @export
+     * @template A
+     * @template B
+     * @template K
+     * @template B
+     * @param {{ prototype: A }} clazzA     要被扩展的类型
+     * @param {{ prototype: B }} clazzB     扩展的模板，已经模板的父类型也会作为模板
+     * @param {...K[]} keys      如果没有参数，则将B的全部属性复制给类型A
+     * @returns {(A & Record<K, B>)}
+     */
+    function expand<A, B, K extends keyof B>(clazzA: {
+        prototype: A;
+    }, clazzB: {
+        prototype: B;
+    }, ...keys: K[]): A & Record<K, B>;
+    type Constructor<T> = new (...args: any[]) => T;
+    type MixinCtor<A, B> = new () => A & B & {
+        constructor: MixinCtor<A, B>;
+    };
+    /**
+     * 获取一个复合类型
+     *
+     * @export
+     * @template A
+     * @template B
+     * @param {{ prototype: A }} clazzA     类型A
+     * @param {{ prototype: B }} clazzB     类型B
+     * @returns
+     */
+    function getMixin<A, B>(clazzA: {
+        prototype: A;
+    }, clazzB: {
+        prototype: B;
+    }): MixinCtor<A, B>;
+    /**
+     * 拷贝属性
+     *
+     * @export
+     * @template To
+     * @template From
+     * @param {To} to
+     * @param {From} from
+     * @param {keyof B} key
+     */
+    function copyProperty<To, From>(to: To, from: From, key: keyof From): void;
+    /**
+     * 批量拷贝属性
+     *
+     * @export
+     * @template To
+     * @template From
+     * @param {To} to
+     * @param {From} from
+     * @param {...(keyof From)[]} keys
+     */
+    function copyProperties<To, From>(to: To, from: From, ...keys: (keyof From)[]): void;
 }
 interface $NSFilter {
     /**
@@ -3147,41 +3122,37 @@ declare module junyou {
     }
 }
 declare module junyou {
-    /**
-     * 模型(纸娃娃)渲染器
-     */
-    class UnitRender extends BaseRender {
-        faceTo: number;
-        /**单位**/
-        protected unit: Unit;
-        actionInfo: ActionInfo;
-        model: UModel;
-        protected nextRenderTime: number;
-        protected renderedTime: number;
-        constructor(unit: Unit);
-        reset(now: number): void;
+    class UnitSetting {
         /**
-         * 处理数据
-         *
-         * @param {number} now 时间戳
+         * 是否添加UI层
          */
-        doData(now: number): void;
-        render(now: number): void;
-        onData(actionInfo: ActionInfo, now: number): void;
-        clearRes(): void;
-        renderFrame(frame: FrameInfo, now: number): void;
-        dispatchEvent(event: string, now: number): void;
-        doComplete(now: number): void;
-        dispose(): void;
+        hasUILayer: boolean;
+        /**
+         * 是否添加Buff容器
+         */
+        hasBuffLayer: boolean;
+        /**
+         * 是否添加光环容器
+         */
+        hasHaloLayer: boolean;
+        /**
+         * 是否添加到游戏场景中
+         */
+        addToEngine: boolean;
+        getDepth(): number;
+        /**
+         * 深度的参数A
+         */
+        depthA: number;
+        /**
+         * 深度的参数B
+         */
+        depthB: number;
     }
-}
-declare module junyou {
-    const ResManager: {
-        get: <T extends IResource>(resid: string, noResHandler: (...args: any[]) => T, thisObj?: any, ...args: any[]) => any;
-        getTextureRes(resID: string, noWebp?: boolean): TextureResource;
-        getResource: (resID: string) => IResource;
-        init(): void;
-    };
+    /**
+     * 默认的单位设置
+     */
+    const defaultUnitSetting: UnitSetting;
 }
 declare module junyou {
     import Bitmap = egret.Bitmap;
@@ -3311,26 +3282,114 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     * 绑定属性名，当属性值发生改变时，可自动对外抛eventType事件
-     *
-     * @export
-     * @param {Key} eventType     事件类型
-     * @param {boolean} [selfDispatch]          默认false，使用Facade抛事件，event.data为实例本身
-     *                                          如果为true，需要为EventDispatcher的实现，会使用自身抛事件
-     * @returns
+     * 创建器
      */
-    function d_fire(eventType: Key, selfDispatch?: boolean): (host: any, property: string) => void;
+    type Creator<T> = {
+        new(): T;
+    } | {
+            (): T;
+        };
     /**
-     * 使用微软vs code中使用的代码
-     * 用于一些 lazy 的调用
-     * https://github.com/Microsoft/vscode/blob/master/src/vs/base/common/decorators.ts
+     *
+     * 调整ClassFactory
+     * @export
+     * @class ClassFactory
+     * @template T
+     */
+    class ClassFactory<T> {
+        private _creator;
+        private _props;
+        /**
+         * @param {Creator<T>} creator
+         * @param {Partial<T>} [props] 属性模板
+         * @memberof ClassFactory
+         */
+        constructor(creator: Creator<T>, props?: Partial<T>);
+        /**
+         * 获取实例
+         *
+         * @returns
+         */
+        get(): any;
+    }
+    /**
+     * 可回收的对象
      *
      * @export
-     * @param {*} target
-     * @param {string} key
-     * @param {*} descriptor
+     * @interface IRecyclable
      */
-    function d_memoize(target: any, key: string, descriptor: any): void;
+    interface IRecyclable {
+        /**
+         * 回收时触发
+         */
+        onRecycle?: {
+            ();
+        };
+        /**
+         * 启用时触发
+         */
+        onSpawn?: {
+            ();
+        };
+        /**
+         * 回收对象的唯一自增标识
+         * 从回收池取出后，会变化
+         * 此属性只有在`DEBUG`时有效
+         */
+        _insid?: number;
+    }
+    /**
+     * 回收池
+     * @author 3tion
+     *
+     */
+    class RecyclablePool<T> {
+        private _pool;
+        private _max;
+        private _creator;
+        get(): T;
+        /**
+         * 回收
+         */
+        recycle(t: T): void;
+        constructor(TCreator: Creator<T>, max?: number);
+    }
+    type Recyclable<T> = T & {
+        recycle(): void;
+    };
+    /**
+     * 获取一个recyclable的对象
+     *
+     * @export
+     * @template T
+     * @param {({ new(): T & { _pool?: RecyclablePool<T> } })} clazz
+     */
+    function recyclable<T>(clazz: {
+        new(): T & {
+            _pool?: RecyclablePool<T>;
+        };
+    }): Recyclable<T>;
+    /**
+     * 使用创建函数进行创建
+     *
+     * @export
+     * @template T
+     * @param {({ (): T & { _pool?: RecyclablePool<T> } })} clazz
+     * @param {true} addInstanceRecycle
+     */
+    function recyclable<T>(clazz: {
+        (): T & {
+            _pool?: RecyclablePool<T>;
+        };
+    }, addInstanceRecycle?: boolean): Recyclable<T>;
+    /**
+     * 单例工具
+     * @param clazz 要做单例的类型
+     */
+    function singleton<T>(clazz: {
+        new(): T;
+        _instance?: T;
+    }): T;
 }
 declare module junyou {
     const enum LimitScene {
@@ -3697,106 +3756,27 @@ declare module junyou {
     var Location: LocationConstructor;
 }
 declare module junyou {
-    interface GlobalInstance {
-        initTick: () => void;
-        nextTick: (callback: Function, thisObj?: any, ...args: any[]) => void;
-        nextTick2: (callback: CallbackInfo<Function>) => void;
-        /**
-         * 延迟执行
-         * @param {Function} callback 回调函数
-         * @param {number} [time=0] 延迟执行的时间
-         * @param {*} [thisObj] 回调的`this`指针
-         * @param args 回调参数列表
-         */
-        callLater(callback: Function, time?: number, thisObj?: any, ...args: any[]): any;
-        /**
-         * 延迟执行
-         * @param {$CallbackInfo} callback 回调函数
-         * @param {number} [time=0] 延迟执行的时间
-         */
-        callLater2(callback: $CallbackInfo, time?: number): any;
-        /**
-         * 清理延迟
-         * @param {Function} callback 回调函数
-         * @param {*} [thisObj]  回调的`this`指针
-         */
-        clearCallLater(callback: Function, thisObj?: any): any;
-        /**
-         * 清理延迟
-         * @param {$CallbackInfo} callback 要清理的回调
-         */
-        clearCallLater2(callback: $CallbackInfo): any;
-        /**
-         * 获取Tween
-         *
-         * @static
-         * @param {*} target 要对那个对象做Tween处理
-         * @param {TweenOption} props Tween的附加属性 (如： `{loop:true, paused:true}`).
-         * All properties default to `false`. Supported props are:
-         * <UL>
-         *    <LI> loop: sets the loop property on this tween.</LI>
-         *    <LI> useTicks: uses ticks for all durations instead of milliseconds.</LI>
-         *    <LI> ignoreGlobalPause: sets the {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}} property on
-         *    this tween.</LI>
-         *    <LI> override: if true, `createjs. this.removeTweens(target)` will be called to remove any other tweens with
-         *    the same target.
-         *    <LI> paused: indicates whether to start the tween paused.</LI>
-         *    <LI> position: indicates the initial position for this tween.</LI>
-         *    <LI> onChange: specifies a listener for the {{#crossLink "Tween/change:event"}}{{/crossLink}} event.</LI>
-         * </UL>
-         * @param {*} pluginData 插件数据
-         * @param {boolean} override 是否覆盖
-         * @returns {Tween} tween的实例
-         */
-        getTween(target: any, props?: TweenOption, pluginData?: any, override?: boolean): Tween;
-        /**
-         * 移除指定的Tween
-         *
-         * @param {Tween} tween
-         * @returns
-         */
-        removeTween(tween: Tween): any;
-        /**
-         * 移除指定目标的所有Tween
-         *
-         * @param {any} target
-         * @returns
-         */
-        removeTweens(target: any): any;
-        /**
-         * 判断是否为Native的版本
-         */
-        readonly isNative: boolean;
-        tweenManager: TweenManager;
-        /**
-         *  当前这一帧的时间
-         */
-        readonly now: number;
-        /**
-         * 按照帧，应该走的时间
-         * 每帧根据帧率加固定时间
-         * 用于处理逐帧同步用
-         */
-        readonly frameNow: number;
-        /**
-         * 是否支持webp
-         */
-        readonly webp: "" | Ext.WEBP;
-        /**
-         * 添加每帧执行回调
-         */
-        addInterval(callback: CallbackInfo<Function>): void;
-        /**
-         * 移除每帧执行回调
-         */
-        removeInterval(callback: CallbackInfo<Function>): void;
-    }
     /**
-     * 动画的全局对象
-     * @author 3tion
+     * 绑定属性名，当属性值发生改变时，可自动对外抛eventType事件
      *
+     * @export
+     * @param {Key} eventType     事件类型
+     * @param {boolean} [selfDispatch]          默认false，使用Facade抛事件，event.data为实例本身
+     *                                          如果为true，需要为EventDispatcher的实现，会使用自身抛事件
+     * @returns
      */
-    const Global: GlobalInstance;
+    function d_fire(eventType: Key, selfDispatch?: boolean): (host: any, property: string) => void;
+    /**
+     * 使用微软vs code中使用的代码
+     * 用于一些 lazy 的调用
+     * https://github.com/Microsoft/vscode/blob/master/src/vs/base/common/decorators.ts
+     *
+     * @export
+     * @param {*} target
+     * @param {string} key
+     * @param {*} descriptor
+     */
+    function d_memoize(target: any, key: string, descriptor: any): void;
 }
 declare const enum Time {
     /**
@@ -4108,10 +4088,106 @@ declare module junyou {
     }
 }
 declare module junyou {
+    interface GlobalInstance {
+        initTick: () => void;
+        nextTick: (callback: Function, thisObj?: any, ...args: any[]) => void;
+        nextTick2: (callback: CallbackInfo<Function>) => void;
+        /**
+         * 延迟执行
+         * @param {Function} callback 回调函数
+         * @param {number} [time=0] 延迟执行的时间
+         * @param {*} [thisObj] 回调的`this`指针
+         * @param args 回调参数列表
+         */
+        callLater(callback: Function, time?: number, thisObj?: any, ...args: any[]): any;
+        /**
+         * 延迟执行
+         * @param {$CallbackInfo} callback 回调函数
+         * @param {number} [time=0] 延迟执行的时间
+         */
+        callLater2(callback: $CallbackInfo, time?: number): any;
+        /**
+         * 清理延迟
+         * @param {Function} callback 回调函数
+         * @param {*} [thisObj]  回调的`this`指针
+         */
+        clearCallLater(callback: Function, thisObj?: any): any;
+        /**
+         * 清理延迟
+         * @param {$CallbackInfo} callback 要清理的回调
+         */
+        clearCallLater2(callback: $CallbackInfo): any;
+        /**
+         * 获取Tween
+         *
+         * @static
+         * @param {*} target 要对那个对象做Tween处理
+         * @param {TweenOption} props Tween的附加属性 (如： `{loop:true, paused:true}`).
+         * All properties default to `false`. Supported props are:
+         * <UL>
+         *    <LI> loop: sets the loop property on this tween.</LI>
+         *    <LI> useTicks: uses ticks for all durations instead of milliseconds.</LI>
+         *    <LI> ignoreGlobalPause: sets the {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}} property on
+         *    this tween.</LI>
+         *    <LI> override: if true, `createjs. this.removeTweens(target)` will be called to remove any other tweens with
+         *    the same target.
+         *    <LI> paused: indicates whether to start the tween paused.</LI>
+         *    <LI> position: indicates the initial position for this tween.</LI>
+         *    <LI> onChange: specifies a listener for the {{#crossLink "Tween/change:event"}}{{/crossLink}} event.</LI>
+         * </UL>
+         * @param {*} pluginData 插件数据
+         * @param {boolean} override 是否覆盖
+         * @returns {Tween} tween的实例
+         */
+        getTween(target: any, props?: TweenOption, pluginData?: any, override?: boolean): Tween;
+        /**
+         * 移除指定的Tween
+         *
+         * @param {Tween} tween
+         * @returns
+         */
+        removeTween(tween: Tween): any;
+        /**
+         * 移除指定目标的所有Tween
+         *
+         * @param {any} target
+         * @returns
+         */
+        removeTweens(target: any): any;
+        /**
+         * 判断是否为Native的版本
+         */
+        readonly isNative: boolean;
+        tweenManager: TweenManager;
+        /**
+         *  当前这一帧的时间
+         */
+        readonly now: number;
+        /**
+         * 按照帧，应该走的时间
+         * 每帧根据帧率加固定时间
+         * 用于处理逐帧同步用
+         */
+        readonly frameNow: number;
+        /**
+         * 是否支持webp
+         */
+        readonly webp: "" | Ext.WEBP;
+        /**
+         * 添加每帧执行回调
+         */
+        addInterval(callback: CallbackInfo<Function>): void;
+        /**
+         * 移除每帧执行回调
+         */
+        removeInterval(callback: CallbackInfo<Function>): void;
+    }
     /**
-     * 可用于做Key的类型
+     * 动画的全局对象
+     * @author 3tion
+     *
      */
-    type Key = number | string;
+    const Global: GlobalInstance;
 }
 declare module junyou {
     /**
@@ -4888,16 +4964,9 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     * 扩展名常量
-     * @author 3tion
+     * 可用于做Key的类型
      */
-    const enum Ext {
-        JPG = ".jpg",
-        PNG = ".png",
-        WEBP = ".webp",
-        BIN = ".bin",
-        JSON = ".json",
-    }
+    type Key = number | string;
 }
 declare module junyou {
     /**
@@ -5340,31 +5409,18 @@ declare module junyou {
         scale?: number;
     }
 }
-declare const enum StatsState {
+declare module junyou {
     /**
-     *游戏初始完成
-    */
-    GAME_INIT_COMPLETE = 4,
-    /**
-     *配置完成
+     * 扩展名常量
+     * @author 3tion
      */
-    CONFIG_COMPLETE = 5,
-    /**
-     *资源完成
-     */
-    RES_COMPLETE = 6,
-    /**
-     *帐号登录完成
-     */
-    GAME_LOGIN_COMPLETE = 7,
-    /**
-     *创建角色
-     */
-    ROLE_CREATE = 8,
-    /**
-     *角色登陆完成
-     */
-    ROLE_LOGIN_COMPLETE = 9,
+    const enum Ext {
+        JPG = ".jpg",
+        PNG = ".png",
+        WEBP = ".webp",
+        BIN = ".bin",
+        JSON = ".json",
+    }
 }
 declare module junyou {
     /**
@@ -7195,6 +7251,35 @@ declare module junyou {
     }
 }
 declare module junyou {
+    /**
+     * 模型(纸娃娃)渲染器
+     */
+    class UnitRender extends BaseRender {
+        faceTo: number;
+        /**单位**/
+        protected unit: Unit;
+        actionInfo: ActionInfo;
+        model: UModel;
+        protected nextRenderTime: number;
+        protected renderedTime: number;
+        constructor(unit: Unit);
+        reset(now: number): void;
+        /**
+         * 处理数据
+         *
+         * @param {number} now 时间戳
+         */
+        doData(now: number): void;
+        render(now: number): void;
+        onData(actionInfo: ActionInfo, now: number): void;
+        clearRes(): void;
+        renderFrame(frame: FrameInfo, now: number): void;
+        dispatchEvent(event: string, now: number): void;
+        doComplete(now: number): void;
+        dispose(): void;
+    }
+}
+declare module junyou {
     interface DataUtilsType {
         /**
          * 将配置from中 type		data1	data2	data3	data4...这些配置，解析存储到
@@ -7346,39 +7431,6 @@ declare module junyou {
      *
      */
     const DataUtils: DataUtilsType;
-}
-declare module junyou {
-    class UnitSetting {
-        /**
-         * 是否添加UI层
-         */
-        hasUILayer: boolean;
-        /**
-         * 是否添加Buff容器
-         */
-        hasBuffLayer: boolean;
-        /**
-         * 是否添加光环容器
-         */
-        hasHaloLayer: boolean;
-        /**
-         * 是否添加到游戏场景中
-         */
-        addToEngine: boolean;
-        getDepth(): number;
-        /**
-         * 深度的参数A
-         */
-        depthA: number;
-        /**
-         * 深度的参数B
-         */
-        depthB: number;
-    }
-    /**
-     * 默认的单位设置
-     */
-    const defaultUnitSetting: UnitSetting;
 }
 declare module junyou {
     /**
@@ -8258,63 +8310,28 @@ declare module junyou {
     }
 }
 declare module junyou {
-    type $CallbackInfo = CallbackInfo<Function>;
     /**
-     * 回调信息，用于存储回调数据
+     *
      * @author 3tion
      *
      */
-    class CallbackInfo<T extends Function> implements IRecyclable {
-        callback: T;
-        args: any[];
-        thisObj: any;
-        doRecycle: boolean;
+    const enum RequestState {
         /**
-         * 待执行的时间
+         * 未请求/未加载 0
          */
-        time: number;
-        constructor();
-        init(callback: T, thisObj?: any, args?: any[]): void;
+        UNREQUEST = 0,
         /**
-         * 检查回调是否一致，只检查参数和this对象,不检查参数
+         * 请求中/加载中，未获得值 1
          */
-        checkHandle(callback: T, thisObj: any): boolean;
+        REQUESTING = 1,
         /**
-         * 执行回调
-         * 回调函数，将以args作为参数，callback作为函数执行
-         * @param {boolean} [doRecycle] 是否回收CallbackInfo，默认为true
+         * 已加载/已获取到值 2
          */
-        execute(doRecycle?: boolean): any;
+        COMPLETE = 2,
         /**
-         * 用于执行其他参数
-         * 初始的参数会按顺序放在末位
-         * @param args (description)
+         * 加载失败 -1
          */
-        call(...args: any[]): any;
-        /**
-         * 用于执行其他参数
-         * 初始的参数会按顺序放在末位
-         * 此方法会回收callbackInfo
-         * @param {any} args
-         */
-        callAndRecycle(...args: any[]): any;
-        onRecycle(): void;
-        recycle: {
-            ();
-        };
-        /**
-         * 获取CallbackInfo的实例
-         */
-        static get<T extends Function>(callback: T, thisObj?: any, ...args: any[]): CallbackInfo<T>;
-        /**
-         * 加入到数组
-         * 检查是否有this和handle相同的callback，如果有，就用新的参数替换旧参数
-         * @param list
-         * @param handle
-         * @param args
-         * @param thisObj
-         */
-        static addToList<T extends Function>(list: CallbackInfo<T>[], handle: T, thisObj?: any, ...args: any[]): CallbackInfo<T>;
+        FAILED = -1,
     }
 }
 declare module junyou {
@@ -10616,115 +10633,64 @@ declare module junyou {
     }
 }
 declare module junyou {
+    type $CallbackInfo = CallbackInfo<Function>;
     /**
-     * 创建器
-     */
-    type Creator<T> = {
-        new(): T;
-    } | {
-            (): T;
-        };
-    /**
-     *
-     * 调整ClassFactory
-     * @export
-     * @class ClassFactory
-     * @template T
-     */
-    class ClassFactory<T> {
-        private _creator;
-        private _props;
-        /**
-         * @param {Creator<T>} creator
-         * @param {Partial<T>} [props] 属性模板
-         * @memberof ClassFactory
-         */
-        constructor(creator: Creator<T>, props?: Partial<T>);
-        /**
-         * 获取实例
-         *
-         * @returns
-         */
-        get(): any;
-    }
-    /**
-     * 可回收的对象
-     *
-     * @export
-     * @interface IRecyclable
-     */
-    interface IRecyclable {
-        /**
-         * 回收时触发
-         */
-        onRecycle?: {
-            ();
-        };
-        /**
-         * 启用时触发
-         */
-        onSpawn?: {
-            ();
-        };
-        /**
-         * 回收对象的唯一自增标识
-         * 从回收池取出后，会变化
-         * 此属性只有在`DEBUG`时有效
-         */
-        _insid?: number;
-    }
-    /**
-     * 回收池
+     * 回调信息，用于存储回调数据
      * @author 3tion
      *
      */
-    class RecyclablePool<T> {
-        private _pool;
-        private _max;
-        private _creator;
-        get(): T;
+    class CallbackInfo<T extends Function> implements IRecyclable {
+        callback: T;
+        args: any[];
+        thisObj: any;
+        doRecycle: boolean;
         /**
-         * 回收
+         * 待执行的时间
          */
-        recycle(t: T): void;
-        constructor(TCreator: Creator<T>, max?: number);
+        time: number;
+        constructor();
+        init(callback: T, thisObj?: any, args?: any[]): void;
+        /**
+         * 检查回调是否一致，只检查参数和this对象,不检查参数
+         */
+        checkHandle(callback: T, thisObj: any): boolean;
+        /**
+         * 执行回调
+         * 回调函数，将以args作为参数，callback作为函数执行
+         * @param {boolean} [doRecycle] 是否回收CallbackInfo，默认为true
+         */
+        execute(doRecycle?: boolean): any;
+        /**
+         * 用于执行其他参数
+         * 初始的参数会按顺序放在末位
+         * @param args (description)
+         */
+        call(...args: any[]): any;
+        /**
+         * 用于执行其他参数
+         * 初始的参数会按顺序放在末位
+         * 此方法会回收callbackInfo
+         * @param {any} args
+         */
+        callAndRecycle(...args: any[]): any;
+        onRecycle(): void;
+        recycle: {
+            ();
+        };
+        /**
+         * 获取CallbackInfo的实例
+         */
+        static get<T extends Function>(callback: T, thisObj?: any, ...args: any[]): CallbackInfo<T>;
+        /**
+         * 加入到数组
+         * 检查是否有this和handle相同的callback，如果有，就用新的参数替换旧参数
+         * @param list
+         * @param handle
+         * @param args
+         * @param thisObj
+         */
+        static addToList<T extends Function>(list: CallbackInfo<T>[], handle: T, thisObj?: any, ...args: any[]): CallbackInfo<T>;
     }
-    type Recyclable<T> = T & {
-        recycle(): void;
-    };
-    /**
-     * 获取一个recyclable的对象
-     *
-     * @export
-     * @template T
-     * @param {({ new(): T & { _pool?: RecyclablePool<T> } })} clazz
-     */
-    function recyclable<T>(clazz: {
-        new(): T & {
-            _pool?: RecyclablePool<T>;
-        };
-    }): Recyclable<T>;
-    /**
-     * 使用创建函数进行创建
-     *
-     * @export
-     * @template T
-     * @param {({ (): T & { _pool?: RecyclablePool<T> } })} clazz
-     * @param {true} addInstanceRecycle
-     */
-    function recyclable<T>(clazz: {
-        (): T & {
-            _pool?: RecyclablePool<T>;
-        };
-    }, addInstanceRecycle?: boolean): Recyclable<T>;
-    /**
-     * 单例工具
-     * @param clazz 要做单例的类型
-     */
-    function singleton<T>(clazz: {
-        new(): T;
-        _instance?: T;
-    }): T;
 }
 declare module junyou {
     /**
@@ -11448,21 +11414,47 @@ declare module junyou {
         getTipLayoutPos: (disWidth: number, disHeight: number, parentWidth: number, parentHeight: number, point: Point, result?: Point, padx?: number, pady?: number) => Point;
     };
 }
-interface Window {
-    Image: {
-        new(width?: number, height?: number): HTMLImageElement;
-    };
-}
 declare module junyou {
     /**
-    *
-    * 发起可以不需要回调响应的跨域get请求
-    * @param {string} url          发起请求的地址
-    * @param {boolean} [always]    是否总是发起请求
-    *                              false（默认） 请求已经在列队中，则不会重复发起请求
-    *                              true 不管相同地址的请求之前是否已经发起，继续发起请求
-    */
-    function sendToUrl(url: string, always?: boolean): void;
+     * WebSocket版本的NetService
+     * @author 3tion
+     */
+    class WSNetService extends NetService {
+        protected _ws: WebSocket;
+        constructor();
+        /**
+         *
+         * 设置websocket地址
+         * @param {string} actionUrl
+         */
+        setUrl(actionUrl: string): void;
+        /**
+         * 打开新的连接
+         */
+        connect(): void;
+        protected onOpen: () => void;
+        /**
+         *
+         * 发生错误
+         * @protected
+         */
+        protected onError: (ev: ErrorEvent) => void;
+        /**
+         *
+         * 断开连接
+         * @protected
+         */
+        protected onClose: (ev: CloseEvent) => void;
+        /**
+         *
+         * 收到消息
+         * @protected
+         */
+        protected onData: (ev: MessageEvent) => void;
+        protected _send(cmd: number, data: any, msgType: string): void;
+        disconnect(): void;
+        loose(ws: WebSocket): void;
+    }
 }
 declare let dpr: number;
 declare function $useDPR(): void;
@@ -11608,44 +11600,29 @@ declare module junyou {
 }
 declare module junyou {
     /**
-     * WebSocket版本的NetService
-     * @author 3tion
-     */
-    class WSNetService extends NetService {
-        protected _ws: WebSocket;
-        constructor();
+      * 基于时间回收的资源
+      */
+    interface IResource {
         /**
-         *
-         * 设置websocket地址
-         * @param {string} actionUrl
+         * 是否为静态不销毁资源
          */
-        setUrl(actionUrl: string): void;
+        isStatic?: boolean;
         /**
-         * 打开新的连接
+         * 最后使用的时间戳
          */
-        connect(): void;
-        protected onOpen: () => void;
+        lastUseTime: number;
         /**
-         *
-         * 发生错误
-         * @protected
+         * 资源id
          */
-        protected onError: (ev: ErrorEvent) => void;
+        uri: string;
         /**
-         *
-         * 断开连接
-         * @protected
+         * 资源路径
          */
-        protected onClose: (ev: CloseEvent) => void;
+        url: string;
         /**
-         *
-         * 收到消息
-         * @protected
+         * 销毁资源
          */
-        protected onData: (ev: MessageEvent) => void;
-        protected _send(cmd: number, data: any, msgType: string): void;
-        disconnect(): void;
-        loose(ws: WebSocket): void;
+        dispose(): any;
     }
 }
 declare module junyou {
@@ -11961,21 +11938,25 @@ declare module junyou {
         clear(): void;
     }
 }
-declare module junyou {
+declare module junyou.Res {
     /**
-      * 基于时间回收的资源
-      */
-    interface IResource {
+     * 资源类型
+     */
+    const enum ResItemType {
+        Binary = 0,
+        Text = 1,
+        Image = 2,
+        Json = 3,
+    }
+    /**
+     * 资源加载的回调
+     */
+    type ResCallback = CallbackInfo<{
+        (resItem: ResItem, ...args);
+    }>;
+    interface ResBase {
         /**
-         * 是否为静态不销毁资源
-         */
-        isStatic?: boolean;
-        /**
-         * 最后使用的时间戳
-         */
-        lastUseTime: number;
-        /**
-         * 资源id
+         * 资源标识
          */
         uri: string;
         /**
@@ -11983,10 +11964,222 @@ declare module junyou {
          */
         url: string;
         /**
-         * 销毁资源
+         * 数据
          */
-        dispose(): any;
+        data?: any;
+        version?: number;
     }
+    interface ResItem extends ResBase {
+        /**
+         * 资源类型
+         */
+        type?: ResItemType;
+        /**
+         * 是否已存储本地缓存
+         */
+        local?: boolean;
+        /**
+         * 不使用本地缓存
+         */
+        noLocal?: boolean;
+        /**
+         * 资源正在加载时所在的组
+         * 加载完成后清理此值
+         */
+        qid?: ResQueueID;
+        /**
+         * 失败重试次数
+         */
+        retry?: number;
+        /**
+         * 资源加载状态
+         * 默认为 UnRequest
+         */
+        state?: RequestState;
+        /**
+         * 是否被移除
+         */
+        removed?: boolean;
+        /**
+         * 分组标识
+         * 用于对资源进行区分
+         */
+        group?: Key;
+        /**
+         * 资源回调列队
+         */
+        callbacks?: ResCallback[];
+    }
+    const enum QueueLoadType {
+        /**
+         * 先入后出
+         */
+        FILO = 0,
+        /**
+         * 先入先出
+         */
+        FIFO = 1,
+    }
+    /**
+     * 资源分组
+     */
+    interface ResQueue {
+        /**
+         * 分组名称
+         */
+        id: Key;
+        /**
+         * 分组优先级
+         */
+        priority?: number;
+        /**
+         * 分组中的列表
+         */
+        list: ResItem[];
+        /**
+         * 加载类型
+         */
+        type: QueueLoadType;
+    }
+    /**
+     * 内置的资源分组
+     */
+    const enum ResQueueID {
+        /**
+         * 常规资源，使用 FIFO
+         * 适合当前地图块，普通怪物资源，特效资源等
+         */
+        Normal = 0,
+        /**
+         * 后台加载资源，使用 FILO
+         * 用于后台加载，最低优先级
+         */
+        Backgroud = 1,
+        /**
+         * 高优先级资源
+         * FIFO
+         */
+        Highway = 2,
+    }
+    /**
+     * 资源加载完成的回调
+     */
+    type ResLoadCallback = CallbackInfo<{
+        (item: ResItem, ...args: any[]);
+    }>;
+    interface ResLoader {
+        /**
+         * 加载完成的回调
+         */
+        loadFile(resItem: ResItem, callback: ResLoadCallback): any;
+    }
+    interface ResRequest extends egret.EventDispatcher {
+        item?: ResItem;
+        resCB?: ResLoadCallback;
+    }
+    type ResHttpRequest = Recyclable<egret.HttpRequest & ResRequest>;
+    class BinLoader implements ResLoader {
+        type: XMLHttpRequestResponseType;
+        constructor(type?: XMLHttpRequestResponseType);
+        loadFile(resItem: ResItem, callback: ResLoadCallback): void;
+        onLoadFinish(event: egret.Event): void;
+    }
+    type ResImgRequest = Recyclable<egret.ImageLoader & ResRequest>;
+    class ImageLoader implements ResLoader {
+        loadFile(resItem: ResItem, callback: ResLoadCallback): void;
+        onLoadFinish(event: egret.Event): void;
+    }
+    /**
+     * 设置最大失败重试次数，默认为3
+     * @param val
+     */
+    function setMaxRetry(val: number): void;
+    /**
+     * 设置最大加载线程  默认为 6
+     * @param val
+     */
+    function setMaxThread(val: number): void;
+    /**
+    * 获取资源的扩展名
+    * @param url
+    */
+    function getExt(url: string): string;
+    /**
+     * 内联绑定
+     * @param ext 扩展名
+     * @param type 类型
+     */
+    function bindExtType(ext: string, type: ResItemType): void;
+    /**
+     * 注册资源分析器
+     * @param type 分析器类型
+     * @param analyzer 分析器
+     */
+    function regAnalyzer(type: ResItemType, analyzer: ResLoader): void;
+    /**
+     * 添加资源
+     * @param {ResItem} resItem
+     * @param {ResQueueID} [queueID=ResQueueID.Normal]
+     * @returns {boolean} true 表示此资源成功添加到列队
+     */
+    function addRes(resItem: ResItem, queueID?: ResQueueID): boolean;
+    /**
+     * 加载资源
+     * @param {string} uri 资源标识
+     * @param {ResCallback} callback 加载完成的回调
+     * @param {string} [url] 资源路径
+     * @param {ResQueueID} [queueID=ResQueueID.Normal]
+     */
+    function load(uri: string, url?: string, callback?: ResCallback, queueID?: ResQueueID): void;
+    interface LoadResListOption {
+        callback: CallbackInfo<{
+            (flag: boolean);
+        }>;
+        group: Key;
+        onProgress?: $CallbackInfo;
+    }
+    function loadList(list: ResItem[], opt: LoadResListOption, queueID?: ResQueueID): void;
+    /**
+     * 同步获取某个资源，如果资源未加载完成，则返回空
+     * @param uri 资源标识
+     */
+    function get(uri: string): any;
+    function set(uri: string, item: ResItem): boolean;
+    /**
+     * 移除某个资源
+     * @param uri
+     */
+    function remove(uri: string): void;
+    /**
+     * 阻止尝试某个资源加载，目前是还未加载的资源，从列队中做移除，其他状态不处理
+     * @param uri
+     */
+    function cancel(uri: string): void;
+    /**
+     * 加载资源
+     * @param {ResItem} resItem
+     * @param {ResQueueID} [queueID=ResQueueID.Normal]
+     */
+    function loadRes(resItem: ResItem, callback?: ResCallback, queueID?: ResQueueID): void;
+    function getLocalDB(version: number, keyPath: string, storeName: string): {
+        save(data: ResItem, callback?: (ev: Event | Error) => any): void;
+        get(url: string, callback: (data: ResItem, url?: string) => any): void;
+        delete(url: string, callback?: (url: string, ev: Event | Error) => any): void;
+        clear(callback?: (ev: Event | Error) => any): void;
+    };
+    /**
+     *  尝试启用本地资源缓存
+     * @author 3tion(https://github.com/eos3tion/)
+     * @export
+     * @param {number} [version=1]
+     * @returns
+     */
+    function tryLocal(version?: number, keyPath?: string, storeName?: string): {
+        save(data: ResItem, callback?: (ev: Event | Error) => any): void;
+        get(url: string, callback: (data: ResItem, url?: string) => any): void;
+        delete(url: string, callback?: (url: string, ev: Event | Error) => any): void;
+        clear(callback?: (ev: Event | Error) => any): void;
+    };
 }
 declare module junyou {
     /**
@@ -12491,247 +12684,12 @@ declare module junyou {
         onRecycle(): void;
     }
 }
-declare module junyou.Res {
-    /**
-     * 资源类型
-     */
-    const enum ResItemType {
-        Binary = 0,
-        Text = 1,
-        Image = 2,
-        Json = 3,
-    }
-    /**
-     * 资源加载的回调
-     */
-    type ResCallback = CallbackInfo<{
-        (resItem: ResItem, ...args);
-    }>;
-    interface ResBase {
-        /**
-         * 资源标识
-         */
-        uri: string;
-        /**
-         * 资源路径
-         */
-        url: string;
-        /**
-         * 数据
-         */
-        data?: any;
-        version?: number;
-    }
-    interface ResItem extends ResBase {
-        /**
-         * 资源类型
-         */
-        type?: ResItemType;
-        /**
-         * 是否已存储本地缓存
-         */
-        local?: boolean;
-        /**
-         * 不使用本地缓存
-         */
-        noLocal?: boolean;
-        /**
-         * 资源正在加载时所在的组
-         * 加载完成后清理此值
-         */
-        qid?: ResQueueID;
-        /**
-         * 失败重试次数
-         */
-        retry?: number;
-        /**
-         * 资源加载状态
-         * 默认为 UnRequest
-         */
-        state?: RequestState;
-        /**
-         * 是否被移除
-         */
-        removed?: boolean;
-        /**
-         * 分组标识
-         * 用于对资源进行区分
-         */
-        group?: Key;
-        /**
-         * 资源回调列队
-         */
-        callbacks?: ResCallback[];
-    }
-    const enum QueueLoadType {
-        /**
-         * 先入后出
-         */
-        FILO = 0,
-        /**
-         * 先入先出
-         */
-        FIFO = 1,
-    }
-    /**
-     * 资源分组
-     */
-    interface ResQueue {
-        /**
-         * 分组名称
-         */
-        id: Key;
-        /**
-         * 分组优先级
-         */
-        priority?: number;
-        /**
-         * 分组中的列表
-         */
-        list: ResItem[];
-        /**
-         * 加载类型
-         */
-        type: QueueLoadType;
-    }
-    /**
-     * 内置的资源分组
-     */
-    const enum ResQueueID {
-        /**
-         * 常规资源，使用 FIFO
-         * 适合当前地图块，普通怪物资源，特效资源等
-         */
-        Normal = 0,
-        /**
-         * 后台加载资源，使用 FILO
-         * 用于后台加载，最低优先级
-         */
-        Backgroud = 1,
-        /**
-         * 高优先级资源
-         * FIFO
-         */
-        Highway = 2,
-    }
-    /**
-     * 资源加载完成的回调
-     */
-    type ResLoadCallback = CallbackInfo<{
-        (item: ResItem, ...args: any[]);
-    }>;
-    interface ResLoader {
-        /**
-         * 加载完成的回调
-         */
-        loadFile(resItem: ResItem, callback: ResLoadCallback): any;
-    }
-    interface ResRequest extends egret.EventDispatcher {
-        item?: ResItem;
-        resCB?: ResLoadCallback;
-    }
-    type ResHttpRequest = Recyclable<egret.HttpRequest & ResRequest>;
-    class BinLoader implements ResLoader {
-        type: XMLHttpRequestResponseType;
-        constructor(type?: XMLHttpRequestResponseType);
-        loadFile(resItem: ResItem, callback: ResLoadCallback): void;
-        onLoadFinish(event: egret.Event): void;
-    }
-    type ResImgRequest = Recyclable<egret.ImageLoader & ResRequest>;
-    class ImageLoader implements ResLoader {
-        loadFile(resItem: ResItem, callback: ResLoadCallback): void;
-        onLoadFinish(event: egret.Event): void;
-    }
-    /**
-     * 设置最大失败重试次数，默认为3
-     * @param val
-     */
-    function setMaxRetry(val: number): void;
-    /**
-     * 设置最大加载线程  默认为 6
-     * @param val
-     */
-    function setMaxThread(val: number): void;
-    /**
-    * 获取资源的扩展名
-    * @param url
-    */
-    function getExt(url: string): string;
-    /**
-     * 内联绑定
-     * @param ext 扩展名
-     * @param type 类型
-     */
-    function bindExtType(ext: string, type: ResItemType): void;
-    /**
-     * 注册资源分析器
-     * @param type 分析器类型
-     * @param analyzer 分析器
-     */
-    function regAnalyzer(type: ResItemType, analyzer: ResLoader): void;
-    /**
-     * 添加资源
-     * @param {ResItem} resItem
-     * @param {ResQueueID} [queueID=ResQueueID.Normal]
-     * @returns {boolean} true 表示此资源成功添加到列队
-     */
-    function addRes(resItem: ResItem, queueID?: ResQueueID): boolean;
-    /**
-     * 加载资源
-     * @param {string} uri 资源标识
-     * @param {ResCallback} callback 加载完成的回调
-     * @param {string} [url] 资源路径
-     * @param {ResQueueID} [queueID=ResQueueID.Normal]
-     */
-    function load(uri: string, url?: string, callback?: ResCallback, queueID?: ResQueueID): void;
-    interface LoadResListOption {
-        callback: CallbackInfo<{
-            (flag: boolean);
-        }>;
-        group: Key;
-        onProgress?: $CallbackInfo;
-    }
-    function loadList(list: ResItem[], opt: LoadResListOption, queueID?: ResQueueID): void;
-    /**
-     * 同步获取某个资源，如果资源未加载完成，则返回空
-     * @param uri 资源标识
-     */
-    function get(uri: string): any;
-    function set(uri: string, item: ResItem): boolean;
-    /**
-     * 移除某个资源
-     * @param uri
-     */
-    function remove(uri: string): void;
-    /**
-     * 阻止尝试某个资源加载，目前是还未加载的资源，从列队中做移除，其他状态不处理
-     * @param uri
-     */
-    function cancel(uri: string): void;
-    /**
-     * 加载资源
-     * @param {ResItem} resItem
-     * @param {ResQueueID} [queueID=ResQueueID.Normal]
-     */
-    function loadRes(resItem: ResItem, callback?: ResCallback, queueID?: ResQueueID): void;
-    function getLocalDB(version: number, keyPath: string, storeName: string): {
-        save(data: ResItem, callback?: (ev: Event | Error) => any): void;
-        get(url: string, callback: (data: ResItem, url?: string) => any): void;
-        delete(url: string, callback?: (url: string, ev: Event | Error) => any): void;
-        clear(callback?: (ev: Event | Error) => any): void;
-    };
-    /**
-     *  尝试启用本地资源缓存
-     * @author 3tion(https://github.com/eos3tion/)
-     * @export
-     * @param {number} [version=1]
-     * @returns
-     */
-    function tryLocal(version?: number, keyPath?: string, storeName?: string): {
-        save(data: ResItem, callback?: (ev: Event | Error) => any): void;
-        get(url: string, callback: (data: ResItem, url?: string) => any): void;
-        delete(url: string, callback?: (url: string, ev: Event | Error) => any): void;
-        clear(callback?: (ev: Event | Error) => any): void;
+declare module junyou {
+    const ResManager: {
+        get: <T extends IResource>(resid: string, noResHandler: (...args: any[]) => T, thisObj?: any, ...args: any[]) => any;
+        getTextureRes(resID: string, noWebp?: boolean): TextureResource;
+        getResource: (resID: string) => IResource;
+        init(): void;
     };
 }
 declare module junyou {
