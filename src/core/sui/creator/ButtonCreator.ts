@@ -115,7 +115,7 @@ module junyou {
         $setLabel(value: string) {
             let tf = this.txtLabel;
             if (tf) {
-                tf.text = value;
+                tf.setHtmlText(value);
                 this._label = value;
             }
         }
