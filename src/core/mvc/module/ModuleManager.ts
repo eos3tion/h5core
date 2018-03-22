@@ -315,10 +315,7 @@ module junyou {
                     ToolTipManager.register(io, toolTips);
                 }
             }
-            var moduleHandler = this._handlersByType[cfg.type];
-            if (moduleHandler) {
-                this.registerHandlerById(id, moduleHandler);
-            }
+
             let _unshowns = this._unshowns;
             if (!this.isModuleShow(id)) {
                 io.visible = false;
