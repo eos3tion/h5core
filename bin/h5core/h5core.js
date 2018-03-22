@@ -4427,7 +4427,7 @@ var junyou;
         Button.prototype.$setLabel = function (value) {
             var tf = this.txtLabel;
             if (tf) {
-                tf.text = value;
+                tf.setHtmlText(value);
                 this._label = value;
             }
         };
