@@ -93,7 +93,7 @@ module junyou {
 
         public constructor() {
             super();
-            TouchDown.bindItem(this);
+            TouchDown.bind(this);
         }
 
         public bindChildren() {
@@ -231,7 +231,7 @@ module junyou {
 
         public dispose() {
             super.dispose();
-            TouchDown.looseItem(this);
+            TouchDown.loose(this);
         }
 
     }
