@@ -4394,7 +4394,7 @@ var junyou;
         function Button() {
             var _this = _super.call(this) || this;
             _this._label = "";
-            junyou.TouchDown.bindItem(_this);
+            junyou.TouchDown.bind(_this);
             return _this;
         }
         Button.prototype.useDisableFilter = function (value) {
@@ -4530,7 +4530,7 @@ var junyou;
         };
         Button.prototype.dispose = function () {
             _super.prototype.dispose.call(this);
-            junyou.TouchDown.looseItem(this);
+            junyou.TouchDown.loose(this);
         };
         return Button;
     }(junyou.Component));
@@ -20174,6 +20174,86 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
+    var _$TDOpt = Object.freeze({ int: { x: 1, y: 1 } });
+    /**
+     * TouchDown显示对象放大效果
+     */
+    var TouchDown;
+    (function (TouchDown) {
+        /**
+         * 绑定组件
+         *
+         * @param {TouchDownItem} item
+         */
+        function bind(item) {
+            if (item) {
+                item.on("touchBegin" /* TOUCH_BEGIN */, touchBegin);
+            }
+        }
+        TouchDown.bind = bind;
+        /**
+         * 解绑组件
+         *
+         * @param {TouchDownItem} item
+         */
+        function loose(item) {
+            if (item) {
+                item.off("touchBegin" /* TOUCH_BEGIN */, touchBegin);
+                clearEndListener(item);
+            }
+        }
+        TouchDown.loose = loose;
+        function clearEndListener(item) {
+            item.off("touchEnd" /* TOUCH_END */, touchEnd);
+            item.off("touchCancel" /* TOUCH_CANCEL */, touchEnd);
+            item.off("touchReleaseOutside" /* TOUCH_RELEASE_OUTSIDE */, touchEnd);
+            item.off("removedFromStage" /* REMOVED_FROM_STAGE */, touchEnd);
+        }
+        function touchBegin(e) {
+            var target = e.target;
+            target.on("touchEnd" /* TOUCH_END */, touchEnd);
+            target.on("touchCancel" /* TOUCH_CANCEL */, touchEnd);
+            target.on("touchReleaseOutside" /* TOUCH_RELEASE_OUTSIDE */, touchEnd);
+            target.on("removedFromStage" /* REMOVED_FROM_STAGE */, touchEnd);
+            var raw = target.$_tdi;
+            if (!raw) {
+                target.$_tdi = raw = {};
+                raw.x = target.x;
+                raw.y = target.y;
+                raw.scaleX = target.scaleX;
+                raw.scaleY = target.scaleY;
+            }
+            else {
+                var tween = raw.tween;
+                if (tween) {
+                    junyou.Global.removeTween(tween);
+                }
+            }
+            var tx = raw.x - target.width * 0.05 /* Multi */;
+            var ty = raw.y - target.height * 0.05 /* Multi */;
+            raw.tween = junyou.Global.getTween(target, _$TDOpt).to({ scaleX: 1.1 /* Scale */, scaleY: 1.1 /* Scale */, x: tx, y: ty }, 100, junyou.Ease.quadOut);
+        }
+        function touchEnd(e) {
+            var target = e.target;
+            clearEndListener(target);
+            var raw = target.$_tdi;
+            if (raw) {
+                var tween = raw.tween;
+                if (tween) {
+                    junyou.Global.removeTween(tween);
+                }
+                raw.tween = junyou.Global.getTween(target, _$TDOpt)
+                    .to({ scaleX: raw.scaleX, scaleY: raw.scaleY, x: raw.x, y: raw.y }, 100, junyou.Ease.quadOut)
+                    .call(endComplete, null, target);
+            }
+        }
+        function endComplete(target) {
+            target.$_tdi.tween = undefined;
+        }
+    })(TouchDown = junyou.TouchDown || (junyou.TouchDown = {}));
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
     /**
      * 多选分组
      *
@@ -21114,80 +21194,6 @@ var junyou;
             var txt = e.currentTarget;
             var btn = txt[ButtonKey];
             btn.dispatchEvent(e);
-        }
-    })();
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    /**
-     * TouchDown显示对象放大效果
-     * description
-     * @author pb
-     */
-    junyou.TouchDown = (function () {
-        var _$TDOpt = Object.freeze({ int: { x: 1, y: 1 } });
-        return {
-            /**
-             * 绑定组件
-             *
-             * @param {TouchDownItem} item
-             */
-            bindItem: function (item) {
-                if (item) {
-                    item.on("touchBegin" /* TOUCH_BEGIN */, touchBegin);
-                }
-            },
-            /**
-             * 解绑组件
-             *
-             * @param {TouchDownItem} item
-             */
-            looseItem: function (item) {
-                if (item) {
-                    item.off("touchBegin" /* TOUCH_BEGIN */, touchBegin);
-                    clearEndListener(item);
-                }
-            }
-        };
-        function clearEndListener(item) {
-            item.off("touchEnd" /* TOUCH_END */, touchEnd);
-            item.off("touchCancel" /* TOUCH_CANCEL */, touchEnd);
-            item.off("touchReleaseOutside" /* TOUCH_RELEASE_OUTSIDE */, touchEnd);
-            item.off("removedFromStage" /* REMOVED_FROM_STAGE */, touchEnd);
-        }
-        function touchBegin(e) {
-            var target = e.target;
-            target.on("touchEnd" /* TOUCH_END */, touchEnd);
-            target.on("touchCancel" /* TOUCH_CANCEL */, touchEnd);
-            target.on("touchReleaseOutside" /* TOUCH_RELEASE_OUTSIDE */, touchEnd);
-            target.on("removedFromStage" /* REMOVED_FROM_STAGE */, touchEnd);
-            var raw = target.$_tdi;
-            if (!raw) {
-                target.$_tdi = raw = {};
-                raw.x = target.x;
-                raw.y = target.y;
-            }
-            else if (raw.tween) {
-                junyou.Global.removeTween(raw.tween);
-            }
-            var tween = junyou.Global.getTween(target, _$TDOpt);
-            raw.tween = tween;
-            var tx = raw.x - target.width * 0.05 /* Multi */;
-            var ty = raw.y - target.height * 0.05 /* Multi */;
-            tween.to({ scaleX: 1.1 /* Scale */, scaleY: 1.1 /* Scale */, x: tx, y: ty }, 100, junyou.Ease.quadOut);
-        }
-        function touchEnd(e) {
-            var target = e.target;
-            clearEndListener(target);
-            var raw = target.$_tdi;
-            if (raw) {
-                var tween = junyou.Global.getTween(target, _$TDOpt, null, true);
-                raw.tween = tween;
-                tween.to({ scaleX: 1, scaleY: 1, x: raw.x, y: raw.y }, 100, junyou.Ease.quadOut).call(endComplete, null, target);
-            }
-        }
-        function endComplete(target) {
-            delete target.$_tdi;
         }
     })();
 })(junyou || (junyou = {}));

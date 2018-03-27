@@ -11904,6 +11904,40 @@ declare module junyou {
 }
 declare module junyou {
     /**
+     * 可做TouchDown放大的对象接口
+     */
+    interface TouchDownItem extends egret.DisplayObject {
+        x: number;
+        y: number;
+        $_tdi?: TouchDownRaw;
+    }
+    interface TouchDownRaw {
+        x: number;
+        y: number;
+        scaleX: number;
+        scaleY: number;
+        tween: Tween;
+    }
+    /**
+     * TouchDown显示对象放大效果
+     */
+    module TouchDown {
+        /**
+         * 绑定组件
+         *
+         * @param {TouchDownItem} item
+         */
+        function bind(item: TouchDownItem): void;
+        /**
+         * 解绑组件
+         *
+         * @param {TouchDownItem} item
+         */
+        function loose(item: TouchDownItem): void;
+    }
+}
+declare module junyou {
+    /**
      * 多选分组
      *
      * @export
@@ -12204,45 +12238,6 @@ declare module junyou {
          * @type {boolean}
          */
         selected: boolean;
-    }
-}
-declare module junyou {
-    const enum TouchDownConst {
-        /**
-         * TouchDown时放大比例
-         */
-        Scale = 1.1,
-        /**
-         * 居中后的乘数
-         * (Scale-1)*0.5
-         */
-        Multi = 0.05,
-    }
-    /**
-     * TouchDown显示对象放大效果
-     * description
-     * @author pb
-     */
-    const TouchDown: {
-        bindItem(item: TouchDownItem): void;
-        looseItem(item: TouchDownItem): void;
-    };
-}
-declare module junyou {
-    /**
-     * 可做TouchDown放大的对象接口
-     * description
-     * @author pb
-     */
-    interface TouchDownItem extends egret.EventDispatcher {
-        x: number;
-        y: number;
-        $_tdi?: TouchDownRaw;
-    }
-    interface TouchDownRaw {
-        x: number;
-        y: number;
-        tween: Tween;
     }
 }
 /**
