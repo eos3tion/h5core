@@ -33,7 +33,7 @@ module junyou {
         /**
          * 关联的纹理
          */
-        public textures: JTexture[];
+        public textures: egret.Texture[];
 
         public get isStatic() {
             return this.state == RequestState.REQUESTING;//加载中，本次不允许卸载
@@ -48,10 +48,10 @@ module junyou {
         /**
          * 绑定纹理集
          * 
-         * @param {{ [index: number]: JTexture[][] }} textures (description)
+         * @param {{ [index: number]: egret.Texture[][] }} textures (description)
          * @param {number[]} adKeys (description)
          */
-        public bindTextures(textures: { [index: number]: JTexture[][] }, adKey: ADKey) {
+        public bindTextures(textures: { [index: number]: egret.Texture[][] }, adKey: ADKey) {
             let a = ADKey.getAction(adKey);
             let dTextures = textures[a];
             if (dTextures) {
@@ -68,7 +68,7 @@ module junyou {
         /**
          * 绑定纹理
          */
-        public bindTexture(tex: JTexture) {
+        public bindTexture(tex: egret.Texture) {
             const textures = this.textures;
             if (!~textures.indexOf(tex)) {
                 textures.push(tex);
