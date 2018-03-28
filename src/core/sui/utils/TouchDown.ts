@@ -30,9 +30,6 @@ module junyou {
     export interface TouchDownData {
 
         raw: TouchDownBin;
-
-        end: TouchDownBin;
-
         tween: Tween;
     }
 
@@ -79,19 +76,17 @@ module junyou {
             target.on(EgretEvent.TOUCH_RELEASE_OUTSIDE, touchEnd);
             target.on(EgretEvent.REMOVED_FROM_STAGE, touchEnd);
             let data = target.$_tdi;
-            if (!data) {
-                target.$_tdi = data = {} as TouchDownData;
-                let { x, y, scaleX, scaleY, width, height } = target;
-                data.raw = { x, y, scaleX, scaleY };
-                data.end = { x: x - width * TouchDownConst.Multi, y: y - height * TouchDownConst.Multi, scaleX: TouchDownConst.Scale * scaleX, scaleY: TouchDownConst.Scale * scaleY }
-
-            } else {
+            if (data) {
                 let tween = data.tween;
                 if (tween) {
                     Global.removeTween(tween);
                 }
+            } else {
+                target.$_tdi = data = {} as TouchDownData;
             }
-            data.tween = Global.getTween(target, _$TDOpt).to(data.end, 100, Ease.quadOut);
+            let { x, y, scaleX, scaleY, width, height } = target;
+            data.raw = { x, y, scaleX, scaleY };
+            data.tween = Global.getTween(target, _$TDOpt).to({ x: x - width * TouchDownConst.Multi, y: y - height * TouchDownConst.Multi, scaleX: TouchDownConst.Scale * scaleX, scaleY: TouchDownConst.Scale * scaleY }, 100, Ease.quadOut);
         }
 
         function touchEnd(e: egret.Event) {
@@ -110,7 +105,7 @@ module junyou {
         }
 
         function endComplete(target: TouchDownItem) {
-            target.$_tdi.tween = undefined;
+            target.$_tdi = undefined;
         }
     }
 }

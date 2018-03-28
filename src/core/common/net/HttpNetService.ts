@@ -57,7 +57,7 @@ module junyou {
             }
             // 200毫秒检查一次，是否可以自动拉数据了
             TimerUtil.addCallback(200, this.checkUnsend, this);
-            var loader = this._loader;
+            let loader = this._loader;
             loader.onreadystatechange = this.onReadyStateChange.bind(this);
             loader.ontimeout = this.errorHandler.bind(this);
         }
@@ -65,11 +65,10 @@ module junyou {
         * @protected
         */
         protected onReadyStateChange(): void {
-            var xhr = this._loader;
+            let xhr = this._loader;
             if (xhr.readyState == 4) {// 4 = "loaded"
-                var ioError = (xhr.status >= 400 || xhr.status == 0);
-                // var url = this._actionUrl;
-                var self = this;
+                let ioError = (xhr.status >= 400 || xhr.status == 0);
+                let self = this;
                 setTimeout(function (): void {
                     if (ioError) {//请求错误
                         self.errorHandler();
@@ -95,9 +94,9 @@ module junyou {
             }
             //曾经成功过
             //数据未发送成功
-            var sending = this._sendingList;
-            var idx = sending.length;
-            var unrequest = this._unsendRequest;
+            let sending = this._sendingList;
+            let idx = sending.length;
+            let unrequest = this._unsendRequest;
             for (let pdata of unrequest) {
                 sending[idx++] = pdata;
             }
@@ -113,7 +112,7 @@ module junyou {
             this._state = RequestState.COMPLETE;
             this._reconCount = 0;
             //处理Response
-            var readBuffer = this._readBuffer;
+            let readBuffer = this._readBuffer;
             readBuffer.replaceBuffer(this._loader.response);
             readBuffer.position = 0;
 
@@ -145,7 +144,7 @@ module junyou {
 
         protected _send(cmd: number, data: any, msgType: string) {
             //没有同协议的指令，新增数据
-            var pdata = recyclable(NetData);
+            let pdata = recyclable(NetData);
             pdata.cmd = cmd;
             pdata.data = data;
             pdata.msgType = msgType;
@@ -179,23 +178,20 @@ module junyou {
                 return;
             }
             this._state = RequestState.REQUESTING;
-            var loader = this._loader;
+            let loader = this._loader;
             loader.open("POST", this._actionUrl, true);
             loader.responseType = "arraybuffer";
             this.onBeforeSend();
-            var sendBuffer = this._sendBuffer;
+            let sendBuffer = this._sendBuffer;
             sendBuffer.reset();
-            // var sendPool = this._sendDataPool;
-            var unsend = this._unsendRequest;
-            var sending = this._sendingList;
-            // sendBuffer.writeUTFBytes(this._authData.sessionID);
-            // sendBuffer.writeDouble(this._lastMid);
-            for (var i = 0, len = unsend.length; i < len; i++) {
+            let unsend = this._unsendRequest;
+            let sending = this._sendingList;
+            for (let i = 0, len = unsend.length; i < len; i++) {
                 let pdata = unsend[i];
                 this.writeToBuffer(sendBuffer, pdata);
                 sending[i] = pdata;
             }
-            var pcmdList = this._pcmdList;
+            let pcmdList = this._pcmdList;
             for (let pdata of pcmdList) {
                 this.writeToBuffer(sendBuffer, pdata);
                 sending[i++] = pdata;

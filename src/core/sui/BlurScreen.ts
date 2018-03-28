@@ -57,11 +57,11 @@ module junyou {
             this._dic = {};
         }
 
-        public registerModuleLayers(moduleid: Key, ...ids: GameLayerID[]) {
-            let dic = this._dic;
+        public regModuleLayers(moduleid: Key, ...ids: GameLayerID[]) {
+            let { _dic, _engine } = this;
             let layers = ids.map(id => this._engine.getLayer(id));
             layers.doSort("id");
-            dic[moduleid] = layers;
+            _dic[moduleid] = layers;
         }
 
         public checkShowBlur(id: Key) {
@@ -117,7 +117,7 @@ module junyou {
                 let engine = this._engine;
                 for (let i = 0; i < len; i++) {
                     let layer = layers[i];
-                    this._engine.awakeLayer(layer.id);
+                    engine.awakeLayer(layer.id);
                 }
             }
         }
