@@ -95,7 +95,7 @@ module junyou {
              * 从数据中获取纹理
              */
             function getTextureFromImageData(data): JTexture {
-                var texture = new JTexture();
+                var texture = new Texture();
                 var sx: number = data[0];
                 var sy: number = data[1];
                 texture.tx = data[2] || 0;

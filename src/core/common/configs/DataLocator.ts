@@ -8,7 +8,7 @@ const $DD = {} as junyou.CfgData;
  * DataLocator的附加数据 
  * 原junyou.DataLocator.extra 的全局别名简写
  */
-var $DE: junyou.ExtraData;
+let $DE: junyou.ExtraData;
 module junyou {
 
     /**
@@ -36,7 +36,7 @@ module junyou {
         Dictionary = 3
     }
 
-    var parsers: { [index: string]: ConfigDataParser } = {};
+    let parsers: { [index: string]: ConfigDataParser } = {};
 
 
     /**
@@ -45,7 +45,7 @@ module junyou {
      * @private
      * @static
      */
-    var _plist: string[] = [];
+    let _plist: string[] = [];
 	/**
 	 * 配置加载器<br/>
      * 用于预加载数据的解析

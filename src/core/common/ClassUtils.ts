@@ -79,8 +79,8 @@ module junyou {
         private _creator: Creator<T>;
 
         public get(): T {
-            var ins: T & IRecyclable;
-            var pool = this._pool;
+            let ins: T & IRecyclable;
+            let pool = this._pool;
             if (pool.length) {
                 ins = pool.pop();
             } else {
