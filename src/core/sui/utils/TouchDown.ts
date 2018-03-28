@@ -4,29 +4,35 @@ module junyou {
         /**
          * TouchDown时放大比例
          */
-        Scale = 1.1,
+        Scale = 1.125,
         /**
          * 居中后的乘数
          * (Scale-1)*0.5
          */
-        Multi = 0.05
+        Multi = (Scale - 1) * 0.5
     }
 
     /**
      * 可做TouchDown放大的对象接口
      */
     export interface TouchDownItem extends egret.DisplayObject {
-        x: number;
-        y: number;
-        $_tdi?: TouchDownRaw;
+        $_tdi?: TouchDownData;
     }
 
-    export interface TouchDownRaw {
+    export interface TouchDownBin {
         x: number;
         y: number;
 
         scaleX: number;
         scaleY: number;
+    }
+
+    export interface TouchDownData {
+
+        raw: TouchDownBin;
+
+        end: TouchDownBin;
+
         tween: Tween;
     }
 
@@ -72,27 +78,24 @@ module junyou {
             target.on(EgretEvent.TOUCH_CANCEL, touchEnd);
             target.on(EgretEvent.TOUCH_RELEASE_OUTSIDE, touchEnd);
             target.on(EgretEvent.REMOVED_FROM_STAGE, touchEnd);
-            let raw = target.$_tdi;
-            if (!raw) {
-                target.$_tdi = raw = {} as TouchDownRaw;
-                raw.x = target.x;
-                raw.y = target.y;
-                raw.scaleX = target.scaleX;
-                raw.scaleY = target.scaleY;
+            let data = target.$_tdi;
+            if (!data) {
+                target.$_tdi = data = {} as TouchDownData;
+                let { x, y, scaleX, scaleY, width, height } = target;
+                data.raw = { x, y, scaleX, scaleY };
+                data.end = { x: x - width * TouchDownConst.Multi, y: y - height * TouchDownConst.Multi, scaleX: TouchDownConst.Scale * scaleX, scaleY: TouchDownConst.Scale * scaleY }
+
             } else {
-                let tween = raw.tween;
+                let tween = data.tween;
                 if (tween) {
                     Global.removeTween(tween);
                 }
             }
-
-            let tx = raw.x - target.width * TouchDownConst.Multi;
-            let ty = raw.y - target.height * TouchDownConst.Multi;
-            raw.tween = Global.getTween(target, _$TDOpt).to({ scaleX: TouchDownConst.Scale, scaleY: TouchDownConst.Scale, x: tx, y: ty }, 100, Ease.quadOut);
+            data.tween = Global.getTween(target, _$TDOpt).to(data.end, 100, Ease.quadOut);
         }
 
         function touchEnd(e: egret.Event) {
-            let target = e.target;
+            let target = e.target as TouchDownItem;
             clearEndListener(target);
             let raw = target.$_tdi;
             if (raw) {
@@ -101,7 +104,7 @@ module junyou {
                     Global.removeTween(tween);
                 }
                 raw.tween = Global.getTween(target, _$TDOpt)
-                    .to({ scaleX: raw.scaleX, scaleY: raw.scaleY, x: raw.x, y: raw.y }, 100, Ease.quadOut)
+                    .to(raw.raw, 100, Ease.quadOut)
                     .call(endComplete, null, target);
             }
         }
