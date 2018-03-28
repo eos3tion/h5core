@@ -11907,15 +11907,17 @@ declare module junyou {
      * 可做TouchDown放大的对象接口
      */
     interface TouchDownItem extends egret.DisplayObject {
-        x: number;
-        y: number;
-        $_tdi?: TouchDownRaw;
+        $_tdi?: TouchDownData;
     }
-    interface TouchDownRaw {
+    interface TouchDownBin {
         x: number;
         y: number;
         scaleX: number;
         scaleY: number;
+    }
+    interface TouchDownData {
+        raw: TouchDownBin;
+        end: TouchDownBin;
         tween: Tween;
     }
     /**

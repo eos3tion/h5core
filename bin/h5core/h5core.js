@@ -20215,23 +20215,20 @@ var junyou;
             target.on("touchCancel" /* TOUCH_CANCEL */, touchEnd);
             target.on("touchReleaseOutside" /* TOUCH_RELEASE_OUTSIDE */, touchEnd);
             target.on("removedFromStage" /* REMOVED_FROM_STAGE */, touchEnd);
-            var raw = target.$_tdi;
-            if (!raw) {
-                target.$_tdi = raw = {};
-                raw.x = target.x;
-                raw.y = target.y;
-                raw.scaleX = target.scaleX;
-                raw.scaleY = target.scaleY;
+            var data = target.$_tdi;
+            if (!data) {
+                target.$_tdi = data = {};
+                var x = target.x, y = target.y, scaleX = target.scaleX, scaleY = target.scaleY, width = target.width, height = target.height;
+                data.raw = { x: x, y: y, scaleX: scaleX, scaleY: scaleY };
+                data.end = { x: x - width * 0.0625 /* Multi */, y: y - height * 0.0625 /* Multi */, scaleX: 1.125 /* Scale */ * scaleX, scaleY: 1.125 /* Scale */ * scaleY };
             }
             else {
-                var tween = raw.tween;
+                var tween = data.tween;
                 if (tween) {
                     junyou.Global.removeTween(tween);
                 }
             }
-            var tx = raw.x - target.width * 0.05 /* Multi */;
-            var ty = raw.y - target.height * 0.05 /* Multi */;
-            raw.tween = junyou.Global.getTween(target, _$TDOpt).to({ scaleX: 1.1 /* Scale */, scaleY: 1.1 /* Scale */, x: tx, y: ty }, 100, junyou.Ease.quadOut);
+            data.tween = junyou.Global.getTween(target, _$TDOpt).to(data.end, 100, junyou.Ease.quadOut);
         }
         function touchEnd(e) {
             var target = e.target;
@@ -20243,7 +20240,7 @@ var junyou;
                     junyou.Global.removeTween(tween);
                 }
                 raw.tween = junyou.Global.getTween(target, _$TDOpt)
-                    .to({ scaleX: raw.scaleX, scaleY: raw.scaleY, x: raw.x, y: raw.y }, 100, junyou.Ease.quadOut)
+                    .to(raw.raw, 100, junyou.Ease.quadOut)
                     .call(endComplete, null, target);
             }
         }
