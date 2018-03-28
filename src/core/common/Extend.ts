@@ -962,7 +962,16 @@ module egret {
     Graphics.prototype.drawRectangle = function (this: Graphics, rect: junyou.Rect) {
         this.drawRect(rect.x, rect.y, rect.width, rect.height);
     }
-
+    export interface Texture {
+        /**
+         * 用于设置位图的锚点坐标X
+         */
+        tx: number;
+        /**
+         * 用于设置位图的锚点坐标Y
+         */
+        ty: number;
+    }
     export interface DisplayObject {
         /**
          * 亮度 赋值范围 -1 ~ 1

@@ -11,7 +11,7 @@ module junyou {
         CfgFile = "d.json"
     }
 
-    function setJTexture(bmp: egret.Bitmap, texture: JTexture) {
+    function setJTexture(bmp: egret.Bitmap, texture: egret.Texture) {
         bmp.texture = texture;
         let tx: number, ty: number;
         if (texture) {
@@ -41,7 +41,7 @@ module junyou {
         /**
          * 占位用的纹理
          */
-        placehoder: JTexture;
+        placehoder: egret.Texture;
         /**
          * 纹理的配置文件的加载地址
          */
@@ -57,7 +57,7 @@ module junyou {
         /**
          * 获取数据
          */
-        private _datas: { [index: number]: JTexture[][] };
+        private _datas: { [index: number]: egret.Texture[][] };
 
         constructor(key: string, splitInfo: SplitInfo) {
             this.key = key;
@@ -70,14 +70,14 @@ module junyou {
          * 解析数据
          */
         public decodeData(data: {}) {
-            var _datas: { [index: number]: JTexture[][] } = {};
+            var _datas: { [index: number]: egret.Texture[][] } = {};
             for (let action in data) {
-                let dData: JTexture[][] = [];
+                let dData: egret.Texture[][] = [];
                 _datas[action] = dData;
                 let actData = data[action];
                 if (!actData) continue;
                 for (let d = 0, len = actData.length; d < len; d++) {
-                    let fData: JTexture[] = [];
+                    let fData: egret.Texture[] = [];
                     dData[d] = fData;
                     let dirData: any[] = actData[d];
                     if (!dirData) continue;
@@ -94,8 +94,8 @@ module junyou {
             /**
              * 从数据中获取纹理
              */
-            function getTextureFromImageData(data): JTexture {
-                var texture = new Texture();
+            function getTextureFromImageData(data) {
+                var texture = new egret.Texture();
                 var sx: number = data[0];
                 var sy: number = data[1];
                 texture.tx = data[2] || 0;

@@ -186,7 +186,7 @@ module junyou {
             sendBuffer.reset();
             let unsend = this._unsendRequest;
             let sending = this._sendingList;
-            for (let i = 0, len = unsend.length; i < len; i++) {
+            for (var i = 0, len = unsend.length; i < len; i++) {
                 let pdata = unsend[i];
                 this.writeToBuffer(sendBuffer, pdata);
                 sending[i] = pdata;
