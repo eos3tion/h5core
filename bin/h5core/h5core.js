@@ -15838,9 +15838,7 @@ var junyou;
             var item = this.getItemAt(index);
             if (item) {
                 this._data[index] = data;
-                if (index >= this._showStart && index <= this._showEnd) {
-                    this.doRender(index);
-                }
+                this.doRender(index);
             }
         };
         PageList.prototype.removeAt = function (idx) {
