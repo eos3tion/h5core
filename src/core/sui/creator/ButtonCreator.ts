@@ -124,7 +124,7 @@ module junyou {
             return this._label;
         }
 
-        protected $setEnabled(value: boolean) {
+        $setEnabled(value: boolean) {
             super.$setEnabled(value);
             this.refresh();
         }

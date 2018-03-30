@@ -74,4 +74,8 @@ module junyou {
 		}
 
 	}
+
+	export interface Image extends ComponentWithEnable { };
+
+	addEnable(Image);
 }
