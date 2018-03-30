@@ -456,7 +456,7 @@ module junyou {
             if (data[0]) {
                 dis.name = data[0];
             }
-            let [, x, y, w, h, rot, alpha] = data;
+            let [, x, y, w, h, rot, alpha, adjustColors] = data;
             dis.suiRawRect = new egret.Rectangle(x, y, w, h);
             if (Array.isArray(rot)) {//matrix
                 let [a, b, c, d] = rot;
@@ -474,6 +474,9 @@ module junyou {
             }
             if (alpha != undefined) {
                 dis.alpha = alpha;
+            }
+            if (adjustColors) {
+                dis.filters = [FilterUtils.adjustColorFilter(adjustColors[0], adjustColors[1], adjustColors[2], adjustColors[3])];
             }
         }
 
