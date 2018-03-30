@@ -8,147 +8,6 @@ var __extends = this && this.__extends || function __extends(t, e) {
 for (var i in e) e.hasOwnProperty(i) && (t[i] = e[i]);
 r.prototype = e.prototype, t.prototype = new r();
 };
-var junyou;
-(function (junyou) {
-    /**
-     * Mediator和Proxy的基类
-     * @author 3tion
-     *
-     */
-    var FHost = (function () {
-        function FHost(name) {
-            this._name = name;
-            this.checkInject();
-            if (true) {
-                var classes = $gm.$;
-                if (!classes) {
-                    $gm.$ = classes = {};
-                }
-                classes[this["constructor"]["name"]] = this;
-            }
-        }
-        Object.defineProperty(FHost.prototype, "name", {
-            /**
-             * 唯一标识
-             */
-            get: function () {
-                return this._name;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        /**
-         * 检查依赖注入的数据
-         *
-         * @protected
-         *
-         * @memberOf FHost
-         */
-        FHost.prototype.checkInject = function () {
-            //此注入是对原型进行的注入，无法直接删除，也不要直接做清理
-            var idp = this._injectProxys;
-            if (idp) {
-                var proxyName = void 0;
-                //检查Proxy
-                for (var key in idp) {
-                    var ref = idp[key];
-                    if (typeof ref === "object") {
-                        proxyName = junyou.Facade.getNameOfInline(ref);
-                    }
-                    else {
-                        proxyName = ref;
-                    }
-                    var proxy = junyou.proxyCall(proxyName);
-                    this[key] = proxy;
-                    proxy._$isDep = true;
-                    this.addDepend(proxy);
-                }
-            }
-        };
-        FHost.prototype.addReadyExecute = function (handle, thisObj) {
-            var args = [];
-            for (var _i = 2; _i < arguments.length; _i++) {
-                args[_i - 2] = arguments[_i];
-            }
-            var _asyncHelper = this._asyncHelper;
-            if (!_asyncHelper) {
-                this._asyncHelper = _asyncHelper = new junyou.AsyncHelper();
-                _asyncHelper._ready = this.isReady;
-            }
-            _asyncHelper.addReadyExecute.apply(_asyncHelper, [handle, thisObj].concat(args));
-        };
-        Object.defineProperty(FHost.prototype, "isReady", {
-            get: function () {
-                return false;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        FHost.prototype.startSync = function () {
-        };
-        /**
-         * 添加依赖项
-         */
-        FHost.prototype.addDepend = function (async) {
-            if (!this._dependerHelper) {
-                this._dependerHelper = new junyou.DependerHelper(this, this.dependerReadyCheck);
-            }
-            this._dependerHelper.addDepend(async);
-        };
-        /**
-         * 依赖项，加载完成后的检查
-         */
-        FHost.prototype.dependerReadyCheck = function () {
-        };
-        /**
-         * 模块在Facade注册时执行
-         */
-        FHost.prototype.onRegister = function () {
-        };
-        /**
-         * 模块从Facade注销时
-         */
-        FHost.prototype.onRemove = function () {
-        };
-        /**
-         * 全部加载好以后要处理的事情<br/>
-         * 包括依赖项加载完毕
-         */
-        FHost.prototype.afterAllReady = function () {
-            // to be override
-        };
-        return FHost;
-    }());
-    junyou.FHost = FHost;
-    __reflect(FHost.prototype, "junyou.FHost", ["junyou.IDepender", "junyou.IAsync"]);
-    /**
-     *
-     * 附加依赖的Proxy
-     * @export
-     * @param {({ new (): IAsync } | string)} ref 如果注册的是Class，必须是Inline方式注册的Proxy
-     * @returns
-     */
-    function __dependProxy(ref) {
-        return function (target, key) {
-            var _injectProxys = target._injectProxys;
-            if (!_injectProxys) {
-                target._injectProxys = _injectProxys = {};
-            }
-            _injectProxys[key] = ref;
-        };
-    }
-    junyou.__dependProxy = __dependProxy;
-})(junyou || (junyou = {}));
-(function (junyou) {
-    /**
-     *
-     * 附加依赖的Proxy
-     * @export
-     * @param {({ new (): IAsync } | string)} ref
-     * @returns
-     */
-    junyou.d_dependProxy = junyou.__dependProxy;
-})(junyou || (junyou = {}));
 /**
  * 对数字进行补0操作
  * @param value 要补0的数值
@@ -791,6 +650,147 @@ var egret;
 var junyou;
 (function (junyou) {
     /**
+     * Mediator和Proxy的基类
+     * @author 3tion
+     *
+     */
+    var FHost = (function () {
+        function FHost(name) {
+            this._name = name;
+            this.checkInject();
+            if (true) {
+                var classes = $gm.$;
+                if (!classes) {
+                    $gm.$ = classes = {};
+                }
+                classes[this["constructor"]["name"]] = this;
+            }
+        }
+        Object.defineProperty(FHost.prototype, "name", {
+            /**
+             * 唯一标识
+             */
+            get: function () {
+                return this._name;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         * 检查依赖注入的数据
+         *
+         * @protected
+         *
+         * @memberOf FHost
+         */
+        FHost.prototype.checkInject = function () {
+            //此注入是对原型进行的注入，无法直接删除，也不要直接做清理
+            var idp = this._injectProxys;
+            if (idp) {
+                var proxyName = void 0;
+                //检查Proxy
+                for (var key in idp) {
+                    var ref = idp[key];
+                    if (typeof ref === "object") {
+                        proxyName = junyou.Facade.getNameOfInline(ref);
+                    }
+                    else {
+                        proxyName = ref;
+                    }
+                    var proxy = junyou.proxyCall(proxyName);
+                    this[key] = proxy;
+                    proxy._$isDep = true;
+                    this.addDepend(proxy);
+                }
+            }
+        };
+        FHost.prototype.addReadyExecute = function (handle, thisObj) {
+            var args = [];
+            for (var _i = 2; _i < arguments.length; _i++) {
+                args[_i - 2] = arguments[_i];
+            }
+            var _asyncHelper = this._asyncHelper;
+            if (!_asyncHelper) {
+                this._asyncHelper = _asyncHelper = new junyou.AsyncHelper();
+                _asyncHelper._ready = this.isReady;
+            }
+            _asyncHelper.addReadyExecute.apply(_asyncHelper, [handle, thisObj].concat(args));
+        };
+        Object.defineProperty(FHost.prototype, "isReady", {
+            get: function () {
+                return false;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        FHost.prototype.startSync = function () {
+        };
+        /**
+         * 添加依赖项
+         */
+        FHost.prototype.addDepend = function (async) {
+            if (!this._dependerHelper) {
+                this._dependerHelper = new junyou.DependerHelper(this, this.dependerReadyCheck);
+            }
+            this._dependerHelper.addDepend(async);
+        };
+        /**
+         * 依赖项，加载完成后的检查
+         */
+        FHost.prototype.dependerReadyCheck = function () {
+        };
+        /**
+         * 模块在Facade注册时执行
+         */
+        FHost.prototype.onRegister = function () {
+        };
+        /**
+         * 模块从Facade注销时
+         */
+        FHost.prototype.onRemove = function () {
+        };
+        /**
+         * 全部加载好以后要处理的事情<br/>
+         * 包括依赖项加载完毕
+         */
+        FHost.prototype.afterAllReady = function () {
+            // to be override
+        };
+        return FHost;
+    }());
+    junyou.FHost = FHost;
+    __reflect(FHost.prototype, "junyou.FHost", ["junyou.IDepender", "junyou.IAsync"]);
+    /**
+     *
+     * 附加依赖的Proxy
+     * @export
+     * @param {({ new (): IAsync } | string)} ref 如果注册的是Class，必须是Inline方式注册的Proxy
+     * @returns
+     */
+    function __dependProxy(ref) {
+        return function (target, key) {
+            var _injectProxys = target._injectProxys;
+            if (!_injectProxys) {
+                target._injectProxys = _injectProxys = {};
+            }
+            _injectProxys[key] = ref;
+        };
+    }
+    junyou.__dependProxy = __dependProxy;
+})(junyou || (junyou = {}));
+(function (junyou) {
+    /**
+     *
+     * 附加依赖的Proxy
+     * @export
+     * @param {({ new (): IAsync } | string)} ref
+     * @returns
+     */
+    junyou.d_dependProxy = junyou.__dependProxy;
+})(junyou || (junyou = {}));
+var junyou;
+(function (junyou) {
+    /**
      * 基础创建器
      * @author 3tion
      *
@@ -870,6 +870,30 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
+    function addEnable(ref) {
+        var pt = ref.prototype;
+        pt.$setEnabled = $setEnabled;
+        pt.useDisFilter = true;
+        Object.defineProperty(pt, "enabled", getDescriptor({
+            set: function (value) {
+                if (this._enabled != value) {
+                    this.$setEnabled(value);
+                }
+            },
+            get: function () {
+                return this._enabled;
+            }
+        }));
+    }
+    junyou.addEnable = addEnable;
+    function $setEnabled(value) {
+        this._enabled = value;
+        this.touchEnabled = value;
+        this.touchChildren = value;
+        if (this.useDisFilter) {
+            this.filters = value ? null : junyou.FilterUtils.gray;
+        }
+    }
     /**
      * 用于处理接收flash软件制作的UI，导出的数据，仿照eui
      * 不过简化eui的一些layout的支持
@@ -938,11 +962,10 @@ var junyou;
          */
         Component.prototype.drawDele = function () {
             if (this._creator) {
-                var r = this._creator.size;
                 var g = this.graphics;
                 g.lineStyle(2, 0x00ff00);
                 g.beginFill(0xff, 0.3);
-                g.drawRect(r.x, r.y, r.width, r.height);
+                g.drawRectangle(this._creator.size);
             }
         };
         /**
@@ -1007,26 +1030,6 @@ var junyou;
          */
         Component.prototype.getLayoutBounds = function (bounds) {
         };
-        Object.defineProperty(Component.prototype, "enabled", {
-            get: function () {
-                return this._enabled;
-            },
-            set: function (value) {
-                if (this._enabled != value) {
-                    this.$setEnabled(value);
-                }
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Component.prototype.$setEnabled = function (value) {
-            this._enabled = value;
-            this.touchEnabled = value;
-            this.touchChildren = value;
-            if (this.useDisFilter) {
-                this.filters = value ? null : junyou.FilterUtils.gray;
-            }
-        };
         Object.defineProperty(Component.prototype, "view", {
             get: function () {
                 return this;
@@ -1038,6 +1041,8 @@ var junyou;
     }(egret.Sprite));
     junyou.Component = Component;
     __reflect(Component.prototype, "junyou.Component");
+    ;
+    addEnable(Component);
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -4536,7 +4541,7 @@ var junyou;
         return Button;
     }(junyou.Component));
     junyou.Button = Button;
-    __reflect(Button.prototype, "junyou.Button", ["junyou.IButton"]);
+    __reflect(Button.prototype, "junyou.Button", ["junyou.IButton", "junyou.Component", "junyou.ComponentWithEnable"]);
     /**
      * 按钮创建器
      * @author 3tion
@@ -14240,6 +14245,7 @@ var junyou;
     junyou.Panel = Panel;
     __reflect(Panel.prototype, "junyou.Panel", ["junyou.SuiDataCallback", "junyou.IAsyncPanel", "junyou.IAsync", "junyou.IModulePanel", "egret.DisplayObject"]);
     junyou.expand(Panel, junyou.FHost, "addReadyExecute");
+    junyou.addEnable(Panel);
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -14254,6 +14260,8 @@ var junyou;
     }(egret.Sprite));
     junyou.View = View;
     __reflect(View.prototype, "junyou.View");
+    ;
+    junyou.addEnable(View);
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
@@ -14655,6 +14663,8 @@ var junyou;
     }(egret.Bitmap));
     junyou.Image = Image;
     __reflect(Image.prototype, "junyou.Image");
+    ;
+    junyou.addEnable(Image);
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
