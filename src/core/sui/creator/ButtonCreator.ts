@@ -87,9 +87,6 @@ module junyou {
 
         protected _currentBmp: egret.Bitmap;
 
-        public useDisableFilter(value: boolean) {
-            this._useDisableFilter = value;
-        }
 
         public constructor() {
             super();
@@ -273,7 +270,7 @@ module junyou {
                 if (!bmps[1]) { //启用 选中帧 没有图片
                     bmps[1] = bmps[0];
                 }
-                let useDisableFilter: boolean;
+                let useDisableFilter = false;
                 if (!bmps[2]) { //禁用 未选中帧 没有图片
                     bmps[2] = bmps[0];
                     useDisableFilter = true;
@@ -290,7 +287,7 @@ module junyou {
                     btn.ceil = this.createElement(data[6]);
                     useDisableFilter = true;
                 }
-                btn.useDisableFilter(useDisableFilter);
+                btn.useDisFilter = useDisableFilter;
                 return btn;
             }
         }

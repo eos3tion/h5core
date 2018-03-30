@@ -22,12 +22,12 @@ module junyou {
 
         /**
          * 是否使用disable滤镜
-         * 
+         * 现在默认为 true
          * @protected
          * @type {boolean}
          * @memberOf Component
          */
-        protected _useDisableFilter: boolean;
+        useDisFilter = true;
 
     	/**
     	 * 控件命名规则
@@ -178,13 +178,8 @@ module junyou {
             this._enabled = value;
             this.touchEnabled = value;
             this.touchChildren = value;
-            if (this._useDisableFilter) {
-                if (value) {
-                    this.filters = undefined;
-                }
-                else {
-                    this.filters = FilterUtils.gray;
-                }
+            if (this.useDisFilter) {
+                this.filters = value ? null : FilterUtils.gray;
             }
         }
 
