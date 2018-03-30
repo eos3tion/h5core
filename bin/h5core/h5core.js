@@ -6782,6 +6782,107 @@ var junyou;
 })(junyou || (junyou = {}));
 var junyou;
 (function (junyou) {
+    var lR = 0.213;
+    var lG = 0.715;
+    var lB = 0.072;
+    var adjustColorFilters = {};
+    function adjustColorFilter(brightness, contrast, saturation, hue) {
+        var clamp = Math.clamp;
+        hue = hue | 0;
+        saturation = saturation | 0;
+        brightness = brightness | 0;
+        contrast = contrast | 0;
+        if (hue) {
+            hue = clamp(hue, -180, 180);
+        }
+        if (saturation) {
+            saturation = clamp(saturation, -100, 100);
+        }
+        if (brightness) {
+            brightness = clamp(brightness, -100, 100);
+        }
+        if (contrast) {
+            contrast = clamp(contrast, -100, 100);
+        }
+        var key = brightness + contrast * 1E3 + saturation * 1E6 + hue * 1E9;
+        var filter = adjustColorFilters[key];
+        if (!filter) {
+            var vec = [1, 0, 0, 0, 0,
+                0, 1, 0, 0, 0,
+                0, 0, 1, 0, 0,
+                0, 0, 0, 1, 0];
+            if (hue) {
+                multiplyMatrix(vec, adjustHue(hue));
+            }
+            if (saturation) {
+                multiplyMatrix(vec, adjustSaturation(saturation));
+            }
+            if (brightness) {
+                multiplyMatrix(vec, adjustBrightness(brightness));
+            }
+            if (contrast) {
+                multiplyMatrix(vec, adjustContrast(contrast));
+            }
+            adjustColorFilters[key] = filter = new egret.ColorMatrixFilter(vec);
+        }
+        return filter;
+    }
+    function adjustHue(value) {
+        // convert to radians.
+        var v = value * Math.DEG_TO_RAD;
+        var cv = Math.cos(v);
+        var sv = Math.sin(v);
+        return [lR + (cv * (1 - lR)) + (sv * -lR), lG + (cv * -lG) + (sv * -lG), lB + (cv * -lB) + (sv * (1 - lB)), 0, 0,
+            lR + (cv * -lR) + (sv * 0.143), lG + (cv * (1 - lG)) + (sv * 0.140), lB + (cv * -lB) + (sv * -0.283), 0, 0,
+            lR + (cv * -lR) + (sv * -(1 - lR)), lG + (cv * -lG) + (sv * lG), lB + (cv * (1 - lB)) + (sv * lB), 0, 0,
+            0, 0, 0, 1, 0];
+    }
+    function adjustSaturation(value) {
+        value *= .01;
+        var v = value + 1;
+        var i = (1 - v);
+        var r = (i * lR);
+        var g = (i * lG);
+        var b = (i * lB);
+        return [r + v, g, b, 0, 0,
+            r, g + v, b, 0, 0,
+            r, g, b + v, 0, 0,
+            0, 0, 0, 1, 0];
+    }
+    /* value = -1 to 1 */
+    function adjustContrast(value) {
+        value *= .01;
+        var v = value + 1;
+        var o = 128 * (1 - v);
+        return [v, 0, 0, 0, o,
+            0, v, 0, 0, o,
+            0, 0, v, 0, o,
+            0, 0, 0, v, 0];
+    }
+    /* value = -1 to 1 */
+    function adjustBrightness(value) {
+        var v = 2.55 * value;
+        return [1, 0, 0, 0, v,
+            0, 1, 0, 0, v,
+            0, 0, 1, 0, v,
+            0, 0, 0, 1, 0];
+    }
+    // multiplies one matrix against another:
+    function multiplyMatrix(TargetMatrix, MultiplyMatrix) {
+        var col = [];
+        for (var i = 0; i < 4; i++) {
+            for (var j = 0; j < 5; j++) {
+                col[j] = TargetMatrix[j + (i * 5)];
+            }
+            for (var j = 0; j < 5; j++) {
+                var val = 0;
+                for (var k = 0; k < 4; k++) {
+                    val += MultiplyMatrix[j + (k * 5)] * col[k];
+                }
+                TargetMatrix[j + (i * 5)] = val;
+            }
+        }
+    }
     /**
      * 滤镜辅助
      *
@@ -6791,7 +6892,8 @@ var junyou;
     junyou.FilterUtils = {
         gray: [new egret.ColorMatrixFilter([0.3086, 0.6094, 0.0820, 0, 0, 0.3086, 0.6094, 0.0820, 0, 0, 0.3086, 0.6094, 0.0820, 0, 0, 0, 0, 0, 1, 0])],
         dark: [new egret.ColorMatrixFilter([0.5, 0, 0, 0, 6.75, 0, 0.5, 0, 0, 6.75, 0, 0, 0.5, 0, 6.75, 0, 0, 0, 1, 0])],
-        blur: [new egret.BlurFilter(5, 5)]
+        blur: [new egret.BlurFilter(5, 5)],
+        adjustColorFilter: adjustColorFilter
     };
 })(junyou || (junyou = {}));
 var junyou;
@@ -17081,7 +17183,7 @@ var junyou;
             if (data[0]) {
                 dis.name = data[0];
             }
-            var x = data[1], y = data[2], w = data[3], h = data[4], rot = data[5], alpha = data[6];
+            var x = data[1], y = data[2], w = data[3], h = data[4], rot = data[5], alpha = data[6], adjustColors = data[7];
             dis.suiRawRect = new egret.Rectangle(x, y, w, h);
             if (Array.isArray(rot)) {
                 var a = rot[0], b = rot[1], c = rot[2], d = rot[3];
@@ -17100,6 +17202,9 @@ var junyou;
             }
             if (alpha != undefined) {
                 dis.alpha = alpha;
+            }
+            if (adjustColors) {
+                dis.filters = [junyou.FilterUtils.adjustColorFilter(adjustColors[0], adjustColors[1], adjustColors[2], adjustColors[3])];
             }
         };
         /**

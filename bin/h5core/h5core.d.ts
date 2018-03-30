@@ -4275,6 +4275,17 @@ declare module junyou {
         dark: egret.Filter[];
         /**共享模糊滤镜 */
         blur: egret.Filter[];
+        /**
+         * 根据 adjustColor 值，获取 ColorMatrixFilter 滤镜
+         *
+         * @param {number} [brightness=0]   亮度：取值范围 -100 - 100
+         * @param {number} [contrast=0]     对比度：取值范围 -100 - 100
+         * @param {number} [saturation=0]   饱和度：取值范围 -100 - 100
+         * @param {number} [hue]            色调： 取值范围 -180 - 180
+         * @returns {egret.ColorMatrixFilter}
+         * @memberof FilterUtilsType
+         */
+        adjustColorFilter(brightness?: number, contrast?: number, saturation?: number, hue?: number): egret.ColorMatrixFilter;
     }
     /**
      * 滤镜辅助
