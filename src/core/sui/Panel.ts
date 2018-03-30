@@ -1,5 +1,5 @@
 module junyou {
-    export interface Panel extends IAsync {
+    export interface Panel extends IAsync, ComponentWithEnable {
     }
 	/**
 	 * 模块面板
@@ -301,4 +301,6 @@ module junyou {
     }
 
     expand(Panel, FHost, "addReadyExecute");
+
+    addEnable(Panel);
 }

@@ -1,4 +1,50 @@
 module junyou {
+    export interface ComponentWithEnable {
+
+        /**
+         * 控件是否启用
+         */
+        enabled: boolean;
+        useDisFilter?: boolean;
+        /**
+         * @private
+         */
+        _enabled?: boolean;
+
+        /**
+         * @private
+         */
+        $setEnabled(value: boolean);
+    }
+
+    export function addEnable(ref: { prototype: any, useDisFilter?: boolean }) {
+        let pt = ref.prototype;
+        pt.$setEnabled = $setEnabled;
+        pt.useDisFilter = true;
+        Object.defineProperty(pt, "enabled", getDescriptor(
+            {
+                set(value: boolean) {
+                    if (this._enabled != value) {
+                        this.$setEnabled(value);
+                    }
+                },
+                get() {
+                    return this._enabled;
+                }
+            })
+        )
+    }
+
+    function $setEnabled(value: boolean) {
+        this._enabled = value;
+        this.touchEnabled = value;
+        this.touchChildren = value;
+        if (this.useDisFilter) {
+            this.filters = value ? null : FilterUtils.gray;
+        }
+    }
+
+
 	/**
 	 * 用于处理接收flash软件制作的UI，导出的数据，仿照eui
 	 * 不过简化eui的一些layout的支持
@@ -85,11 +131,10 @@ module junyou {
 		 */
         protected drawDele() {
             if (this._creator) {
-                let r = this._creator.size;
                 let g = this.graphics;
                 g.lineStyle(2, 0x00ff00);
                 g.beginFill(0xff, 0.3);
-                g.drawRect(r.x, r.y, r.width, r.height);
+                g.drawRectangle(this._creator.size);
             }
         }
 
@@ -166,29 +211,12 @@ module junyou {
 
         }
 
-        protected _enabled: boolean;
-
-        public set enabled(value: boolean) {
-            if (this._enabled != value) {
-                this.$setEnabled(value);
-            }
-        }
-
-        protected $setEnabled(value: boolean) {
-            this._enabled = value;
-            this.touchEnabled = value;
-            this.touchChildren = value;
-            if (this.useDisFilter) {
-                this.filters = value ? null : FilterUtils.gray;
-            }
-        }
-
-        public get enabled(): boolean {
-            return this._enabled;
-        }
-
         public get view() {
             return this;
         }
     }
+
+    export interface Component extends ComponentWithEnable { };
+
+    addEnable(Component);
 }

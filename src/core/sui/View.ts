@@ -5,4 +5,8 @@ module junyou {
             singleton(SuiResManager).createComponents(key, className, this);
         }
     }
+
+    export interface View extends ComponentWithEnable { };
+
+    addEnable(View);
 }
