@@ -881,7 +881,16 @@ var junyou;
     var Component = (function (_super) {
         __extends(Component, _super);
         function Component() {
-            return _super.call(this) || this;
+            var _this = _super.call(this) || this;
+            /**
+             * 是否使用disable滤镜
+             * 现在默认为 true
+             * @protected
+             * @type {boolean}
+             * @memberOf Component
+             */
+            _this.useDisFilter = true;
+            return _this;
         }
         Object.defineProperty(Component.prototype, "guid", {
             /**
@@ -1014,13 +1023,8 @@ var junyou;
             this._enabled = value;
             this.touchEnabled = value;
             this.touchChildren = value;
-            if (this._useDisableFilter) {
-                if (value) {
-                    this.filters = undefined;
-                }
-                else {
-                    this.filters = junyou.FilterUtils.gray;
-                }
+            if (this.useDisFilter) {
+                this.filters = value ? null : junyou.FilterUtils.gray;
             }
         };
         Object.defineProperty(Component.prototype, "view", {
@@ -4397,9 +4401,6 @@ var junyou;
             junyou.TouchDown.bind(_this);
             return _this;
         }
-        Button.prototype.useDisableFilter = function (value) {
-            this._useDisableFilter = value;
-        };
         Button.prototype.bindChildren = function () {
             if (this.txtLabel) {
                 this.addChild(this.txtLabel);
@@ -4575,7 +4576,7 @@ var junyou;
                 if (!bmps[1]) {
                     bmps[1] = bmps[0];
                 }
-                var useDisableFilter;
+                var useDisableFilter = false;
                 if (!bmps[2]) {
                     bmps[2] = bmps[0];
                     useDisableFilter = true;
@@ -4592,7 +4593,7 @@ var junyou;
                     btn.ceil = _this.createElement(data[6]);
                     useDisableFilter = true;
                 }
-                btn.useDisableFilter(useDisableFilter);
+                btn.useDisFilter = useDisableFilter;
                 return btn;
             };
         };

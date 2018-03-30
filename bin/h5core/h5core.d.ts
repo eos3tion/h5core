@@ -626,12 +626,12 @@ declare module junyou {
         protected _creator: BaseCreator<egret.DisplayObject>;
         /**
          * 是否使用disable滤镜
-         *
+         * 现在默认为 true
          * @protected
          * @type {boolean}
          * @memberOf Component
          */
-        protected _useDisableFilter: boolean;
+        useDisFilter: boolean;
         /**
          * 控件命名规则
          * 如果是和模块关联@开头，则为mediator，通过getView取到面板
@@ -2924,7 +2924,6 @@ declare module junyou {
          */
         protected _selected: boolean;
         protected _currentBmp: egret.Bitmap;
-        useDisableFilter(value: boolean): void;
         constructor();
         bindChildren(): void;
         /**
