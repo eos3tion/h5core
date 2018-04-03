@@ -137,10 +137,10 @@ module junyou {
         /**
          * 获取CallbackInfo的实例
          */
-        public static get<T extends Function>(callback: T, thisObj?: any, ...args: any[]): CallbackInfo<T> {
+        public static get<T extends Function>(callback: T, thisObj?: any, ...args: any[]) {
             var info = recyclable(CallbackInfo);
             info.init(callback, thisObj, args);
-            return info;
+            return info as CallbackInfo<T>;
         }
 
         /**

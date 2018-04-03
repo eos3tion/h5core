@@ -20,8 +20,8 @@ module junyou {
     }
 
     export interface TouchDownBin {
-        x: number;
-        y: number;
+        x?: number;
+        y?: number;
 
         scaleX: number;
         scaleY: number;
@@ -83,10 +83,11 @@ module junyou {
                 }
             } else {
                 target.$_tdi = data = {} as TouchDownData;
+                let { x, y, scaleX, scaleY } = target;
+                data.raw = { x, y, scaleX, scaleY };
             }
-            let { x, y, scaleX, scaleY, width, height } = target;
-            data.raw = { x, y, scaleX, scaleY };
-            data.tween = Global.getTween(target, _$TDOpt).to({ x: x - width * TouchDownConst.Multi, y: y - height * TouchDownConst.Multi, scaleX: TouchDownConst.Scale * scaleX, scaleY: TouchDownConst.Scale * scaleY }, 100, Ease.quadOut);
+            let raw = data.raw;
+            data.tween = Global.getTween(target, _$TDOpt).to({ x: raw.x - target.width * TouchDownConst.Multi, y: raw.y - target.height * TouchDownConst.Multi, scaleX: TouchDownConst.Scale * raw.scaleX, scaleY: TouchDownConst.Scale * raw.scaleY }, 100, Ease.quadOut);
         }
 
         function touchEnd(e: egret.Event) {
