@@ -13871,7 +13871,7 @@ var junyou;
                         var limitWarn = "";
                         var unsolve = "";
                     }
-                    var checker;
+                    var checker = void 0;
                     for (var id in _allById) {
                         var cfg = _allById[id];
                         var showtype = cfg.showtype;
@@ -13916,9 +13916,8 @@ var junyou;
                             this._unshowns.push(id_1);
                             var displays = this._bindedIOById[id_1];
                             if (displays) {
-                                for (var _i = 0, displays_1 = displays; _i < displays_1.length; _i++) {
-                                    var io = displays_1[_i];
-                                    io.visible = false;
+                                for (var i = 0; i < displays.length; i++) {
+                                    displays[i].visible = false;
                                 }
                             }
                         }
@@ -14073,8 +14072,8 @@ var junyou;
                     }
                     var displays = this._bindedIOById[id];
                     if (displays) {
-                        for (var _i = 0, displays_2 = displays; _i < displays_2.length; _i++) {
-                            var dis = displays_2[_i];
+                        for (var _i = 0, displays_1 = displays; _i < displays_1.length; _i++) {
+                            var dis = displays_1[_i];
                             dis.visible = true;
                         }
                     }
@@ -14121,42 +14120,39 @@ var junyou;
             if (showtip === void 0) { showtip = true; }
             var cfg = this._allById[moduleID];
             if (!cfg) {
-                junyou.ThrowError("ModuleManager execute时，无法找到对应模块配置,ModuleID为:" + moduleID);
-                return false;
+                true && junyou.ThrowError("ModuleManager execute时，无法找到对应模块配置,ModuleID为:" + moduleID);
+                return;
             }
             junyou.dispatch(-997 /* MODULE_TRY_TOGGLE */, moduleID);
-            if (!this.isModuleOpened(cfg, showtip)) {
-                return false;
+            var needShow;
+            show = ~~show;
+            switch (show) {
+                case 0 /* AUTO */:
+                    switch (cfg.showState) {
+                        case 0 /* HIDE */:
+                        case 3 /* HIDING */:
+                            needShow = true;
+                            break;
+                    }
+                    break;
+                case 1 /* SHOW */:
+                    needShow = true;
+                    break;
+            }
+            if (needShow && !this.isModuleOpened(cfg, showtip)) {
+                return;
             }
             var moduleHandler = this._handlersById[moduleID];
             if (!moduleHandler) {
                 moduleHandler = this._handlersByType[cfg.type];
-            }
-            if (moduleHandler) {
-                show = ~~show;
-                switch (show) {
-                    case 0 /* AUTO */:
-                        switch (cfg.showState) {
-                            case 0 /* HIDE */:
-                            case 3 /* HIDING */:
-                                moduleHandler.show(cfg, param);
-                                break;
-                            case 2 /* SHOW */:
-                            case 1 /* SHOWING */:
-                                moduleHandler.hide(cfg, param);
-                                break;
-                        }
-                        break;
-                    case -1 /* HIDE */:
-                        moduleHandler.hide(cfg, param);
-                        break;
-                    case 1 /* SHOW */:
-                        moduleHandler.show(cfg, param);
-                        break;
+                if (needShow) {
+                    moduleHandler.show(cfg, param);
+                }
+                else {
+                    moduleHandler.hide(cfg, param);
                 }
                 return true;
             }
-            return false;
         };
         /**
          * 获取模块
