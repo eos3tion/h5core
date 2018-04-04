@@ -149,7 +149,7 @@ module junyou {
         /**
          * 检查限制
          */
-        checkLimits(): void {
+        checkLimits() {
             if (this._needCheck) {
                 this._needCheck = false;
                 let _checks = this._checkers;
@@ -160,10 +160,10 @@ module junyou {
                         var limitWarn = "";
                         var unsolve = "";
                     }
-                    var checker: IModuleChecker;
+                    let checker: IModuleChecker;
                     for (let id in _allById) {
                         let cfg: IModuleCfg = _allById[id];
-                        var showtype = cfg.showtype;
+                        let showtype = cfg.showtype;
                         if (showtype) {
                             checker = _checks[showtype] as IModuleChecker;
                             if (DEBUG) {
@@ -172,7 +172,7 @@ module junyou {
                                 }
                             }
                         }
-                        var limittype = cfg.limittype;
+                        let limittype = cfg.limittype;
                         if (limittype) {
                             checker = _checks[limittype] as IModuleChecker;
                             if (DEBUG) {
@@ -204,8 +204,8 @@ module junyou {
                             this._unshowns.push(id);
                             let displays = this._bindedIOById[id];
                             if (displays) {
-                                for (var io of displays) {
-                                    io.visible = false;
+                                for (let i = 0; i < displays.length; i++) {
+                                    displays[i].visible = false;
                                 }
                             }
                         }
@@ -244,7 +244,7 @@ module junyou {
             }
             let flag = cfg && cfg.close != ModuleCloseState.Closed;
             if (flag && this._checkers) {
-                var checker: IModuleChecker = this._checkers[cfg.showtype] as IModuleChecker;
+                let checker = this._checkers[cfg.showtype];
                 if (checker) {
                     flag = checker.check(cfg.showlimits, false);
                 }
@@ -297,12 +297,12 @@ module junyou {
                 ThrowError("ModuleManager 注册按钮时候，重复注册了按钮");
                 return;
             }
-            var cfg: IModuleCfg = this._allById[id] as IModuleCfg;
+            let cfg = this._allById[id];
             if (!cfg) {
                 ThrowError("ModuleManager 注册按钮时候，没有找到对应的模块配置，模块id:" + id);
                 return;
             }
-            var arr = this._bindedIOById[id];
+            let arr = this._bindedIOById[id];
             if (!arr) {
                 this._bindedIOById[id] = arr = [];
             }
@@ -310,7 +310,7 @@ module junyou {
             this._ioBind.set(io, id);
             io.on(eventType, this.ioHandler, this);
             if (this.createToolTip) {
-                var toolTips = this.createToolTip(cfg);
+                let toolTips = this.createToolTip(cfg);
                 if (toolTips) {
                     ToolTipManager.register(io, toolTips);
                 }
@@ -411,44 +411,40 @@ module junyou {
          *         false  被模块配置拦截，无法打开
          */
         toggle(moduleID: string | number, show?: ToggleState, showtip = true, param?: ModuleParam) {
-            var cfg: IModuleCfg = this._allById[moduleID] as IModuleCfg;
+            let cfg = this._allById[moduleID];
             if (!cfg) {
-                ThrowError("ModuleManager execute时，无法找到对应模块配置,ModuleID为:" + moduleID);
-                return false;
+                DEBUG && ThrowError("ModuleManager execute时，无法找到对应模块配置,ModuleID为:" + moduleID);
+                return;
             }
             dispatch(EventConst.MODULE_TRY_TOGGLE, moduleID);
-            if (!this.isModuleOpened(cfg, showtip)) {
-                return false;
+            let needShow: boolean;
+            show = ~~show;
+            switch (show) {
+                case ToggleState.AUTO:
+                    switch (cfg.showState) {
+                        case ModuleShowState.HIDE:
+                        case ModuleShowState.HIDING:
+                            needShow = true;
+                            break;
+                    }
+                    break;
+                case ToggleState.SHOW:
+                    needShow = true;
+                    break;
+            }
+            if (needShow && !this.isModuleOpened(cfg, showtip)) {
+                return;
             }
             let moduleHandler = this._handlersById[moduleID];
             if (!moduleHandler) {
                 moduleHandler = this._handlersByType[cfg.type];
-            }
-            if (moduleHandler) {
-                show = ~~show;
-                switch (show) {
-                    case ToggleState.AUTO:
-                        switch (cfg.showState) {
-                            case ModuleShowState.HIDE:
-                            case ModuleShowState.HIDING:
-                                moduleHandler.show(cfg, param);
-                                break;
-                            case ModuleShowState.SHOW:
-                            case ModuleShowState.SHOWING:
-                                moduleHandler.hide(cfg, param);
-                                break;
-                        }
-                        break;
-                    case ToggleState.HIDE:
-                        moduleHandler.hide(cfg, param);
-                        break;
-                    case ToggleState.SHOW:
-                        moduleHandler.show(cfg, param);
-                        break;
+                if (needShow) {
+                    moduleHandler.show(cfg, param);
+                } else {
+                    moduleHandler.hide(cfg, param);
                 }
                 return true;
             }
-            return false;
         }
 
         /**
