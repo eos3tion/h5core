@@ -60,14 +60,14 @@ module junyou {
          * Key      {number}            模块类型<br/>
          * Value    {IModuleHandler}    模块处理器
          */
-        _handlersByType: { [index: number]: ModuleHandler };
+        _hByType: { [index: number]: ModuleHandler };
 
 
         /**
          * Key      {string}            模块id<br/>
          * Value    {IModuleHandler}    模块处理器
          */
-        _handlersById: { [index: string]: ModuleHandler };
+        _hById: { [index: string]: ModuleHandler };
 
         /**
          * Key      {egret.DisplayObject}   绑定的交互对象<br/>
@@ -81,12 +81,12 @@ module junyou {
 
         init() {
             this._bindedIOById = [];
-            this._handlersByType = [];
+            this._hByType = [];
             this._checkers = [];
             this._allById = {};
             this._unshowns = [];
             this._unopens = [];
-            this._handlersById = {};
+            this._hById = {};
             this._ioBind = new Map<egret.DisplayObject, string | number>();
             on(EventConst.MODULE_NEED_CHECK_SHOW, this.check, this);
         }
@@ -112,7 +112,7 @@ module junyou {
          *
          */
         registerHandler(type: number, handler: ModuleHandler): void {
-            this._handlersByType[type] = handler;
+            this._hByType[type] = handler;
         }
         /**
          * 根据模块ID注册处理函数
@@ -123,7 +123,7 @@ module junyou {
         registerHandlerById(id: string | number, handler: ModuleHandler): void {
             let cfg: IModuleCfg = this._allById[id];
             if (cfg) {
-                this._handlersById[id] = handler;
+                this._hById[id] = handler;
             } else {
                 ThrowError("ModuleManager 注册模块处理函数时，没有找到对应的模块配置，模块id:" + id);
             }
@@ -435,16 +435,16 @@ module junyou {
             if (needShow && !this.isModuleOpened(cfg, showtip)) {
                 return;
             }
-            let moduleHandler = this._handlersById[moduleID];
+            let moduleHandler = this._hById[moduleID];
             if (!moduleHandler) {
-                moduleHandler = this._handlersByType[cfg.type];
-                if (needShow) {
-                    moduleHandler.show(cfg, param);
-                } else {
-                    moduleHandler.hide(cfg, param);
-                }
-                return true;
+                moduleHandler = this._hByType[cfg.type];
             }
+            if (needShow) {
+                moduleHandler.show(cfg, param);
+            } else {
+                moduleHandler.hide(cfg, param);
+            }
+            return true;
         }
 
         /**
