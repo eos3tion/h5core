@@ -142,7 +142,10 @@ module junyou {
      */
     export function recyclable<T>(clazz: { (): T & { _pool?: RecyclablePool<T> } }, addInstanceRecycle?: boolean): Recyclable<T>
     export function recyclable<T>(clazz: Creator<T> & { _pool?: RecyclablePool<T> }, addInstanceRecycle?: boolean): Recyclable<T> {
-        let pool = clazz._pool;
+        let pool: RecyclablePool<T>;
+        if (clazz.hasOwnProperty("_pool")) {
+            pool = clazz._pool;
+        }
         if (!pool) {
             if (addInstanceRecycle) {
                 pool = new RecyclablePool(function () {
