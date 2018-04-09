@@ -176,7 +176,10 @@ module junyou {
      * @param clazz 要做单例的类型
      */
     export function singleton<T>(clazz: { new(): T; _instance?: T }): T {
-        let instance = clazz._instance;
+        let instance: T;
+        if (clazz.hasOwnProperty("_instance")) {
+            instance = clazz._instance;
+        }
         if (!instance) {
             instance = new clazz;
             Object.defineProperty(clazz, "_instance", {
