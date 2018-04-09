@@ -5054,7 +5054,10 @@ var junyou;
         var _recid = 0;
     }
     function recyclable(clazz, addInstanceRecycle) {
-        var pool = clazz._pool;
+        var pool;
+        if (clazz.hasOwnProperty("_pool")) {
+            pool = clazz._pool;
+        }
         if (!pool) {
             if (addInstanceRecycle) {
                 pool = new RecyclablePool(function () {
