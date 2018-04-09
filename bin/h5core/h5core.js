@@ -5088,7 +5088,10 @@ var junyou;
      * @param clazz 要做单例的类型
      */
     function singleton(clazz) {
-        var instance = clazz._instance;
+        var instance;
+        if (clazz.hasOwnProperty("_instance")) {
+            instance = clazz._instance;
+        }
         if (!instance) {
             instance = new clazz;
             Object.defineProperty(clazz, "_instance", {
