@@ -6145,6 +6145,21 @@ var junyou;
 var junyou;
 (function (junyou) {
     /**
+     * 解析数据
+     *
+     * @private
+     * @param {number} hour
+     * @param {number} minute
+     * @returns
+     */
+    function _decode(_this, hour, minute) {
+        _this.hour = hour;
+        _this.minute = minute;
+        _this.time = hour * 3600000 /* ONE_HOUR */ + minute * 60000 /* ONE_MINUTE */;
+        _this.strTime = hour.zeroize(2) + ":" + minute.zeroize(2);
+        return _this;
+    }
+    /**
      * TimveVO
      */
     var TimeVO = (function () {
@@ -6159,7 +6174,7 @@ var junyou;
          * @param {number} minutes 分钟数
          */
         TimeVO.prototype.decodeMinutes = function (minutes) {
-            return this._decode(minutes / 60 | 0, minutes % 60);
+            return _decode(this, minutes / 60 | 0, minutes % 60);
         };
         /**
          * 从一个数值进行序列化
@@ -6169,22 +6184,7 @@ var junyou;
          * @param {number} value
          */
         TimeVO.prototype.decodeBit = function (value) {
-            return this._decode(value >> 6, value & 63);
-        };
-        /**
-         * 解析数据
-         *
-         * @private
-         * @param {number} hour
-         * @param {number} minute
-         * @returns
-         */
-        TimeVO.prototype._decode = function (hour, minute) {
-            this.hour = hour;
-            this.minute = minute;
-            this.time = hour * 3600000 /* ONE_HOUR */ + minute * 60000 /* ONE_MINUTE */;
-            this.strTime = hour.zeroize(2) + ":" + minute.zeroize(2);
-            return this;
+            return _decode(this, value >> 6, value & 63);
         };
         /**
          * 从字符串中解析
@@ -6194,7 +6194,7 @@ var junyou;
         TimeVO.prototype.decode = function (strTime) {
             var timeArr = strTime.split(":");
             if (timeArr.length >= 2) {
-                return this._decode(+timeArr[0], +timeArr[1]);
+                return _decode(this, +timeArr[0], +timeArr[1]);
             }
             else {
                 junyou.ThrowError("时间格式不正确，不为HH:mm格式，当前配置：" + strTime);
@@ -6205,15 +6205,26 @@ var junyou;
             * 获取今日的服务器时间
             *
             * @readonly
-            *
             * @memberOf TimeVO
             */
             get: function () {
-                return junyou.DateUtils.getDayStart() + this.time;
+                return this.getDayTime();
             },
             enumerable: true,
             configurable: true
         });
+        /**
+         * 获取指定时间戳那天的时间
+         *
+         * @param {number} [day]
+         * @param {boolean} [isUTC]
+         * @returns
+         * @memberof TimeVO
+         */
+        TimeVO.prototype.getDayTime = function (day, isUTC) {
+            var dayStart = isUTC ? junyou.DateUtils.getDayStart : junyou.DateUtils.getDayStart;
+            return dayStart(day) + this.time;
+        };
         return TimeVO;
     }());
     junyou.TimeVO = TimeVO;
