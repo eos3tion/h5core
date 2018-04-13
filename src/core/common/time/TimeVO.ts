@@ -1,4 +1,20 @@
 module junyou {
+
+    /**
+     * 解析数据
+     * 
+     * @private
+     * @param {number} hour 
+     * @param {number} minute
+     * @returns 
+     */
+    function _decode(_this: TimeVO, hour: number, minute: number) {
+        _this.hour = hour;
+        _this.minute = minute;
+        _this.time = hour * Time.ONE_HOUR + minute * Time.ONE_MINUTE;
+        _this.strTime = hour.zeroize(2) + ":" + minute.zeroize(2);
+        return _this;
+    }
     /**
      * TimveVO
      */
@@ -39,7 +55,7 @@ module junyou {
          * @param {number} minutes 分钟数
          */
         public decodeMinutes(minutes: number) {
-            return this._decode(minutes / 60 | 0, minutes % 60);
+            return _decode(this, minutes / 60 | 0, minutes % 60);
         }
 
         /**
@@ -50,24 +66,9 @@ module junyou {
          * @param {number} value 
          */
         public decodeBit(value: number) {
-            return this._decode(value >> 6, value & 63);
+            return _decode(this, value >> 6, value & 63);
         }
 
-        /**
-         * 解析数据
-         * 
-         * @private
-         * @param {number} hour 
-         * @param {number} minute
-         * @returns 
-         */
-        private _decode(hour: number, minute: number) {
-            this.hour = hour;
-            this.minute = minute;
-            this.time = hour * Time.ONE_HOUR + minute * Time.ONE_MINUTE;
-            this.strTime = hour.zeroize(2) + ":" + minute.zeroize(2);
-            return this;
-        }
 
         /**
          * 从字符串中解析
@@ -75,9 +76,9 @@ module junyou {
          * @param {number} strTime 通过解析器解析的数据
          */
         public decode(strTime: string) {
-            var timeArr: string[] = strTime.split(":");
+            const timeArr = strTime.split(":");
             if (timeArr.length >= 2) {
-                return this._decode(+timeArr[0], +timeArr[1]);
+                return _decode(this, +timeArr[0], +timeArr[1]);
             } else {
                 ThrowError("时间格式不正确，不为HH:mm格式，当前配置：" + strTime);
             }
@@ -87,11 +88,24 @@ module junyou {
         * 获取今日的服务器时间
         * 
         * @readonly
-        * 
         * @memberOf TimeVO
         */
         public get todayTime() {
-            return DateUtils.getDayStart() + this.time;
+            return this.getDayTime();
+        }
+
+
+        /**
+         * 获取指定时间戳那天的时间
+         * 
+         * @param {number} [day] 
+         * @param {boolean} [isUTC] 
+         * @returns 
+         * @memberof TimeVO
+         */
+        public getDayTime(day?: number, isUTC?: boolean) {
+            const dayStart = isUTC ? DateUtils.getDayStart : DateUtils.getDayStart;
+            return dayStart(day) + this.time;
         }
 
     }
