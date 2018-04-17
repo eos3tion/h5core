@@ -9614,33 +9614,49 @@ var junyou;
             _this._showing = [];
             if (true) {
                 _this.drawGrid = function (x, y, w, h, map) {
-                    var gp = _this.gridPane;
+                    var gp = _this.debugGridPanes;
+                    if (!gp) {
+                        _this.debugGridPanes = gp = [];
+                    }
+                    var k = 0;
                     if ($gm.$showMapGrid) {
-                        if (!gp) {
-                            _this.gridPane = gp = new egret.Shape;
-                        }
-                        _this.addChild(gp);
-                        var g = gp.graphics;
-                        g.clear();
+                        var tex = _this.debugGridTexture;
                         var gridWidth = map.gridWidth, gridHeight = map.gridHeight;
                         var hw = gridWidth >> 1;
                         var hh = gridHeight >> 1;
+                        if (!tex) {
+                            var s = new egret.Shape;
+                            var g = s.graphics;
+                            g.lineStyle(1, 0xcccc);
+                            g.beginFill(0xcccc, 0.5);
+                            g.drawRect(0, 0, gridWidth, gridHeight);
+                            g.endFill();
+                            var tex_1 = new egret.RenderTexture();
+                            tex_1.drawToTexture(s);
+                            _this.debugGridTexture = tex_1;
+                        }
                         for (var i = x / gridWidth >> 0, len = i + w / gridWidth + 1, jstart = y / gridHeight >> 0, jlen = jstart + h / gridHeight + 1; i < len; i++) {
                             for (var j = jstart; j < jlen; j++) {
-                                var c = map.getWalk(i, j) ? 0 : 0xcccc;
-                                g.lineStyle(1, 0xcccc, 0.5);
-                                g.beginFill(c, 0.5);
-                                g.drawRect(i * gridWidth - hw, j * gridHeight - hh, gridWidth, gridHeight);
-                                g.endFill();
+                                if (!map.getWalk(i, j)) {
+                                    var s = gp[k];
+                                    if (!s) {
+                                        gp[k] = s = new egret.Bitmap();
+                                    }
+                                    s.texture = tex;
+                                    _this.addChild(s);
+                                    k++;
+                                    s.x = i * gridWidth - hw;
+                                    s.y = j * gridHeight - hh;
+                                }
                             }
                         }
                     }
-                    else {
-                        if (gp) {
-                            gp.graphics.clear();
-                            junyou.removeDisplay(gp);
-                        }
+                    for (var i = k; i < gp.length; i++) {
+                        var bmp = gp[i];
+                        bmp.texture = null;
+                        junyou.removeDisplay(bmp);
                     }
+                    gp.length = k;
                 };
             }
             return _this;

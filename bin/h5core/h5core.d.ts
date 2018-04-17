@@ -6172,7 +6172,14 @@ declare module junyou {
         protected drawGrid?: {
             (x: number, y: number, w: number, h: number, cM: MapInfo): void;
         };
-        protected gridPane?: egret.Shape;
+        /**
+         * Debug专用
+         */
+        private debugGridPanes;
+        /**
+         * 绘制格子用的纹理
+         */
+        private debugGridTexture;
         /**
          * 上次渲染的起始 column
          *
