@@ -81,7 +81,16 @@ module junyou {
         protected _showing: TileMap[] = [];
         protected drawGrid?: { (x: number, y: number, w: number, h: number, cM: MapInfo): void };
 
-        protected gridPane?: egret.Shape;
+
+        /**
+         * Debug专用
+         */
+        private debugGridPanes: egret.Bitmap[];
+
+        /**
+         * 绘制格子用的纹理
+         */
+        private debugGridTexture: egret.Texture;
 
         /**
          * 上次渲染的起始 column
@@ -202,33 +211,52 @@ module junyou {
         constructor(id: number) {
             super(id)
             if (DEBUG) {
+
                 this.drawGrid = (x: number, y: number, w: number, h: number, map: MapInfo) => {
-                    let gp = this.gridPane;
+                    let gp = this.debugGridPanes;
+                    if (!gp) {
+                        this.debugGridPanes = gp = [];
+                    }
+                    let k = 0;
                     if ($gm.$showMapGrid) {
-                        if (!gp) {
-                            this.gridPane = gp = new egret.Shape;
-                        }
-                        this.addChild(gp);
-                        let g = gp.graphics;
-                        g.clear();
+                        let tex = this.debugGridTexture;
                         const { gridWidth, gridHeight } = map;
                         let hw = gridWidth >> 1;
                         let hh = gridHeight >> 1;
+                        if (!tex) {
+                            let s = new egret.Shape;
+                            let g = s.graphics;
+                            g.lineStyle(1, 0xcccc);
+                            g.beginFill(0xcccc, 0.5);
+                            g.drawRect(0, 0, gridWidth, gridHeight);
+                            g.endFill();
+                            let tex = new egret.RenderTexture();
+                            tex.drawToTexture(s);
+                            this.debugGridTexture = tex;
+                        }
+
                         for (let i = x / gridWidth >> 0, len = i + w / gridWidth + 1, jstart = y / gridHeight >> 0, jlen = jstart + h / gridHeight + 1; i < len; i++) {
                             for (let j = jstart; j < jlen; j++) {
-                                let c = map.getWalk(i, j) ? 0 : 0xcccc;
-                                g.lineStyle(1, 0xcccc, 0.5);
-                                g.beginFill(c, 0.5);
-                                g.drawRect(i * gridWidth - hw, j * gridHeight - hh, gridWidth, gridHeight);
-                                g.endFill();
+                                if (!map.getWalk(i, j)) {
+                                    let s = gp[k];
+                                    if (!s) {
+                                        gp[k] = s = new egret.Bitmap();
+                                    }
+                                    s.texture = tex;
+                                    this.addChild(s);
+                                    k++;
+                                    s.x = i * gridWidth - hw;
+                                    s.y = j * gridHeight - hh;
+                                }
                             }
                         }
-                    } else {
-                        if (gp) {
-                            gp.graphics.clear();
-                            removeDisplay(gp);
-                        }
                     }
+                    for (let i = k; i < gp.length; i++) {
+                        let bmp = gp[i];
+                        bmp.texture = null;
+                        removeDisplay(bmp);
+                    }
+                    gp.length = k;
 
                 }
             }
