@@ -3628,7 +3628,6 @@ declare namespace egret.sys {
         LineTo = 2,
         CurveTo = 3,
         CubicCurveTo = 4,
-        SetLineDash = 5,
     }
     /**
      * @private
@@ -6308,6 +6307,19 @@ declare namespace egret {
          * @language zh_CN
          */
         beginGradientFill(type: string, colors: number[], alphas: number[], ratios: number[], matrix?: egret.Matrix): void;
+        /**
+         * Apply fill to the lines and curves added after the previous calling to the beginFill() method.
+         * @version Egret 2.4
+         * @platform Web,Native
+         * @language en_US
+         */
+        /**
+         * 对从上一次调用 beginFill()方法之后添加的直线和曲线应用填充。
+         * @version Egret 2.4
+         * @platform Web,Native
+         * @language zh_CN
+         */
+        endFill(fillRule?: CanvasFillRule): void;
         /**
          * Specify a line style that will be used for subsequent calls to Graphics methods such as lineTo() and drawCircle().
          * @param thickness An integer, indicating the thickness of the line in points. Valid values are 0 to 255. If a number is not specified, or if the parameter is undefined, a line is not drawn. If a value less than 0 is passed, the default value is 0. Value 0 indicates hairline thickness; the maximum thickness is 255. If a value greater than 255 is passed, the default value is 255.
@@ -9548,7 +9560,7 @@ declare namespace egret.sys {
          * @param joints 指定用于拐角的连接外观的类型。默认值：JointStyle.ROUND
          * @param miterLimit 用于表示剪切斜接的极限值的数字。
          */
-        lineStyle(thickness?: number, color?: number, alpha?: number, caps?: string, joints?: string, miterLimit?: number): StrokePath;
+        lineStyle(thickness?: number, color?: number, alpha?: number, caps?: string, joints?: string, miterLimit?: number, lineDash?: number[]): StrokePath;
         /**
          * 清空所有缓存的绘制数据
          */
@@ -10007,7 +10019,10 @@ declare namespace egret.sys {
          * 用于表示剪切斜接的极限值的数字。
          */
         miterLimit: number;
-        setLineDash(segments: number[]): void;
+        /**
+         * 描述交替绘制线段和间距（坐标空间单位）长度的数字。
+         */
+        lineDash: number[];
     }
 }
 /**
@@ -10065,9 +10080,6 @@ declare namespace egret {
         interface Path2D {
             fillRule?: CanvasFillRule;
         }
-    }
-    interface Graphics {
-        endFill(fillRule?: CanvasFillRule): any;
     }
     let BLACK_COLOR: string;
     class CanvasRenderer implements sys.SystemRenderer {

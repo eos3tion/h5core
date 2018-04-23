@@ -1,5 +1,6 @@
 module junyou {
     export interface Panel extends IAsync, ComponentWithEnable {
+        createNativeDisplayObject(): void;
     }
 	/**
 	 * 模块面板
