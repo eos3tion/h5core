@@ -4868,15 +4868,17 @@ var junyou;
         var scaleY = sh / bh;
         var lw = bw;
         var lh = bh;
+        var scale;
         if (scaleX < scaleY == !isWide) {
-            dh = sw * bh / bw;
+            scale = scaleX;
+            dh = scaleX * bh;
             lh = bh * sh / dh;
         }
         else {
-            dw = sh * bw / bh;
+            scale = scaleY;
+            dw = scaleY * bw;
             lw = bw * sw / dw;
         }
-        var scale = dw / bw;
         return { dw: dw, dh: dh, scale: scale, lw: lw, lh: lh };
     }
     junyou.getFixedLayout = getFixedLayout;
