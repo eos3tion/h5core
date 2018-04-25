@@ -148,14 +148,16 @@ module junyou {
         let scaleY = sh / bh;
         let lw = bw;
         let lh = bh;
+        let scale: number;
         if (scaleX < scaleY == !isWide) {
-            dh = sw * bh / bw;
+            scale = scaleX;
+            dh = scaleX * bh;
             lh = bh * sh / dh;
         } else {
-            dw = sh * bw / bh;
+            scale = scaleY;
+            dw = scaleY * bw;
             lw = bw * sw / dw;
         }
-        let scale = dw / bw;
         return { dw, dh, scale, lw, lh };
     }
 }
