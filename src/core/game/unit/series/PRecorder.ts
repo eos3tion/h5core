@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 
     /**
      * 序列的记录器

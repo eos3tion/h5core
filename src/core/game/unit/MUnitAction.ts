@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * 带坐骑动作的UnitAction基类
      * @author 3tion

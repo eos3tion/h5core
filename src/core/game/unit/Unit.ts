@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 	/**
 	 * 基本单位<br/>
 	 * 是一个状态机<br/>

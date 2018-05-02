@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 
     /**
      * 默认地图宽/高

@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 
     /**
      * 场景单位域的类型

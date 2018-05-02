@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * 单位的状态
      * @author 3tion

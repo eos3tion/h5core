@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 
     /**
      * 用于记录单位(Unit)的序列

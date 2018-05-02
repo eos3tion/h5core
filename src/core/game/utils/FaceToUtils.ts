@@ -1,7 +1,7 @@
 /**
  * @author 3tion
  */
-module junyou {
+namespace jy {
     /**
      * 任务朝向
      * 

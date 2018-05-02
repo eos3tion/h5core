@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * 时间冷却接口
      * @author pb

@@ -15,7 +15,7 @@ if (DEBUG) {
         this.$showMapGrid = !this.$showMapGrid;
     }
 }
-module junyou {
+namespace jy {
     function checkRect(map: MapInfo, rect: egret.Rectangle, preload: number, forEach: { (uri: string, col: number, row: number, pW?: number, pH?: number) }, checker?: { (sc: number, sr: number, ec: number, er: number): boolean }, caller?) {
         //检查地图，进行加载区块
         let x = rect.x;

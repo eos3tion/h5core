@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 
     /**
      * 骑乘状态
