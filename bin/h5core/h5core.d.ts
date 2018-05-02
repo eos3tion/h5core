@@ -289,9 +289,9 @@ interface Array<T> {
      */
     appendTo<T>(to: Array<T>): any;
 }
-declare module junyou {
+declare namespace jy {
     function is(instance: any, ref: {
-        new(): any;
+        new (): any;
     }): boolean;
     /**
      * 移除可视对象
@@ -347,7 +347,7 @@ declare module egret {
          * @version Egret 2.4
          * @platform Web,Native
          */
-        dispatch(type: junyou.Key, data?: any): boolean;
+        dispatch(type: jy.Key, data?: any): boolean;
         /**
          * 移除指定type的监听器
          *
@@ -420,10 +420,10 @@ declare module egret {
         /**
          * 使用  junyou.Rect 作为参数 进行绘制矩形
          *
-         * @param { junyou.Rect} rect
+         * @param { jy.Rect} rect
          * @memberof Graphics
          */
-        drawRectangle(rect: junyou.Rect): any;
+        drawRectangle(rect: jy.Rect): any;
     }
     interface Texture {
         /**
@@ -470,7 +470,7 @@ interface Storage {
  * https://github.com/CreateJS/TweenJS
  * @author 3tion
  */
-declare module junyou {
+declare namespace jy {
     class TweenManager {
         protected _tweens: Tween[];
         /**
@@ -595,7 +595,7 @@ declare module junyou {
         installPlugin(plugin: ITweenPlugin, properties: string[]): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 延迟执行
      * @author 3tion
@@ -626,7 +626,7 @@ declare module junyou {
         clearCallLater2(callback: $CallbackInfo): any;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 扩展名常量
      * @author 3tion
@@ -643,16 +643,16 @@ interface $gmType {
     /**
      * 主控类型，包括Proxy和Mediator
      *
-     * @type {{ [index: string]: junyou.FHost }}
+     * @type {{ [index: string]: jy.FHost }}
      * @memberof $gmType
      */
     $: {
-        [index: string]: junyou.FHost;
+        [index: string]: jy.FHost;
     };
 }
-declare module junyou {
+declare namespace jy {
     type InjectProxy = {
-        new(): IAsync;
+        new (): IAsync;
     } | string | number;
     /**
      * Mediator和Proxy的基类
@@ -725,10 +725,10 @@ declare module junyou {
      * @returns
      */
     function __dependProxy(ref: {
-        new(): IAsync;
+        new (): IAsync;
     } | string | number): (target: any, key: string) => void;
 }
-declare module junyou {
+declare namespace jy {
     /**
      *
      * 附加依赖的Proxy
@@ -738,7 +738,7 @@ declare module junyou {
      */
     var d_dependProxy: typeof __dependProxy;
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 基础创建器
      * @author 3tion
@@ -781,7 +781,7 @@ declare module junyou {
         get(): T;
     }
 }
-declare module junyou {
+declare namespace jy {
     interface ComponentWithEnable {
         /**
          * 控件是否启用
@@ -915,7 +915,7 @@ declare module junyou {
     interface Component extends ComponentWithEnable {
     }
 }
-declare module junyou {
+declare namespace jy {
     interface GlobalInstance {
         initTick: () => void;
         nextTick: (callback: Function, thisObj?: any, ...args: any[]) => void;
@@ -1017,7 +1017,7 @@ declare module junyou {
      */
     const Global: GlobalInstance;
 }
-declare module junyou {
+declare namespace jy {
     interface GameLayer extends egret.DisplayObject {
         id: number;
     }
@@ -1054,7 +1054,7 @@ declare module junyou {
         sort(): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 基础渲染器
      * @author 3tion
@@ -1149,7 +1149,7 @@ declare module junyou {
  * H5中实现了2种（2 按动作打包，4 单方向单动作打包），不过后面只会使用4（单方向单动作）进行打包，其他方式弃用
  * @author 3tion
  */
-declare module junyou {
+declare namespace jy {
     /**
      * 存储pst信息
      */
@@ -1266,7 +1266,7 @@ declare module junyou {
         getDirection(adKey: number): number;
     };
 }
-declare module junyou {
+declare namespace jy {
     /**
      *
      * 震动的基本实现
@@ -1330,7 +1330,7 @@ declare module junyou {
         dispose(): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 骑乘状态
      */
@@ -1431,7 +1431,7 @@ declare module junyou {
         recycle(): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * mixin的基类选项
      *
@@ -1447,7 +1447,7 @@ declare module junyou {
          * @memberOf MixinOption
          */
         clazz: {
-            new(): T;
+            new (): T;
         };
         /**
          *
@@ -1728,7 +1728,7 @@ interface $gmType {
      */
     __nsLogCheck(log: $NSLog, nsFilter: $NSFilter): boolean;
 }
-declare module junyou {
+declare namespace jy {
     const enum NSType {
         Null = 0,
         Boolean = 1,
@@ -1979,7 +1979,7 @@ declare module junyou {
         data: number;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 用于君游项目数据同步，后台运行<br/>
      * 只有注册和注销，没有awake和sleep
@@ -2034,7 +2034,7 @@ declare module junyou {
         private allReadyHandler();
     }
 }
-declare module junyou {
+declare namespace jy {
     interface ViewController {
         /**
          * 面板加入到舞台时执行
@@ -2115,7 +2115,7 @@ declare module junyou {
      */
     function d_interest(eventType: Key, triggerOnStage?: boolean, isPrivate?: boolean, priority?: number): (target: any, key: string, value: any) => void;
 }
-declare module junyou {
+declare namespace jy {
     class Scroller extends egret.EventDispatcher {
         /**
          * 开始拖拽时的坐标
@@ -2206,7 +2206,7 @@ declare module junyou {
         protected checkAndResetBarPos(): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     abstract class AbsPageList<T, R extends ListItemRender<T>> extends egret.EventDispatcher {
         protected _list: R[];
         protected _data: T[];
@@ -2319,7 +2319,7 @@ declare module junyou {
         protected onChange(): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 状态机
      * @author 3tion
@@ -2408,7 +2408,7 @@ declare module junyou {
         isInState(switcher: IStateSwitcher, type?: Key): boolean;
     }
 }
-declare module junyou {
+declare namespace jy {
     const enum PBType {
         Double = 1,
         Float = 2,
@@ -2522,7 +2522,7 @@ declare module junyou {
         writeTo: (msg: object, msgType: string | number | PBStruct, bytes?: ByteArray, debugOutData?: Object) => ByteArray;
     };
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 位图的创建器
      * @author 3tion
@@ -2543,7 +2543,7 @@ declare module junyou {
         protected onRemoveFromStage(e: egret.Event): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     interface IButton extends Component {
         /**
          * 按钮上的标签
@@ -2687,10 +2687,10 @@ declare module junyou {
 }
 declare module egret {
     interface DisplayObject {
-        $layoutHost: junyou.LayoutContainer;
+        $layoutHost: jy.LayoutContainer;
     }
 }
-declare module junyou {
+declare namespace jy {
     abstract class LayoutContainer {
         static readonly MIN: Readonly<{
             width: number;
@@ -2752,7 +2752,7 @@ declare module junyou {
         lh: number;
     };
 }
-declare module junyou {
+declare namespace jy {
     /**
      * @author gushuai
      * (description)
@@ -2780,7 +2780,7 @@ declare module junyou {
         readonly view: egret.DisplayObject;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 单选按钮组
      */
@@ -3263,7 +3263,7 @@ declare const enum EgretEvent {
      */
     IO_ERROR = "ioError",
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 状态机的状态实现
      * @author 3tion
@@ -3294,7 +3294,7 @@ declare module junyou {
         awakeBy?(type?: Key): any;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 绑定属性名，当属性值发生改变时，可自动对外抛eventType事件
      *
@@ -3317,7 +3317,7 @@ declare module junyou {
      */
     function d_memoize(target: any, key: string, descriptor: any): void;
 }
-declare module junyou {
+declare namespace jy {
     const enum LimitScene {
         /**
          * 默认场景
@@ -3375,7 +3375,7 @@ declare module junyou {
     function addToStates(value: IStateSwitcher, ...ids: Key[]): void;
     function addToState(id: Key, value: IStateSwitcher): void;
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 使用数值或者字符串类型作为Key
      * V 作为Value的字典
@@ -3476,7 +3476,7 @@ declare module junyou {
         readonly size: number;
     }
 }
-declare module junyou {
+declare namespace jy {
     const enum ByteArraySize {
         SIZE_OF_UINT32 = 4,
         SIZE_OF_FIX64 = 8,
@@ -3579,7 +3579,7 @@ declare module junyou {
         reset(): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     const enum PosKey {
         X = "x",
         Y = "y",
@@ -3634,7 +3634,7 @@ declare module junyou {
     interface Rect extends Point, Size {
     }
 }
-declare namespace junyou {
+declare namespace jy {
     /**
      * 项目中不使用long类型，此值暂时只用于存储Protobuff中的int64 sint64
      * @author
@@ -3656,7 +3656,7 @@ declare namespace junyou {
         add(addend: Int64): Int64;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 经纬度 定位信息
      *
@@ -3681,7 +3681,7 @@ declare module junyou {
     }
     var Location: LocationConstructor;
 }
-declare module junyou {
+declare namespace jy {
     interface MotionGuidePluginTween extends Tween {
         /**
          * 是否需要旋转
@@ -3761,7 +3761,7 @@ declare const enum CountDownFormat {
      */
     S = 4,
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 倒计时的格式选项
      *
@@ -3951,7 +3951,7 @@ declare module junyou {
     }
     const DateUtils: DateUtilsInterface;
 }
-declare module junyou {
+declare namespace jy {
     /**
      * TimveVO
      */
@@ -4017,13 +4017,13 @@ declare module junyou {
         getDayTime(day?: number, isUTC?: boolean): number;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 可用于做Key的类型
      */
     type Key = number | string;
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 圆圈倒计时
      *
@@ -4139,7 +4139,7 @@ declare module junyou {
         endColor?: number;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 常用的颜色常量
      *
@@ -4176,7 +4176,7 @@ declare module junyou {
         getColorValue(c: string): number;
     };
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 拷贝到剪贴板中
      *
@@ -4187,7 +4187,7 @@ declare module junyou {
      */
     function doCopy(str: string): boolean;
 }
-declare module junyou {
+declare namespace jy {
     const DataUrlUtils: {
         getBase64: (dataUrl: string) => string;
         getBytes: (dataUrl: string) => Uint8Array;
@@ -4196,7 +4196,7 @@ declare module junyou {
         getDisplayBytes(dis: egret.DisplayObject, type: string, rect?: egret.Rectangle, encodeOptions?: any, scale?: number): Uint8Array;
     };
 }
-declare module junyou {
+declare namespace jy {
     interface FilterUtilsType {
         /**
          * 共享灰度滤镜列表
@@ -4226,7 +4226,7 @@ declare module junyou {
      */
     const FilterUtils: FilterUtilsType;
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 获取多个点的几何中心点
      *
@@ -4255,7 +4255,7 @@ declare module junyou {
      */
     function getArea(points: Point[]): number;
 }
-declare module junyou {
+declare namespace jy {
     const HTMLUtil: {
         createColorHtml(value: string | number, color: string | number): string;
         clearHtml(value: string): string;
@@ -4263,7 +4263,7 @@ declare module junyou {
         unescHTML(content: string): string;
     };
 }
-declare module junyou {
+declare namespace jy {
     interface LangUtilInterface {
         /**
          * 获取显示的信息
@@ -4311,7 +4311,7 @@ declare const enum Sex {
     Nan = 1,
     Nv = 2,
 }
-declare module junyou {
+declare namespace jy {
     class NameUtils {
         private _random;
         /**
@@ -4337,7 +4337,7 @@ declare module junyou {
         dispose(): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     interface RPCCallback {
         /**
          * 成功的回调函数
@@ -4427,7 +4427,7 @@ declare module junyou {
     }
     const RPC: RPCInterface;
 }
-declare module junyou {
+declare namespace jy {
     interface RequestLimitType {
         /**
          *
@@ -4455,7 +4455,7 @@ declare module junyou {
      */
     const RequestLimit: RequestLimitType;
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 临时对象
      * @author 3tion
@@ -4496,14 +4496,14 @@ declare module junyou {
         pipeFunction: <T>(arg: T) => T;
     };
 }
-declare module junyou {
+declare namespace jy {
     const TimerUtil: {
         addCallback: (time: number, callback: Function, thisObj?: any, ...args: any[]) => void;
         removeCallback: (time: number, callback: Function, thisObj?: any) => void;
         tick: (now: number) => void;
     };
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 处理链接地址
      * 如果是http:// 或者  https:// 获取//开头的地址，直接返回
@@ -4519,7 +4519,7 @@ declare module junyou {
  * 脏字内容
  */
 declare var $dirty: string;
-declare module junyou {
+declare namespace jy {
     /**
      * 文字过滤
      * @author 3tion
@@ -4532,7 +4532,7 @@ declare module junyou {
         checkWord: (msg: string) => boolean;
     };
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 客户端检测
      * @author 3tion
@@ -4542,7 +4542,7 @@ declare module junyou {
         isClientCheck: boolean;
     };
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 错误前缀
      */
@@ -4561,7 +4561,7 @@ declare module junyou {
      **/
     const ThrowError: ThrowError;
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 游戏使用区段
      * -1000~-1999
@@ -4617,7 +4617,7 @@ declare module junyou {
         ShakeEnd = -1989,
     }
 }
-declare module junyou {
+declare namespace jy {
     interface CfgData {
         /**
          * 特效数据
@@ -4635,7 +4635,7 @@ declare module junyou {
  * 子项目自身实现接口
  * @author 3tion
  */
-declare module junyou {
+declare namespace jy {
     const enum ResPrefix {
         /**
          * 特效文件夹
@@ -4643,7 +4643,7 @@ declare module junyou {
         Ani = "a/",
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 2d游戏的引擎管理游戏层级关系<br/>
      * @author 3tion
@@ -4655,7 +4655,7 @@ declare module junyou {
         };
         static instance: GameEngine;
         static init(stage: egret.Stage, ref?: {
-            new(stage: egret.Stage): GameEngine;
+            new (stage: egret.Stage): GameEngine;
         }): void;
         static addLayerConfig(id: number, parentid?: number, ref?: new (id: number) => GameLayer): void;
         /**
@@ -4807,7 +4807,7 @@ declare module junyou {
         ref: new (id: number) => GameLayer;
     }
 }
-declare module junyou {
+declare namespace jy {
     type $CallbackInfo = CallbackInfo<Function>;
     /**
      * 回调信息，用于存储回调数据
@@ -4867,7 +4867,7 @@ declare module junyou {
         static addToList<T extends Function>(list: CallbackInfo<T>[], handle: T, thisObj?: any, ...args: any[]): CallbackInfo<T>;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 用于SortedLayer排序
      */
@@ -4878,7 +4878,7 @@ declare module junyou {
         depth: number;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 用于处理无方向的动画信息
      * @author 3tion
@@ -4980,7 +4980,7 @@ interface $gmAniInfo {
      */
     time: number;
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 由于目前特效和渲染器是完全一一对应关系，所以直接做成AniBitmap
      * @author 3tion
@@ -5183,7 +5183,7 @@ declare module junyou {
         scale?: number;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 绘图数据
      *
@@ -5308,7 +5308,7 @@ declare module junyou {
      */
     function getCustomAction(actions: any[], key?: number): ActionInfo;
 }
-declare module junyou {
+declare namespace jy {
     /**
      * WebGL的常量值
      *
@@ -5441,7 +5441,7 @@ declare module junyou {
     }
     function getWebGLCaps(g?: WebGLRenderingContext): WebGLCapabilities;
 }
-declare module junyou {
+declare namespace jy {
     /**
      * webgl 的常量
      * https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Constants
@@ -7927,7 +7927,7 @@ declare module junyou {
         GPU_DISJOINT_EXT = 36795,
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 资源显示用位图
      */
@@ -7952,7 +7952,7 @@ declare module junyou {
         onRecycle(): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 拆分的资源
      * @author 3tion
@@ -8008,7 +8008,7 @@ declare module junyou {
 /**
  * @author 3tion
  */
-declare module junyou {
+declare namespace jy {
     const enum UnitResourceConst {
         /**
          * 单配置文件的路径
@@ -8091,7 +8091,7 @@ declare module junyou {
         }): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 相机
      * @author 3tion
@@ -8191,7 +8191,7 @@ declare module junyou {
     function getPosHash(pos: Point): number;
     function getPosHash2(x: number, y: number): number;
 }
-declare module junyou {
+declare namespace jy {
     const enum CooldownState {
         STOP = 0,
         RUN = 1,
@@ -8244,7 +8244,7 @@ declare module junyou {
         dispose(): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 时间冷却管理器
      * @author pb
@@ -8344,7 +8344,7 @@ declare module junyou {
         disposeAll(): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 时间冷却遮罩
      * @author pb
@@ -8409,7 +8409,7 @@ declare module junyou {
         dispose(): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 时间冷却接口
      * @author pb
@@ -8420,7 +8420,7 @@ declare module junyou {
         isCooling?: boolean;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 冷却显示对象接口
      * @author pb
@@ -8453,7 +8453,7 @@ declare module junyou {
         dispose(): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 地图基础信息<br/>
      * 由地图编辑器生成的地图信息
@@ -8549,7 +8549,7 @@ interface $gmType {
     toggleMapGrid(): any;
     $showMapGrid: boolean;
 }
-declare module junyou {
+declare namespace jy {
     /**
     * MapRender
     * 用于处理地图平铺的渲染
@@ -8676,7 +8676,7 @@ declare module junyou {
         dispose(): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     interface PathFinderCallback {
         /**
          *
@@ -8823,7 +8823,7 @@ declare module junyou {
         };
     }
 }
-declare module junyou {
+declare namespace jy {
     interface Path {
         /**
          * 路径
@@ -8909,7 +8909,7 @@ declare module junyou {
         getUrl(uri: string, pathKey: string): string;
     };
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 旋转的屏幕抖动
      * 角度统一从0开始，正向或者逆向旋转，振幅从最大到0
@@ -8955,7 +8955,7 @@ declare module junyou {
         }): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 带方向的震动
      *
@@ -9015,7 +9015,7 @@ declare module junyou {
         }): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 旋转抖动
      * 屏幕朝顺时针/逆时针方向抖动一定角度
@@ -9074,7 +9074,7 @@ declare module junyou {
         }): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 屏幕抖动管理器
      *
@@ -9117,7 +9117,7 @@ declare module junyou {
         tick(): boolean;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 振动的接口实现
      *
@@ -9187,7 +9187,7 @@ declare module junyou {
         };
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 动作状态的结果
      * @author 3tion
@@ -9203,7 +9203,7 @@ declare module junyou {
         action: number;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 带坐骑动作的UnitAction基类
      * @author 3tion
@@ -9222,7 +9222,7 @@ declare module junyou {
         getAction(mountType: MountType): IUnitActionInfo;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      *
      *
@@ -9264,7 +9264,7 @@ declare module junyou {
         onRecycle(): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 基本单位<br/>
      * 是一个状态机<br/>
@@ -9547,13 +9547,13 @@ declare module junyou {
  * DataLocator的主数据
  * 原 junyou.DataLocator.data  的全局别名简写
  */
-declare const $DD: junyou.CfgData;
+declare const $DD: jy.CfgData;
 /**
  * DataLocator的附加数据
  * 原junyou.DataLocator.extra 的全局别名简写
  */
-declare let $DE: junyou.ExtraData;
-declare module junyou {
+declare let $DE: jy.ExtraData;
+declare namespace jy {
     /**
      * 表单最终被解析成的类型
      *
@@ -9612,7 +9612,7 @@ declare module junyou {
     interface CfgData {
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 场景单位域的类型
      *
@@ -9717,7 +9717,7 @@ declare module junyou {
         clearDomain(...domains: UnitDomainType[]): any;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 模型(纸娃娃)渲染器
      */
@@ -9746,40 +9746,7 @@ declare module junyou {
         dispose(): void;
     }
 }
-declare module junyou {
-    class UnitSetting {
-        /**
-         * 是否添加UI层
-         */
-        hasUILayer: boolean;
-        /**
-         * 是否添加Buff容器
-         */
-        hasBuffLayer: boolean;
-        /**
-         * 是否添加光环容器
-         */
-        hasHaloLayer: boolean;
-        /**
-         * 是否添加到游戏场景中
-         */
-        addToEngine: boolean;
-        getDepth(): number;
-        /**
-         * 深度的参数A
-         */
-        depthA: number;
-        /**
-         * 深度的参数B
-         */
-        depthB: number;
-    }
-    /**
-     * 默认的单位设置
-     */
-    const defaultUnitSetting: UnitSetting;
-}
-declare module junyou {
+declare namespace jy {
     interface DataUtilsType {
         /**
          * 将配置from中 type		data1	data2	data3	data4...这些配置，解析存储到
@@ -9932,7 +9899,47 @@ declare module junyou {
      */
     const DataUtils: DataUtilsType;
 }
-declare module junyou {
+declare namespace jy {
+    /**
+     * 单位的状态
+     * @author 3tion
+     */
+    const enum UnitState {
+        /**
+         * 创建了对象
+         */
+        Init = 0,
+        /**
+         * 添加到舞台上
+         */
+        Stage = 1,
+        /**
+         * 正在创建，往舞台上添加的动画
+         */
+        Spawning = 2,
+        /**
+         * 在舞台上活着
+         */
+        Alive = 3,
+        /**
+         * 正在死亡，执行死亡的动画
+         */
+        Deading = 4,
+        /**
+         * 死透了，在地板上
+         */
+        Dead = 5,
+        /**
+         * 正在销毁，尸体蚕食的动画
+         */
+        Disposing = 6,
+        /**
+         * 从舞台销毁，回收资源
+         */
+        Disposed = 7,
+    }
+}
+declare namespace jy {
     /**
      * 序列的记录器
      * 用于做残影或者时光倒流的操作
@@ -9984,7 +9991,7 @@ declare module junyou {
         onRecycle(): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 用于记录单位(Unit)的序列
      *
@@ -10043,7 +10050,7 @@ declare module junyou {
 /**
  * @author 3tion
  */
-declare module junyou {
+declare namespace jy {
     /**
      * 任务朝向
      *
@@ -10100,7 +10107,7 @@ declare module junyou {
         getMouseFaceTo8: (fx: number, fy: number, tx: number, ty: number) => number;
     };
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 异步工具类，用于加方法兼听
      * @author 3tion
@@ -10128,7 +10135,7 @@ declare module junyou {
         addReadyExecute(handle: Function, thisObj?: any, ...args: any[]): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 依赖项的辅助类
      * @author 3tion
@@ -10173,7 +10180,7 @@ declare module junyou {
         protected _check(): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     function isIAsync(instance: any): instance is IAsync;
     /**
      * 异步接口
@@ -10195,7 +10202,7 @@ declare module junyou {
         startSync(): any;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 依赖其他数据的<br/>
      * 依赖其他数据的东西，自身一定是异步的
@@ -10209,7 +10216,7 @@ declare module junyou {
         addDepend(async: IAsync): any;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * mvc使用的事件区段
      * -999~ -200
@@ -10262,7 +10269,7 @@ declare module junyou {
         MODULE_SHOW = -991,
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 网络事件的常量集
      * @author
@@ -10330,7 +10337,7 @@ declare module junyou {
         OneCfgComplete = -185,
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 代码构建类，用于注册代码
      * @author 3tion
@@ -10351,7 +10358,7 @@ declare module junyou {
          * @memberOf Facade
          */
         static getNameOfInline(inlineRef: {
-            new(): any;
+            new (): any;
         }, className?: string): string;
         /**
          * 存储的数据Proxy
@@ -10408,7 +10415,7 @@ declare module junyou {
          * @param {boolean} [async=false] 是否异步初始化，默认直接初始化
          */
         registerInlineProxy(ref: {
-            new(): Proxy;
+            new (): Proxy;
         }, proxyName?: Key, async?: boolean): void;
         /**
          *
@@ -10417,7 +10424,7 @@ declare module junyou {
          * @param {string} [mediatorName]   注册的模块名字
          */
         registerInlineMediator(ref: {
-            new(): Mediator;
+            new (): Mediator;
         }, mediatorName?: Key): void;
         /**
          * 注册Proxy的配置
@@ -10667,7 +10674,7 @@ declare module junyou {
         SHOW = 1,
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      *
      * @author
@@ -10676,7 +10683,7 @@ declare module junyou {
     interface IAsyncPanel extends IAsync, IModulePanel {
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 视图控制器，持有视图<br/>
      * 持有Proxy，主要监听视图和Proxy的事件，变更面板状态<br/>
@@ -10733,7 +10740,7 @@ declare module junyou {
         hide(...arg: any[]): any;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 模块脚本，后续开发模块，分成多个模块文件
      * @author 3tion
@@ -10769,7 +10776,7 @@ declare module junyou {
         protected onScriptLoaded(isError?: boolean): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      *
      * @author 3tion
@@ -10794,7 +10801,7 @@ declare module junyou {
         FAILED = -1,
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 用于和服务端通信的数据
      * @author 3tion
@@ -10842,7 +10849,7 @@ declare module junyou {
         protected send(cmd: number, data?: any, msgType?: string | number, limit?: number): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     interface AwakeCheck {
         awakeCheck?: () => boolean;
     }
@@ -10859,7 +10866,7 @@ declare module junyou {
         (id: number): void;
     }): Mediator & IStateSwitcher & AwakeCheck;
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 使用http进行通信的网络服务
      * @author 3tion
@@ -10927,7 +10934,7 @@ declare module junyou {
         protected trySend(): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 功能配置的基类
      * @author 3tion
@@ -10963,7 +10970,7 @@ declare module junyou {
         protected init(from?: any): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 限制检查器的基类
      * @author 3tion
@@ -10980,7 +10987,7 @@ declare module junyou {
         check(data: any, showtip: boolean): boolean;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 模块配置数据
      * @author 3tion
@@ -11095,7 +11102,7 @@ declare module junyou {
         Closed = 2,
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 模块检测器
      * @author
@@ -11111,7 +11118,7 @@ declare module junyou {
         adjustLimitDatas(showLimits: any, limits: any): boolean;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 模块面板
      * @author
@@ -11124,7 +11131,7 @@ declare module junyou {
         moduleID: string | number;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 模块管理器
      * 用于管理模块的开启/关闭
@@ -11308,7 +11315,7 @@ declare module junyou {
         regModuleShow(mid: Key, callback: $CallbackInfo): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 模块参数
      *
@@ -11318,7 +11325,7 @@ declare module junyou {
     interface ModuleParam {
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 模块面板的显示状态
      * @author
@@ -11343,7 +11350,7 @@ declare module junyou {
         HIDING = 3,
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 模块处理器的基类
      * 类型0的模块处理器
@@ -11364,7 +11371,7 @@ declare module junyou {
         hide(cfg: IModuleCfg, param?: ModuleParam): any;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      *
      * 用于弹出窗口，并将下层模糊的工具类
@@ -11416,7 +11423,7 @@ declare module junyou {
         hideBlur(): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     interface Panel extends IAsync, ComponentWithEnable {
         createNativeDisplayObject(): void;
     }
@@ -11535,7 +11542,7 @@ declare module junyou {
         show(): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 有选中状态的控件
      *
@@ -11547,14 +11554,14 @@ declare module junyou {
         view: egret.DisplayObject;
     }
 }
-declare module junyou {
+declare namespace jy {
     class View extends egret.Sprite {
         constructor(key: string, className: string);
     }
     interface View extends ComponentWithEnable {
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 翻页的4个区域
      * ```
@@ -11667,7 +11674,7 @@ declare module junyou {
         private draw(x, y);
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 图片
      * 外部加载
@@ -11699,7 +11706,7 @@ declare module junyou {
     interface Image extends ComponentWithEnable {
     }
 }
-declare module junyou {
+declare namespace jy {
     interface ListItemRenderSkin extends egret.DisplayObject {
         $_rndIdx?: number;
     }
@@ -11879,7 +11886,7 @@ declare module junyou {
         startSync(): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 翻页，一次手势翻一页
      *
@@ -11923,7 +11930,7 @@ declare const enum ScrollDirection {
     Vertical = 0,
     Horizon = 1,
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 用于发送的网络数据<br/>
      * @author 3tion
@@ -11957,7 +11964,7 @@ declare module junyou {
         stopPropagation: Boolean;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      *
      * @author 3tion
@@ -12002,7 +12009,7 @@ declare module junyou {
         (data: NetData): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 为已布局好的render提供List功能
      *
@@ -12027,7 +12034,7 @@ declare module junyou {
         dispose(): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     interface PageListOption {
         /**
          * 单元格之间的宽度
@@ -12247,7 +12254,7 @@ declare module junyou {
         checkViewRect(): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 图片字字库
      * Key为图片文字文件名（不带扩展名）
@@ -12281,15 +12288,15 @@ declare module junyou {
         parseData(data: any[][], suiData: SuiData): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 创建器
      */
     type Creator<T> = {
-        new(): T;
+        new (): T;
     } | {
-            (): T;
-        };
+        (): T;
+    };
     /**
      *
      * 调整ClassFactory
@@ -12366,7 +12373,7 @@ declare module junyou {
      * @param {({ new(): T & { _pool?: RecyclablePool<T> } })} clazz
      */
     function recyclable<T>(clazz: {
-        new(): T & {
+        new (): T & {
             _pool?: RecyclablePool<T>;
         };
     }): Recyclable<T>;
@@ -12388,11 +12395,11 @@ declare module junyou {
      * @param clazz 要做单例的类型
      */
     function singleton<T>(clazz: {
-        new(): T;
+        new (): T;
         _instance?: T;
     }): T;
 }
-declare module junyou {
+declare namespace jy {
     /**
      * WebSocket版本的NetService
      * @author 3tion
@@ -12450,7 +12457,7 @@ declare module egret {
         deltaTime?: number;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      *
      * @param {egret.DisplayObject} host 要被拖拽的对象
@@ -12461,7 +12468,7 @@ declare module junyou {
     function bindDrag(host: egret.DisplayObject, stopChildren?: boolean, minDragTime?: number, minSqDist?: number): void;
     function looseDrag(host: egret.DisplayObject): void;
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 区段 -1000 - -1999
      *
@@ -12539,7 +12546,7 @@ declare module junyou {
         DragEnd = -1088,
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 导出类型，需要和导出工具的ExportType对应
      * @author
@@ -12596,7 +12603,7 @@ declare module junyou {
         MCProgress = 21,
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      *
      * 用于处理SuiData中的纹理加载
@@ -12626,7 +12633,7 @@ declare module junyou {
         dispose(): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      *
      * SuiData中位图加载完成的回调
@@ -12752,7 +12759,7 @@ declare module egret {
          * @type {SuiRawRect}
          * @memberOf DisplayObject
          */
-        suiRawRect?: junyou.SuiRawRect;
+        suiRawRect?: jy.SuiRawRect;
         /**
          * sui的资源名称
          */
@@ -12763,7 +12770,7 @@ declare module egret {
         suiClass?: string;
     }
 }
-declare module junyou {
+declare namespace jy {
     import Texture = egret.Texture;
     interface SuiRawRect extends egret.Rectangle {
     }
@@ -12796,7 +12803,7 @@ declare module junyou {
          */
         protected _creators: {
             [index: string]: {
-                new(): BaseCreator<egret.DisplayObject>;
+                new (): BaseCreator<egret.DisplayObject>;
             };
         };
         /**
@@ -13054,7 +13061,7 @@ declare module junyou {
         [index: string]: PanelData;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 给ArtText和ArtWord刷新纹理使用
      *
@@ -13068,7 +13075,7 @@ declare module junyou {
         };
     }): void;
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 艺术字
      */
@@ -13119,7 +13126,7 @@ declare module junyou {
         protected onRemoveFromStage(): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
       * 基于时间回收的资源
       */
@@ -13146,7 +13153,7 @@ declare module junyou {
         dispose(): any;
     }
 }
-declare module junyou.Res {
+declare namespace jy.Res {
     /**
      * 资源类型
      */
@@ -13389,7 +13396,7 @@ declare module junyou.Res {
         clear(callback?: (ev: Event | Error) => any): void;
     };
 }
-declare module junyou {
+declare namespace jy {
     /**
      *
      * 新版使用MC的按钮，减少制作按钮的难度
@@ -13417,7 +13424,7 @@ declare module junyou {
         parseSelfData(data: any): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     interface MCEleRef extends Array<any> {
         /**
          * mc的索引，
@@ -13516,7 +13523,7 @@ declare module junyou {
         $getFramesData(data: any): MCFrameData[];
     }
 }
-declare module junyou {
+declare namespace jy {
     class NumericStepper extends Component {
         minBtn: Button;
         subBtn: Button;
@@ -13550,7 +13557,7 @@ declare module junyou {
         private createNumericStepper();
     }
 }
-declare module junyou {
+declare namespace jy {
     interface ProgressBarSkinDele {
         /**
          * 进度条的顶
@@ -13634,14 +13641,14 @@ declare module junyou {
         parseSelfData(data: any): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     type ScaleBitmap = egret.Bitmap;
     class ScaleBitmapCreator extends BitmapCreator<ScaleBitmap> {
         constructor();
         parseSelfData(data: any): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     class ScrollBar extends Component {
         bar: egret.Sprite;
         bg: egret.Sprite;
@@ -13694,13 +13701,13 @@ declare module junyou {
         private createScrollBar();
     }
 }
-declare module junyou {
+declare namespace jy {
     class ShareBitmapCreator extends BitmapCreator<egret.Bitmap> {
         constructor();
         parseSelfData(data: any): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     class Slider extends Component {
         private _width;
         private _height;
@@ -13770,7 +13777,7 @@ declare module junyou {
         private createSlider();
     }
 }
-declare module junyou {
+declare namespace jy {
     const enum SlotCountShow {
         /**
          * 不显示文本
@@ -13858,13 +13865,13 @@ declare module egret {
         /**
          * 原始的文本数据
          *
-         * @type {junyou.TextData}
+         * @type {jy.TextData}
          * @memberof TextField
          */
-        rawTextData: junyou.TextData;
+        rawTextData: jy.TextData;
     }
 }
-declare module junyou {
+declare namespace jy {
     interface TextData extends Array<any> {
         /**
          *
@@ -13958,7 +13965,7 @@ declare module junyou {
         initTextData(tf: egret.TextField, data: TextData): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * ## 背景图容器
      * 1. 当屏幕长或者宽任意一边大于`基准尺寸(basis)`时
@@ -13978,7 +13985,7 @@ declare module junyou {
         onResize(): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     const enum LayoutType {
         /**
          * 全屏
@@ -14111,7 +14118,7 @@ declare module junyou {
         getTipLayoutPos: (disWidth: number, disHeight: number, parentWidth: number, parentHeight: number, point: Point, result?: Point, padx?: number, pady?: number) => Point;
     };
 }
-declare module junyou {
+declare namespace jy {
     const ResManager: {
         get: <T extends IResource>(resid: string, noResHandler: (...args: any[]) => T, thisObj?: any, ...args: any[]) => any;
         getTextureRes(resID: string, noWebp?: boolean): TextureResource;
@@ -14121,7 +14128,7 @@ declare module junyou {
 }
 declare let dpr: number;
 declare function $useDPR(): void;
-declare module junyou {
+declare namespace jy {
     /**
      * ## 主体UI的容器
      * 1. 当屏幕长或者宽任意一边小于`基准尺寸(basis)`时
@@ -14142,7 +14149,7 @@ declare module junyou {
         protected binLayout(bin: LayoutBin): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     interface ResizeBin {
         layout: LayoutType;
         hoffset?: number;
@@ -14181,7 +14188,7 @@ declare module junyou {
         dispose(): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      *
      * @author
@@ -14191,7 +14198,7 @@ declare module junyou {
         getItemViewAt(idx: number): egret.DisplayObject;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 按钮形式的菜单
      * @author gushuai
@@ -14207,7 +14214,7 @@ declare module junyou {
         protected $setData(val: T): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * @author gushuai
      * (description)
@@ -14261,7 +14268,7 @@ declare module junyou {
         displayMenuDatas(vos: MenuBaseVO[]): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     import Bitmap = egret.Bitmap;
     /**
      *
@@ -14325,7 +14332,7 @@ declare module junyou {
         dispose(): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * @author gushuai
      * (description)
@@ -14343,7 +14350,7 @@ declare module junyou {
         };
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * @author gushuai
      * Menu样式
@@ -14365,7 +14372,7 @@ declare module junyou {
          * @type {{new():T}}
          */
         renderClass: {
-            new(): T;
+            new (): T;
         };
         /**
          * 背景
@@ -14388,7 +14395,7 @@ declare module junyou {
         align?: number;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 错误提示
      * @author pb
@@ -14400,7 +14407,7 @@ declare module junyou {
         txtComplete(arg: any): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * description
      * @author pb
@@ -14424,7 +14431,7 @@ declare module junyou {
         showServer(msg: string): any;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * ToolTip的皮肤
      * @author 3tion
@@ -14446,7 +14453,7 @@ declare module junyou {
         hide(): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 简易的ToolTip
      * 只处理字符串类型的描述
@@ -14464,7 +14471,7 @@ declare module junyou {
         hide(): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * ToolTip的数据
      * @author 3tion
@@ -14503,7 +14510,7 @@ declare module junyou {
         private touchEnd(e);
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 默认的Tip
      * 手指按下控件以后，弹出Tip进行显示
@@ -14570,39 +14577,7 @@ declare module junyou {
         static remove(dis: egret.DisplayObject): void;
     }
 }
-/**
- * JavaScript code to detect available availability of a
- * particular font in a browser using JavaScript and CSS.
- *
- * Author : Lalit Patel
- * Website: http://www.lalit.org/lab/javascript-css-font-detect/
- * License: Apache Software License 2.0
- *          http://www.apache.org/licenses/LICENSE-2.0
- * Version: 0.15 (21 Sep 2009)
- *          Changed comparision font to default from sans-default-default,
- *          as in FF3.0 font of child element didn't fallback
- *          to parent element if the font is missing.
- * Version: 0.2 (04 Mar 2012)
- *          Comparing font against all the 3 generic font families ie,
- *          'monospace', 'sans-serif' and 'sans'. If it doesn't match all 3
- *          then that font is 100% not available in the system
- * Version: 0.3 (24 Mar 2012)
- *          Replaced sans with serif in the list of baseFonts
- */
-/**
- * Usage: d = new Detector();
- *        d.detect('font name');
- */
-declare module junyou {
-    namespace Font {
-        /**
-         * 检查是否有系统字体
-         * @param font
-         */
-        function detect(font: string): boolean;
-    }
-}
-declare module junyou {
+declare namespace jy {
     /**
      * 可做TouchDown放大的对象接口
      */
@@ -14637,7 +14612,7 @@ declare module junyou {
         function loose(item: TouchDownItem): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 多选分组
      *
@@ -14673,7 +14648,7 @@ declare module junyou {
         clear(): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 状态限制器
      * @author 3tion
@@ -14695,7 +14670,7 @@ declare module junyou {
         check(value: Key): boolean;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 绑定按钮和文本框，让文本框的点击，可以触发按钮的选中事件
      *
@@ -14706,7 +14681,7 @@ declare module junyou {
         loose(btn: Button): void;
     };
 }
-declare module junyou {
+declare namespace jy {
     /**
      * description
      * @author pb
@@ -14726,7 +14701,7 @@ declare module junyou {
  * https://github.com/CreateJS/TweenJS
  * @author 3tion
  */
-declare module junyou {
+declare namespace jy {
     interface IEaseFunction {
         (t: number, ...args: any[]): number;
     }
@@ -14786,7 +14761,7 @@ declare module junyou {
         static elasticInOut: IEaseFunction;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 区段 -1 ~ -19
      *
@@ -14797,7 +14772,7 @@ declare module junyou {
         TWEEN_CHANGE = -1,
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * Tween的插件
      * @author 3tion
@@ -14870,7 +14845,7 @@ declare module junyou {
  * https://github.com/CreateJS/TweenJS
  * @author 3tion
  */
-declare module junyou {
+declare namespace jy {
     const enum TweenActionMode {
         /**
          * Constant defining the none actionsMode for use with setPosition.
@@ -15159,7 +15134,7 @@ declare module junyou {
         onRecycle(): void;
     }
 }
-declare module junyou {
+declare namespace jy {
     /**
      * 状态机监听器
      * @author 3tion
@@ -15168,43 +15143,36 @@ declare module junyou {
         setState(type: Key): any;
     }
 }
-declare module junyou {
-    /**
-     * 单位的状态
-     * @author 3tion
-     */
-    const enum UnitState {
+declare namespace jy {
+    class UnitSetting {
         /**
-         * 创建了对象
+         * 是否添加UI层
          */
-        Init = 0,
+        hasUILayer: boolean;
         /**
-         * 添加到舞台上
+         * 是否添加Buff容器
          */
-        Stage = 1,
+        hasBuffLayer: boolean;
         /**
-         * 正在创建，往舞台上添加的动画
+         * 是否添加光环容器
          */
-        Spawning = 2,
+        hasHaloLayer: boolean;
         /**
-         * 在舞台上活着
+         * 是否添加到游戏场景中
          */
-        Alive = 3,
+        addToEngine: boolean;
+        getDepth(): number;
         /**
-         * 正在死亡，执行死亡的动画
+         * 深度的参数A
          */
-        Deading = 4,
+        depthA: number;
         /**
-         * 死透了，在地板上
+         * 深度的参数B
          */
-        Dead = 5,
-        /**
-         * 正在销毁，尸体蚕食的动画
-         */
-        Disposing = 6,
-        /**
-         * 从舞台销毁，回收资源
-         */
-        Disposed = 7,
+        depthB: number;
     }
+    /**
+     * 默认的单位设置
+     */
+    const defaultUnitSetting: UnitSetting;
 }

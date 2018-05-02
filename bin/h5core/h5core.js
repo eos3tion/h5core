@@ -248,10 +248,10 @@ String.subHandler = {};
 String.regSubHandler = function (key, handler) {
     if (true) {
         if (handler.length != 1) {
-            junyou.ThrowError("String.regSubHandler\u6CE8\u518C\u7684\u51FD\u6570\uFF0C\u53C2\u6570\u6570\u91CF\u5FC5\u987B\u4E3A\u4E00\u4E2A\uFF0C\u5806\u6808\uFF1A\n" + new Error().stack + "\n\u51FD\u6570\u5185\u5BB9\uFF1A" + handler.toString());
+            jy.ThrowError("String.regSubHandler\u6CE8\u518C\u7684\u51FD\u6570\uFF0C\u53C2\u6570\u6570\u91CF\u5FC5\u987B\u4E3A\u4E00\u4E2A\uFF0C\u5806\u6808\uFF1A\n" + new Error().stack + "\n\u51FD\u6570\u5185\u5BB9\uFF1A" + handler.toString());
         }
         if (key in this.subHandler) {
-            junyou.ThrowError("String.regSubHandler\u6CE8\u518C\u7684\u51FD\u6570\uFF0C\u6CE8\u518C\u4E86\u91CD\u590D\u7684key[" + key + "]\uFF0C\u5806\u6808\uFF1A\n" + new Error().stack);
+            jy.ThrowError("String.regSubHandler\u6CE8\u518C\u7684\u51FD\u6570\uFF0C\u6CE8\u518C\u4E86\u91CD\u590D\u7684key[" + key + "]\uFF0C\u5806\u6808\uFF1A\n" + new Error().stack);
         }
     }
     this.subHandler[key] = handler;
@@ -362,7 +362,7 @@ Object.defineProperties(Array.prototype, makeDefDescriptors({
             var key, descend;
             var len = arguments.length;
             if (true && len > 2) {
-                junyou.ThrowError("doSort\u53C2\u6570\u4E0D\u80FD\u8D85\u8FC72");
+                jy.ThrowError("doSort\u53C2\u6570\u4E0D\u80FD\u8D85\u8FC72");
             }
             for (var i = 0; i < len; i++) {
                 var arg = arguments[i];
@@ -396,7 +396,7 @@ Object.defineProperties(Array.prototype, makeDefDescriptors({
                     var typeb = typeof bv;
                     if (typea == "object" || typeb == "object") {
                         if (true) {
-                            junyou.ThrowError("multiSort \u6BD4\u8F83\u7684\u7C7B\u578B\u4E0D\u5E94\u4E3Aobject," + typea + "    " + typeb);
+                            jy.ThrowError("multiSort \u6BD4\u8F83\u7684\u7C7B\u578B\u4E0D\u5E94\u4E3Aobject," + typea + "    " + typeb);
                         }
                         return 0;
                     }
@@ -409,7 +409,7 @@ Object.defineProperties(Array.prototype, makeDefDescriptors({
                         }
                         else {
                             if (true) {
-                                junyou.ThrowError("multiSort \u6BD4\u8F83\u7684\u7C7B\u578B\u4E0D\u4E00\u81F4," + typea + "    " + typeb);
+                                jy.ThrowError("multiSort \u6BD4\u8F83\u7684\u7C7B\u578B\u4E0D\u4E00\u81F4," + typea + "    " + typeb);
                             }
                             return 0;
                         }
@@ -429,12 +429,12 @@ Object.defineProperties(Array.prototype, makeDefDescriptors({
         }
     }
 }));
-var junyou;
-(function (junyou) {
+var jy;
+(function (jy) {
     function is(instance, ref) {
         return egret.is(instance, egret.getQualifiedClassName(ref));
     }
-    junyou.is = is;
+    jy.is = is;
     /**
      * 移除可视对象
      *
@@ -446,8 +446,8 @@ var junyou;
             display.parent.removeChild(display);
         }
     }
-    junyou.removeDisplay = removeDisplay;
-})(junyou || (junyou = {}));
+    jy.removeDisplay = removeDisplay;
+})(jy || (jy = {}));
 /****************************************Map********************************************/
 if (typeof window["Map"] == "undefined" || !window["Map"]) {
     /**
@@ -547,7 +547,7 @@ var egret;
         else if (typeof value == "number") {
             value = value + "";
         }
-        this.textFlow = value ? htmlTextParser.parser(value) : junyou.Temp.EmptyArray;
+        this.textFlow = value ? htmlTextParser.parser(value) : jy.Temp.EmptyArray;
     };
     var ept = egret.EventDispatcher.prototype;
     ept.removeAllListeners = function () {
@@ -656,8 +656,8 @@ var egret;
  * https://github.com/CreateJS/TweenJS
  * @author 3tion
  */
-var junyou;
-(function (junyou) {
+var jy;
+(function (jy) {
     var TweenManager = /** @class */ (function () {
         function TweenManager() {
             this._tweens = [];
@@ -704,7 +704,7 @@ var junyou;
             if (override) {
                 this.removeTweens(target);
             }
-            return new junyou.Tween(target, props, pluginData, this);
+            return new jy.Tween(target, props, pluginData, this);
         };
         /**
          * 移除指定对象的所有tween
@@ -907,11 +907,11 @@ var junyou;
         };
         return TweenManager;
     }());
-    junyou.TweenManager = TweenManager;
-    __reflect(TweenManager.prototype, "junyou.TweenManager");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.TweenManager = TweenManager;
+    __reflect(TweenManager.prototype, "jy.TweenManager");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 延迟执行
      * @author 3tion
@@ -952,7 +952,7 @@ var junyou;
             for (var _i = 4; _i < arguments.length; _i++) {
                 args[_i - 4] = arguments[_i];
             }
-            var cInfo = junyou.CallbackInfo.addToList.apply(junyou.CallbackInfo, [this._callLaters, callback, thisObj].concat(args));
+            var cInfo = jy.CallbackInfo.addToList.apply(jy.CallbackInfo, [this._callLaters, callback, thisObj].concat(args));
             cInfo.time = now + (time || 0);
         };
         /**
@@ -982,11 +982,11 @@ var junyou;
         };
         return CallLater;
     }());
-    junyou.CallLater = CallLater;
-    __reflect(CallLater.prototype, "junyou.CallLater");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.CallLater = CallLater;
+    __reflect(CallLater.prototype, "jy.CallLater");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * Mediator和Proxy的基类
      * @author 3tion
@@ -1030,12 +1030,12 @@ var junyou;
                 for (var key in idp) {
                     var ref = idp[key];
                     if (typeof ref === "object") {
-                        proxyName = junyou.Facade.getNameOfInline(ref);
+                        proxyName = jy.Facade.getNameOfInline(ref);
                     }
                     else {
                         proxyName = ref;
                     }
-                    var proxy = junyou.proxyCall(proxyName);
+                    var proxy = jy.proxyCall(proxyName);
                     this[key] = proxy;
                     proxy._$isDep = true;
                     this.addDepend(proxy);
@@ -1049,7 +1049,7 @@ var junyou;
             }
             var _asyncHelper = this._asyncHelper;
             if (!_asyncHelper) {
-                this._asyncHelper = _asyncHelper = new junyou.AsyncHelper();
+                this._asyncHelper = _asyncHelper = new jy.AsyncHelper();
                 _asyncHelper._ready = this.isReady;
             }
             _asyncHelper.addReadyExecute.apply(_asyncHelper, [handle, thisObj].concat(args));
@@ -1068,7 +1068,7 @@ var junyou;
          */
         FHost.prototype.addDepend = function (async) {
             if (!this._dependerHelper) {
-                this._dependerHelper = new junyou.DependerHelper(this, this.dependerReadyCheck);
+                this._dependerHelper = new jy.DependerHelper(this, this.dependerReadyCheck);
             }
             this._dependerHelper.addDepend(async);
         };
@@ -1096,8 +1096,8 @@ var junyou;
         };
         return FHost;
     }());
-    junyou.FHost = FHost;
-    __reflect(FHost.prototype, "junyou.FHost", ["junyou.IDepender", "junyou.IAsync"]);
+    jy.FHost = FHost;
+    __reflect(FHost.prototype, "jy.FHost", ["jy.IDepender", "jy.IAsync"]);
     /**
      *
      * 附加依赖的Proxy
@@ -1114,9 +1114,9 @@ var junyou;
             _injectProxys[key] = ref;
         };
     }
-    junyou.__dependProxy = __dependProxy;
-})(junyou || (junyou = {}));
-(function (junyou) {
+    jy.__dependProxy = __dependProxy;
+})(jy || (jy = {}));
+(function (jy) {
     /**
      *
      * 附加依赖的Proxy
@@ -1124,10 +1124,10 @@ var junyou;
      * @param {({ new (): IAsync } | string)} ref
      * @returns
      */
-    junyou.d_dependProxy = junyou.__dependProxy;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.d_dependProxy = jy.__dependProxy;
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 基础创建器
      * @author 3tion
@@ -1180,7 +1180,7 @@ var junyou;
          * @memberOf BaseCreator
          */
         BaseCreator.prototype.createElement = function (data) {
-            return junyou.singleton(junyou.SuiResManager).getElement(this._suiData, data);
+            return jy.singleton(jy.SuiResManager).getElement(this._suiData, data);
         };
         BaseCreator.prototype.setBaseData = function (data) {
             this._baseData = data;
@@ -1193,21 +1193,21 @@ var junyou;
         BaseCreator.prototype.get = function () {
             var t = this._createT();
             t.suiRawRect = this.size;
-            if (t instanceof junyou.Component) {
+            if (t instanceof jy.Component) {
                 t.init(this);
             }
             if (this._baseData) {
-                junyou.SuiResManager.initBaseData(t, this._baseData);
+                jy.SuiResManager.initBaseData(t, this._baseData);
             }
             return t;
         };
         return BaseCreator;
     }());
-    junyou.BaseCreator = BaseCreator;
-    __reflect(BaseCreator.prototype, "junyou.BaseCreator");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.BaseCreator = BaseCreator;
+    __reflect(BaseCreator.prototype, "jy.BaseCreator");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     function addEnable(ref) {
         var pt = ref.prototype;
         pt.$setEnabled = $setEnabled;
@@ -1223,13 +1223,13 @@ var junyou;
             }
         }));
     }
-    junyou.addEnable = addEnable;
+    jy.addEnable = addEnable;
     function $setEnabled(value) {
         this._enabled = value;
         this.touchEnabled = value;
         this.touchChildren = value;
         if (this.useDisFilter) {
-            this.filters = value ? null : junyou.FilterUtils.gray;
+            this.filters = value ? null : jy.FilterUtils.gray;
         }
     }
     /**
@@ -1377,13 +1377,13 @@ var junyou;
         });
         return Component;
     }(egret.Sprite));
-    junyou.Component = Component;
-    __reflect(Component.prototype, "junyou.Component");
+    jy.Component = Component;
+    __reflect(Component.prototype, "jy.Component");
     ;
     addEnable(Component);
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     try {
         var supportWebp = document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') == 0;
     }
@@ -1400,8 +1400,8 @@ var junyou;
      * 用于处理逐帧同步用
      */
     var frameNow = 0;
-    var _callLater = new junyou.CallLater();
-    var tweenManager = new junyou.TweenManager();
+    var _callLater = new jy.CallLater();
+    var tweenManager = new jy.TweenManager();
     var _nextTicks = [];
     var _intervals = [];
     /**
@@ -1414,12 +1414,12 @@ var junyou;
         var delta = 0 | 1000 / ticker.$frameRate;
         var temp = [];
         ticker.render = function () {
-            var _now = junyou.DateUtils.serverTime;
+            var _now = jy.DateUtils.serverTime;
             var dis = _now - now;
             now = _now;
             if (dis > 2000) {
                 //有2秒钟大概就是进入过休眠了
-                junyou.dispatch(-190 /* Awake */);
+                jy.dispatch(-190 /* Awake */);
                 frameNow = _now;
             }
             else {
@@ -1443,11 +1443,11 @@ var junyou;
                     tmp[i].execute();
                 }
                 _callLater.tick(_now);
-                junyou.TimerUtil.tick(_now);
+                jy.TimerUtil.tick(_now);
                 tweenManager.tick(dis);
             }
             catch (e) {
-                junyou.ThrowError("ticker.render", e);
+                jy.ThrowError("ticker.render", e);
             }
             update.call(ticker);
         };
@@ -1457,7 +1457,7 @@ var junyou;
         for (var _i = 2; _i < arguments.length; _i++) {
             args[_i - 2] = arguments[_i];
         }
-        nextTick2(junyou.CallbackInfo.get.apply(junyou.CallbackInfo, [callback, thisObj].concat(args)));
+        nextTick2(jy.CallbackInfo.get.apply(jy.CallbackInfo, [callback, thisObj].concat(args)));
     }
     function nextTick2(callback) {
         _nextTicks.push(callback);
@@ -1467,7 +1467,7 @@ var junyou;
      * @author 3tion
      *
      */
-    junyou.Global = {
+    jy.Global = {
         initTick: initTick,
         nextTick: nextTick,
         nextTick2: nextTick2,
@@ -1516,9 +1516,9 @@ var junyou;
             _intervals.remove(callback);
         },
     };
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * GameLayer
      * 用于后期扩展
@@ -1532,8 +1532,8 @@ var junyou;
         }
         return BaseLayer;
     }(egret.Sprite));
-    junyou.BaseLayer = BaseLayer;
-    __reflect(BaseLayer.prototype, "junyou.BaseLayer");
+    jy.BaseLayer = BaseLayer;
+    __reflect(BaseLayer.prototype, "jy.BaseLayer");
     /**
      * UI使用的层级，宽度和高度设定为和stage一致
      *
@@ -1562,8 +1562,8 @@ var junyou;
         });
         return UILayer;
     }(BaseLayer));
-    junyou.UILayer = UILayer;
-    __reflect(UILayer.prototype, "junyou.UILayer");
+    jy.UILayer = UILayer;
+    __reflect(UILayer.prototype, "jy.UILayer");
     /**
      * 需要对子对象排序的层
      */
@@ -1575,7 +1575,7 @@ var junyou;
         SortedLayer.prototype.$doAddChild = function (child, index, notifyListeners) {
             if (notifyListeners === void 0) { notifyListeners = true; }
             if ("depth" in child) {
-                junyou.GameEngine.invalidateSort();
+                jy.GameEngine.invalidateSort();
                 return _super.prototype.$doAddChild.call(this, child, index, notifyListeners);
             }
             else {
@@ -1591,11 +1591,11 @@ var junyou;
         };
         return SortedLayer;
     }(BaseLayer));
-    junyou.SortedLayer = SortedLayer;
-    __reflect(SortedLayer.prototype, "junyou.SortedLayer");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.SortedLayer = SortedLayer;
+    __reflect(SortedLayer.prototype, "jy.SortedLayer");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 基础渲染器
      * @author 3tion
@@ -1626,7 +1626,7 @@ var junyou;
             this._playSpeed = 1;
         }
         BaseRender.onSlowRender = function () {
-            junyou.dispatch(-1996 /* SlowRender */);
+            jy.dispatch(-1996 /* SlowRender */);
         };
         Object.defineProperty(BaseRender.prototype, "playSpeed", {
             /**
@@ -1672,7 +1672,7 @@ var junyou;
                                 console.log("Render\u4E0A\u6B21\u6267\u884C\u65F6\u95F4\u548C\u5F53\u524D\u65F6\u95F4\u5DEE\u503C\u8FC7\u957F[" + delta + "]\uFF0C\u53EF\u4EE5\u6267\u884C[" + delta / actionInfo.totalTime + "\u6B21\u603B\u5E8F\u5217]");
                             }
                             if (BaseRender.dispatchSlowRender) {
-                                junyou.Global.callLater(BaseRender.onSlowRender);
+                                jy.Global.callLater(BaseRender.onSlowRender);
                             }
                         }
                         nextRenderTime = now;
@@ -1778,17 +1778,17 @@ var junyou;
         BaseRender.globalPlaySpeed = 1;
         return BaseRender;
     }());
-    junyou.BaseRender = BaseRender;
-    __reflect(BaseRender.prototype, "junyou.BaseRender", ["junyou.IDrawInfo"]);
-})(junyou || (junyou = {}));
+    jy.BaseRender = BaseRender;
+    __reflect(BaseRender.prototype, "jy.BaseRender", ["jy.IDrawInfo"]);
+})(jy || (jy = {}));
 /**
  * 资源打包信息
  * AS3的版本中实现了5种打包方式
  * H5中实现了2种（2 按动作打包，4 单方向单动作打包），不过后面只会使用4（单方向单动作）进行打包，其他方式弃用
  * @author 3tion
  */
-var junyou;
-(function (junyou) {
+var jy;
+(function (jy) {
     // /**
     //  * 打包类型
     //  */
@@ -1834,7 +1834,7 @@ var junyou;
          */
         PstInfo.prototype.getCastPoint = function (action, direction) {
             if (this.castPoints) {
-                var pt = this.castPoints[junyou.ADKey.get(action, direction)];
+                var pt = this.castPoints[jy.ADKey.get(action, direction)];
                 if (pt) {
                     return pt;
                 }
@@ -1870,7 +1870,7 @@ var junyou;
                         for (var d = 0; d < 8; d++) {
                             var pInfo = aInfo[d > 4 ? 8 - d : d];
                             if (pInfo) {
-                                castPoints[junyou.ADKey.get(+a, d)] = { x: +pInfo[0], y: +pInfo[1] };
+                                castPoints[jy.ADKey.get(+a, d)] = { x: +pInfo[0], y: +pInfo[1] };
                             }
                         }
                     }
@@ -1890,7 +1890,7 @@ var junyou;
         PstInfo.prototype.getResource = function (uri) {
             var res = this._resources[uri];
             if (!res) {
-                res = new junyou.UnitResource(uri, this.splitInfo);
+                res = new jy.UnitResource(uri, this.splitInfo);
                 this._resources[uri] = res;
             }
             return res;
@@ -1905,8 +1905,8 @@ var junyou;
         };
         return PstInfo;
     }());
-    junyou.PstInfo = PstInfo;
-    __reflect(PstInfo.prototype, "junyou.PstInfo");
+    jy.PstInfo = PstInfo;
+    __reflect(PstInfo.prototype, "jy.PstInfo");
     /**
      * 资源打包分隔信息
      * 只保留了最主流的单动作，单方向
@@ -1921,10 +1921,10 @@ var junyou;
             var frames = {};
             for (var key in data) {
                 var a = +key;
-                frames[a] = junyou.getActionInfo(data[a], a);
+                frames[a] = jy.getActionInfo(data[a], a);
                 for (var d = 0; d < 5; d++) {
                     var res = this.getResKey(d, a);
-                    adDict[res] = junyou.ADKey.get(a, d);
+                    adDict[res] = jy.ADKey.get(a, d);
                 }
             }
             return frames;
@@ -1935,7 +1935,7 @@ var junyou;
             this._d = infos.d;
         };
         SplitInfo.prototype.getResKey = function (direction, action) {
-            var key = junyou.ADKey.get(action, direction);
+            var key = jy.ADKey.get(action, direction);
             var res = this._resDict[key];
             if (!res) {
                 this._resDict[key] = res = this._n.substitute({ "f": this._key, "a": getRep(action, this._a), "d": getRep(direction, this._d) });
@@ -1944,8 +1944,8 @@ var junyou;
         };
         return SplitInfo;
     }());
-    junyou.SplitInfo = SplitInfo;
-    __reflect(SplitInfo.prototype, "junyou.SplitInfo");
+    jy.SplitInfo = SplitInfo;
+    __reflect(SplitInfo.prototype, "jy.SplitInfo");
     function getRep(data, repArr) {
         var str = data + "";
         if (repArr && (data in repArr)) {
@@ -1953,7 +1953,7 @@ var junyou;
         }
         return str;
     }
-    junyou.ADKey = {
+    jy.ADKey = {
         /**
          * 得到 A(动作)D(方向)的标识
          *
@@ -2097,9 +2097,9 @@ var junyou;
     //         return this._resDict[action];
     //     }
     // }
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      *
      * 震动的基本实现
@@ -2174,11 +2174,11 @@ var junyou;
         };
         return BaseShake;
     }());
-    junyou.BaseShake = BaseShake;
-    __reflect(BaseShake.prototype, "junyou.BaseShake", ["junyou.Shake"]);
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.BaseShake = BaseShake;
+    __reflect(BaseShake.prototype, "jy.BaseShake", ["jy.Shake"]);
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 单位动作
      * @author 3tion
@@ -2210,7 +2210,7 @@ var junyou;
                 unit.doAction(now, aData.action);
             }
             else {
-                junyou.ThrowError("\u672A\u5B9E\u73B0\u52A8\u4F5C{mountType:" + mountType + "}");
+                jy.ThrowError("\u672A\u5B9E\u73B0\u52A8\u4F5C{mountType:" + mountType + "}");
             }
         };
         /**
@@ -2277,11 +2277,11 @@ var junyou;
         UnitAction.defaultAction = { mountType: 0 /* ground */, action: 0 };
         return UnitAction;
     }());
-    junyou.UnitAction = UnitAction;
-    __reflect(UnitAction.prototype, "junyou.UnitAction");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.UnitAction = UnitAction;
+    __reflect(UnitAction.prototype, "jy.UnitAction");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 扩展一个实例，如果A类型实例本身并没有B类型的方法，则直接对实例的属性进行赋值，否则将不会赋值
      *
@@ -2313,7 +2313,7 @@ var junyou;
         }
         return instance;
     }
-    junyou.expandInstance = expandInstance;
+    jy.expandInstance = expandInstance;
     /**
      * 将类型A扩展类型B的指定属性，并返回引用
      *
@@ -2335,7 +2335,7 @@ var junyou;
         _expand(clazzA.prototype, clazzB.prototype, keys);
         return clazzA;
     }
-    junyou.expand = expand;
+    jy.expand = expand;
     function _expand(pt, bpt, keys) {
         for (var _i = 0, _a = Object.getOwnPropertyNames(bpt); _i < _a.length; _i++) {
             var name_2 = _a[_i];
@@ -2371,7 +2371,7 @@ var junyou;
         }
         return merged;
     }
-    junyou.getMixin = getMixin;
+    jy.getMixin = getMixin;
     /**
      * 拷贝属性
      *
@@ -2385,7 +2385,7 @@ var junyou;
     function copyProperty(to, from, key) {
         Object.defineProperty(to, key, Object.getOwnPropertyDescriptor(from, key));
     }
-    junyou.copyProperty = copyProperty;
+    jy.copyProperty = copyProperty;
     /**
      * 批量拷贝属性
      *
@@ -2406,8 +2406,8 @@ var junyou;
             copyProperty(to, from, key);
         }
     }
-    junyou.copyProperties = copyProperties;
-})(junyou || (junyou = {}));
+    jy.copyProperties = copyProperties;
+})(jy || (jy = {}));
 if (true) {
     var $gm = $gm || {};
     $gm.__getNSFilter = function () {
@@ -2480,7 +2480,7 @@ if (true) {
             }
         });
         console.table(output);
-        junyou.doCopy(msg) && console.log("%c 已将网络数据复制到剪贴板", "color:red;font-size:50px;");
+        jy.doCopy(msg) && console.log("%c 已将网络数据复制到剪贴板", "color:red;font-size:50px;");
         return output;
     };
     $gm.__nsLogCheck = function (log, nsFilter) {
@@ -2504,7 +2504,7 @@ if (true) {
     $gm.maxNSLogCount = 1000;
     $gm.nsLogs = [];
     $gm.route = function (cmd, data) {
-        junyou.NetService.get().route(cmd, data);
+        jy.NetService.get().route(cmd, data);
     };
     $gm.batchRoute = function (logs) {
         //过滤send
@@ -2519,9 +2519,9 @@ if (true) {
         }
     };
 }
-var junyou;
-(function (junyou) {
-    junyou.NSBytesLen = {
+var jy;
+(function (jy) {
+    jy.NSBytesLen = {
         /**NSType.Null */ 0: 0,
         /**NSType.Boolean */ 1: 1,
         /**NSType.Double */ 5: 8,
@@ -2532,13 +2532,13 @@ var junyou;
     /**
      * 用于存储头部的临时变量
      */
-    junyou.nsHeader = { cmd: 0, len: 0 };
+    jy.nsHeader = { cmd: 0, len: 0 };
     function send2(cmd, data, msgType, limit) {
-        if (junyou.RequestLimit.check(cmd, limit)) {
+        if (jy.RequestLimit.check(cmd, limit)) {
             this._send(cmd, data, msgType);
         }
         else {
-            junyou.dispatch(-189 /* NetServiceSendLimit */, cmd);
+            jy.dispatch(-189 /* NetServiceSendLimit */, cmd);
         }
     }
     /**
@@ -2553,11 +2553,11 @@ var junyou;
             var _this = this;
             this.netChange = function () {
                 if (navigator.onLine) {
-                    junyou.dispatch(-192 /* Online */);
+                    jy.dispatch(-192 /* Online */);
                     _this.showReconnect();
                 }
                 else {
-                    junyou.dispatch(-191 /* Offline */);
+                    jy.dispatch(-191 /* Offline */);
                 }
             };
             /**
@@ -2586,12 +2586,12 @@ var junyou;
              * 下次自动拉取请求的时间戳
              */
             this._nextAutoTime = 0;
-            this._router = new junyou.NetRouter();
+            this._router = new jy.NetRouter();
             this._pcmdList = [];
             this._tmpList = [];
-            this._readBuffer = new junyou.ByteArray();
-            this._sendBuffer = new junyou.ByteArray();
-            this._tempBytes = new junyou.ByteArray();
+            this._readBuffer = new jy.ByteArray();
+            this._sendBuffer = new jy.ByteArray();
+            this._tempBytes = new jy.ByteArray();
             this._receiveMSG = {};
             if (true) {
                 this.$writeNSLog = function (time, type, cmd, data) {
@@ -2629,7 +2629,7 @@ var junyou;
                 addEventListener("online", this.netChange);
                 addEventListener("offline", this.netChange);
             }
-            junyou.on(-190 /* Awake */, this.onawake, this);
+            jy.on(-190 /* Awake */, this.onawake, this);
         }
         NetService.prototype.setLimitEventEmitable = function (emit) {
             if (emit) {
@@ -2652,12 +2652,12 @@ var junyou;
             if (time > maxConTime) {
                 time = maxConTime;
             }
-            this._nextAutoTime = junyou.Global.now + time;
-            junyou.dispatch(-194 /* ShowReconnect */, this._reconCount);
+            this._nextAutoTime = jy.Global.now + time;
+            jy.dispatch(-194 /* ShowReconnect */, this._reconCount);
         };
         NetService.prototype.onawake = function () {
             this._reconCount = 0;
-            this._nextAutoTime = junyou.Global.now + this._autoTimeDelay;
+            this._nextAutoTime = jy.Global.now + this._autoTimeDelay;
         };
         /**
          * 基础类型消息
@@ -2697,7 +2697,7 @@ var junyou;
         NetService.prototype._register = function (cmd, handler, priotity, once) {
             if (cmd > 32767 || cmd < -32768) {
                 if (true) {
-                    junyou.Log("\u534F\u8BAE\u53F7\u7684\u8303\u56F4\u5FC5\u987B\u662F-32768~32767\u4E4B\u95F4\uFF0C\u5F53\u524Dcmd:" + cmd);
+                    jy.Log("\u534F\u8BAE\u53F7\u7684\u8303\u56F4\u5FC5\u987B\u662F-32768~32767\u4E4B\u95F4\uFF0C\u5F53\u524Dcmd:" + cmd);
                 }
                 return false;
             }
@@ -2713,7 +2713,7 @@ var junyou;
          * @param {number} [limit] 客户端发送时间限制，默认500毫秒
          */
         NetService.prototype.send = function (cmd, data, msgType, limit) {
-            if (junyou.RequestLimit.check(cmd, limit)) {
+            if (jy.RequestLimit.check(cmd, limit)) {
                 this._send(cmd, data, msgType);
             }
         };
@@ -2744,7 +2744,7 @@ var junyou;
                 }
             }
             //没有同协议的指令，新增数据
-            var pdata = junyou.recyclable(junyou.NetSendData);
+            var pdata = jy.recyclable(jy.NetSendData);
             pdata.cmd = cmd;
             pdata.data = data;
             pdata.msgType = msgType;
@@ -2766,8 +2766,8 @@ var junyou;
                 }
             }
             else {
-                if (type in junyou.NSBytesLen) {
-                    this.writeBytesLength(bytes, junyou.NSBytesLen[type]);
+                if (type in jy.NSBytesLen) {
+                    this.writeBytesLength(bytes, jy.NSBytesLen[type]);
                 }
                 if (true) {
                     outdata = dat;
@@ -2809,10 +2809,10 @@ var junyou;
                         tempBytes.clear();
                         if (true) {
                             outdata = {};
-                            junyou.PBUtils.writeTo(dat, data.msgType, tempBytes, outdata);
+                            jy.PBUtils.writeTo(dat, data.msgType, tempBytes, outdata);
                         }
                         else {
-                            junyou.PBUtils.writeTo(dat, data.msgType, tempBytes);
+                            jy.PBUtils.writeTo(dat, data.msgType, tempBytes);
                         }
                         this.writeBytesLength(bytes, tempBytes.length);
                         bytes.writeBytes(tempBytes);
@@ -2820,7 +2820,7 @@ var junyou;
                 }
             }
             if (true) {
-                this.$writeNSLog(junyou.Global.now, "send", cmd, outdata);
+                this.$writeNSLog(jy.Global.now, "send", cmd, outdata);
             }
         };
         /**
@@ -2832,7 +2832,7 @@ var junyou;
             var receiveMSG = this._receiveMSG;
             var tmpList = this._tmpList;
             var idx = 0;
-            var header = junyou.nsHeader;
+            var header = jy.nsHeader;
             var decodeHeader = this.decodeHeader;
             while (true) {
                 if (!decodeHeader(bytes, header)) {
@@ -2846,10 +2846,10 @@ var junyou;
                 if (type !== undefined) {
                     var flag = true;
                     var data = undefined;
-                    if (len > 0 && type in junyou.NSBytesLen) {
-                        var blen = junyou.NSBytesLen[type];
+                    if (len > 0 && type in jy.NSBytesLen) {
+                        var blen = jy.NSBytesLen[type];
                         if (true && blen != len) {
-                            junyou.Log("\u89E3\u6790\u6307\u4EE4\u65F6\uFF0C\u7C7B\u578B[" + type + "]\u7684\u6307\u4EE4\u957F\u5EA6[" + len + "]\u548C\u9884\u8BBE\u7684\u957F\u5EA6[" + blen + "]\u4E0D\u5339\u914D");
+                            jy.Log("\u89E3\u6790\u6307\u4EE4\u65F6\uFF0C\u7C7B\u578B[" + type + "]\u7684\u6307\u4EE4\u957F\u5EA6[" + len + "]\u548C\u9884\u8BBE\u7684\u957F\u5EA6[" + blen + "]\u4E0D\u5339\u914D");
                         }
                         if (len < blen) {
                             flag = false;
@@ -2881,26 +2881,26 @@ var junyou;
                                 data = bytes.readByteArray(len);
                                 break;
                             default:
-                                data = junyou.PBUtils.readFrom(type, bytes, len);
+                                data = jy.PBUtils.readFrom(type, bytes, len);
                                 break;
                         }
                     }
                     if (flag) {
                         //容错用，不管数据解析成功或者失败，将索引移至结束索引
-                        var nData = junyou.recyclable(junyou.NetData);
+                        var nData = jy.recyclable(jy.NetData);
                         nData.cmd = cmd;
                         nData.data = data;
                         tmpList[idx++] = nData;
                     }
                 }
                 else if (true) {
-                    junyou.Log("\u901A\u4FE1\u6D88\u606F\u89E3\u6790\u65F6cmd[" + cmd + "]\uFF0C\u51FA\u73B0\u672A\u6CE8\u518C\u7684\u7C7B\u578B");
+                    jy.Log("\u901A\u4FE1\u6D88\u606F\u89E3\u6790\u65F6cmd[" + cmd + "]\uFF0C\u51FA\u73B0\u672A\u6CE8\u518C\u7684\u7C7B\u578B");
                 }
                 bytes.position = endPos;
             }
             //调试时,显示接收的数据
             if (true) {
-                var now = junyou.Global.now;
+                var now = jy.Global.now;
                 //分发数据
                 for (var i = 0; i < idx; i++) {
                     var ndata = tmpList[i];
@@ -2958,18 +2958,18 @@ var junyou;
          * @param {*} [data]
          */
         NetService.prototype.route = function (cmd, data) {
-            var nData = junyou.recyclable(junyou.NetData);
+            var nData = jy.recyclable(jy.NetData);
             nData.cmd = cmd;
             nData.data = data;
             this._router.dispatch(nData);
         };
         return NetService;
     }());
-    junyou.NetService = NetService;
-    __reflect(NetService.prototype, "junyou.NetService");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.NetService = NetService;
+    __reflect(NetService.prototype, "jy.NetService");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 用于君游项目数据同步，后台运行<br/>
      * 只有注册和注销，没有awake和sleep
@@ -3056,12 +3056,12 @@ var junyou;
             }
         };
         return Proxy;
-    }(junyou.FHost));
-    junyou.Proxy = Proxy;
-    __reflect(Proxy.prototype, "junyou.Proxy");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    }(jy.FHost));
+    jy.Proxy = Proxy;
+    __reflect(Proxy.prototype, "jy.Proxy");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 可以调用 @d_interest 的视图
      * 可以进行关注facade中的事件
@@ -3116,7 +3116,7 @@ var junyou;
                 //加入关注的事件
                 for (type in _interests) {
                     ins = _interests[type];
-                    junyou.on(type, ins.handler, this, ins.priority);
+                    jy.on(type, ins.handler, this, ins.priority);
                     if (ins.trigger) {
                         ins.handler.call(this);
                     }
@@ -3128,7 +3128,7 @@ var junyou;
             else {
                 for (type in _interests) {
                     ins = _interests[type];
-                    junyou.off(type, ins.handler, this);
+                    jy.off(type, ins.handler, this);
                 }
                 if (this.sleep) {
                     this.sleep();
@@ -3136,9 +3136,9 @@ var junyou;
             }
         };
         return ViewController;
-    }(junyou.FHost));
-    junyou.ViewController = ViewController;
-    __reflect(ViewController.prototype, "junyou.ViewController");
+    }(jy.FHost));
+    jy.ViewController = ViewController;
+    __reflect(ViewController.prototype, "jy.ViewController");
     /**
      * 使用@d_interest 注入 添加关注
      * 关注为事件处理回调，只会在awake时，添加到事件监听列表
@@ -3172,10 +3172,10 @@ var junyou;
             _interests[eventType] = { handler: value.value, priority: priority, trigger: triggerOnStage, isPri: isPrivate };
         };
     }
-    junyou.d_interest = d_interest;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.d_interest = d_interest;
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     var Scroller = /** @class */ (function (_super) {
         __extends(Scroller, _super);
         function Scroller() {
@@ -3259,14 +3259,14 @@ var junyou;
                 if (old) {
                     old.off("enterFrame" /* ENTER_FRAME */, this.onRender, this);
                     old.off(-1999 /* Resize */, this.onResize, this);
-                    junyou.looseDrag(old);
+                    jy.looseDrag(old);
                     old.off(-1090 /* DragStart */, this.onDragStart, this);
                     old.off(-1089 /* DragMove */, this.onDragMove, this);
                     old.off(-1088 /* DragEnd */, this.onDragEnd, this);
                 }
                 this._content = content;
                 if (content) {
-                    junyou.bindDrag(content);
+                    jy.bindDrag(content);
                     content.on(-1090 /* DragStart */, this.onDragStart, this);
                     content.on(-1999 /* Resize */, this.onResize, this);
                 }
@@ -3304,7 +3304,7 @@ var junyou;
                 if (g) {
                     g.clear();
                     g.beginFill(0, 0);
-                    var rect = junyou.Temp.EgretRectangle;
+                    var rect = jy.Temp.EgretRectangle;
                     content.getBounds(rect);
                     g.drawRectangle(rect);
                     g.endFill();
@@ -3332,7 +3332,7 @@ var junyou;
                 return;
             }
             this._lastTargetPos = this._startPos = this.getDragPos(e);
-            this._lastMoveTime = junyou.Global.now;
+            this._lastMoveTime = jy.Global.now;
             this.showBar();
             content.on(-1089 /* DragMove */, this.onDragMove, this);
             content.on(-1088 /* DragEnd */, this.onDragEnd, this);
@@ -3346,7 +3346,7 @@ var junyou;
             var sub = currentPos - this._lastTargetPos;
             this._deriction = sub > 0 ? 1 : -1;
             sub = Math.abs(sub);
-            var now = junyou.Global.now;
+            var now = jy.Global.now;
             var subTime = now - this._lastMoveTime;
             this._lastMoveTime = now;
             this._lastTargetPos = currentPos;
@@ -3368,7 +3368,7 @@ var junyou;
                 this.hideBar();
                 return;
             }
-            var now = junyou.Global.now;
+            var now = jy.Global.now;
             var subTime = now - this._lastFrameTime;
             var moveSpeed = this._moveSpeed;
             var sub = moveSpeed * this._deriction * subTime * this.globalspeed;
@@ -3386,7 +3386,7 @@ var junyou;
                 return;
             }
             var currentPos = this.getDragPos(e);
-            var now = junyou.Global.now;
+            var now = jy.Global.now;
             if (now - this._lastMoveTime < 150) {
                 content.on("enterFrame" /* ENTER_FRAME */, this.onRender, this);
                 this._lastFrameTime = this._lastMoveTime;
@@ -3400,12 +3400,12 @@ var junyou;
         };
         Scroller.prototype.showBar = function () {
             if (this._useScrollBar && !this.alwaysShowBar) {
-                junyou.Global.getTween(this._scrollbar, null, null, true).to({ alpha: 1 }, 500);
+                jy.Global.getTween(this._scrollbar, null, null, true).to({ alpha: 1 }, 500);
             }
         };
         Scroller.prototype.hideBar = function () {
             if (this._useScrollBar && !this.alwaysShowBar) {
-                junyou.Global.getTween(this._scrollbar, null, null, true).to({ alpha: 0 }, 1000);
+                jy.Global.getTween(this._scrollbar, null, null, true).to({ alpha: 0 }, 1000);
             }
         };
         /**
@@ -3575,11 +3575,11 @@ var junyou;
         };
         return Scroller;
     }(egret.EventDispatcher));
-    junyou.Scroller = Scroller;
-    __reflect(Scroller.prototype, "junyou.Scroller");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.Scroller = Scroller;
+    __reflect(Scroller.prototype, "jy.Scroller");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     var AbsPageList = /** @class */ (function (_super) {
         __extends(AbsPageList, _super);
         function AbsPageList() {
@@ -3834,11 +3834,11 @@ var junyou;
         AbsPageList.prototype.onChange = function () { };
         return AbsPageList;
     }(egret.EventDispatcher));
-    junyou.AbsPageList = AbsPageList;
-    __reflect(AbsPageList.prototype, "junyou.AbsPageList");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.AbsPageList = AbsPageList;
+    __reflect(AbsPageList.prototype, "jy.AbsPageList");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 状态机
      * @author 3tion
@@ -3863,7 +3863,7 @@ var junyou;
         });
         StateMachine.prototype.add = function (value) {
             if (!value) {
-                true && junyou.ThrowError("addStateListener没有设置正确!");
+                true && jy.ThrowError("addStateListener没有设置正确!");
             }
             this.liss.pushOnce(value);
         };
@@ -3874,7 +3874,7 @@ var junyou;
             var args = arguments;
             var value = args[0];
             if (!value) {
-                true && junyou.ThrowError("addToStateList没有设置正确!");
+                true && jy.ThrowError("addToStateList没有设置正确!");
             }
             for (var i = 1; i < args.length; i++) {
                 this.addToState(args[i], value);
@@ -3913,7 +3913,7 @@ var junyou;
          */
         StateMachine.prototype.addToState = function (state, value) {
             if (!value) {
-                junyou.ThrowError("addToState没有设置正确!");
+                jy.ThrowError("addToState没有设置正确!");
             }
             var list = this.swis[state];
             if (list) {
@@ -3997,11 +3997,11 @@ var junyou;
         };
         return StateMachine;
     }());
-    junyou.StateMachine = StateMachine;
-    __reflect(StateMachine.prototype, "junyou.StateMachine", ["junyou.IStateListener"]);
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.StateMachine = StateMachine;
+    __reflect(StateMachine.prototype, "jy.StateMachine", ["jy.IStateListener"]);
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     var structDict = {};
     /**
      * protobuf wiretype的字典
@@ -4060,7 +4060,7 @@ var junyou;
      */
     function regStruct(msgType, struct) {
         if (true && (msgType in structDict)) {
-            junyou.ThrowError("PB\u7684\u7ED3\u6784\u5B9A\u4E49\u7684key[" + msgType + "]\u6CE8\u518C\u91CD\u590D");
+            jy.ThrowError("PB\u7684\u7ED3\u6784\u5B9A\u4E49\u7684key[" + msgType + "]\u6CE8\u518C\u91CD\u590D");
         }
         var def = defDict[msgType];
         if (def) {
@@ -4104,7 +4104,7 @@ var junyou;
      * ProtoBuf工具集
      *
      */
-    junyou.PBUtils = {
+    jy.PBUtils = {
         /**
          * 注册定义
          */
@@ -4134,13 +4134,13 @@ var junyou;
                             while (true) { //防止出现多重关联的情况 
                                 struct = dict[struct];
                                 if (struct == null) { //或者undefiend
-                                    return true && junyou.Log("\u6DFB\u52A0ProtoBuf\u5B57\u5178\u6709\u8BEF\uFF0C\u8BF7\u68C0\u67E5\u6570\u636E");
+                                    return true && jy.Log("\u6DFB\u52A0ProtoBuf\u5B57\u5178\u6709\u8BEF\uFF0C\u8BF7\u68C0\u67E5\u6570\u636E");
                                 }
                                 if (typeof struct == "object") {
                                     break;
                                 }
                                 if (~cycle.indexOf(struct)) {
-                                    return true && junyou.Log("\u6DFB\u52A0ProtoBuf\u5B57\u5178\u6709\u8BEF\uFF0C\u51FA\u73B0\u5FAA\u73AF\u7684\u914D\u7F6E");
+                                    return true && jy.Log("\u6DFB\u52A0ProtoBuf\u5B57\u5178\u6709\u8BEF\uFF0C\u51FA\u73B0\u5FAA\u73AF\u7684\u914D\u7F6E");
                                 }
                                 cycle.push(struct);
                             }
@@ -4171,7 +4171,7 @@ var junyou;
         }
         var struct = typeof msgType == "object" ? msgType : structDict[msgType];
         if (!struct) {
-            junyou.ThrowError("\u975E\u6CD5\u7684\u901A\u4FE1\u7C7B\u578B[" + msgType + "]");
+            jy.ThrowError("\u975E\u6CD5\u7684\u901A\u4FE1\u7C7B\u578B[" + msgType + "]");
             return;
         }
         //检查处理默认值
@@ -4183,7 +4183,7 @@ var junyou;
             var idx = tag >>> 3;
             var body = struct[idx];
             if (!body) {
-                junyou.ThrowError("\u8BFB\u53D6\u6D88\u606F\u7C7B\u578B\u4E3A\uFF1A" + msgType + "\uFF0C\u7D22\u5F15" + idx + "\u65F6\u6570\u636E\u51FA\u73B0\u9519\u8BEF\uFF0C\u627E\u4E0D\u5230\u5BF9\u5E94\u7684\u6570\u636E\u7ED3\u6784\u914D\u7F6E");
+                jy.ThrowError("\u8BFB\u53D6\u6D88\u606F\u7C7B\u578B\u4E3A\uFF1A" + msgType + "\uFF0C\u7D22\u5F15" + idx + "\u65F6\u6570\u636E\u51FA\u73B0\u9519\u8BEF\uFF0C\u627E\u4E0D\u5230\u5BF9\u5E94\u7684\u6570\u636E\u7ED3\u6784\u914D\u7F6E");
                 // 使用默认读取
                 readValue(tag, bytes);
                 continue;
@@ -4231,7 +4231,7 @@ var junyou;
                     case 10 /* Group */: //(protobuf 已弃用)
                         value = undefined;
                         if (true) {
-                            junyou.ThrowError("\u8BFB\u53D6\u6D88\u606F\u7C7B\u578B\u4E3A\uFF1A" + msgType + "\uFF0C\u7D22\u5F15" + idx + "\u65F6\u6570\u636E\u51FA\u73B0\u5DF2\u5F03\u7528\u7684GROUP\u5206\u7EC4\u7C7B\u578B");
+                            jy.ThrowError("\u8BFB\u53D6\u6D88\u606F\u7C7B\u578B\u4E3A\uFF1A" + msgType + "\uFF0C\u7D22\u5F15" + idx + "\u65F6\u6570\u636E\u51FA\u73B0\u5DF2\u5F03\u7528\u7684GROUP\u5206\u7EC4\u7C7B\u578B");
                         }
                         break;
                     case 11 /* Message */: //消息
@@ -4276,7 +4276,7 @@ var junyou;
                 value = bytes.readDouble();
                 break;
             default:
-                junyou.ThrowError("protobuf的wireType未知");
+                jy.ThrowError("protobuf的wireType未知");
                 break;
         }
         return value;
@@ -4317,11 +4317,11 @@ var junyou;
         }
         var struct = typeof msgType == "object" ? msgType : structDict[msgType];
         if (!struct) {
-            junyou.ThrowError("\u975E\u6CD5\u7684\u901A\u4FE1\u7C7B\u578B[" + msgType + "]\uFF0C\u5806\u6808\u4FE1\u606F:" + new Error());
+            jy.ThrowError("\u975E\u6CD5\u7684\u901A\u4FE1\u7C7B\u578B[" + msgType + "]\uFF0C\u5806\u6808\u4FE1\u606F:" + new Error());
             return;
         }
         if (!bytes) {
-            bytes = new junyou.ByteArray;
+            bytes = new jy.ByteArray;
         }
         for (var numberStr in struct) {
             var num = +numberStr;
@@ -4431,7 +4431,7 @@ var junyou;
                     }
                 }
                 else {
-                    temp = new junyou.ByteArray;
+                    temp = new jy.ByteArray;
                     temp.writeUTFBytes(value);
                 }
                 length = temp ? temp.length : 0;
@@ -4448,7 +4448,7 @@ var junyou;
     function checkUInt32(value, type) {
         value = +value || 0;
         if (value > 4294967295 || value < 0) {
-            junyou.ThrowError("PBMessageUtils\u5199\u5165\u6570\u636E\u65F6\u5019\uFF0C\u4F7F\u7528\u7684\u7C7B\u578B\uFF1A" + type + "\uFF0C\u503C\u4E3A\uFF1A" + value + "\uFF0C\u4F46\u8D85\u51FA\u6574\u578B\u8303\u56F4\u3002");
+            jy.ThrowError("PBMessageUtils\u5199\u5165\u6570\u636E\u65F6\u5019\uFF0C\u4F7F\u7528\u7684\u7C7B\u578B\uFF1A" + type + "\uFF0C\u503C\u4E3A\uFF1A" + value + "\uFF0C\u4F46\u8D85\u51FA\u6574\u578B\u8303\u56F4\u3002");
             value >>> 0;
         }
         return value;
@@ -4456,7 +4456,7 @@ var junyou;
     function checkInt32(value, type) {
         value = +value || 0;
         if (value > 2147483647 || value < -2147483648) {
-            junyou.ThrowError("PBMessageUtils\u5199\u5165\u6570\u636E\u65F6\u5019\uFF0C\u4F7F\u7528\u7684\u7C7B\u578B\uFF1A" + type + "\uFF0C\u503C\u4E3A\uFF1A" + value + "\uFF0C\u4F46\u8D85\u51FA\u6574\u578B\u8303\u56F4\u3002");
+            jy.ThrowError("PBMessageUtils\u5199\u5165\u6570\u636E\u65F6\u5019\uFF0C\u4F7F\u7528\u7684\u7C7B\u578B\uFF1A" + type + "\uFF0C\u503C\u4E3A\uFF1A" + value + "\uFF0C\u4F46\u8D85\u51FA\u6574\u578B\u8303\u56F4\u3002");
             value >> 0;
         }
         return value;
@@ -4467,9 +4467,9 @@ var junyou;
     function decodeZigzag32(n) {
         return n >> 1 ^ (((n & 1) << 31) >> 31);
     }
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 位图的创建器
      * @author 3tion
@@ -4512,16 +4512,16 @@ var junyou;
             if (suiData) {
                 var bmd = this.isjpg ? suiData.jpgbmd : suiData.pngbmd;
                 bmd.using--;
-                bmd.lastUseTime = junyou.Global.now;
+                bmd.lastUseTime = jy.Global.now;
             }
         };
         return BitmapCreator;
-    }(junyou.BaseCreator));
-    junyou.BitmapCreator = BitmapCreator;
-    __reflect(BitmapCreator.prototype, "junyou.BitmapCreator");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    }(jy.BaseCreator));
+    jy.BitmapCreator = BitmapCreator;
+    __reflect(BitmapCreator.prototype, "jy.BitmapCreator");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 按钮
      * 在fla中 按钮只是需要1帧
@@ -4541,7 +4541,7 @@ var junyou;
         function Button() {
             var _this = _super.call(this) || this;
             _this._label = "";
-            junyou.TouchDown.bind(_this);
+            jy.TouchDown.bind(_this);
             return _this;
         }
         Button.prototype.bindChildren = function () {
@@ -4610,7 +4610,7 @@ var junyou;
             }
             if (old != bmp) {
                 changed = true;
-                junyou.removeDisplay(old);
+                jy.removeDisplay(old);
                 this._currentBmp = bmp;
             }
             if (changed) {
@@ -4674,12 +4674,12 @@ var junyou;
         };
         Button.prototype.dispose = function () {
             _super.prototype.dispose.call(this);
-            junyou.TouchDown.loose(this);
+            jy.TouchDown.loose(this);
         };
         return Button;
-    }(junyou.Component));
-    junyou.Button = Button;
-    __reflect(Button.prototype, "junyou.Button", ["junyou.IButton", "junyou.Component", "junyou.ComponentWithEnable"]);
+    }(jy.Component));
+    jy.Button = Button;
+    __reflect(Button.prototype, "jy.Button", ["jy.IButton", "jy.Component", "jy.ComponentWithEnable"]);
     /**
      * 按钮创建器
      * @author 3tion
@@ -4694,7 +4694,7 @@ var junyou;
             var _this = this;
             var tc;
             if (data[0]) {
-                tc = new junyou.TextFieldCreator();
+                tc = new jy.TextFieldCreator();
                 tc.setBaseData(data[0][1]);
                 tc.parseSelfData(data[0][2]);
             }
@@ -4741,19 +4741,19 @@ var junyou;
             };
         };
         return ButtonCreator;
-    }(junyou.BaseCreator));
-    junyou.ButtonCreator = ButtonCreator;
-    __reflect(ButtonCreator.prototype, "junyou.ButtonCreator");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    }(jy.BaseCreator));
+    jy.ButtonCreator = ButtonCreator;
+    __reflect(ButtonCreator.prototype, "jy.ButtonCreator");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     var LayoutContainer = /** @class */ (function () {
         function LayoutContainer(basis, host) {
-            this.$layoutBins = new junyou.ArraySet();
+            this.$layoutBins = new jy.ArraySet();
             host = host || new egret.Sprite();
             this._host = host;
             this._basis = basis;
-            junyou.on(-1998 /* ReLayout */, this.onResize, this);
+            jy.on(-1998 /* ReLayout */, this.onResize, this);
             host.on("removedFromStage" /* REMOVED_FROM_STAGE */, this.offStage, this);
             host.on("addedToStage" /* ADDED_TO_STAGE */, this.onStage, this);
             if (host.stage) {
@@ -4806,7 +4806,7 @@ var junyou;
             var bin = { dis: dis, type: type, hoffset: hoffset, voffset: voffset, outerV: outerV, outerH: outerH, size: size };
             list.set(key, bin);
             if (hide) {
-                junyou.removeDisplay(dis);
+                jy.removeDisplay(dis);
             }
             else {
                 this._host.addChild(dis);
@@ -4833,13 +4833,13 @@ var junyou;
         };
         LayoutContainer.prototype.binLayout = function (bin) {
             var dis = bin.dis, type = bin.type, hoffset = bin.hoffset, voffset = bin.voffset, outerV = bin.outerV, outerH = bin.outerH, size = bin.size;
-            var pt = junyou.Temp.SharedPoint1;
-            junyou.Layout.getLayoutPos(size.width, size.height, this._lw, this._lh, type, pt, hoffset, voffset, outerV, outerH);
+            var pt = jy.Temp.SharedPoint1;
+            jy.Layout.getLayoutPos(size.width, size.height, this._lw, this._lh, type, pt, hoffset, voffset, outerV, outerH);
             dis.x = pt.x;
             dis.y = pt.y;
         };
         LayoutContainer.prototype.$doLayout = function () {
-            junyou.Global.callLater(this.layoutAll, 0, this);
+            jy.Global.callLater(this.layoutAll, 0, this);
         };
         LayoutContainer.prototype.layoutAll = function () {
             var set = this.$layoutBins;
@@ -4853,8 +4853,8 @@ var junyou;
         LayoutContainer.MIN = Object.freeze({ width: 0, height: 0 });
         return LayoutContainer;
     }());
-    junyou.LayoutContainer = LayoutContainer;
-    __reflect(LayoutContainer.prototype, "junyou.LayoutContainer");
+    jy.LayoutContainer = LayoutContainer;
+    __reflect(LayoutContainer.prototype, "jy.LayoutContainer");
     /**
      * @param sw 舞台宽度
      * @param sh 舞台高度
@@ -4881,10 +4881,10 @@ var junyou;
         }
         return { dw: dw, dh: dh, scale: scale, lw: lw, lh: lh };
     }
-    junyou.getFixedLayout = getFixedLayout;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.getFixedLayout = getFixedLayout;
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * @author gushuai
      * (description)
@@ -4902,7 +4902,7 @@ var junyou;
             if (data) {
                 var callBack = data.callBack;
                 if (callBack) {
-                    callBack.call(junyou.Menu.currentShow, data);
+                    callBack.call(jy.Menu.currentShow, data);
                 }
             }
         };
@@ -4955,11 +4955,11 @@ var junyou;
         });
         return MenuBaseRender;
     }());
-    junyou.MenuBaseRender = MenuBaseRender;
-    __reflect(MenuBaseRender.prototype, "junyou.MenuBaseRender");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.MenuBaseRender = MenuBaseRender;
+    __reflect(MenuBaseRender.prototype, "jy.MenuBaseRender");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 单选按钮组
      */
@@ -5062,7 +5062,7 @@ var junyou;
                     }
                     else {
                         item = undefined;
-                        junyou.ThrowError("Group 设置的组件未添加到该组");
+                        jy.ThrowError("Group 设置的组件未添加到该组");
                     }
                 }
                 this._selectedItem = item;
@@ -5103,11 +5103,11 @@ var junyou;
         };
         return Group;
     }(egret.EventDispatcher));
-    junyou.Group = Group;
-    __reflect(Group.prototype, "junyou.Group");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.Group = Group;
+    __reflect(Group.prototype, "jy.Group");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 绑定属性名，当属性值发生改变时，可自动对外抛eventType事件
      *
@@ -5121,7 +5121,7 @@ var junyou;
         return function (host, property) {
             var data = host.getPropertyDescriptor(property);
             if (data && !data.configurable) {
-                return true && junyou.ThrowError("\u65E0\u6CD5\u7ED1\u5B9A" + host + "," + property + ",\u8BE5\u5C5E\u6027\u4E0D\u53EF\u8BBE\u7F6E");
+                return true && jy.ThrowError("\u65E0\u6CD5\u7ED1\u5B9A" + host + "," + property + ",\u8BE5\u5C5E\u6027\u4E0D\u53EF\u8BBE\u7F6E");
             }
             var key = "$d_fire_e$" + property;
             var events = host[key];
@@ -5156,7 +5156,7 @@ var junyou;
                     };
                 }
                 else {
-                    return true && junyou.ThrowError("\u65E0\u6CD5\u7ED1\u5B9A" + host + "," + property);
+                    return true && jy.ThrowError("\u65E0\u6CD5\u7ED1\u5B9A" + host + "," + property);
                 }
                 Object.defineProperty(host, property, data);
             }
@@ -5170,12 +5170,12 @@ var junyou;
                     }
                 }
                 else {
-                    junyou.dispatch(eventType_1, host);
+                    jy.dispatch(eventType_1, host);
                 }
             }
         }
     }
-    junyou.d_fire = d_fire;
+    jy.d_fire = d_fire;
     /**
      * 使用微软vs code中使用的代码
      * 用于一些 lazy 的调用
@@ -5217,10 +5217,10 @@ var junyou;
             return this[memoizeKey];
         };
     }
-    junyou.d_memoize = d_memoize;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.d_memoize = d_memoize;
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
     * 限制列队
     * @author 3tion
@@ -5228,7 +5228,7 @@ var junyou;
     var LimitQueue = /** @class */ (function () {
         function LimitQueue() {
             this._queue = [];
-            this.listener = new junyou.StateMachine();
+            this.listener = new jy.StateMachine();
         }
         LimitQueue.prototype.addLimiter = function (item) {
             var queue = this._queue;
@@ -5283,14 +5283,14 @@ var junyou;
         };
         return LimitQueue;
     }());
-    junyou.LimitQueue = LimitQueue;
-    __reflect(LimitQueue.prototype, "junyou.LimitQueue", ["junyou.ILimit"]);
+    jy.LimitQueue = LimitQueue;
+    __reflect(LimitQueue.prototype, "jy.LimitQueue", ["jy.ILimit"]);
     /**
      * 像浏览器的历史记录;
      */
     var historys = [];
     var _currentState;
-    junyou.UILimiter = {
+    jy.UILimiter = {
         impl: new LimitQueue(),
         MaxHistory: 5,
         get current() {
@@ -5347,17 +5347,17 @@ var junyou;
         for (var _i = 1; _i < arguments.length; _i++) {
             ids[_i - 1] = arguments[_i];
         }
-        (_a = junyou.UILimiter.listener).addToStates.apply(_a, [value].concat(ids));
+        (_a = jy.UILimiter.listener).addToStates.apply(_a, [value].concat(ids));
         var _a;
     }
-    junyou.addToStates = addToStates;
+    jy.addToStates = addToStates;
     function addToState(id, value) {
-        junyou.UILimiter.listener.addToState(id, value);
+        jy.UILimiter.listener.addToState(id, value);
     }
-    junyou.addToState = addToState;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.addToState = addToState;
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 使用数值或者字符串类型作为Key
      * V 作为Value的字典
@@ -5531,11 +5531,11 @@ var junyou;
         });
         return ArraySet;
     }());
-    junyou.ArraySet = ArraySet;
-    __reflect(ArraySet.prototype, "junyou.ArraySet");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.ArraySet = ArraySet;
+    __reflect(ArraySet.prototype, "jy.ArraySet");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 方便后续调整
      * 加入ProtoBuf的varint支持
@@ -5585,12 +5585,12 @@ var junyou;
                     low = data.getUint32(pos + 4 /* SIZE_OF_UINT32 */, flag);
                 }
                 this.position = pos + 8 /* SIZE_OF_INT64 */;
-                return junyou.Int64.toNumber(low, high);
+                return jy.Int64.toNumber(low, high);
             }
         };
         ByteArray.prototype.writeInt64 = function (value) {
             this.validateBuffer(8 /* SIZE_OF_INT64 */);
-            var i64 = junyou.Int64.fromNumber(value);
+            var i64 = jy.Int64.fromNumber(value);
             var high = i64.high, low = i64.low;
             var flag = this.$endian == 0 /* LITTLE_ENDIAN */;
             var data = this.data;
@@ -5678,11 +5678,11 @@ var junyou;
                 var low = data.getUint32(pos, true);
                 var high = data.getUint32(pos + 4 /* SIZE_OF_UINT32 */, true);
                 this.position = pos + 8 /* SIZE_OF_FIX64 */;
-                return junyou.Int64.toNumber(low, high);
+                return jy.Int64.toNumber(low, high);
             }
         };
         ByteArray.prototype.writeFix64 = function (value) {
-            var i64 = junyou.Int64.fromNumber(value);
+            var i64 = jy.Int64.fromNumber(value);
             this.validateBuffer(8 /* SIZE_OF_FIX64 */);
             var pos = this._position;
             var data = this.data;
@@ -5699,7 +5699,7 @@ var junyou;
          */
         ByteArray.prototype.readByteArray = function (length, ext) {
             if (ext === void 0) { ext = 0; }
-            var ba = new junyou.ByteArray(this.readBuffer(length), ext);
+            var ba = new jy.ByteArray(this.readBuffer(length), ext);
             ba.$endian = this.$endian;
             return ba;
         };
@@ -5707,7 +5707,7 @@ var junyou;
          * 向字节流中写入64位的可变长度的整数(Protobuf)
          */
         ByteArray.prototype.writeVarint64 = function (value) {
-            var i64 = junyou.Int64.fromNumber(value);
+            var i64 = jy.Int64.fromNumber(value);
             var high = i64.high;
             var low = i64.low;
             if (high == 0) {
@@ -5781,7 +5781,7 @@ var junyou;
                     }
                     else {
                         low |= (b << i);
-                        return junyou.Int64.toNumber(low, high);
+                        return jy.Int64.toNumber(low, high);
                     }
                 }
             }
@@ -5793,7 +5793,7 @@ var junyou;
             else {
                 low |= (b << i);
                 high = b >>> 4;
-                return junyou.Int64.toNumber(low, high);
+                return jy.Int64.toNumber(low, high);
             }
             for (i = 3;; i += 7) {
                 b = this.readUnsignedByte();
@@ -5807,7 +5807,7 @@ var junyou;
                     }
                 }
             }
-            return junyou.Int64.toNumber(low, high);
+            return jy.Int64.toNumber(low, high);
         };
         Object.defineProperty(ByteArray.prototype, "outBytes", {
             /**
@@ -5832,15 +5832,15 @@ var junyou;
         };
         return ByteArray;
     }(egret.ByteArray));
-    junyou.ByteArray = ByteArray;
-    __reflect(ByteArray.prototype, "junyou.ByteArray");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.ByteArray = ByteArray;
+    __reflect(ByteArray.prototype, "jy.ByteArray");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     ;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 项目中不使用long类型，此值暂时只用于存储Protobuff中的int64 sint64
      * @author
@@ -5905,8 +5905,8 @@ var junyou;
         };
         return Int64;
     }());
-    junyou.Int64 = Int64;
-    __reflect(Int64.prototype, "junyou.Int64");
+    jy.Int64 = Int64;
+    __reflect(Int64.prototype, "jy.Int64");
     /**
      * 2的16次方
      */
@@ -5927,10 +5927,10 @@ var junyou;
     var MAX_VALUE = new Int64(-1, 0x7FFFFFFF);
     var MIN_VALUE = new Int64(0, -2147483648);
     var ONE = new Int64(1);
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    junyou.Location = {
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    jy.Location = {
         /**
          * 根据两个经纬度获取距离(单位：米)
          *
@@ -5947,10 +5947,10 @@ var junyou;
             return Math.asin(Math.sqrt(Math.pow(Math.sin(a * .5), 2) + Math.cos(radlat1) * Math.cos(radlat2) * (Math.pow(Math.sin(b * .5), 2)))) * 12756274;
         }
     };
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    junyou.MotionGuidePlugin = (function () {
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    jy.MotionGuidePlugin = (function () {
         return {
             priority: 0,
             install: function (manager) {
@@ -6165,9 +6165,9 @@ var junyou;
         }
         ;
     })();
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 时间处理函数
      * DateUtils
@@ -6195,7 +6195,7 @@ var junyou;
      * @type {number}
      */
     var _serverUTCTime = _utcOffset; //默认使用本地时间
-    junyou.DateUtils = {
+    jy.DateUtils = {
         /**
          * 获取共享时间
          */
@@ -6250,13 +6250,13 @@ var junyou;
         },
         getDayStart: function (time) {
             if (time === undefined)
-                time = junyou.DateUtils.serverTime;
+                time = jy.DateUtils.serverTime;
             _sharedDate.setTime(time);
             return _sharedDate.setHours(0, 0, 0, 0);
         },
         getUTCDayStart: function (utcTime) {
             if (utcTime === undefined)
-                utcTime = junyou.DateUtils.utcServerTime;
+                utcTime = jy.DateUtils.utcServerTime;
             _sharedDate.setTime(utcTime);
             return _sharedDate.setUTCHours(0, 0, 0, 0);
         },
@@ -6271,11 +6271,11 @@ var junyou;
             return time + _utcOffset;
         },
         getDayCount: function (startTime, endTime) {
-            endTime = junyou.DateUtils.getDayStart(endTime);
+            endTime = jy.DateUtils.getDayStart(endTime);
             return Math.ceil((endTime - startTime) / 86400000 /* ONE_DAY */) + 1;
         },
         getUTCDayCount: function (startTime, endTime) {
-            endTime = junyou.DateUtils.getUTCDayStart(endTime);
+            endTime = jy.DateUtils.getUTCDayStart(endTime);
             return Math.ceil((endTime - startTime) / 86400000 /* ONE_DAY */) + 1;
         },
         /**
@@ -6342,7 +6342,7 @@ var junyou;
      */
     function getDefaultCDFOption(format) {
         if (initDefaultCDFormats()) {
-            junyou.DateUtils.getDefaultCDFOption = _getDefaultCDFOption;
+            jy.DateUtils.getDefaultCDFOption = _getDefaultCDFOption;
         }
         return _getDefaultCDFOption(format);
         function _getDefaultCDFOption(format) {
@@ -6351,7 +6351,7 @@ var junyou;
     }
     function initDefaultCDFormats() {
         if (!_defaultCountFormats) {
-            var LangUtil_1 = junyou.LangUtil;
+            var LangUtil_1 = jy.LangUtil;
             _defaultCountFormats = (_a = {},
                 _a[0 /* D_H_M_S */] = { d: LangUtil_1.getMsg("$_ndays"), h: LangUtil_1.getMsg("$_nhours"), m: LangUtil_1.getMsg("$_nminutes"), s: LangUtil_1.getMsg("$_nsecends") },
                 _a[1 /* H_M_S */] = { h: LangUtil_1.getMsg("$_nhours"), m: LangUtil_1.getMsg("$_nminutes"), s: LangUtil_1.getMsg("$_nsecends") },
@@ -6363,9 +6363,9 @@ var junyou;
         }
         var _a;
     }
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 解析数据
      *
@@ -6419,7 +6419,7 @@ var junyou;
                 return _decode(this, +timeArr[0], +timeArr[1]);
             }
             else {
-                junyou.ThrowError("时间格式不正确，不为HH:mm格式，当前配置：" + strTime);
+                jy.ThrowError("时间格式不正确，不为HH:mm格式，当前配置：" + strTime);
             }
         };
         Object.defineProperty(TimeVO.prototype, "todayTime", {
@@ -6444,16 +6444,16 @@ var junyou;
          * @memberof TimeVO
          */
         TimeVO.prototype.getDayTime = function (day, isUTC) {
-            var dayStart = isUTC ? junyou.DateUtils.getDayStart : junyou.DateUtils.getDayStart;
+            var dayStart = isUTC ? jy.DateUtils.getDayStart : jy.DateUtils.getDayStart;
             return dayStart(day) + this.time;
         };
         return TimeVO;
     }());
-    junyou.TimeVO = TimeVO;
-    __reflect(TimeVO.prototype, "junyou.TimeVO");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.TimeVO = TimeVO;
+    __reflect(TimeVO.prototype, "jy.TimeVO");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 圆圈倒计时
      *
@@ -6564,7 +6564,7 @@ var junyou;
             }
             if (maxValue < 0) {
                 if (true) {
-                    junyou.ThrowError("进度条最大宽度不应小等于0");
+                    jy.ThrowError("进度条最大宽度不应小等于0");
                 }
                 maxValue = 0.00001;
             }
@@ -6572,7 +6572,7 @@ var junyou;
                 value = maxValue;
             }
             this._p = value / maxValue;
-            junyou.Global.callLater(this.render, 0, this);
+            jy.Global.callLater(this.render, 0, this);
         };
         CircleCountdown.prototype.reuse = function () {
             this.isEnd = false;
@@ -6628,17 +6628,17 @@ var junyou;
         CircleCountdown.defaultColor = 0xff0000;
         return CircleCountdown;
     }());
-    junyou.CircleCountdown = CircleCountdown;
-    __reflect(CircleCountdown.prototype, "junyou.CircleCountdown");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.CircleCountdown = CircleCountdown;
+    __reflect(CircleCountdown.prototype, "jy.CircleCountdown");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 颜色工具
      * @author 3tion
      *
      */
-    junyou.ColorUtil = {
+    jy.ColorUtil = {
         /**
          * 获取颜色字符串 #a1b2c3
          * @param c
@@ -6657,15 +6657,15 @@ var junyou;
             }
             else {
                 if (true) {
-                    junyou.ThrowError("\u4F7F\u7528\u7684\u989C\u8272" + c + "\u6709\u8BEF");
+                    jy.ThrowError("\u4F7F\u7528\u7684\u989C\u8272" + c + "\u6709\u8BEF");
                 }
                 return 0;
             }
         }
     };
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     var copyDiv = document.createElement("div");
     var doc = document;
     var de = doc.documentElement;
@@ -6689,12 +6689,12 @@ var junyou;
         de.removeChild(copyDiv);
         return val;
     }
-    junyou.doCopy = doCopy;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.doCopy = doCopy;
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     var _texture;
-    junyou.DataUrlUtils = {
+    jy.DataUrlUtils = {
         /**
          * 根据dataUrl获取 base64字符串
          *
@@ -6765,9 +6765,9 @@ var junyou;
         }
         return bytes;
     }
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     var lR = 0.213;
     var lG = 0.715;
     var lB = 0.072;
@@ -6875,15 +6875,15 @@ var junyou;
      * @export
      * @class FilterUtils
      */
-    junyou.FilterUtils = {
+    jy.FilterUtils = {
         gray: [new egret.ColorMatrixFilter([0.3086, 0.6094, 0.0820, 0, 0, 0.3086, 0.6094, 0.0820, 0, 0, 0.3086, 0.6094, 0.0820, 0, 0, 0, 0, 0, 1, 0])],
         dark: [new egret.ColorMatrixFilter([0.5, 0, 0, 0, 6.75, 0, 0.5, 0, 0, 6.75, 0, 0, 0.5, 0, 6.75, 0, 0, 0, 1, 0])],
         blur: [new egret.BlurFilter(5, 5)],
         adjustColorFilter: adjustColorFilter
     };
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 获取多个点的几何中心点
      *
@@ -6907,7 +6907,7 @@ var junyou;
         result.y = y / len;
         return result;
     }
-    junyou.getCenter = getCenter;
+    jy.getCenter = getCenter;
     /**
      * 检查类矩形 a 和 b 是否相交
      * @export
@@ -6924,7 +6924,7 @@ var junyou;
         return Math.max(a.x, b.x) <= Math.min(aright, bright)
             && Math.max(a.y, b.y) <= Math.min(abottom, bbottom);
     }
-    junyou.intersects = intersects;
+    jy.intersects = intersects;
     /**
      * 获取点集围成的区域的面积
      * S=（（X2-X1）*  (Y2+Y1)+（X2-X2）*  (Y3+Y2)+（X4-X3）*  (Y4+Y3)+……+（Xn-Xn-1）*  (Yn+Yn-1)+（X1-Xn）*  (Y1+Yn)）/2
@@ -6944,10 +6944,10 @@ var junyou;
         s += (p0.x - last.x) * (p0.y + last.y);
         return s * .5;
     }
-    junyou.getArea = getArea;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.getArea = getArea;
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * HTML工具类
      * @author 3tion
@@ -6960,7 +6960,7 @@ var junyou;
     function unescFun(substring) {
         return unescChars[substring];
     }
-    junyou.HTMLUtil = {
+    jy.HTMLUtil = {
         /**
          * 字符着色
          *
@@ -6971,7 +6971,7 @@ var junyou;
         createColorHtml: function (value, color) {
             var c;
             if (typeof color == "number") {
-                c = junyou.ColorUtil.getColorString(color);
+                c = jy.ColorUtil.getColorString(color);
             }
             else if (color.charAt(0) != "#") {
                 c = "#" + color;
@@ -7008,14 +7008,14 @@ var junyou;
             return content.replace(/&lt;|&gt;|&quot;|&apos;|&amp;|&nbsp;|&#x000A;/g, unescFun);
         }
     };
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     var _msgDict = window.$lang || {};
     /**
      * 用于处理语言/文字显示
      */
-    junyou.LangUtil = {
+    jy.LangUtil = {
         /**
          * 获取显示的信息
          *
@@ -7057,10 +7057,10 @@ var junyou;
             _msgDict = data;
         }
     };
-})(junyou || (junyou = {}));
+})(jy || (jy = {}));
 var $nl_nc;
-var junyou;
-(function (junyou) {
+var jy;
+(function (jy) {
     /**
      * 姓 集合
      * 对应配置中 姓 列
@@ -7133,7 +7133,7 @@ var junyou;
             var SC = C[sex];
             if (!SC) {
                 if (true) {
-                    junyou.ThrowError("性别必须为1或者2");
+                    jy.ThrowError("性别必须为1或者2");
                 }
                 return;
             }
@@ -7154,18 +7154,18 @@ var junyou;
         };
         return NameUtils;
     }());
-    junyou.NameUtils = NameUtils;
-    __reflect(NameUtils.prototype, "junyou.NameUtils");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.NameUtils = NameUtils;
+    __reflect(NameUtils.prototype, "jy.NameUtils");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     var seed = 1;
     var callbacks = {};
     var Timeout = "RPCTimeout";
     var count = 0;
     var start;
     var willDel = [];
-    junyou.RPC = {
+    jy.RPC = {
         Timeout: Timeout,
         callback: callback,
         registerCallback: registerCallback,
@@ -7183,8 +7183,8 @@ var junyou;
             for (var _i = 4; _i < arguments.length; _i++) {
                 args[_i - 4] = arguments[_i];
             }
-            var success = junyou.CallbackInfo.get.apply(junyou.CallbackInfo, [callback, thisObj].concat(args));
-            var error = junyou.CallbackInfo.get.apply(junyou.CallbackInfo, [withError ? callback : noErrorCallback(callback, thisObj), thisObj].concat(args));
+            var success = jy.CallbackInfo.get.apply(jy.CallbackInfo, [callback, thisObj].concat(args));
+            var error = jy.CallbackInfo.get.apply(jy.CallbackInfo, [withError ? callback : noErrorCallback(callback, thisObj), thisObj].concat(args));
             return registerCallback(success, error, timeout);
         },
         /**
@@ -7226,10 +7226,10 @@ var junyou;
     function registerCallback(success, error, timeout) {
         if (timeout === void 0) { timeout = 2000 /* DefaultTimeout */; }
         var id = seed++;
-        callbacks[id] = { id: id, expired: junyou.Global.now + timeout, success: success, error: error };
+        callbacks[id] = { id: id, expired: jy.Global.now + timeout, success: success, error: error };
         count++;
         if (!start) {
-            junyou.TimerUtil.addCallback(1000 /* ONE_SECOND */, check);
+            jy.TimerUtil.addCallback(1000 /* ONE_SECOND */, check);
             start = true;
         }
         return id;
@@ -7239,7 +7239,7 @@ var junyou;
             delete callbacks[id];
             count--;
             if (count == 0) {
-                junyou.TimerUtil.removeCallback(1000 /* ONE_SECOND */, check);
+                jy.TimerUtil.removeCallback(1000 /* ONE_SECOND */, check);
                 start = false;
             }
         }
@@ -7285,7 +7285,7 @@ var junyou;
     function check() {
         var del = willDel;
         var i = 0;
-        var now = junyou.Global.now;
+        var now = jy.Global.now;
         for (var id in callbacks) {
             var callback_1 = callbacks[id];
             if (now > callback_1.expired) {
@@ -7297,16 +7297,16 @@ var junyou;
             callback(id, null, Timeout);
         }
     }
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     var _dic = {};
     /**
      * 请求限制
      * @author 3tion
      *
      */
-    junyou.RequestLimit = {
+    jy.RequestLimit = {
         /**
          *
          *
@@ -7321,7 +7321,7 @@ var junyou;
                 return true;
             }
             var t = _dic[o];
-            var now = junyou.Global.now;
+            var now = jy.Global.now;
             if (!t) {
                 _dic[o] = time + now;
                 return true;
@@ -7342,15 +7342,15 @@ var junyou;
             delete _dic[o];
         }
     };
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 临时对象
      * @author 3tion
      *
      */
-    junyou.Temp = {
+    jy.Temp = {
         /**
          * 共享数组1
          */
@@ -7390,7 +7390,7 @@ var junyou;
          */
         willReplacedFunction: function () {
             if (true) {
-                junyou.ThrowError("\u9700\u8981\u88AB\u66FF\u6362\u7684\u65B9\u6CD5\uFF0C\u6CA1\u6709\u88AB\u66FF\u6362\uFF0C\u5806\u6808\u4FE1\u606F\uFF1A" + new Error().stack);
+                jy.ThrowError("\u9700\u8981\u88AB\u66FF\u6362\u7684\u65B9\u6CD5\uFF0C\u6CA1\u6709\u88AB\u66FF\u6362\uFF0C\u5806\u6808\u4FE1\u606F\uFF1A" + new Error().stack);
             }
         },
         /**
@@ -7408,9 +7408,9 @@ var junyou;
             return arg;
         }
     };
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     var _timeobj = {};
     var tmpList = [];
     var willDeleted = [];
@@ -7462,14 +7462,14 @@ var junyou;
         if (!timer) {
             timer = {};
             timer.tid = time; //setInterval(check, time, timer);
-            timer.nt = junyou.Global.now + time;
+            timer.nt = jy.Global.now + time;
             var list = [];
             timer.list = list;
             _timeobj[time] = timer;
-            list.push(junyou.CallbackInfo.get.apply(junyou.CallbackInfo, [callback, thisObj].concat(args)));
+            list.push(jy.CallbackInfo.get.apply(jy.CallbackInfo, [callback, thisObj].concat(args)));
         }
         else {
-            junyou.CallbackInfo.addToList.apply(junyou.CallbackInfo, [timer.list, callback, thisObj].concat(args));
+            jy.CallbackInfo.addToList.apply(jy.CallbackInfo, [timer.list, callback, thisObj].concat(args));
         }
     }
     /**
@@ -7498,10 +7498,10 @@ var junyou;
             }
         }
     }
-    junyou.TimerUtil = { addCallback: addCallback, removeCallback: removeCallback, tick: tick };
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.TimerUtil = { addCallback: addCallback, removeCallback: removeCallback, tick: tick };
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     var fun = window.URL ? function (link, origin) {
         origin = origin || location.href;
         return new URL(link, origin).href;
@@ -7529,14 +7529,14 @@ var junyou;
         }
         return link;
     }
-    junyou.solveLink = solveLink;
-})(junyou || (junyou = {}));
+    jy.solveLink = solveLink;
+})(jy || (jy = {}));
 /**
  * 脏字内容
  */
 var $dirty;
-var junyou;
-(function (junyou) {
+var jy;
+(function (jy) {
     /**
      * 初始化屏蔽字
      * @param str   使用特定符号分隔的脏字列表
@@ -7569,8 +7569,8 @@ var junyou;
             s += t + ")|[|]";
             if (s.length < 32768) { //正则字符串的实际长度
                 filterWords = new RegExp(s, "g");
-                junyou.WordFilter.wordCensor = wordCensor1;
-                junyou.WordFilter.checkWord = checkWord1;
+                jy.WordFilter.wordCensor = wordCensor1;
+                jy.WordFilter.checkWord = checkWord1;
                 return;
             }
         } //超过长度的采用方案2
@@ -7584,8 +7584,8 @@ var junyou;
         //| 一般我们特殊用途，也加入屏蔽字符
         _filterList[i] = new RegExp("[|]", "g");
         _len = _len + 1;
-        junyou.WordFilter.wordCensor = wordCensor2;
-        junyou.WordFilter.checkWord = checkWord2;
+        jy.WordFilter.wordCensor = wordCensor2;
+        jy.WordFilter.checkWord = checkWord2;
     }
     //正常版
     function wordCensor1(msg) {
@@ -7640,7 +7640,7 @@ var junyou;
      * 文字过滤
      * @author 3tion
      */
-    junyou.WordFilter = {
+    jy.WordFilter = {
         /**
          * 由于脏字文件使用ajax读取，可能存在跨域问题，所以在H5中使用javascript方式加载
          */
@@ -7685,27 +7685,27 @@ var junyou;
          */
         checkWord: checkWord1,
     };
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 客户端检测
      * @author 3tion
      *
      */
-    junyou.ClientCheck = {
+    jy.ClientCheck = {
         /**
          * 是否做客户端检查
          */
         isClientCheck: true
     };
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 错误前缀
      */
-    junyou.errorPrefix = "";
+    jy.errorPrefix = "";
     if (false) {
         /**
          * 内存中存储的错误数据信息
@@ -7719,7 +7719,7 @@ var junyou;
          *
          */
         function pushMsg(msg) {
-            if (errorMsg.length > junyou.ThrowError.MaxCount) {
+            if (errorMsg.length > jy.ThrowError.MaxCount) {
                 errorMsg.shift();
             }
             var msg = getMsg(msg);
@@ -7728,7 +7728,7 @@ var junyou;
         }
     }
     if (true) {
-        junyou.Log = function () {
+        jy.Log = function () {
             var msg = "%c";
             for (var i = 0; i < arguments.length; i++) {
                 msg += arguments[i];
@@ -7748,11 +7748,11 @@ var junyou;
      * 抛错
      * @param {string | Error}  msg 描述
      **/
-    junyou.ThrowError = function (msg, err, alert) {
+    jy.ThrowError = function (msg, err, alert) {
         if (true && alert) {
             window.alert(msg);
         }
-        msg = junyou.errorPrefix + msg;
+        msg = jy.errorPrefix + msg;
         msg += "%c";
         if (err) {
             msg += "\nError:\n[name]:" + err.name + ",[message]:" + err.message;
@@ -7770,12 +7770,12 @@ var junyou;
         console.log(msg, "color:red");
     };
     if (false) {
-        junyou.ThrowError.MaxCount = 50;
-        junyou.ThrowError.errorMsg = errorMsg;
+        jy.ThrowError.MaxCount = 50;
+        jy.ThrowError.errorMsg = errorMsg;
     }
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 2d游戏的引擎管理游戏层级关系<br/>
      * @author 3tion
@@ -7803,7 +7803,7 @@ var junyou;
             var lc = {};
             lc.id = id;
             lc.parentid = parentid;
-            lc.ref = ref || junyou.BaseLayer;
+            lc.ref = ref || jy.BaseLayer;
             GameEngine.layerConfigs[id] = lc;
         };
         /**
@@ -7840,7 +7840,7 @@ var junyou;
                 layer = new ref(id);
                 this.addLayer(layer, cfg);
                 layers[id] = layer;
-                if (layer instanceof junyou.SortedLayer) {
+                if (layer instanceof jy.SortedLayer) {
                     this._sortedLayers.push(layer);
                 }
             }
@@ -7874,7 +7874,7 @@ var junyou;
          */
         GameEngine.prototype.sleepLayer = function (layerID) {
             var layer = this._layers[layerID];
-            junyou.removeDisplay(layer);
+            jy.removeDisplay(layer);
         };
         GameEngine.prototype.awakeLayer = function (layerID) {
             var layer = this._layers[layerID];
@@ -7915,11 +7915,11 @@ var junyou;
         GameEngine.layerConfigs = {};
         return GameEngine;
     }(egret.EventDispatcher));
-    junyou.GameEngine = GameEngine;
-    __reflect(GameEngine.prototype, "junyou.GameEngine");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.GameEngine = GameEngine;
+    __reflect(GameEngine.prototype, "jy.GameEngine");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     function call(info, ars) {
         var args = [];
         var i = 0;
@@ -7942,14 +7942,14 @@ var junyou;
             catch (e) {
                 if (true) {
                     var debug = info["_debug"];
-                    junyou.ThrowError("CallbackInfo\u6267\u884C\u62A5\u9519\uFF0C\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n}==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + e.stack);
+                    jy.ThrowError("CallbackInfo\u6267\u884C\u62A5\u9519\uFF0C\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n}==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + e.stack);
                     console.log.apply(console, ["参数列表"].concat(this.args));
                 }
             }
         }
         else if (true) {
             var debug = info["_debug"];
-            junyou.ThrowError("\u5BF9\u5DF2\u56DE\u6536\u7684CallbackInfo\u6267\u884C\u4E86\u56DE\u8C03\uFF0C\u6700\u540E\u4E00\u6B21\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + new Error().stack);
+            jy.ThrowError("\u5BF9\u5DF2\u56DE\u6536\u7684CallbackInfo\u6267\u884C\u4E86\u56DE\u8C03\uFF0C\u6700\u540E\u4E00\u6B21\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + new Error().stack);
         }
     }
     /**
@@ -8025,7 +8025,7 @@ var junyou;
             for (var _i = 2; _i < arguments.length; _i++) {
                 args[_i - 2] = arguments[_i];
             }
-            var info = junyou.recyclable(CallbackInfo);
+            var info = jy.recyclable(CallbackInfo);
             info.init(callback, thisObj, args);
             return info;
         };
@@ -8056,11 +8056,11 @@ var junyou;
         };
         return CallbackInfo;
     }());
-    junyou.CallbackInfo = CallbackInfo;
-    __reflect(CallbackInfo.prototype, "junyou.CallbackInfo", ["junyou.IRecyclable"]);
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.CallbackInfo = CallbackInfo;
+    __reflect(CallbackInfo.prototype, "jy.CallbackInfo", ["jy.IRecyclable"]);
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     var DSprite = /** @class */ (function (_super) {
         __extends(DSprite, _super);
         function DSprite() {
@@ -8070,11 +8070,11 @@ var junyou;
         }
         return DSprite;
     }(egret.Sprite));
-    junyou.DSprite = DSprite;
-    __reflect(DSprite.prototype, "junyou.DSprite", ["junyou.IDepth"]);
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.DSprite = DSprite;
+    __reflect(DSprite.prototype, "jy.DSprite", ["jy.IDepth"]);
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 用于处理无方向的动画信息
      * @author 3tion
@@ -8103,8 +8103,8 @@ var junyou;
                 this._refList.push(render);
                 if (state == 0 /* UNREQUEST */) {
                     var uri = this.uri = "a/" /* Ani */ + this.key + "/" + "d.json" /* CfgFile */;
-                    var url = this.url = junyou.ConfigUtils.getResUrl(uri);
-                    junyou.Res.load(uri, url, junyou.CallbackInfo.get(this.dataLoadComplete, this), this.qid);
+                    var url = this.url = jy.ConfigUtils.getResUrl(uri);
+                    jy.Res.load(uri, url, jy.CallbackInfo.get(this.dataLoadComplete, this), this.qid);
                     this.state = 1 /* REQUESTING */;
                 }
             }
@@ -8142,7 +8142,7 @@ var junyou;
         };
         AniInfo.prototype.init = function (key, data) {
             _super.prototype.init.call(this, key, data[0]);
-            var res = new junyou.UnitResource("a/" /* Ani */ + key, this.splitInfo);
+            var res = new jy.UnitResource("a/" /* Ani */ + key, this.splitInfo);
             res.qid = this.qid;
             res.decodeData(data[1]);
             this._resources = res;
@@ -8160,10 +8160,10 @@ var junyou;
             configurable: true
         });
         return AniInfo;
-    }(junyou.PstInfo));
-    junyou.AniInfo = AniInfo;
-    __reflect(AniInfo.prototype, "junyou.AniInfo");
-})(junyou || (junyou = {}));
+    }(jy.PstInfo));
+    jy.AniInfo = AniInfo;
+    __reflect(AniInfo.prototype, "jy.AniInfo");
+})(jy || (jy = {}));
 if (true) {
     var $gm = $gm || {};
     $gm.recordAni = function () {
@@ -8211,8 +8211,8 @@ if (true) {
         }
     };
 }
-var junyou;
-(function (junyou) {
+var jy;
+(function (jy) {
     /**
      * 由于目前特效和渲染器是完全一一对应关系，所以直接做成AniBitmap
      * @author 3tion
@@ -8252,7 +8252,7 @@ var junyou;
             if (aniinfo) {
                 var actionInfo = aniinfo.actionInfo;
                 if (actionInfo) {
-                    var now = junyou.Global.now;
+                    var now = jy.Global.now;
                     this.onData(actionInfo, now);
                     this.doRender(now);
                 }
@@ -8339,7 +8339,7 @@ var junyou;
          * 播放
          */
         AniRender.prototype.play = function (now) {
-            var globalNow = junyou.Global.now;
+            var globalNow = jy.Global.now;
             now = now === void 0 ? globalNow : now;
             this.plTime = globalNow;
             this.renderedTime = now;
@@ -8369,7 +8369,7 @@ var junyou;
                         if (!this.resOK) {
                             this.resOK = true;
                             //重新计算时间
-                            var deltaTime = junyou.Global.now - this.plTime;
+                            var deltaTime = jy.Global.now - this.plTime;
                             this.renderedTime = this.nextRenderTime = this.renderedTime + deltaTime;
                         }
                         render = this.render;
@@ -8455,20 +8455,20 @@ var junyou;
          */
         AniRender.getAni = function (uri, option, qid) {
             if (true && !uri) {
-                true && junyou.ThrowError("\u521B\u5EFA\u4E86\u6CA1\u6709uri\u7684AniRender");
+                true && jy.ThrowError("\u521B\u5EFA\u4E86\u6CA1\u6709uri\u7684AniRender");
             }
             var aniDict = $DD.ani;
             var aniInfo = aniDict[uri];
             if (!aniInfo) {
-                aniInfo = new junyou.AniInfo();
+                aniInfo = new jy.AniInfo();
                 aniInfo.key = uri;
                 aniDict[uri] = aniInfo;
             }
             aniInfo.qid = qid;
             var res = aniInfo.getResource();
             res && (res.qid = qid);
-            var display = junyou.recyclable(junyou.ResourceBitmap);
-            var ani = junyou.recyclable(AniRender);
+            var display = jy.recyclable(jy.ResourceBitmap);
+            var ani = jy.recyclable(AniRender);
             var guid, stop;
             if (option) {
                 guid = option.guid;
@@ -8539,9 +8539,9 @@ var junyou;
         AniRender._renderByGuid = {};
         AniRender.guid = 1;
         return AniRender;
-    }(junyou.BaseRender));
-    junyou.AniRender = AniRender;
-    __reflect(AniRender.prototype, "junyou.AniRender", ["junyou.IRecyclable"]);
+    }(jy.BaseRender));
+    jy.AniRender = AniRender;
+    __reflect(AniRender.prototype, "jy.AniRender", ["jy.IRecyclable"]);
     function checkStart(aniInfo, loop, startFrame) {
         var actionInfo = aniInfo.actionInfo;
         if (loop || (loop == undefined && actionInfo && actionInfo.isCircle)) {
@@ -8552,9 +8552,9 @@ var junyou;
         }
         return startFrame;
     }
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 获取帧数据
      * 为数组的顺序："a", "f", "t", "e", "d"
@@ -8578,7 +8578,7 @@ var junyou;
                 return def;
             }
         }
-        var f = junyou.DataUtils.getData(data, keys, def);
+        var f = jy.DataUtils.getData(data, keys, def);
         if (+f.e == 0) {
             f.e = undefined;
         }
@@ -8587,7 +8587,7 @@ var junyou;
         }
         return f;
     }
-    junyou.getFrameInfo = getFrameInfo;
+    jy.getFrameInfo = getFrameInfo;
     /**
      * 获取动作数据
      *
@@ -8611,7 +8611,7 @@ var junyou;
         aInfo.isCircle = !!data[1];
         return aInfo;
     }
-    junyou.getActionInfo = getActionInfo;
+    jy.getActionInfo = getActionInfo;
     var customActionKey = -0.5; // 使用0.5 防止和手动加的key重复
     /**
      * 获取自定义动作
@@ -8633,10 +8633,10 @@ var junyou;
         }
         return { key: key, frames: frames, totalTime: totalTime };
     }
-    junyou.getCustomAction = getCustomAction;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.getCustomAction = getCustomAction;
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     function isPowerOfTwo(n) {
         return (n !== 0) && ((n & (n - 1)) === 0);
     }
@@ -8733,10 +8733,10 @@ var junyou;
             maxViewportSize: getParameter(3386 /* MAX_VIEWPORT_DIMS */),
         };
     }
-    junyou.getWebGLCaps = getWebGLCaps;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.getWebGLCaps = getWebGLCaps;
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 资源显示用位图
      */
@@ -8774,7 +8774,7 @@ var junyou;
             }
         };
         ResourceBitmap.prototype.onRecycle = function () {
-            junyou.removeDisplay(this);
+            jy.removeDisplay(this);
             this.removeAllListeners();
             this.res = undefined;
             this.rotation = 0;
@@ -8789,11 +8789,11 @@ var junyou;
         };
         return ResourceBitmap;
     }(egret.Bitmap));
-    junyou.ResourceBitmap = ResourceBitmap;
-    __reflect(ResourceBitmap.prototype, "junyou.ResourceBitmap", ["junyou.IRecyclable", "junyou.IDepth"]);
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.ResourceBitmap = ResourceBitmap;
+    __reflect(ResourceBitmap.prototype, "jy.ResourceBitmap", ["jy.IRecyclable", "jy.IDepth"]);
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 拆分的资源
      * @author 3tion
@@ -8822,10 +8822,10 @@ var junyou;
          * @param {number[]} adKeys (description)
          */
         SplitUnitResource.prototype.bindTextures = function (textures, adKey) {
-            var a = junyou.ADKey.getAction(adKey);
+            var a = jy.ADKey.getAction(adKey);
             var dTextures = textures[a];
             if (dTextures) {
-                var d = junyou.ADKey.getDirection(adKey);
+                var d = jy.ADKey.getDirection(adKey);
                 var textures_1 = dTextures[d];
                 if (textures_1) {
                     for (var i = 0; i < textures_1.length; i++) {
@@ -8849,7 +8849,7 @@ var junyou;
         SplitUnitResource.prototype.load = function () {
             if (this.state == 0 /* UNREQUEST */) {
                 this.state = 1 /* REQUESTING */;
-                junyou.Res.load(this.uri, this.url, junyou.CallbackInfo.get(this.loadComplete, this), this.qid);
+                jy.Res.load(this.uri, this.url, jy.CallbackInfo.get(this.loadComplete, this), this.qid);
             }
         };
         /**
@@ -8893,14 +8893,14 @@ var junyou;
         };
         return SplitUnitResource;
     }());
-    junyou.SplitUnitResource = SplitUnitResource;
-    __reflect(SplitUnitResource.prototype, "junyou.SplitUnitResource", ["junyou.IResource"]);
-})(junyou || (junyou = {}));
+    jy.SplitUnitResource = SplitUnitResource;
+    __reflect(SplitUnitResource.prototype, "jy.SplitUnitResource", ["jy.IResource"]);
+})(jy || (jy = {}));
 /**
  * @author 3tion
  */
-var junyou;
-(function (junyou) {
+var jy;
+(function (jy) {
     function setJTexture(bmp, texture) {
         bmp.texture = texture;
         var tx, ty;
@@ -8920,7 +8920,7 @@ var junyou;
             this.state = 0 /* UNREQUEST */;
             this.key = key;
             var uri = this.uri = key + "/" + "d.json" /* CfgFile */;
-            this.url = junyou.ConfigUtils.getResUrl(uri);
+            this.url = jy.ConfigUtils.getResUrl(uri);
             this.sInfo = splitInfo;
         }
         /**
@@ -8971,7 +8971,7 @@ var junyou;
         UnitResource.prototype.loadData = function () {
             if (this.state == 0 /* UNREQUEST */) {
                 this.state = 1 /* REQUESTING */;
-                junyou.Res.load(this.uri, this.url, junyou.CallbackInfo.get(this.dataLoadComplete, this), this.qid);
+                jy.Res.load(this.uri, this.url, jy.CallbackInfo.get(this.dataLoadComplete, this), this.qid);
             }
         };
         /**
@@ -8998,7 +8998,7 @@ var junyou;
             var a = drawInfo.a, d = drawInfo.d;
             if (frame) {
                 var res = this.loadRes(d, a);
-                res.lastUseTime = junyou.Global.now;
+                res.lastUseTime = jy.Global.now;
                 if (frame.bitmapData) {
                     setJTexture(bitmap, frame);
                     return true;
@@ -9034,10 +9034,10 @@ var junyou;
         UnitResource.prototype.loadRes = function (direction, action) {
             var r = this.sInfo.getResKey(direction, action);
             var uri = this.getUri2(r);
-            return junyou.ResManager.get(uri, this.noRes, this, uri, r);
+            return jy.ResManager.get(uri, this.noRes, this, uri, r);
         };
         UnitResource.prototype.noRes = function (uri, r) {
-            var tmp = new junyou.SplitUnitResource(uri, this.getUrl(uri));
+            var tmp = new jy.SplitUnitResource(uri, this.getUrl(uri));
             tmp.qid = this.qid;
             tmp.bindTextures(this._datas, this.sInfo.adDict[r]);
             tmp.load();
@@ -9050,11 +9050,11 @@ var junyou;
             return this.key + "/" + resKey + ".png" /* PNG */;
         };
         UnitResource.prototype.getUrl = function (uri) {
-            return junyou.ConfigUtils.getResUrl(uri + junyou.Global.webp);
+            return jy.ConfigUtils.getResUrl(uri + jy.Global.webp);
         };
         UnitResource.prototype.isResOK = function (direction, action) {
             var uri = this.getUri(direction, action);
-            var res = junyou.ResManager.getResource(uri);
+            var res = jy.ResManager.getResource(uri);
             return !!(res && res.bmd);
         };
         /**
@@ -9072,11 +9072,11 @@ var junyou;
         };
         return UnitResource;
     }());
-    junyou.UnitResource = UnitResource;
-    __reflect(UnitResource.prototype, "junyou.UnitResource");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.UnitResource = UnitResource;
+    __reflect(UnitResource.prototype, "jy.UnitResource");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 相机
      * @author 3tion
@@ -9260,8 +9260,8 @@ var junyou;
         });
         return Camera;
     }(egret.HashObject));
-    junyou.Camera = Camera;
-    __reflect(Camera.prototype, "junyou.Camera");
+    jy.Camera = Camera;
+    __reflect(Camera.prototype, "jy.Camera");
     /**
      * 获取坐标点的hash值
      *
@@ -9272,14 +9272,14 @@ var junyou;
     function getPosHash(pos) {
         return pos.x << 16 | (pos.y & 0xffff);
     }
-    junyou.getPosHash = getPosHash;
+    jy.getPosHash = getPosHash;
     function getPosHash2(x, y) {
         return x << 16 | (y & 0xffff);
     }
-    junyou.getPosHash2 = getPosHash2;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.getPosHash2 = getPosHash2;
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 时间冷却
      * @author pb
@@ -9376,11 +9376,11 @@ var junyou;
         };
         return Cooldown;
     }());
-    junyou.Cooldown = Cooldown;
-    __reflect(Cooldown.prototype, "junyou.Cooldown");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.Cooldown = Cooldown;
+    __reflect(Cooldown.prototype, "jy.Cooldown");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 时间冷却管理器
      * @author pb
@@ -9475,7 +9475,7 @@ var junyou;
          */
         CooldownManager.prototype.add = function (icd, icdDisplay) {
             if (icd && icd.cd) {
-                var cooldown = new junyou.Cooldown();
+                var cooldown = new jy.Cooldown();
                 cooldown.icd = icd;
                 var id = icd.id;
                 this._cdObj[id] = cooldown;
@@ -9591,11 +9591,11 @@ var junyou;
         };
         return CooldownManager;
     }());
-    junyou.CooldownManager = CooldownManager;
-    __reflect(CooldownManager.prototype, "junyou.CooldownManager");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.CooldownManager = CooldownManager;
+    __reflect(CooldownManager.prototype, "jy.CooldownManager");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 时间冷却遮罩
      * @author pb
@@ -9729,12 +9729,12 @@ var junyou;
         CooldownMask.ALPHA = .6;
         return CooldownMask;
     }());
-    junyou.CooldownMask = CooldownMask;
-    __reflect(CooldownMask.prototype, "junyou.CooldownMask", ["junyou.ICooldownDisplay"]);
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    var webp = junyou.Global.webp ? ".webp" /* WEBP */ : "";
+    jy.CooldownMask = CooldownMask;
+    __reflect(CooldownMask.prototype, "jy.CooldownMask", ["jy.ICooldownDisplay"]);
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    var webp = jy.Global.webp ? ".webp" /* WEBP */ : "";
     /**
      * 地图基础信息<br/>
      * 由地图编辑器生成的地图信息
@@ -9765,8 +9765,8 @@ var junyou;
         MapInfo.prefix = true ? "m/" /* DebugMapPath */ : "m2/" /* ReleaseMapPath */;
         return MapInfo;
     }(egret.HashObject));
-    junyou.MapInfo = MapInfo;
-    __reflect(MapInfo.prototype, "junyou.MapInfo");
+    jy.MapInfo = MapInfo;
+    __reflect(MapInfo.prototype, "jy.MapInfo");
     var mpt = MapInfo.prototype;
     if (true) {
         mpt.getImgUri = function (uri) {
@@ -9784,15 +9784,15 @@ var junyou;
             return "" + "m2/" /* ReleaseMapPath */ + this.path + "/" + row + "_" + col + this.ext + webp;
         };
     }
-})(junyou || (junyou = {}));
+})(jy || (jy = {}));
 if (true) {
     var $gm = $gm || {};
     $gm.toggleMapGrid = function () {
         this.$showMapGrid = !this.$showMapGrid;
     };
 }
-var junyou;
-(function (junyou) {
+var jy;
+(function (jy) {
     function checkRect(map, rect, preload, forEach, checker, caller) {
         //检查地图，进行加载区块
         var x = rect.x;
@@ -9813,7 +9813,7 @@ var junyou;
             return;
         }
         var i = 0;
-        var get = junyou.ResManager.get;
+        var get = jy.ResManager.get;
         for (var r = sr; r <= er; r++) {
             for (var c = sc; c <= ec; c++) {
                 var uri = map.getMapUri(c, r);
@@ -9882,7 +9882,7 @@ var junyou;
                     for (var i = k; i < gp.length; i++) {
                         var bmp = gp[i];
                         bmp.texture = null;
-                        junyou.removeDisplay(bmp);
+                        jy.removeDisplay(bmp);
                     }
                     gp.length = k;
                 };
@@ -9891,7 +9891,7 @@ var junyou;
         }
         TileMapLayer.prototype.addMap = function (uri, c, r, pW, pH) {
             var map = this.currentMap;
-            var tm = junyou.ResManager.get(uri, this.noRes, this, uri, c, r, pW, pH);
+            var tm = jy.ResManager.get(uri, this.noRes, this, uri, c, r, pW, pH);
             // 舞台上的标记为静态
             tm.isStatic = true;
             var idx = this._idx;
@@ -9912,7 +9912,7 @@ var junyou;
             this.ler = er;
             // 先将正在显示的全部标记为未使用
             // 换地图也使用此方法处理
-            var now = junyou.Global.now;
+            var now = jy.Global.now;
             var showing = this._showing;
             var left = showing.length;
             while (left > 0) {
@@ -9944,7 +9944,7 @@ var junyou;
             var x = c * pW;
             var y = r * pH;
             if (mini) {
-                var texKey = junyou.getPosHash2(c, r);
+                var texKey = jy.getPosHash2(c, r);
                 var tex = miniTexDict[texKey];
                 if (!tex) {
                     var textureWidth = mini.textureWidth, textureHeight = mini.textureHeight;
@@ -9976,12 +9976,12 @@ var junyou;
             var old = this.miniUri;
             if (old != miniUri) {
                 if (old) {
-                    junyou.Res.cancel(old);
+                    jy.Res.cancel(old);
                 }
                 this.miniUri = miniUri;
                 this.mini = undefined;
                 this.miniTexDict = {};
-                junyou.Res.load(miniUri, junyou.ConfigUtils.getResUrl(miniUri), junyou.CallbackInfo.get(this.miniLoad, this), 2 /* Highway */);
+                jy.Res.load(miniUri, jy.ConfigUtils.getResUrl(miniUri), jy.CallbackInfo.get(this.miniLoad, this), 2 /* Highway */);
             }
         };
         TileMapLayer.prototype.miniLoad = function (item) {
@@ -9996,9 +9996,9 @@ var junyou;
             _super.prototype.removeChildren.call(this);
         };
         return TileMapLayer;
-    }(junyou.BaseLayer));
-    junyou.TileMapLayer = TileMapLayer;
-    __reflect(TileMapLayer.prototype, "junyou.TileMapLayer");
+    }(jy.BaseLayer));
+    jy.TileMapLayer = TileMapLayer;
+    __reflect(TileMapLayer.prototype, "jy.TileMapLayer");
     TileMapLayer.checkRect = checkRect;
     /**
     * TileMap
@@ -10012,10 +10012,10 @@ var junyou;
             this.col = col;
             this.row = row;
             this.uri = uri;
-            this.url = junyou.ConfigUtils.getResUrl(uri);
+            this.url = jy.ConfigUtils.getResUrl(uri);
         };
         TileMap.prototype.load = function () {
-            junyou.Res.load(this.uri, this.url, junyou.CallbackInfo.get(this.loadComplete, this));
+            jy.Res.load(this.uri, this.url, jy.CallbackInfo.get(this.loadComplete, this));
         };
         /**
          * 资源加载完成
@@ -10035,11 +10035,11 @@ var junyou;
         };
         return TileMap;
     }(egret.Bitmap));
-    junyou.TileMap = TileMap;
-    __reflect(TileMap.prototype, "junyou.TileMap", ["junyou.IResource"]);
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.TileMap = TileMap;
+    __reflect(TileMap.prototype, "jy.TileMap", ["jy.IResource"]);
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 坐标偏移数据
      */
@@ -10048,7 +10048,7 @@ var junyou;
         /*←*/ [-1, 0], /*    ㊥    */ /*→*/ [1, 0],
         /*↙*/ [-1, 1], /*↓*/ [0, 1], /*↘*/ [1, 1]
     ];
-    var empty = junyou.Temp.EmptyObject;
+    var empty = jy.Temp.EmptyObject;
     /**
      * A星寻路算法
      * @author 3tion
@@ -10252,11 +10252,11 @@ var junyou;
         };
         return Astar;
     }());
-    junyou.Astar = Astar;
-    __reflect(Astar.prototype, "junyou.Astar", ["junyou.PathFinder"]);
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.Astar = Astar;
+    __reflect(Astar.prototype, "jy.Astar", ["jy.PathFinder"]);
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 资源的 版本字典
      */
@@ -10317,7 +10317,7 @@ var junyou;
      * @export
      * @class ConfigUtils
      */
-    junyou.ConfigUtils = {
+    jy.ConfigUtils = {
         setData: function (data) {
             _data = data;
             !_data.params && (_data.params = {});
@@ -10356,7 +10356,7 @@ var junyou;
                         return getPath(parent_3) + p.path;
                     }
                     else if (true) {
-                        junyou.ThrowError("\u8DEF\u5F84[" + p.path + "]\u914D\u7F6E\u4E86\u7236\u7EA7(parent)\uFF0C\u4F46\u662F\u627E\u4E0D\u5230\u5BF9\u5E94\u7684\u7236\u7EA7");
+                        jy.ThrowError("\u8DEF\u5F84[" + p.path + "]\u914D\u7F6E\u4E86\u7236\u7EA7(parent)\uFF0C\u4F46\u662F\u627E\u4E0D\u5230\u5BF9\u5E94\u7684\u7236\u7EA7");
                     }
                 }
                 return p.path;
@@ -10378,7 +10378,7 @@ var junyou;
                 pos += 2 /* SIZE_OF_UINT16 */;
                 _hash[hash_1] = version;
             }
-            junyou.dispatch(-188 /* ParseResHash */);
+            jy.dispatch(-188 /* ParseResHash */);
         },
         /**
          * 设置版本控制文件
@@ -10461,9 +10461,9 @@ var junyou;
             }
         }
     };
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 旋转的屏幕抖动
      * 角度统一从0开始，正向或者逆向旋转，振幅从最大到0
@@ -10512,12 +10512,12 @@ var junyou;
             outPt.y = Math.round(this._cy + swing * Math.sin(rad));
         };
         return CircleShake;
-    }(junyou.BaseShake));
-    junyou.CircleShake = CircleShake;
-    __reflect(CircleShake.prototype, "junyou.CircleShake");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    }(jy.BaseShake));
+    jy.CircleShake = CircleShake;
+    __reflect(CircleShake.prototype, "jy.CircleShake");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 带方向的震动
      *
@@ -10593,12 +10593,12 @@ var junyou;
             outPt.y = Math.round(this._cy + this._sin * swing);
         };
         return DirectionShake;
-    }(junyou.BaseShake));
-    junyou.DirectionShake = DirectionShake;
-    __reflect(DirectionShake.prototype, "junyou.DirectionShake");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    }(jy.BaseShake));
+    jy.DirectionShake = DirectionShake;
+    __reflect(DirectionShake.prototype, "jy.DirectionShake");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 旋转抖动
      * 屏幕朝顺时针/逆时针方向抖动一定角度
@@ -10643,12 +10643,12 @@ var junyou;
             outPt.y = Math.round(this._cy + swing * Math.sin(rad));
         };
         return RotateShake;
-    }(junyou.BaseShake));
-    junyou.RotateShake = RotateShake;
-    __reflect(RotateShake.prototype, "junyou.RotateShake");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    }(jy.BaseShake));
+    jy.RotateShake = RotateShake;
+    __reflect(RotateShake.prototype, "jy.RotateShake");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 屏幕抖动管理器
      *
@@ -10688,20 +10688,20 @@ var junyou;
                     cur.end();
                 }
                 this._cur = shake;
-                var engine = junyou.GameEngine.instance;
+                var engine = jy.GameEngine.instance;
                 var layer = engine.getLayer(1000 /* Game */);
                 if (cur != shake) {
                     shake.setShakeTarget(layer);
                 }
                 shake.setTargetPos().start();
-                this._st = junyou.Global.now;
+                this._st = jy.Global.now;
                 egret.startTick(this.tick, this);
             }
             return shake;
         };
         ScreenShakeManager.prototype.tick = function () {
             var shake = this._cur;
-            var duration = junyou.Global.now - this._st;
+            var duration = jy.Global.now - this._st;
             if (duration < shake.total) {
                 var pt = this._pt;
                 var cur = this._cur;
@@ -10712,7 +10712,7 @@ var junyou;
                 var py = pt.y;
                 var x = px, y = py;
                 if (limits) {
-                    var rect = junyou.GameEngine.instance.viewRect;
+                    var rect = jy.GameEngine.instance.viewRect;
                     if (px < 0) {
                         var lx = limits.x;
                         var rx = rect.x;
@@ -10742,11 +10742,11 @@ var junyou;
         };
         return ScreenShakeManager;
     }());
-    junyou.ScreenShakeManager = ScreenShakeManager;
-    __reflect(ScreenShakeManager.prototype, "junyou.ScreenShakeManager");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.ScreenShakeManager = ScreenShakeManager;
+    __reflect(ScreenShakeManager.prototype, "jy.ScreenShakeManager");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 带坐骑动作的UnitAction基类
      * @author 3tion
@@ -10760,15 +10760,15 @@ var junyou;
             if (mountType in this.actions) {
                 return this.actions[mountType];
             }
-            return junyou.UnitAction.defaultAction;
+            return jy.UnitAction.defaultAction;
         };
         return MUnitAction;
-    }(junyou.UnitAction));
-    junyou.MUnitAction = MUnitAction;
-    __reflect(MUnitAction.prototype, "junyou.MUnitAction");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    }(jy.UnitAction));
+    jy.MUnitAction = MUnitAction;
+    __reflect(MUnitAction.prototype, "jy.MUnitAction");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      *
      *
@@ -10801,7 +10801,7 @@ var junyou;
                         part = children[i++];
                     }
                     else {
-                        part = junyou.recyclable(junyou.ResourceBitmap);
+                        part = jy.recyclable(jy.ResourceBitmap);
                         this.addChild(part);
                     }
                     part.res = res;
@@ -10869,16 +10869,16 @@ var junyou;
             }
         };
         UModel.prototype.onRecycle = function () {
-            junyou.removeDisplay(this);
+            jy.removeDisplay(this);
             this.clear();
         };
         return UModel;
     }(egret.DisplayObjectContainer));
-    junyou.UModel = UModel;
-    __reflect(UModel.prototype, "junyou.UModel");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.UModel = UModel;
+    __reflect(UModel.prototype, "jy.UModel");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 基本单位<br/>
      * 是一个状态机<br/>
@@ -10979,9 +10979,9 @@ var junyou;
          * @param setting
          */
         Unit.prototype.initDisplayList = function (setting) {
-            var render = new junyou.UnitRender(this);
-            var model = new junyou.UModel();
-            var body = new junyou.DSprite();
+            var render = new jy.UnitRender(this);
+            var model = new jy.UModel();
+            var body = new jy.DSprite();
             this._render = render;
             render.model = model;
             this._model = model;
@@ -11112,7 +11112,7 @@ var junyou;
          * @protected
          */
         Unit.prototype.$render = function () {
-            var now = junyou.Global.now;
+            var now = jy.Global.now;
             this.refreshResList();
             var currentAction = this._currentAction;
             if (currentAction) {
@@ -11150,7 +11150,7 @@ var junyou;
          * 回收
          */
         Unit.prototype.onRecycle = function () {
-            junyou.removeDisplay(this.body);
+            jy.removeDisplay(this.body);
             var model = this._model;
             model.off("enterFrame" /* ENTER_FRAME */, this.$render, this);
             model.clear();
@@ -11179,7 +11179,7 @@ var junyou;
             this.dispatch(-1999 /* UnitRecycle */);
         };
         Unit.prototype.initDefaultAction = function () {
-            this.aStandBy = new junyou.UnitAction();
+            this.aStandBy = new jy.UnitAction();
         };
         /**
          * 开始执行单位动作
@@ -11207,7 +11207,7 @@ var junyou;
             if (!next) {
                 next = this.aStandBy;
             }
-            now = now || junyou.Global.now;
+            now = now || jy.Global.now;
             var currentAction = this._currentAction;
             /**
              * 是否成功执行新的动作
@@ -11326,7 +11326,7 @@ var junyou;
         Unit.prototype.addedToEngine = function (doRender) {
             if (doRender === void 0) { doRender = true; }
             // 子类实现其他层的添加
-            junyou.GameEngine.instance.getLayer(1760 /* Sorted */).addChild(this.body);
+            jy.GameEngine.instance.getLayer(1760 /* Sorted */).addChild(this.body);
             if (doRender) {
                 this.model.on("enterFrame" /* ENTER_FRAME */, this.$render, this);
             }
@@ -11388,7 +11388,7 @@ var junyou;
             if (this._y != value) {
                 this._y = value;
                 this.checkPosition();
-                junyou.GameEngine.invalidateSort();
+                jy.GameEngine.invalidateSort();
             }
         };
         Object.defineProperty(Unit.prototype, "z", {
@@ -11466,9 +11466,9 @@ var junyou;
         };
         return Unit;
     }(egret.EventDispatcher));
-    junyou.Unit = Unit;
-    __reflect(Unit.prototype, "junyou.Unit");
-})(junyou || (junyou = {}));
+    jy.Unit = Unit;
+    __reflect(Unit.prototype, "jy.Unit");
+})(jy || (jy = {}));
 /**
  * DataLocator的主数据
  * 原 junyou.DataLocator.data  的全局别名简写
@@ -11479,8 +11479,8 @@ var $DD = {};
  * 原junyou.DataLocator.extra 的全局别名简写
  */
 var $DE;
-var junyou;
-(function (junyou) {
+var jy;
+(function (jy) {
     var parsers = {};
     /**
      *
@@ -11495,16 +11495,16 @@ var junyou;
      * @author 3tion
      *
      */
-    junyou.DataLocator = {
+    jy.DataLocator = {
         regParser: regParser,
         /**
          * 解析打包的配置
          */
         parsePakedDatas: function (type) {
-            var configs = junyou.Res.get("cfgs");
-            junyou.Res.remove("cfgs");
+            var configs = jy.Res.get("cfgs");
+            jy.Res.remove("cfgs");
             if (type == 1) {
-                configs = decodePakCfgs(new junyou.ByteArray(configs));
+                configs = decodePakCfgs(new jy.ByteArray(configs));
             }
             // 按顺序解析
             for (var _i = 0, _plist_1 = _plist; _i < _plist_1.length; _i++) {
@@ -11513,7 +11513,7 @@ var junyou;
                 var data = parser(configs[key]);
                 if (data) { // 支持一些void的情况
                     $DD[key] = data;
-                    junyou.dispatch(-185 /* OneCfgComplete */, key);
+                    jy.dispatch(-185 /* OneCfgComplete */, key);
                 }
             }
             var extraData = {};
@@ -11542,7 +11542,7 @@ var junyou;
             //清理内存
             parsers = null;
             _plist = null;
-            delete junyou.DataLocator;
+            delete jy.DataLocator;
         },
         /**
          *
@@ -11590,12 +11590,12 @@ var junyou;
                         }
                     }
                     if (type == 1 /* ArraySet */) {
-                        dict = new junyou.ArraySet().setRawList(dict, idkey);
+                        dict = new jy.ArraySet().setRawList(dict, idkey);
                     }
                 }
                 catch (e) {
                     if (true) {
-                        junyou.ThrowError("\u89E3\u6790\u914D\u7F6E:" + key + "\u51FA\u9519", e);
+                        jy.ThrowError("\u89E3\u6790\u914D\u7F6E:" + key + "\u51FA\u9519", e);
                     }
                 }
                 return dict;
@@ -11653,7 +11653,7 @@ var junyou;
                 value = new Date((value || def || 0) * 10000);
                 break;
             case 7 /* Time */:
-                value = new junyou.TimeVO().decodeBit(value || def || 0);
+                value = new jy.TimeVO().decodeBit(value || def || 0);
                 break;
         }
         return value;
@@ -11674,16 +11674,16 @@ var junyou;
             var id = t[idKey];
             if (true) {
                 if (typeof id === "object") {
-                    junyou.Log("\u914D\u7F6E" + key + "\u7684\u6570\u636E\u6709\u8BEF\uFF0C\u552F\u4E00\u6807\u8BC6" + idKey + "\u4E0D\u80FD\u4E3A\u5BF9\u8C61");
+                    jy.Log("\u914D\u7F6E" + key + "\u7684\u6570\u636E\u6709\u8BEF\uFF0C\u552F\u4E00\u6807\u8BC6" + idKey + "\u4E0D\u80FD\u4E3A\u5BF9\u8C61");
                 }
                 if (id in dict) {
-                    junyou.Log("\u914D\u7F6E" + key + "\u7684\u6570\u636E\u6709\u8BEF\uFF0C\u552F\u4E00\u6807\u8BC6" + idKey + "\u6709\u91CD\u590D\u503C\uFF1A" + id);
+                    jy.Log("\u914D\u7F6E" + key + "\u7684\u6570\u636E\u6709\u8BEF\uFF0C\u552F\u4E00\u6807\u8BC6" + idKey + "\u6709\u91CD\u590D\u503C\uFF1A" + id);
                 }
             }
             dict[id] = t;
         }
         else if (true) {
-            junyou.Log("\u914D\u7F6E" + key + "\u89E3\u6790\u6709\u8BEF\uFF0C\u65E0\u6CD5\u627E\u5230\u6307\u5B9A\u7684\u552F\u4E00\u6807\u793A\uFF1A" + idKey + "\uFF0C\u6570\u636E\u7D22\u5F15\uFF1A" + idx);
+            jy.Log("\u914D\u7F6E" + key + "\u89E3\u6790\u6709\u8BEF\uFF0C\u65E0\u6CD5\u627E\u5230\u6307\u5B9A\u7684\u552F\u4E00\u6807\u793A\uFF1A" + idKey + "\uFF0C\u6570\u636E\u7D22\u5F15\uFF1A" + idx);
         }
     }
     var CfgHeadStruct = {
@@ -11694,7 +11694,7 @@ var junyou;
         5: [4, 1 /* Optional */, 1 /* Double */] /*可选 double 型默认值 */,
         6: [5, 1 /* Optional */, 9 /* String */] /*可选 字符串型默认值 */
     };
-    junyou.PBUtils.initDefault(CfgHeadStruct);
+    jy.PBUtils.initDefault(CfgHeadStruct);
     //配置数据 打包的文件结构数据
     //readUnsignedByte 字符串长度 readString 表名字 readUnsignedByte 配置类型(0 PBBytes 1 JSON字符串) readVarint 数据长度
     function decodePakCfgs(buffer) {
@@ -11760,7 +11760,7 @@ var junyou;
                 var hasLocal = void 0;
                 while (bytes.readAvailable && count--) {
                     var len = bytes.readVarint();
-                    var head = junyou.PBUtils.readFrom(CfgHeadStruct, bytes, len);
+                    var head = jy.PBUtils.readFrom(CfgHeadStruct, bytes, len);
                     var name_7 = head[0], headType = head[1], headState = head[2], i32Def = head[3], dblDef = head[4], strDef = head[5];
                     var def = void 0, isJSON = 0, pbType = void 0;
                     switch (headType) {
@@ -11799,13 +11799,13 @@ var junyou;
                         hasLocal = 1;
                     }
                 }
-                junyou.PBUtils.initDefault(struct, CfgCreator.prototype);
+                jy.PBUtils.initDefault(struct, CfgCreator.prototype);
                 var headLen = i;
                 i = 0;
                 count = bytes.readVarint(); //行的数量
                 while (bytes.readAvailable && count--) {
                     var len = bytes.readVarint();
-                    var obj = junyou.PBUtils.readFrom(struct, bytes, len);
+                    var obj = jy.PBUtils.readFrom(struct, bytes, len);
                     if (!obj) {
                         continue;
                     }
@@ -11834,21 +11834,21 @@ var junyou;
                     }
                 }
                 if (type == 1 /* ArraySet */) {
-                    dict = new junyou.ArraySet().setRawList(dict, idkey);
+                    dict = new jy.ArraySet().setRawList(dict, idkey);
                 }
             }
             catch (e) {
                 if (true) {
-                    junyou.ThrowError("\u89E3\u6790\u914D\u7F6E:" + key + "\u51FA\u9519", e);
+                    jy.ThrowError("\u89E3\u6790\u914D\u7F6E:" + key + "\u51FA\u9519", e);
                 }
             }
             return dict;
             var _a;
         });
     }
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 单位管理器
      * @author 3tion
@@ -11942,7 +11942,7 @@ var junyou;
                     exceptGuids[guid] = true;
                 }
             }
-            var gcList = junyou.Temp.SharedArray1;
+            var gcList = jy.Temp.SharedArray1;
             var i = 0;
             for (var guid in this._domainAll) {
                 var aguid = guid;
@@ -11961,7 +11961,7 @@ var junyou;
         };
         UnitController.prototype.clearDomain = function () {
             var _a = this, _domains = _a._domains, _domainCounts = _a._domainCounts;
-            var gcList = junyou.Temp.SharedArray1;
+            var gcList = jy.Temp.SharedArray1;
             var j = 0;
             var domains = arguments;
             for (var i = 0; i < domains.length; i++) {
@@ -11981,11 +11981,11 @@ var junyou;
         };
         return UnitController;
     }());
-    junyou.UnitController = UnitController;
-    __reflect(UnitController.prototype, "junyou.UnitController");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.UnitController = UnitController;
+    __reflect(UnitController.prototype, "jy.UnitController");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 模型(纸娃娃)渲染器
      */
@@ -11997,7 +11997,7 @@ var junyou;
             _this.nextRenderTime = 0;
             _this.renderedTime = 0;
             _this.unit = unit;
-            _this.reset(junyou.Global.now);
+            _this.reset(jy.Global.now);
             return _this;
         }
         UnitRender.prototype.reset = function (now) {
@@ -12051,54 +12051,12 @@ var junyou;
             this.unit = undefined;
         };
         return UnitRender;
-    }(junyou.BaseRender));
-    junyou.UnitRender = UnitRender;
-    __reflect(UnitRender.prototype, "junyou.UnitRender");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
-    var UnitSetting = /** @class */ (function () {
-        function UnitSetting() {
-            /**
-             * 是否添加UI层
-             */
-            this.hasUILayer = true;
-            /**
-             * 是否添加Buff容器
-             */
-            this.hasBuffLayer = true;
-            /**
-             * 是否添加光环容器
-             */
-            this.hasHaloLayer = true;
-            /**
-             * 是否添加到游戏场景中
-             */
-            this.addToEngine = true;
-            /**
-             * 深度的参数A
-             */
-            this.depthA = 0;
-            /**
-             * 深度的参数B
-             */
-            this.depthB = 0.19;
-        }
-        //防止同一坐标的单位排序深度相同，出现闪烁的情况
-        UnitSetting.prototype.getDepth = function () {
-            return this.depthA + Math.random() * this.depthB;
-        };
-        return UnitSetting;
-    }());
-    junyou.UnitSetting = UnitSetting;
-    __reflect(UnitSetting.prototype, "junyou.UnitSetting");
-    /**
-     * 默认的单位设置
-     */
-    junyou.defaultUnitSetting = new UnitSetting();
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    }(jy.BaseRender));
+    jy.UnitRender = UnitRender;
+    __reflect(UnitRender.prototype, "jy.UnitRender");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     function getData(valueList, keyList, o) {
         o = o || {};
         for (var i = 0, len = keyList.length; i < len; i++) {
@@ -12124,7 +12082,7 @@ var junyou;
      * @author 君游项目解析工具
      *
      */
-    junyou.DataUtils = {
+    jy.DataUtils = {
         parseDatas: function (to, from, checkStart, checkEnd, dataKey, toDatasKey) {
             var arr = [];
             for (var i = checkStart, j = 0; i <= checkEnd; i++) {
@@ -12217,7 +12175,7 @@ var junyou;
             }
             if (true) {
                 if (repeatedErr) {
-                    junyou.ThrowError("有重复的属性值:" + repeatedErr);
+                    jy.ThrowError("有重复的属性值:" + repeatedErr);
                 }
             }
             return keyCount;
@@ -12247,9 +12205,9 @@ var junyou;
             }
         }
     };
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 序列的记录器
      * 用于做残影或者时光倒流的操作
@@ -12283,7 +12241,7 @@ var junyou;
                 //处理头
                 var series = void 0;
                 if (this._count < this._max) {
-                    series = junyou.recyclable(junyou.PSeries);
+                    series = jy.recyclable(jy.PSeries);
                     this._head = series;
                 }
                 else {
@@ -12369,11 +12327,11 @@ var junyou;
         };
         return PSRecorder;
     }());
-    junyou.PSRecorder = PSRecorder;
-    __reflect(PSRecorder.prototype, "junyou.PSRecorder");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.PSRecorder = PSRecorder;
+    __reflect(PSRecorder.prototype, "jy.PSRecorder");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 用于记录单位(Unit)的序列
      *
@@ -12394,20 +12352,20 @@ var junyou;
         };
         return PSeries;
     }());
-    junyou.PSeries = PSeries;
-    __reflect(PSeries.prototype, "junyou.PSeries");
-})(junyou || (junyou = {}));
+    jy.PSeries = PSeries;
+    __reflect(PSeries.prototype, "jy.PSeries");
+})(jy || (jy = {}));
 /**
  * @author 3tion
  */
-var junyou;
-(function (junyou) {
+var jy;
+(function (jy) {
     /**
      * 朝向工具，用于处理斜45°人物朝向
      * @author 3tion
      *
      */
-    junyou.FaceToUtils = {
+    jy.FaceToUtils = {
         /**
          * 朝向对应坐标偏移量
          */
@@ -12623,9 +12581,9 @@ var junyou;
             }
         }
     };
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 异步工具类，用于加方法兼听
      * @author 3tion
@@ -12687,15 +12645,15 @@ var junyou;
                 _readyExecutes = [];
                 this._readyExecutes = _readyExecutes;
             }
-            junyou.CallbackInfo.addToList.apply(junyou.CallbackInfo, [_readyExecutes, handle, thisObj].concat(args));
+            jy.CallbackInfo.addToList.apply(jy.CallbackInfo, [_readyExecutes, handle, thisObj].concat(args));
         };
         return AsyncHelper;
     }());
-    junyou.AsyncHelper = AsyncHelper;
-    __reflect(AsyncHelper.prototype, "junyou.AsyncHelper");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.AsyncHelper = AsyncHelper;
+    __reflect(AsyncHelper.prototype, "jy.AsyncHelper");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 依赖项的辅助类
      * @author 3tion
@@ -12768,11 +12726,11 @@ var junyou;
         };
         return DependerHelper;
     }());
-    junyou.DependerHelper = DependerHelper;
-    __reflect(DependerHelper.prototype, "junyou.DependerHelper");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.DependerHelper = DependerHelper;
+    __reflect(DependerHelper.prototype, "jy.DependerHelper");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     var inter1 = "addReadyExecute";
     var inter2 = "startSync";
     function isIAsync(instance) {
@@ -12788,10 +12746,10 @@ var junyou;
         }
         return true;
     }
-    junyou.isIAsync = isIAsync;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.isIAsync = isIAsync;
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 代码构建类，用于注册代码
      * @author 3tion
@@ -12873,7 +12831,7 @@ var junyou;
         Facade.prototype.removeProxy = function (proxyName) {
             var proxy = this._proxys[proxyName];
             if (proxy.host._$isDep) {
-                true && junyou.ThrowError("\u6A21\u5757[" + proxyName + "]\u88AB\u4F9D\u8D56\uFF0C\u4E0D\u5141\u8BB8\u79FB\u9664", null, true);
+                true && jy.ThrowError("\u6A21\u5757[" + proxyName + "]\u88AB\u4F9D\u8D56\uFF0C\u4E0D\u5141\u8BB8\u79FB\u9664", null, true);
                 return;
             }
             return this._removeHost(proxyName, this._proxys);
@@ -12888,7 +12846,7 @@ var junyou;
         Facade.prototype.registerInlineProxy = function (ref, proxyName, async) {
             if (!ref) {
                 if (true) {
-                    junyou.ThrowError("registerInlineProxy时,没有ref");
+                    jy.ThrowError("registerInlineProxy时,没有ref");
                 }
                 return;
             }
@@ -12901,7 +12859,7 @@ var junyou;
                 var dele = this._proxys[proxyName];
                 var host = new ref();
                 dele.host = host;
-                junyou.facade.inject(host);
+                jy.facade.inject(host);
                 host.onRegister();
             }
         };
@@ -12914,7 +12872,7 @@ var junyou;
         Facade.prototype.registerInlineMediator = function (ref, mediatorName) {
             if (!ref) {
                 if (true) {
-                    junyou.ThrowError("registerInlineMediator\u65F6,\u6CA1\u6709ref");
+                    jy.ThrowError("registerInlineMediator\u65F6,\u6CA1\u6709ref");
                 }
                 return;
             }
@@ -12935,7 +12893,7 @@ var junyou;
             if (true) {
                 dele = this._proxys[proxyName];
                 if (dele) {
-                    junyou.ThrowError("模块定义重复:" + name);
+                    jy.ThrowError("模块定义重复:" + name);
                 }
             }
             dele = {};
@@ -12956,7 +12914,7 @@ var junyou;
             if (true) {
                 dele = this._mediators[moduleID];
                 if (dele) {
-                    junyou.ThrowError("模块定义重复:" + name);
+                    jy.ThrowError("模块定义重复:" + name);
                 }
             }
             dele = {};
@@ -12970,7 +12928,7 @@ var junyou;
             var scriptid = dele.scriptid;
             var script = this._scripts[scriptid];
             if (!script) {
-                script = new junyou.ModuleScript;
+                script = new jy.ModuleScript;
                 script.id = scriptid;
                 script.url = dele.url;
                 this._scripts[scriptid] = script;
@@ -12993,7 +12951,7 @@ var junyou;
             var dele = this._proxys[proxyName];
             if (!dele) {
                 if (true) {
-                    junyou.ThrowError("没有注册proxy的关系");
+                    jy.ThrowError("没有注册proxy的关系");
                 }
                 return;
             }
@@ -13035,7 +12993,7 @@ var junyou;
             var dele = this._mediators[moduleID];
             if (!dele) {
                 if (true) {
-                    junyou.ThrowError("没有注册Mediator的关系");
+                    jy.ThrowError("没有注册Mediator的关系");
                 }
                 return;
             }
@@ -13065,7 +13023,7 @@ var junyou;
             if (bin.dele.scriptid) {
                 var script = this.getOrCreateScript(bin.dele);
                 if (script.state != 2 /* COMPLETE */) {
-                    script.callbacks.push(junyou.CallbackInfo.get(this._getHost, this, bin));
+                    script.callbacks.push(jy.CallbackInfo.get(this._getHost, this, bin));
                     script.load();
                     return;
                 }
@@ -13079,7 +13037,7 @@ var junyou;
             if (!host) {
                 var ref = egret.getDefinitionByName(dele.className);
                 dele.host = host = new ref();
-                junyou.facade.inject(host);
+                jy.facade.inject(host);
                 host.onRegister();
             }
             var callback = bin.callback;
@@ -13153,7 +13111,7 @@ var junyou;
                 mediator[handlerName].apply(mediator, args);
             }
             else if (true) {
-                junyou.ThrowError("无法在Mediator：" + mediator.name + "中找到方法[" + handlerName + "]");
+                jy.ThrowError("无法在Mediator：" + mediator.name + "中找到方法[" + handlerName + "]");
             }
         };
         Facade.prototype._executeAndShowMediator = function (mediator, handlerName) {
@@ -13187,7 +13145,7 @@ var junyou;
                 proxy[handlerName].apply(proxy, args);
             }
             else if (true) {
-                junyou.ThrowError("无法在Proxy：" + proxy.name + "中找到方法[" + handlerName + "]");
+                jy.ThrowError("无法在Proxy：" + proxy.name + "中找到方法[" + handlerName + "]");
             }
         };
         /**
@@ -13216,25 +13174,25 @@ var junyou;
         Facade.Script = "modules/{0}.js";
         return Facade;
     }(egret.EventDispatcher));
-    junyou.Facade = Facade;
-    __reflect(Facade.prototype, "junyou.Facade");
-    junyou.facade = new Facade();
+    jy.Facade = Facade;
+    __reflect(Facade.prototype, "jy.Facade");
+    jy.facade = new Facade();
     function proxyCall() {
-        return junyou.facade.getProxy.apply(junyou.facade, arguments);
+        return jy.facade.getProxy.apply(jy.facade, arguments);
     }
-    junyou.proxyCall = proxyCall;
+    jy.proxyCall = proxyCall;
     function proxyExec() {
-        return junyou.facade.executeProxy.apply(junyou.facade, arguments);
+        return jy.facade.executeProxy.apply(jy.facade, arguments);
     }
-    junyou.proxyExec = proxyExec;
+    jy.proxyExec = proxyExec;
     function mediatorCall() {
-        return junyou.facade.getMediator.apply(junyou.facade, arguments);
+        return jy.facade.getMediator.apply(jy.facade, arguments);
     }
-    junyou.mediatorCall = mediatorCall;
+    jy.mediatorCall = mediatorCall;
     function mediatorExec() {
-        return junyou.facade.executeMediator.apply(junyou.facade, arguments);
+        return jy.facade.executeMediator.apply(jy.facade, arguments);
     }
-    junyou.mediatorExec = mediatorExec;
+    jy.mediatorExec = mediatorExec;
     /**
      * 全局抛事件
      *
@@ -13243,9 +13201,9 @@ var junyou;
      * @param {*} [data]        数据
      */
     function dispatch(type, data) {
-        junyou.facade.dispatch(type, data);
+        jy.facade.dispatch(type, data);
     }
-    junyou.dispatch = dispatch;
+    jy.dispatch = dispatch;
     /**
      *
      * 打开/关闭指定模块
@@ -13258,9 +13216,9 @@ var junyou;
      */
     function toggle(moduleID, toggleState, showTip, param) {
         if (showTip === void 0) { showTip = true; }
-        junyou.facade.toggle(moduleID, toggleState, showTip, param);
+        jy.facade.toggle(moduleID, toggleState, showTip, param);
     }
-    junyou.toggle = toggle;
+    jy.toggle = toggle;
     /**
      *
      * 添加事件监听
@@ -13271,9 +13229,9 @@ var junyou;
      * @param {number} [priority]
      */
     function on(type, listener, thisObj, priority) {
-        junyou.facade.on(type, listener, thisObj, false, priority);
+        jy.facade.on(type, listener, thisObj, false, priority);
     }
-    junyou.on = on;
+    jy.on = on;
     /**
      * 单次监听事件
      *
@@ -13285,9 +13243,9 @@ var junyou;
      * @param {number} [priority]
      */
     function once(type, listener, thisObj, priority) {
-        junyou.facade.once(type, listener, thisObj, false, priority);
+        jy.facade.once(type, listener, thisObj, false, priority);
     }
-    junyou.once = once;
+    jy.once = once;
     /**
      *
      * 移除事件监听
@@ -13297,9 +13255,9 @@ var junyou;
      * @param {*} [thisObject]
      */
     function off(type, listener, thisObject) {
-        junyou.facade.off(type, listener, thisObject, false);
+        jy.facade.off(type, listener, thisObject, false);
     }
-    junyou.off = off;
+    jy.off = off;
     /**
      * 检查是否有全局监听
      *
@@ -13308,12 +13266,12 @@ var junyou;
      * @returns
      */
     function hasListen(type) {
-        return junyou.facade.hasListen(type);
+        return jy.facade.hasListen(type);
     }
-    junyou.hasListen = hasListen;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.hasListen = hasListen;
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 视图控制器，持有视图<br/>
      * 持有Proxy，主要监听视图和Proxy的事件，变更面板状态<br/>
@@ -13346,7 +13304,7 @@ var junyou;
                     this.$view = value;
                     this.addSkinListener(value);
                     value.moduleID = this._name;
-                    if (junyou.isIAsync(value)) {
+                    if (jy.isIAsync(value)) {
                         value.addReadyExecute(this.viewComplete, this);
                     }
                     else {
@@ -13361,7 +13319,7 @@ var junyou;
          * 开始尝试同步
          */
         Mediator.prototype.startSync = function () {
-            if (junyou.isIAsync(this.$view)) {
+            if (jy.isIAsync(this.$view)) {
                 var async = this.$view;
                 if (async.isReady) {
                     this.viewComplete();
@@ -13405,15 +13363,15 @@ var junyou;
             }
         };
         Mediator.prototype.hide = function () {
-            junyou.toggle(this._name, -1 /* HIDE */);
+            jy.toggle(this._name, -1 /* HIDE */);
         };
         return Mediator;
-    }(junyou.ViewController));
-    junyou.Mediator = Mediator;
-    __reflect(Mediator.prototype, "junyou.Mediator");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    }(jy.ViewController));
+    jy.Mediator = Mediator;
+    __reflect(Mediator.prototype, "jy.Mediator");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 模块脚本，后续开发模块，分成多个模块文件
      * @author 3tion
@@ -13435,7 +13393,7 @@ var junyou;
          */
         ModuleScript.prototype.load = function () {
             if (this.state == 0 /* UNREQUEST */) {
-                var url = this.url || junyou.Facade.Script.substitute(this.id);
+                var url = this.url || jy.Facade.Script.substitute(this.id);
                 loadScript(url, this.onScriptLoaded, this);
                 this.state = 1 /* REQUESTING */;
             }
@@ -13454,11 +13412,11 @@ var junyou;
         };
         return ModuleScript;
     }());
-    junyou.ModuleScript = ModuleScript;
-    __reflect(ModuleScript.prototype, "junyou.ModuleScript");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.ModuleScript = ModuleScript;
+    __reflect(ModuleScript.prototype, "jy.ModuleScript");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 用于和服务端通信的数据
      * @author 3tion
@@ -13469,7 +13427,7 @@ var junyou;
             return _super.call(this, name) || this;
         }
         Service.prototype.onRegister = function () {
-            this._ns = junyou.NetService.get();
+            this._ns = jy.NetService.get();
         };
         Service.prototype._startSync = function () {
             // Service默认为同步，如果需要收到服务端数据的，重写此方法
@@ -13550,12 +13508,12 @@ var junyou;
             this._ns.send(cmd, data, msgType, limit);
         };
         return Service;
-    }(junyou.Proxy));
-    junyou.Service = Service;
-    __reflect(Service.prototype, "junyou.Service");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    }(jy.Proxy));
+    jy.Service = Service;
+    __reflect(Service.prototype, "jy.Service");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 将Mediator转换为IStateSwitcher
      *
@@ -13573,7 +13531,7 @@ var junyou;
                     }
                 }
                 var view = this._view;
-                if (view instanceof junyou.Panel) {
+                if (view instanceof jy.Panel) {
                     view.show();
                 }
             };
@@ -13581,17 +13539,17 @@ var junyou;
         if (stateMed.sleepBy === undefined) {
             stateMed.sleepBy = sleepBy || function (id) {
                 var view = this._view;
-                if (view instanceof junyou.Panel) {
+                if (view instanceof jy.Panel) {
                     view.hide();
                 }
             };
         }
         return stateMed;
     }
-    junyou.transformToStateMediator = transformToStateMediator;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.transformToStateMediator = transformToStateMediator;
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 使用http进行通信的网络服务
      * @author 3tion
@@ -13615,7 +13573,7 @@ var junyou;
              */
             _this._error = 0;
             //覆盖instance
-            junyou.NetService._ins = _this;
+            jy.NetService._ins = _this;
             _this._unsendRequest = [];
             _this._sendingList = [];
             _this._loader = new XMLHttpRequest;
@@ -13633,7 +13591,7 @@ var junyou;
                 this._autoTimeDelay = autoTimeDelay;
             }
             // 200毫秒检查一次，是否可以自动拉数据了
-            junyou.TimerUtil.addCallback(200, this.checkUnsend, this);
+            jy.TimerUtil.addCallback(200, this.checkUnsend, this);
             var loader = this._loader;
             loader.onreadystatechange = this.onReadyStateChange.bind(this);
             loader.ontimeout = this.errorHandler.bind(this);
@@ -13709,13 +13667,13 @@ var junyou;
          */
         HttpNetService.prototype.checkUnsend = function () {
             //有在发送过程中，主动发送的数据
-            if (this._unsendRequest.length || junyou.Global.now > this._nextAutoTime) {
+            if (this._unsendRequest.length || jy.Global.now > this._nextAutoTime) {
                 this.trySend();
             }
         };
         HttpNetService.prototype._send = function (cmd, data, msgType) {
             //没有同协议的指令，新增数据
-            var pdata = junyou.recyclable(junyou.NetData);
+            var pdata = jy.recyclable(jy.NetData);
             pdata.cmd = cmd;
             pdata.data = data;
             pdata.msgType = msgType;
@@ -13769,15 +13727,15 @@ var junyou;
             unsend.length = 0;
             loader.send(sendBuffer.outBytes);
             //重置自动发送的时间
-            this._nextAutoTime = junyou.Global.now + this._autoTimeDelay;
+            this._nextAutoTime = jy.Global.now + this._autoTimeDelay;
         };
         return HttpNetService;
-    }(junyou.NetService));
-    junyou.HttpNetService = HttpNetService;
-    __reflect(HttpNetService.prototype, "junyou.HttpNetService");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    }(jy.NetService));
+    jy.HttpNetService = HttpNetService;
+    __reflect(HttpNetService.prototype, "jy.HttpNetService");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 功能配置的基类
      * @author 3tion
@@ -13796,17 +13754,17 @@ var junyou;
         BaseMCfg.prototype.init = function (from) {
             from = from || this;
             //解析显示限制
-            junyou.DataUtils.parseDatas(this, from, 0, 3, "showlimit", "showlimits");
+            jy.DataUtils.parseDatas(this, from, 0, 3, "showlimit", "showlimits");
             //解析功能使用限制
-            junyou.DataUtils.parseDatas(this, from, 0, 3, "limit", "limits");
+            jy.DataUtils.parseDatas(this, from, 0, 3, "limit", "limits");
         };
         return BaseMCfg;
     }());
-    junyou.BaseMCfg = BaseMCfg;
-    __reflect(BaseMCfg.prototype, "junyou.BaseMCfg");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.BaseMCfg = BaseMCfg;
+    __reflect(BaseMCfg.prototype, "jy.BaseMCfg");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 模块管理器
      * 用于管理模块的开启/关闭
@@ -13833,7 +13791,7 @@ var junyou;
             this._unopens = [];
             this._hById = {};
             this._ioBind = new Map();
-            junyou.on(-993 /* MODULE_NEED_CHECK_SHOW */, this.check, this);
+            jy.on(-993 /* MODULE_NEED_CHECK_SHOW */, this.check, this);
         };
         /**
          * 设置模块配置数据
@@ -13864,7 +13822,7 @@ var junyou;
                 this._hById[id] = handler;
             }
             else {
-                junyou.ThrowError("ModuleManager 注册模块处理函数时，没有找到对应的模块配置，模块id:" + id);
+                jy.ThrowError("ModuleManager 注册模块处理函数时，没有找到对应的模块配置，模块id:" + id);
             }
         };
         Object.defineProperty(ModuleManager.prototype, "checkers", {
@@ -13956,16 +13914,16 @@ var junyou;
                     }
                     if (true) {
                         if (limitWarn) {
-                            junyou.ThrowError("id为：" + limitWarn + "的功能配置，showtype和limittype不一致，请确认是否要这样，这种配置将无法通过程序的方式确认当可以使用功能的时候，是否一定看得见功能入口");
+                            jy.ThrowError("id为：" + limitWarn + "的功能配置，showtype和limittype不一致，请确认是否要这样，这种配置将无法通过程序的方式确认当可以使用功能的时候，是否一定看得见功能入口");
                         }
                         if (errString) {
-                            junyou.ThrowError("id为:" + errString + "的功能配置使用限制和显示限制配置有误，自动进行修正");
+                            jy.ThrowError("id为:" + errString + "的功能配置使用限制和显示限制配置有误，自动进行修正");
                         }
                         if (unsolve) {
-                            junyou.ThrowError("有功能配置的限制类型并未实现：");
+                            jy.ThrowError("有功能配置的限制类型并未实现：");
                         }
                     }
-                    junyou.dispatch(-998 /* MODULE_CHECKER_INITED */);
+                    jy.dispatch(-998 /* MODULE_CHECKER_INITED */);
                 }
             }
         };
@@ -13977,7 +13935,7 @@ var junyou;
             var cfg = this.getCfg(module);
             if (true) {
                 if (!cfg) {
-                    junyou.ThrowError("\u6CA1\u6709\u627E\u5230\u5BF9\u5E94\u7684\u529F\u80FD\u914D\u7F6E[" + module + "]");
+                    jy.ThrowError("\u6CA1\u6709\u627E\u5230\u5BF9\u5E94\u7684\u529F\u80FD\u914D\u7F6E[" + module + "]");
                 }
             }
             var flag = cfg && cfg.close != 2 /* Closed */;
@@ -13998,10 +13956,10 @@ var junyou;
             var cfg = this.getCfg(module);
             if (true) {
                 if (!cfg) {
-                    junyou.ThrowError("\u6CA1\u6709\u627E\u5230\u5BF9\u5E94\u7684\u529F\u80FD\u914D\u7F6E[" + module + "]");
+                    jy.ThrowError("\u6CA1\u6709\u627E\u5230\u5BF9\u5E94\u7684\u529F\u80FD\u914D\u7F6E[" + module + "]");
                 }
             }
-            if (false || junyou.ClientCheck.isClientCheck) { //屏蔽客户端检测只针对open，不针对show
+            if (false || jy.ClientCheck.isClientCheck) { //屏蔽客户端检测只针对open，不针对show
                 var flag = cfg && !cfg.close && cfg.serverOpen;
                 if (flag) {
                     if (this._checkers) {
@@ -14032,12 +13990,12 @@ var junyou;
         ModuleManager.prototype.bindButton = function (id, io, eventType) {
             if (eventType === void 0) { eventType = "touchTap" /* TOUCH_TAP */; }
             if (this._ioBind.has(io)) {
-                junyou.ThrowError("ModuleManager 注册按钮时候，重复注册了按钮");
+                jy.ThrowError("ModuleManager 注册按钮时候，重复注册了按钮");
                 return;
             }
             var cfg = this._allById[id];
             if (!cfg) {
-                junyou.ThrowError("ModuleManager 注册按钮时候，没有找到对应的模块配置，模块id:" + id);
+                jy.ThrowError("ModuleManager 注册按钮时候，没有找到对应的模块配置，模块id:" + id);
                 return;
             }
             var arr = this._bindedIOById[id];
@@ -14050,7 +14008,7 @@ var junyou;
             if (this.createToolTip) {
                 var toolTips = this.createToolTip(cfg);
                 if (toolTips) {
-                    junyou.ToolTipManager.register(io, toolTips);
+                    jy.ToolTipManager.register(io, toolTips);
                 }
             }
             var _unshowns = this._unshowns;
@@ -14133,7 +14091,7 @@ var junyou;
             }
             _unopens.length = j;
             if (changed) {
-                junyou.dispatch(-994 /* MODULE_SHOW_CHANGED */, _unshowns.length);
+                jy.dispatch(-994 /* MODULE_SHOW_CHANGED */, _unshowns.length);
             }
         };
         /**
@@ -14149,10 +14107,10 @@ var junyou;
             if (showtip === void 0) { showtip = true; }
             var cfg = this._allById[moduleID];
             if (!cfg) {
-                true && junyou.ThrowError("ModuleManager execute时，无法找到对应模块配置,ModuleID为:" + moduleID);
+                true && jy.ThrowError("ModuleManager execute时，无法找到对应模块配置,ModuleID为:" + moduleID);
                 return;
             }
-            junyou.dispatch(-997 /* MODULE_TRY_TOGGLE */, moduleID);
+            jy.dispatch(-997 /* MODULE_TRY_TOGGLE */, moduleID);
             var needShow;
             show = ~~show;
             switch (show) {
@@ -14201,7 +14159,7 @@ var junyou;
             if (mcfg) {
                 if (state != mcfg.serverOpen) {
                     mcfg.serverOpen = state;
-                    junyou.dispatch(state ? -995 /* MODULE_SERVER_OPEN */ : -996 /* MODULE_SERVER_CLOSE */, mid);
+                    jy.dispatch(state ? -995 /* MODULE_SERVER_OPEN */ : -996 /* MODULE_SERVER_CLOSE */, mid);
                 }
             }
         };
@@ -14249,11 +14207,11 @@ var junyou;
         };
         return ModuleManager;
     }());
-    junyou.ModuleManager = ModuleManager;
-    __reflect(ModuleManager.prototype, "junyou.ModuleManager");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.ModuleManager = ModuleManager;
+    __reflect(ModuleManager.prototype, "jy.ModuleManager");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      *
      * 用于弹出窗口，并将下层模糊的工具类
@@ -14263,7 +14221,7 @@ var junyou;
      */
     var BlurScreen = /** @class */ (function () {
         function BlurScreen() {
-            this._engine = junyou.GameEngine.instance;
+            this._engine = jy.GameEngine.instance;
             this._bmp = new egret.Bitmap();
             this._stage = egret.sys.$TempStage;
             this._con = new egret.Sprite();
@@ -14300,7 +14258,7 @@ var junyou;
         };
         BlurScreen.prototype.drawBlur = function (e) {
             if (e) {
-                junyou.dispatch(-1998 /* ReLayout */);
+                jy.dispatch(-1998 /* ReLayout */);
             }
             var tex = this._tex;
             var bmp = this._bmp;
@@ -14317,13 +14275,13 @@ var junyou;
                 con.removeChildren();
                 bmp.texture = tex;
                 bmp.refreshBMD();
-                bmp.filters = junyou.FilterUtils.blur;
+                bmp.filters = jy.FilterUtils.blur;
                 stage.addChildAt(bmp, 0);
             }
         };
         BlurScreen.prototype.hideBlur = function () {
             this._stage.off("resize" /* RESIZE */, this.drawBlur, this);
-            junyou.removeDisplay(this._bmp);
+            jy.removeDisplay(this._bmp);
             this._tex.$renderBuffer.resize(0, 0);
             var layers = this._dic[this._current];
             if (layers) {
@@ -14337,11 +14295,11 @@ var junyou;
         };
         return BlurScreen;
     }());
-    junyou.BlurScreen = BlurScreen;
-    __reflect(BlurScreen.prototype, "junyou.BlurScreen");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.BlurScreen = BlurScreen;
+    __reflect(BlurScreen.prototype, "jy.BlurScreen");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 模块面板
      * @author 3tion
@@ -14392,7 +14350,7 @@ var junyou;
         Panel.prototype.loadNext = function () {
             if (this._depends.length) {
                 var key = this._depends.pop();
-                var suiManager = junyou.singleton(junyou.SuiResManager);
+                var suiManager = jy.singleton(jy.SuiResManager);
                 suiManager.loadData(key, this);
             }
             else {
@@ -14401,7 +14359,7 @@ var junyou;
         };
         Panel.prototype.suiDataComplete = function (suiData) {
             if (this.preloadImage) {
-                suiData.loadBmd(junyou.CallbackInfo.get(this.loadNext, this));
+                suiData.loadBmd(jy.CallbackInfo.get(this.loadNext, this));
             }
             else {
                 this.loadNext();
@@ -14415,7 +14373,7 @@ var junyou;
          * 绑定皮肤
          */
         Panel.prototype.bindComponent = function () {
-            junyou.singleton(junyou.SuiResManager).createComponents(this.suiLib, this.suiClass, this);
+            jy.singleton(jy.SuiResManager).createComponents(this.suiLib, this.suiClass, this);
         };
         /**
          * 皮肤数据加载完成
@@ -14529,7 +14487,7 @@ var junyou;
         Panel.prototype.removeModal = function () {
             if (this.modal) {
                 this.modal.off("touchTap" /* TOUCH_TAP */, this.hide, this);
-                junyou.removeDisplay(this.modal);
+                jy.removeDisplay(this.modal);
             }
             egret.sys.$TempStage.off("resize" /* RESIZE */, this.onModalResize, this);
         };
@@ -14539,7 +14497,7 @@ var junyou;
          * @protected
          */
         Panel.prototype.hide = function () {
-            junyou.toggle(this.moduleID, -1 /* HIDE */);
+            jy.toggle(this.moduleID, -1 /* HIDE */);
         };
         Object.defineProperty(Panel.prototype, "isShow", {
             get: function () {
@@ -14549,7 +14507,7 @@ var junyou;
             configurable: true
         });
         Panel.prototype.show = function () {
-            junyou.toggle(this.moduleID, 1 /* SHOW */);
+            jy.toggle(this.moduleID, 1 /* SHOW */);
         };
         /**
          * 模态颜色
@@ -14567,29 +14525,29 @@ var junyou;
         Panel.MODAL_ALPHA = 0.8;
         return Panel;
     }(egret.Sprite));
-    junyou.Panel = Panel;
-    __reflect(Panel.prototype, "junyou.Panel", ["junyou.SuiDataCallback", "junyou.IAsyncPanel", "junyou.IAsync", "junyou.IModulePanel", "egret.DisplayObject"]);
-    junyou.expand(Panel, junyou.FHost, "addReadyExecute");
-    junyou.addEnable(Panel);
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.Panel = Panel;
+    __reflect(Panel.prototype, "jy.Panel", ["jy.SuiDataCallback", "jy.IAsyncPanel", "jy.IAsync", "jy.IModulePanel", "egret.DisplayObject"]);
+    jy.expand(Panel, jy.FHost, "addReadyExecute");
+    jy.addEnable(Panel);
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     var View = /** @class */ (function (_super) {
         __extends(View, _super);
         function View(key, className) {
             var _this = _super.call(this) || this;
-            junyou.singleton(junyou.SuiResManager).createComponents(key, className, _this);
+            jy.singleton(jy.SuiResManager).createComponents(key, className, _this);
             return _this;
         }
         return View;
     }(egret.Sprite));
-    junyou.View = View;
-    __reflect(View.prototype, "junyou.View");
+    jy.View = View;
+    __reflect(View.prototype, "jy.View");
     ;
-    junyou.addEnable(View);
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.addEnable(View);
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 左上的点
      */
@@ -14658,13 +14616,13 @@ var junyou;
             this.sCorner = supportedCorner;
             this.touchEnabled = true;
             frontCon.addChild(front);
-            junyou.removeDisplay(frontMask);
+            jy.removeDisplay(frontMask);
             front.mask = null;
             backCon.addChild(back);
             back.mask = backMask;
             back.scaleX = -1;
             backMask.scaleX = -1;
-            junyou.removeDisplay(backMask);
+            jy.removeDisplay(backMask);
             this.addChild(frontCon);
             if (!size) {
                 size = { width: front.width, height: front.height };
@@ -14702,7 +14660,7 @@ var junyou;
         };
         Flip.prototype.getLocal = function (e) {
             var stageX = e.stageX, stageY = e.stageY;
-            var pt = junyou.Temp.EgretPoint;
+            var pt = jy.Temp.EgretPoint;
             this.globalToLocal(stageX, stageY, pt);
             return pt;
         };
@@ -14728,8 +14686,8 @@ var junyou;
         Flip.prototype.reset = function () {
             var _a = this, frontDis = _a.frontDis, backCon = _a.backCon, frontMask = _a.frontMask;
             frontDis.mask = null;
-            junyou.removeDisplay(frontMask);
-            junyou.removeDisplay(backCon);
+            jy.removeDisplay(frontMask);
+            jy.removeDisplay(backCon);
         };
         Flip.prototype.draw = function (x, y) {
             //计算折边
@@ -14916,11 +14874,11 @@ var junyou;
         };
         return Flip;
     }(egret.Sprite));
-    junyou.Flip = Flip;
-    __reflect(Flip.prototype, "junyou.Flip");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.Flip = Flip;
+    __reflect(Flip.prototype, "jy.Flip");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 图片
      * 外部加载
@@ -14937,7 +14895,7 @@ var junyou;
         }
         Image.prototype.addedToStage = function () {
             if (this.uri) {
-                var res = junyou.ResManager.getTextureRes(this.uri, this.noWebp);
+                var res = jy.ResManager.getTextureRes(this.uri, this.noWebp);
                 if (res) {
                     res.qid = this.qid;
                     res.bind(this);
@@ -14947,7 +14905,7 @@ var junyou;
         };
         Image.prototype.removedFromStage = function () {
             if (this.uri) {
-                var res = junyou.ResManager.getResource(this.uri);
+                var res = jy.ResManager.getResource(this.uri);
                 if (res) {
                     res.loose(this);
                 }
@@ -14986,13 +14944,13 @@ var junyou;
         };
         return Image;
     }(egret.Bitmap));
-    junyou.Image = Image;
-    __reflect(Image.prototype, "junyou.Image");
+    jy.Image = Image;
+    __reflect(Image.prototype, "jy.Image");
     ;
-    junyou.addEnable(Image);
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.addEnable(Image);
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     var ListItemRenderer = /** @class */ (function (_super) {
         __extends(ListItemRenderer, _super);
         function ListItemRenderer() {
@@ -15037,7 +14995,7 @@ var junyou;
         ListItemRenderer.prototype._bind = function () {
             if (!this._skin) {
                 if (this.skinlib && this.skinClass) {
-                    this.skin = junyou.singleton(junyou.SuiResManager).createDisplayObject(this.skinlib, this.skinClass);
+                    this.skin = jy.singleton(jy.SuiResManager).createDisplayObject(this.skinlib, this.skinClass);
                 }
             }
             else {
@@ -15243,13 +15201,13 @@ var junyou;
         ListItemRenderer.prototype.removeSkinListener = function (skin) {
             if (skin) {
                 skin.off("touchTap" /* TOUCH_TAP */, this.onTouchTap, this);
-                junyou.ViewController.prototype.removeSkinListener.call(this, skin);
+                jy.ViewController.prototype.removeSkinListener.call(this, skin);
             }
         };
         ListItemRenderer.prototype.addSkinListener = function (skin) {
             if (skin) {
                 skin.on("touchTap" /* TOUCH_TAP */, this.onTouchTap, this);
-                junyou.ViewController.prototype.addSkinListener.call(this, skin);
+                jy.ViewController.prototype.addSkinListener.call(this, skin);
             }
         };
         /**
@@ -15288,9 +15246,9 @@ var junyou;
         };
         return ListItemRenderer;
     }(egret.EventDispatcher));
-    junyou.ListItemRenderer = ListItemRenderer;
-    __reflect(ListItemRenderer.prototype, "junyou.ListItemRenderer", ["junyou.ListItemRender", "egret.EventDispatcher", "junyou.SelectableComponents"]);
-    junyou.expand(ListItemRenderer, junyou.ViewController, "addReadyExecute", "addDepend", "stageHandler", "interest", "checkInject");
+    jy.ListItemRenderer = ListItemRenderer;
+    __reflect(ListItemRenderer.prototype, "jy.ListItemRenderer", ["jy.ListItemRender", "egret.EventDispatcher", "jy.SelectableComponents"]);
+    jy.expand(ListItemRenderer, jy.ViewController, "addReadyExecute", "addDepend", "stageHandler", "interest", "checkInject");
     // export abstract class AListItemRenderer<T, S extends egret.DisplayObject> extends ListItemRenderer<T, S> implements SuiDataCallback {
     //     /**
     //      * 子类重写设置皮肤
@@ -15311,9 +15269,9 @@ var junyou;
     //         }
     //     }
     // }
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 翻页，一次手势翻一页
      *
@@ -15380,7 +15338,7 @@ var junyou;
             var stage = _content.stage || egret.sys.$TempStage;
             stage.off("touchMove" /* TOUCH_MOVE */, this.onDragMove, this);
             _content.off("touchEnd" /* TOUCH_END */, this.onDragEnd, this);
-            var now = junyou.Global.now;
+            var now = jy.Global.now;
             var nowPos;
             if (this._scrollType == 0) {
                 nowPos = e.stageY;
@@ -15417,7 +15375,7 @@ var junyou;
             }
             var pagederiction = page > this.currentPage ? -1 : 1;
             this._scrollToPage = page;
-            this._lastFrameTime = junyou.Global.now;
+            this._lastFrameTime = jy.Global.now;
             if (now - this._lastMoveTime < 150) {
                 //检测手势速度
                 //eg：当前在2.8页，即玩家意图从第2页翻到第三页，原本手势是从右向左滑动，但是在最后松开的时候，向右猛拉
@@ -15455,7 +15413,7 @@ var junyou;
             else {
                 currentPos = rect.x;
             }
-            var now = junyou.Global.now;
+            var now = jy.Global.now;
             var subTime = now - this._lastFrameTime;
             var sub = this._moveSpeed * subTime * this.globalspeed;
             var subdis = targetPos - currentPos;
@@ -15478,12 +15436,12 @@ var junyou;
             this._moveSpeed *= this.blockSpeed;
         };
         return PageScroller;
-    }(junyou.Scroller));
-    junyou.PageScroller = PageScroller;
-    __reflect(PageScroller.prototype, "junyou.PageScroller");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    }(jy.Scroller));
+    jy.PageScroller = PageScroller;
+    __reflect(PageScroller.prototype, "jy.PageScroller");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 用于发送的网络数据<br/>
      * @author 3tion
@@ -15497,8 +15455,8 @@ var junyou;
         };
         return NetSendData;
     }());
-    junyou.NetSendData = NetSendData;
-    __reflect(NetSendData.prototype, "junyou.NetSendData", ["junyou.IRecyclable"]);
+    jy.NetSendData = NetSendData;
+    __reflect(NetSendData.prototype, "jy.NetSendData", ["jy.IRecyclable"]);
     /**
      * 网络数据，类似AS3项目中Stream<br/>
      * @author 3tion
@@ -15511,11 +15469,11 @@ var junyou;
         }
         return NetData;
     }(NetSendData));
-    junyou.NetData = NetData;
-    __reflect(NetData.prototype, "junyou.NetData");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.NetData = NetData;
+    __reflect(NetData.prototype, "jy.NetData");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      *
      * @author 3tion
@@ -15635,7 +15593,7 @@ var junyou;
                         bin.handler(data);
                     }
                     catch (e) {
-                        junyou.ThrowError("NetHander Error:" + JSON.stringify(data), e);
+                        jy.ThrowError("NetHander Error:" + JSON.stringify(data), e);
                     }
                     if (bin.once) { //如果只执行一次的，就移除
                         this.remove(cmd, bin.handler);
@@ -15649,12 +15607,12 @@ var junyou;
         };
         return NetRouter;
     }());
-    junyou.NetRouter = NetRouter;
-    __reflect(NetRouter.prototype, "junyou.NetRouter");
+    jy.NetRouter = NetRouter;
+    __reflect(NetRouter.prototype, "jy.NetRouter");
     ;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 为已布局好的render提供List功能
      *
@@ -15741,12 +15699,12 @@ var junyou;
             this.clear();
         };
         return MPageList;
-    }(junyou.AbsPageList));
-    junyou.MPageList = MPageList;
-    __reflect(MPageList.prototype, "junyou.MPageList");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    }(jy.AbsPageList));
+    jy.MPageList = MPageList;
+    __reflect(MPageList.prototype, "jy.MPageList");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     var PageList = /** @class */ (function (_super) {
         __extends(PageList, _super);
         /**
@@ -15760,8 +15718,8 @@ var junyou;
             _this.scroller = null; //站位用，便于对Scroller的绑定
             _this._waitForSetIndex = false;
             _this.renderChange = false;
-            if (!(renderfactory instanceof junyou.ClassFactory)) {
-                renderfactory = new junyou.ClassFactory(renderfactory);
+            if (!(renderfactory instanceof jy.ClassFactory)) {
+                renderfactory = new jy.ClassFactory(renderfactory);
             }
             _this._factory = renderfactory;
             _this.init(option);
@@ -15778,7 +15736,7 @@ var junyou;
             },
             set: function (con) {
                 if (!con) {
-                    true && junyou.ThrowError("\u5BB9\u5668\u4E0D\u5141\u8BB8\u8BBE\u7F6E\u7A7A\u503C");
+                    true && jy.ThrowError("\u5BB9\u5668\u4E0D\u5141\u8BB8\u8BBE\u7F6E\u7A7A\u503C");
                     return;
                 }
                 var old = this._con;
@@ -15796,7 +15754,7 @@ var junyou;
             configurable: true
         });
         PageList.prototype.init = function (option) {
-            option = option || junyou.Temp.EmptyObject;
+            option = option || jy.Temp.EmptyObject;
             var hgap = option.hgap, vgap = option.vgap, type = option.type, itemWidth = option.itemWidth, itemHeight = option.itemHeight, columnCount = option.columnCount, staticSize = option.staticSize, noScroller = option.noScroller, con = option.con;
             this.staticSize = staticSize;
             type = ~~type;
@@ -15818,7 +15776,7 @@ var junyou;
             this.scrollType = type;
             this.container = con || new egret.Sprite();
             if (!noScroller) {
-                var scroller = this.scroller = new junyou.Scroller();
+                var scroller = this.scroller = new jy.Scroller();
                 scroller.scrollType = this.scrollType;
                 scroller.bindObj2(con, con.suiRawRect);
             }
@@ -16026,7 +15984,7 @@ var junyou;
             var v = render.view;
             if (!v) {
                 if (true) {
-                    junyou.ThrowError("render[" + egret.getQualifiedClassName(render) + "]\u6CA1\u6709renderView");
+                    jy.ThrowError("render[" + egret.getQualifiedClassName(render) + "]\u6CA1\u6709renderView");
                 }
                 return;
             }
@@ -16067,11 +16025,11 @@ var junyou;
             if (scroller) {
                 scroller.stopTouchTween();
             }
-            junyou.Global.removeTweens(this);
+            jy.Global.removeTweens(this);
             if (this.useTweenIndex) {
                 this.useTweenIndex = false;
                 var result = this.scrollType == 1 /* Horizon */ ? { tweenX: endPos } : { tweenY: endPos };
-                var tween = junyou.Global.getTween(this).to(result, 500, junyou.Ease.quadOut);
+                var tween = jy.Global.getTween(this).to(result, 500, jy.Ease.quadOut);
                 if (scroller) {
                     scroller.showBar();
                     tween.call(scroller.hideBar, scroller);
@@ -16188,7 +16146,7 @@ var junyou;
         };
         PageList.prototype._removeRender = function (item) {
             item.data = undefined;
-            junyou.removeDisplay(item.view);
+            jy.removeDisplay(item.view);
             item.off(-1999 /* Resize */, this.onSizeChange, this);
             item.off(-1001 /* ITEM_TOUCH_TAP */, this.onTouchItem, this);
             item.dispose();
@@ -16297,7 +16255,7 @@ var junyou;
                 for (var i = showStart; i <= showEnd; i++) {
                     var render = list[i];
                     if (render) {
-                        junyou.removeDisplay(render.view);
+                        jy.removeDisplay(render.view);
                     }
                 }
                 if (delta > 0) { //向大的检查
@@ -16321,8 +16279,8 @@ var junyou;
                 inc = true;
             }
             var first, last, fIdx, lIdx;
-            var tmp = junyou.Temp.SharedArray3;
-            var tmpRect = junyou.Temp.SharedRect1;
+            var tmp = jy.Temp.SharedArray3;
+            var tmpRect = jy.Temp.SharedRect1;
             var staticSize = this.staticSize;
             tmp.length = 0;
             if (inc) {
@@ -16387,7 +16345,7 @@ var junyou;
                     else {
                         rec = v;
                     }
-                    if (junyou.intersects(rec, rect)) {
+                    if (jy.intersects(rec, rect)) {
                         if (!first) {
                             first = render;
                             fIdx = i;
@@ -16407,9 +16365,9 @@ var junyou;
             }
         };
         return PageList;
-    }(junyou.AbsPageList));
-    junyou.PageList = PageList;
-    __reflect(PageList.prototype, "junyou.PageList");
+    }(jy.AbsPageList));
+    jy.PageList = PageList;
+    __reflect(PageList.prototype, "jy.PageList");
     var define = {
         set: function (rect) {
             egret.DisplayObject.prototype.$setScrollRect.call(this, rect);
@@ -16420,9 +16378,9 @@ var junyou;
         },
         configurable: true
     };
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 图片字字库
      * Key为图片文字文件名（不带扩展名）
@@ -16457,15 +16415,15 @@ var junyou;
                 var key = dat[0];
                 txs[key] = suiData.getTexture(dat[1]); //imgs[dat[1]];
             }
-            junyou.refreshTexs(suiData, this);
+            jy.refreshTexs(suiData, this);
         };
         return ArtWord;
     }());
-    junyou.ArtWord = ArtWord;
-    __reflect(ArtWord.prototype, "junyou.ArtWord");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.ArtWord = ArtWord;
+    __reflect(ArtWord.prototype, "jy.ArtWord");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      *
      * 调整ClassFactory
@@ -16498,8 +16456,8 @@ var junyou;
         };
         return ClassFactory;
     }());
-    junyou.ClassFactory = ClassFactory;
-    __reflect(ClassFactory.prototype, "junyou.ClassFactory");
+    jy.ClassFactory = ClassFactory;
+    __reflect(ClassFactory.prototype, "jy.ClassFactory");
     /**
      * 回收池
      * @author 3tion
@@ -16546,8 +16504,8 @@ var junyou;
         };
         return RecyclablePool;
     }());
-    junyou.RecyclablePool = RecyclablePool;
-    __reflect(RecyclablePool.prototype, "junyou.RecyclablePool");
+    jy.RecyclablePool = RecyclablePool;
+    __reflect(RecyclablePool.prototype, "jy.RecyclablePool");
     if (true) {
         var _recid = 0;
     }
@@ -16580,7 +16538,7 @@ var junyou;
             pool.recycle(this);
         }
     }
-    junyou.recyclable = recyclable;
+    jy.recyclable = recyclable;
     /**
      * 单例工具
      * @param clazz 要做单例的类型
@@ -16598,10 +16556,10 @@ var junyou;
         }
         return instance;
     }
-    junyou.singleton = singleton;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.singleton = singleton;
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     // const enum Const {
     //     /**
     //      * 
@@ -16684,7 +16642,7 @@ var junyou;
                 if (true) {
                     console.log("webSocket连接成功");
                 }
-                junyou.dispatch(-197 /* Connected */);
+                jy.dispatch(-197 /* Connected */);
             };
             /**
              *
@@ -16693,9 +16651,9 @@ var junyou;
              */
             _this.onError = function (ev) {
                 if (true) {
-                    junyou.ThrowError("socket发生错误", ev.error);
+                    jy.ThrowError("socket发生错误", ev.error);
                 }
-                junyou.dispatch(-196 /* ConnectFailed */);
+                jy.dispatch(-196 /* ConnectFailed */);
             };
             /**
              *
@@ -16706,7 +16664,7 @@ var junyou;
                 if (true) {
                     console.log("socket断开连接");
                 }
-                egret.callLater(junyou.dispatch, junyou, -195 /* Disconnect */);
+                egret.callLater(jy.dispatch, jy, -195 /* Disconnect */);
             };
             /**
              *
@@ -16741,7 +16699,7 @@ var junyou;
                 _this.decodeBytes(readBuffer);
             };
             //覆盖instance
-            junyou.NetService._ins = _this;
+            jy.NetService._ins = _this;
             return _this;
         }
         /**
@@ -16779,7 +16737,7 @@ var junyou;
                 return;
             }
             //没有同协议的指令，新增数据
-            var pdata = junyou.recyclable(junyou.NetSendData);
+            var pdata = jy.recyclable(jy.NetSendData);
             pdata.cmd = cmd;
             pdata.data = data;
             pdata.msgType = msgType;
@@ -16813,12 +16771,12 @@ var junyou;
             ws.onopen = null;
         };
         return WSNetService;
-    }(junyou.NetService));
-    junyou.WSNetService = WSNetService;
-    __reflect(WSNetService.prototype, "junyou.WSNetService");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    }(jy.NetService));
+    jy.WSNetService = WSNetService;
+    __reflect(WSNetService.prototype, "jy.WSNetService");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     var TouchEvent = egret.TouchEvent;
     var Event = egret.Event;
     var key = "$__$Drag";
@@ -16917,7 +16875,7 @@ var junyou;
         host.on("touchBegin" /* TOUCH_BEGIN */, onStart, dele);
         host[key] = dele;
     }
-    junyou.bindDrag = bindDrag;
+    jy.bindDrag = bindDrag;
     function looseDrag(host) {
         var dele = host[key];
         if (dele) {
@@ -16930,10 +16888,10 @@ var junyou;
             delete host[key];
         }
     }
-    junyou.looseDrag = looseDrag;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.looseDrag = looseDrag;
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      *
      * 用于处理SuiData中的纹理加载
@@ -16966,7 +16924,7 @@ var junyou;
         });
         SuiBmd.prototype.loadBmd = function () {
             if (this.bmdState <= 0 /* UNREQUEST */) {
-                junyou.Res.load(this.uri, this.url, junyou.CallbackInfo.get(this.checkBitmap, this));
+                jy.Res.load(this.uri, this.url, jy.CallbackInfo.get(this.checkBitmap, this));
                 this.bmdState = 1 /* REQUESTING */;
             }
         };
@@ -16974,7 +16932,7 @@ var junyou;
             var uri = item.uri, data = item.data;
             if (this.uri == uri) {
                 if (!data) {
-                    junyou.dispatch(-1070 /* SuiBmdLoadFailed */, this.uri);
+                    jy.dispatch(-1070 /* SuiBmdLoadFailed */, this.uri);
                     if (true) {
                         data = ErrorTexture;
                     }
@@ -17007,16 +16965,16 @@ var junyou;
             if (bmd) {
                 bmd.$dispose();
                 this.bmd = undefined;
-                junyou.Res.remove(this.uri);
+                jy.Res.remove(this.uri);
             }
         };
         return SuiBmd;
     }());
-    junyou.SuiBmd = SuiBmd;
-    __reflect(SuiBmd.prototype, "junyou.SuiBmd", ["junyou.IResource"]);
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.SuiBmd = SuiBmd;
+    __reflect(SuiBmd.prototype, "jy.SuiBmd", ["jy.IResource"]);
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 用于加载和存储fla导出的ui数据和位图
      * @author 3tion
@@ -17038,19 +16996,19 @@ var junyou;
              */
             this.lib = {};
             this.key = key;
-            this.url = junyou.ConfigUtils.getSkinFile(key, "s.json" /* DataFile */);
-            this.uri = junyou.getSuiDataUri(key);
+            this.url = jy.ConfigUtils.getSkinFile(key, "s.json" /* DataFile */);
+            this.uri = jy.getSuiDataUri(key);
         }
         SuiData.prototype.createBmpLoader = function (ispng, textures) {
             var file = "d" + (ispng ? ".png" /* PNG */ : ".jpg" /* JPG */);
             //增加一个skin前缀
-            var uri = this.skinUri || "skin/" + junyou.ConfigUtils.getSkinPath(this.key, file);
-            var tmp = junyou.ResManager.get(uri, this.noRes, this, uri, file, textures);
+            var uri = this.skinUri || "skin/" + jy.ConfigUtils.getSkinPath(this.key, file);
+            var tmp = jy.ResManager.get(uri, this.noRes, this, uri, file, textures);
             ispng ? this.pngbmd = tmp : this.jpgbmd = tmp;
         };
         SuiData.prototype.noRes = function (uri, file, textures) {
-            var url = junyou.ConfigUtils.getSkinFile(this.key, file) + junyou.Global.webp;
-            var tmp = new junyou.SuiBmd(uri, url);
+            var url = jy.ConfigUtils.getSkinFile(this.key, file) + jy.Global.webp;
+            var tmp = new jy.SuiBmd(uri, url);
             tmp.textures = textures;
             return tmp;
         };
@@ -17091,7 +17049,7 @@ var junyou;
             }
         };
         SuiData.prototype.loadBmd = function (callback) {
-            var bin = junyou.recyclable(CallbackBin);
+            var bin = jy.recyclable(CallbackBin);
             var count = 0;
             //检查bmd状态
             this.jpgbmd && !this.checkRefreshBmp(bin, true) && count++;
@@ -17107,8 +17065,8 @@ var junyou;
         };
         return SuiData;
     }());
-    junyou.SuiData = SuiData;
-    __reflect(SuiData.prototype, "junyou.SuiData");
+    jy.SuiData = SuiData;
+    __reflect(SuiData.prototype, "jy.SuiData");
     var CallbackBin = /** @class */ (function () {
         function CallbackBin() {
         }
@@ -17128,14 +17086,14 @@ var junyou;
         return CallbackBin;
     }());
     __reflect(CallbackBin.prototype, "CallbackBin");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     var Texture = egret.Texture;
     function getSuiDataUri(key) {
         return "$SuiData$_" + key;
     }
-    junyou.getSuiDataUri = getSuiDataUri;
+    jy.getSuiDataUri = getSuiDataUri;
     /**
      * 用于管理位图和数据
      * @author 3tion
@@ -17150,21 +17108,21 @@ var junyou;
         }
         SuiResManager.prototype.initInlineCreators = function () {
             this._creators = (_a = {},
-                _a[3 /* Button */] = junyou.ButtonCreator,
-                _a[6 /* ShapeNumber */] = junyou.ArtTextCreator,
-                _a[5 /* ScaleBitmap */] = junyou.ScaleBitmapCreator,
-                _a[7 /* NumericStepper */] = junyou.NumericStepperCreator,
-                _a[8 /* Slider */] = junyou.SliderCreator,
-                _a[9 /* ScrollBar */] = junyou.ScrollBarCreator,
-                _a[10 /* ProgressBar */] = junyou.ProgressBarCreator,
-                _a[11 /* SlotBg */] = junyou.ScaleBitmapCreator,
-                _a[12 /* ShareBmp */] = junyou.ShareBitmapCreator,
-                _a[13 /* Slot */] = junyou.SlotCreator,
-                _a[19 /* MovieClip */] = junyou.MovieClipCreator,
-                _a[20 /* MCButton */] = junyou.MCButtonCreator,
-                _a[21 /* MCProgress */] = junyou.MCProgressCreator,
+                _a[3 /* Button */] = jy.ButtonCreator,
+                _a[6 /* ShapeNumber */] = jy.ArtTextCreator,
+                _a[5 /* ScaleBitmap */] = jy.ScaleBitmapCreator,
+                _a[7 /* NumericStepper */] = jy.NumericStepperCreator,
+                _a[8 /* Slider */] = jy.SliderCreator,
+                _a[9 /* ScrollBar */] = jy.ScrollBarCreator,
+                _a[10 /* ProgressBar */] = jy.ProgressBarCreator,
+                _a[11 /* SlotBg */] = jy.ScaleBitmapCreator,
+                _a[12 /* ShareBmp */] = jy.ShareBitmapCreator,
+                _a[13 /* Slot */] = jy.SlotCreator,
+                _a[19 /* MovieClip */] = jy.MovieClipCreator,
+                _a[20 /* MCButton */] = jy.MCButtonCreator,
+                _a[21 /* MCProgress */] = jy.MCProgressCreator,
                 _a);
-            this.sharedTFCreator = new junyou.TextFieldCreator();
+            this.sharedTFCreator = new jy.TextFieldCreator();
             var _a;
         };
         SuiResManager.prototype.getData = function (key) {
@@ -17193,7 +17151,7 @@ var junyou;
                         suiData.callbacks = callbacks = [];
                     }
                     //先加载配置
-                    junyou.Res.load(suiData.uri, suiData.url, junyou.CallbackInfo.get(this.checkData, this), qid);
+                    jy.Res.load(suiData.uri, suiData.url, jy.CallbackInfo.get(this.checkData, this), qid);
                 }
                 callback && callbacks.pushOnce(callback);
             }
@@ -17235,7 +17193,7 @@ var junyou;
             this._initSuiData(data, suiData);
         };
         SuiResManager.prototype.createSuiData = function (key) {
-            var suiData = new junyou.SuiData(key);
+            var suiData = new jy.SuiData(key);
             this._suiDatas[key] = suiData;
             this._urlKey[suiData.uri] = suiData;
             return suiData;
@@ -17330,7 +17288,7 @@ var junyou;
                     for (var i = 0; i < len; i++) {
                         var linkName = nameData[i];
                         var dat = comData[i];
-                        var fontLib = new junyou.ArtWord(linkName);
+                        var fontLib = new jy.ArtWord(linkName);
                         fontLib.parseData(dat, suiData);
                         if (!fonts) {
                             suiData.fonts = fonts = {};
@@ -17378,7 +17336,7 @@ var junyou;
                     var sy = imgData[3];
                     tex.$initData(sx, sy, width, height, 0, 0, width, height, width, height);
                     imgs[i] = tex;
-                    var bc = new junyou.BitmapCreator(suiData);
+                    var bc = new jy.BitmapCreator(suiData);
                     var idx = ispng ? i : -1 - i;
                     bc.parseSelfData(idx);
                     bcs[idx] = bc;
@@ -17403,7 +17361,7 @@ var junyou;
                     return disp;
                 }
                 else if (true) {
-                    junyou.ThrowError("\u6CA1\u6709\u5728[" + suiData.key + "]\u627E\u5230\u5BF9\u5E94\u7EC4\u4EF6[" + className + "]");
+                    jy.ThrowError("\u6CA1\u6709\u5728[" + suiData.key + "]\u627E\u5230\u5BF9\u5E94\u7EC4\u4EF6[" + className + "]");
                 }
             }
             // //[3,["btn2",14.5,139,79,28,0],0,0]
@@ -17433,7 +17391,7 @@ var junyou;
                     return dis;
                 }
                 else if (true) {
-                    junyou.ThrowError("createElement\u65F6\uFF0C\u6CA1\u6709\u627E\u5230\u5BF9\u5E94\u7EC4\u4EF6\uFF0C\u7D22\u5F15\uFF1A[" + +data[0] + "]");
+                    jy.ThrowError("createElement\u65F6\uFF0C\u6CA1\u6709\u627E\u5230\u5BF9\u5E94\u7EC4\u4EF6\uFF0C\u7D22\u5F15\uFF1A[" + +data[0] + "]");
                 }
             }
         };
@@ -17541,7 +17499,7 @@ var junyou;
                 dis.alpha = alpha;
             }
             if (adjustColors) {
-                dis.filters = [junyou.FilterUtils.adjustColorFilter(adjustColors[0], adjustColors[1], adjustColors[2], adjustColors[3])];
+                dis.filters = [jy.FilterUtils.adjustColorFilter(adjustColors[0], adjustColors[1], adjustColors[2], adjustColors[3])];
             }
         };
         /**
@@ -17595,7 +17553,7 @@ var junyou;
                     view.addChild(ele);
                 }
                 else if (true) {
-                    junyou.ThrowError("\u6CA1\u6709\u6B63\u786E\u521B\u5EFA\u539F\u4EF6\uFF0C\u7C7B\u578B\uFF1A" + type + "\uFF0C\u6570\u636E\uFF1A" + JSON.stringify(data));
+                    jy.ThrowError("\u6CA1\u6709\u6B63\u786E\u521B\u5EFA\u539F\u4EF6\uFF0C\u7C7B\u578B\uFF1A" + type + "\uFF0C\u6570\u636E\uFF1A" + JSON.stringify(data));
                 }
             }
             var name = baseData[0];
@@ -17608,12 +17566,12 @@ var junyou;
             var type = data[0], bd = data[1], sd = data[2], lib = data[3];
             switch (type) {
                 case 1 /* Text */:
-                    var tc = new junyou.TextFieldCreator();
+                    var tc = new jy.TextFieldCreator();
                     tc.setBaseData(bd);
                     tc.parseSelfData(sd);
                     return tc.get();
                 case 0 /* Image */:
-                    var bg = new junyou.BitmapCreator(suiData);
+                    var bg = new jy.BitmapCreator(suiData);
                     bg.parseData(data, suiData);
                     return bg.get();
                 case 16 /* Sprite */:
@@ -17621,7 +17579,7 @@ var junyou;
                     SuiResManager.initBaseData(sp, bd);
                     return sp;
                 case 17 /* ImageLoader */:
-                    var il = new junyou.Image();
+                    var il = new jy.Image();
                     SuiResManager.initBaseData(il, bd);
                     return il;
                 default:
@@ -17641,7 +17599,7 @@ var junyou;
                     }
                     if (type == 18 /* ExportedContainer */) {
                         var className = suiData.panelNames[~~sd];
-                        var v = new junyou.View(libKey, className);
+                        var v = new jy.View(libKey, className);
                         v.suiClass = className;
                         v.suiLib = libKey;
                         SuiResManager.initBaseData(v, bd);
@@ -17691,11 +17649,11 @@ var junyou;
         };
         return SuiResManager;
     }());
-    junyou.SuiResManager = SuiResManager;
-    __reflect(SuiResManager.prototype, "junyou.SuiResManager");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.SuiResManager = SuiResManager;
+    __reflect(SuiResManager.prototype, "jy.SuiResManager");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 给ArtText和ArtWord刷新纹理使用
      *
@@ -17718,10 +17676,10 @@ var junyou;
         }
         suiData.checkRefreshBmp(thisObj);
     }
-    junyou.refreshTexs = refreshTexs;
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.refreshTexs = refreshTexs;
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 艺术字
      */
@@ -17784,7 +17742,7 @@ var junyou;
                 var tx = txs[key];
                 if (!tx) {
                     if (true) {
-                        junyou.ThrowError("\u4F20\u5165\u4E86\u7EB9\u7406\u4E2D\u6CA1\u6709\u7684\u6570\u636E[" + key + "]");
+                        jy.ThrowError("\u4F20\u5165\u4E86\u7EB9\u7406\u4E2D\u6CA1\u6709\u7684\u6570\u636E[" + key + "]");
                     }
                     continue;
                 }
@@ -17839,12 +17797,12 @@ var junyou;
         };
         ArtText.prototype.dispose = function () {
             _super.prototype.dispose.call(this);
-            junyou.removeDisplay(this);
+            jy.removeDisplay(this);
         };
         return ArtText;
-    }(junyou.Component));
-    junyou.ArtText = ArtText;
-    __reflect(ArtText.prototype, "junyou.ArtText");
+    }(jy.Component));
+    jy.ArtText = ArtText;
+    __reflect(ArtText.prototype, "jy.ArtText");
     /**
      *
      * @author gushuai
@@ -17868,7 +17826,7 @@ var junyou;
                 txs[key] = tx;
             }
             this._txs = txs;
-            junyou.refreshTexs(suiData, this);
+            jy.refreshTexs(suiData, this);
             this._createT = function () {
                 var shape = new ArtText();
                 _this.bindEvent(shape);
@@ -17892,16 +17850,16 @@ var junyou;
             if (suiData) {
                 var bmd = suiData.pngbmd;
                 bmd.using--;
-                bmd.lastUseTime = junyou.Global.now;
+                bmd.lastUseTime = jy.Global.now;
             }
         };
         return ArtTextCreator;
-    }(junyou.BaseCreator));
-    junyou.ArtTextCreator = ArtTextCreator;
-    __reflect(ArtTextCreator.prototype, "junyou.ArtTextCreator");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    }(jy.BaseCreator));
+    jy.ArtTextCreator = ArtTextCreator;
+    __reflect(ArtTextCreator.prototype, "jy.ArtTextCreator");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     var Res;
     (function (Res) {
         /**
@@ -17941,7 +17899,7 @@ var junyou;
                 this.type = type;
             }
             BinLoader.prototype.loadFile = function (resItem, callback) {
-                var request = junyou.recyclable(egret.HttpRequest);
+                var request = jy.recyclable(egret.HttpRequest);
                 bindRequest(this, request, resItem, callback);
                 request.responseType = this.type;
                 request.open(resItem.url);
@@ -17960,12 +17918,12 @@ var junyou;
             return BinLoader;
         }());
         Res.BinLoader = BinLoader;
-        __reflect(BinLoader.prototype, "junyou.Res.BinLoader", ["junyou.Res.ResLoader"]);
+        __reflect(BinLoader.prototype, "jy.Res.BinLoader", ["jy.Res.ResLoader"]);
         var ImageLoader = /** @class */ (function () {
             function ImageLoader() {
             }
             ImageLoader.prototype.loadFile = function (resItem, callback) {
-                var request = junyou.recyclable(egret.ImageLoader);
+                var request = jy.recyclable(egret.ImageLoader);
                 bindRequest(this, request, resItem, callback);
                 request.load(resItem.url);
             };
@@ -17984,7 +17942,7 @@ var junyou;
             return ImageLoader;
         }());
         Res.ImageLoader = ImageLoader;
-        __reflect(ImageLoader.prototype, "junyou.Res.ImageLoader", ["junyou.Res.ResLoader"]);
+        __reflect(ImageLoader.prototype, "jy.Res.ImageLoader", ["jy.Res.ResLoader"]);
         var binLoader = new BinLoader();
         /**
          * 资源字典
@@ -18112,7 +18070,7 @@ var junyou;
             var old = resDict[uri];
             if (old) {
                 if (old != resItem && old.url != resItem.url) {
-                    true && junyou.ThrowError("\u8D44\u6E90[" + uri + "]\u91CD\u540D\uFF0C\u52A0\u8F7D\u8DEF\u5F84\u5206\u5E03\u4E3A[" + old.url + "]\u548C[" + resItem.url + "]");
+                    true && jy.ThrowError("\u8D44\u6E90[" + uri + "]\u91CD\u540D\uFF0C\u52A0\u8F7D\u8DEF\u5F84\u5206\u5E03\u4E3A[" + old.url + "]\u548C[" + resItem.url + "]");
                 }
                 else { //资源和加载路径完全相同
                     var state = old.state;
@@ -18152,7 +18110,7 @@ var junyou;
             var item = resDict[uri];
             if (!item) {
                 if (!url) {
-                    url = junyou.ConfigUtils.getResUrl(uri);
+                    url = jy.ConfigUtils.getResUrl(uri);
                 }
                 item = { uri: uri, url: url, type: getType(url) };
             }
@@ -18168,7 +18126,7 @@ var junyou;
             for (var i = 0; i < total; i++) {
                 var item = list[i];
                 item.group = group;
-                loadRes(item, junyou.CallbackInfo.get(doLoadList, null, opt), queueID);
+                loadRes(item, jy.CallbackInfo.get(doLoadList, null, opt), queueID);
             }
         }
         Res.loadList = loadList;
@@ -18251,7 +18209,7 @@ var junyou;
             addRes(resItem, queueID);
             var state = resItem.state;
             if (state == 2 /* COMPLETE */ || state == -1 /* FAILED */ && resItem.retry > maxRetry) { //已经加载完成的资源，直接在下一帧回调
-                return callback && junyou.Global.nextTick(callback.callAndRecycle, callback, resItem); // callback.callAndRecycle(resItem);
+                return callback && jy.Global.nextTick(callback.callAndRecycle, callback, resItem); // callback.callAndRecycle(resItem);
             }
             resItem.removed = false;
             if (callback) {
@@ -18328,7 +18286,7 @@ var junyou;
                         }
                         //标记为加载中
                         item.state = 1 /* REQUESTING */;
-                        loader.loadFile(item, junyou.CallbackInfo.get(onItemComplete));
+                        loader.loadFile(item, jy.CallbackInfo.get(onItemComplete));
                         break;
                 }
             }
@@ -18354,7 +18312,7 @@ var junyou;
                 var retry = item.retry || 1;
                 if (retry > maxRetry) {
                     doCallback(item);
-                    return junyou.dispatch(-187 /* ResLoadFailed */, item);
+                    return jy.dispatch(-187 /* ResLoadFailed */, item);
                 }
                 item.retry = retry + 1;
                 item.state = 0 /* UNREQUEST */;
@@ -18368,7 +18326,7 @@ var junyou;
                 //检查资源是否被加入到列队中
                 delete item.qid;
                 doCallback(item);
-                junyou.dispatch(-186 /* ResLoadSuccess */, item);
+                jy.dispatch(-186 /* ResLoadSuccess */, item);
             }
             return next();
         }
@@ -18393,7 +18351,7 @@ var junyou;
                 indexedDB.open(storeName, version);
             }
             catch (e) {
-                true && junyou.ThrowError("\u65E0\u6CD5\u5F00\u542F indexedDB,error:", e);
+                true && jy.ThrowError("\u65E0\u6CD5\u5F00\u542F indexedDB,error:", e);
                 return;
             }
             var RW = "readwrite";
@@ -18439,7 +18397,7 @@ var junyou;
                             };
                         }
                         catch (e) {
-                            true && junyou.ThrowError("indexedDB error", e);
+                            true && jy.ThrowError("indexedDB error", e);
                             callback(null, url);
                         }
                     }, function (e) { callback(null, url); });
@@ -18490,7 +18448,7 @@ var junyou;
                     var request = indexedDB.open(storeName, version);
                 }
                 catch (e) {
-                    true && junyou.ThrowError("indexedDB error", e);
+                    true && jy.ThrowError("indexedDB error", e);
                     return onError && onError(e);
                 }
                 request.onerror = function (e) {
@@ -18514,7 +18472,7 @@ var junyou;
                 return result.transaction([storeName], mode).objectStore(storeName);
             }
             function errorHandler(ev) {
-                junyou.ThrowError("indexedDB error", ev.error);
+                jy.ThrowError("indexedDB error", ev.error);
             }
         }
         Res.getLocalDB = getLocalDB;
@@ -18544,7 +18502,7 @@ var junyou;
             function saveLocal(item, data) {
                 item.local = true;
                 var uri = item.uri;
-                var local = { data: data, version: junyou.ConfigUtils.getResVer(uri), uri: uri, url: item.url };
+                var local = { data: data, version: jy.ConfigUtils.getResVer(uri), uri: uri, url: item.url };
                 //存储数据
                 db.save(local);
             }
@@ -18562,7 +18520,7 @@ var junyou;
                         if (data) { //有数据
                             var local = data.data;
                             if (local) {
-                                var ver = junyou.ConfigUtils.getResVer(data.uri);
+                                var ver = jy.ConfigUtils.getResVer(data.uri);
                                 if (ver == data.version) {
                                     resItem.data = local;
                                     resItem.state = 2 /* COMPLETE */;
@@ -18613,7 +18571,7 @@ var junyou;
                 else {
                     db.get(uri, function (data) {
                         if (data) { //有数据
-                            var ver = junyou.ConfigUtils.getResVer(uri);
+                            var ver = jy.ConfigUtils.getResVer(uri);
                             if (ver == data.version) {
                                 var rawData = data.data;
                                 if (rawData instanceof Blob) {
@@ -18624,7 +18582,7 @@ var junyou;
                                 }
                                 else {
                                     if (true) { //其他情况不处理
-                                        junyou.ThrowError("出现ImageAnalyzer本地缓存不支持的情况");
+                                        jy.ThrowError("出现ImageAnalyzer本地缓存不支持的情况");
                                     }
                                 }
                                 resItem.local = true;
@@ -18700,10 +18658,10 @@ var junyou;
         }
         Res.tryLocal = tryLocal;
         var _a, _b;
-    })(Res = junyou.Res || (junyou.Res = {}));
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    })(Res = jy.Res || (jy.Res = {}));
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      *
      * 新版使用MC的按钮，减少制作按钮的难度
@@ -18744,10 +18702,10 @@ var junyou;
             }
         };
         return MCButton;
-    }(junyou.Button));
-    junyou.MCButton = MCButton;
-    __reflect(MCButton.prototype, "junyou.MCButton");
-    MCButton.prototype.addChild = junyou.Component.prototype.addChild;
+    }(jy.Button));
+    jy.MCButton = MCButton;
+    __reflect(MCButton.prototype, "jy.MCButton");
+    MCButton.prototype.addChild = jy.Component.prototype.addChild;
     /**
      * MC按钮创建器
      *
@@ -18762,16 +18720,16 @@ var junyou;
         }
         MCButtonCreator.prototype.parseSelfData = function (data) {
             var suiData = this._suiData;
-            var framesData = junyou.MovieClipCreator.prototype.$getFramesData(data);
-            this._createT = function () { return new MCButton(new junyou.MovieClip(data, framesData, suiData)); };
+            var framesData = jy.MovieClipCreator.prototype.$getFramesData(data);
+            this._createT = function () { return new MCButton(new jy.MovieClip(data, framesData, suiData)); };
         };
         return MCButtonCreator;
-    }(junyou.BaseCreator));
-    junyou.MCButtonCreator = MCButtonCreator;
-    __reflect(MCButtonCreator.prototype, "junyou.MCButtonCreator");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    }(jy.BaseCreator));
+    jy.MCButtonCreator = MCButtonCreator;
+    __reflect(MCButtonCreator.prototype, "jy.MCButtonCreator");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     var MovieClip = /** @class */ (function (_super) {
         __extends(MovieClip, _super);
         function MovieClip(data, framesData, suiData) {
@@ -18794,7 +18752,7 @@ var junyou;
              */
             var comps;
             if (compsData) {
-                var sm = junyou.singleton(junyou.SuiResManager);
+                var sm = jy.singleton(jy.SuiResManager);
                 var j = 0;
                 comps = [];
                 for (var i = 0; i < compsData.length; i++) {
@@ -18805,7 +18763,7 @@ var junyou;
                 }
             }
             else {
-                comps = junyou.Temp.EmptyArray;
+                comps = jy.Temp.EmptyArray;
             }
             _this.compData = comps;
             _this.framesData = framesData;
@@ -18828,11 +18786,11 @@ var junyou;
         MovieClip.prototype.play = function (frame) {
             this.currentFrame = this.getFrame(frame);
             this.playing = true;
-            this._nt = junyou.Global.now + this.timePerFrame;
+            this._nt = jy.Global.now + this.timePerFrame;
             this.on("enterFrame" /* ENTER_FRAME */, this.doRender, this);
         };
         MovieClip.prototype.doRender = function () {
-            var now = junyou.Global.now;
+            var now = jy.Global.now;
             var nt = this._nt;
             if (nt < now) {
                 var cf = this.currentFrame;
@@ -18865,7 +18823,7 @@ var junyou;
             var frameData = this.framesData[frame];
             if (frameData && frameData.key != this.currentFrame) { //当前帧是否和要渲染的关键帧相同
                 var dict = this.compData;
-                var sm = junyou.singleton(junyou.SuiResManager);
+                var sm = jy.singleton(jy.SuiResManager);
                 var tc = sm.sharedTFCreator;
                 var suiData = this.suiData;
                 //清理子对象
@@ -18889,7 +18847,7 @@ var junyou;
                         if (comp instanceof egret.DisplayObject) {
                             this.addChild(comp);
                             if (pData) { //调整基础属性
-                                junyou.SuiResManager.initBaseData(comp, pData);
+                                jy.SuiResManager.initBaseData(comp, pData);
                             }
                             if (comp instanceof egret.TextField) { //如果是文本框，特殊处理
                                 if (!textData) {
@@ -18903,9 +18861,9 @@ var junyou;
             }
         };
         return MovieClip;
-    }(junyou.Component));
-    junyou.MovieClip = MovieClip;
-    __reflect(MovieClip.prototype, "junyou.MovieClip");
+    }(jy.Component));
+    jy.MovieClip = MovieClip;
+    __reflect(MovieClip.prototype, "jy.MovieClip");
     /**
      * MC创建器
      *
@@ -18938,12 +18896,12 @@ var junyou;
             return framesData;
         };
         return MovieClipCreator;
-    }(junyou.BaseCreator));
-    junyou.MovieClipCreator = MovieClipCreator;
-    __reflect(MovieClipCreator.prototype, "junyou.MovieClipCreator");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    }(jy.BaseCreator));
+    jy.MovieClipCreator = MovieClipCreator;
+    __reflect(MovieClipCreator.prototype, "jy.MovieClipCreator");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     var NumericStepper = /** @class */ (function (_super) {
         __extends(NumericStepper, _super);
         function NumericStepper() {
@@ -19035,7 +18993,7 @@ var junyou;
                 if (value)
                     this._minValue = value;
                 else
-                    junyou.ThrowError("最小值需大于0");
+                    jy.ThrowError("最小值需大于0");
             },
             enumerable: true,
             configurable: true
@@ -19049,15 +19007,15 @@ var junyou;
                 if (value)
                     this._maxValue = value;
                 else
-                    junyou.ThrowError("最大值需大于0");
+                    jy.ThrowError("最大值需大于0");
             },
             enumerable: true,
             configurable: true
         });
         return NumericStepper;
-    }(junyou.Component));
-    junyou.NumericStepper = NumericStepper;
-    __reflect(NumericStepper.prototype, "junyou.NumericStepper");
+    }(jy.Component));
+    jy.NumericStepper = NumericStepper;
+    __reflect(NumericStepper.prototype, "jy.NumericStepper");
     var NumericStepperCreator = /** @class */ (function (_super) {
         __extends(NumericStepperCreator, _super);
         function NumericStepperCreator() {
@@ -19065,12 +19023,12 @@ var junyou;
         }
         NumericStepperCreator.prototype.parseSelfData = function (data) {
             this.uiData = data;
-            var txtCreator = new junyou.TextFieldCreator();
+            var txtCreator = new jy.TextFieldCreator();
             this.txtCreator = txtCreator;
             var data0 = data[0], data1 = data[1];
             txtCreator.setBaseData(data0[1]);
             txtCreator.parseSelfData(data0[2]);
-            var scale9Creator = new junyou.ScaleBitmapCreator();
+            var scale9Creator = new jy.ScaleBitmapCreator();
             this.scale9Creator = scale9Creator;
             var _suiData = this._suiData;
             var sourceComponentData = _suiData.sourceComponentData;
@@ -19083,7 +19041,7 @@ var junyou;
             for (var i = 2; i < data.length; i++) {
                 var dat = data[i];
                 if (dat) {
-                    var bc = new junyou.ButtonCreator();
+                    var bc = new jy.ButtonCreator();
                     bc.bindSuiData(_suiData);
                     bc.parseSelfData(sourceComponentData31[dat[2]]);
                     bc.setBaseData(dat[1]);
@@ -19091,7 +19049,7 @@ var junyou;
                 }
             }
             this._createT = this.createNumericStepper;
-            this.suiManager = junyou.singleton(junyou.SuiResManager);
+            this.suiManager = jy.singleton(jy.SuiResManager);
         };
         NumericStepperCreator.prototype.createNumericStepper = function () {
             var numstep = new NumericStepper();
@@ -19115,12 +19073,12 @@ var junyou;
             return numstep;
         };
         return NumericStepperCreator;
-    }(junyou.BaseCreator));
-    junyou.NumericStepperCreator = NumericStepperCreator;
-    __reflect(NumericStepperCreator.prototype, "junyou.NumericStepperCreator");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    }(jy.BaseCreator));
+    jy.NumericStepperCreator = NumericStepperCreator;
+    __reflect(NumericStepperCreator.prototype, "jy.NumericStepperCreator");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 进度条
      * @author 3tion
@@ -19191,7 +19149,7 @@ var junyou;
             }
             if (maxValue < 0) {
                 if (true) {
-                    junyou.ThrowError("进度条最大宽度不应小等于0");
+                    jy.ThrowError("进度条最大宽度不应小等于0");
                 }
                 maxValue = 0.00001;
             }
@@ -19235,9 +19193,9 @@ var junyou;
             return value + " / " + maxValue;
         };
         return ProgressBar;
-    }(junyou.Component));
-    junyou.ProgressBar = ProgressBar;
-    __reflect(ProgressBar.prototype, "junyou.ProgressBar");
+    }(jy.Component));
+    jy.ProgressBar = ProgressBar;
+    __reflect(ProgressBar.prototype, "jy.ProgressBar");
     /**
      * 进度条创建
      *
@@ -19282,9 +19240,9 @@ var junyou;
             };
         };
         return ProgressBarCreator;
-    }(junyou.BaseCreator));
-    junyou.ProgressBarCreator = ProgressBarCreator;
-    __reflect(ProgressBarCreator.prototype, "junyou.ProgressBarCreator");
+    }(jy.BaseCreator));
+    jy.ProgressBarCreator = ProgressBarCreator;
+    __reflect(ProgressBarCreator.prototype, "jy.ProgressBarCreator");
     /**
      * MC进度条创建
      *
@@ -19299,9 +19257,9 @@ var junyou;
         }
         MCProgressCreator.prototype.parseSelfData = function (data) {
             var suiData = this._suiData;
-            var framesData = junyou.MovieClipCreator.prototype.$getFramesData(data);
+            var framesData = jy.MovieClipCreator.prototype.$getFramesData(data);
             this._createT = function () {
-                var mc = new junyou.MovieClip(data, framesData, suiData);
+                var mc = new jy.MovieClip(data, framesData, suiData);
                 var bar = new ProgressBar();
                 bar.addChild(mc);
                 bar.skin = mc;
@@ -19309,12 +19267,12 @@ var junyou;
             };
         };
         return MCProgressCreator;
-    }(junyou.BaseCreator));
-    junyou.MCProgressCreator = MCProgressCreator;
-    __reflect(MCProgressCreator.prototype, "junyou.MCProgressCreator");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    }(jy.BaseCreator));
+    jy.MCProgressCreator = MCProgressCreator;
+    __reflect(MCProgressCreator.prototype, "jy.MCProgressCreator");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     var ScaleBitmapCreator = /** @class */ (function (_super) {
         __extends(ScaleBitmapCreator, _super);
         function ScaleBitmapCreator() {
@@ -19355,12 +19313,12 @@ var junyou;
             };
         };
         return ScaleBitmapCreator;
-    }(junyou.BitmapCreator));
-    junyou.ScaleBitmapCreator = ScaleBitmapCreator;
-    __reflect(ScaleBitmapCreator.prototype, "junyou.ScaleBitmapCreator");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    }(jy.BitmapCreator));
+    jy.ScaleBitmapCreator = ScaleBitmapCreator;
+    __reflect(ScaleBitmapCreator.prototype, "jy.ScaleBitmapCreator");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     var ScrollBar = /** @class */ (function (_super) {
         __extends(ScrollBar, _super);
         function ScrollBar() {
@@ -19536,9 +19494,9 @@ var junyou;
             }
         };
         return ScrollBar;
-    }(junyou.Component));
-    junyou.ScrollBar = ScrollBar;
-    __reflect(ScrollBar.prototype, "junyou.ScrollBar");
+    }(jy.Component));
+    jy.ScrollBar = ScrollBar;
+    __reflect(ScrollBar.prototype, "jy.ScrollBar");
     var ScrollBarCreator = /** @class */ (function (_super) {
         __extends(ScrollBarCreator, _super);
         function ScrollBarCreator() {
@@ -19546,7 +19504,7 @@ var junyou;
         }
         ScrollBarCreator.prototype.parseSelfData = function (data) {
             this.uiData = data;
-            this.suiManager = junyou.singleton(junyou.SuiResManager);
+            this.suiManager = jy.singleton(jy.SuiResManager);
             this._createT = this.createScrollBar;
         };
         ScrollBarCreator.prototype.createScrollBar = function () {
@@ -19573,12 +19531,12 @@ var junyou;
             return scrollBar;
         };
         return ScrollBarCreator;
-    }(junyou.BaseCreator));
-    junyou.ScrollBarCreator = ScrollBarCreator;
-    __reflect(ScrollBarCreator.prototype, "junyou.ScrollBarCreator");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    }(jy.BaseCreator));
+    jy.ScrollBarCreator = ScrollBarCreator;
+    __reflect(ScrollBarCreator.prototype, "jy.ScrollBarCreator");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     var ShareBitmapCreator = /** @class */ (function (_super) {
         __extends(ShareBitmapCreator, _super);
         function ShareBitmapCreator() {
@@ -19588,12 +19546,12 @@ var junyou;
             _super.prototype.parseSelfData.call(this, data[0][2]);
         };
         return ShareBitmapCreator;
-    }(junyou.BitmapCreator));
-    junyou.ShareBitmapCreator = ShareBitmapCreator;
-    __reflect(ShareBitmapCreator.prototype, "junyou.ShareBitmapCreator");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    }(jy.BitmapCreator));
+    jy.ShareBitmapCreator = ShareBitmapCreator;
+    __reflect(ShareBitmapCreator.prototype, "jy.ShareBitmapCreator");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     var Slider = /** @class */ (function (_super) {
         __extends(Slider, _super);
         function Slider() {
@@ -19796,9 +19754,9 @@ var junyou;
             this._perStepPixel = this.bgline.width / ((this._maxVlaue - this._minValue) / this._step);
         };
         return Slider;
-    }(junyou.Component));
-    junyou.Slider = Slider;
-    __reflect(Slider.prototype, "junyou.Slider");
+    }(jy.Component));
+    jy.Slider = Slider;
+    __reflect(Slider.prototype, "jy.Slider");
     var SliderCreator = /** @class */ (function (_super) {
         __extends(SliderCreator, _super);
         function SliderCreator() {
@@ -19806,10 +19764,10 @@ var junyou;
         }
         SliderCreator.prototype.parseSelfData = function (data) {
             this.uiData = data;
-            this.txtCreator = new junyou.TextFieldCreator();
-            this.scale9Creator = new junyou.ScaleBitmapCreator();
-            this.bitmapCreator = new junyou.BitmapCreator(this._suiData);
-            this.suiManager = junyou.singleton(junyou.SuiResManager);
+            this.txtCreator = new jy.TextFieldCreator();
+            this.scale9Creator = new jy.ScaleBitmapCreator();
+            this.bitmapCreator = new jy.BitmapCreator(this._suiData);
+            this.suiManager = jy.singleton(jy.SuiResManager);
             this._createT = this.createSlider;
         };
         SliderCreator.prototype.createSlider = function () {
@@ -19841,12 +19799,12 @@ var junyou;
             return slider;
         };
         return SliderCreator;
-    }(junyou.BaseCreator));
-    junyou.SliderCreator = SliderCreator;
-    __reflect(SliderCreator.prototype, "junyou.SliderCreator");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    }(jy.BaseCreator));
+    jy.SliderCreator = SliderCreator;
+    __reflect(SliderCreator.prototype, "jy.SliderCreator");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 格位基本类
      * @author 3tion
@@ -19857,7 +19815,7 @@ var junyou;
             var _this = _super.call(this) || this;
             _this._count = 1;
             _this._countShow = 1 /* Show */;
-            _this.icon = new junyou.Image();
+            _this.icon = new jy.Image();
             return _this;
         }
         Object.defineProperty(Slot.prototype, "data", {
@@ -19901,7 +19859,7 @@ var junyou;
             set: function (txt) {
                 var old = this._countTxt;
                 if (old != txt) {
-                    junyou.removeDisplay(old);
+                    jy.removeDisplay(old);
                     this._countTxt = txt;
                     this.refreshCount();
                     this.invalidateDisplay();
@@ -19974,7 +19932,7 @@ var junyou;
         Slot.prototype.invalidateDisplay = function () {
             this._changed = true;
             if (this.stage) {
-                junyou.Global.callLater(this.refreshDisplay, 0, this);
+                jy.Global.callLater(this.refreshDisplay, 0, this);
             }
         };
         Slot.prototype.refreshDisplay = function () {
@@ -20025,11 +19983,11 @@ var junyou;
          * 获取类型2的数量处理方法
          * @static
          */
-        Slot.getCountString = function (count) { return count <= 1 ? "" : count < 10000 ? count + "" : junyou.LangUtil.getMsg("$_wan", Math.floor(count / 10000)); };
+        Slot.getCountString = function (count) { return count <= 1 ? "" : count < 10000 ? count + "" : jy.LangUtil.getMsg("$_wan", Math.floor(count / 10000)); };
         return Slot;
-    }(junyou.Component));
-    junyou.Slot = Slot;
-    __reflect(Slot.prototype, "junyou.Slot");
+    }(jy.Component));
+    jy.Slot = Slot;
+    __reflect(Slot.prototype, "jy.Slot");
     /**
      * 格位创建器
      *
@@ -20070,12 +20028,12 @@ var junyou;
             };
         };
         return SlotCreator;
-    }(junyou.BaseCreator));
-    junyou.SlotCreator = SlotCreator;
-    __reflect(SlotCreator.prototype, "junyou.SlotCreator");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    }(jy.BaseCreator));
+    jy.SlotCreator = SlotCreator;
+    __reflect(SlotCreator.prototype, "jy.SlotCreator");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 文本框创建器
      * @author
@@ -20100,7 +20058,7 @@ var junyou;
             var textType = ["dynamic", "dynamic", "input"][+data[0]];
             var face = data[1] || TextFieldCreator.DefaultFonts;
             var align = ["left", "center", "right", "justify"][+data[2]];
-            var color = junyou.ColorUtil.getColorValue(data[3]);
+            var color = jy.ColorUtil.getColorValue(data[3]);
             var size = data[4] || 12; //默认12px字
             var spacing = +data[5];
             var bold = !!data[6];
@@ -20113,7 +20071,7 @@ var junyou;
             if (Array.isArray(strokeDat)) {
                 strokeColor = strokeDat[0];
                 if (typeof strokeColor == "string") {
-                    strokeColor = junyou.ColorUtil.getColorValue(strokeColor);
+                    strokeColor = jy.ColorUtil.getColorValue(strokeColor);
                 }
                 stroke = strokeDat[1];
             }
@@ -20130,12 +20088,12 @@ var junyou;
         };
         TextFieldCreator.DefaultFonts = "";
         return TextFieldCreator;
-    }(junyou.BaseCreator));
-    junyou.TextFieldCreator = TextFieldCreator;
-    __reflect(TextFieldCreator.prototype, "junyou.TextFieldCreator");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    }(jy.BaseCreator));
+    jy.TextFieldCreator = TextFieldCreator;
+    __reflect(TextFieldCreator.prototype, "jy.TextFieldCreator");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * ## 背景图容器
      * 1. 当屏幕长或者宽任意一边大于`基准尺寸(basis)`时
@@ -20165,7 +20123,7 @@ var junyou;
             var dw = sw, dh = sh, lw = sw, lh = sh;
             var scale = 1;
             if (sw > bw || sh > bh) { //屏幕宽高，任意一边大于基准宽高
-                var result = junyou.getFixedLayout(sw, sh, bw, bh, true);
+                var result = jy.getFixedLayout(sw, sh, bw, bh, true);
                 dh = result.dh;
                 dw = result.dw;
                 lw = result.lw;
@@ -20179,19 +20137,19 @@ var junyou;
             this._lw = lw;
             this._lh = lh;
             host.scaleY = host.scaleX = scale;
-            var pt = junyou.Temp.SharedPoint1;
-            junyou.Layout.getLayoutPos(dw, dh, sw, sh, this._layout, pt);
+            var pt = jy.Temp.SharedPoint1;
+            jy.Layout.getLayoutPos(dw, dh, sw, sh, this._layout, pt);
             host.x = pt.x;
             host.y = pt.y;
             this.layoutAll();
         };
         return BGContainer;
-    }(junyou.LayoutContainer));
-    junyou.BGContainer = BGContainer;
-    __reflect(BGContainer.prototype, "junyou.BGContainer");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    }(jy.LayoutContainer));
+    jy.BGContainer = BGContainer;
+    __reflect(BGContainer.prototype, "jy.BGContainer");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     ;
     /**
      * 基于Point位置的布局方式，进行布局
@@ -20289,7 +20247,7 @@ var junyou;
             display = layoutDis.display;
         }
         if (!display) {
-            true && junyou.ThrowError("\u6267\u884CtipLayout\u64CD\u4F5C\u65F6\u6CA1\u6709\u8BBE\u7F6E\u53EF\u4EE5\u663E\u793A\u7684\u5BF9\u8C61");
+            true && jy.ThrowError("\u6267\u884CtipLayout\u64CD\u4F5C\u65F6\u6CA1\u6709\u8BBE\u7F6E\u53EF\u4EE5\u663E\u793A\u7684\u5BF9\u8C61");
             return;
         }
         var parentWidth, parentHeight, par;
@@ -20322,7 +20280,7 @@ var junyou;
      * @author 3tion
      *
      */
-    junyou.Layout = {
+    jy.Layout = {
         /**
          * 对DisplayObject，基于父级进行排布
          *
@@ -20399,9 +20357,9 @@ var junyou;
          */
         getTipLayoutPos: getTipLayoutPos,
     };
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 资源管理器
      */
@@ -20418,7 +20376,7 @@ var junyou;
         }
         return res;
     }
-    junyou.ResManager = {
+    jy.ResManager = {
         get: get,
         /**
          * 获取纹理资源
@@ -20431,13 +20389,13 @@ var junyou;
             var resources = _resources;
             var res = resources[resID];
             if (res) {
-                if (!(res instanceof junyou.TextureResource)) {
-                    junyou.ThrowError("[" + resID + "]\u8D44\u6E90\u6709\u8BEF\uFF0C\u4E0D\u662FTextureResource");
+                if (!(res instanceof jy.TextureResource)) {
+                    jy.ThrowError("[" + resID + "]\u8D44\u6E90\u6709\u8BEF\uFF0C\u4E0D\u662FTextureResource");
                     res = undefined;
                 }
             }
             if (!res) {
-                res = new junyou.TextureResource(resID, noWebp);
+                res = new jy.TextureResource(resID, noWebp);
                 resources[resID] = res;
             }
             return res;
@@ -20453,8 +20411,8 @@ var junyou;
         //按时间检测资源
         init: function () {
             var tobeDele = [];
-            junyou.TimerUtil.addCallback(30000 /* CheckTime */, function () {
-                var expire = junyou.Global.now - 300000 /* DisposeTime */;
+            jy.TimerUtil.addCallback(30000 /* CheckTime */, function () {
+                var expire = jy.Global.now - 300000 /* DisposeTime */;
                 var reses = _resources;
                 var delLen = 0;
                 for (var key in reses) {
@@ -20472,7 +20430,7 @@ var junyou;
                     var res = reses[key];
                     if (res) {
                         res.dispose();
-                        junyou.Res.remove(res.uri);
+                        jy.Res.remove(res.uri);
                         delete reses[key];
                     }
                 }
@@ -20496,7 +20454,7 @@ var junyou;
         resources[resID] = res;
         return true;
     }
-})(junyou || (junyou = {}));
+})(jy || (jy = {}));
 var dpr = 1;
 function $useDPR() {
     dpr = window.devicePixelRatio || 1;
@@ -20512,8 +20470,8 @@ function $useDPR() {
         }
     };
 }
-var junyou;
-(function (junyou) {
+var jy;
+(function (jy) {
     /**
      * ## 主体UI的容器
      * 1. 当屏幕长或者宽任意一边小于`基准尺寸(basis)`时
@@ -20541,7 +20499,7 @@ var junyou;
             var dw = sw, dh = sh, lw = sw, lh = sh;
             var scale = 1;
             if (dpr != 1 || sw < bw * dpr || sh < bh * dpr) { //屏幕宽高，任意一边小于基准宽高
-                var result = junyou.getFixedLayout(sw, sh, bw, bh);
+                var result = jy.getFixedLayout(sw, sh, bw, bh);
                 dh = result.dh;
                 dw = result.dw;
                 lw = result.lw;
@@ -20557,7 +20515,7 @@ var junyou;
         };
         MainUIContainer.prototype.add = function (d, type, offsetRect, hide) {
             var raw = d.suiRawRect;
-            var result = junyou.Layout.getLayoutPos(raw.width, raw.height, offsetRect.width, offsetRect.height, type);
+            var result = jy.Layout.getLayoutPos(raw.width, raw.height, offsetRect.width, offsetRect.height, type);
             var dx = raw.x - offsetRect.x;
             var dy = raw.y - offsetRect.y;
             var oh = dx - result.x;
@@ -20580,12 +20538,12 @@ var junyou;
             }
         };
         return MainUIContainer;
-    }(junyou.LayoutContainer));
-    junyou.MainUIContainer = MainUIContainer;
-    __reflect(MainUIContainer.prototype, "junyou.MainUIContainer");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    }(jy.LayoutContainer));
+    jy.MainUIContainer = MainUIContainer;
+    __reflect(MainUIContainer.prototype, "jy.MainUIContainer");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     var ResizeManager = /** @class */ (function () {
         function ResizeManager() {
             this._list = [];
@@ -20639,7 +20597,7 @@ var junyou;
         ResizeManager.prototype.resize = function (dis) {
             var info = dis.$_resize;
             var container = info.container || egret.sys.$TempStage;
-            junyou.Layout.layout(dis, info.layout, info.hoffset, info.voffset, false, false, container);
+            jy.Layout.layout(dis, info.layout, info.hoffset, info.voffset, false, false, container);
         };
         ResizeManager.prototype.onResize = function () {
             var list = this._list;
@@ -20654,11 +20612,11 @@ var junyou;
         };
         return ResizeManager;
     }());
-    junyou.ResizeManager = ResizeManager;
-    __reflect(ResizeManager.prototype, "junyou.ResizeManager");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.ResizeManager = ResizeManager;
+    __reflect(ResizeManager.prototype, "jy.ResizeManager");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 按钮形式的菜单
      * @author gushuai
@@ -20674,7 +20632,7 @@ var junyou;
             if (key === void 0) { key = "lib"; }
             if (className === void 0) { className = "ui.btn.MenuBtn"; }
             var _this = _super.call(this) || this;
-            var btn = junyou.singleton(junyou.SuiResManager).createDisplayObject(key, className);
+            var btn = jy.singleton(jy.SuiResManager).createDisplayObject(key, className);
             _this.skin = btn;
             _this.btn = btn;
             return _this;
@@ -20684,12 +20642,12 @@ var junyou;
             this.btn.label = val.label;
         };
         return ButtonMenuRender;
-    }(junyou.MenuBaseRender));
-    junyou.ButtonMenuRender = ButtonMenuRender;
-    __reflect(ButtonMenuRender.prototype, "junyou.ButtonMenuRender");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    }(jy.MenuBaseRender));
+    jy.ButtonMenuRender = ButtonMenuRender;
+    __reflect(ButtonMenuRender.prototype, "jy.ButtonMenuRender");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * @author gushuai
      * (description)
@@ -20703,7 +20661,7 @@ var junyou;
         function Menu(style, maxRendercount) {
             var _this = _super.call(this) || this;
             _this.style = style;
-            _this.uiManager = junyou.singleton(junyou.SuiResManager);
+            _this.uiManager = jy.singleton(jy.SuiResManager);
             _this.maxRenderCount = maxRendercount;
             _this.bindComponent();
             return _this;
@@ -20734,7 +20692,7 @@ var junyou;
             if (dic.has(target)) {
                 var dis = dic.get(target);
                 dis.menuinitFunc = undefined;
-                junyou.removeDisplay(dis);
+                jy.removeDisplay(dis);
                 dic.delete(target);
             }
             target.off(-1000 /* CHOOSE_STATE_CHANGE */, Menu.onShowOrHideMenu, this);
@@ -20755,7 +20713,7 @@ var junyou;
                 this.currentShow = target;
             }
             else {
-                junyou.removeDisplay(dis);
+                jy.removeDisplay(dis);
                 this.currentShow = undefined;
             }
             target.dispatch(-1999 /* Resize */);
@@ -20793,7 +20751,7 @@ var junyou;
             }
             if (len < blen) {
                 for (var i = len; i < blen; i++) {
-                    junyou.removeDisplay(this.renders[i].view);
+                    jy.removeDisplay(this.renders[i].view);
                 }
             }
             var rec = style.possize;
@@ -20822,17 +20780,17 @@ var junyou;
         };
         return Menu;
     }(egret.Sprite));
-    junyou.Menu = Menu;
-    __reflect(Menu.prototype, "junyou.Menu");
-})(junyou || (junyou = {}));
+    jy.Menu = Menu;
+    __reflect(Menu.prototype, "jy.Menu");
+})(jy || (jy = {}));
 if (true) {
     var ErrorTexture = new egret.Texture();
     var img = new Image(40, 40);
     img.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAAWUlEQVRYR+3SwQkAIAwEwaT/orWI/YiM/wWZ3J6ZMw+/9cF4HYIRcAgSrAK1t0GCVaD2NkiwCtTeBglWgdrbIMEqUHsbJFgFam+DBKtA7W2QYBWovQ1+L3gB8nhP2Y60cpgAAAAASUVORK5CYII=";
     ErrorTexture._setBitmapData(new egret.BitmapData(img));
 }
-var junyou;
-(function (junyou) {
+var jy;
+(function (jy) {
     /**
      *
      * 纹理资源
@@ -20850,7 +20808,7 @@ var junyou;
              */
             this._list = [];
             this.uri = uri;
-            this.url = junyou.ConfigUtils.getResUrl(uri + (!noWebp ? junyou.Global.webp : ""));
+            this.url = jy.ConfigUtils.getResUrl(uri + (!noWebp ? jy.Global.webp : ""));
         }
         Object.defineProperty(TextureResource.prototype, "isStatic", {
             /**
@@ -20875,7 +20833,7 @@ var junyou;
                 bmp.dispatch(-193 /* Texture_Complete */);
             }
             this._list.pushOnce(bmp);
-            this.lastUseTime = junyou.Global.now;
+            this.lastUseTime = jy.Global.now;
         };
         /**
          *
@@ -20884,10 +20842,10 @@ var junyou;
          */
         TextureResource.prototype.loose = function (bmp) {
             this._list.remove(bmp);
-            this.lastUseTime = junyou.Global.now;
+            this.lastUseTime = jy.Global.now;
         };
         TextureResource.prototype.load = function () {
-            junyou.Res.load(this.uri, this.url, junyou.CallbackInfo.get(this.loadComplete, this), this.qid);
+            jy.Res.load(this.uri, this.url, jy.CallbackInfo.get(this.loadComplete, this), this.qid);
         };
         /**
          * 资源加载完成
@@ -20923,11 +20881,11 @@ var junyou;
         };
         return TextureResource;
     }());
-    junyou.TextureResource = TextureResource;
-    __reflect(TextureResource.prototype, "junyou.TextureResource", ["junyou.IResource"]);
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.TextureResource = TextureResource;
+    __reflect(TextureResource.prototype, "jy.TextureResource", ["jy.IResource"]);
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 错误提示
      * @author pb
@@ -20949,10 +20907,10 @@ var junyou;
                 txt.text = msg;
             }
             txt.alpha = 1;
-            junyou.Layout.layout(txt, 10 /* MIDDLE_CENTER */);
+            jy.Layout.layout(txt, 10 /* MIDDLE_CENTER */);
             txt.textColor = color;
             this._parent.addChild(txt);
-            var tween = junyou.Global.getTween(txt);
+            var tween = jy.Global.getTween(txt);
             tween.to({ y: txt.y - 100 }, duration).to({ alpha: 0 }, delay).call(this.txtComplete, this, [tween, txt]);
         };
         ErrorTips.prototype.txtComplete = function (arg) {
@@ -20963,15 +20921,15 @@ var junyou;
                 tween.onRecycle();
             }
             if (txt)
-                junyou.removeDisplay(txt);
+                jy.removeDisplay(txt);
         };
         return ErrorTips;
     }());
-    junyou.ErrorTips = ErrorTips;
-    __reflect(ErrorTips.prototype, "junyou.ErrorTips");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.ErrorTips = ErrorTips;
+    __reflect(ErrorTips.prototype, "jy.ErrorTips");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 简易的ToolTip
      * 只处理字符串类型的描述
@@ -21029,15 +20987,15 @@ var junyou;
             }
         };
         SimToolTip.prototype.hide = function () {
-            junyou.removeDisplay(this);
+            jy.removeDisplay(this);
         };
         return SimToolTip;
     }(egret.Sprite));
-    junyou.SimToolTip = SimToolTip;
-    __reflect(SimToolTip.prototype, "junyou.SimToolTip", ["junyou.IToolTip"]);
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.SimToolTip = SimToolTip;
+    __reflect(SimToolTip.prototype, "jy.SimToolTip", ["jy.IToolTip"]);
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * ToolTip的数据
      * @author 3tion
@@ -21053,7 +21011,7 @@ var junyou;
             }
             if (this.target != dis) {
                 this.clearDisListener(this.target);
-                junyou.Global.clearCallLater(this.showTip, this);
+                jy.Global.clearCallLater(this.showTip, this);
                 dis.on("touchBegin" /* TOUCH_BEGIN */, this.checkTouch, this);
             }
         };
@@ -21066,13 +21024,13 @@ var junyou;
                 this.clearDisListener(this.target);
                 this.target = undefined;
             }
-            junyou.Global.clearCallLater(this.showTip, this);
+            jy.Global.clearCallLater(this.showTip, this);
             this.data = undefined;
             this.tooltip = undefined;
         };
         ToolTipData.prototype.checkTouch = function (e) {
             this.target.on("touchEnd" /* TOUCH_END */, this.touchEnd, this);
-            junyou.Global.callLater(this.showTip, junyou.ToolTipManager.touchTime, this);
+            jy.Global.callLater(this.showTip, jy.ToolTipManager.touchTime, this);
         };
         ToolTipData.prototype.showTip = function () {
             this.target.off("touchEnd" /* TOUCH_END */, this.touchEnd, this);
@@ -21080,15 +21038,15 @@ var junyou;
         };
         ToolTipData.prototype.touchEnd = function (e) {
             this.target.off("touchEnd" /* TOUCH_END */, this.touchEnd, this);
-            junyou.Global.clearCallLater(this.showTip, this);
+            jy.Global.clearCallLater(this.showTip, this);
         };
         return ToolTipData;
     }());
-    junyou.ToolTipData = ToolTipData;
-    __reflect(ToolTipData.prototype, "junyou.ToolTipData", ["junyou.IRecyclable"]);
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.ToolTipData = ToolTipData;
+    __reflect(ToolTipData.prototype, "jy.ToolTipData", ["jy.IRecyclable"]);
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 默认的Tip
      * 手指按下控件以后，弹出Tip进行显示
@@ -21112,7 +21070,7 @@ var junyou;
                 tooltip = ToolTipManager.defaultTip;
                 if (!tooltip) {
                     if (true) {
-                        junyou.ThrowError("没有注册ToolTip的皮肤，并且没有默认的ToolTip");
+                        jy.ThrowError("没有注册ToolTip的皮肤，并且没有默认的ToolTip");
                     }
                     return false;
                 }
@@ -21120,11 +21078,11 @@ var junyou;
             var map = ToolTipManager._map;
             var data = map.get(dis);
             if (!data) {
-                data = junyou.recyclable(junyou.ToolTipData);
+                data = jy.recyclable(jy.ToolTipData);
                 map.set(dis, data);
             }
             if (!container) {
-                container = junyou.GameEngine.instance.getLayer(9000 /* Tip */);
+                container = jy.GameEngine.instance.getLayer(9000 /* Tip */);
             }
             data.register(dis, msg, tooltip, container);
             return true;
@@ -21193,79 +21151,11 @@ var junyou;
         ToolTipManager._map = new Map();
         return ToolTipManager;
     }());
-    junyou.ToolTipManager = ToolTipManager;
-    __reflect(ToolTipManager.prototype, "junyou.ToolTipManager");
-})(junyou || (junyou = {}));
-/**
- * JavaScript code to detect available availability of a
- * particular font in a browser using JavaScript and CSS.
- *
- * Author : Lalit Patel
- * Website: http://www.lalit.org/lab/javascript-css-font-detect/
- * License: Apache Software License 2.0
- *          http://www.apache.org/licenses/LICENSE-2.0
- * Version: 0.15 (21 Sep 2009)
- *          Changed comparision font to default from sans-default-default,
- *          as in FF3.0 font of child element didn't fallback
- *          to parent element if the font is missing.
- * Version: 0.2 (04 Mar 2012)
- *          Comparing font against all the 3 generic font families ie,
- *          'monospace', 'sans-serif' and 'sans'. If it doesn't match all 3
- *          then that font is 100% not available in the system
- * Version: 0.3 (24 Mar 2012)
- *          Replaced sans with serif in the list of baseFonts
- */
-/**
- * Usage: d = new Detector();
- *        d.detect('font name');
- */
-var junyou;
-(function (junyou) {
-    var Font;
-    (function (Font) {
-        // a font will be compared against all the three default fonts.
-        // and if it doesn't match all 3 then that font is not available.
-        var baseFonts = ['monospace', 'sans-serif', 'serif'];
-        //we use m or w because these two characters take up the maximum width.
-        // And we use a LLi so that the same matching fonts can get separated
-        var testString = "mmmmmmmmmmlli";
-        //we test using 72px font size, we may use any size. I guess larger the better.
-        var testSize = '72px';
-        var h = document.documentElement;
-        // create a SPAN in the document to get the width of the text we use to test
-        var s = document.createElement("span");
-        s.style.fontSize = testSize;
-        s.innerHTML = testString;
-        var defaultWidth = {};
-        var defaultHeight = {};
-        for (var index in baseFonts) {
-            //get the default width for the three base fonts
-            s.style.fontFamily = baseFonts[index];
-            h.appendChild(s);
-            defaultWidth[baseFonts[index]] = s.offsetWidth; //width for the default font
-            defaultHeight[baseFonts[index]] = s.offsetHeight; //height for the defualt font
-            h.removeChild(s);
-        }
-        /**
-         * 检查是否有系统字体
-         * @param font
-         */
-        function detect(font) {
-            var detected = false;
-            for (var index in baseFonts) {
-                s.style.fontFamily = font + ',' + baseFonts[index]; // name of the font along with the base font for fallback.
-                h.appendChild(s);
-                var matched = (s.offsetWidth != defaultWidth[baseFonts[index]] || s.offsetHeight != defaultHeight[baseFonts[index]]);
-                h.removeChild(s);
-                detected = detected || matched;
-            }
-            return detected;
-        }
-        Font.detect = detect;
-    })(Font = junyou.Font || (junyou.Font = {}));
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    jy.ToolTipManager = ToolTipManager;
+    __reflect(ToolTipManager.prototype, "jy.ToolTipManager");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     var _$TDOpt = Object.freeze({ int: { x: 1, y: 1 } });
     /**
      * TouchDown显示对象放大效果
@@ -21311,7 +21201,7 @@ var junyou;
             if (data) {
                 var tween = data.tween;
                 if (tween) {
-                    junyou.Global.removeTween(tween);
+                    jy.Global.removeTween(tween);
                 }
             }
             else {
@@ -21320,7 +21210,7 @@ var junyou;
                 data.raw = { x: x, y: y, scaleX: scaleX, scaleY: scaleY };
             }
             var raw = data.raw;
-            data.tween = junyou.Global.getTween(target, _$TDOpt).to({ x: raw.x - target.width * 0.0625 /* Multi */, y: raw.y - target.height * 0.0625 /* Multi */, scaleX: 1.125 /* Scale */ * raw.scaleX, scaleY: 1.125 /* Scale */ * raw.scaleY }, 100, junyou.Ease.quadOut);
+            data.tween = jy.Global.getTween(target, _$TDOpt).to({ x: raw.x - target.width * 0.0625 /* Multi */, y: raw.y - target.height * 0.0625 /* Multi */, scaleX: 1.125 /* Scale */ * raw.scaleX, scaleY: 1.125 /* Scale */ * raw.scaleY }, 100, jy.Ease.quadOut);
         }
         function touchEnd(e) {
             var target = e.target;
@@ -21329,20 +21219,20 @@ var junyou;
             if (raw) {
                 var tween = raw.tween;
                 if (tween) {
-                    junyou.Global.removeTween(tween);
+                    jy.Global.removeTween(tween);
                 }
-                raw.tween = junyou.Global.getTween(target, _$TDOpt)
-                    .to(raw.raw, 100, junyou.Ease.quadOut)
+                raw.tween = jy.Global.getTween(target, _$TDOpt)
+                    .to(raw.raw, 100, jy.Ease.quadOut)
                     .call(endComplete, null, target);
             }
         }
         function endComplete(target) {
             target.$_tdi = undefined;
         }
-    })(TouchDown = junyou.TouchDown || (junyou.TouchDown = {}));
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    })(TouchDown = jy.TouchDown || (jy.TouchDown = {}));
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 多选分组
      *
@@ -21421,18 +21311,18 @@ var junyou;
             this._selected.length = 0;
         };
         return CheckBoxGroup;
-    }(junyou.Group));
-    junyou.CheckBoxGroup = CheckBoxGroup;
-    __reflect(CheckBoxGroup.prototype, "junyou.CheckBoxGroup");
-})(junyou || (junyou = {}));
-var junyou;
-(function (junyou) {
+    }(jy.Group));
+    jy.CheckBoxGroup = CheckBoxGroup;
+    __reflect(CheckBoxGroup.prototype, "jy.CheckBoxGroup");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 绑定按钮和文本框，让文本框的点击，可以触发按钮的选中事件
      *
      * @export
      */
-    junyou.GroupItemButton = (function () {
+    jy.GroupItemButton = (function () {
         var TE = "touchTap" /* TOUCH_TAP */;
         var ButtonKey = "$gib$btn";
         var TextFieldKey = "$gib$txt";
@@ -21448,7 +21338,7 @@ var junyou;
                     txt[ButtonKey] = btn;
                 }
                 else if (true) {
-                    junyou.ThrowError("\u91CD\u590D\u7ED1\u5B9A\u4E86\u6587\u672C\u6846\u548C\u6309\u94AE");
+                    jy.ThrowError("\u91CD\u590D\u7ED1\u5B9A\u4E86\u6587\u672C\u6846\u548C\u6309\u94AE");
                 }
                 txt.touchEnabled = true;
                 txt.on(TE, onTE);
@@ -21483,15 +21373,15 @@ var junyou;
             btn.dispatchEvent(e);
         }
     })();
-})(junyou || (junyou = {}));
+})(jy || (jy = {}));
 /**
  * 参考createjs和白鹭的tween
  * 调整tick的驱动方式
  * https://github.com/CreateJS/TweenJS
  * @author 3tion
  */
-var junyou;
-(function (junyou) {
+var jy;
+(function (jy) {
     /**
      * tween的执行效果，参考页面：http://www.cnblogs.com/cloudgamer/archive/2009/01/06/Tween.html
      *
@@ -21657,17 +21547,17 @@ var junyou;
         Ease.elasticInOut = Ease.getElasticInOut(1, 0.3 * 1.5);
         return Ease;
     }());
-    junyou.Ease = Ease;
-    __reflect(Ease.prototype, "junyou.Ease");
-})(junyou || (junyou = {}));
+    jy.Ease = Ease;
+    __reflect(Ease.prototype, "jy.Ease");
+})(jy || (jy = {}));
 /**
  * 参考createjs和白鹭的tween
  * 调整tick的驱动方式
  * https://github.com/CreateJS/TweenJS
  * @author 3tion
  */
-var junyou;
-(function (junyou) {
+var jy;
+(function (jy) {
     var Tween = /** @class */ (function (_super) {
         __extends(Tween, _super);
         function Tween(target, props, pluginData, manager) {
@@ -22069,6 +21959,48 @@ var junyou;
         Tween.IGNORE = {};
         return Tween;
     }(egret.EventDispatcher));
-    junyou.Tween = Tween;
-    __reflect(Tween.prototype, "junyou.Tween");
-})(junyou || (junyou = {}));
+    jy.Tween = Tween;
+    __reflect(Tween.prototype, "jy.Tween");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    var UnitSetting = /** @class */ (function () {
+        function UnitSetting() {
+            /**
+             * 是否添加UI层
+             */
+            this.hasUILayer = true;
+            /**
+             * 是否添加Buff容器
+             */
+            this.hasBuffLayer = true;
+            /**
+             * 是否添加光环容器
+             */
+            this.hasHaloLayer = true;
+            /**
+             * 是否添加到游戏场景中
+             */
+            this.addToEngine = true;
+            /**
+             * 深度的参数A
+             */
+            this.depthA = 0;
+            /**
+             * 深度的参数B
+             */
+            this.depthB = 0.19;
+        }
+        //防止同一坐标的单位排序深度相同，出现闪烁的情况
+        UnitSetting.prototype.getDepth = function () {
+            return this.depthA + Math.random() * this.depthB;
+        };
+        return UnitSetting;
+    }());
+    jy.UnitSetting = UnitSetting;
+    __reflect(UnitSetting.prototype, "jy.UnitSetting");
+    /**
+     * 默认的单位设置
+     */
+    jy.defaultUnitSetting = new UnitSetting();
+})(jy || (jy = {}));
