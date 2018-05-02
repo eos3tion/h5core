@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     let _texture: egret.RenderTexture;
     export const DataUrlUtils = {
         /**

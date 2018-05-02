@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 
     /**
      * 旋转的屏幕抖动

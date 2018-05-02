@@ -254,7 +254,7 @@ if (DEBUG) {
             }
         });
         console.table(output);
-        junyou.doCopy(msg) && console.log("%c 已将网络数据复制到剪贴板", "color:red;font-size:50px;");
+        jy.doCopy(msg) && console.log("%c 已将网络数据复制到剪贴板", "color:red;font-size:50px;");
         return output;
     }
     $gm.__nsLogCheck = (log, nsFilter) => {
@@ -276,7 +276,7 @@ if (DEBUG) {
     $gm.maxNSLogCount = 1000;
     $gm.nsLogs = [];
     $gm.route = (cmd, data) => {
-        junyou.NetService.get().route(cmd, data);
+        jy.NetService.get().route(cmd, data);
     }
     $gm.batchRoute = logs => {
         //过滤send
@@ -292,7 +292,7 @@ if (DEBUG) {
     }
 }
 
-module junyou {
+namespace jy {
     export const enum NSType {
         Null = 0,
         Boolean = 1,

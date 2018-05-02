@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * 状态机的状态实现
      * @author 3tion

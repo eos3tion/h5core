@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     let fun: { (link: string, origin?: string): string } = window.URL ? (link, origin) => {
         origin = origin || location.href;
         return new URL(link, origin).href;

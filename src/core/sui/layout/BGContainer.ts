@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * ## 背景图容器  
      * 1. 当屏幕长或者宽任意一边大于`基准尺寸(basis)`时  

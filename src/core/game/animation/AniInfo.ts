@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 	/**
 	 * 用于处理无方向的动画信息
 	 * @author 3tion

@@ -4,7 +4,7 @@
  * https://github.com/CreateJS/TweenJS
  * @author 3tion
  */
-module junyou {
+namespace jy {
     export const enum TweenActionMode {
         /**
          * Constant defining the none actionsMode for use with setPosition.

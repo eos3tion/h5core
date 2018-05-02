@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     export const enum PosKey {
         X = "x",
         Y = "y"

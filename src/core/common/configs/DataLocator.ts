@@ -2,14 +2,14 @@
  * DataLocator的主数据 
  * 原 junyou.DataLocator.data  的全局别名简写
  */
-const $DD = {} as junyou.CfgData;
+const $DD = {} as jy.CfgData;
 
 /**
  * DataLocator的附加数据 
  * 原junyou.DataLocator.extra 的全局别名简写
  */
-let $DE: junyou.ExtraData;
-module junyou {
+let $DE: jy.ExtraData;
+namespace jy {
 
     /**
      * 表单最终被解析成的类型
@@ -99,7 +99,7 @@ module junyou {
             //清理内存
             parsers = null;
             _plist = null;
-            delete junyou.DataLocator;
+            delete jy.DataLocator;
         },
         /**
          * 

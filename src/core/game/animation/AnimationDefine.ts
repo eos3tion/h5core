@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * 绘图数据
      * 

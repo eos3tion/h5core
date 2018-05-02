@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * 多选分组
      * 

@@ -418,10 +418,10 @@ String.subHandler = {};
 String.regSubHandler = function (key, handler) {
     if (DEBUG) {
         if (handler.length != 1) {
-            junyou.ThrowError(`String.regSubHandler注册的函数，参数数量必须为一个，堆栈：\n${new Error().stack}\n函数内容：${handler.toString()}`);
+            jy.ThrowError(`String.regSubHandler注册的函数，参数数量必须为一个，堆栈：\n${new Error().stack}\n函数内容：${handler.toString()}`);
         }
         if (key in this.subHandler) {
-            junyou.ThrowError(`String.regSubHandler注册的函数，注册了重复的key[${key}]，堆栈：\n${new Error().stack}`);
+            jy.ThrowError(`String.regSubHandler注册的函数，注册了重复的key[${key}]，堆栈：\n${new Error().stack}`);
         }
     }
     this.subHandler[key] = handler;
@@ -626,7 +626,7 @@ Object.defineProperties(Array.prototype, makeDefDescriptors({
             let key: string, descend: boolean;
             let len = arguments.length;
             if (DEBUG && len > 2) {
-                junyou.ThrowError(`doSort参数不能超过2`);
+                jy.ThrowError(`doSort参数不能超过2`);
             }
             for (let i = 0; i < len; i++) {
                 let arg = arguments[i];
@@ -658,7 +658,7 @@ Object.defineProperties(Array.prototype, makeDefDescriptors({
                     let typeb = typeof bv;
                     if (typea == "object" || typeb == "object") {
                         if (DEBUG) {
-                            junyou.ThrowError(`multiSort 比较的类型不应为object,${typea}    ${typeb}`);
+                            jy.ThrowError(`multiSort 比较的类型不应为object,${typea}    ${typeb}`);
                         }
                         return 0;
                     }
@@ -670,7 +670,7 @@ Object.defineProperties(Array.prototype, makeDefDescriptors({
                         }
                         else {
                             if (DEBUG) {
-                                junyou.ThrowError(`multiSort 比较的类型不一致,${typea}    ${typeb}`);
+                                jy.ThrowError(`multiSort 比较的类型不一致,${typea}    ${typeb}`);
                             }
                             return 0;
                         }
@@ -688,7 +688,7 @@ Object.defineProperties(Array.prototype, makeDefDescriptors({
         }
     }
 }));
-module junyou {
+namespace jy {
     export function is(instance: any, ref: { new(): any }): boolean {
         return egret.is(instance, egret.getQualifiedClassName(ref));
     }
@@ -832,7 +832,7 @@ module egret {
          * @version Egret 2.4
          * @platform Web,Native
          */
-        dispatch(type: junyou.Key, data?: any): boolean;
+        dispatch(type: jy.Key, data?: any): boolean;
         /**
          * 移除指定type的监听器
          * 
@@ -904,10 +904,10 @@ module egret {
         /**
          * 使用  junyou.Rect 作为参数 进行绘制矩形
          * 
-         * @param { junyou.Rect} rect 
+         * @param { jy.Rect} rect 
          * @memberof Graphics
          */
-        drawRectangle(rect: junyou.Rect);
+        drawRectangle(rect: jy.Rect);
     }
 
     let bpt = Bitmap.prototype;
@@ -935,7 +935,7 @@ module egret {
         } else if (typeof value == "number") {
             value = value + "";
         }
-        this.textFlow = value ? htmlTextParser.parser(value) : junyou.Temp.EmptyArray as ITextElement[];
+        this.textFlow = value ? htmlTextParser.parser(value) : jy.Temp.EmptyArray as ITextElement[];
     }
     let ept = EventDispatcher.prototype;
     ept.removeAllListeners = function (this: EventDispatcher) {
@@ -959,7 +959,7 @@ module egret {
 
 
 
-    Graphics.prototype.drawRectangle = function (this: Graphics, rect: junyou.Rect) {
+    Graphics.prototype.drawRectangle = function (this: Graphics, rect: jy.Rect) {
         this.drawRect(rect.x, rect.y, rect.width, rect.height);
     }
     export interface Texture {

@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 	/**
 	 * 客户端检测
 	 * @author 3tion

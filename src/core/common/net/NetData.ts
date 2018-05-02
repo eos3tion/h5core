@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 
 	/**
 	 * 用于发送的网络数据<br/>

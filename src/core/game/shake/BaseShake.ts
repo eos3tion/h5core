@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * 
      * 震动的基本实现

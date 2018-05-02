@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     export const enum LimitScene {
         /**
          * 默认场景

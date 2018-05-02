@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * 圆圈倒计时
      * 

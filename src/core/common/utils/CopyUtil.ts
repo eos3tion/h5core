@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     const copyDiv = document.createElement("div");
     const doc = document;
     const de = doc.documentElement;

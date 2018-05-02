@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * 经纬度 定位信息
      * 

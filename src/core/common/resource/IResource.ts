@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
       * 基于时间回收的资源
       */

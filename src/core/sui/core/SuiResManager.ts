@@ -6,7 +6,7 @@ module egret {
          * @type {SuiRawRect}
          * @memberOf DisplayObject
          */
-        suiRawRect?: junyou.SuiRawRect;
+        suiRawRect?: jy.SuiRawRect;
         /**
          * sui的资源名称
          */
@@ -18,7 +18,7 @@ module egret {
     }
 }
 
-module junyou {
+namespace jy {
     import Texture = egret.Texture;
     export interface SuiRawRect extends egret.Rectangle {
     }

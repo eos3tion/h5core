@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * 给ArtText和ArtWord刷新纹理使用
      * 

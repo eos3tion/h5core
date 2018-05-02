@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 
     /**
      * 屏幕抖动管理器

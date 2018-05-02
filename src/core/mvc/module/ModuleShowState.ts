@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 	/**
 	 * 模块面板的显示状态
 	 * @author 

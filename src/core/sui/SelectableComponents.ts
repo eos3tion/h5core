@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * 有选中状态的控件
      * 

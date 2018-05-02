@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 
 
     export class Scroller extends egret.EventDispatcher {

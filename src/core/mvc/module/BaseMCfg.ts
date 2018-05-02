@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * 功能配置的基类
      * @author 3tion

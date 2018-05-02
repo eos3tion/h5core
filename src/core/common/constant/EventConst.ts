@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 	/**
 	 * 网络事件的常量集
 	 * @author 

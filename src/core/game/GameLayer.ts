@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 
     export interface GameLayer extends egret.DisplayObject {
         id: number;

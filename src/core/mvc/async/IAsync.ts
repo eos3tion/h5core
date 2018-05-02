@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 
     const inter1 = "addReadyExecute";
     const inter2 = "startSync";

@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 
     /**
      * 为已布局好的render提供List功能

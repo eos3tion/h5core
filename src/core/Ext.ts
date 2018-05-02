@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * 扩展名常量
      * @author 3tion

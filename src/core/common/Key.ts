@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * 可用于做Key的类型
      */

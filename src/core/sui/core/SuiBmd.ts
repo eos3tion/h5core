@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * 
      * 用于处理SuiData中的纹理加载

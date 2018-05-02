@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 	/**
 	 * 依赖项的辅助类
 	 * @author 3tion

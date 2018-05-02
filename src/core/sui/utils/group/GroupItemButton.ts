@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 
     /**
      * 绑定按钮和文本框，让文本框的点击，可以触发按钮的选中事件

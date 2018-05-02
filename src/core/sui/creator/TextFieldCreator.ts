@@ -3,13 +3,13 @@ module egret{
         /**
          * 原始的文本数据
          * 
-         * @type {junyou.TextData}
+         * @type {jy.TextData}
          * @memberof TextField
          */
-        rawTextData:junyou.TextData;
+        rawTextData:jy.TextData;
     }
 }
-module junyou {
+namespace jy {
 
     export interface TextData extends Array<any> {
         /**

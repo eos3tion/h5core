@@ -13,7 +13,7 @@ function $useDPR() {
         }
     }
 }
-module junyou {
+namespace jy {
     /**
      * ## 主体UI的容器  
      * 1. 当屏幕长或者宽任意一边小于`基准尺寸(basis)`时  

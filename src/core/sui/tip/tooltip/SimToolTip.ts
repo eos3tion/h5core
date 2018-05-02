@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * 简易的ToolTip
      * 只处理字符串类型的描述

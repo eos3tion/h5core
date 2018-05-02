@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 	export interface ProgressBarSkinDele {
 		/**
 		 * 进度条的顶

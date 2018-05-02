@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 
     interface DebugInfo {
         handle: string;

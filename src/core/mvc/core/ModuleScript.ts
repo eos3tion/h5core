@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 	/**
 	 * 模块脚本，后续开发模块，分成多个模块文件
 	 * @author 3tion

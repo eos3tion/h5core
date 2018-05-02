@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     export abstract class AbsPageList<T, R extends ListItemRender<T>> extends egret.EventDispatcher {
 
         protected _list: R[] = [];

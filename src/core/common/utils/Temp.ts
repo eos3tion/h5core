@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 	/**
 	 * 临时对象
 	 * @author 3tion

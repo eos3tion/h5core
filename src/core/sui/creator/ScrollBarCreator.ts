@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     export class ScrollBar extends Component {
 
         public bar: egret.Sprite;

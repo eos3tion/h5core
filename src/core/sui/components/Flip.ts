@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 
     /**
      * 翻页的4个区域

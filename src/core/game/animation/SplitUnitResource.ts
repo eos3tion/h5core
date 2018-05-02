@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * 拆分的资源
      * @author 3tion

@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 
     /**
      * 代码构建类，用于注册代码

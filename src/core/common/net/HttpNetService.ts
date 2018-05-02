@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 	/**
 	 * 使用http进行通信的网络服务
 	 * @author 3tion

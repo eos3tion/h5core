@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 
 	/**
 	 * 视图控制器，持有视图<br/>

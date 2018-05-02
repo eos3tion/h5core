@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * 振动的接口实现
      * 
