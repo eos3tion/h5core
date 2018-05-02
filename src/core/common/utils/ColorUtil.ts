@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * 常用的颜色常量
      * 

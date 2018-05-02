@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 	/**
 	 * 基础渲染器
 	 * @author 3tion

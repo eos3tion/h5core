@@ -2,12 +2,12 @@ interface $gmType {
     /**
      * 主控类型，包括Proxy和Mediator
      * 
-     * @type {{ [index: string]: junyou.FHost }}
+     * @type {{ [index: string]: jy.FHost }}
      * @memberof $gmType
      */
-    $: { [index: string]: junyou.FHost };
+    $: { [index: string]: jy.FHost };
 }
-module junyou {
+namespace jy {
     export declare type InjectProxy = { new(): IAsync } | string | number;
 	/**
 	 * Mediator和Proxy的基类
@@ -166,7 +166,7 @@ module junyou {
 
 
 }
-module junyou {
+namespace jy {
     /**
      * 
      * 附加依赖的Proxy

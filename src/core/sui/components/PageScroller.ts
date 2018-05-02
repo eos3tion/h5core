@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 
     /**
      * 翻页，一次手势翻一页

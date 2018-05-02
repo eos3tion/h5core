@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * 状态限制器
      * @author 3tion

@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 	/**
 	 * 默认的Tip
 	 * 手指按下控件以后，弹出Tip进行显示

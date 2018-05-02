@@ -1,9 +1,9 @@
 module egret {
     export interface DisplayObject {
-        $layoutHost: junyou.LayoutContainer;
+        $layoutHost: jy.LayoutContainer;
     }
 }
-module junyou {
+namespace jy {
     export abstract class LayoutContainer {
         public static readonly MIN = Object.freeze({ width: 0, height: 0 });
 

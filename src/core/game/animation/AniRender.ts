@@ -105,7 +105,7 @@ if (DEBUG) {
         }
     }
 }
-module junyou {
+namespace jy {
 	/**
 	 * 由于目前特效和渲染器是完全一一对应关系，所以直接做成AniBitmap
 	 * @author 3tion

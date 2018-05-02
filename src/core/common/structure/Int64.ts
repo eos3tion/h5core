@@ -1,4 +1,4 @@
-namespace junyou {
+namespace jy {
 	/**
 	 * 项目中不使用long类型，此值暂时只用于存储Protobuff中的int64 sint64
 	 * @author 

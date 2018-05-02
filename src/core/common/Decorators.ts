@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * 绑定属性名，当属性值发生改变时，可自动对外抛eventType事件
      * 

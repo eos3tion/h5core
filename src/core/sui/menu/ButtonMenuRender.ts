@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 
     /**
      * 按钮形式的菜单

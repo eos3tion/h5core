@@ -11,7 +11,7 @@ const enum Sex {
 	Nan = Male,
 	Nv = Female
 }
-module junyou {
+namespace jy {
 	/**
 	 * 姓 集合
 	 * 对应配置中 姓 列

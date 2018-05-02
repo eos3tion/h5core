@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * 图片字字库
      * Key为图片文字文件名（不带扩展名）

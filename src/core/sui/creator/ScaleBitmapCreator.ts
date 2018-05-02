@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     export declare type ScaleBitmap = egret.Bitmap;
     export class ScaleBitmapCreator extends BitmapCreator<ScaleBitmap>{
 

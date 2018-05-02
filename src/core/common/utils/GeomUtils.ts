@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 
     /**
      * 获取多个点的几何中心点

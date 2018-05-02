@@ -5,7 +5,7 @@
  * https://github.com/CreateJS/TweenJS
  * @author 3tion
  */
-module junyou {
+namespace jy {
     export interface IEaseFunction {
         (t: number, ...args): number
     }

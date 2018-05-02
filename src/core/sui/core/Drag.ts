@@ -15,7 +15,7 @@ module egret {
         deltaTime?: number;
     }
 }
-module junyou {
+namespace jy {
     import TouchEvent = egret.TouchEvent;
     import Event = egret.Event;
     const key = "$__$Drag";

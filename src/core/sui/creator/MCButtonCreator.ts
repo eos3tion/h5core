@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * 
      * 新版使用MC的按钮，减少制作按钮的难度  

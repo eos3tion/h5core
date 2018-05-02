@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * 带方向的震动
      * 

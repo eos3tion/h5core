@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     export interface CfgData {
         /**
          * 特效数据
@@ -14,7 +14,7 @@ module junyou {
  * 子项目自身实现接口
  * @author 3tion
  */
-module junyou {
+namespace jy {
     export const enum ResPrefix {
         /**
          * 特效文件夹

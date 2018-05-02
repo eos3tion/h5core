@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     export const enum ByteArraySize {
         SIZE_OF_UINT32 = 4,
         SIZE_OF_FIX64 = 8,
@@ -187,7 +187,7 @@ module junyou {
          * @returns {ByteArray}
          */
         public readByteArray(length: number, ext = 0): ByteArray {
-            let ba = new junyou.ByteArray(this.readBuffer(length), ext);
+            let ba = new jy.ByteArray(this.readBuffer(length), ext);
             ba.$endian = this.$endian;
             return ba;
         }

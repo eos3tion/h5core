@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 	/**
 	 * 图片
 	 * 外部加载

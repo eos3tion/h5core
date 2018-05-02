@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 	/**
 	 * 模块配置数据
 	 * @author 3tion

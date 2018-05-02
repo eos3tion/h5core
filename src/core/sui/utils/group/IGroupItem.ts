@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * description
      * @author pb

@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 	/**
 	 * 模块处理器的基类 
 	 * 类型0的模块处理器

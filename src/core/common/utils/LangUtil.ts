@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     export interface LangUtilInterface {
         /**
          * 获取显示的信息

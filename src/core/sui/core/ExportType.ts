@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 	/**
 	 * 导出类型，需要和导出工具的ExportType对应
 	 * @author 

@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * webgl 的常量  
      * https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Constants  

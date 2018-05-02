@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     // const enum Const {
 
     //     /**
@@ -148,7 +148,7 @@ module junyou {
             if (DEBUG) {
                 console.log("socket断开连接");
             }
-            egret.callLater(dispatch, junyou, EventConst.Disconnect);
+            egret.callLater(dispatch, jy, EventConst.Disconnect);
         }
 
         /**

@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     const enum ResourceManagerConst {
         /**
          * 默认资源检测时间

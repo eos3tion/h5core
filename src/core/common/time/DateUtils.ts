@@ -52,7 +52,7 @@ const enum CountDownFormat {
 	S
 }
 
-module junyou {
+namespace jy {
 
 
 	/**
@@ -432,7 +432,7 @@ module junyou {
 
 	function initDefaultCDFormats() {
 		if (!_defaultCountFormats) {
-			let LangUtil = junyou.LangUtil;
+			let LangUtil = jy.LangUtil;
 			_defaultCountFormats = {
 				[CountDownFormat.D_H_M_S]: { d: LangUtil.getMsg("$_ndays"), h: LangUtil.getMsg("$_nhours"), m: LangUtil.getMsg("$_nminutes"), s: LangUtil.getMsg("$_nsecends") },
 				[CountDownFormat.H_M_S]: { h: LangUtil.getMsg("$_nhours"), m: LangUtil.getMsg("$_nminutes"), s: LangUtil.getMsg("$_nsecends") },

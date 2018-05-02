@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 	/**
 	 * 相机
 	 * @author 3tion

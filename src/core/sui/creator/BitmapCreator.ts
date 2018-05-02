@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 	/**
 	 * 位图的创建器
 	 * @author 3tion

@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * HTML工具类
      * @author 3tion

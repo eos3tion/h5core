@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 
     /**
      * 区段 -1 ~ -19

@@ -1,4 +1,4 @@
-module junyou.Res {
+namespace jy.Res {
     /**
      * 资源类型
      */

@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * Tween的插件
      * @author 3tion

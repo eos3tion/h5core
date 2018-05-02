@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * 使用数值或者字符串类型作为Key
      * V 作为Value的字典

@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 	/**
 	 * 限制检查器的基类
 	 * @author 3tion

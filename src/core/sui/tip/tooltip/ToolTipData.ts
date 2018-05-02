@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * ToolTip的数据
      * @author 3tion

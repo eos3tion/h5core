@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * 
      * 用于弹出窗口，并将下层模糊的工具类

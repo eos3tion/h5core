@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * 延迟执行
      * @author 3tion

@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 	/**
 	 * 异步工具类，用于加方法兼听
 	 * @author 3tion

@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 	/**
 	 * 模块检测器 
 	 * @author 

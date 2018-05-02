@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 	/**
 	 * 模块管理器
 	 * 用于管理模块的开启/关闭

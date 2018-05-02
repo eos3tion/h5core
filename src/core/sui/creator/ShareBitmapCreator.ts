@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     export class ShareBitmapCreator extends BitmapCreator<egret.Bitmap>{
 
         public constructor() {

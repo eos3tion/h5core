@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * ToolTip的皮肤
      * @author 3tion

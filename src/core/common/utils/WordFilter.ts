@@ -2,7 +2,7 @@
  * 脏字内容
  */
 var $dirty: string;
-module junyou {
+namespace jy {
 
     /**
      * 初始化屏蔽字

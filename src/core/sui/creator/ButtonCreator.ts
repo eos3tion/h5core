@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     export interface IButton extends Component {
         /**
          * 按钮上的标签

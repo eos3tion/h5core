@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     export interface RPCCallback {
         /**
          * 成功的回调函数

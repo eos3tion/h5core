@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
     /**
      * 用于和服务端通信的数据
      * @author 3tion

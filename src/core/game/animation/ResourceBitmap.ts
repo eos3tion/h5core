@@ -1,4 +1,4 @@
-module junyou {
+namespace jy {
 
     /**
      * 资源显示用位图
