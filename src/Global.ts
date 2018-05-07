@@ -72,15 +72,12 @@ namespace jy {
 				_callLater.tick(_now);
 				TimerUtil.tick(_now);
 				tweenManager.tick(dis);
+				update.call(ticker);
 			}
 			catch (e) {
 				ThrowError(`ticker.render`, e);
 			}
-			update.call(ticker);
-
 		}
-
-
 	}
 
 
