@@ -291,7 +291,7 @@ interface Array<T> {
 }
 declare namespace jy {
     function is(instance: any, ref: {
-        new (): any;
+        new(): any;
     }): boolean;
     /**
      * 移除可视对象
@@ -652,7 +652,7 @@ interface $gmType {
 }
 declare namespace jy {
     type InjectProxy = {
-        new (): IAsync;
+        new(): IAsync;
     } | string | number;
     /**
      * Mediator和Proxy的基类
@@ -725,7 +725,7 @@ declare namespace jy {
      * @returns
      */
     function __dependProxy(ref: {
-        new (): IAsync;
+        new(): IAsync;
     } | string | number): (target: any, key: string) => void;
 }
 declare namespace jy {
@@ -1447,7 +1447,7 @@ declare namespace jy {
          * @memberOf MixinOption
          */
         clazz: {
-            new (): T;
+            new(): T;
         };
         /**
          *
@@ -4525,7 +4525,7 @@ declare namespace jy {
      * @author 3tion
      */
     const WordFilter: {
-        loadDirtyWord(url: string, split?: string): void;
+        loadDirtyWord(url: string, split?: string, useJSON?: boolean): void;
         initFilterstring: (str: string, split: string) => void;
         wordCensor: (msg: string) => string;
         setDirtyHandler(handler: (substring: string) => string): void;
@@ -4655,7 +4655,7 @@ declare namespace jy {
         };
         static instance: GameEngine;
         static init(stage: egret.Stage, ref?: {
-            new (stage: egret.Stage): GameEngine;
+            new(stage: egret.Stage): GameEngine;
         }): void;
         static addLayerConfig(id: number, parentid?: number, ref?: new (id: number) => GameLayer): void;
         /**
@@ -10358,7 +10358,7 @@ declare namespace jy {
          * @memberOf Facade
          */
         static getNameOfInline(inlineRef: {
-            new (): any;
+            new(): any;
         }, className?: string): string;
         /**
          * 存储的数据Proxy
@@ -10415,7 +10415,7 @@ declare namespace jy {
          * @param {boolean} [async=false] 是否异步初始化，默认直接初始化
          */
         registerInlineProxy(ref: {
-            new (): Proxy;
+            new(): Proxy;
         }, proxyName?: Key, async?: boolean): void;
         /**
          *
@@ -10424,7 +10424,7 @@ declare namespace jy {
          * @param {string} [mediatorName]   注册的模块名字
          */
         registerInlineMediator(ref: {
-            new (): Mediator;
+            new(): Mediator;
         }, mediatorName?: Key): void;
         /**
          * 注册Proxy的配置
@@ -12293,10 +12293,10 @@ declare namespace jy {
      * 创建器
      */
     type Creator<T> = {
-        new (): T;
+        new(): T;
     } | {
-        (): T;
-    };
+            (): T;
+        };
     /**
      *
      * 调整ClassFactory
@@ -12373,7 +12373,7 @@ declare namespace jy {
      * @param {({ new(): T & { _pool?: RecyclablePool<T> } })} clazz
      */
     function recyclable<T>(clazz: {
-        new (): T & {
+        new(): T & {
             _pool?: RecyclablePool<T>;
         };
     }): Recyclable<T>;
@@ -12395,7 +12395,7 @@ declare namespace jy {
      * @param clazz 要做单例的类型
      */
     function singleton<T>(clazz: {
-        new (): T;
+        new(): T;
         _instance?: T;
     }): T;
 }
@@ -12803,7 +12803,7 @@ declare namespace jy {
          */
         protected _creators: {
             [index: string]: {
-                new (): BaseCreator<egret.DisplayObject>;
+                new(): BaseCreator<egret.DisplayObject>;
             };
         };
         /**
@@ -14372,7 +14372,7 @@ declare namespace jy {
          * @type {{new():T}}
          */
         renderClass: {
-            new (): T;
+            new(): T;
         };
         /**
          * 背景

@@ -1445,11 +1445,11 @@ var jy;
                 _callLater.tick(_now);
                 jy.TimerUtil.tick(_now);
                 tweenManager.tick(dis);
+                update.call(ticker);
             }
             catch (e) {
                 jy.ThrowError("ticker.render", e);
             }
-            update.call(ticker);
         };
     }
     function nextTick(callback, thisObj) {
@@ -7644,15 +7644,19 @@ var jy;
         /**
          * 由于脏字文件使用ajax读取，可能存在跨域问题，所以在H5中使用javascript方式加载
          */
-        loadDirtyWord: function (url, split) {
+        loadDirtyWord: function (url, split, useJSON) {
             if (split === void 0) { split = ";"; }
-            loadScript(url, function () {
-                if ($dirty) {
-                    initFilterstring($dirty, split);
-                    // 清理脏字原始数据
-                    $dirty = undefined;
-                }
-            });
+            if (WXXiaoYouXi) {
+            }
+            else {
+                loadScript(url, function () {
+                    if ($dirty) {
+                        initFilterstring($dirty, split);
+                        // 清理脏字原始数据
+                        $dirty = undefined;
+                    }
+                });
+            }
         },
         /**
          * 初始化屏蔽字
