@@ -16,6 +16,8 @@ namespace jy {
          * 
          */
         var errorMsg = [] as string[];
+
+        (jy as any).errorMsg = errorMsg;
         /**
          * 在内存中存储报错数据
          * @param msg
