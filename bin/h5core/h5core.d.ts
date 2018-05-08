@@ -4525,7 +4525,7 @@ declare namespace jy {
      * @author 3tion
      */
     const WordFilter: {
-        loadDirtyWord(url: string, split?: string, useJSON?: boolean): void;
+        loadDirtyWord(url: string, split?: string): void;
         initFilterstring: (str: string, split: string) => void;
         wordCensor: (msg: string) => string;
         setDirtyHandler(handler: (substring: string) => string): void;

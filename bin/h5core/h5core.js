@@ -7644,19 +7644,15 @@ var jy;
         /**
          * 由于脏字文件使用ajax读取，可能存在跨域问题，所以在H5中使用javascript方式加载
          */
-        loadDirtyWord: function (url, split, useJSON) {
+        loadDirtyWord: function (url, split) {
             if (split === void 0) { split = ";"; }
-            if (WXXiaoYouXi) {
-            }
-            else {
-                loadScript(url, function () {
-                    if ($dirty) {
-                        initFilterstring($dirty, split);
-                        // 清理脏字原始数据
-                        $dirty = undefined;
-                    }
-                });
-            }
+            loadScript(url, function () {
+                if ($dirty) {
+                    initFilterstring($dirty, split);
+                    // 清理脏字原始数据
+                    $dirty = undefined;
+                }
+            });
         },
         /**
          * 初始化屏蔽字
@@ -7716,6 +7712,7 @@ var jy;
          *
          */
         var errorMsg = [];
+        jy.errorMsg = errorMsg;
         /**
          * 在内存中存储报错数据
          * @param msg
