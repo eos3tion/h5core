@@ -1425,7 +1425,19 @@ var jy;
             else {
                 frameNow += delta;
             }
-            try {
+            if (true) {
+                $();
+            }
+            else if (false) {
+                try {
+                    $();
+                }
+                catch (e) {
+                    jy.ThrowError("ticker.render", e);
+                }
+            }
+            return;
+            function $() {
                 //执行顺序  nextTick  callLater TimerUtil  tween  最后是白鹭的更新
                 var len = _intervals.length;
                 for (var i = 0; i < len; i++) {
@@ -1446,9 +1458,6 @@ var jy;
                 jy.TimerUtil.tick(_now);
                 tweenManager.tick(dis);
                 update.call(ticker);
-            }
-            catch (e) {
-                jy.ThrowError("ticker.render", e);
             }
         };
     }
