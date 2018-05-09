@@ -52,7 +52,18 @@ namespace jy {
 			} else {
 				frameNow += delta;
 			}
-			try {
+			if (DEBUG) {
+				$();
+			} else if (RELEASE) {
+				try {
+					$();
+				}
+				catch (e) {
+					ThrowError(`ticker.render`, e);
+				}
+			}
+			return;
+			function $() {
 				//执行顺序  nextTick  callLater TimerUtil  tween  最后是白鹭的更新
 				let len = _intervals.length;
 				for (let i = 0; i < len; i++) {
@@ -73,9 +84,6 @@ namespace jy {
 				TimerUtil.tick(_now);
 				tweenManager.tick(dis);
 				update.call(ticker);
-			}
-			catch (e) {
-				ThrowError(`ticker.render`, e);
 			}
 		}
 	}
