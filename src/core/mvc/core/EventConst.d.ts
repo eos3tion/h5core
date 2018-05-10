@@ -1,4 +1,4 @@
-namespace jy {
+declare namespace jy {
     /**
      * mvc使用的事件区段
      * -999~ -200

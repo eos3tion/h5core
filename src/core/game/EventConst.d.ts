@@ -1,4 +1,4 @@
-namespace jy {
+declare namespace jy {
     /**
      * 游戏使用区段
      * -1000~-1999
