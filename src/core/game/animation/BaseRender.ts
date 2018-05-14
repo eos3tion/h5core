@@ -90,7 +90,7 @@ namespace jy {
                 let ps = this.playSpeed * BaseRender.globalPlaySpeed;
                 let frame: FrameInfo;
                 if (ps > 0) {
-                    if (delta > 2000) {//被暂停过程时间，直接执行会导致循环次数过多，舍弃结果
+                    if (delta > 500) {//被暂停过程时间，直接执行会导致循环次数过多，舍弃结果
                         if (nextRenderTime != 0) {
                             if (DEBUG) {
                                 console.log(`Render上次执行时间和当前时间差值过长[${delta}]，可以执行[${delta / actionInfo.totalTime}次总序列]`);
