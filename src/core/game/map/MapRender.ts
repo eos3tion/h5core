@@ -38,7 +38,6 @@ namespace jy {
             return;
         }
 
-        let i = 0;
         let get = ResManager.get;
         for (let r = sr; r <= er; r++) {
             for (let c = sc; c <= ec; c++) {
@@ -46,6 +45,7 @@ namespace jy {
                 forEach.call(caller, uri, c, r, pW, pH);
             }
         }
+        return true;
     }
     /**
     * MapRender
@@ -174,8 +174,9 @@ namespace jy {
                 }
             }
             this._idx = 0;
-            checkRect(cM, rect, this.preload, this.addMap, this.check, this)
-            this._showing.length = this._idx;
+            if (checkRect(cM, rect, this.preload, this.addMap, this.check, this)) {
+                this._showing.length = this._idx;
+            }
         }
 
         protected noRes(uri: string, c: number, r: number, pW: number, pH: number) {

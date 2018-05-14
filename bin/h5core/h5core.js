@@ -9821,7 +9821,6 @@ var jy;
         if (checker && !checker.call(caller, sc, sr, ec, er)) {
             return;
         }
-        var i = 0;
         var get = jy.ResManager.get;
         for (var r = sr; r <= er; r++) {
             for (var c = sc; c <= ec; c++) {
@@ -9829,6 +9828,7 @@ var jy;
                 forEach.call(caller, uri, c, r, pW, pH);
             }
         }
+        return true;
     }
     /**
     * MapRender
@@ -9943,8 +9943,9 @@ var jy;
                 }
             }
             this._idx = 0;
-            checkRect(cM, rect, this.preload, this.addMap, this.check, this);
-            this._showing.length = this._idx;
+            if (checkRect(cM, rect, this.preload, this.addMap, this.check, this)) {
+                this._showing.length = this._idx;
+            }
         };
         TileMapLayer.prototype.noRes = function (uri, c, r, pW, pH) {
             var tmp = new TileMap();
