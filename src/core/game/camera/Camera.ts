@@ -1,4 +1,5 @@
 namespace jy {
+    const clamp = Math.clamp;
 	/**
 	 * 相机
 	 * @author 3tion
@@ -105,7 +106,7 @@ namespace jy {
          */
         public setSize(width: number, height: number) {
             let rect = this._rect;
-            let changed: boolean;
+            let changed = this._changed;
             if (width != rect.width) {
                 rect.width = width;
                 changed = true;
@@ -161,10 +162,10 @@ namespace jy {
         public moveTo(x: number, y: number) {
             let { _hScroll, _vScroll, _rect, _lx, _ly, _lw, _lh, } = this;
             let { width: rw, height: rh, x: rx, y: ry } = _rect;
-            let changed: boolean;
+            let changed = this._changed;
             if (_hScroll) {
                 x -= rw * .5;
-                x = Math.clamp(x, _lx, _lw - rw);
+                x = clamp(x, _lx, _lw - rw);
                 if (x != rx) {
                     _rect.x = x;
                     changed = true;
@@ -172,7 +173,7 @@ namespace jy {
             }
             if (_vScroll) {
                 y -= rh * .5;
-                y = Math.clamp(y, _ly, _lh - rh);
+                y = clamp(y, _ly, _lh - rh);
                 if (y != ry) {
                     _rect.y = y;
                     changed = true;
