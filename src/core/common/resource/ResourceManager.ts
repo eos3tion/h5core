@@ -15,8 +15,8 @@ namespace jy {
 
     const _resources: { [index: string]: IResource } = {};
 
-    function get<T extends IResource>(resid: string, noResHandler: { (...args): T }, thisObj?: any, ...args)
-    function get<T extends IResource>(resid: string, noResHandler: { (...args): T }, thisObj?: any) {
+    function get<T extends IResource>(resid: string, noResHandler: { (...args): T }, thisObj?: any, ...args): T
+    function get<T extends IResource>(resid: string, noResHandler: { (...args): T }, thisObj?: any): T {
         let res = getResource(resid) as T;
         if (!res) {
             let args = [];

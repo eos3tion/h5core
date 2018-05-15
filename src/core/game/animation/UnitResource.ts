@@ -179,7 +179,7 @@ namespace jy {
         loadRes(direction: number, action: number) {
             let r = this.sInfo.getResKey(direction, action);
             let uri = this.getUri2(r);
-            return ResManager.get(uri, this.noRes, this, uri, r) as SplitUnitResource;
+            return ResManager.get(uri, this.noRes, this, uri, r);
         }
 
         noRes(uri: string, r: string) {
