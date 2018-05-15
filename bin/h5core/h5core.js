@@ -9086,6 +9086,7 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
+    var clamp = Math.clamp;
     /**
      * 相机
      * @author 3tion
@@ -9180,7 +9181,7 @@ var jy;
          */
         Camera.prototype.setSize = function (width, height) {
             var rect = this._rect;
-            var changed;
+            var changed = this._changed;
             if (width != rect.width) {
                 rect.width = width;
                 changed = true;
@@ -9233,10 +9234,10 @@ var jy;
         Camera.prototype.moveTo = function (x, y) {
             var _a = this, _hScroll = _a._hScroll, _vScroll = _a._vScroll, _rect = _a._rect, _lx = _a._lx, _ly = _a._ly, _lw = _a._lw, _lh = _a._lh;
             var rw = _rect.width, rh = _rect.height, rx = _rect.x, ry = _rect.y;
-            var changed;
+            var changed = this._changed;
             if (_hScroll) {
                 x -= rw * .5;
-                x = Math.clamp(x, _lx, _lw - rw);
+                x = clamp(x, _lx, _lw - rw);
                 if (x != rx) {
                     _rect.x = x;
                     changed = true;
@@ -9244,7 +9245,7 @@ var jy;
             }
             if (_vScroll) {
                 y -= rh * .5;
-                y = Math.clamp(y, _ly, _lh - rh);
+                y = clamp(y, _ly, _lh - rh);
                 if (y != ry) {
                     _rect.y = y;
                     changed = true;
@@ -9802,10 +9803,12 @@ if (true) {
 }
 var jy;
 (function (jy) {
-    function checkRect(map, rect, preload, forEach, checker, caller) {
+    function checkRect(map, rect, preload, forEach, checker, caller, ox, oy) {
+        if (ox === void 0) { ox = 0; }
+        if (oy === void 0) { oy = 0; }
         //检查地图，进行加载区块
-        var x = rect.x;
-        var y = rect.y;
+        var x = rect.x + ox;
+        var y = rect.y + oy;
         var w = rect.width;
         var h = rect.height;
         var pW = map.pWidth;
@@ -9829,6 +9832,24 @@ var jy;
             }
         }
         return true;
+    }
+    /**
+     * 刷新当前地图
+     */
+    function checkEmpty() {
+        //@ts-ignore
+        var showing = this._showing;
+        var j = 0;
+        for (var i = 0; i < showing.length; i++) {
+            var show = showing[i];
+            if (show.empty) {
+                jy.removeDisplay(show);
+            }
+            else {
+                showing[j++] = show;
+            }
+        }
+        showing.length = j;
     }
     /**
     * MapRender
@@ -9934,18 +9955,20 @@ var jy;
             }
             return true;
         };
-        TileMapLayer.prototype.setRect = function (rect) {
+        TileMapLayer.prototype.setRect = function (rect, ox, oy) {
+            if (ox === void 0) { ox = 0; }
+            if (oy === void 0) { oy = 0; }
             var cM = this.currentMap;
             if (!cM) {
                 return;
             }
             if (true) {
                 if (this.drawGrid) {
-                    this.drawGrid(rect.x, rect.y, rect.width, rect.height, cM);
+                    this.drawGrid(rect.x + ox, rect.y + oy, rect.width, rect.height, cM);
                 }
             }
             this._idx = 0;
-            if (checkRect(cM, rect, this.preload, this.addMap, this.check, this)) {
+            if (checkRect(cM, rect, this.preload, this.addMap, this.check, this, ox, oy)) {
                 this._showing.length = this._idx;
             }
         };
@@ -10040,6 +10063,10 @@ var jy;
                     this.isStatic = true; //将这类资源标记为静态，永远不销毁，因为本身基本不占用内存
                     data.dispose();
                     this.texture = undefined;
+                    var parent_3 = this.parent;
+                    if (parent_3 instanceof TileMapLayer) {
+                        jy.Global.callLater(checkEmpty, 500 /* 设置为500是因为可能有多张1*1的空图片加载，减少刷新次数 */, parent_3);
+                    }
                 }
                 else {
                     this.texture = data;
@@ -10371,9 +10398,9 @@ var jy;
             function getPath(p) {
                 var parentKey = p.parent;
                 if (parentKey) {
-                    var parent_3 = paths[parentKey];
-                    if (parent_3) {
-                        return getPath(parent_3) + p.path;
+                    var parent_4 = paths[parentKey];
+                    if (parent_4) {
+                        return getPath(parent_4) + p.path;
                     }
                     else if (true) {
                         jy.ThrowError("\u8DEF\u5F84[" + p.path + "]\u914D\u7F6E\u4E86\u7236\u7EA7(parent)\uFF0C\u4F46\u662F\u627E\u4E0D\u5230\u5BF9\u5E94\u7684\u7236\u7EA7");

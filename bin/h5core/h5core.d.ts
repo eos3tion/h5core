@@ -8626,7 +8626,7 @@ declare namespace jy {
         protected addMap(uri: string, c: number, r: number, pW: number, pH: number): void;
         reset(): void;
         protected check(sc: number, sr: number, ec: number, er: number): boolean;
-        setRect(rect: egret.Rectangle): void;
+        setRect(rect: egret.Rectangle, ox?: number, oy?: number): void;
         protected noRes(uri: string, c: number, r: number, pW: number, pH: number): TileMap;
         constructor(id: number);
         /**
