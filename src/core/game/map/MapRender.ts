@@ -16,10 +16,10 @@ if (DEBUG) {
     }
 }
 namespace jy {
-    function checkRect(map: MapInfo, rect: egret.Rectangle, preload: number, forEach: { (uri: string, col: number, row: number, pW?: number, pH?: number) }, checker?: { (sc: number, sr: number, ec: number, er: number): boolean }, caller?) {
+    function checkRect(map: MapInfo, rect: egret.Rectangle, preload: number, forEach: { (uri: string, col: number, row: number, pW?: number, pH?: number) }, checker?: { (sc: number, sr: number, ec: number, er: number): boolean }, caller?, ox = 0, oy = 0) {
         //检查地图，进行加载区块
-        let x = rect.x;
-        let y = rect.y;
+        let x = rect.x + ox;
+        let y = rect.y + oy;
         let w = rect.width;
         let h = rect.height;
 
@@ -46,6 +46,25 @@ namespace jy {
             }
         }
         return true;
+    }
+
+
+    /**
+     * 刷新当前地图
+     */
+    function checkEmpty(this: TileMapLayer) {
+        //@ts-ignore
+        let showing = this._showing;
+        let j = 0;
+        for (let i = 0; i < showing.length; i++) {
+            const show = showing[i];
+            if (show.empty) {
+                removeDisplay(show);
+            } else {
+                showing[j++] = show;
+            }
+        }
+        showing.length = j;
     }
     /**
     * MapRender
@@ -165,18 +184,18 @@ namespace jy {
             return true;
         }
 
-        public setRect(rect: egret.Rectangle) {
+        public setRect(rect: egret.Rectangle, ox = 0, oy = 0) {
             let cM = this.currentMap;
             if (!cM) {
                 return;
             }
             if (DEBUG) {
                 if (this.drawGrid) {
-                    this.drawGrid(rect.x, rect.y, rect.width, rect.height, cM);
+                    this.drawGrid(rect.x + ox, rect.y + oy, rect.width, rect.height, cM);
                 }
             }
             this._idx = 0;
-            if (checkRect(cM, rect, this.preload, this.addMap, this.check, this)) {
+            if (checkRect(cM, rect, this.preload, this.addMap, this.check, this, ox, oy)) {
                 this._showing.length = this._idx;
             }
         }
@@ -290,6 +309,7 @@ namespace jy {
             }
         }
 
+
         removeChildren() {
             //重置显示的地图序列
             this._showing.length = 0;
@@ -324,9 +344,9 @@ namespace jy {
          * 是否为静态资源
          * @type {boolean}
          */
-        public isStatic: boolean;
+        isStatic: boolean;
 
-        public lastUseTime: number;
+        lastUseTime: number;
 
         /**
          * 
@@ -361,6 +381,10 @@ namespace jy {
                     this.isStatic = true;//将这类资源标记为静态，永远不销毁，因为本身基本不占用内存
                     data.dispose();
                     this.texture = undefined;
+                    let parent = this.parent;
+                    if (parent instanceof TileMapLayer) {
+                        Global.callLater(checkEmpty, 500/* 设置为500是因为可能有多张1*1的空图片加载，减少刷新次数 */, parent);
+                    }
                 } else {
                     this.texture = data;
                 }
