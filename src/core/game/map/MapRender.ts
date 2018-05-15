@@ -129,12 +129,14 @@ namespace jy {
         protected addMap(uri: string, c: number, r: number, pW: number, pH: number) {
             const map = this.currentMap;
             let tm = ResManager.get(uri, this.noRes, this, uri, c, r, pW, pH);
-            // 舞台上的标记为静态
-            tm.isStatic = true;
-            let idx = this._idx;
-            this.$doAddChild(tm, idx, false);
-            this._showing[idx++] = tm;
-            this._idx = idx;
+            if (!tm.empty) {
+                // 舞台上的标记为静态
+                tm.isStatic = true;
+                let idx = this._idx;
+                this.$doAddChild(tm, idx, false);
+                this._showing[idx++] = tm;
+                this._idx = idx;
+            }
         }
 
         reset() {
@@ -300,6 +302,10 @@ namespace jy {
     */
     export class TileMap extends egret.Bitmap implements IResource {
         /**
+         * 表示此底图为空地图，最终不放置在舞台上
+         */
+        empty: boolean;
+        /**
          * 地图块的列
          */
         private col: number;
@@ -348,9 +354,16 @@ namespace jy {
          * 资源加载完成
          */
         loadComplete(item: Res.ResItem) {
-            let { data, uri } = item;
+            let { data, uri } = item as { data: egret.Texture, uri: string };
             if (uri == this.uri) {
-                this.texture = data;
+                if (data.textureWidth == 1 && data.textureHeight == 1) {//检查纹理大小，如果是 1×1 则为特殊图片，不被加到舞台上
+                    this.empty = true;//只标记，不在此帧从舞台移除
+                    this.isStatic = true;//将这类资源标记为静态，永远不销毁，因为本身基本不占用内存
+                    data.dispose();
+                    this.texture = undefined;
+                } else {
+                    this.texture = data;
+                }
             }
         }
 
