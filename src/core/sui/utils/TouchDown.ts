@@ -61,6 +61,30 @@ namespace jy {
             }
         }
 
+        /**
+         * 重置组件
+         * 
+         * @export
+         * @param {TouchDownItem} item 
+         */
+        export function reset(item: TouchDownItem) {
+            let data = item.$_tdi;
+            if (data) {
+                let { tween, raw } = data;
+                if (tween) {
+                    Global.removeTween(tween);
+                }
+                if (raw) {
+                    let { x, y, scaleX, scaleY } = raw;
+                    item.x = x;
+                    item.y = y;
+                    item.scaleX = scaleX;
+                    item.scaleY = scaleY;
+                }
+                item.$_tdi = undefined;
+            }
+        }
+
 
         function clearEndListener(item: TouchDownItem) {
             item.off(EgretEvent.TOUCH_END, touchEnd);
