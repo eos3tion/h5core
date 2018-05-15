@@ -8642,6 +8642,10 @@ declare namespace jy {
     */
     class TileMap extends egret.Bitmap implements IResource {
         /**
+         * 表示此底图为空地图，最终不放置在舞台上
+         */
+        empty: boolean;
+        /**
          * 地图块的列
          */
         private col;
@@ -14120,7 +14124,7 @@ declare namespace jy {
 }
 declare namespace jy {
     const ResManager: {
-        get: <T extends IResource>(resid: string, noResHandler: (...args: any[]) => T, thisObj?: any, ...args: any[]) => any;
+        get: <T extends IResource>(resid: string, noResHandler: (...args: any[]) => T, thisObj?: any, ...args: any[]) => T;
         getTextureRes(resID: string, noWebp?: boolean): TextureResource;
         getResource: (resID: string) => IResource;
         init(): void;
