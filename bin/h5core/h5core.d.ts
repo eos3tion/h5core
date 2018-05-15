@@ -14614,6 +14614,13 @@ declare namespace jy {
          * @param {TouchDownItem} item
          */
         function loose(item: TouchDownItem): void;
+        /**
+         * 重置组件
+         *
+         * @export
+         * @param {TouchDownItem} item
+         */
+        function reset(item: TouchDownItem): void;
     }
 }
 declare namespace jy {

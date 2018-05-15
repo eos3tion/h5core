@@ -21232,6 +21232,30 @@ var jy;
             }
         }
         TouchDown.loose = loose;
+        /**
+         * 重置组件
+         *
+         * @export
+         * @param {TouchDownItem} item
+         */
+        function reset(item) {
+            var data = item.$_tdi;
+            if (data) {
+                var tween = data.tween, raw = data.raw;
+                if (tween) {
+                    jy.Global.removeTween(tween);
+                }
+                if (raw) {
+                    var x = raw.x, y = raw.y, scaleX = raw.scaleX, scaleY = raw.scaleY;
+                    item.x = x;
+                    item.y = y;
+                    item.scaleX = scaleX;
+                    item.scaleY = scaleY;
+                }
+                item.$_tdi = undefined;
+            }
+        }
+        TouchDown.reset = reset;
         function clearEndListener(item) {
             item.off("touchEnd" /* TOUCH_END */, touchEnd);
             item.off("touchCancel" /* TOUCH_CANCEL */, touchEnd);
