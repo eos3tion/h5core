@@ -92,9 +92,7 @@ namespace jy {
                 if (ps > 0) {
                     if (delta > 500) {//被暂停过程时间，直接执行会导致循环次数过多，舍弃结果
                         if (nextRenderTime != 0) {
-                            if (DEBUG) {
-                                console.log(`Render上次执行时间和当前时间差值过长[${delta}]，可以执行[${delta / actionInfo.totalTime}次总序列]`);
-                            }
+                            DEBUG && printSlow(delta);
                             if (BaseRender.dispatchSlowRender) {
                                 Global.callLater(BaseRender.onSlowRender);
                             }
@@ -210,5 +208,16 @@ namespace jy {
 
         public constructor() {
         }
+    }
+
+    if (DEBUG) {
+        var printSlow = (function () {
+            return function (delta: number) {
+                Global.callLater(print, 0, null, delta);
+            };
+            function print(delta: number) {
+                console.log(`Render上次执行时间和当前时间差值过长[${delta}]`);
+            }
+        })()
     }
 }
