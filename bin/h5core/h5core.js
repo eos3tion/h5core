@@ -1677,9 +1677,7 @@ var jy;
                 if (ps > 0) {
                     if (delta > 500) { //被暂停过程时间，直接执行会导致循环次数过多，舍弃结果
                         if (nextRenderTime != 0) {
-                            if (true) {
-                                console.log("Render\u4E0A\u6B21\u6267\u884C\u65F6\u95F4\u548C\u5F53\u524D\u65F6\u95F4\u5DEE\u503C\u8FC7\u957F[" + delta + "]\uFF0C\u53EF\u4EE5\u6267\u884C[" + delta / actionInfo.totalTime + "\u6B21\u603B\u5E8F\u5217]");
-                            }
+                            true && printSlow(delta);
                             if (BaseRender.dispatchSlowRender) {
                                 jy.Global.callLater(BaseRender.onSlowRender);
                             }
@@ -1789,6 +1787,16 @@ var jy;
     }());
     jy.BaseRender = BaseRender;
     __reflect(BaseRender.prototype, "jy.BaseRender", ["jy.IDrawInfo"]);
+    if (true) {
+        var printSlow = (function () {
+            return function (delta) {
+                jy.Global.callLater(print, 0, null, delta);
+            };
+            function print(delta) {
+                console.log("Render\u4E0A\u6B21\u6267\u884C\u65F6\u95F4\u548C\u5F53\u524D\u65F6\u95F4\u5DEE\u503C\u8FC7\u957F[" + delta + "]");
+            }
+        })();
+    }
 })(jy || (jy = {}));
 /**
  * 资源打包信息
