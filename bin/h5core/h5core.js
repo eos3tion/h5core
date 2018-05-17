@@ -16693,7 +16693,8 @@ var jy;
         function WSNetService() {
             var _this = _super.call(this) || this;
             _this.onOpen = function () {
-                _this._ws.onopen = null;
+                var ws = _this._ws;
+                ws && (ws.onopen = null);
                 if (true) {
                     console.log("webSocket连接成功");
                 }
@@ -16788,7 +16789,7 @@ var jy;
         };
         WSNetService.prototype._send = function (cmd, data, msgType) {
             var ws = this._ws;
-            if (ws.readyState != WebSocket.OPEN) {
+            if (!ws || ws.readyState != WebSocket.OPEN) {
                 return;
             }
             //没有同协议的指令，新增数据
