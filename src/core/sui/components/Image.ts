@@ -17,13 +17,6 @@ namespace jy {
 		qid?: Res.ResQueueID;
 
 		noWebp?: boolean;
-		/**
-		 * 占位用纹理
-		 * 
-		 * @type {egret.Texture}
-		 * @memberof Image
-		 */
-		placehoder?: egret.Texture;
 
 		constructor() {
 			super();

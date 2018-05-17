@@ -94,7 +94,7 @@ namespace jy {
                 for (let bmp of this._list) {
                     bmp.texture = data;
                     if (DEBUG && !data) {
-                        bmp.texture = ErrorTexture;
+                        bmp.texture = bmp.placehoder || ErrorTexture;
                         let rect = bmp.suiRawRect;
                         if (rect) {
                             bmp.width = rect.width;
