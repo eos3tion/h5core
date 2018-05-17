@@ -120,7 +120,8 @@ namespace jy {
         }
 
         protected onOpen = () => {
-            this._ws.onopen = null;
+            let ws = this._ws;
+            ws && (ws.onopen = null);
             if (DEBUG) {
                 console.log("webSocket连接成功");
             }
@@ -185,7 +186,7 @@ namespace jy {
 
         protected _send(cmd: number, data: any, msgType: string) {
             let ws = this._ws;
-            if (ws.readyState != WebSocket.OPEN) {
+            if (!ws || ws.readyState != WebSocket.OPEN) {
                 return;
             }
             //没有同协议的指令，新增数据
