@@ -807,6 +807,12 @@ module egret {
          * 刷新纹理
          */
         refreshBMD();
+
+        /**
+		 * 占位用纹理
+		 * 
+		 */
+		placehoder?: egret.Texture;
     }
     export interface TextField {
         /**
