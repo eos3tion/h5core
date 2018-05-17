@@ -1018,6 +1018,44 @@ declare namespace jy {
     const Global: GlobalInstance;
 }
 declare namespace jy {
+    /**
+     * 常用的颜色常量
+     *
+     * @export
+     * @enum {number}
+     */
+    const enum Color {
+        Red = 16711680,
+        Green = 65280,
+        Yellow = 16776960,
+        White = 16777215,
+        Gray = 13421772,
+    }
+    /**
+     * 常用的颜色字符串常量
+     *
+     * @export
+     * @enum {string}
+     */
+    const enum ColorString {
+        Red = "#ff0000",
+        Green = "#00ff00",
+        Yellow = "#ffff00",
+        White = "#ffffff",
+        Gray = "#cccccc",
+    }
+    /**
+     * 颜色工具
+     * @author 3tion
+     *
+     */
+    const ColorUtil: {
+        getColorString: (c: number) => string;
+        getColorValue(c: string): number;
+        getTexture(color?: number, alpha?: number): egret.Texture;
+    };
+}
+declare namespace jy {
     interface GameLayer extends egret.DisplayObject {
         id: number;
     }
@@ -3265,37 +3303,6 @@ declare const enum EgretEvent {
 }
 declare namespace jy {
     /**
-     * 状态机的状态实现
-     * @author 3tion
-     */
-    interface IStateSwitcher {
-        /**
-         *
-         * 在上一个状态sleep之前调用
-         * @param {Key} [type]
-         * @memberof IStateSwitcher
-         */
-        beforeLastSleep?(type?: Key): any;
-        /**
-         * 被一个状态禁止了
-         *
-         * @param {Key} [type]
-         *
-         * @memberof IStateSwitcher
-         */
-        sleepBy?(type?: Key): any;
-        /**
-         * 被一个状态开启了
-         *
-         * @param {Key} [type]
-         *
-         * @memberof IStateSwitcher
-         */
-        awakeBy?(type?: Key): any;
-    }
-}
-declare namespace jy {
-    /**
      * 绑定属性名，当属性值发生改变时，可自动对外抛eventType事件
      *
      * @export
@@ -4140,41 +4147,64 @@ declare namespace jy {
     }
 }
 declare namespace jy {
+    type $CallbackInfo = CallbackInfo<Function>;
     /**
-     * 常用的颜色常量
-     *
-     * @export
-     * @enum {number}
-     */
-    const enum Color {
-        Red = 16711680,
-        Green = 65280,
-        Yellow = 16776960,
-        White = 16777215,
-        Gray = 13421772,
-    }
-    /**
-     * 常用的颜色字符串常量
-     *
-     * @export
-     * @enum {string}
-     */
-    const enum ColorString {
-        Red = "#ff0000",
-        Green = "#00ff00",
-        Yellow = "#ffff00",
-        White = "#ffffff",
-        Gray = "#cccccc",
-    }
-    /**
-     * 颜色工具
+     * 回调信息，用于存储回调数据
      * @author 3tion
      *
      */
-    const ColorUtil: {
-        getColorString(c: number): string;
-        getColorValue(c: string): number;
-    };
+    class CallbackInfo<T extends Function> implements IRecyclable {
+        callback: T;
+        args: any[];
+        thisObj: any;
+        doRecycle: boolean;
+        /**
+         * 待执行的时间
+         */
+        time: number;
+        constructor();
+        init(callback: T, thisObj?: any, args?: any[]): void;
+        /**
+         * 检查回调是否一致，只检查参数和this对象,不检查参数
+         */
+        checkHandle(callback: T, thisObj: any): boolean;
+        /**
+         * 执行回调
+         * 回调函数，将以args作为参数，callback作为函数执行
+         * @param {boolean} [doRecycle] 是否回收CallbackInfo，默认为true
+         */
+        execute(doRecycle?: boolean): any;
+        /**
+         * 用于执行其他参数
+         * 初始的参数会按顺序放在末位
+         * @param args (description)
+         */
+        call(...args: any[]): any;
+        /**
+         * 用于执行其他参数
+         * 初始的参数会按顺序放在末位
+         * 此方法会回收callbackInfo
+         * @param {any} args
+         */
+        callAndRecycle(...args: any[]): any;
+        onRecycle(): void;
+        recycle: {
+            ();
+        };
+        /**
+         * 获取CallbackInfo的实例
+         */
+        static get<T extends Function>(callback: T, thisObj?: any, ...args: any[]): CallbackInfo<T>;
+        /**
+         * 加入到数组
+         * 检查是否有this和handle相同的callback，如果有，就用新的参数替换旧参数
+         * @param list
+         * @param handle
+         * @param args
+         * @param thisObj
+         */
+        static addToList<T extends Function>(list: CallbackInfo<T>[], handle: T, thisObj?: any, ...args: any[]): CallbackInfo<T>;
+    }
 }
 declare namespace jy {
     /**
@@ -4808,64 +4838,137 @@ declare namespace jy {
     }
 }
 declare namespace jy {
-    type $CallbackInfo = CallbackInfo<Function>;
     /**
-     * 回调信息，用于存储回调数据
-     * @author 3tion
+     * WebGL的常量值
      *
+     * https://github.com/whh8162880/RFStage3D/blob/develop/src/com/youbt/core/Capabilities.ts
+     *
+     * http://webglreport.com/
      */
-    class CallbackInfo<T extends Function> implements IRecyclable {
-        callback: T;
-        args: any[];
-        thisObj: any;
-        doRecycle: boolean;
+    interface WebGLCapabilities {
         /**
-         * 待执行的时间
+         * gl 的版本，如：
+         * WebGL 1.0 (OpenGL ES 2.0 Chromium)
          */
-        time: number;
-        constructor();
-        init(callback: T, thisObj?: any, args?: any[]): void;
+        readonly version: string;
         /**
-         * 检查回调是否一致，只检查参数和this对象,不检查参数
+         * GLSL 语言版本，如：
+         * WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)
+         *
          */
-        checkHandle(callback: T, thisObj: any): boolean;
+        readonly shaderVersion: string;
         /**
-         * 执行回调
-         * 回调函数，将以args作为参数，callback作为函数执行
-         * @param {boolean} [doRecycle] 是否回收CallbackInfo，默认为true
+         * 供应商：
+         * webkit
          */
-        execute(doRecycle?: boolean): any;
+        readonly vendor: string;
         /**
-         * 用于执行其他参数
-         * 初始的参数会按顺序放在末位
-         * @param args (description)
+         * 渲染器：
+         * WebKit WebGL
          */
-        call(...args: any[]): any;
+        readonly renderer: string;
         /**
-         * 用于执行其他参数
-         * 初始的参数会按顺序放在末位
-         * 此方法会回收callbackInfo
-         * @param {any} args
+         * 供应商，如：
+         * Google Inc
+         * Intel Inc.
          */
-        callAndRecycle(...args: any[]): any;
-        onRecycle(): void;
-        recycle: {
-            ();
-        };
+        readonly unmaskedVendor?: string;
         /**
-         * 获取CallbackInfo的实例
+         * 渲染器：
+         * ANGLE (AMD Radeon HD 7700 Series Direct3D11 vs_5_0 ps_5_0)
+         * Intel Iris OpenGL Engine
+         * 可以拿到显卡信息
          */
-        static get<T extends Function>(callback: T, thisObj?: any, ...args: any[]): CallbackInfo<T>;
+        readonly unmaskedRenderer?: string;
         /**
-         * 加入到数组
-         * 检查是否有this和handle相同的callback，如果有，就用新的参数替换旧参数
-         * @param list
-         * @param handle
-         * @param args
-         * @param thisObj
+         * 是否抗支持锯齿
          */
-        static addToList<T extends Function>(list: CallbackInfo<T>[], handle: T, thisObj?: any, ...args: any[]): CallbackInfo<T>;
+        readonly antialias: boolean;
+        /**
+         * 是否使用了 ANGLE 技术来使 Direct X 支持 WebGL 的接口, 文档地址: https://baike.baidu.com/item/angle/3988?fr=aladdin
+         *
+         * Google宣布了新的开源项目 ANGLE （全称 Almost Native Graphics Layer Engine），这个项目的目标是在 Direct X 9.0c API 的基础上实现一层 OpenGL ES 2.0 API中 的 Web GL 子集接口。在开发的早期，ANGLE 项目将使用 BSD 授权发布，而最终完成后，类似 Google Chrome 之类的浏览器在 Windows 平台上运行 WebGL 内容将不再依赖于任何的 OpenGL 驱动程序。 [1]
+        */
+        readonly angle: AngleVersion;
+        /**
+         * 顶点着色器中最多可以定义的属性数量
+         */
+        readonly maxVertAttr: number;
+        /**
+         * 一个顶点着色器上可以使用纹理单元的最大数量
+         */
+        readonly maxVertTextureCount: number;
+        /**
+         * 一个顶点着色器上可以使用的 uniform 向量的最大数量
+         */
+        readonly maxVertUniforms: number;
+        /**
+         * 一个着色器上可以使用的 varying 向量的最大数量
+         */
+        readonly maxVaryings: number;
+        /**
+         *  一个片段着色器上可以使用的 uniform 向量的最大数量
+         */
+        readonly maxFragUniform: number;
+        /**
+         * 带锯齿直线宽度的范围
+         */
+        readonly aliasedLineWidth: Float32Array[];
+        /**
+         * 带锯齿点的尺寸范围
+         */
+        readonly aliasedPointSize: Float32Array[];
+        /**
+         * 一个片段着色器上可以使用纹理单元的最大数量
+         */
+        readonly maxTextureCount: number;
+        /**
+         * 纹理图片最大支持的尺寸, 高宽均必须小于等于该尺寸
+         */
+        readonly maxTextureSize: number;
+        /**
+         * 立方图纹理图片最大支持的尺寸, 高宽均必须小于等于该尺寸
+         */
+        readonly maxCubeMapTextureSize: number;
+        /**
+         * 所有片段着色器总共能访问的纹理单元数
+         */
+        readonly maxCombinedTextureCount: number;
+        /**
+         * 最大同向异性过滤值, 文档: https://blog.csdn.net/dcrmg/article/details/53470174
+         */
+        readonly maxAnisotropy: number;
+        readonly maxDrawBuffers: number;
+        /**
+         * 颜色缓存中红色的位数
+         */
+        readonly redBits: number;
+        /**
+         * 颜色缓存中绿色的位数
+         */
+        readonly greenBits: number;
+        /** 颜色缓存中蓝色的位数 */
+        readonly blueBits: number;
+        /** 颜色缓存中透明度的位数 */
+        readonly alphaBits: number;
+        /** 深度缓存中每个像素的位数 */
+        readonly depthBits: number;
+        /** 模板缓存中每个像素的位数 */
+        readonly stencilBits: number;
+        /** 最大的渲染缓冲尺寸 */
+        readonly maxRenderBufferSize: number;
+        /** 视口最大尺寸 */
+        readonly maxViewportSize: Int32Array[];
     }
+    /**
+     * ANGLE （全称 Almost Native Graphics Layer Engine），这个项目的目标是在 Direct X 9.0c API 的基础上实现一层 OpenGL ES 2.0 API中 的 Web GL 子集接口。
+     */
+    const enum AngleVersion {
+        No = 0,
+        D3D9 = 1,
+        D3D11 = 2,
+    }
+    function getWebGLCaps(g?: WebGLRenderingContext): WebGLCapabilities;
 }
 declare namespace jy {
     /**
@@ -5307,139 +5410,6 @@ declare namespace jy {
      * @return {CustomAction}   自定义动作
      */
     function getCustomAction(actions: any[], key?: number): ActionInfo;
-}
-declare namespace jy {
-    /**
-     * WebGL的常量值
-     *
-     * https://github.com/whh8162880/RFStage3D/blob/develop/src/com/youbt/core/Capabilities.ts
-     *
-     * http://webglreport.com/
-     */
-    interface WebGLCapabilities {
-        /**
-         * gl 的版本，如：
-         * WebGL 1.0 (OpenGL ES 2.0 Chromium)
-         */
-        readonly version: string;
-        /**
-         * GLSL 语言版本，如：
-         * WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)
-         *
-         */
-        readonly shaderVersion: string;
-        /**
-         * 供应商：
-         * webkit
-         */
-        readonly vendor: string;
-        /**
-         * 渲染器：
-         * WebKit WebGL
-         */
-        readonly renderer: string;
-        /**
-         * 供应商，如：
-         * Google Inc
-         * Intel Inc.
-         */
-        readonly unmaskedVendor?: string;
-        /**
-         * 渲染器：
-         * ANGLE (AMD Radeon HD 7700 Series Direct3D11 vs_5_0 ps_5_0)
-         * Intel Iris OpenGL Engine
-         * 可以拿到显卡信息
-         */
-        readonly unmaskedRenderer?: string;
-        /**
-         * 是否抗支持锯齿
-         */
-        readonly antialias: boolean;
-        /**
-         * 是否使用了 ANGLE 技术来使 Direct X 支持 WebGL 的接口, 文档地址: https://baike.baidu.com/item/angle/3988?fr=aladdin
-         *
-         * Google宣布了新的开源项目 ANGLE （全称 Almost Native Graphics Layer Engine），这个项目的目标是在 Direct X 9.0c API 的基础上实现一层 OpenGL ES 2.0 API中 的 Web GL 子集接口。在开发的早期，ANGLE 项目将使用 BSD 授权发布，而最终完成后，类似 Google Chrome 之类的浏览器在 Windows 平台上运行 WebGL 内容将不再依赖于任何的 OpenGL 驱动程序。 [1]
-        */
-        readonly angle: AngleVersion;
-        /**
-         * 顶点着色器中最多可以定义的属性数量
-         */
-        readonly maxVertAttr: number;
-        /**
-         * 一个顶点着色器上可以使用纹理单元的最大数量
-         */
-        readonly maxVertTextureCount: number;
-        /**
-         * 一个顶点着色器上可以使用的 uniform 向量的最大数量
-         */
-        readonly maxVertUniforms: number;
-        /**
-         * 一个着色器上可以使用的 varying 向量的最大数量
-         */
-        readonly maxVaryings: number;
-        /**
-         *  一个片段着色器上可以使用的 uniform 向量的最大数量
-         */
-        readonly maxFragUniform: number;
-        /**
-         * 带锯齿直线宽度的范围
-         */
-        readonly aliasedLineWidth: Float32Array[];
-        /**
-         * 带锯齿点的尺寸范围
-         */
-        readonly aliasedPointSize: Float32Array[];
-        /**
-         * 一个片段着色器上可以使用纹理单元的最大数量
-         */
-        readonly maxTextureCount: number;
-        /**
-         * 纹理图片最大支持的尺寸, 高宽均必须小于等于该尺寸
-         */
-        readonly maxTextureSize: number;
-        /**
-         * 立方图纹理图片最大支持的尺寸, 高宽均必须小于等于该尺寸
-         */
-        readonly maxCubeMapTextureSize: number;
-        /**
-         * 所有片段着色器总共能访问的纹理单元数
-         */
-        readonly maxCombinedTextureCount: number;
-        /**
-         * 最大同向异性过滤值, 文档: https://blog.csdn.net/dcrmg/article/details/53470174
-         */
-        readonly maxAnisotropy: number;
-        readonly maxDrawBuffers: number;
-        /**
-         * 颜色缓存中红色的位数
-         */
-        readonly redBits: number;
-        /**
-         * 颜色缓存中绿色的位数
-         */
-        readonly greenBits: number;
-        /** 颜色缓存中蓝色的位数 */
-        readonly blueBits: number;
-        /** 颜色缓存中透明度的位数 */
-        readonly alphaBits: number;
-        /** 深度缓存中每个像素的位数 */
-        readonly depthBits: number;
-        /** 模板缓存中每个像素的位数 */
-        readonly stencilBits: number;
-        /** 最大的渲染缓冲尺寸 */
-        readonly maxRenderBufferSize: number;
-        /** 视口最大尺寸 */
-        readonly maxViewportSize: Int32Array[];
-    }
-    /**
-     * ANGLE （全称 Almost Native Graphics Layer Engine），这个项目的目标是在 Direct X 9.0c API 的基础上实现一层 OpenGL ES 2.0 API中 的 Web GL 子集接口。
-     */
-    const enum AngleVersion {
-        No = 0,
-        D3D9 = 1,
-        D3D11 = 2,
-    }
-    function getWebGLCaps(g?: WebGLRenderingContext): WebGLCapabilities;
 }
 declare namespace jy {
     /**
@@ -7928,6 +7898,92 @@ declare namespace jy {
     }
 }
 declare namespace jy {
+    interface Path {
+        /**
+         * 路径
+         *
+         * @type {string}
+         * @memberOf Path
+         */
+        path: string;
+        /**
+         * 处理后的路径
+         *
+         * @type {string}
+         * @memberOf Path
+         */
+        tPath: string;
+        /**
+         * 是否忽略前缀
+         *
+         * @type {boolean}
+         * @memberOf Path
+         */
+        iPrefix?: boolean;
+        /**
+         * 父路径的标识
+         *
+         * @type {string}
+         * @memberOf Path
+         */
+        parent?: string;
+    }
+    interface JConfig {
+        /**
+         * 参数字典
+         * key      {string}    标识
+         * value    {any}       对应数据
+         *
+         * @type {{}}
+         * @memberOf JConfig
+         */
+        params?: {};
+        /**
+         * 前缀字典
+         *
+         * @type {string[]}
+         * @memberOf JConfig
+         */
+        prefixes: string[];
+        /**
+         * 路径
+         *
+         * @type {{
+         *             res: Path,
+         *             skin: Path,
+         *             [indes: string]: Path
+         *         }}
+         * @memberOf JConfig
+         */
+        paths: {
+            res: Path;
+            skin: Path;
+            [indes: string]: Path;
+        };
+        preload?: Res.ResItem[];
+    }
+    /**
+     * 配置工具
+     * @author 3tion
+     * @export
+     * @class ConfigUtils
+     */
+    const ConfigUtils: {
+        setData(data: JConfig): void;
+        parseHash(hash: ArrayBuffer): void;
+        setHash(hash: {
+            [index: string]: number;
+        }): void;
+        getResVer: (uri: string) => number;
+        getResUrl(uri: string): string;
+        getParam(key: string): any;
+        getSkinPath: (key: string, fileName: string) => string;
+        getSkinFile(key: string, fileName: string): string;
+        regSkinPath(key: string, path: string, iPrefix?: boolean): void;
+        getUrl(uri: string, pathKey: string): string;
+    };
+}
+declare namespace jy {
     /**
      * 资源显示用位图
      */
@@ -8827,91 +8883,74 @@ declare namespace jy {
         };
     }
 }
+/**
+ * DataLocator的主数据
+ * 原 junyou.DataLocator.data  的全局别名简写
+ */
+declare const $DD: jy.CfgData;
+/**
+ * DataLocator的附加数据
+ * 原junyou.DataLocator.extra 的全局别名简写
+ */
+declare let $DE: jy.ExtraData;
 declare namespace jy {
-    interface Path {
+    /**
+     * 表单最终被解析成的类型
+     *
+     * @export
+     * @enum {number}
+     */
+    const enum CfgDataType {
         /**
-         * 路径
-         *
-         * @type {string}
-         * @memberOf Path
+         * 自动解析
          */
-        path: string;
+        Auto = 0,
         /**
-         * 处理后的路径
-         *
-         * @type {string}
-         * @memberOf Path
+         * 按ArraySet解析
          */
-        tPath: string;
+        ArraySet = 1,
         /**
-         * 是否忽略前缀
-         *
-         * @type {boolean}
-         * @memberOf Path
+         * 按数组解析
          */
-        iPrefix?: boolean;
+        Array = 2,
         /**
-         * 父路径的标识
-         *
-         * @type {string}
-         * @memberOf Path
+         * 按字典解析
          */
-        parent?: string;
-    }
-    interface JConfig {
-        /**
-         * 参数字典
-         * key      {string}    标识
-         * value    {any}       对应数据
-         *
-         * @type {{}}
-         * @memberOf JConfig
-         */
-        params?: {};
-        /**
-         * 前缀字典
-         *
-         * @type {string[]}
-         * @memberOf JConfig
-         */
-        prefixes: string[];
-        /**
-         * 路径
-         *
-         * @type {{
-         *             res: Path,
-         *             skin: Path,
-         *             [indes: string]: Path
-         *         }}
-         * @memberOf JConfig
-         */
-        paths: {
-            res: Path;
-            skin: Path;
-            [indes: string]: Path;
-        };
-        preload?: Res.ResItem[];
+        Dictionary = 3,
     }
     /**
-     * 配置工具
+     * 配置加载器<br/>
+     * 用于预加载数据的解析
      * @author 3tion
-     * @export
-     * @class ConfigUtils
+     *
      */
-    const ConfigUtils: {
-        setData(data: JConfig): void;
-        parseHash(hash: ArrayBuffer): void;
-        setHash(hash: {
-            [index: string]: number;
-        }): void;
-        getResVer: (uri: string) => number;
-        getResUrl(uri: string): string;
-        getParam(key: string): any;
-        getSkinPath: (key: string, fileName: string) => string;
-        getSkinFile(key: string, fileName: string): string;
-        regSkinPath(key: string, path: string, iPrefix?: boolean): void;
-        getUrl(uri: string, pathKey: string): string;
+    let DataLocator: {
+        regParser: (key: keyof CfgData, parser: ConfigDataParser) => void;
+        parsePakedDatas(type?: number): void;
+        regCommonParser(key: keyof CfgData, CfgCreator: 0 | (new () => any) | (() => any), idkey?: string | 0, type?: CfgDataType): void;
+        regBytesParser: (key: keyof CfgData, CfgCreator: 0 | (new () => any) | (() => any), idkey?: string | 0, type?: CfgDataType) => void;
     };
+    /**
+     * 配置数据解析函数
+     */
+    interface ConfigDataParser {
+        (data: any): any;
+    }
+    /**
+     * 附加数据
+     *
+     * @interface ExtraData
+     */
+    interface ExtraData {
+    }
+    /**
+     * 配置数据
+     *
+     * @export
+     * @interface CfgData
+     */
+    interface CfgData {
+    }
 }
 declare namespace jy {
     /**
@@ -9547,209 +9586,6 @@ declare namespace jy {
         getTexture(resKey: Key, drawInfo?: IDrawInfo): egret.Texture;
     }
 }
-/**
- * DataLocator的主数据
- * 原 junyou.DataLocator.data  的全局别名简写
- */
-declare const $DD: jy.CfgData;
-/**
- * DataLocator的附加数据
- * 原junyou.DataLocator.extra 的全局别名简写
- */
-declare let $DE: jy.ExtraData;
-declare namespace jy {
-    /**
-     * 表单最终被解析成的类型
-     *
-     * @export
-     * @enum {number}
-     */
-    const enum CfgDataType {
-        /**
-         * 自动解析
-         */
-        Auto = 0,
-        /**
-         * 按ArraySet解析
-         */
-        ArraySet = 1,
-        /**
-         * 按数组解析
-         */
-        Array = 2,
-        /**
-         * 按字典解析
-         */
-        Dictionary = 3,
-    }
-    /**
-     * 配置加载器<br/>
-     * 用于预加载数据的解析
-     * @author 3tion
-     *
-     */
-    let DataLocator: {
-        regParser: (key: keyof CfgData, parser: ConfigDataParser) => void;
-        parsePakedDatas(type?: number): void;
-        regCommonParser(key: keyof CfgData, CfgCreator: 0 | (new () => any) | (() => any), idkey?: string | 0, type?: CfgDataType): void;
-        regBytesParser: (key: keyof CfgData, CfgCreator: 0 | (new () => any) | (() => any), idkey?: string | 0, type?: CfgDataType) => void;
-    };
-    /**
-     * 配置数据解析函数
-     */
-    interface ConfigDataParser {
-        (data: any): any;
-    }
-    /**
-     * 附加数据
-     *
-     * @interface ExtraData
-     */
-    interface ExtraData {
-    }
-    /**
-     * 配置数据
-     *
-     * @export
-     * @interface CfgData
-     */
-    interface CfgData {
-    }
-}
-declare namespace jy {
-    /**
-     * 场景单位域的类型
-     *
-     * @export
-     * @enum {number}
-     */
-    const enum UnitDomainType {
-        /**
-         * 所有单位
-         */
-        All = 0,
-        /**
-         * 角色
-         */
-        Role = 1,
-        /**
-         * 怪物
-         */
-        Monster = 2,
-    }
-    type UnitDomain = $UnitDomain<Unit>;
-    type $UnitDomain<T extends Unit> = {
-        [guid: string]: T;
-    };
-    /**
-     * 单位管理器
-     * @author 3tion
-     *
-     */
-    class UnitController<T extends Unit> {
-        /**
-         * 按类型存放的域
-         *
-         * @protected
-         * @type {{ [unitDomainType: number]: $UnitDomain<T> }}
-         */
-        protected _domains: {
-            [unitDomainType: number]: $UnitDomain<T>;
-        };
-        /**
-         * 用于存放单位数量的字典
-         *
-         * @protected
-         * @type {{ [unitDomainType: number]: number }}
-         */
-        protected _domainCounts: {
-            [unitDomainType: number]: number;
-        };
-        /**
-         * 所有单位存放的域
-         *
-         * @protected
-         * @type {UnitDomain}
-         */
-        protected _domainAll: $UnitDomain<T>;
-        constructor();
-        /**
-         * 注册一个单位
-         * @param unit
-         * @param domains
-         *
-         */
-        registerUnit(unit: T, ...domains: any[]): any;
-        /**
-         * 移除单位
-         * @param guid
-         * @return
-         *
-         */
-        removeUnit(guid: Key): T;
-        /**
-         *
-         * 获取指定域的单位集合
-         * @param {number} domain 指定域
-         * @returns
-         */
-        get(domain: number): $UnitDomain<T>;
-        /**
-         * 获取指定域的单位数量
-         * @param domain
-         * @return
-         *
-         */
-        getCount(domain: number): number;
-        /**
-         * 根据GUID获取JUnit
-         * @param guid
-         * @return
-         *
-         */
-        getUnit(guid: Key): T;
-        /**
-         *
-         * 清理对象
-         * @param {...Key[]} exceptGuids 需要保留的单位的GUID列表
-         */
-        clear(...exceptGuids: Key[]): any;
-        /**
-         * 清理指定的域
-         * @param {UnitDomainType[]} domains
-         */
-        clearDomain(...domains: UnitDomainType[]): any;
-    }
-}
-declare namespace jy {
-    /**
-     * 模型(纸娃娃)渲染器
-     */
-    class UnitRender extends BaseRender {
-        faceTo: number;
-        /**单位**/
-        protected unit: Unit;
-        actionInfo: ActionInfo;
-        model: UModel;
-        protected nextRenderTime: number;
-        protected renderedTime: number;
-        constructor(unit: Unit);
-        reset(now: number): void;
-        /**
-         * 处理数据
-         *
-         * @param {number} now 时间戳
-         */
-        doData(now: number): void;
-        render(now: number): void;
-        onData(actionInfo: ActionInfo, now: number): void;
-        clearRes(): void;
-        renderFrame(frame: FrameInfo, now: number): void;
-        dispatchEvent(event: string, now: number): void;
-        doComplete(now: number): void;
-        dispose(): void;
-    }
-}
 declare namespace jy {
     interface DataUtilsType {
         /**
@@ -9902,6 +9738,208 @@ declare namespace jy {
      *
      */
     const DataUtils: DataUtilsType;
+}
+declare namespace jy {
+    /**
+     * 场景单位域的类型
+     *
+     * @export
+     * @enum {number}
+     */
+    const enum UnitDomainType {
+        /**
+         * 所有单位
+         */
+        All = 0,
+        /**
+         * 角色
+         */
+        Role = 1,
+        /**
+         * 怪物
+         */
+        Monster = 2,
+    }
+    type UnitDomain = $UnitDomain<Unit>;
+    type $UnitDomain<T extends Unit> = {
+        [guid: string]: T;
+    };
+    /**
+     * 单位管理器
+     * @author 3tion
+     *
+     */
+    class UnitController<T extends Unit> {
+        /**
+         * 按类型存放的域
+         *
+         * @protected
+         * @type {{ [unitDomainType: number]: $UnitDomain<T> }}
+         */
+        protected _domains: {
+            [unitDomainType: number]: $UnitDomain<T>;
+        };
+        /**
+         * 用于存放单位数量的字典
+         *
+         * @protected
+         * @type {{ [unitDomainType: number]: number }}
+         */
+        protected _domainCounts: {
+            [unitDomainType: number]: number;
+        };
+        /**
+         * 所有单位存放的域
+         *
+         * @protected
+         * @type {UnitDomain}
+         */
+        protected _domainAll: $UnitDomain<T>;
+        constructor();
+        /**
+         * 注册一个单位
+         * @param unit
+         * @param domains
+         *
+         */
+        registerUnit(unit: T, ...domains: any[]): any;
+        /**
+         * 移除单位
+         * @param guid
+         * @return
+         *
+         */
+        removeUnit(guid: Key): T;
+        /**
+         *
+         * 获取指定域的单位集合
+         * @param {number} domain 指定域
+         * @returns
+         */
+        get(domain: number): $UnitDomain<T>;
+        /**
+         * 获取指定域的单位数量
+         * @param domain
+         * @return
+         *
+         */
+        getCount(domain: number): number;
+        /**
+         * 根据GUID获取JUnit
+         * @param guid
+         * @return
+         *
+         */
+        getUnit(guid: Key): T;
+        /**
+         *
+         * 清理对象
+         * @param {...Key[]} exceptGuids 需要保留的单位的GUID列表
+         */
+        clear(...exceptGuids: Key[]): any;
+        /**
+         * 清理指定的域
+         * @param {UnitDomainType[]} domains
+         */
+        clearDomain(...domains: UnitDomainType[]): any;
+    }
+}
+declare namespace jy {
+    /**
+     * 模型(纸娃娃)渲染器
+     */
+    class UnitRender extends BaseRender {
+        faceTo: number;
+        /**单位**/
+        protected unit: Unit;
+        actionInfo: ActionInfo;
+        model: UModel;
+        protected nextRenderTime: number;
+        protected renderedTime: number;
+        constructor(unit: Unit);
+        reset(now: number): void;
+        /**
+         * 处理数据
+         *
+         * @param {number} now 时间戳
+         */
+        doData(now: number): void;
+        render(now: number): void;
+        onData(actionInfo: ActionInfo, now: number): void;
+        clearRes(): void;
+        renderFrame(frame: FrameInfo, now: number): void;
+        dispatchEvent(event: string, now: number): void;
+        doComplete(now: number): void;
+        dispose(): void;
+    }
+}
+declare namespace jy {
+    /**
+     * 网络事件的常量集
+     * @author
+     * -100~ -199
+     */
+    const enum EventConst {
+        /**
+         * 登录成功
+         */
+        LOGIN_COMPLETE = -199,
+        /**
+         * 登录失败
+         */
+        LOGIN_FAILED = -198,
+        /**
+         * 连接服务器成功
+         */
+        Connected = -197,
+        /**
+         * 连接服务器失败
+         */
+        ConnectFailed = -196,
+        /**
+         * 服务器断开连接
+         */
+        Disconnect = -195,
+        ShowReconnect = -194,
+        /**
+         * 纹理加载完成
+         */
+        Texture_Complete = -193,
+        /**
+         * 网络上线
+         */
+        Online = -192,
+        /**
+         * 网络断线
+         */
+        Offline = -191,
+        /**
+         * 手机从休眠状态中被唤醒
+         */
+        Awake = -190,
+        /**
+         * 频繁发送协议提示
+         */
+        NetServiceSendLimit = -189,
+        /**
+         * 解析资源版本hash的时候派发
+         */
+        ParseResHash = -188,
+        /**
+         * 资源加载失败
+         * data {ResItem}
+         */
+        ResLoadFailed = -187,
+        /**
+         * 资源加载完成
+         */
+        ResLoadSuccess = -186,
+        /**
+         * 单个配置加载成功
+         * data {string} 配置的Key
+         */
+        OneCfgComplete = -185,
+    }
 }
 declare namespace jy {
     /**
@@ -10275,70 +10313,27 @@ declare namespace jy {
 }
 declare namespace jy {
     /**
-     * 网络事件的常量集
-     * @author
-     * -100~ -199
+     *
+     * @author 3tion
+     *
      */
-    const enum EventConst {
+    const enum RequestState {
         /**
-         * 登录成功
+         * 未请求/未加载 0
          */
-        LOGIN_COMPLETE = -199,
+        UNREQUEST = 0,
         /**
-         * 登录失败
+         * 请求中/加载中，未获得值 1
          */
-        LOGIN_FAILED = -198,
+        REQUESTING = 1,
         /**
-         * 连接服务器成功
+         * 已加载/已获取到值 2
          */
-        Connected = -197,
+        COMPLETE = 2,
         /**
-         * 连接服务器失败
+         * 加载失败 -1
          */
-        ConnectFailed = -196,
-        /**
-         * 服务器断开连接
-         */
-        Disconnect = -195,
-        ShowReconnect = -194,
-        /**
-         * 纹理加载完成
-         */
-        Texture_Complete = -193,
-        /**
-         * 网络上线
-         */
-        Online = -192,
-        /**
-         * 网络断线
-         */
-        Offline = -191,
-        /**
-         * 手机从休眠状态中被唤醒
-         */
-        Awake = -190,
-        /**
-         * 频繁发送协议提示
-         */
-        NetServiceSendLimit = -189,
-        /**
-         * 解析资源版本hash的时候派发
-         */
-        ParseResHash = -188,
-        /**
-         * 资源加载失败
-         * data {ResItem}
-         */
-        ResLoadFailed = -187,
-        /**
-         * 资源加载完成
-         */
-        ResLoadSuccess = -186,
-        /**
-         * 单个配置加载成功
-         * data {string} 配置的Key
-         */
-        OneCfgComplete = -185,
+        FAILED = -1,
     }
 }
 declare namespace jy {
@@ -10782,27 +10777,70 @@ declare namespace jy {
 }
 declare namespace jy {
     /**
-     *
+     * 使用http进行通信的网络服务
      * @author 3tion
      *
      */
-    const enum RequestState {
+    class HttpNetService extends NetService {
+        protected _loader: XMLHttpRequest;
+        protected _state: RequestState;
         /**
-         * 未请求/未加载 0
+         * 未发送的请求
          */
-        UNREQUEST = 0,
+        protected _unsendRequest: Recyclable<NetSendData>[];
         /**
-         * 请求中/加载中，未获得值 1
+         * 正在发送的数据
          */
-        REQUESTING = 1,
+        protected _sendingList: Recyclable<NetSendData>[];
         /**
-         * 已加载/已获取到值 2
+         * 请求发送成功的次数
          */
-        COMPLETE = 2,
+        protected _success: number;
         /**
-         * 加载失败 -1
+         * 请求连续发送失败的次数
          */
-        FAILED = -1,
+        protected _cerror: number;
+        /**
+         * 请求失败次数
+         */
+        protected _error: number;
+        constructor();
+        /**
+         * 重置
+         * @param actionUrl             请求地址
+         * @param autoTimeDelay         自动发送的最短延迟时间
+         */
+        setUrl(actionUrl: string, autoTimeDelay?: number): void;
+        /**
+        * @protected
+        */
+        protected onReadyStateChange(): void;
+        /**
+         * 发生错误
+         */
+        protected errorHandler(): void;
+        protected complete(): void;
+        /**
+         * 检查在发送过程中的请求
+         */
+        protected checkUnsend(): void;
+        protected _send(cmd: number, data: any, msgType: string): void;
+        /**
+         * 发送消息之前，用于预处理一些http头信息等
+         *
+         * @protected
+         */
+        protected onBeforeSend(): void;
+        /**
+         * 接收到服务端Response，用于预处理一些信息
+         *
+         * @protected
+         */
+        protected onBeforeSolveData(): void;
+        /**
+         * 尝试发送
+         */
+        protected trySend(): void;
     }
 }
 declare namespace jy {
@@ -10872,70 +10910,36 @@ declare namespace jy {
 }
 declare namespace jy {
     /**
-     * 使用http进行通信的网络服务
+     * 用于发送的网络数据<br/>
+     * @author 3tion
+     */
+    class NetSendData implements IRecyclable {
+        /**
+         * 协议号
+         */
+        cmd: number;
+        /**
+         * 数据
+         */
+        data: any;
+        /**
+         *
+         * protobuf message的类型
+         * @type {string | number}
+         */
+        msgType: string | number;
+        onRecycle(): void;
+    }
+    /**
+     * 网络数据，类似AS3项目中Stream<br/>
      * @author 3tion
      *
      */
-    class HttpNetService extends NetService {
-        protected _loader: XMLHttpRequest;
-        protected _state: RequestState;
+    class NetData extends NetSendData {
         /**
-         * 未发送的请求
+         *  是否停止传播
          */
-        protected _unsendRequest: Recyclable<NetSendData>[];
-        /**
-         * 正在发送的数据
-         */
-        protected _sendingList: Recyclable<NetSendData>[];
-        /**
-         * 请求发送成功的次数
-         */
-        protected _success: number;
-        /**
-         * 请求连续发送失败的次数
-         */
-        protected _cerror: number;
-        /**
-         * 请求失败次数
-         */
-        protected _error: number;
-        constructor();
-        /**
-         * 重置
-         * @param actionUrl             请求地址
-         * @param autoTimeDelay         自动发送的最短延迟时间
-         */
-        setUrl(actionUrl: string, autoTimeDelay?: number): void;
-        /**
-        * @protected
-        */
-        protected onReadyStateChange(): void;
-        /**
-         * 发生错误
-         */
-        protected errorHandler(): void;
-        protected complete(): void;
-        /**
-         * 检查在发送过程中的请求
-         */
-        protected checkUnsend(): void;
-        protected _send(cmd: number, data: any, msgType: string): void;
-        /**
-         * 发送消息之前，用于预处理一些http头信息等
-         *
-         * @protected
-         */
-        protected onBeforeSend(): void;
-        /**
-         * 接收到服务端Response，用于预处理一些信息
-         *
-         * @protected
-         */
-        protected onBeforeSolveData(): void;
-        /**
-         * 尝试发送
-         */
-        protected trySend(): void;
+        stopPropagation: Boolean;
     }
 }
 declare namespace jy {
@@ -11438,6 +11442,10 @@ declare namespace jy {
      */
     class Panel extends egret.Sprite implements SuiDataCallback, IAsyncPanel {
         /**
+         * 背景/底
+         */
+        bg?: egret.DisplayObject;
+        /**
          * 模态颜色
          *
          * @static
@@ -11482,9 +11490,9 @@ declare namespace jy {
          * 模态
          *
          * @protected
-         * @type {egret.Sprite}
+         * @type {egret.Bitmap}
          */
-        protected modal: egret.Shape;
+        protected modal: egret.Bitmap;
         /**
          * 是否模态
          *
@@ -11523,6 +11531,7 @@ declare namespace jy {
          * @param {boolean} value
          */
         setModalTouchClose(value: boolean): void;
+        getModal(): egret.Bitmap;
         /**
          * 加模态
          *
@@ -11695,6 +11704,13 @@ declare namespace jy {
          */
         qid?: Res.ResQueueID;
         noWebp?: boolean;
+        /**
+         * 占位用纹理
+         *
+         * @type {egret.Texture}
+         * @memberof Image
+         */
+        placehoder?: egret.Texture;
         constructor();
         addedToStage(): void;
         removedFromStage(): void;
@@ -11936,40 +11952,6 @@ declare const enum ScrollDirection {
 }
 declare namespace jy {
     /**
-     * 用于发送的网络数据<br/>
-     * @author 3tion
-     */
-    class NetSendData implements IRecyclable {
-        /**
-         * 协议号
-         */
-        cmd: number;
-        /**
-         * 数据
-         */
-        data: any;
-        /**
-         *
-         * protobuf message的类型
-         * @type {string | number}
-         */
-        msgType: string | number;
-        onRecycle(): void;
-    }
-    /**
-     * 网络数据，类似AS3项目中Stream<br/>
-     * @author 3tion
-     *
-     */
-    class NetData extends NetSendData {
-        /**
-         *  是否停止传播
-         */
-        stopPropagation: Boolean;
-    }
-}
-declare namespace jy {
-    /**
      *
      * @author 3tion
      *
@@ -12012,6 +11994,117 @@ declare namespace jy {
     interface INetHandler {
         (data: NetData): void;
     }
+}
+declare namespace jy {
+    /**
+     * 创建器
+     */
+    type Creator<T> = {
+        new(): T;
+    } | {
+            (): T;
+        };
+    /**
+     *
+     * 调整ClassFactory
+     * @export
+     * @class ClassFactory
+     * @template T
+     */
+    class ClassFactory<T> {
+        private _creator;
+        private _props;
+        /**
+         * @param {Creator<T>} creator
+         * @param {Partial<T>} [props] 属性模板
+         * @memberof ClassFactory
+         */
+        constructor(creator: Creator<T>, props?: Partial<T>);
+        /**
+         * 获取实例
+         *
+         * @returns
+         */
+        get(): any;
+    }
+    /**
+     * 可回收的对象
+     *
+     * @export
+     * @interface IRecyclable
+     */
+    interface IRecyclable {
+        /**
+         * 回收时触发
+         */
+        onRecycle?: {
+            ();
+        };
+        /**
+         * 启用时触发
+         */
+        onSpawn?: {
+            ();
+        };
+        /**
+         * 回收对象的唯一自增标识
+         * 从回收池取出后，会变化
+         * 此属性只有在`DEBUG`时有效
+         */
+        _insid?: number;
+    }
+    /**
+     * 回收池
+     * @author 3tion
+     *
+     */
+    class RecyclablePool<T> {
+        private _pool;
+        private _max;
+        private _creator;
+        get(): T;
+        /**
+         * 回收
+         */
+        recycle(t: T): void;
+        constructor(TCreator: Creator<T>, max?: number);
+    }
+    type Recyclable<T> = T & {
+        recycle(): void;
+    };
+    /**
+     * 获取一个recyclable的对象
+     *
+     * @export
+     * @template T
+     * @param {({ new(): T & { _pool?: RecyclablePool<T> } })} clazz
+     */
+    function recyclable<T>(clazz: {
+        new(): T & {
+            _pool?: RecyclablePool<T>;
+        };
+    }): Recyclable<T>;
+    /**
+     * 使用创建函数进行创建
+     *
+     * @export
+     * @template T
+     * @param {({ (): T & { _pool?: RecyclablePool<T> } })} clazz
+     * @param {true} addInstanceRecycle
+     */
+    function recyclable<T>(clazz: {
+        (): T & {
+            _pool?: RecyclablePool<T>;
+        };
+    }, addInstanceRecycle?: boolean): Recyclable<T>;
+    /**
+     * 单例工具
+     * @param clazz 要做单例的类型
+     */
+    function singleton<T>(clazz: {
+        new(): T;
+        _instance?: T;
+    }): T;
 }
 declare namespace jy {
     /**
@@ -12294,117 +12387,6 @@ declare namespace jy {
 }
 declare namespace jy {
     /**
-     * 创建器
-     */
-    type Creator<T> = {
-        new(): T;
-    } | {
-            (): T;
-        };
-    /**
-     *
-     * 调整ClassFactory
-     * @export
-     * @class ClassFactory
-     * @template T
-     */
-    class ClassFactory<T> {
-        private _creator;
-        private _props;
-        /**
-         * @param {Creator<T>} creator
-         * @param {Partial<T>} [props] 属性模板
-         * @memberof ClassFactory
-         */
-        constructor(creator: Creator<T>, props?: Partial<T>);
-        /**
-         * 获取实例
-         *
-         * @returns
-         */
-        get(): any;
-    }
-    /**
-     * 可回收的对象
-     *
-     * @export
-     * @interface IRecyclable
-     */
-    interface IRecyclable {
-        /**
-         * 回收时触发
-         */
-        onRecycle?: {
-            ();
-        };
-        /**
-         * 启用时触发
-         */
-        onSpawn?: {
-            ();
-        };
-        /**
-         * 回收对象的唯一自增标识
-         * 从回收池取出后，会变化
-         * 此属性只有在`DEBUG`时有效
-         */
-        _insid?: number;
-    }
-    /**
-     * 回收池
-     * @author 3tion
-     *
-     */
-    class RecyclablePool<T> {
-        private _pool;
-        private _max;
-        private _creator;
-        get(): T;
-        /**
-         * 回收
-         */
-        recycle(t: T): void;
-        constructor(TCreator: Creator<T>, max?: number);
-    }
-    type Recyclable<T> = T & {
-        recycle(): void;
-    };
-    /**
-     * 获取一个recyclable的对象
-     *
-     * @export
-     * @template T
-     * @param {({ new(): T & { _pool?: RecyclablePool<T> } })} clazz
-     */
-    function recyclable<T>(clazz: {
-        new(): T & {
-            _pool?: RecyclablePool<T>;
-        };
-    }): Recyclable<T>;
-    /**
-     * 使用创建函数进行创建
-     *
-     * @export
-     * @template T
-     * @param {({ (): T & { _pool?: RecyclablePool<T> } })} clazz
-     * @param {true} addInstanceRecycle
-     */
-    function recyclable<T>(clazz: {
-        (): T & {
-            _pool?: RecyclablePool<T>;
-        };
-    }, addInstanceRecycle?: boolean): Recyclable<T>;
-    /**
-     * 单例工具
-     * @param clazz 要做单例的类型
-     */
-    function singleton<T>(clazz: {
-        new(): T;
-        _instance?: T;
-    }): T;
-}
-declare namespace jy {
-    /**
      * WebSocket版本的NetService
      * @author 3tion
      */
@@ -12443,6 +12425,33 @@ declare namespace jy {
         protected _send(cmd: number, data: any, msgType: string): void;
         disconnect(): void;
         loose(ws: WebSocket): void;
+    }
+}
+declare namespace jy {
+    /**
+      * 基于时间回收的资源
+      */
+    interface IResource {
+        /**
+         * 是否为静态不销毁资源
+         */
+        isStatic?: boolean;
+        /**
+         * 最后使用的时间戳
+         */
+        lastUseTime: number;
+        /**
+         * 资源id
+         */
+        uri: string;
+        /**
+         * 资源路径
+         */
+        url: string;
+        /**
+         * 销毁资源
+         */
+        dispose(): any;
     }
 }
 declare module egret {
@@ -13130,33 +13139,6 @@ declare namespace jy {
         protected onRemoveFromStage(): void;
     }
 }
-declare namespace jy {
-    /**
-      * 基于时间回收的资源
-      */
-    interface IResource {
-        /**
-         * 是否为静态不销毁资源
-         */
-        isStatic?: boolean;
-        /**
-         * 最后使用的时间戳
-         */
-        lastUseTime: number;
-        /**
-         * 资源id
-         */
-        uri: string;
-        /**
-         * 资源路径
-         */
-        url: string;
-        /**
-         * 销毁资源
-         */
-        dispose(): any;
-    }
-}
 declare namespace jy.Res {
     /**
      * 资源类型
@@ -13398,6 +13380,14 @@ declare namespace jy.Res {
         get(url: string, callback: (data: ResItem, url?: string) => any): void;
         delete(url: string, callback?: (url: string, ev: Event | Error) => any): void;
         clear(callback?: (ev: Event | Error) => any): void;
+    };
+}
+declare namespace jy {
+    const ResManager: {
+        get: <T extends IResource>(resid: string, noResHandler: (...args: any[]) => T, thisObj?: any, ...args: any[]) => T;
+        getTextureRes(resID: string, noWebp?: boolean): TextureResource;
+        getResource: (resID: string) => IResource;
+        init(): void;
     };
 }
 declare namespace jy {
@@ -14129,12 +14119,68 @@ declare namespace jy {
     };
 }
 declare namespace jy {
-    const ResManager: {
-        get: <T extends IResource>(resid: string, noResHandler: (...args: any[]) => T, thisObj?: any, ...args: any[]) => T;
-        getTextureRes(resID: string, noWebp?: boolean): TextureResource;
-        getResource: (resID: string) => IResource;
-        init(): void;
-    };
+    import Bitmap = egret.Bitmap;
+    /**
+     *
+     * 纹理资源
+     * @export
+     * @class TextureResource
+     * @implements {IResource}
+     */
+    class TextureResource implements IResource {
+        /**
+         * 最后使用的时间戳
+         */
+        lastUseTime: number;
+        /**
+         * 资源id
+         */
+        readonly uri: string;
+        /**
+         * 资源最终路径
+         */
+        readonly url: string;
+        /**
+         * 加载列队
+         */
+        qid?: Res.ResQueueID;
+        constructor(uri: string, noWebp?: boolean);
+        /**
+         *
+         * 是否为静态不销毁的资源
+         * @type {boolean}
+         */
+        readonly isStatic: boolean;
+        private _tex;
+        /**
+         *
+         * 绑定的对象列表
+         * @private
+         * @type {Bitmap[]}
+         */
+        private _list;
+        /**
+         *
+         * 绑定一个目标
+         * @param {Bitmap} target
+         */
+        bind(bmp: Bitmap): void;
+        /**
+         *
+         * 解除目标的绑定
+         * @param {Bitmap} target
+         */
+        loose(bmp: Bitmap): void;
+        load(): void;
+        /**
+         * 资源加载完成
+         */
+        loadComplete(item: Res.ResItem): void;
+        /**
+         * 销毁资源
+         */
+        dispose(): void;
+    }
 }
 declare let dpr: number;
 declare function $useDPR(): void;
@@ -14279,67 +14325,25 @@ declare namespace jy {
     }
 }
 declare namespace jy {
-    import Bitmap = egret.Bitmap;
     /**
-     *
-     * 纹理资源
-     * @export
-     * @class TextureResource
-     * @implements {IResource}
+     * 状态限制器
+     * @author 3tion
      */
-    class TextureResource implements IResource {
+    interface ILimit {
         /**
-         * 最后使用的时间戳
-         */
-        lastUseTime: number;
-        /**
-         * 资源id
-         */
-        readonly uri: string;
-        /**
-         * 资源最终路径
-         */
-        readonly url: string;
-        /**
-         * 加载列队
-         */
-        qid?: Res.ResQueueID;
-        constructor(uri: string, noWebp?: boolean);
-        /**
+         * 设置状态
          *
-         * 是否为静态不销毁的资源
-         * @type {boolean}
+         * @param {Key} type
+         * @memberof ILimit
          */
-        readonly isStatic: boolean;
-        private _tex;
+        setState(type: Key): any;
         /**
+         * 检查内容是否被禁止了;
+         * @param type
+         * @return
          *
-         * 绑定的对象列表
-         * @private
-         * @type {Bitmap[]}
          */
-        private _list;
-        /**
-         *
-         * 绑定一个目标
-         * @param {Bitmap} target
-         */
-        bind(bmp: Bitmap): void;
-        /**
-         *
-         * 解除目标的绑定
-         * @param {Bitmap} target
-         */
-        loose(bmp: Bitmap): void;
-        load(): void;
-        /**
-         * 资源加载完成
-         */
-        loadComplete(item: Res.ResItem): void;
-        /**
-         * 销毁资源
-         */
-        dispose(): void;
+        check(value: Key): boolean;
     }
 }
 declare namespace jy {
@@ -14667,24 +14671,11 @@ declare namespace jy {
 }
 declare namespace jy {
     /**
-     * 状态限制器
+     * 状态机监听器
      * @author 3tion
      */
-    interface ILimit {
-        /**
-         * 设置状态
-         *
-         * @param {Key} type
-         * @memberof ILimit
-         */
+    interface IStateListener {
         setState(type: Key): any;
-        /**
-         * 检查内容是否被禁止了;
-         * @param type
-         * @return
-         *
-         */
-        check(value: Key): boolean;
     }
 }
 declare namespace jy {
@@ -15153,11 +15144,33 @@ declare namespace jy {
 }
 declare namespace jy {
     /**
-     * 状态机监听器
+     * 状态机的状态实现
      * @author 3tion
      */
-    interface IStateListener {
-        setState(type: Key): any;
+    interface IStateSwitcher {
+        /**
+         *
+         * 在上一个状态sleep之前调用
+         * @param {Key} [type]
+         * @memberof IStateSwitcher
+         */
+        beforeLastSleep?(type?: Key): any;
+        /**
+         * 被一个状态禁止了
+         *
+         * @param {Key} [type]
+         *
+         * @memberof IStateSwitcher
+         */
+        sleepBy?(type?: Key): any;
+        /**
+         * 被一个状态开启了
+         *
+         * @param {Key} [type]
+         *
+         * @memberof IStateSwitcher
+         */
+        awakeBy?(type?: Key): any;
     }
 }
 declare namespace jy {

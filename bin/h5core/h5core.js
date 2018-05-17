@@ -1528,6 +1528,61 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
+    function getColorString(c) {
+        return "#" + c.toString(16).zeroize(6);
+    }
+    var textureCaches = {};
+    /**
+     * 颜色工具
+     * @author 3tion
+     *
+     */
+    jy.ColorUtil = {
+        /**
+         * 获取颜色字符串 #a1b2c3
+         * @param c
+         * @return 获取颜色字符串 #a1b2c3
+         *
+         */
+        getColorString: getColorString,
+        /**
+         * 将#a1b2c3这样#开头的颜色字符串，转换成颜色数值
+         */
+        getColorValue: function (c) {
+            if (/#[0-9a-f]{6}/i.test(c)) {
+                return +("0x" + c.substring(1));
+            }
+            else {
+                if (true) {
+                    jy.ThrowError("\u4F7F\u7528\u7684\u989C\u8272" + c + "\u6709\u8BEF");
+                }
+                return 0;
+            }
+        },
+        /**
+         * 获取一个纯色的纹理
+         */
+        getTexture: function (color, alpha) {
+            if (color === void 0) { color = 0; }
+            if (alpha === void 0) { alpha = 0.8; }
+            var key = color + "_" + alpha;
+            var tex = textureCaches[key];
+            if (!tex) {
+                var canvas = document.createElement("canvas");
+                canvas.height = canvas.width = 1;
+                var ctx = canvas.getContext("2d");
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = getColorString(color);
+                ctx.fillRect(0, 0, 1, 1);
+                tex = new egret.Texture();
+                tex.bitmapData = new egret.BitmapData(canvas);
+            }
+            return tex;
+        }
+    };
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * GameLayer
      * 用于后期扩展
@@ -6650,36 +6705,144 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
+    function call(info, ars) {
+        var args = [];
+        var i = 0;
+        if (ars) {
+            for (; i < ars.length; i++) {
+                args[i] = ars[i];
+            }
+        }
+        var argus = info.args;
+        if (argus) {
+            for (var j = 0; j < argus.length; j++) {
+                args[i++] = argus[j];
+            }
+        }
+        var callback = info.callback;
+        if (callback != undefined) {
+            try {
+                return callback.apply(info.thisObj, args);
+            }
+            catch (e) {
+                if (true) {
+                    var debug = info["_debug"];
+                    jy.ThrowError("CallbackInfo\u6267\u884C\u62A5\u9519\uFF0C\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n}==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + e.stack);
+                    console.log.apply(console, ["参数列表"].concat(this.args));
+                }
+            }
+        }
+        else if (true) {
+            var debug = info["_debug"];
+            jy.ThrowError("\u5BF9\u5DF2\u56DE\u6536\u7684CallbackInfo\u6267\u884C\u4E86\u56DE\u8C03\uFF0C\u6700\u540E\u4E00\u6B21\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + new Error().stack);
+        }
+    }
     /**
-     * 颜色工具
+     * 回调信息，用于存储回调数据
      * @author 3tion
      *
      */
-    jy.ColorUtil = {
-        /**
-         * 获取颜色字符串 #a1b2c3
-         * @param c
-         * @return 获取颜色字符串 #a1b2c3
-         *
-         */
-        getColorString: function (c) {
-            return "#" + c.toString(16).zeroize(6);
-        },
-        /**
-         * 将#a1b2c3这样#开头的颜色字符串，转换成颜色数值
-         */
-        getColorValue: function (c) {
-            if (/#[0-9a-f]{6}/i.test(c)) {
-                return +("0x" + c.substring(1));
-            }
-            else {
-                if (true) {
-                    jy.ThrowError("\u4F7F\u7528\u7684\u989C\u8272" + c + "\u6709\u8BEF");
-                }
-                return 0;
+    var CallbackInfo = /** @class */ (function () {
+        function CallbackInfo() {
+            this.doRecycle = true;
+            if (true) {
+                var data = { enumerable: true, configurable: true };
+                data.get = function () {
+                    return this._cb;
+                };
+                data.set = function (value) {
+                    if (this._cb != value) {
+                        this._cb = value;
+                        if (value != undefined) {
+                            this._debug = { handle: value.toString(), stack: new Error().stack };
+                        }
+                    }
+                };
+                Object.defineProperty(this, "callback", data);
             }
         }
-    };
+        CallbackInfo.prototype.init = function (callback, thisObj, args) {
+            this.callback = callback;
+            this.args = args;
+            this.thisObj = thisObj;
+        };
+        /**
+         * 检查回调是否一致，只检查参数和this对象,不检查参数
+         */
+        CallbackInfo.prototype.checkHandle = function (callback, thisObj) {
+            return this.callback === callback && this.thisObj == thisObj /* 允许null==undefined */;
+        };
+        /**
+         * 执行回调
+         * 回调函数，将以args作为参数，callback作为函数执行
+         * @param {boolean} [doRecycle] 是否回收CallbackInfo，默认为true
+         */
+        CallbackInfo.prototype.execute = function (doRecycle) {
+            var callback = this.callback;
+            var result = call(this);
+            if (doRecycle == undefined) {
+                doRecycle = this.doRecycle;
+            }
+            if (doRecycle) {
+                this.recycle();
+            }
+            return result;
+        };
+        CallbackInfo.prototype.call = function () {
+            return call(this, arguments);
+        };
+        CallbackInfo.prototype.callAndRecycle = function () {
+            var result = call(this, arguments);
+            this.recycle();
+            return result;
+        };
+        CallbackInfo.prototype.onRecycle = function () {
+            this.callback = undefined;
+            this.args = undefined;
+            this.thisObj = undefined;
+            this.doRecycle = true;
+        };
+        /**
+         * 获取CallbackInfo的实例
+         */
+        CallbackInfo.get = function (callback, thisObj) {
+            var args = [];
+            for (var _i = 2; _i < arguments.length; _i++) {
+                args[_i - 2] = arguments[_i];
+            }
+            var info = jy.recyclable(CallbackInfo);
+            info.init(callback, thisObj, args);
+            return info;
+        };
+        /**
+         * 加入到数组
+         * 检查是否有this和handle相同的callback，如果有，就用新的参数替换旧参数
+         * @param list
+         * @param handle
+         * @param args
+         * @param thisObj
+         */
+        CallbackInfo.addToList = function (list, handle, thisObj) {
+            var args = [];
+            for (var _i = 3; _i < arguments.length; _i++) {
+                args[_i - 3] = arguments[_i];
+            }
+            //检查是否有this和handle相同的callback
+            for (var _a = 0, list_1 = list; _a < list_1.length; _a++) {
+                var callback = list_1[_a];
+                if (callback.checkHandle(handle, thisObj)) {
+                    callback.args = args;
+                    return callback;
+                }
+            }
+            callback = this.get.apply(this, [handle, thisObj].concat(args));
+            list.push(callback);
+            return callback;
+        };
+        return CallbackInfo;
+    }());
+    jy.CallbackInfo = CallbackInfo;
+    __reflect(CallbackInfo.prototype, "jy.CallbackInfo", ["jy.IRecyclable"]);
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -7937,144 +8100,103 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    function call(info, ars) {
-        var args = [];
-        var i = 0;
-        if (ars) {
-            for (; i < ars.length; i++) {
-                args[i] = ars[i];
+    function isPowerOfTwo(n) {
+        return (n !== 0) && ((n & (n - 1)) === 0);
+    }
+    function getAngle(getParameter) {
+        var _a = getParameter(33902 /* ALIASED_LINE_WIDTH_RANGE */), min = _a[0], max = _a[1];
+        // Heuristic: ANGLE is only on Windows, not in IE, and not in Edge, and does not implement line width greater than one.
+        var angle = ((navigator.platform === 'Win32') || (navigator.platform === 'Win64')) &&
+            (getParameter(7937 /* RENDERER */) !== 'Internet Explorer') &&
+            (getParameter(7937 /* RENDERER */) !== 'Microsoft Edge') &&
+            (min === 0 && max === 1);
+        if (angle) {
+            // Heuristic: D3D11 backend does not appear to reserve uniforms like the D3D9 backend, e.g.,
+            // D3D11 may have 1024 uniforms per stage, but D3D9 has 254 and 221.
+            //
+            // We could also test for WEBGL_draw_buffers, but many systems do not have it yet
+            // due to driver bugs, etc.
+            if (isPowerOfTwo(getParameter(36347 /* MAX_VERTEX_UNIFORM_VECTORS */)) && isPowerOfTwo(getParameter(36349 /* MAX_FRAGMENT_UNIFORM_VECTORS */))) {
+                return 2 /* D3D11 */;
+            }
+            else {
+                return 1 /* D3D9 */;
             }
         }
-        var argus = info.args;
-        if (argus) {
-            for (var j = 0; j < argus.length; j++) {
-                args[i++] = argus[j];
+        return 0 /* No */;
+    }
+    function getMaxAnisotropy(g) {
+        var e = g.getExtension('EXT_texture_filter_anisotropic')
+            || g.getExtension('WEBKIT_EXT_texture_filter_anisotropic')
+            || g.getExtension('MOZ_EXT_texture_filter_anisotropic');
+        if (e) {
+            var max = g.getParameter(34047 /* MAX_TEXTURE_MAX_ANISOTROPY_EXT */);
+            if (max === 0) {
+                max = 2;
             }
-        }
-        var callback = info.callback;
-        if (callback != undefined) {
-            try {
-                return callback.apply(info.thisObj, args);
-            }
-            catch (e) {
-                if (true) {
-                    var debug = info["_debug"];
-                    jy.ThrowError("CallbackInfo\u6267\u884C\u62A5\u9519\uFF0C\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n}==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + e.stack);
-                    console.log.apply(console, ["参数列表"].concat(this.args));
-                }
-            }
-        }
-        else if (true) {
-            var debug = info["_debug"];
-            jy.ThrowError("\u5BF9\u5DF2\u56DE\u6536\u7684CallbackInfo\u6267\u884C\u4E86\u56DE\u8C03\uFF0C\u6700\u540E\u4E00\u6B21\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + new Error().stack);
+            return max;
         }
     }
-    /**
-     * 回调信息，用于存储回调数据
-     * @author 3tion
-     *
-     */
-    var CallbackInfo = /** @class */ (function () {
-        function CallbackInfo() {
-            this.doRecycle = true;
-            if (true) {
-                var data = { enumerable: true, configurable: true };
-                data.get = function () {
-                    return this._cb;
-                };
-                data.set = function (value) {
-                    if (this._cb != value) {
-                        this._cb = value;
-                        if (value != undefined) {
-                            this._debug = { handle: value.toString(), stack: new Error().stack };
-                        }
-                    }
-                };
-                Object.defineProperty(this, "callback", data);
-            }
+    function getMaxDrawBuffers(g) {
+        var maxDrawBuffers = 1;
+        var ext = g.getExtension("WEBGL_draw_buffers");
+        if (ext != null) {
+            maxDrawBuffers = g.getParameter(34852 /* MAX_DRAW_BUFFERS_WEBGL */);
         }
-        CallbackInfo.prototype.init = function (callback, thisObj, args) {
-            this.callback = callback;
-            this.args = args;
-            this.thisObj = thisObj;
+        return maxDrawBuffers;
+    }
+    function getWebGLCaps(g) {
+        if (!g) {
+            var canvas = document.createElement("canvas");
+            var webglAttr = {
+                stencil: true,
+                failIfMajorPerformanceCaveat: true
+            };
+            g = canvas.getContext("webgl", webglAttr) || canvas.getContext("experimental-webgl", webglAttr);
+        }
+        if (!g) {
+            return;
+        }
+        var getParameter = g.getParameter.bind(g);
+        var unmaskedRenderer, unmaskedVendor;
+        var dbgRenderInfo = g.getExtension("WEBGL_debug_renderer_info");
+        if (dbgRenderInfo) {
+            unmaskedVendor = getParameter(37445 /* UNMASKED_VENDOR_WEBGL */);
+            unmaskedRenderer = getParameter(37446 /* UNMASKED_RENDERER_WEBGL */);
+        }
+        return {
+            unmaskedRenderer: unmaskedRenderer,
+            unmaskedVendor: unmaskedVendor,
+            version: getParameter(7938 /* VERSION */),
+            shaderVersion: getParameter(35724 /* SHADING_LANGUAGE_VERSION */),
+            vendor: getParameter(7936 /* VENDOR */),
+            renderer: getParameter(7937 /* RENDERER */),
+            antialias: g.getContextAttributes().antialias,
+            angle: getAngle(getParameter),
+            maxVertAttr: getParameter(34921 /* MAX_VERTEX_ATTRIBS */),
+            maxVertTextureCount: getParameter(35660 /* MAX_VERTEX_TEXTURE_IMAGE_UNITS */),
+            maxVertUniforms: getParameter(36347 /* MAX_VERTEX_UNIFORM_VECTORS */),
+            maxVaryings: getParameter(36348 /* MAX_VARYING_VECTORS */),
+            aliasedLineWidth: getParameter(33902 /* ALIASED_LINE_WIDTH_RANGE */),
+            aliasedPointSize: getParameter(33901 /* ALIASED_POINT_SIZE_RANGE */),
+            maxFragUniform: getParameter(36349 /* MAX_FRAGMENT_UNIFORM_VECTORS */),
+            maxTextureCount: getParameter(34930 /* MAX_TEXTURE_IMAGE_UNITS */),
+            maxTextureSize: getParameter(3379 /* MAX_TEXTURE_SIZE */),
+            maxCubeMapTextureSize: getParameter(34076 /* MAX_CUBE_MAP_TEXTURE_SIZE */),
+            maxCombinedTextureCount: getParameter(35661 /* MAX_COMBINED_TEXTURE_IMAGE_UNITS */),
+            maxAnisotropy: getMaxAnisotropy(g),
+            maxDrawBuffers: getMaxDrawBuffers(g),
+            redBits: getParameter(3410 /* RED_BITS */),
+            greenBits: getParameter(3411 /* GREEN_BITS */),
+            blueBits: getParameter(3412 /* BLUE_BITS */),
+            alphaBits: getParameter(3413 /* ALPHA_BITS */),
+            depthBits: getParameter(3414 /* DEPTH_BITS */),
+            stencilBits: getParameter(3415 /* STENCIL_BITS */),
+            maxRenderBufferSize: getParameter(34024 /* MAX_RENDERBUFFER_SIZE */),
+            maxViewportSize: getParameter(3386 /* MAX_VIEWPORT_DIMS */),
         };
-        /**
-         * 检查回调是否一致，只检查参数和this对象,不检查参数
-         */
-        CallbackInfo.prototype.checkHandle = function (callback, thisObj) {
-            return this.callback === callback && this.thisObj == thisObj /* 允许null==undefined */;
-        };
-        /**
-         * 执行回调
-         * 回调函数，将以args作为参数，callback作为函数执行
-         * @param {boolean} [doRecycle] 是否回收CallbackInfo，默认为true
-         */
-        CallbackInfo.prototype.execute = function (doRecycle) {
-            var callback = this.callback;
-            var result = call(this);
-            if (doRecycle == undefined) {
-                doRecycle = this.doRecycle;
-            }
-            if (doRecycle) {
-                this.recycle();
-            }
-            return result;
-        };
-        CallbackInfo.prototype.call = function () {
-            return call(this, arguments);
-        };
-        CallbackInfo.prototype.callAndRecycle = function () {
-            var result = call(this, arguments);
-            this.recycle();
-            return result;
-        };
-        CallbackInfo.prototype.onRecycle = function () {
-            this.callback = undefined;
-            this.args = undefined;
-            this.thisObj = undefined;
-            this.doRecycle = true;
-        };
-        /**
-         * 获取CallbackInfo的实例
-         */
-        CallbackInfo.get = function (callback, thisObj) {
-            var args = [];
-            for (var _i = 2; _i < arguments.length; _i++) {
-                args[_i - 2] = arguments[_i];
-            }
-            var info = jy.recyclable(CallbackInfo);
-            info.init(callback, thisObj, args);
-            return info;
-        };
-        /**
-         * 加入到数组
-         * 检查是否有this和handle相同的callback，如果有，就用新的参数替换旧参数
-         * @param list
-         * @param handle
-         * @param args
-         * @param thisObj
-         */
-        CallbackInfo.addToList = function (list, handle, thisObj) {
-            var args = [];
-            for (var _i = 3; _i < arguments.length; _i++) {
-                args[_i - 3] = arguments[_i];
-            }
-            //检查是否有this和handle相同的callback
-            for (var _a = 0, list_1 = list; _a < list_1.length; _a++) {
-                var callback = list_1[_a];
-                if (callback.checkHandle(handle, thisObj)) {
-                    callback.args = args;
-                    return callback;
-                }
-            }
-            callback = this.get.apply(this, [handle, thisObj].concat(args));
-            list.push(callback);
-            return callback;
-        };
-        return CallbackInfo;
-    }());
-    jy.CallbackInfo = CallbackInfo;
-    __reflect(CallbackInfo.prototype, "jy.CallbackInfo", ["jy.IRecyclable"]);
+    }
+    jy.getWebGLCaps = getWebGLCaps;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -8654,103 +8776,210 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    function isPowerOfTwo(n) {
-        return (n !== 0) && ((n & (n - 1)) === 0);
+    /**
+     * 资源的 版本字典
+     */
+    var _hash = {};
+    /**
+     * 配置数据
+     */
+    var _data;
+    /**
+     * 注册的皮肤路径
+     * key      {string}   皮肤的key
+     * value    {Path}    皮肤实际路径地址
+     */
+    var _regedSkinPath = {};
+    var getPrefix;
+    var _res;
+    /**
+     * 获取皮肤路径
+     *
+     * @param {string} key
+     * @param {string} fileName
+     * @returns
+     */
+    function getSkinPath(key, fileName) {
+        return key + "/" + fileName;
     }
-    function getAngle(getParameter) {
-        var _a = getParameter(33902 /* ALIASED_LINE_WIDTH_RANGE */), min = _a[0], max = _a[1];
-        // Heuristic: ANGLE is only on Windows, not in IE, and not in Edge, and does not implement line width greater than one.
-        var angle = ((navigator.platform === 'Win32') || (navigator.platform === 'Win64')) &&
-            (getParameter(7937 /* RENDERER */) !== 'Internet Explorer') &&
-            (getParameter(7937 /* RENDERER */) !== 'Microsoft Edge') &&
-            (min === 0 && max === 1);
-        if (angle) {
-            // Heuristic: D3D11 backend does not appear to reserve uniforms like the D3D9 backend, e.g.,
-            // D3D11 may have 1024 uniforms per stage, but D3D9 has 254 and 221.
-            //
-            // We could also test for WEBGL_draw_buffers, but many systems do not have it yet
-            // due to driver bugs, etc.
-            if (isPowerOfTwo(getParameter(36347 /* MAX_VERTEX_UNIFORM_VECTORS */)) && isPowerOfTwo(getParameter(36349 /* MAX_FRAGMENT_UNIFORM_VECTORS */))) {
-                return 2 /* D3D11 */;
+    /**
+     * 通过Path获取完整url
+     *
+     * @private
+     * @static
+     * @param {string} uri 路径标识
+     * @param {Path} path Path对象
+     * @returns
+     */
+    function getUrlWithPath(uri, path) {
+        if (/^((http|https):)?\/\//.test(uri)) { //如果是http://或者https://，或者//开头，即为完整地址，不加前缀
+            return uri;
+        }
+        uri = path.tPath + uri;
+        var prefix = path.iPrefix ? "" : getPrefix(uri);
+        return prefix + uri;
+    }
+    /**
+     * 根据uri缓存url的字典
+     */
+    var uriDict = {};
+    /**
+     * 获取资源版本号
+     * @param uri
+     */
+    function getResVer(uri) {
+        return ~~(_hash && _hash[uri.hash()]);
+    }
+    /**
+     * 配置工具
+     * @author 3tion
+     * @export
+     * @class ConfigUtils
+     */
+    jy.ConfigUtils = {
+        setData: function (data) {
+            _data = data;
+            !_data.params && (_data.params = {});
+            //检查路径是否存在有路径有父路径的，如果有，进行预处理
+            var paths = _data.paths;
+            for (var key in paths) {
+                var p = paths[key];
+                p.tPath = getPath(p);
             }
-            else {
-                return 1 /* D3D9 */;
+            _res = _data.paths.res;
+            //检查前缀
+            getPrefix = (function (prefixes) {
+                var len = 0;
+                if (prefixes) {
+                    len = prefixes.length;
+                }
+                switch (len) {
+                    case 0:
+                        return function (uri) { return ""; };
+                    case 1: {
+                        var prefix_1 = prefixes[0];
+                        return function (uri) { return prefix_1; };
+                    }
+                    default:
+                        return function (uri) {
+                            var idx = uri.hash() % prefixes.length;
+                            return prefixes[idx] || "";
+                        };
+                }
+            })(_data.prefixes);
+            function getPath(p) {
+                var parentKey = p.parent;
+                if (parentKey) {
+                    var parent_3 = paths[parentKey];
+                    if (parent_3) {
+                        return getPath(parent_3) + p.path;
+                    }
+                    else if (true) {
+                        jy.ThrowError("\u8DEF\u5F84[" + p.path + "]\u914D\u7F6E\u4E86\u7236\u7EA7(parent)\uFF0C\u4F46\u662F\u627E\u4E0D\u5230\u5BF9\u5E94\u7684\u7236\u7EA7");
+                    }
+                }
+                return p.path;
+            }
+        },
+        /**
+         * 解析版本控制文件
+         * @param {ArrayBufferLike} hash
+         */
+        parseHash: function (hash) {
+            var dv = new DataView(hash);
+            var pos = 0;
+            var len = dv.byteLength;
+            _hash = {};
+            while (pos < len) {
+                var hash_1 = dv.getUint32(pos);
+                pos += 4 /* SIZE_OF_UINT32 */;
+                var version = dv.getUint16(pos);
+                pos += 2 /* SIZE_OF_UINT16 */;
+                _hash[hash_1] = version;
+            }
+            jy.dispatch(-188 /* ParseResHash */);
+        },
+        /**
+         * 设置版本控制文件
+         * @param hash
+         */
+        setHash: function (hash) {
+            _hash = hash;
+        },
+        getResVer: getResVer,
+        /**
+         * 获取资源完整路径
+         *
+         * @static
+         * @param {string} uri                  路径标识
+         * @returns {string}
+         */
+        getResUrl: function (uri) {
+            var url = uriDict[uri];
+            if (!url) {
+                var ver = getResVer(uri);
+                if (ver) {
+                    if (uri.indexOf("?") == -1) {
+                        uri = uri + "?" + ver;
+                    }
+                    else {
+                        uri = uri + "&jyver=" + ver;
+                    }
+                }
+                url = getUrlWithPath(uri, _res);
+                uriDict[uri] = url;
+            }
+            return url;
+        },
+        /**
+         * 获取参数
+         */
+        getParam: function (key) {
+            return _data.params[key];
+        },
+        getSkinPath: getSkinPath,
+        /**
+         * 获取皮肤文件地址
+         */
+        getSkinFile: function (key, fileName) {
+            return getUrlWithPath(getSkinPath(key, fileName), _regedSkinPath[key] || _data.paths.skin);
+        },
+        /**
+         * 设置皮肤路径
+         * 如 `lib` 原本应该放在当前项目  resource/skin/ 目录下
+         * 现在要将`lib`的指向改到  a/ 目录下
+         * 则使用下列代码
+         * ```typescript
+         * ConfigUtils.regSkinPath("lib","a/");
+         * ```
+         * 如果要将`lib`的指向改到 http://www.xxx.com/a/下
+         * 则使用下列代码
+         * ```typescript
+         * ConfigUtils.regSkinPath("lib","http://www.xxx.com/a/",true);
+         * ```
+         * 如果域名不同，`自行做好跨域策略CROS`
+         *
+         * @param {string} key
+         * @param {string} path
+         * @param {boolean} [iPrefix] 是否忽略皮肤前缀
+         */
+        regSkinPath: function (key, path, iPrefix) {
+            _regedSkinPath[key] = { tPath: path, path: path, iPrefix: iPrefix };
+        },
+        /**
+         * 获取路径
+         *
+         * @param {string} uri
+         * @param {string} pathKey
+         * @returns
+         */
+        getUrl: function (uri, pathKey) {
+            var path = _data.paths[pathKey];
+            if (path) {
+                return getUrlWithPath(uri, path);
             }
         }
-        return 0 /* No */;
-    }
-    function getMaxAnisotropy(g) {
-        var e = g.getExtension('EXT_texture_filter_anisotropic')
-            || g.getExtension('WEBKIT_EXT_texture_filter_anisotropic')
-            || g.getExtension('MOZ_EXT_texture_filter_anisotropic');
-        if (e) {
-            var max = g.getParameter(34047 /* MAX_TEXTURE_MAX_ANISOTROPY_EXT */);
-            if (max === 0) {
-                max = 2;
-            }
-            return max;
-        }
-    }
-    function getMaxDrawBuffers(g) {
-        var maxDrawBuffers = 1;
-        var ext = g.getExtension("WEBGL_draw_buffers");
-        if (ext != null) {
-            maxDrawBuffers = g.getParameter(34852 /* MAX_DRAW_BUFFERS_WEBGL */);
-        }
-        return maxDrawBuffers;
-    }
-    function getWebGLCaps(g) {
-        if (!g) {
-            var canvas = document.createElement("canvas");
-            var webglAttr = {
-                stencil: true,
-                failIfMajorPerformanceCaveat: true
-            };
-            g = canvas.getContext("webgl", webglAttr) || canvas.getContext("experimental-webgl", webglAttr);
-        }
-        if (!g) {
-            return;
-        }
-        var getParameter = g.getParameter.bind(g);
-        var unmaskedRenderer, unmaskedVendor;
-        var dbgRenderInfo = g.getExtension("WEBGL_debug_renderer_info");
-        if (dbgRenderInfo) {
-            unmaskedVendor = getParameter(37445 /* UNMASKED_VENDOR_WEBGL */);
-            unmaskedRenderer = getParameter(37446 /* UNMASKED_RENDERER_WEBGL */);
-        }
-        return {
-            unmaskedRenderer: unmaskedRenderer,
-            unmaskedVendor: unmaskedVendor,
-            version: getParameter(7938 /* VERSION */),
-            shaderVersion: getParameter(35724 /* SHADING_LANGUAGE_VERSION */),
-            vendor: getParameter(7936 /* VENDOR */),
-            renderer: getParameter(7937 /* RENDERER */),
-            antialias: g.getContextAttributes().antialias,
-            angle: getAngle(getParameter),
-            maxVertAttr: getParameter(34921 /* MAX_VERTEX_ATTRIBS */),
-            maxVertTextureCount: getParameter(35660 /* MAX_VERTEX_TEXTURE_IMAGE_UNITS */),
-            maxVertUniforms: getParameter(36347 /* MAX_VERTEX_UNIFORM_VECTORS */),
-            maxVaryings: getParameter(36348 /* MAX_VARYING_VECTORS */),
-            aliasedLineWidth: getParameter(33902 /* ALIASED_LINE_WIDTH_RANGE */),
-            aliasedPointSize: getParameter(33901 /* ALIASED_POINT_SIZE_RANGE */),
-            maxFragUniform: getParameter(36349 /* MAX_FRAGMENT_UNIFORM_VECTORS */),
-            maxTextureCount: getParameter(34930 /* MAX_TEXTURE_IMAGE_UNITS */),
-            maxTextureSize: getParameter(3379 /* MAX_TEXTURE_SIZE */),
-            maxCubeMapTextureSize: getParameter(34076 /* MAX_CUBE_MAP_TEXTURE_SIZE */),
-            maxCombinedTextureCount: getParameter(35661 /* MAX_COMBINED_TEXTURE_IMAGE_UNITS */),
-            maxAnisotropy: getMaxAnisotropy(g),
-            maxDrawBuffers: getMaxDrawBuffers(g),
-            redBits: getParameter(3410 /* RED_BITS */),
-            greenBits: getParameter(3411 /* GREEN_BITS */),
-            blueBits: getParameter(3412 /* BLUE_BITS */),
-            alphaBits: getParameter(3413 /* ALPHA_BITS */),
-            depthBits: getParameter(3414 /* DEPTH_BITS */),
-            stencilBits: getParameter(3415 /* STENCIL_BITS */),
-            maxRenderBufferSize: getParameter(34024 /* MAX_RENDERBUFFER_SIZE */),
-            maxViewportSize: getParameter(3386 /* MAX_VIEWPORT_DIMS */),
-        };
-    }
-    jy.getWebGLCaps = getWebGLCaps;
+    };
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -10071,9 +10300,9 @@ var jy;
                     this.isStatic = true; //将这类资源标记为静态，永远不销毁，因为本身基本不占用内存
                     data.dispose();
                     this.texture = undefined;
-                    var parent_3 = this.parent;
-                    if (parent_3 instanceof TileMapLayer) {
-                        jy.Global.callLater(checkEmpty, 500 /* 设置为500是因为可能有多张1*1的空图片加载，减少刷新次数 */, parent_3);
+                    var parent_4 = this.parent;
+                    if (parent_4 instanceof TileMapLayer) {
+                        jy.Global.callLater(checkEmpty, 500 /* 设置为500是因为可能有多张1*1的空图片加载，减少刷新次数 */, parent_4);
                     }
                 }
                 else {
@@ -10310,212 +10539,383 @@ var jy;
     jy.Astar = Astar;
     __reflect(Astar.prototype, "jy.Astar", ["jy.PathFinder"]);
 })(jy || (jy = {}));
+/**
+ * DataLocator的主数据
+ * 原 junyou.DataLocator.data  的全局别名简写
+ */
+var $DD = {};
+/**
+ * DataLocator的附加数据
+ * 原junyou.DataLocator.extra 的全局别名简写
+ */
+var $DE;
 var jy;
 (function (jy) {
+    var parsers = {};
     /**
-     * 资源的 版本字典
-     */
-    var _hash = {};
-    /**
-     * 配置数据
-     */
-    var _data;
-    /**
-     * 注册的皮肤路径
-     * key      {string}   皮肤的key
-     * value    {Path}    皮肤实际路径地址
-     */
-    var _regedSkinPath = {};
-    var getPrefix;
-    var _res;
-    /**
-     * 获取皮肤路径
      *
-     * @param {string} key
-     * @param {string} fileName
-     * @returns
-     */
-    function getSkinPath(key, fileName) {
-        return key + "/" + fileName;
-    }
-    /**
-     * 通过Path获取完整url
-     *
+     * 用于处理顺序
      * @private
      * @static
-     * @param {string} uri 路径标识
-     * @param {Path} path Path对象
-     * @returns
      */
-    function getUrlWithPath(uri, path) {
-        if (/^((http|https):)?\/\//.test(uri)) { //如果是http://或者https://，或者//开头，即为完整地址，不加前缀
-            return uri;
-        }
-        uri = path.tPath + uri;
-        var prefix = path.iPrefix ? "" : getPrefix(uri);
-        return prefix + uri;
-    }
+    var _plist = [];
     /**
-     * 根据uri缓存url的字典
-     */
-    var uriDict = {};
-    /**
-     * 获取资源版本号
-     * @param uri
-     */
-    function getResVer(uri) {
-        return ~~(_hash && _hash[uri.hash()]);
-    }
-    /**
-     * 配置工具
+     * 配置加载器<br/>
+     * 用于预加载数据的解析
      * @author 3tion
-     * @export
-     * @class ConfigUtils
+     *
      */
-    jy.ConfigUtils = {
-        setData: function (data) {
-            _data = data;
-            !_data.params && (_data.params = {});
-            //检查路径是否存在有路径有父路径的，如果有，进行预处理
-            var paths = _data.paths;
-            for (var key in paths) {
-                var p = paths[key];
-                p.tPath = getPath(p);
-            }
-            _res = _data.paths.res;
-            //检查前缀
-            getPrefix = (function (prefixes) {
-                var len = 0;
-                if (prefixes) {
-                    len = prefixes.length;
-                }
-                switch (len) {
-                    case 0:
-                        return function (uri) { return ""; };
-                    case 1: {
-                        var prefix_1 = prefixes[0];
-                        return function (uri) { return prefix_1; };
-                    }
-                    default:
-                        return function (uri) {
-                            var idx = uri.hash() % prefixes.length;
-                            return prefixes[idx] || "";
-                        };
-                }
-            })(_data.prefixes);
-            function getPath(p) {
-                var parentKey = p.parent;
-                if (parentKey) {
-                    var parent_4 = paths[parentKey];
-                    if (parent_4) {
-                        return getPath(parent_4) + p.path;
-                    }
-                    else if (true) {
-                        jy.ThrowError("\u8DEF\u5F84[" + p.path + "]\u914D\u7F6E\u4E86\u7236\u7EA7(parent)\uFF0C\u4F46\u662F\u627E\u4E0D\u5230\u5BF9\u5E94\u7684\u7236\u7EA7");
-                    }
-                }
-                return p.path;
-            }
-        },
+    jy.DataLocator = {
+        regParser: regParser,
         /**
-         * 解析版本控制文件
-         * @param {ArrayBufferLike} hash
+         * 解析打包的配置
          */
-        parseHash: function (hash) {
-            var dv = new DataView(hash);
-            var pos = 0;
-            var len = dv.byteLength;
-            _hash = {};
-            while (pos < len) {
-                var hash_1 = dv.getUint32(pos);
-                pos += 4 /* SIZE_OF_UINT32 */;
-                var version = dv.getUint16(pos);
-                pos += 2 /* SIZE_OF_UINT16 */;
-                _hash[hash_1] = version;
+        parsePakedDatas: function (type) {
+            var configs = jy.Res.get("cfgs");
+            jy.Res.remove("cfgs");
+            if (type == 1) {
+                configs = decodePakCfgs(new jy.ByteArray(configs));
             }
-            jy.dispatch(-188 /* ParseResHash */);
+            // 按顺序解析
+            for (var _i = 0, _plist_1 = _plist; _i < _plist_1.length; _i++) {
+                var key = _plist_1[_i];
+                var parser = parsers[key];
+                var data = parser(configs[key]);
+                if (data) { // 支持一些void的情况
+                    $DD[key] = data;
+                    jy.dispatch(-185 /* OneCfgComplete */, key);
+                }
+            }
+            var extraData = {};
+            //处理额外数据
+            for (var key in configs) {
+                if (key.charAt(0) == "$") {
+                    var raw = configs[key];
+                    key = key.substr(1);
+                    if (raw) {
+                        var i = 0, len = raw.length, data = {};
+                        while (i < len) {
+                            var sub = raw[i++];
+                            var value = raw[i++];
+                            var test = raw[i];
+                            if (typeof test === "number") {
+                                i++;
+                                value = getJSONValue(value, test);
+                            }
+                            data[sub] = value;
+                        }
+                        extraData[key] = data;
+                    }
+                }
+            }
+            $DE = extraData;
+            //清理内存
+            parsers = null;
+            _plist = null;
+            delete jy.DataLocator;
         },
         /**
-         * 设置版本控制文件
-         * @param hash
-         */
-        setHash: function (hash) {
-            _hash = hash;
-        },
-        getResVer: getResVer,
-        /**
-         * 获取资源完整路径
          *
-         * @static
-         * @param {string} uri                  路径标识
-         * @returns {string}
+         * 注册通过H5ExcelTool导出的数据并且有唯一标识的使用此方法注册
+         * @param {keyof CfgData} key 数据的标识
+         * @param {(Creator<any> | 0)} CfgCreator 配置的类名
+         * @param {(string | 0)} [idkey="id"] 唯一标识 0用于标识数组
+         * @param {CfgDataType} [type]
          */
-        getResUrl: function (uri) {
-            var url = uriDict[uri];
-            if (!url) {
-                var ver = getResVer(uri);
-                if (ver) {
-                    if (uri.indexOf("?") == -1) {
-                        uri = uri + "?" + ver;
-                    }
-                    else {
-                        uri = uri + "&jyver=" + ver;
+        regCommonParser: function (key, CfgCreator, idkey, type) {
+            if (idkey === void 0) { idkey = "id"; }
+            regParser(key, function (data) {
+                if (!data)
+                    return;
+                var dict, forEach;
+                var headersRaw = data[0];
+                var hasLocal;
+                for (var j = 0; j < headersRaw.length; j++) {
+                    var head = headersRaw[j];
+                    if ((head[2] & 2 /* Local */) == 2 /* Local */) {
+                        hasLocal = 1;
                     }
                 }
-                url = getUrlWithPath(uri, _res);
-                uriDict[uri] = url;
-            }
-            return url;
+                (_a = getParserOption(idkey, type), type = _a[0], dict = _a[1], forEach = _a[2]);
+                try {
+                    var ref = CfgCreator || Object;
+                    for (var i = 1; i < data.length; i++) {
+                        var rowData = data[i];
+                        var ins = new ref();
+                        var local = hasLocal && {};
+                        for (var j = 0; j < headersRaw.length; j++) {
+                            var head = headersRaw[j];
+                            var name_6 = head[0], test = head[1], type_1 = head[2], def = head[3];
+                            var v = getJSONValue(rowData[j], test, def);
+                            if ((type_1 & 2 /* Local */) == 2 /* Local */) {
+                                local[name_6] = v;
+                            }
+                            else {
+                                ins[name_6] = v;
+                            }
+                        }
+                        forEach(ins, i - 1, key, dict, idkey);
+                        if (typeof ins.decode === "function") {
+                            ins.decode(local);
+                        }
+                    }
+                    if (type == 1 /* ArraySet */) {
+                        dict = new jy.ArraySet().setRawList(dict, idkey);
+                    }
+                }
+                catch (e) {
+                    if (true) {
+                        jy.ThrowError("\u89E3\u6790\u914D\u7F6E:" + key + "\u51FA\u9519", e);
+                    }
+                }
+                return dict;
+                var _a;
+            });
         },
-        /**
-         * 获取参数
-         */
-        getParam: function (key) {
-            return _data.params[key];
-        },
-        getSkinPath: getSkinPath,
-        /**
-         * 获取皮肤文件地址
-         */
-        getSkinFile: function (key, fileName) {
-            return getUrlWithPath(getSkinPath(key, fileName), _regedSkinPath[key] || _data.paths.skin);
-        },
-        /**
-         * 设置皮肤路径
-         * 如 `lib` 原本应该放在当前项目  resource/skin/ 目录下
-         * 现在要将`lib`的指向改到  a/ 目录下
-         * 则使用下列代码
-         * ```typescript
-         * ConfigUtils.regSkinPath("lib","a/");
-         * ```
-         * 如果要将`lib`的指向改到 http://www.xxx.com/a/下
-         * 则使用下列代码
-         * ```typescript
-         * ConfigUtils.regSkinPath("lib","http://www.xxx.com/a/",true);
-         * ```
-         * 如果域名不同，`自行做好跨域策略CROS`
-         *
-         * @param {string} key
-         * @param {string} path
-         * @param {boolean} [iPrefix] 是否忽略皮肤前缀
-         */
-        regSkinPath: function (key, path, iPrefix) {
-            _regedSkinPath[key] = { tPath: path, path: path, iPrefix: iPrefix };
-        },
-        /**
-         * 获取路径
-         *
-         * @param {string} uri
-         * @param {string} pathKey
-         * @returns
-         */
-        getUrl: function (uri, pathKey) {
-            var path = _data.paths[pathKey];
-            if (path) {
-                return getUrlWithPath(uri, path);
-            }
-        }
+        regBytesParser: regBytesParser
     };
+    /**
+     * 注册配置解析
+     * @param key       配置的标识
+     * @param parser    解析器
+     */
+    function regParser(key, parser) {
+        parsers[key] = parser;
+        _plist.push(key);
+    }
+    function getJSONValue(value, type, def) {
+        // 特殊类型数据
+        switch (type) {
+            case 0 /* Any */:
+                if (value == null) { //value == null 同时判断 null 和 undefined 并且字符串较少
+                    value = def;
+                }
+                break;
+            case 1 /* String */:
+                if (value === 0 || value == null) {
+                    value = def || "";
+                }
+                break;
+            case 2 /* Number */:
+            case 9 /* Int32 */:
+                // 0 == "" // true
+                if (value === "" || value == null) {
+                    value = +def || 0;
+                }
+                break;
+            case 3 /* Bool */:
+                if (value == null) {
+                    value = def;
+                }
+                value = !!value;
+                break;
+            case 4 /* Array */:
+            case 5 /* Array2D */:
+                if (value === 0) {
+                    value = undefined;
+                }
+                if (!value && def) {
+                    value = def;
+                }
+                break;
+            case 6 /* Date */:
+            case 8 /* DateTime */:
+                value = new Date((value || def || 0) * 10000);
+                break;
+            case 7 /* Time */:
+                value = new jy.TimeVO().decodeBit(value || def || 0);
+                break;
+        }
+        return value;
+    }
+    /**
+     * 用于解析数组
+     *
+     * @memberOf DataLocator
+     */
+    function arrayParserForEach(t, idx, key, dict) {
+        dict.push(t);
+    }
+    /**
+     * 用于解析字典
+     */
+    function commonParserForEach(t, idx, key, dict, idKey) {
+        if (idKey in t) {
+            var id = t[idKey];
+            if (true) {
+                if (typeof id === "object") {
+                    jy.Log("\u914D\u7F6E" + key + "\u7684\u6570\u636E\u6709\u8BEF\uFF0C\u552F\u4E00\u6807\u8BC6" + idKey + "\u4E0D\u80FD\u4E3A\u5BF9\u8C61");
+                }
+                if (id in dict) {
+                    jy.Log("\u914D\u7F6E" + key + "\u7684\u6570\u636E\u6709\u8BEF\uFF0C\u552F\u4E00\u6807\u8BC6" + idKey + "\u6709\u91CD\u590D\u503C\uFF1A" + id);
+                }
+            }
+            dict[id] = t;
+        }
+        else if (true) {
+            jy.Log("\u914D\u7F6E" + key + "\u89E3\u6790\u6709\u8BEF\uFF0C\u65E0\u6CD5\u627E\u5230\u6307\u5B9A\u7684\u552F\u4E00\u6807\u793A\uFF1A" + idKey + "\uFF0C\u6570\u636E\u7D22\u5F15\uFF1A" + idx);
+        }
+    }
+    var CfgHeadStruct = {
+        1: [0, 2 /* Required */, 9 /* String */] /*必有 属性名字*/,
+        2: [1, 2 /* Required */, 14 /* Enum */] /*必有 数值的数据类型*/,
+        3: [2, 1 /* Optional */, 14 /* Enum */] /*可选 此列的状态*/,
+        4: [3, 1 /* Optional */, 17 /* SInt32 */] /*可选 bool / int32 型默认值 */,
+        5: [4, 1 /* Optional */, 1 /* Double */] /*可选 double 型默认值 */,
+        6: [5, 1 /* Optional */, 9 /* String */] /*可选 字符串型默认值 */
+    };
+    jy.PBUtils.initDefault(CfgHeadStruct);
+    //配置数据 打包的文件结构数据
+    //readUnsignedByte 字符串长度 readString 表名字 readUnsignedByte 配置类型(0 PBBytes 1 JSON字符串) readVarint 数据长度
+    function decodePakCfgs(buffer) {
+        var cfgs = {};
+        while (buffer.readAvailable) {
+            var len = buffer.readUnsignedByte();
+            var key = buffer.readUTFBytes(len); //得到表名
+            var type = buffer.readUnsignedByte();
+            var value = void 0;
+            len = buffer.readVarint();
+            switch (type) {
+                case 0: //JSON字符串
+                    var str = buffer.readUTFBytes(len);
+                    value = JSON.parse(str);
+                    break;
+                case 1: //PBBytes
+                    value = buffer.readByteArray(len);
+                    break;
+            }
+            cfgs[key] = value;
+        }
+        return cfgs;
+    }
+    function getParserOption(idkey, type) {
+        if (idkey === void 0) { idkey = "id"; }
+        var dict, forEach;
+        if (idkey == "" || idkey == 0) {
+            type = 2 /* Array */;
+        }
+        else if (!type) {
+            type = 3 /* Dictionary */;
+        }
+        switch (type) {
+            case 2 /* Array */:
+            case 1 /* ArraySet */:
+                dict = [];
+                forEach = arrayParserForEach;
+                break;
+            case 3 /* Dictionary */:
+                dict = {};
+                forEach = commonParserForEach;
+                break;
+        }
+        return [type, dict, forEach];
+    }
+    /**
+     * 通用的Bytes版本的配置解析器
+     * @param buffer
+     */
+    function regBytesParser(key, CfgCreator, idkey, type) {
+        if (idkey === void 0) { idkey = "id"; }
+        regParser(key, function (bytes) {
+            if (!bytes) {
+                return;
+            }
+            var dict, forEach;
+            (_a = getParserOption(idkey, type), type = _a[0], dict = _a[1], forEach = _a[2]);
+            try {
+                var struct = {};
+                var headersRaw = [];
+                var i = 0;
+                var count = bytes.readVarint(); //头的数量
+                var hasLocal = void 0;
+                while (bytes.readAvailable && count--) {
+                    var len = bytes.readVarint();
+                    var head = jy.PBUtils.readFrom(CfgHeadStruct, bytes, len);
+                    var name_7 = head[0], headType = head[1], headState = head[2], i32Def = head[3], dblDef = head[4], strDef = head[5];
+                    var def = void 0, isJSON = 0, pbType = void 0;
+                    switch (headType) {
+                        case 0 /* Any */:
+                        case 1 /* String */:
+                            def = strDef;
+                            pbType = 9 /* String */;
+                            break;
+                        case 2 /* Number */:
+                            def = dblDef;
+                            pbType = 1 /* Double */;
+                            break;
+                        case 3 /* Bool */:
+                        case 9 /* Int32 */:
+                        case 6 /* Date */:
+                        case 7 /* Time */:
+                        case 8 /* DateTime */:
+                            def = i32Def;
+                            pbType = 17 /* SInt32 */;
+                            break;
+                        case 4 /* Array */:
+                        case 5 /* Array2D */:
+                            if (strDef) {
+                                def = JSON.parse(strDef);
+                            }
+                            pbType = 9 /* String */;
+                            isJSON = 1;
+                            break;
+                    }
+                    struct[i + 1] = [name_7, 1 /* Optional */, pbType, def];
+                    head.length = 5;
+                    head[3] = def;
+                    head[4] = isJSON;
+                    headersRaw[i++] = head;
+                    if ((headState & 2 /* Local */) == 2 /* Local */) {
+                        hasLocal = 1;
+                    }
+                }
+                jy.PBUtils.initDefault(struct, CfgCreator.prototype);
+                var headLen = i;
+                i = 0;
+                count = bytes.readVarint(); //行的数量
+                while (bytes.readAvailable && count--) {
+                    var len = bytes.readVarint();
+                    var obj = jy.PBUtils.readFrom(struct, bytes, len);
+                    if (!obj) {
+                        continue;
+                    }
+                    if (CfgCreator) {
+                        CfgCreator.call(obj);
+                    }
+                    var local = hasLocal && {};
+                    for (var j = 0; j < headLen; j++) {
+                        var head = headersRaw[j];
+                        var name_8 = head[0], test = head[1], type_2 = head[2], def = head[3], isJSON = head[4];
+                        var value = obj[name_8];
+                        if (value && isJSON) {
+                            value = JSON.parse(value);
+                        }
+                        var v = getJSONValue(value, test, def);
+                        if ((type_2 & 2 /* Local */) == 2 /* Local */) {
+                            local[name_8] = v;
+                        }
+                        else {
+                            obj[name_8] = v;
+                        }
+                    }
+                    forEach(obj, i++, key, dict, idkey);
+                    if (typeof obj.decode === "function") {
+                        obj.decode(local);
+                    }
+                }
+                if (type == 1 /* ArraySet */) {
+                    dict = new jy.ArraySet().setRawList(dict, idkey);
+                }
+            }
+            catch (e) {
+                if (true) {
+                    jy.ThrowError("\u89E3\u6790\u914D\u7F6E:" + key + "\u51FA\u9519", e);
+                }
+            }
+            return dict;
+            var _a;
+        });
+    }
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -11524,383 +11924,156 @@ var jy;
     jy.Unit = Unit;
     __reflect(Unit.prototype, "jy.Unit");
 })(jy || (jy = {}));
-/**
- * DataLocator的主数据
- * 原 junyou.DataLocator.data  的全局别名简写
- */
-var $DD = {};
-/**
- * DataLocator的附加数据
- * 原junyou.DataLocator.extra 的全局别名简写
- */
-var $DE;
 var jy;
 (function (jy) {
-    var parsers = {};
-    /**
-     *
-     * 用于处理顺序
-     * @private
-     * @static
-     */
-    var _plist = [];
-    /**
-     * 配置加载器<br/>
-     * 用于预加载数据的解析
-     * @author 3tion
-     *
-     */
-    jy.DataLocator = {
-        regParser: regParser,
-        /**
-         * 解析打包的配置
-         */
-        parsePakedDatas: function (type) {
-            var configs = jy.Res.get("cfgs");
-            jy.Res.remove("cfgs");
-            if (type == 1) {
-                configs = decodePakCfgs(new jy.ByteArray(configs));
+    function getData(valueList, keyList, o) {
+        o = o || {};
+        for (var i = 0, len = keyList.length; i < len; i++) {
+            var key = keyList[i];
+            var v = valueList[i];
+            if (v != undefined) {
+                o[key] = valueList[i];
             }
-            // 按顺序解析
-            for (var _i = 0, _plist_1 = _plist; _i < _plist_1.length; _i++) {
-                var key = _plist_1[_i];
-                var parser = parsers[key];
-                var data = parser(configs[key]);
-                if (data) { // 支持一些void的情况
-                    $DD[key] = data;
-                    jy.dispatch(-185 /* OneCfgComplete */, key);
-                }
-            }
-            var extraData = {};
-            //处理额外数据
-            for (var key in configs) {
-                if (key.charAt(0) == "$") {
-                    var raw = configs[key];
-                    key = key.substr(1);
-                    if (raw) {
-                        var i = 0, len = raw.length, data = {};
-                        while (i < len) {
-                            var sub = raw[i++];
-                            var value = raw[i++];
-                            var test = raw[i];
-                            if (typeof test === "number") {
-                                i++;
-                                value = getJSONValue(value, test);
-                            }
-                            data[sub] = value;
-                        }
-                        extraData[key] = data;
-                    }
-                }
-            }
-            $DE = extraData;
-            //清理内存
-            parsers = null;
-            _plist = null;
-            delete jy.DataLocator;
-        },
-        /**
-         *
-         * 注册通过H5ExcelTool导出的数据并且有唯一标识的使用此方法注册
-         * @param {keyof CfgData} key 数据的标识
-         * @param {(Creator<any> | 0)} CfgCreator 配置的类名
-         * @param {(string | 0)} [idkey="id"] 唯一标识 0用于标识数组
-         * @param {CfgDataType} [type]
-         */
-        regCommonParser: function (key, CfgCreator, idkey, type) {
-            if (idkey === void 0) { idkey = "id"; }
-            regParser(key, function (data) {
-                if (!data)
-                    return;
-                var dict, forEach;
-                var headersRaw = data[0];
-                var hasLocal;
-                for (var j = 0; j < headersRaw.length; j++) {
-                    var head = headersRaw[j];
-                    if ((head[2] & 2 /* Local */) == 2 /* Local */) {
-                        hasLocal = 1;
-                    }
-                }
-                (_a = getParserOption(idkey, type), type = _a[0], dict = _a[1], forEach = _a[2]);
-                try {
-                    var ref = CfgCreator || Object;
-                    for (var i = 1; i < data.length; i++) {
-                        var rowData = data[i];
-                        var ins = new ref();
-                        var local = hasLocal && {};
-                        for (var j = 0; j < headersRaw.length; j++) {
-                            var head = headersRaw[j];
-                            var name_6 = head[0], test = head[1], type_1 = head[2], def = head[3];
-                            var v = getJSONValue(rowData[j], test, def);
-                            if ((type_1 & 2 /* Local */) == 2 /* Local */) {
-                                local[name_6] = v;
-                            }
-                            else {
-                                ins[name_6] = v;
-                            }
-                        }
-                        forEach(ins, i - 1, key, dict, idkey);
-                        if (typeof ins.decode === "function") {
-                            ins.decode(local);
-                        }
-                    }
-                    if (type == 1 /* ArraySet */) {
-                        dict = new jy.ArraySet().setRawList(dict, idkey);
-                    }
-                }
-                catch (e) {
-                    if (true) {
-                        jy.ThrowError("\u89E3\u6790\u914D\u7F6E:" + key + "\u51FA\u9519", e);
-                    }
-                }
-                return dict;
-                var _a;
-            });
-        },
-        regBytesParser: regBytesParser
-    };
-    /**
-     * 注册配置解析
-     * @param key       配置的标识
-     * @param parser    解析器
-     */
-    function regParser(key, parser) {
-        parsers[key] = parser;
-        _plist.push(key);
-    }
-    function getJSONValue(value, type, def) {
-        // 特殊类型数据
-        switch (type) {
-            case 0 /* Any */:
-                if (value == null) { //value == null 同时判断 null 和 undefined 并且字符串较少
-                    value = def;
-                }
-                break;
-            case 1 /* String */:
-                if (value === 0 || value == null) {
-                    value = def || "";
-                }
-                break;
-            case 2 /* Number */:
-            case 9 /* Int32 */:
-                // 0 == "" // true
-                if (value === "" || value == null) {
-                    value = +def || 0;
-                }
-                break;
-            case 3 /* Bool */:
-                if (value == null) {
-                    value = def;
-                }
-                value = !!value;
-                break;
-            case 4 /* Array */:
-            case 5 /* Array2D */:
-                if (value === 0) {
-                    value = undefined;
-                }
-                if (!value && def) {
-                    value = def;
-                }
-                break;
-            case 6 /* Date */:
-            case 8 /* DateTime */:
-                value = new Date((value || def || 0) * 10000);
-                break;
-            case 7 /* Time */:
-                value = new jy.TimeVO().decodeBit(value || def || 0);
-                break;
         }
-        return value;
+        return o;
+    }
+    function copyData(to, valueList, keyList) {
+        for (var i = 0, len = keyList.length; i < len; i++) {
+            var key = keyList[i];
+            to[key] = valueList[i];
+        }
+    }
+    function getZuobiao(data) {
+        return { x: data[0], y: data[1] };
     }
     /**
-     * 用于解析数组
      *
-     * @memberOf DataLocator
+     * @author 君游项目解析工具
+     *
      */
-    function arrayParserForEach(t, idx, key, dict) {
-        dict.push(t);
-    }
-    /**
-     * 用于解析字典
-     */
-    function commonParserForEach(t, idx, key, dict, idKey) {
-        if (idKey in t) {
-            var id = t[idKey];
+    jy.DataUtils = {
+        parseDatas: function (to, from, checkStart, checkEnd, dataKey, toDatasKey) {
+            var arr = [];
+            for (var i = checkStart, j = 0; i <= checkEnd; i++) {
+                var key = dataKey + i;
+                if (key in from) {
+                    arr[j++] = from[key];
+                }
+            }
+            to[toDatasKey] = arr;
+        },
+        parseDatas2: function (to, valueList, keyList, checkStart, checkEnd, dataKey, toDatasKey) {
+            var arr = [];
+            for (var i = checkStart, j = 0; i <= checkEnd; i++) {
+                var key = dataKey + i;
+                var idx = keyList.indexOf(key);
+                if (~idx) {
+                    arr[j++] = valueList[idx];
+                }
+            }
+            to[toDatasKey] = arr;
+        },
+        getData: getData,
+        getDataList: function (dataList, keyList) {
+            var list = [];
+            if (dataList) {
+                for (var i = 0, len = dataList.length; i < len; i++) {
+                    var valueList = dataList[i];
+                    list.push(getData(valueList, keyList));
+                }
+            }
+            return list;
+        },
+        parseDataList: function (dataList, keyList, forEach, thisObj) {
+            var args = [];
+            for (var _i = 4; _i < arguments.length; _i++) {
+                args[_i - 4] = arguments[_i];
+            }
+            if (dataList) {
+                for (var i = 0, len = dataList.length; i < len; i++) {
+                    var valueList = dataList[i];
+                    var to = getData(valueList, keyList);
+                    forEach.call(thisObj, to, args, i);
+                }
+            }
+        },
+        copyData: copyData,
+        copyDataList: function (creator, dataList, keyList, forEach, thisObj) {
+            var args = [];
+            for (var _i = 5; _i < arguments.length; _i++) {
+                args[_i - 5] = arguments[_i];
+            }
+            if (dataList) {
+                for (var i = 0, len = dataList.length; i < len; i++) {
+                    var valueList = dataList[i];
+                    var to = new creator();
+                    copyData(to, valueList, keyList);
+                    forEach.call(thisObj, to, args, i);
+                }
+            }
+        },
+        parseXAttr2: function (from, xattr, keyPrefix, valuePrefix, delOriginKey) {
+            if (keyPrefix === void 0) { keyPrefix = "pro"; }
+            if (valuePrefix === void 0) { valuePrefix = "provalue"; }
+            if (delOriginKey === void 0) { delOriginKey = true; }
+            var xReg = new RegExp("^" + keyPrefix + "(\\d+)$");
             if (true) {
-                if (typeof id === "object") {
-                    jy.Log("\u914D\u7F6E" + key + "\u7684\u6570\u636E\u6709\u8BEF\uFF0C\u552F\u4E00\u6807\u8BC6" + idKey + "\u4E0D\u80FD\u4E3A\u5BF9\u8C61");
-                }
-                if (id in dict) {
-                    jy.Log("\u914D\u7F6E" + key + "\u7684\u6570\u636E\u6709\u8BEF\uFF0C\u552F\u4E00\u6807\u8BC6" + idKey + "\u6709\u91CD\u590D\u503C\uFF1A" + id);
+                var repeatedErr = "";
+            }
+            var keyCount = 0;
+            for (var key in from) {
+                var obj = xReg.exec(key);
+                if (obj) {
+                    var idx = +(obj[1]) || 0;
+                    var valueKey = valuePrefix + idx;
+                    if (true) {
+                        if (key in xattr) {
+                            repeatedErr += key + " ";
+                        }
+                    }
+                    var value = +(from[valueKey]);
+                    if (value > 0) { //只有大于0做处理
+                        keyCount++;
+                        xattr[from[key]] = value;
+                    }
+                    if (delOriginKey) {
+                        delete from[key];
+                        delete from[valueKey];
+                    }
                 }
             }
-            dict[id] = t;
+            if (true) {
+                if (repeatedErr) {
+                    jy.ThrowError("有重复的属性值:" + repeatedErr);
+                }
+            }
+            return keyCount;
+        },
+        parseXAttr: function (from, xattr, delOriginKey, xReg) {
+            if (delOriginKey === void 0) { delOriginKey = true; }
+            if (xReg === void 0) { xReg = /^x\d+$/; }
+            var keyCount = 0;
+            for (var key in from) {
+                if (xReg.test(key)) {
+                    var value = +(from[key]);
+                    if (value > 0) { //只有大于0做处理
+                        keyCount++;
+                        xattr[key] = value;
+                    }
+                    if (delOriginKey) {
+                        delete from[key];
+                    }
+                }
+            }
+            return keyCount;
+        },
+        getZuobiaos: function (data, out) {
+            out = out || [];
+            for (var i = 0; i < data.length; i++) {
+                out.push(getZuobiao(data[i]));
+            }
         }
-        else if (true) {
-            jy.Log("\u914D\u7F6E" + key + "\u89E3\u6790\u6709\u8BEF\uFF0C\u65E0\u6CD5\u627E\u5230\u6307\u5B9A\u7684\u552F\u4E00\u6807\u793A\uFF1A" + idKey + "\uFF0C\u6570\u636E\u7D22\u5F15\uFF1A" + idx);
-        }
-    }
-    var CfgHeadStruct = {
-        1: [0, 2 /* Required */, 9 /* String */] /*必有 属性名字*/,
-        2: [1, 2 /* Required */, 14 /* Enum */] /*必有 数值的数据类型*/,
-        3: [2, 1 /* Optional */, 14 /* Enum */] /*可选 此列的状态*/,
-        4: [3, 1 /* Optional */, 17 /* SInt32 */] /*可选 bool / int32 型默认值 */,
-        5: [4, 1 /* Optional */, 1 /* Double */] /*可选 double 型默认值 */,
-        6: [5, 1 /* Optional */, 9 /* String */] /*可选 字符串型默认值 */
     };
-    jy.PBUtils.initDefault(CfgHeadStruct);
-    //配置数据 打包的文件结构数据
-    //readUnsignedByte 字符串长度 readString 表名字 readUnsignedByte 配置类型(0 PBBytes 1 JSON字符串) readVarint 数据长度
-    function decodePakCfgs(buffer) {
-        var cfgs = {};
-        while (buffer.readAvailable) {
-            var len = buffer.readUnsignedByte();
-            var key = buffer.readUTFBytes(len); //得到表名
-            var type = buffer.readUnsignedByte();
-            var value = void 0;
-            len = buffer.readVarint();
-            switch (type) {
-                case 0: //JSON字符串
-                    var str = buffer.readUTFBytes(len);
-                    value = JSON.parse(str);
-                    break;
-                case 1: //PBBytes
-                    value = buffer.readByteArray(len);
-                    break;
-            }
-            cfgs[key] = value;
-        }
-        return cfgs;
-    }
-    function getParserOption(idkey, type) {
-        if (idkey === void 0) { idkey = "id"; }
-        var dict, forEach;
-        if (idkey == "" || idkey == 0) {
-            type = 2 /* Array */;
-        }
-        else if (!type) {
-            type = 3 /* Dictionary */;
-        }
-        switch (type) {
-            case 2 /* Array */:
-            case 1 /* ArraySet */:
-                dict = [];
-                forEach = arrayParserForEach;
-                break;
-            case 3 /* Dictionary */:
-                dict = {};
-                forEach = commonParserForEach;
-                break;
-        }
-        return [type, dict, forEach];
-    }
-    /**
-     * 通用的Bytes版本的配置解析器
-     * @param buffer
-     */
-    function regBytesParser(key, CfgCreator, idkey, type) {
-        if (idkey === void 0) { idkey = "id"; }
-        regParser(key, function (bytes) {
-            if (!bytes) {
-                return;
-            }
-            var dict, forEach;
-            (_a = getParserOption(idkey, type), type = _a[0], dict = _a[1], forEach = _a[2]);
-            try {
-                var struct = {};
-                var headersRaw = [];
-                var i = 0;
-                var count = bytes.readVarint(); //头的数量
-                var hasLocal = void 0;
-                while (bytes.readAvailable && count--) {
-                    var len = bytes.readVarint();
-                    var head = jy.PBUtils.readFrom(CfgHeadStruct, bytes, len);
-                    var name_7 = head[0], headType = head[1], headState = head[2], i32Def = head[3], dblDef = head[4], strDef = head[5];
-                    var def = void 0, isJSON = 0, pbType = void 0;
-                    switch (headType) {
-                        case 0 /* Any */:
-                        case 1 /* String */:
-                            def = strDef;
-                            pbType = 9 /* String */;
-                            break;
-                        case 2 /* Number */:
-                            def = dblDef;
-                            pbType = 1 /* Double */;
-                            break;
-                        case 3 /* Bool */:
-                        case 9 /* Int32 */:
-                        case 6 /* Date */:
-                        case 7 /* Time */:
-                        case 8 /* DateTime */:
-                            def = i32Def;
-                            pbType = 17 /* SInt32 */;
-                            break;
-                        case 4 /* Array */:
-                        case 5 /* Array2D */:
-                            if (strDef) {
-                                def = JSON.parse(strDef);
-                            }
-                            pbType = 9 /* String */;
-                            isJSON = 1;
-                            break;
-                    }
-                    struct[i + 1] = [name_7, 1 /* Optional */, pbType, def];
-                    head.length = 5;
-                    head[3] = def;
-                    head[4] = isJSON;
-                    headersRaw[i++] = head;
-                    if ((headState & 2 /* Local */) == 2 /* Local */) {
-                        hasLocal = 1;
-                    }
-                }
-                jy.PBUtils.initDefault(struct, CfgCreator.prototype);
-                var headLen = i;
-                i = 0;
-                count = bytes.readVarint(); //行的数量
-                while (bytes.readAvailable && count--) {
-                    var len = bytes.readVarint();
-                    var obj = jy.PBUtils.readFrom(struct, bytes, len);
-                    if (!obj) {
-                        continue;
-                    }
-                    if (CfgCreator) {
-                        CfgCreator.call(obj);
-                    }
-                    var local = hasLocal && {};
-                    for (var j = 0; j < headLen; j++) {
-                        var head = headersRaw[j];
-                        var name_8 = head[0], test = head[1], type_2 = head[2], def = head[3], isJSON = head[4];
-                        var value = obj[name_8];
-                        if (value && isJSON) {
-                            value = JSON.parse(value);
-                        }
-                        var v = getJSONValue(value, test, def);
-                        if ((type_2 & 2 /* Local */) == 2 /* Local */) {
-                            local[name_8] = v;
-                        }
-                        else {
-                            obj[name_8] = v;
-                        }
-                    }
-                    forEach(obj, i++, key, dict, idkey);
-                    if (typeof obj.decode === "function") {
-                        obj.decode(local);
-                    }
-                }
-                if (type == 1 /* ArraySet */) {
-                    dict = new jy.ArraySet().setRawList(dict, idkey);
-                }
-            }
-            catch (e) {
-                if (true) {
-                    jy.ThrowError("\u89E3\u6790\u914D\u7F6E:" + key + "\u51FA\u9519", e);
-                }
-            }
-            return dict;
-            var _a;
-        });
-    }
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -12109,157 +12282,6 @@ var jy;
     }(jy.BaseRender));
     jy.UnitRender = UnitRender;
     __reflect(UnitRender.prototype, "jy.UnitRender");
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
-    function getData(valueList, keyList, o) {
-        o = o || {};
-        for (var i = 0, len = keyList.length; i < len; i++) {
-            var key = keyList[i];
-            var v = valueList[i];
-            if (v != undefined) {
-                o[key] = valueList[i];
-            }
-        }
-        return o;
-    }
-    function copyData(to, valueList, keyList) {
-        for (var i = 0, len = keyList.length; i < len; i++) {
-            var key = keyList[i];
-            to[key] = valueList[i];
-        }
-    }
-    function getZuobiao(data) {
-        return { x: data[0], y: data[1] };
-    }
-    /**
-     *
-     * @author 君游项目解析工具
-     *
-     */
-    jy.DataUtils = {
-        parseDatas: function (to, from, checkStart, checkEnd, dataKey, toDatasKey) {
-            var arr = [];
-            for (var i = checkStart, j = 0; i <= checkEnd; i++) {
-                var key = dataKey + i;
-                if (key in from) {
-                    arr[j++] = from[key];
-                }
-            }
-            to[toDatasKey] = arr;
-        },
-        parseDatas2: function (to, valueList, keyList, checkStart, checkEnd, dataKey, toDatasKey) {
-            var arr = [];
-            for (var i = checkStart, j = 0; i <= checkEnd; i++) {
-                var key = dataKey + i;
-                var idx = keyList.indexOf(key);
-                if (~idx) {
-                    arr[j++] = valueList[idx];
-                }
-            }
-            to[toDatasKey] = arr;
-        },
-        getData: getData,
-        getDataList: function (dataList, keyList) {
-            var list = [];
-            if (dataList) {
-                for (var i = 0, len = dataList.length; i < len; i++) {
-                    var valueList = dataList[i];
-                    list.push(getData(valueList, keyList));
-                }
-            }
-            return list;
-        },
-        parseDataList: function (dataList, keyList, forEach, thisObj) {
-            var args = [];
-            for (var _i = 4; _i < arguments.length; _i++) {
-                args[_i - 4] = arguments[_i];
-            }
-            if (dataList) {
-                for (var i = 0, len = dataList.length; i < len; i++) {
-                    var valueList = dataList[i];
-                    var to = getData(valueList, keyList);
-                    forEach.call(thisObj, to, args, i);
-                }
-            }
-        },
-        copyData: copyData,
-        copyDataList: function (creator, dataList, keyList, forEach, thisObj) {
-            var args = [];
-            for (var _i = 5; _i < arguments.length; _i++) {
-                args[_i - 5] = arguments[_i];
-            }
-            if (dataList) {
-                for (var i = 0, len = dataList.length; i < len; i++) {
-                    var valueList = dataList[i];
-                    var to = new creator();
-                    copyData(to, valueList, keyList);
-                    forEach.call(thisObj, to, args, i);
-                }
-            }
-        },
-        parseXAttr2: function (from, xattr, keyPrefix, valuePrefix, delOriginKey) {
-            if (keyPrefix === void 0) { keyPrefix = "pro"; }
-            if (valuePrefix === void 0) { valuePrefix = "provalue"; }
-            if (delOriginKey === void 0) { delOriginKey = true; }
-            var xReg = new RegExp("^" + keyPrefix + "(\\d+)$");
-            if (true) {
-                var repeatedErr = "";
-            }
-            var keyCount = 0;
-            for (var key in from) {
-                var obj = xReg.exec(key);
-                if (obj) {
-                    var idx = +(obj[1]) || 0;
-                    var valueKey = valuePrefix + idx;
-                    if (true) {
-                        if (key in xattr) {
-                            repeatedErr += key + " ";
-                        }
-                    }
-                    var value = +(from[valueKey]);
-                    if (value > 0) { //只有大于0做处理
-                        keyCount++;
-                        xattr[from[key]] = value;
-                    }
-                    if (delOriginKey) {
-                        delete from[key];
-                        delete from[valueKey];
-                    }
-                }
-            }
-            if (true) {
-                if (repeatedErr) {
-                    jy.ThrowError("有重复的属性值:" + repeatedErr);
-                }
-            }
-            return keyCount;
-        },
-        parseXAttr: function (from, xattr, delOriginKey, xReg) {
-            if (delOriginKey === void 0) { delOriginKey = true; }
-            if (xReg === void 0) { xReg = /^x\d+$/; }
-            var keyCount = 0;
-            for (var key in from) {
-                if (xReg.test(key)) {
-                    var value = +(from[key]);
-                    if (value > 0) { //只有大于0做处理
-                        keyCount++;
-                        xattr[key] = value;
-                    }
-                    if (delOriginKey) {
-                        delete from[key];
-                    }
-                }
-            }
-            return keyCount;
-        },
-        getZuobiaos: function (data, out) {
-            out = out || [];
-            for (var i = 0; i < data.length; i++) {
-                out.push(getZuobiao(data[i]));
-            }
-        }
-    };
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -13473,139 +13495,6 @@ var jy;
 var jy;
 (function (jy) {
     /**
-     * 用于和服务端通信的数据
-     * @author 3tion
-     */
-    var Service = /** @class */ (function (_super) {
-        __extends(Service, _super);
-        function Service(name) {
-            return _super.call(this, name) || this;
-        }
-        Service.prototype.onRegister = function () {
-            this._ns = jy.NetService.get();
-        };
-        Service.prototype._startSync = function () {
-            // Service默认为同步，如果需要收到服务端数据的，重写此方法
-            this.selfReady();
-        };
-        Service.prototype.reg = function () {
-            var ns = this._ns;
-            var args = arguments;
-            for (var i = 0; i < args.length; i += 3) {
-                var cmd = args[i];
-                var ref = args[i + 1];
-                var handler = args[i + 2];
-                handler = handler.bind(this);
-                if (Array.isArray(cmd)) {
-                    for (var i_2 = 0; i_2 < cmd.length; i_2++) {
-                        doReg(cmd[i_2], handler, ref);
-                    }
-                }
-                else {
-                    doReg(cmd, handler, ref);
-                }
-            }
-            function doReg(cmd, handler, ref) {
-                ns.register(cmd, handler);
-                ns.regReceiveMSGRef(cmd, ref);
-            }
-        };
-        /**
-         * 注册消息引用
-         *
-         * @protected
-         * @param {string | number} ref 消息实例的引用
-         * @param cmds 注册的指令
-         */
-        Service.prototype.regMsg = function (ref) {
-            var cmds = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                cmds[_i - 1] = arguments[_i];
-            }
-            var ns = this._ns;
-            for (var _a = 0, cmds_1 = cmds; _a < cmds_1.length; _a++) {
-                var cmd = cmds_1[_a];
-                ns.regReceiveMSGRef(cmd, ref);
-            }
-        };
-        /**
-         * 注册消息处理函数
-         *
-         * @protected
-         * @param {{ (data: NetData): void }} handler   消息处理函数
-         * @param {number[]} cmds 注册的指令
-         */
-        Service.prototype.regHandler = function (handler) {
-            var cmds = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                cmds[_i - 1] = arguments[_i];
-            }
-            var ns = this._ns;
-            for (var _a = 0, cmds_2 = cmds; _a < cmds_2.length; _a++) {
-                var cmd = cmds_2[_a];
-                ns.register(cmd, handler);
-            }
-        };
-        Service.prototype.removeHandler = function (cmd, handler) {
-            this._ns.remove(cmd, handler);
-        };
-        /**
-         * 发送消息
-         *
-         * @protected
-         * @param {number} cmd 指令
-         * @param {any} [data] 数据，简单数据(number,boolean,string)复合数据
-         * @param {string} [msgType] 如果是复合数据，必须有此值
-         * @param {number} [limit=200] 最短发送时间
-         */
-        Service.prototype.send = function (cmd, data, msgType, limit) {
-            if (limit === void 0) { limit = 200; }
-            this._ns.send(cmd, data, msgType, limit);
-        };
-        return Service;
-    }(jy.Proxy));
-    jy.Service = Service;
-    __reflect(Service.prototype, "jy.Service");
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
-    /**
-     * 将Mediator转换为IStateSwitcher
-     *
-     * @export
-     * @param {Mediator} mediator
-     * @returns {(Mediator & IStateSwitcher & AwakeCheck)}
-     */
-    function transformToStateMediator(mediator, awakeBy, sleepBy) {
-        var stateMed = mediator;
-        if (stateMed.awakeBy === undefined) {
-            stateMed.awakeBy = awakeBy || function (id) {
-                if (typeof stateMed.awakeCheck === "function") {
-                    if (!stateMed.awakeCheck()) {
-                        return;
-                    }
-                }
-                var view = this._view;
-                if (view instanceof jy.Panel) {
-                    view.show();
-                }
-            };
-        }
-        if (stateMed.sleepBy === undefined) {
-            stateMed.sleepBy = sleepBy || function (id) {
-                var view = this._view;
-                if (view instanceof jy.Panel) {
-                    view.hide();
-                }
-            };
-        }
-        return stateMed;
-    }
-    jy.transformToStateMediator = transformToStateMediator;
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
-    /**
      * 使用http进行通信的网络服务
      * @author 3tion
      *
@@ -13788,6 +13677,171 @@ var jy;
     }(jy.NetService));
     jy.HttpNetService = HttpNetService;
     __reflect(HttpNetService.prototype, "jy.HttpNetService");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    /**
+     * 用于和服务端通信的数据
+     * @author 3tion
+     */
+    var Service = /** @class */ (function (_super) {
+        __extends(Service, _super);
+        function Service(name) {
+            return _super.call(this, name) || this;
+        }
+        Service.prototype.onRegister = function () {
+            this._ns = jy.NetService.get();
+        };
+        Service.prototype._startSync = function () {
+            // Service默认为同步，如果需要收到服务端数据的，重写此方法
+            this.selfReady();
+        };
+        Service.prototype.reg = function () {
+            var ns = this._ns;
+            var args = arguments;
+            for (var i = 0; i < args.length; i += 3) {
+                var cmd = args[i];
+                var ref = args[i + 1];
+                var handler = args[i + 2];
+                handler = handler.bind(this);
+                if (Array.isArray(cmd)) {
+                    for (var i_2 = 0; i_2 < cmd.length; i_2++) {
+                        doReg(cmd[i_2], handler, ref);
+                    }
+                }
+                else {
+                    doReg(cmd, handler, ref);
+                }
+            }
+            function doReg(cmd, handler, ref) {
+                ns.register(cmd, handler);
+                ns.regReceiveMSGRef(cmd, ref);
+            }
+        };
+        /**
+         * 注册消息引用
+         *
+         * @protected
+         * @param {string | number} ref 消息实例的引用
+         * @param cmds 注册的指令
+         */
+        Service.prototype.regMsg = function (ref) {
+            var cmds = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                cmds[_i - 1] = arguments[_i];
+            }
+            var ns = this._ns;
+            for (var _a = 0, cmds_1 = cmds; _a < cmds_1.length; _a++) {
+                var cmd = cmds_1[_a];
+                ns.regReceiveMSGRef(cmd, ref);
+            }
+        };
+        /**
+         * 注册消息处理函数
+         *
+         * @protected
+         * @param {{ (data: NetData): void }} handler   消息处理函数
+         * @param {number[]} cmds 注册的指令
+         */
+        Service.prototype.regHandler = function (handler) {
+            var cmds = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                cmds[_i - 1] = arguments[_i];
+            }
+            var ns = this._ns;
+            for (var _a = 0, cmds_2 = cmds; _a < cmds_2.length; _a++) {
+                var cmd = cmds_2[_a];
+                ns.register(cmd, handler);
+            }
+        };
+        Service.prototype.removeHandler = function (cmd, handler) {
+            this._ns.remove(cmd, handler);
+        };
+        /**
+         * 发送消息
+         *
+         * @protected
+         * @param {number} cmd 指令
+         * @param {any} [data] 数据，简单数据(number,boolean,string)复合数据
+         * @param {string} [msgType] 如果是复合数据，必须有此值
+         * @param {number} [limit=200] 最短发送时间
+         */
+        Service.prototype.send = function (cmd, data, msgType, limit) {
+            if (limit === void 0) { limit = 200; }
+            this._ns.send(cmd, data, msgType, limit);
+        };
+        return Service;
+    }(jy.Proxy));
+    jy.Service = Service;
+    __reflect(Service.prototype, "jy.Service");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    /**
+     * 将Mediator转换为IStateSwitcher
+     *
+     * @export
+     * @param {Mediator} mediator
+     * @returns {(Mediator & IStateSwitcher & AwakeCheck)}
+     */
+    function transformToStateMediator(mediator, awakeBy, sleepBy) {
+        var stateMed = mediator;
+        if (stateMed.awakeBy === undefined) {
+            stateMed.awakeBy = awakeBy || function (id) {
+                if (typeof stateMed.awakeCheck === "function") {
+                    if (!stateMed.awakeCheck()) {
+                        return;
+                    }
+                }
+                var view = this._view;
+                if (view instanceof jy.Panel) {
+                    view.show();
+                }
+            };
+        }
+        if (stateMed.sleepBy === undefined) {
+            stateMed.sleepBy = sleepBy || function (id) {
+                var view = this._view;
+                if (view instanceof jy.Panel) {
+                    view.hide();
+                }
+            };
+        }
+        return stateMed;
+    }
+    jy.transformToStateMediator = transformToStateMediator;
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    /**
+     * 用于发送的网络数据<br/>
+     * @author 3tion
+     */
+    var NetSendData = /** @class */ (function () {
+        function NetSendData() {
+        }
+        NetSendData.prototype.onRecycle = function () {
+            this.data = undefined;
+            this.msgType = undefined;
+        };
+        return NetSendData;
+    }());
+    jy.NetSendData = NetSendData;
+    __reflect(NetSendData.prototype, "jy.NetSendData", ["jy.IRecyclable"]);
+    /**
+     * 网络数据，类似AS3项目中Stream<br/>
+     * @author 3tion
+     *
+     */
+    var NetData = /** @class */ (function (_super) {
+        __extends(NetData, _super);
+        function NetData() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        return NetData;
+    }(NetSendData));
+    jy.NetData = NetData;
+    __reflect(NetData.prototype, "jy.NetData");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -14435,14 +14489,12 @@ var jy;
          */
         Panel.prototype.skinDataComplete = function () {
             this.bindComponent();
-            if (this["bg"]) {
-                this["bg"].touchEnabled = true;
+            var bg = this.bg;
+            if (!bg && this.numChildren) {
+                bg = this.getChildAt(0);
             }
-            else {
-                if (this.numChildren) {
-                    var bg = this.getChildAt(0);
-                    bg.touchEnabled = true;
-                }
+            if (bg) {
+                bg.touchEnabled = true;
             }
             this._readyState = 2 /* COMPLETE */;
             if (this._asyncHelper) {
@@ -14487,11 +14539,7 @@ var jy;
         Panel.prototype.setModalTouchClose = function (value) {
             if (this._mTouchClose != value) {
                 this._mTouchClose = value;
-                var m = this.modal;
-                if (!m) {
-                    this.modal = m = new egret.Shape();
-                    m.touchEnabled = true;
-                }
+                var m = this.getModal();
                 if (value) {
                     m.on("touchTap" /* TOUCH_TAP */, this.hide, this);
                 }
@@ -14500,21 +14548,23 @@ var jy;
                 }
             }
         };
+        Panel.prototype.getModal = function () {
+            var m = this.modal;
+            if (!m) {
+                this.modal = m = new egret.Bitmap();
+                m.texture = jy.ColorUtil.getTexture();
+                m.touchEnabled = true;
+            }
+            return m;
+        };
         /**
          * 加模态
          *
          * @public
          */
         Panel.prototype.addModal = function (width, height) {
-            var m = this.modal;
-            if (!m) {
-                this.modal = m = new egret.Shape();
-                m.touchEnabled = true;
-            }
+            var m = this.getModal();
             var rect = this.suiRawRect;
-            var g = m.graphics;
-            g.clear();
-            g.beginFill(Panel.MODAL_COLOR, Panel.MODAL_ALPHA);
             var stage = egret.sys.$TempStage;
             stage.on("resize" /* RESIZE */, this.onModalResize, this);
             width = width || stage.stageWidth;
@@ -14522,8 +14572,10 @@ var jy;
             var _a = this, scaleX = _a.scaleX, scaleY = _a.scaleY;
             var sx = rect.x - (width - rect.width >> 1);
             var sy = rect.y - (height - rect.height >> 1);
-            g.drawRect(sx / scaleX, sy / scaleY, width / scaleX, height / scaleY);
-            g.endFill();
+            m.x = sx / scaleX;
+            m.y = sy / scaleY;
+            m.width = width / scaleX;
+            m.height = height / scaleY;
             this.addChildAt(m, 0);
             this.x = -sx;
             this.y = -sy;
@@ -14953,6 +15005,8 @@ var jy;
                 var res = jy.ResManager.getTextureRes(this.uri, this.noWebp);
                 if (res) {
                     res.qid = this.qid;
+                    //先设置为占位用，避免有些玩家加载慢，无法看到图
+                    this.texture = this.placehoder;
                     res.bind(this);
                     res.load();
                 }
@@ -15498,38 +15552,6 @@ var jy;
 var jy;
 (function (jy) {
     /**
-     * 用于发送的网络数据<br/>
-     * @author 3tion
-     */
-    var NetSendData = /** @class */ (function () {
-        function NetSendData() {
-        }
-        NetSendData.prototype.onRecycle = function () {
-            this.data = undefined;
-            this.msgType = undefined;
-        };
-        return NetSendData;
-    }());
-    jy.NetSendData = NetSendData;
-    __reflect(NetSendData.prototype, "jy.NetSendData", ["jy.IRecyclable"]);
-    /**
-     * 网络数据，类似AS3项目中Stream<br/>
-     * @author 3tion
-     *
-     */
-    var NetData = /** @class */ (function (_super) {
-        __extends(NetData, _super);
-        function NetData() {
-            return _super !== null && _super.apply(this, arguments) || this;
-        }
-        return NetData;
-    }(NetSendData));
-    jy.NetData = NetData;
-    __reflect(NetData.prototype, "jy.NetData");
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
-    /**
      *
      * @author 3tion
      *
@@ -15665,6 +15687,142 @@ var jy;
     jy.NetRouter = NetRouter;
     __reflect(NetRouter.prototype, "jy.NetRouter");
     ;
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    /**
+     *
+     * 调整ClassFactory
+     * @export
+     * @class ClassFactory
+     * @template T
+     */
+    var ClassFactory = /** @class */ (function () {
+        /**
+         * @param {Creator<T>} creator
+         * @param {Partial<T>} [props] 属性模板
+         * @memberof ClassFactory
+         */
+        function ClassFactory(creator, props) {
+            this._creator = creator;
+            this._props = props;
+        }
+        /**
+         * 获取实例
+         *
+         * @returns
+         */
+        ClassFactory.prototype.get = function () {
+            var ins = new this._creator();
+            var p = this._props;
+            for (var key in p) {
+                ins[key] = p[key];
+            }
+            return ins;
+        };
+        return ClassFactory;
+    }());
+    jy.ClassFactory = ClassFactory;
+    __reflect(ClassFactory.prototype, "jy.ClassFactory");
+    /**
+     * 回收池
+     * @author 3tion
+     *
+     */
+    var RecyclablePool = /** @class */ (function () {
+        function RecyclablePool(TCreator, max) {
+            if (max === void 0) { max = 100; }
+            this._pool = [];
+            this._max = max;
+            this._creator = TCreator;
+        }
+        RecyclablePool.prototype.get = function () {
+            var ins;
+            var pool = this._pool;
+            if (pool.length) {
+                ins = pool.pop();
+            }
+            else {
+                ins = new this._creator();
+            }
+            if (typeof ins.onSpawn === "function") {
+                ins.onSpawn();
+            }
+            if (true) {
+                ins._insid = _recid++;
+            }
+            return ins;
+        };
+        /**
+         * 回收
+         */
+        RecyclablePool.prototype.recycle = function (t) {
+            var pool = this._pool;
+            var idx = pool.indexOf(t);
+            if (!~idx) { //不在池中才进行回收
+                if (typeof t.onRecycle === "function") {
+                    t.onRecycle();
+                }
+                if (pool.length < this._max) {
+                    pool.push(t);
+                }
+            }
+        };
+        return RecyclablePool;
+    }());
+    jy.RecyclablePool = RecyclablePool;
+    __reflect(RecyclablePool.prototype, "jy.RecyclablePool");
+    if (true) {
+        var _recid = 0;
+    }
+    function recyclable(clazz, addInstanceRecycle) {
+        var pool;
+        if (clazz.hasOwnProperty("_pool")) {
+            pool = clazz._pool;
+        }
+        if (!pool) {
+            if (addInstanceRecycle) {
+                pool = new RecyclablePool(function () {
+                    var ins = new clazz();
+                    ins.recycle = recycle;
+                    return ins;
+                });
+            }
+            else {
+                pool = new RecyclablePool(clazz);
+                var pt = clazz.prototype;
+                if (pt.recycle == undefined) {
+                    pt.recycle = recycle;
+                }
+            }
+            Object.defineProperty(clazz, "_pool", {
+                value: pool
+            });
+        }
+        return pool.get();
+        function recycle() {
+            pool.recycle(this);
+        }
+    }
+    jy.recyclable = recyclable;
+    /**
+     * 单例工具
+     * @param clazz 要做单例的类型
+     */
+    function singleton(clazz) {
+        var instance;
+        if (clazz.hasOwnProperty("_instance")) {
+            instance = clazz._instance;
+        }
+        if (!instance) {
+            instance = new clazz;
+            Object.defineProperty(clazz, "_instance", {
+                value: instance
+            });
+        }
+        return instance;
+    }
+    jy.singleton = singleton;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -16476,142 +16634,6 @@ var jy;
     }());
     jy.ArtWord = ArtWord;
     __reflect(ArtWord.prototype, "jy.ArtWord");
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
-    /**
-     *
-     * 调整ClassFactory
-     * @export
-     * @class ClassFactory
-     * @template T
-     */
-    var ClassFactory = /** @class */ (function () {
-        /**
-         * @param {Creator<T>} creator
-         * @param {Partial<T>} [props] 属性模板
-         * @memberof ClassFactory
-         */
-        function ClassFactory(creator, props) {
-            this._creator = creator;
-            this._props = props;
-        }
-        /**
-         * 获取实例
-         *
-         * @returns
-         */
-        ClassFactory.prototype.get = function () {
-            var ins = new this._creator();
-            var p = this._props;
-            for (var key in p) {
-                ins[key] = p[key];
-            }
-            return ins;
-        };
-        return ClassFactory;
-    }());
-    jy.ClassFactory = ClassFactory;
-    __reflect(ClassFactory.prototype, "jy.ClassFactory");
-    /**
-     * 回收池
-     * @author 3tion
-     *
-     */
-    var RecyclablePool = /** @class */ (function () {
-        function RecyclablePool(TCreator, max) {
-            if (max === void 0) { max = 100; }
-            this._pool = [];
-            this._max = max;
-            this._creator = TCreator;
-        }
-        RecyclablePool.prototype.get = function () {
-            var ins;
-            var pool = this._pool;
-            if (pool.length) {
-                ins = pool.pop();
-            }
-            else {
-                ins = new this._creator();
-            }
-            if (typeof ins.onSpawn === "function") {
-                ins.onSpawn();
-            }
-            if (true) {
-                ins._insid = _recid++;
-            }
-            return ins;
-        };
-        /**
-         * 回收
-         */
-        RecyclablePool.prototype.recycle = function (t) {
-            var pool = this._pool;
-            var idx = pool.indexOf(t);
-            if (!~idx) { //不在池中才进行回收
-                if (typeof t.onRecycle === "function") {
-                    t.onRecycle();
-                }
-                if (pool.length < this._max) {
-                    pool.push(t);
-                }
-            }
-        };
-        return RecyclablePool;
-    }());
-    jy.RecyclablePool = RecyclablePool;
-    __reflect(RecyclablePool.prototype, "jy.RecyclablePool");
-    if (true) {
-        var _recid = 0;
-    }
-    function recyclable(clazz, addInstanceRecycle) {
-        var pool;
-        if (clazz.hasOwnProperty("_pool")) {
-            pool = clazz._pool;
-        }
-        if (!pool) {
-            if (addInstanceRecycle) {
-                pool = new RecyclablePool(function () {
-                    var ins = new clazz();
-                    ins.recycle = recycle;
-                    return ins;
-                });
-            }
-            else {
-                pool = new RecyclablePool(clazz);
-                var pt = clazz.prototype;
-                if (pt.recycle == undefined) {
-                    pt.recycle = recycle;
-                }
-            }
-            Object.defineProperty(clazz, "_pool", {
-                value: pool
-            });
-        }
-        return pool.get();
-        function recycle() {
-            pool.recycle(this);
-        }
-    }
-    jy.recyclable = recyclable;
-    /**
-     * 单例工具
-     * @param clazz 要做单例的类型
-     */
-    function singleton(clazz) {
-        var instance;
-        if (clazz.hasOwnProperty("_instance")) {
-            instance = clazz._instance;
-        }
-        if (!instance) {
-            instance = new clazz;
-            Object.defineProperty(clazz, "_instance", {
-                value: instance
-            });
-        }
-        return instance;
-    }
-    jy.singleton = singleton;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -18719,6 +18741,103 @@ var jy;
 var jy;
 (function (jy) {
     /**
+     * 资源管理器
+     */
+    var _resources = {};
+    function get(resid, noResHandler, thisObj) {
+        var res = getResource(resid);
+        if (!res) {
+            var args = [];
+            for (var i = 3; i < arguments.length; i++) {
+                args[i - 3] = arguments[i];
+            }
+            res = noResHandler.apply(thisObj, args);
+            regResource(resid, res);
+        }
+        return res;
+    }
+    jy.ResManager = {
+        get: get,
+        /**
+         * 获取纹理资源
+         *
+         * @param {string} resID 资源id
+         * @param {boolean} [noWebp] 是否不加webp后缀
+         * @returns {TextureResource}
+         */
+        getTextureRes: function (resID, noWebp) {
+            var resources = _resources;
+            var res = resources[resID];
+            if (res) {
+                if (!(res instanceof jy.TextureResource)) {
+                    jy.ThrowError("[" + resID + "]\u8D44\u6E90\u6709\u8BEF\uFF0C\u4E0D\u662FTextureResource");
+                    res = undefined;
+                }
+            }
+            if (!res) {
+                res = new jy.TextureResource(resID, noWebp);
+                resources[resID] = res;
+            }
+            return res;
+        },
+        /**
+         * 获取资源
+         */
+        getResource: getResource,
+        // /**
+        //  * 注册资源
+        //  */
+        // regResource,
+        //按时间检测资源
+        init: function () {
+            var tobeDele = [];
+            jy.TimerUtil.addCallback(30000 /* CheckTime */, function () {
+                var expire = jy.Global.now - 300000 /* DisposeTime */;
+                var reses = _resources;
+                var delLen = 0;
+                for (var key in reses) {
+                    var res = reses[key];
+                    if (!res.isStatic && res.lastUseTime < expire) {
+                        tobeDele[delLen++] = key;
+                    }
+                }
+                // //对附加的checker进行检查
+                // for (let i = 0; i < _checkers.length; i++) {
+                //     _checkers[i].resCheck(expire);
+                // }
+                for (var i = 0; i < delLen; i++) {
+                    var key = tobeDele[i];
+                    var res = reses[key];
+                    if (res) {
+                        res.dispose();
+                        jy.Res.remove(res.uri);
+                        delete reses[key];
+                    }
+                }
+            });
+        }
+    };
+    /**
+     * 获取资源
+     */
+    function getResource(resID) {
+        return _resources[resID];
+    }
+    /**
+     * 注册资源
+     */
+    function regResource(resID, res) {
+        var resources = _resources;
+        if (resID in resources) { //资源id重复                
+            return resources[resID] === res;
+        }
+        resources[resID] = res;
+        return true;
+    }
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    /**
      *
      * 新版使用MC的按钮，减少制作按钮的难度
      *
@@ -20423,102 +20542,103 @@ var jy;
         }
     };
 })(jy || (jy = {}));
+if (true) {
+    var ErrorTexture = jy.ColorUtil.getTexture(0xff0000, 1);
+}
 var jy;
 (function (jy) {
     /**
-     * 资源管理器
+     *
+     * 纹理资源
+     * @export
+     * @class TextureResource
+     * @implements {IResource}
      */
-    var _resources = {};
-    function get(resid, noResHandler, thisObj) {
-        var res = getResource(resid);
-        if (!res) {
-            var args = [];
-            for (var i = 3; i < arguments.length; i++) {
-                args[i - 3] = arguments[i];
-            }
-            res = noResHandler.apply(thisObj, args);
-            regResource(resid, res);
+    var TextureResource = /** @class */ (function () {
+        function TextureResource(uri, noWebp) {
+            /**
+             *
+             * 绑定的对象列表
+             * @private
+             * @type {Bitmap[]}
+             */
+            this._list = [];
+            this.uri = uri;
+            this.url = jy.ConfigUtils.getResUrl(uri + (!noWebp ? jy.Global.webp : ""));
         }
-        return res;
-    }
-    jy.ResManager = {
-        get: get,
+        Object.defineProperty(TextureResource.prototype, "isStatic", {
+            /**
+             *
+             * 是否为静态不销毁的资源
+             * @type {boolean}
+             */
+            get: function () {
+                return this._list.length > 0;
+            },
+            enumerable: true,
+            configurable: true
+        });
         /**
-         * 获取纹理资源
          *
-         * @param {string} resID 资源id
-         * @param {boolean} [noWebp] 是否不加webp后缀
-         * @returns {TextureResource}
+         * 绑定一个目标
+         * @param {Bitmap} target
          */
-        getTextureRes: function (resID, noWebp) {
-            var resources = _resources;
-            var res = resources[resID];
-            if (res) {
-                if (!(res instanceof jy.TextureResource)) {
-                    jy.ThrowError("[" + resID + "]\u8D44\u6E90\u6709\u8BEF\uFF0C\u4E0D\u662FTextureResource");
-                    res = undefined;
-                }
+        TextureResource.prototype.bind = function (bmp) {
+            if (this._tex) {
+                bmp.texture = this._tex;
+                bmp.dispatch(-193 /* Texture_Complete */);
             }
-            if (!res) {
-                res = new jy.TextureResource(resID, noWebp);
-                resources[resID] = res;
-            }
-            return res;
-        },
+            this._list.pushOnce(bmp);
+            this.lastUseTime = jy.Global.now;
+        };
         /**
-         * 获取资源
+         *
+         * 解除目标的绑定
+         * @param {Bitmap} target
          */
-        getResource: getResource,
-        // /**
-        //  * 注册资源
-        //  */
-        // regResource,
-        //按时间检测资源
-        init: function () {
-            var tobeDele = [];
-            jy.TimerUtil.addCallback(30000 /* CheckTime */, function () {
-                var expire = jy.Global.now - 300000 /* DisposeTime */;
-                var reses = _resources;
-                var delLen = 0;
-                for (var key in reses) {
-                    var res = reses[key];
-                    if (!res.isStatic && res.lastUseTime < expire) {
-                        tobeDele[delLen++] = key;
+        TextureResource.prototype.loose = function (bmp) {
+            this._list.remove(bmp);
+            this.lastUseTime = jy.Global.now;
+        };
+        TextureResource.prototype.load = function () {
+            jy.Res.load(this.uri, this.url, jy.CallbackInfo.get(this.loadComplete, this), this.qid);
+        };
+        /**
+         * 资源加载完成
+         */
+        TextureResource.prototype.loadComplete = function (item) {
+            var data = item.data, uri = item.uri;
+            if (uri == this.uri) {
+                this._tex = data;
+                for (var _i = 0, _a = this._list; _i < _a.length; _i++) {
+                    var bmp = _a[_i];
+                    bmp.texture = data;
+                    if (true && !data) {
+                        bmp.texture = ErrorTexture;
+                        var rect = bmp.suiRawRect;
+                        if (rect) {
+                            bmp.width = rect.width;
+                            bmp.height = rect.height;
+                        }
                     }
+                    bmp.dispatch(-193 /* Texture_Complete */);
                 }
-                // //对附加的checker进行检查
-                // for (let i = 0; i < _checkers.length; i++) {
-                //     _checkers[i].resCheck(expire);
-                // }
-                for (var i = 0; i < delLen; i++) {
-                    var key = tobeDele[i];
-                    var res = reses[key];
-                    if (res) {
-                        res.dispose();
-                        jy.Res.remove(res.uri);
-                        delete reses[key];
-                    }
-                }
-            });
-        }
-    };
-    /**
-     * 获取资源
-     */
-    function getResource(resID) {
-        return _resources[resID];
-    }
-    /**
-     * 注册资源
-     */
-    function regResource(resID, res) {
-        var resources = _resources;
-        if (resID in resources) { //资源id重复                
-            return resources[resID] === res;
-        }
-        resources[resID] = res;
-        return true;
-    }
+            }
+        };
+        /**
+         * 销毁资源
+         */
+        TextureResource.prototype.dispose = function () {
+            if (this._tex) {
+                this._tex.dispose();
+                this._tex = undefined;
+            }
+            this._list.length = 0;
+        };
+        return TextureResource;
+    }());
+    jy.TextureResource = TextureResource;
+    __reflect(TextureResource.prototype, "jy.TextureResource", ["jy.IResource"]);
 })(jy || (jy = {}));
 var dpr = 1;
 function $useDPR() {
@@ -20847,107 +20967,6 @@ var jy;
     }(egret.Sprite));
     jy.Menu = Menu;
     __reflect(Menu.prototype, "jy.Menu");
-})(jy || (jy = {}));
-if (true) {
-    var ErrorTexture = new egret.Texture();
-    var img = new Image(40, 40);
-    img.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAAWUlEQVRYR+3SwQkAIAwEwaT/orWI/YiM/wWZ3J6ZMw+/9cF4HYIRcAgSrAK1t0GCVaD2NkiwCtTeBglWgdrbIMEqUHsbJFgFam+DBKtA7W2QYBWovQ1+L3gB8nhP2Y60cpgAAAAASUVORK5CYII=";
-    ErrorTexture._setBitmapData(new egret.BitmapData(img));
-}
-var jy;
-(function (jy) {
-    /**
-     *
-     * 纹理资源
-     * @export
-     * @class TextureResource
-     * @implements {IResource}
-     */
-    var TextureResource = /** @class */ (function () {
-        function TextureResource(uri, noWebp) {
-            /**
-             *
-             * 绑定的对象列表
-             * @private
-             * @type {Bitmap[]}
-             */
-            this._list = [];
-            this.uri = uri;
-            this.url = jy.ConfigUtils.getResUrl(uri + (!noWebp ? jy.Global.webp : ""));
-        }
-        Object.defineProperty(TextureResource.prototype, "isStatic", {
-            /**
-             *
-             * 是否为静态不销毁的资源
-             * @type {boolean}
-             */
-            get: function () {
-                return this._list.length > 0;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        /**
-         *
-         * 绑定一个目标
-         * @param {Bitmap} target
-         */
-        TextureResource.prototype.bind = function (bmp) {
-            if (this._tex) {
-                bmp.texture = this._tex;
-                bmp.dispatch(-193 /* Texture_Complete */);
-            }
-            this._list.pushOnce(bmp);
-            this.lastUseTime = jy.Global.now;
-        };
-        /**
-         *
-         * 解除目标的绑定
-         * @param {Bitmap} target
-         */
-        TextureResource.prototype.loose = function (bmp) {
-            this._list.remove(bmp);
-            this.lastUseTime = jy.Global.now;
-        };
-        TextureResource.prototype.load = function () {
-            jy.Res.load(this.uri, this.url, jy.CallbackInfo.get(this.loadComplete, this), this.qid);
-        };
-        /**
-         * 资源加载完成
-         */
-        TextureResource.prototype.loadComplete = function (item) {
-            var data = item.data, uri = item.uri;
-            if (uri == this.uri) {
-                this._tex = data;
-                for (var _i = 0, _a = this._list; _i < _a.length; _i++) {
-                    var bmp = _a[_i];
-                    bmp.texture = data;
-                    if (true && !data) {
-                        bmp.texture = ErrorTexture;
-                        var rect = bmp.suiRawRect;
-                        if (rect) {
-                            bmp.width = rect.width;
-                            bmp.height = rect.height;
-                        }
-                    }
-                    bmp.dispatch(-193 /* Texture_Complete */);
-                }
-            }
-        };
-        /**
-         * 销毁资源
-         */
-        TextureResource.prototype.dispose = function () {
-            if (this._tex) {
-                this._tex.dispose();
-                this._tex = undefined;
-            }
-            this._list.length = 0;
-        };
-        return TextureResource;
-    }());
-    jy.TextureResource = TextureResource;
-    __reflect(TextureResource.prototype, "jy.TextureResource", ["jy.IResource"]);
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
