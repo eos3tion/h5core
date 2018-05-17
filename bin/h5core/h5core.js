@@ -20411,6 +20411,15 @@ var jy;
          * @returns
          */
         getTipLayoutPos: getTipLayoutPos,
+        /**
+         * 用于统一存储狗屎异形屏的UI偏移量数据
+         */
+        offsets: {
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0
+        }
     };
 })(jy || (jy = {}));
 var jy;

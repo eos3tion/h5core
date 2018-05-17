@@ -14120,6 +14120,12 @@ declare namespace jy {
         getLayoutPos: (disWidth: number, disHeight: number, parentWidth: number, parentHeight: number, layout: LayoutType, result?: Point, hoffset?: number, voffset?: number, outerV?: boolean, outerH?: boolean) => Point;
         tipLayout(layoutDis: LayoutDisplay, point: Point, padx?: number, pady?: number, parent?: LayoutDisplayParent): void;
         getTipLayoutPos: (disWidth: number, disHeight: number, parentWidth: number, parentHeight: number, point: Point, result?: Point, padx?: number, pady?: number) => Point;
+        offsets: {
+            top: number;
+            left: number;
+            right: number;
+            bottom: number;
+        };
     };
 }
 declare namespace jy {
