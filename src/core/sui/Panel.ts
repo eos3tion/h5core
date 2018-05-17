@@ -9,6 +9,10 @@ namespace jy {
 	 */
     export class Panel extends egret.Sprite implements SuiDataCallback, IAsyncPanel {
         /**
+         * 背景/底
+         */
+        bg?: egret.DisplayObject;
+        /**
          * 模态颜色
          * 
          * @static
@@ -55,9 +59,9 @@ namespace jy {
          * 模态
          * 
          * @protected
-         * @type {egret.Sprite}
+         * @type {egret.Bitmap}
          */
-        protected modal: egret.Shape;
+        protected modal: egret.Bitmap;
         /**
          * 是否模态
          * 
@@ -145,15 +149,13 @@ namespace jy {
 		 */
         skinDataComplete() {
             this.bindComponent();
-            if (this["bg"]) {
-                this["bg"].touchEnabled = true;
-            } else {
-                if (this.numChildren) {
-                    let bg = this.getChildAt(0);
-                    bg.touchEnabled = true;
-                }
+            let bg = this.bg;
+            if (!bg && this.numChildren) {
+                bg = this.getChildAt(0);
             }
-
+            if (bg) {
+                bg.touchEnabled = true;
+            }
             this._readyState = RequestState.COMPLETE;
             if (this._asyncHelper) {
                 this._asyncHelper.readyNow();
@@ -199,11 +201,7 @@ namespace jy {
         public setModalTouchClose(value: boolean) {
             if (this._mTouchClose != value) {
                 this._mTouchClose = value;
-                let m = this.modal;
-                if (!m) {
-                    this.modal = m = new egret.Shape();
-                    m.touchEnabled = true;
-                }
+                let m = this.getModal();
                 if (value) {
                     m.on(EgretEvent.TOUCH_TAP, this.hide, this);
                 } else {
@@ -212,21 +210,24 @@ namespace jy {
             }
         }
 
+        getModal() {
+            let m = this.modal;
+            if (!m) {
+                this.modal = m = new egret.Bitmap();
+                m.texture = ColorUtil.getTexture();
+                m.touchEnabled = true;
+            }
+            return m;
+        }
+
         /**
          * 加模态
          * 
          * @public
          */
         public addModal(width?: number, height?: number) {
-            let m = this.modal;
-            if (!m) {
-                this.modal = m = new egret.Shape();
-                m.touchEnabled = true;
-            }
+            let m = this.getModal();
             let rect = this.suiRawRect;
-            let g = m.graphics;
-            g.clear();
-            g.beginFill(Panel.MODAL_COLOR, Panel.MODAL_ALPHA);
             let stage = egret.sys.$TempStage;
             stage.on(EgretEvent.RESIZE, this.onModalResize, this);
             width = width || stage.stageWidth;
@@ -234,8 +235,10 @@ namespace jy {
             let { scaleX, scaleY } = this;
             let sx = rect.x - (width - rect.width >> 1);
             let sy = rect.y - (height - rect.height >> 1);
-            g.drawRect(sx / scaleX, sy / scaleY, width / scaleX, height / scaleY);
-            g.endFill();
+            m.x = sx / scaleX;
+            m.y = sy / scaleY;
+            m.width = width / scaleX;
+            m.height = height / scaleY;
             this.addChildAt(m, 0);
             this.x = -sx;
             this.y = -sy;

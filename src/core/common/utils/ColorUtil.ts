@@ -28,6 +28,13 @@ namespace jy {
 
         Gray = "#cccccc",
     }
+
+    function getColorString(c: number) {
+        return "#" + c.toString(16).zeroize(6);
+    }
+
+    const textureCaches: { [colorKey: string]: egret.Texture } = {};
+
 	/**
 	 * 颜色工具
 	 * @author 3tion
@@ -40,9 +47,7 @@ namespace jy {
          * @return 获取颜色字符串 #a1b2c3
          *
          */
-        getColorString(c: number) {
-            return "#" + c.toString(16).zeroize(6);
-        },
+        getColorString,
 
         /**
          * 将#a1b2c3这样#开头的颜色字符串，转换成颜色数值
@@ -56,6 +61,24 @@ namespace jy {
                 }
                 return 0;
             }
+        },
+        /**
+         * 获取一个纯色的纹理
+         */
+        getTexture(color = 0, alpha = 0.8) {
+            let key = color + "_" + alpha;
+            let tex = textureCaches[key];
+            if (!tex) {
+                let canvas = document.createElement("canvas");
+                canvas.height = canvas.width = 1;
+                let ctx = canvas.getContext("2d");
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = getColorString(color);
+                ctx.fillRect(0, 0, 1, 1);
+                tex = new egret.Texture();
+                tex.bitmapData = new egret.BitmapData(canvas);
+            }
+            return tex;
         }
     }
 }

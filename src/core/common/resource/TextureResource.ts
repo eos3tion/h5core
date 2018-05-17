@@ -1,9 +1,6 @@
 
 if (DEBUG) {
-    var ErrorTexture = new egret.Texture();
-    let img = new Image(40, 40);
-    img.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAAWUlEQVRYR+3SwQkAIAwEwaT/orWI/YiM/wWZ3J6ZMw+/9cF4HYIRcAgSrAK1t0GCVaD2NkiwCtTeBglWgdrbIMEqUHsbJFgFam+DBKtA7W2QYBWovQ1+L3gB8nhP2Y60cpgAAAAASUVORK5CYII="
-    ErrorTexture._setBitmapData(new egret.BitmapData(img));
+    var ErrorTexture = jy.ColorUtil.getTexture(0xff0000,1);
 }
 namespace jy {
 
