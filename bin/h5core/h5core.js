@@ -20614,7 +20614,7 @@ var jy;
                     var bmp = _a[_i];
                     bmp.texture = data;
                     if (true && !data) {
-                        bmp.texture = ErrorTexture;
+                        bmp.texture = bmp.placehoder || ErrorTexture;
                         var rect = bmp.suiRawRect;
                         if (rect) {
                             bmp.width = rect.width;

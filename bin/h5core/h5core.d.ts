@@ -322,6 +322,11 @@ declare module egret {
          * 刷新纹理
          */
         refreshBMD(): any;
+        /**
+         * 占位用纹理
+         *
+         */
+        placehoder?: egret.Texture;
     }
     interface TextField {
         /**
@@ -11704,13 +11709,6 @@ declare namespace jy {
          */
         qid?: Res.ResQueueID;
         noWebp?: boolean;
-        /**
-         * 占位用纹理
-         *
-         * @type {egret.Texture}
-         * @memberof Image
-         */
-        placehoder?: egret.Texture;
         constructor();
         addedToStage(): void;
         removedFromStage(): void;
