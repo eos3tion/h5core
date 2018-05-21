@@ -66,7 +66,15 @@ namespace jy {
          * @protected
          */
         protected viewComplete() {
-            this._preViewReady = true;
+            let viewReady = true;
+            let $view = this.$view;
+            if (isIAsync($view)) {
+                viewReady = $view.isReady;
+            }
+            this._preViewReady = viewReady;
+            if (!viewReady) {
+                return this.viewFailed();
+            }
             if (this._dependerHelper) {//不创建
                 this._dependerHelper.check();
             } else {
@@ -91,6 +99,10 @@ namespace jy {
          * @abstract
          */
         protected init?();
+
+        viewFailed() {
+
+        }
 
         /**
          * 
