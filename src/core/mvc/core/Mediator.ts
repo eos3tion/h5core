@@ -72,8 +72,8 @@ namespace jy {
                 viewReady = $view.isReady;
             }
             this._preViewReady = viewReady;
-            if (!viewReady) {
-                return this.viewFailed();
+            if (!this.viewCheck(viewReady)) {
+                return;
             }
             if (this._dependerHelper) {//不创建
                 this._dependerHelper.check();
@@ -100,8 +100,8 @@ namespace jy {
          */
         protected init?();
 
-        viewFailed() {
-
+        viewCheck(viewReady: boolean) {
+            return viewReady;
         }
 
         /**
