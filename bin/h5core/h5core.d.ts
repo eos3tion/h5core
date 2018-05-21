@@ -10730,6 +10730,7 @@ declare namespace jy {
          * @abstract
          */
         protected init?(): any;
+        viewFailed(): void;
         /**
          *
          * 依赖项完毕后检查

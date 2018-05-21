@@ -13413,13 +13413,23 @@ var jy;
          * @protected
          */
         Mediator.prototype.viewComplete = function () {
-            this._preViewReady = true;
+            var viewReady = true;
+            var $view = this.$view;
+            if (jy.isIAsync($view)) {
+                viewReady = $view.isReady;
+            }
+            this._preViewReady = viewReady;
+            if (!viewReady) {
+                return this.viewFailed();
+            }
             if (this._dependerHelper) { //不创建
                 this._dependerHelper.check();
             }
             else {
                 this.dependerReadyCheck();
             }
+        };
+        Mediator.prototype.viewFailed = function () {
         };
         /**
          *
