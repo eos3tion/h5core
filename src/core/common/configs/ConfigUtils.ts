@@ -114,7 +114,7 @@ namespace jy {
      * @returns
      */
     function getUrlWithPath(uri: string, path: Path) {
-        if (/^((http|https):)?\/\//.test(uri)) {//如果是http://或者https://，或者//开头，即为完整地址，不加前缀
+        if (!path || /^((http|https):)?\/\//.test(uri)) {//如果是http://或者https://，或者//开头，即为完整地址，不加前缀
             return uri;
         }
         uri = path.tPath + uri;
