@@ -115,8 +115,8 @@ namespace jy {
 
         protected loadNext() {
             if (this._depends.length) {
-                var key = this._depends.pop();
-                var suiManager = singleton(SuiResManager);
+                let key = this._depends.pop();
+                let suiManager = singleton(SuiResManager);
                 suiManager.loadData(key, this);
             }
             else {
