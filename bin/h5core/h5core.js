@@ -13419,8 +13419,8 @@ var jy;
                 viewReady = $view.isReady;
             }
             this._preViewReady = viewReady;
-            if (!viewReady) {
-                return this.viewFailed();
+            if (!this.viewCheck(viewReady)) {
+                return;
             }
             if (this._dependerHelper) { //不创建
                 this._dependerHelper.check();
@@ -13429,7 +13429,8 @@ var jy;
                 this.dependerReadyCheck();
             }
         };
-        Mediator.prototype.viewFailed = function () {
+        Mediator.prototype.viewCheck = function (viewReady) {
+            return viewReady;
         };
         /**
          *
