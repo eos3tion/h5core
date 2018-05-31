@@ -444,8 +444,8 @@ namespace jy {
                         currentAction = next;
                     } else {
                         next.recycle();
-                        this._nextAction = undefined;
                     }
+                    this._nextAction = undefined;
                 }
             }
             if (!currentAction) {
@@ -482,6 +482,7 @@ namespace jy {
                 currentAction.playComplete(this, now);
                 if (currentAction.isEnd) {
                     flag = true;
+                    this.onActionEnd();
                 } else {
                     currentAction.playAction(this, this._mountType, now);
                 }
@@ -500,12 +501,15 @@ namespace jy {
             let currentAction = this._currentAction;
             if (currentAction) {
                 if (currentAction.isEnd) {
-                    this.startUnitAction(this._nextAction, now);
+                    this.onActionEnd();
+                } else {
+                    return;
                 }
-            } else {
-                this.startUnitAction(this._nextAction, now);
             }
+            this.startUnitAction(this._nextAction, now);
         }
+
+        protected onActionEnd() { }
 
 
         /**
