@@ -27,7 +27,7 @@ namespace jy {
                 if (DEBUG) {
                     let debug = <DebugInfo>info["_debug"];
                     ThrowError(`CallbackInfo执行报错，赋值内容：============Function=============:\n${debug.handle}\n}==============Stack============:\n${debug.stack}\n当前堆栈：${e.stack}`);
-                    console.log("参数列表", ...this.args);
+                    console.log("参数列表", ...args);
                 }
             }
         } else if (DEBUG) {

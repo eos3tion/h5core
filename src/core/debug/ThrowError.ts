@@ -23,7 +23,7 @@ namespace jy {
          * @param atWho
          *
          */
-        function pushMsg(msg: string): string {
+        var pushMsg = function (msg: string): string {
             if (errorMsg.length > ThrowError.MaxCount) {
                 errorMsg.shift();
             }
