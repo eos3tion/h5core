@@ -1,3 +1,4 @@
+"use strict";
 var __reflect = (this && this.__reflect) || function (p, c, t) {
     p.__class__ = c, t ? t.push(c) : t = [c], p.__types__ = p.__types__ ? t.concat(p.__types__) : t;
 };
@@ -6728,7 +6729,7 @@ var jy;
                 if (true) {
                     var debug = info["_debug"];
                     jy.ThrowError("CallbackInfo\u6267\u884C\u62A5\u9519\uFF0C\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n}==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + e.stack);
-                    console.log.apply(console, ["参数列表"].concat(this.args));
+                    console.log.apply(console, ["参数列表"].concat(args));
                 }
             }
         }
@@ -7898,14 +7899,14 @@ var jy;
          * @param atWho
          *
          */
-        function pushMsg(msg) {
+        var pushMsg = function (msg) {
             if (errorMsg.length > jy.ThrowError.MaxCount) {
                 errorMsg.shift();
             }
             var msg = getMsg(msg);
             errorMsg.push(msg);
             return msg;
-        }
+        };
     }
     if (true) {
         jy.Log = function () {
@@ -14657,6 +14658,8 @@ var jy;
         __extends(View, _super);
         function View(key, className) {
             var _this = _super.call(this) || this;
+            _this.suiClass = className;
+            _this.suiLib = key;
             jy.singleton(jy.SuiResManager).createComponents(key, className, _this);
             return _this;
         }
@@ -17567,10 +17570,10 @@ var jy;
             return this.createTextField(uri, data[2], data[1]);
         };
         SuiResManager.initBaseData = function (dis, data) {
-            if (data[0]) {
-                dis.name = data[0];
+            var name = data[0], x = data[1], y = data[2], w = data[3], h = data[4], rot = data[5], alpha = data[6], adjustColors = data[7];
+            if (name) {
+                dis.name = name;
             }
-            var x = data[1], y = data[2], w = data[3], h = data[4], rot = data[5], alpha = data[6], adjustColors = data[7];
             dis.suiRawRect = new egret.Rectangle(x, y, w, h);
             if (Array.isArray(rot)) { //matrix
                 var a = rot[0], b = rot[1], c = rot[2], d = rot[3];
@@ -17692,8 +17695,6 @@ var jy;
                     if (type == 18 /* ExportedContainer */) {
                         var className = suiData.panelNames[~~sd];
                         var v = new jy.View(libKey, className);
-                        v.suiClass = className;
-                        v.suiLib = libKey;
                         SuiResManager.initBaseData(v, bd);
                         return v;
                     }
