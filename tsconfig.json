@@ -4,6 +4,7 @@
         "declaration": true,
         "experimentalDecorators": true,
         "importHelpers": true,
+        "alwaysStrict": true,
         "outFile": "bin/h5core/h5core.js",
         "lib": [
             "es5",

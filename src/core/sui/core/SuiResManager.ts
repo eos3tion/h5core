@@ -453,14 +453,14 @@ namespace jy {
         }
 
         public static initBaseData(dis: egret.DisplayObject, data: any) {
-            if (data[0]) {
-                dis.name = data[0];
+            const [name, x, y, w, h, rot, alpha, adjustColors] = data;
+            if (name) {
+                dis.name = name;
             }
-            let [, x, y, w, h, rot, alpha, adjustColors] = data;
             dis.suiRawRect = new egret.Rectangle(x, y, w, h);
             if (Array.isArray(rot)) {//matrix
-                let [a, b, c, d] = rot;
-                let matrix = dis.matrix;
+                const [a, b, c, d] = rot;
+                const matrix = dis.matrix;
                 matrix.setTo(a, b, c, d, x, y);
                 dis.$setMatrix(matrix, true);
             } else {//用于兼容之前的数据
@@ -578,8 +578,6 @@ namespace jy {
                     if (type == ExportType.ExportedContainer) {
                         let className = suiData.panelNames[~~sd];
                         let v = new View(libKey, className);
-                        v.suiClass = className;
-                        v.suiLib = libKey;
                         SuiResManager.initBaseData(v, bd);
                         return v;
                     } else {
