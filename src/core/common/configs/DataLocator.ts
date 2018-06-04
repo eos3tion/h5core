@@ -109,53 +109,63 @@ namespace jy {
          * @param {(string | 0)} [idkey="id"] 唯一标识 0用于标识数组
          * @param {CfgDataType} [type] 
          */
-        regCommonParser(key: keyof CfgData, CfgCreator: Creator<any> | 0, idkey: string | 0 = "id", type?: CfgDataType) {
-            regParser(key, (data: any[]): any => {
-                if (!data) return;
-                let dict, forEach: { (t: any, idx: number, key: string, dict: any, idkey: string) };
-                let headersRaw: JSONHeadItem[] = data[0];
-                let hasLocal: number;
-                for (let j = 0; j < headersRaw.length; j++) {
-                    let head = headersRaw[j];
-                    if ((head[2] & JSONHeadState.Local) == JSONHeadState.Local) {
-                        hasLocal = 1;
-                    }
-                }
-                ([type, dict, forEach] = getParserOption(idkey, type));
-                try {
-                    let ref = CfgCreator || Object;
-                    for (let i = 1; i < data.length; i++) {
-                        let rowData: any[] = data[i];
-                        let ins = new (ref as any)();
-                        let local = hasLocal && {};
-                        for (let j = 0; j < headersRaw.length; j++) {
-                            let head = headersRaw[j];
-                            let [name, test, type, def] = head;
-                            let v = getJSONValue(rowData[j], test, def);
-                            if ((type & JSONHeadState.Local) == JSONHeadState.Local) {
-                                local[name] = v;
-                            } else {
-                                ins[name] = v;
-                            }
-                        }
-                        forEach(ins, i - 1, key, dict, idkey as string);
-                        if (typeof ins.decode === "function") {
-                            ins.decode(local);
-                        }
-                    }
-                    if (type == CfgDataType.ArraySet) {
-                        dict = new ArraySet().setRawList(dict, idkey as never);
-                    }
-                } catch (e) {
-                    if (DEBUG) {
-                        ThrowError(`解析配置:${key}出错`, e);
-                    }
-                }
-                return dict;
-            });
-        },
+        regCommonParser,
         regBytesParser
     };
+
+    /**
+     * 
+     * 注册通过H5ExcelTool导出的数据并且有唯一标识的使用此方法注册
+     * @param {keyof CfgData} key 数据的标识
+     * @param {(Creator<any> | 0)} CfgCreator 配置的类名
+     * @param {(string | 0)} [idkey="id"] 唯一标识 0用于标识数组
+     * @param {CfgDataType} [type] 
+     */
+    function regCommonParser(key: keyof CfgData, CfgCreator: Creator<any> | 0, idkey: string | 0 = "id", type?: CfgDataType) {
+        regParser(key, (data: any[]): any => {
+            if (!data) return;
+            let dict, forEach: { (t: any, idx: number, key: string, dict: any, idkey: string) };
+            let headersRaw: JSONHeadItem[] = data[0];
+            let hasLocal: number;
+            for (let j = 0; j < headersRaw.length; j++) {
+                let head = headersRaw[j];
+                if ((head[2] & JSONHeadState.Local) == JSONHeadState.Local) {
+                    hasLocal = 1;
+                }
+            }
+            ([type, dict, forEach] = getParserOption(idkey, type));
+            try {
+                let ref = CfgCreator || Object;
+                for (let i = 1; i < data.length; i++) {
+                    let rowData: any[] = data[i];
+                    let ins = new (ref as any)();
+                    let local = hasLocal && {};
+                    for (let j = 0; j < headersRaw.length; j++) {
+                        let head = headersRaw[j];
+                        let [name, test, type, def] = head;
+                        let v = getJSONValue(rowData[j], test, def);
+                        if ((type & JSONHeadState.Local) == JSONHeadState.Local) {
+                            local[name] = v;
+                        } else {
+                            ins[name] = v;
+                        }
+                    }
+                    forEach(ins, i - 1, key, dict, idkey as string);
+                    if (typeof ins.decode === "function") {
+                        ins.decode(local);
+                    }
+                }
+                if (type == CfgDataType.ArraySet) {
+                    dict = new ArraySet().setRawList(dict, idkey as never);
+                }
+            } catch (e) {
+                if (DEBUG) {
+                    ThrowError(`解析配置:${key}出错`, e);
+                }
+            }
+            return dict;
+        });
+    }
 
     /**
      * 注册配置解析
