@@ -50,7 +50,7 @@ namespace jy {
         /**
          * 资源打包分隔信息
          */
-        readonly sInfo: SplitInfo;
+        readonly pst: PstInfo;
 
         state = RequestState.UNREQUEST;
 
@@ -59,11 +59,11 @@ namespace jy {
          */
         private _datas: { [index: number]: egret.Texture[][] };
 
-        constructor(key: string, splitInfo: SplitInfo) {
+        constructor(key: string, pstInfo: PstInfo) {
             this.key = key;
             let uri = this.uri = key + "/" + UnitResourceConst.CfgFile;
             this.url = ConfigUtils.getResUrl(uri);
-            this.sInfo = splitInfo;
+            this.pst = pstInfo;
         }
 
         /**
@@ -177,7 +177,7 @@ namespace jy {
         }
 
         loadRes(direction: number, action: number) {
-            let r = this.sInfo.getResKey(direction, action);
+            let r = this.pst.getResKey(direction, action);
             let uri = this.getUri2(r);
             return ResManager.get(uri, this.noRes, this, uri, r);
         }
@@ -185,12 +185,12 @@ namespace jy {
         noRes(uri: string, r: string) {
             let tmp = new SplitUnitResource(uri, this.getUrl(uri));
             tmp.qid = this.qid;
-            tmp.bindTextures(this._datas, this.sInfo.adDict[r]);
+            tmp.bindTextures(this._datas, this.pst.getADKey(r));
             tmp.load();
             return tmp;
         }
         getUri(direction: number, action: number) {
-            return this.getUri2(this.sInfo.getResKey(direction, action));
+            return this.getUri2(this.pst.getResKey(direction, action));
         }
 
         getUri2(resKey: string) {
@@ -210,7 +210,7 @@ namespace jy {
          * @param { (uri: string, adKey: number): any } forEach 如果 forEach 方法返回 真 ，则停止遍历
          */
         checkRes(forEach: { (uri: string, adKey: number): any }) {
-            const dict = this.sInfo.adDict;
+            const dict = this.pst.splitInfo.adDict;
             for (let resKey in dict) {
                 let uri = this.getUri2(resKey);
                 if (forEach(uri, dict[resKey])) {

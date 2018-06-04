@@ -65,7 +65,7 @@ namespace jy {
      * @returns {(A & Record<K, B>)}
      */
     export function expand<A, B, K extends keyof B>(clazzA: { prototype: A }, clazzB: { prototype: B }, ...keys: K[]): A & Record<K, B> {
-        _expand(clazzA.prototype, clazzB.prototype, keys);
+        _expand(clazzA.prototype, clazzB.prototype, keys as string[]);
         return <any>clazzA as A & Record<K, B>;
     }
 
