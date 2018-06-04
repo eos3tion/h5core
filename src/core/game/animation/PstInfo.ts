@@ -86,6 +86,9 @@ namespace jy {
         protected castPoints: { [adKey: number]: Point };
 
 
+        urCreator: { new(key: string, pstInfo: PstInfo): UnitResource } = UnitResource;
+
+
         /**
          * 获取施法点
          * @param {number} action 动作标识
@@ -100,6 +103,14 @@ namespace jy {
                 }
             }
             return;
+        }
+
+        getResKey(direction: number, action: number) {
+            return this.splitInfo.getResKey(direction, action);
+        }
+
+        getADKey(r) {
+            return this.splitInfo.adDict[r];
         }
 
         public splitInfo: SplitInfo;
@@ -160,7 +171,7 @@ namespace jy {
         getResource(uri: string) {
             let res = this._resources[uri];
             if (!res) {
-                res = new UnitResource(uri, this.splitInfo);
+                res = new this.urCreator(uri, this);
                 this._resources[uri] = res;
             }
             return res;
@@ -217,9 +228,24 @@ namespace jy {
             this._resDict = {};
             let adDict = this.adDict = {};
             let frames: { [index: number]: ActionInfo } = {};
+            /**
+             * 有效的动作数组，有些动作是自定义出来的，不是原始动作
+             */
+            let alist = [];
             for (let key in data) {
                 let a = +key;
-                frames[a] = getActionInfo(data[a], a);
+                let aInfo = getActionInfo(data[a], a);
+                frames[a] = aInfo;
+                let fs = aInfo.frames;
+                for (let i = 0; i < fs.length; i++) {
+                    const frame = fs[i];
+                    alist.pushOnce(frame.a);
+                }
+
+            }
+            //检查有效动作
+            for (let i = 0; i < alist.length; i++) {
+                const a = alist[i];
                 for (let d = 0; d < 5; d++) {
                     let res = this.getResKey(d, a);
                     adDict[res] = ADKey.get(a, d);
@@ -234,7 +260,7 @@ namespace jy {
             this._d = infos.d;
         }
 
-        getResKey(direction: number, action: number): string {
+        getResKey(direction: number, action: number) {
             let key = ADKey.get(action, direction);
             let res = this._resDict[key];
             if (!res) {
