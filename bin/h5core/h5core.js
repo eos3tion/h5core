@@ -20570,21 +20570,6 @@ var jy;
     }());
     jy.TextureResource = TextureResource;
 })(jy || (jy = {}));
-var dpr = 1;
-function $useDPR() {
-    dpr = window.devicePixelRatio || 1;
-    var origin = egret.sys.DefaultScreenAdapter.prototype.calculateStageSize;
-    egret.sys.screenAdapter = {
-        calculateStageSize: function (scaleMode, screenWidth, screenHeight, contentWidth, contentHeight) {
-            var result = origin(scaleMode, screenWidth, screenHeight, contentWidth, contentHeight);
-            if (scaleMode == egret.StageScaleMode.NO_SCALE) {
-                result.stageHeight *= dpr;
-                result.stageWidth *= dpr;
-            }
-            return result;
-        }
-    };
-}
 var jy;
 (function (jy) {
     /**
@@ -20613,7 +20598,7 @@ var jy;
             var sw = stage.stageWidth, sh = stage.stageHeight, bw = basis.width, bh = basis.height;
             var dw = sw, dh = sh, lw = sw, lh = sh;
             var scale = 1;
-            if (dpr != 1 || sw < bw * dpr || sh < bh * dpr) { //屏幕宽高，任意一边小于基准宽高
+            if (sw < bw || sh < bh) { //屏幕宽高，任意一边小于基准宽高
                 var result = jy.getFixedLayout(sw, sh, bw, bh);
                 dh = result.dh;
                 dw = result.dw;

@@ -12395,8 +12395,8 @@ declare namespace jy {
     type Creator<T> = {
         new(): T;
     } | {
-            (): T;
-        };
+        (): T;
+    };
     /**
      *
      * 调整ClassFactory
@@ -14702,8 +14702,6 @@ declare namespace jy {
         dispose(): void;
     }
 }
-declare let dpr: number;
-declare function $useDPR(): void;
 declare namespace jy {
     /**
      * ## 主体UI的容器
