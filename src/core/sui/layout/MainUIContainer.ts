@@ -1,18 +1,3 @@
-let dpr = 1;
-function $useDPR() {
-    dpr = window.devicePixelRatio || 1;
-    let origin = egret.sys.DefaultScreenAdapter.prototype.calculateStageSize;
-    egret.sys.screenAdapter = {
-        calculateStageSize(scaleMode: string, screenWidth: number, screenHeight: number, contentWidth: number, contentHeight: number) {
-            let result = origin(scaleMode, screenWidth, screenHeight, contentWidth, contentHeight);
-            if (scaleMode == egret.StageScaleMode.NO_SCALE) {
-                result.stageHeight *= dpr;
-                result.stageWidth *= dpr;
-            }
-            return result;
-        }
-    }
-}
 namespace jy {
     /**
      * ## 主体UI的容器  
@@ -37,7 +22,7 @@ namespace jy {
             let sw = stage.stageWidth, sh = stage.stageHeight, bw = basis.width, bh = basis.height;
             let dw = sw, dh = sh, lw = sw, lh = sh;
             let scale = 1;
-            if (dpr != 1 || sw < bw * dpr || sh < bh * dpr) { //屏幕宽高，任意一边小于基准宽高
+            if (sw < bw || sh < bh) { //屏幕宽高，任意一边小于基准宽高
                 let result = getFixedLayout(sw, sh, bw, bh);
                 dh = result.dh;
                 dw = result.dw;
