@@ -868,13 +868,4 @@ namespace jy {
             this._router.dispatch(nData);
         }
     }
-    export interface ReconectEvent extends egret.Event {
-        /**
-         * 重连次数
-         * 
-         * @type {number}
-         * @memberOf ReconectEvent
-         */
-        data: number;
-    }
 }
