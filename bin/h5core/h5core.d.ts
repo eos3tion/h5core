@@ -658,7 +658,15 @@ interface $gmType {
 declare namespace jy {
     type InjectProxy = {
         new(): IAsync;
-    } | string | number;
+    } | Key;
+    interface InjectProxyBin {
+        ref: InjectProxy;
+        /**
+         * 是否为私有属性，此值设置为true则子类不会继承这个Proxy
+         * 否则子类将继承Proxy
+         */
+        isPri?: boolean;
+    }
     /**
      * Mediator和Proxy的基类
      * @author 3tion
@@ -674,7 +682,7 @@ declare namespace jy {
          * @memberOf FHost
          */
         protected _injectProxys: {
-            [index: string]: InjectProxy;
+            [index: string]: InjectProxyBin;
         };
         /**
          * 唯一标识
@@ -729,19 +737,7 @@ declare namespace jy {
      * @param {({ new (): IAsync } | string)} ref 如果注册的是Class，必须是Inline方式注册的Proxy
      * @returns
      */
-    function __dependProxy(ref: {
-        new(): IAsync;
-    } | string | number): (target: any, key: string) => void;
-}
-declare namespace jy {
-    /**
-     *
-     * 附加依赖的Proxy
-     * @export
-     * @param {({ new (): IAsync } | string)} ref
-     * @returns
-     */
-    var d_dependProxy: typeof __dependProxy;
+    function d_dependProxy(ref: InjectProxy, isPri?: boolean): (target: any, key: string) => void;
 }
 declare namespace jy {
     /**
@@ -2051,15 +2047,6 @@ declare namespace jy {
          * @param {*} [data]
          */
         route(cmd: number, data?: any): void;
-    }
-    interface ReconectEvent extends egret.Event {
-        /**
-         * 重连次数
-         *
-         * @type {number}
-         * @memberOf ReconectEvent
-         */
-        data: number;
     }
 }
 declare namespace jy {

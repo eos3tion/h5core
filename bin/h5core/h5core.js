@@ -1024,8 +1024,8 @@ var jy;
                 var proxyName = void 0;
                 //检查Proxy
                 for (var key in idp) {
-                    var ref = idp[key];
-                    if (typeof ref === "object") {
+                    var ref = idp[key].ref;
+                    if (typeof ref === "function") {
                         proxyName = jy.Facade.getNameOfInline(ref);
                     }
                     else {
@@ -1100,26 +1100,30 @@ var jy;
      * @param {({ new (): IAsync } | string)} ref 如果注册的是Class，必须是Inline方式注册的Proxy
      * @returns
      */
-    function __dependProxy(ref) {
+    function d_dependProxy(ref, isPri) {
+        var pKey = "_injectProxys";
         return function (target, key) {
-            var _injectProxys = target._injectProxys;
-            if (!_injectProxys) {
-                target._injectProxys = _injectProxys = {};
+            var _injectProxys;
+            if (target.hasOwnProperty(pKey)) {
+                _injectProxys = target[pKey];
             }
-            _injectProxys[key] = ref;
+            else {
+                //未赋值前，先取值，可取到父级数据，避免使用  Object.getPrototypeOf(target)，ES5没此方法
+                var inherit = target[pKey];
+                target[pKey] = _injectProxys = {};
+                if (inherit) { //继承父级可继承的关注列表
+                    for (var k in inherit) {
+                        var bin = inherit[k];
+                        if (!bin.isPri) {
+                            _injectProxys[k] = bin;
+                        }
+                    }
+                }
+            }
+            _injectProxys[key] = { ref: ref, isPri: isPri };
         };
     }
-    jy.__dependProxy = __dependProxy;
-})(jy || (jy = {}));
-(function (jy) {
-    /**
-     *
-     * 附加依赖的Proxy
-     * @export
-     * @param {({ new (): IAsync } | string)} ref
-     * @returns
-     */
-    jy.d_dependProxy = jy.__dependProxy;
+    jy.d_dependProxy = d_dependProxy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
