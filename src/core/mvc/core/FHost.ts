@@ -8,7 +8,16 @@ interface $gmType {
     $: { [index: string]: jy.FHost };
 }
 namespace jy {
-    export declare type InjectProxy = { new(): IAsync } | string | number;
+
+    export declare type InjectProxy = { new(): IAsync } | Key;
+    interface InjectProxyBin {
+        ref: InjectProxy;
+        /**
+         * 是否为私有属性，此值设置为true则子类不会继承这个Proxy  
+         * 否则子类将继承Proxy
+         */
+        isPri?: boolean;
+    }
 	/**
 	 * Mediator和Proxy的基类
 	 * @author 3tion
@@ -25,7 +34,7 @@ namespace jy {
          * @type {({[index:string]:{ new (): IAsync } | string})}
          * @memberOf FHost
          */
-        protected _injectProxys: { [index: string]: InjectProxy };
+        protected _injectProxys: { [index: string]: InjectProxyBin };
 
         /**
          * 唯一标识
@@ -56,14 +65,13 @@ namespace jy {
          */
         checkInject() {
             //此注入是对原型进行的注入，无法直接删除，也不要直接做清理
-
             let idp = this._injectProxys;
             if (idp) {
-                let proxyName: string | number;
+                let proxyName: Key;
                 //检查Proxy
                 for (let key in idp) {
-                    let ref = idp[key];
-                    if (typeof ref === "object") {
+                    let { ref } = idp[key];
+                    if (typeof ref === "function") {
                         proxyName = Facade.getNameOfInline(ref);
                     } else {
                         proxyName = <any>ref;
@@ -154,25 +162,26 @@ namespace jy {
      * @param {({ new (): IAsync } | string)} ref 如果注册的是Class，必须是Inline方式注册的Proxy
      * @returns
      */
-    export function __dependProxy(ref: { new(): IAsync } | string | number) {
+    export function d_dependProxy(ref: InjectProxy, isPri?: boolean) {
+        const pKey = "_injectProxys";
         return function (target: any, key: string) {
-            let _injectProxys: { [index: string]: { new(): IAsync } | string | number } = target._injectProxys;
-            if (!_injectProxys) {
-                target._injectProxys = _injectProxys = {};
+            let _injectProxys: { [index: string]: InjectProxyBin };
+            if (target.hasOwnProperty(pKey)) {
+                _injectProxys = target[pKey];
+            } else {
+                //未赋值前，先取值，可取到父级数据，避免使用  Object.getPrototypeOf(target)，ES5没此方法
+                const inherit = target[pKey] as { [index: string]: InjectProxyBin };
+                target[pKey] = _injectProxys = {};
+                if (inherit) {//继承父级可继承的关注列表
+                    for (let k in inherit) {
+                        let bin = inherit[k];
+                        if (!bin.isPri) {
+                            _injectProxys[k] = bin;
+                        }
+                    }
+                }
             }
-            _injectProxys[key] = ref;
+            _injectProxys[key] = { ref, isPri };
         }
     }
-
-
-}
-namespace jy {
-    /**
-     * 
-     * 附加依赖的Proxy
-     * @export
-     * @param {({ new (): IAsync } | string)} ref
-     * @returns
-     */
-    export var d_dependProxy = __dependProxy;
 }

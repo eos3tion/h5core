@@ -79,7 +79,7 @@ namespace jy {
 
         public init(key: string, data: any[]) {
             super.init(key, data[0]);
-            let res: UnitResource = new UnitResource(ResPrefix.Ani + key, this.splitInfo);
+            let res: UnitResource = new UnitResource(ResPrefix.Ani + key, this);
             res.qid = this.qid;
             res.decodeData(data[1]);
             this._resources = res;
