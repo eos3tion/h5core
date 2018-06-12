@@ -22,7 +22,6 @@ namespace jy {
          * 请不要直接进行 + - 值，使用set delete 方法进行处理
          * @readonly
          * 
-         * @memberOf ArraySet
          */
         public get rawList() {
             return this._list;
@@ -33,7 +32,6 @@ namespace jy {
          * 请不要直接行 + - 值，使用set delete 方法进行处理
          * @readonly
          * 
-         * @memberOf ArraySet
          */
         public get rawDict(): { readonly [index: string]: V } {
             return this._dict;
@@ -44,7 +42,6 @@ namespace jy {
          * 
          * @param { [index: string]: V } dict
          * 
-         * @memberOf ArraySet
          */
         public setRawDict(dict: { [index: string]: V }) {
             this._dict = dict;
@@ -58,18 +55,16 @@ namespace jy {
         }
 
         /**
-         * 下例是一个形式为：{id:number,name:string}[]的数组，进行设值的例子
-         * ```typescript
-         * let rawList:{id:number,name:string}[] = [{id:1,name:"test1"},{id:2,name:"test2"},{id:3,name:"test3"}];
-         * let set = new ArraySet<{id:number,name:string}>();
-         * set.setRawList(rawList,"id"); //设值操作
-         * ```
          * 
          * @param {V[]} list        要放入的数据
          * @param {keyof V} keyPro   索引的属性名称 
-
          * 
-         * @memberOf ArraySet
+         * 下例是一个形式为：{id:number,name:string}[]的数组，进行设值的例子
+         * @example
+         * let rawList:{id:number,name:string}[] = [{id:1,name:"test1"},{id:2,name:"test2"},{id:3,name:"test3"}];
+         * let set = new ArraySet<{id:number,name:string}>();
+         * set.setRawList(rawList,"id"); //设值操作
+         * 
          */
         public setRawList(list: V[], keyPro: keyof V) {
             let rawList = this._list;
@@ -93,7 +88,6 @@ namespace jy {
          * @param {Key} key
          * @param {V} value
          * @return {number} 返回值加入到数据中的索引
-         * @memberOf ArraySet
          */
         public set(key: Key, value: V) {
             const { _dict, _list } = this;
@@ -122,7 +116,6 @@ namespace jy {
          * @param {Key} key
          * @returns
          * 
-         * @memberOf ArraySet
          */
         public get(key: Key) {
             return this._dict[key];
@@ -133,7 +126,6 @@ namespace jy {
          * 
          * @param {Key} key
          * 
-         * @memberOf ArraySet
          */
         public delete(key: Key) {
             const { _dict, _list } = this;
@@ -152,7 +144,6 @@ namespace jy {
          * 清理数据
          * 
          * 
-         * @memberOf ArraySet
          */
         public clear() {
             this._list.length = 0;
@@ -164,7 +155,6 @@ namespace jy {
          * 
          * @readonly
          * 
-         * @memberOf ArraySet
          */
         public get size() {
             return this._list.length;
