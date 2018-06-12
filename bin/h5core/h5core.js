@@ -4510,10 +4510,10 @@ var jy;
                     temp = new jy.ByteArray;
                     temp.writeUTFBytes(value);
                 }
-                length = temp ? temp.length : 0;
-                bytes.writeVarint(length);
-                if (length > 0) {
-                    bytes.writeBytes(temp, 0, length);
+                var len = temp ? temp.length : 0;
+                bytes.writeVarint(len);
+                if (len > 0) {
+                    bytes.writeBytes(temp, 0, len);
                 }
                 break;
         }
@@ -5447,7 +5447,6 @@ var jy;
              * 请不要直接进行 + - 值，使用set delete 方法进行处理
              * @readonly
              *
-             * @memberOf ArraySet
              */
             get: function () {
                 return this._list;
@@ -5461,7 +5460,6 @@ var jy;
              * 请不要直接行 + - 值，使用set delete 方法进行处理
              * @readonly
              *
-             * @memberOf ArraySet
              */
             get: function () {
                 return this._dict;
@@ -5474,7 +5472,6 @@ var jy;
          *
          * @param { [index: string]: V } dict
          *
-         * @memberOf ArraySet
          */
         ArraySet.prototype.setRawDict = function (dict) {
             this._dict = dict;
@@ -5487,18 +5484,16 @@ var jy;
             return this;
         };
         /**
-         * 下例是一个形式为：{id:number,name:string}[]的数组，进行设值的例子
-         * ```typescript
-         * let rawList:{id:number,name:string}[] = [{id:1,name:"test1"},{id:2,name:"test2"},{id:3,name:"test3"}];
-         * let set = new ArraySet<{id:number,name:string}>();
-         * set.setRawList(rawList,"id"); //设值操作
-         * ```
          *
          * @param {V[]} list        要放入的数据
          * @param {keyof V} keyPro   索引的属性名称
-
          *
-         * @memberOf ArraySet
+         * 下例是一个形式为：{id:number,name:string}[]的数组，进行设值的例子
+         * @example
+         * let rawList:{id:number,name:string}[] = [{id:1,name:"test1"},{id:2,name:"test2"},{id:3,name:"test3"}];
+         * let set = new ArraySet<{id:number,name:string}>();
+         * set.setRawList(rawList,"id"); //设值操作
+         *
          */
         ArraySet.prototype.setRawList = function (list, keyPro) {
             var rawList = this._list;
@@ -5521,7 +5516,6 @@ var jy;
          * @param {Key} key
          * @param {V} value
          * @return {number} 返回值加入到数据中的索引
-         * @memberOf ArraySet
          */
         ArraySet.prototype.set = function (key, value) {
             var _a = this, _dict = _a._dict, _list = _a._list;
@@ -5550,7 +5544,6 @@ var jy;
          * @param {Key} key
          * @returns
          *
-         * @memberOf ArraySet
          */
         ArraySet.prototype.get = function (key) {
             return this._dict[key];
@@ -5560,7 +5553,6 @@ var jy;
          *
          * @param {Key} key
          *
-         * @memberOf ArraySet
          */
         ArraySet.prototype.delete = function (key) {
             var _a = this, _dict = _a._dict, _list = _a._list;
@@ -5578,7 +5570,6 @@ var jy;
          * 清理数据
          *
          *
-         * @memberOf ArraySet
          */
         ArraySet.prototype.clear = function () {
             this._list.length = 0;
@@ -5590,7 +5581,6 @@ var jy;
              *
              * @readonly
              *
-             * @memberOf ArraySet
              */
             get: function () {
                 return this._list.length;

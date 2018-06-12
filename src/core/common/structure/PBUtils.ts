@@ -570,10 +570,10 @@ namespace jy {
                     temp = new ByteArray;
                     temp.writeUTFBytes(value);
                 }
-                length = temp ? temp.length : 0;
-                bytes.writeVarint(length);
-                if (length > 0) {
-                    bytes.writeBytes(temp, 0, length);
+                let len = temp ? temp.length : 0;
+                bytes.writeVarint(len);
+                if (len > 0) {
+                    bytes.writeBytes(temp, 0, len);
                 }
                 break;
         }
