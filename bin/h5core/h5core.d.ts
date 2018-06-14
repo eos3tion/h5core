@@ -1354,6 +1354,10 @@ declare namespace jy {
          * @memberOf PBStruct
          */
         def?: any;
+        ref?: {
+            new(): any;
+            prototype: any;
+        };
     }
     interface PBStructDictInput {
         /**
@@ -1385,7 +1389,10 @@ declare namespace jy {
      * @param struct 结构
      */
     function regStruct(msgType: Key, struct: PBStruct): void;
-    function initDefault(struct: PBStruct, prototype?: any): void;
+    function initDefault(struct: PBStruct, ref?: {
+        new(): any;
+        prototype: any;
+    }): void;
     /**
      *
      * @author 3tion

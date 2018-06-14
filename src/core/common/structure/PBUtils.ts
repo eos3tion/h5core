@@ -87,6 +87,8 @@ namespace jy {
          * @memberOf PBStruct
          */
         def?: any;
+
+        ref?: { new(): any, prototype: any };
     }
 
     /**
@@ -200,7 +202,7 @@ namespace jy {
         structDict[msgType] = struct;
     }
 
-    function initDefault(struct: PBStruct, prototype?) {
+    function initDefault(struct: PBStruct, ref?: { new(): any, prototype: any }) {
         //检查处理默认值
         for (let idx in struct) {
             let body = struct[idx];
@@ -212,7 +214,7 @@ namespace jy {
             if (4 in body) {//有默认值
                 let def = struct.def;
                 if (!def) {
-                    def = prototype || {};
+                    def = ref && ref.prototype || {};
                     //不使用encode.def=def=[]; 是为了防止def被遍历
                     Object.defineProperty(struct, StringConst.defKey, {
                         value: def
@@ -222,10 +224,8 @@ namespace jy {
                 def[body[0]] = body[4];
             }
         }
-        if (!struct.def) {
-            Object.defineProperty(struct, StringConst.defKey, {
-                value: prototype || Object.prototype
-            });
+        if (ref) {
+            struct.ref = ref;
         }
     }
 
@@ -307,7 +307,8 @@ namespace jy {
             return;
         }
         //检查处理默认值
-        let msg = Object.create(struct.def);
+        let { ref, def } = struct;
+        let msg = ref ? new ref() : def ? Object.create(struct.def) : {};
         while (bytes.bytesAvailable > afterLen) {
             let tag = bytes.readVarint();
             if (tag == 0)

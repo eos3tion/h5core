@@ -1837,7 +1837,7 @@ var jy;
         initDefault(struct);
         structDict[msgType] = struct;
     }
-    function initDefault(struct, prototype) {
+    function initDefault(struct, ref) {
         //检查处理默认值
         for (var idx in struct) {
             var body = struct[idx];
@@ -1849,7 +1849,7 @@ var jy;
             if (4 in body) { //有默认值
                 var def = struct.def;
                 if (!def) {
-                    def = prototype || {};
+                    def = ref && ref.prototype || {};
                     //不使用encode.def=def=[]; 是为了防止def被遍历
                     Object.defineProperty(struct, "def" /* defKey */, {
                         value: def
@@ -1859,10 +1859,8 @@ var jy;
                 def[body[0]] = body[4];
             }
         }
-        if (!struct.def) {
-            Object.defineProperty(struct, "def" /* defKey */, {
-                value: prototype || Object.prototype
-            });
+        if (ref) {
+            struct.ref = ref;
         }
     }
     /**
@@ -1942,7 +1940,8 @@ var jy;
             return;
         }
         //检查处理默认值
-        var msg = Object.create(struct.def);
+        var ref = struct.ref, def = struct.def;
+        var msg = ref ? new ref() : def ? Object.create(struct.def) : {};
         while (bytes.bytesAvailable > afterLen) {
             var tag = bytes.readVarint();
             if (tag == 0)
@@ -9975,18 +9974,16 @@ var jy;
                         hasLocal = 1;
                     }
                 }
-                jy.PBUtils.initDefault(struct, CfgCreator.prototype);
+                jy.PBUtils.initDefault(struct, CfgCreator);
                 var headLen = i;
                 i = 0;
                 count = bytes.readVarint(); //行的数量
+                var constructor = CfgCreator;
                 while (bytes.readAvailable && count--) {
                     var len = bytes.readVarint();
                     var obj = jy.PBUtils.readFrom(struct, bytes, len);
                     if (!obj) {
                         continue;
-                    }
-                    if (CfgCreator) {
-                        CfgCreator.call(obj);
                     }
                     var local = hasLocal && {};
                     for (var j = 0; j < headLen; j++) {
