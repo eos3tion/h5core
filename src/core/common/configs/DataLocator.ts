@@ -447,7 +447,7 @@ namespace jy {
                 while (bytes.readAvailable && count--) {
                     let len = bytes.readVarint();
                     let head = PBUtils.readFrom(CfgHeadStruct, bytes, len) as CfgHead;
-                    const [name, headType, headState, i32Def, dblDef, strDef] = head;
+                    const { 0: name, 1: headType, 2: headState, 3: i32Def, 4: dblDef, 5: strDef } = head;
                     let def, isJSON = 0, pbType: PBType;
                     switch (headType) {
                         case JSONHeadType.Any:
@@ -485,18 +485,16 @@ namespace jy {
                         hasLocal = 1;
                     }
                 }
-                PBUtils.initDefault(struct, (CfgCreator as any).prototype);
+                PBUtils.initDefault(struct, CfgCreator as any);
                 let headLen = i;
                 i = 0;
                 count = bytes.readVarint();//行的数量
+                const constructor = CfgCreator;
                 while (bytes.readAvailable && count--) {
                     let len = bytes.readVarint();
                     let obj = PBUtils.readFrom(struct, bytes, len);
                     if (!obj) {
                         continue;
-                    }
-                    if (CfgCreator) {
-                        CfgCreator.call(obj);
                     }
                     let local = hasLocal && {};
                     for (let j = 0; j < headLen; j++) {
