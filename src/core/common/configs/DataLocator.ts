@@ -489,7 +489,6 @@ namespace jy {
                 let headLen = i;
                 i = 0;
                 count = bytes.readVarint();//行的数量
-                const constructor = CfgCreator;
                 while (bytes.readAvailable && count--) {
                     let len = bytes.readVarint();
                     let obj = PBUtils.readFrom(struct, bytes, len);
