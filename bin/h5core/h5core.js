@@ -3169,6 +3169,13 @@ var jy;
             ins.priority = priority || 0;
             ins.trigger = triggerOnStage;
             this._interests[eventType] = ins;
+            if (triggerOnStage) {
+                var _awakeCallers = this._awakeCallers;
+                if (!_awakeCallers) {
+                    this._awakeCallers = _awakeCallers = [];
+                }
+                _awakeCallers.pushOnce(handler);
+            }
         };
         ViewController.prototype.removeSkinListener = function (skin) {
             if (skin) {
@@ -3192,14 +3199,16 @@ var jy;
         ViewController.prototype.stageHandler = function (e) {
             var type, ins;
             var _interests = this._interests;
+            this.checkInterest();
             if (e.type == "addedToStage" /* ADDED_TO_STAGE */) {
                 //加入关注的事件
                 for (type in _interests) {
                     ins = _interests[type];
                     jy.on(type, ins.handler, this, ins.priority);
-                    if (ins.trigger) {
-                        ins.handler.call(this);
-                    }
+                }
+                var _awakeCallers = this._awakeCallers;
+                for (var i = 0; i < _awakeCallers.length; i++) {
+                    _awakeCallers[i].call(this);
                 }
                 if (this.awake) {
                     this.awake();
@@ -3213,6 +3222,22 @@ var jy;
                 if (this.sleep) {
                     this.sleep();
                 }
+            }
+        };
+        ViewController.prototype.checkInterest = function () {
+            if (!this.interestChecked) {
+                var _awakeCallers = this._awakeCallers;
+                if (!_awakeCallers) {
+                    this._awakeCallers = _awakeCallers = [];
+                }
+                var _interests = this._interests;
+                for (var type in _interests) {
+                    var ins = _interests[type];
+                    if (ins.trigger) {
+                        _awakeCallers.pushOnce(ins.handler);
+                    }
+                }
+                this.interestChecked = true;
             }
         };
         return ViewController;
@@ -3230,7 +3255,7 @@ var jy;
      */
     function d_interest(eventType, triggerOnStage, isPrivate, priority) {
         var pKey = "_interests";
-        return function (target, key, value) {
+        return function (target, _, value) {
             var _interests;
             if (target.hasOwnProperty(pKey)) {
                 _interests = target[pKey];
@@ -15315,7 +15340,7 @@ var jy;
         return ListItemRenderer;
     }(egret.EventDispatcher));
     jy.ListItemRenderer = ListItemRenderer;
-    jy.expand(ListItemRenderer, jy.ViewController, "addReadyExecute", "addDepend", "stageHandler", "interest", "checkInject");
+    jy.expand(ListItemRenderer, jy.ViewController, "addReadyExecute", "addDepend", "stageHandler", "interest", "checkInject", "checkInterest");
     // export abstract class AListItemRenderer<T, S extends egret.DisplayObject> extends ListItemRenderer<T, S> implements SuiDataCallback {
     //     /**
     //      * 子类重写设置皮肤

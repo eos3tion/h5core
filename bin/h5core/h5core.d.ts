@@ -2134,6 +2134,10 @@ declare namespace jy {
         protected _interests: {
             [index: string]: Interest;
         };
+        interestChecked: boolean;
+        _awakeCallers: {
+            (e?: egret.Event): void;
+        }[];
         /**
          * 用于内部增加关注
          *
@@ -2149,6 +2153,7 @@ declare namespace jy {
         addSkinListener(skin: egret.DisplayObject): void;
         readonly isReady: boolean;
         stageHandler(e: egret.Event): void;
+        checkInterest(): void;
     }
     interface Interest {
         /**
@@ -2183,7 +2188,7 @@ declare namespace jy {
      * @param {boolean} [isPrivate=false]           是否为私有方法，如果标记为私有方法，则不会被子类的关注继承
      * @param {number} [priority=0]                 优先级，默认为0
      */
-    function d_interest(eventType: Key, triggerOnStage?: boolean, isPrivate?: boolean, priority?: number): (target: any, key: string, value: any) => void;
+    function d_interest(eventType: Key, triggerOnStage?: boolean, isPrivate?: boolean, priority?: number): (target: any, _: string, value: any) => void;
 }
 declare namespace jy {
     class Scroller extends egret.EventDispatcher {
