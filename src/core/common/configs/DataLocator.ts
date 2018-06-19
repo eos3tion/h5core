@@ -498,7 +498,7 @@ namespace jy {
                     let local = hasLocal && {};
                     for (let j = 0; j < headLen; j++) {
                         let head = headersRaw[j];
-                        let [name, test, type, def, isJSON] = head;
+                        let { 0: name, 1: test, 2: type, 3: def, 4: isJSON } = head;
                         let value = obj[name];
                         if (value && isJSON) {
                             value = JSON.parse(value);
