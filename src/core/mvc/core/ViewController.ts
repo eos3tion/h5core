@@ -30,6 +30,8 @@ namespace jy {
          * 关注列表
          */
         protected _interests: { [index: string]: Interest };
+        interestChecked: boolean;
+        _awakeCallers: { (e?: egret.Event): void }[];
 
         /**
          * 用于内部增加关注
@@ -45,6 +47,13 @@ namespace jy {
             ins.priority = priority || 0;
             ins.trigger = triggerOnStage;
             this._interests[eventType] = ins;
+            if (triggerOnStage) {
+                let _awakeCallers = this._awakeCallers;
+                if (!_awakeCallers) {
+                    this._awakeCallers = _awakeCallers = [];
+                }
+                _awakeCallers.pushOnce(handler);
+            }
         }
 
         removeSkinListener(skin: egret.DisplayObject) {
@@ -67,14 +76,16 @@ namespace jy {
         stageHandler(e: egret.Event) {
             let type: string, ins: Interest;
             const _interests = this._interests;
+            this.checkInterest();
             if (e.type == EgretEvent.ADDED_TO_STAGE) {
                 //加入关注的事件
                 for (type in _interests) {
                     ins = _interests[type];
                     on(type, ins.handler, this, ins.priority);
-                    if (ins.trigger) {
-                        ins.handler.call(this);
-                    }
+                }
+                const _awakeCallers = this._awakeCallers;
+                for (let i = 0; i < _awakeCallers.length; i++) {
+                    _awakeCallers[i].call(this);
                 }
                 if (this.awake) {
                     this.awake();
@@ -87,6 +98,23 @@ namespace jy {
                 if (this.sleep) {
                     this.sleep();
                 }
+            }
+        }
+
+        checkInterest() {
+            if (!this.interestChecked) {
+                let _awakeCallers = this._awakeCallers;
+                if (!_awakeCallers) {
+                    this._awakeCallers = _awakeCallers = [];
+                }
+                const _interests = this._interests;
+                for (let type in _interests) {
+                    let ins = _interests[type];
+                    if (ins.trigger) {
+                        _awakeCallers.pushOnce(ins.handler);
+                    }
+                }
+                this.interestChecked = true;
             }
         }
     }
@@ -129,7 +157,7 @@ namespace jy {
      */
     export function d_interest(eventType: Key, triggerOnStage?: boolean, isPrivate?: boolean, priority?: number) {
         const pKey = "_interests";
-        return function (target: any, key: string, value: any) {
+        return function (target: any, _: string, value: any) {
             let _interests: { [eventType: string]: Interest };
             if (target.hasOwnProperty(pKey)) {
                 _interests = target[pKey];
