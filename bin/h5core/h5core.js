@@ -10847,7 +10847,6 @@ var jy;
                 var headLen = i;
                 i = 0;
                 count = bytes.readVarint(); //行的数量
-                var constructor = CfgCreator;
                 while (bytes.readAvailable && count--) {
                     var len = bytes.readVarint();
                     var obj = jy.PBUtils.readFrom(struct, bytes, len);
