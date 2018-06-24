@@ -34,6 +34,11 @@ namespace jy {
         _awakeCallers: { (e?: egret.Event): void }[];
 
         /**
+         * 定时回调的列表
+         */
+        _tList: $CallbackInfo[];
+
+        /**
          * 用于内部增加关注
          * 
          * @param {Key} eventType 
@@ -70,6 +75,68 @@ namespace jy {
             }
         }
 
+        /**
+         * 绑定定时处理的回调函数
+         *
+         * @param {Function} callback
+         * @param {*} [time=Time.ONE_SECOND]
+         * @param {*} [thisObj=this]
+         * @param {*} args
+         * @memberof ViewController
+         */
+        bindTimer(callback: Function, time = Time.ONE_SECOND, thisObj = this, ...args) {
+            let _tList = this._tList;
+            if (!_tList) {
+                this._tList = _tList = [];
+            }
+            let info = CallbackInfo.addToList(_tList, callback, thisObj, ...args);
+            info.time = time;
+            TimerUtil.add(time, info);
+        }
+
+        /**
+         * 解除定时回调函数的绑定
+         * @param callback 
+         * @param time 
+         * @param thisObj 
+         */
+        looseTimer(callback: Function, time = Time.ONE_SECOND, thisObj = this) {
+            let list = this._tList;
+            if (list) {
+                let info = CallbackInfo.removeFromList(list, callback, thisObj);
+                if (info) {
+                    TimerUtil.remove(time, info);
+                    info.recycle();
+                }
+            }
+        }
+
+        /**
+         * 添加到舞台时，自动添加定时回调
+         */
+        awakeTimer() {
+            let list = this._tList;
+            if (list) {
+                for (let i = 0; i < list.length; i++) {
+                    const cb = list[i];
+                    TimerUtil.add(cb.time, cb);
+                }
+            }
+        }
+
+        /**
+         * 从舞台移除时候，自动移除定时回调
+         */
+        sleepTimer() {
+            let list = this._tList;
+            if (list) {
+                for (let i = 0; i < list.length; i++) {
+                    const cb = list[i];
+                    TimerUtil.remove(cb.time, cb);
+                }
+            }
+        }
+
         public get isReady() {
             return this._ready;
         }
@@ -87,6 +154,8 @@ namespace jy {
                 for (let i = 0; i < _awakeCallers.length; i++) {
                     _awakeCallers[i].call(this);
                 }
+                //检查timer绑定
+                this.awakeTimer();
                 if (this.awake) {
                     this.awake();
                 }
@@ -95,6 +164,7 @@ namespace jy {
                     ins = _interests[type];
                     off(type, ins.handler, this);
                 }
+                this.sleepTimer();
                 if (this.sleep) {
                     this.sleep();
                 }

@@ -44,15 +44,15 @@ namespace jy {
 	 *
 	 */
     export class CallbackInfo<T extends Function> implements IRecyclable {
-        public callback: T;
-        public args: any[];
-        public thisObj: any;
+        callback: T;
+        args: any[];
+        thisObj: any;
 
-        public doRecycle = true;
+        doRecycle = true;
         /**
          * 待执行的时间
          */
-        public time: number;
+        time: number;
         constructor() {
             if (DEBUG) {
                 let data: PropertyDescriptor = { enumerable: true, configurable: true };
@@ -71,7 +71,7 @@ namespace jy {
             }
         }
 
-        public init(callback: T, thisObj?: any, args?: any[]) {
+        init(callback: T, thisObj?: any, args?: any[]) {
             this.callback = callback;
             this.args = args;
             this.thisObj = thisObj;
@@ -80,7 +80,7 @@ namespace jy {
         /**
          * 检查回调是否一致，只检查参数和this对象,不检查参数
          */
-        public checkHandle(callback: T, thisObj: any) {
+        checkHandle(callback: T, thisObj: any) {
             return this.callback === callback && this.thisObj == thisObj/* 允许null==undefined */;
         }
 
@@ -89,7 +89,7 @@ namespace jy {
          * 回调函数，将以args作为参数，callback作为函数执行
          * @param {boolean} [doRecycle] 是否回收CallbackInfo，默认为true
          */
-        public execute(doRecycle?: boolean) {
+        execute(doRecycle?: boolean) {
             let callback = this.callback;
             let result = call(this);
             if (doRecycle == undefined) {
@@ -106,8 +106,8 @@ namespace jy {
          * 初始的参数会按顺序放在末位
          * @param args (description)
          */
-        public call(...args)
-        public call() {
+        call(...args)
+        call() {
             return call(this, arguments);
         }
 
@@ -117,14 +117,14 @@ namespace jy {
          * 此方法会回收callbackInfo
          * @param {any} args 
          */
-        public callAndRecycle(...args)
-        public callAndRecycle() {
+        callAndRecycle(...args)
+        callAndRecycle() {
             let result = call(this, arguments);
             this.recycle();
             return result;
         }
 
-        public onRecycle() {
+        onRecycle() {
             this.callback = undefined;
             this.args = undefined;
             this.thisObj = undefined;
@@ -132,12 +132,12 @@ namespace jy {
         }
 
 
-        public recycle: { () };
+        recycle: { () };
 
         /**
          * 获取CallbackInfo的实例
          */
-        public static get<T extends Function>(callback: T, thisObj?: any, ...args: any[]) {
+        static get<T extends Function>(callback: T, thisObj?: any, ...args: any[]) {
             var info = recyclable(CallbackInfo);
             info.init(callback, thisObj, args);
             return info as CallbackInfo<T>;
@@ -151,9 +151,11 @@ namespace jy {
          * @param args
          * @param thisObj
          */
-        public static addToList<T extends Function>(list: CallbackInfo<T>[], handle: T, thisObj?: any, ...args: any[]) {
+        static addToList<T extends Function>(list: CallbackInfo<T>[], handle: T, thisObj?: any, ...args: any[]) {
             //检查是否有this和handle相同的callback
-            for (var callback of list) {
+            let callback: CallbackInfo<T>;
+            for (let i = 0, len = list.length; i < len; i++) {
+                callback = list[i];
                 if (callback.checkHandle(handle, thisObj)) {
                     callback.args = args;
                     return callback;
@@ -162,6 +164,34 @@ namespace jy {
             callback = this.get(handle, thisObj, ...args);
             list.push(callback);
             return callback;
+        }
+
+        /**
+         * 从列表中移除
+         *
+         * @static
+         * @template T
+         * @param {CallbackInfo<T>[]} list
+         * @param {T} handle
+         * @param {*} [thisObj]
+         * @returns
+         * @memberof CallbackInfo
+         */
+        static removeFromList<T extends Function>(list: CallbackInfo<T>[], handle: T, thisObj?: any) {
+            let j = -1;
+            let info: CallbackInfo<T>;
+            for (let i = 0, len = list.length; i < len; i++) {
+                let callback = list[i];
+                if (callback.checkHandle(handle, thisObj)) {
+                    j = i;
+                    info = callback;
+                    break;
+                }
+            }
+            if (info) {
+                list.splice(j, 1);
+            }
+            return info;
         }
     }
 }
