@@ -15,9 +15,11 @@ namespace jy {
         nt: number;
 
     }
+
     const _timeobj: { [index: number]: GTimer } = {};
     let tmpList: CallbackInfo<Function>[] = [];
     let willDeleted: string[] = [];
+
     function tick(now: number) {
         let d = 0;
         for (let key in _timeobj) {
@@ -48,9 +50,10 @@ namespace jy {
     function getInterval(time: number) {
         return Math.ceil(time / 10) * 10;
     }
+
     /**
      * 
-     * 注册回调
+     * 注册回调  会对在同一个时间区间的 `callback`和`thisObj`相同的回调函数进行去重
      * @static
      * @param {number} time 回调的间隔时间，间隔时间会处理成30的倍数，向上取整，如 设置1ms，实际间隔为30ms，32ms，实际间隔会使用60ms
      * @param {Function} callback 回调函数，没有加this指针是因为做移除回调的操作会比较繁琐，如果函数中需要使用this，请通过箭头表达式()=>{}，或者将this放arg中传入
@@ -61,11 +64,8 @@ namespace jy {
         time = getInterval(time);
         let timer = _timeobj[time];
         if (!timer) {
-            timer = <GTimer>{};
-            timer.tid = time;//setInterval(check, time, timer);
-            timer.nt = Global.now + time;
             let list: CallbackInfo<Function>[] = [];
-            timer.list = list;
+            timer = <GTimer>{ tid: time, nt: Global.now + time, list };
             _timeobj[time] = timer;
             list.push(CallbackInfo.get(callback, thisObj, ...args));
         } else {
@@ -74,8 +74,36 @@ namespace jy {
     }
 
     /**
+     * 注册回调 会对在同一个时间区间的 `callback`相同的情况下，才会去重
+     * @param time 
+     * @param callback 
+     */
+    function add(time: number, callback: $CallbackInfo) {
+        time = getInterval(time);
+        let timer = _timeobj[time];
+        if (!timer) {
+            timer = <GTimer>{ tid: time, nt: Global.now + time, list: [] };
+            _timeobj[time] = timer;
+        }
+        timer.list.pushOnce(callback);
+    }
+
+    /**
      * 移除回调
-     * 
+     * 不回收`CallbackInfo`
+     * @param {number} time
+     * @param {$CallbackInfo} callback
+     */
+    function remove(time: number, callback: $CallbackInfo) {
+        time = getInterval(time);
+        let timer = _timeobj[time];
+        if (timer) {
+            timer.list.remove(callback);
+        }
+    }
+
+    /**
+     * 移除回调
      * @static
      * @param {number} time         回调的间隔时间，间隔时间会处理成30的倍数，向上取整，如 设置1ms，实际间隔为30ms，32ms，实际间隔会使用60ms
      * @param {Function} callback   回调函数，没有加this指针是因为做移除回调的操作会比较繁琐，如果函数中需要使用this，请通过箭头表达式()=>{}，或者将this放arg中传入
@@ -86,19 +114,12 @@ namespace jy {
         let timer = _timeobj[time];
         if (timer) {
             let list = timer.list;
-            let j = -1;
-            for (let i = 0, len = list.length; i < len; i++) {
-                let info = list[i];
-                if (info.checkHandle(callback, thisObj)) {
-                    j = i;
-                    break;
-                }
-            }
-            if (~j) {
-                list.splice(j, 1);
+            let info = CallbackInfo.removeFromList(list, callback, thisObj);
+            if (info) {
+                info.recycle();
             }
         }
     }
 
-    export const TimerUtil = { addCallback, removeCallback, tick };
+    export const TimerUtil = { addCallback, removeCallback, tick, add, remove };
 }
