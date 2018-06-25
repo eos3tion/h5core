@@ -406,7 +406,7 @@ namespace jy {
 
         }
     }
-    expand(ListItemRenderer, ViewController, "addReadyExecute", "addDepend", "stageHandler", "interest", "checkInject", "checkInterest");
+    expand(ListItemRenderer, ViewController, "addReadyExecute", "addDepend", "stageHandler", "interest", "checkInject", "checkInterest", "awakeTimer", "sleepTimer", "bindTimer", "looseTimer");
 
     // export abstract class AListItemRenderer<T, S extends egret.DisplayObject> extends ListItemRenderer<T, S> implements SuiDataCallback {
     //     /**

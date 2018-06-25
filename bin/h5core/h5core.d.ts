@@ -2139,6 +2139,10 @@ declare namespace jy {
             (e?: egret.Event): void;
         }[];
         /**
+         * 定时回调的列表
+         */
+        _tList: $CallbackInfo[];
+        /**
          * 用于内部增加关注
          *
          * @param {Key} eventType
@@ -2151,6 +2155,32 @@ declare namespace jy {
         }, triggerOnStage?: boolean, priority?: number): void;
         removeSkinListener(skin: egret.DisplayObject): void;
         addSkinListener(skin: egret.DisplayObject): void;
+        /**
+         * 绑定定时处理的回调函数
+         *
+         * @param {Function} callback 执行回调函数
+         * @param {boolean} [trigger=true] 是否理解执行
+         * @param {number} [time=Time.ONE_SECOND]
+         * @param {any} [thisObj=this]
+         * @param {any} args
+         * @memberof ViewController
+         */
+        bindTimer(callback: Function, trigger?: boolean, time?: Time, thisObj?: this, ...args: any[]): void;
+        /**
+         * 解除定时回调函数的绑定
+         * @param callback
+         * @param time
+         * @param thisObj
+         */
+        looseTimer(callback: Function, time?: Time, thisObj?: this): void;
+        /**
+         * 添加到舞台时，自动添加定时回调
+         */
+        awakeTimer(): void;
+        /**
+         * 从舞台移除时候，自动移除定时回调
+         */
+        sleepTimer(): void;
         readonly isReady: boolean;
         stageHandler(e: egret.Event): void;
         checkInterest(): void;
@@ -4288,6 +4318,18 @@ declare namespace jy {
          * @param thisObj
          */
         static addToList<T extends Function>(list: CallbackInfo<T>[], handle: T, thisObj?: any, ...args: any[]): CallbackInfo<T>;
+        /**
+         * 从列表中移除
+         *
+         * @static
+         * @template T
+         * @param {CallbackInfo<T>[]} list
+         * @param {T} handle
+         * @param {*} [thisObj]
+         * @returns
+         * @memberof CallbackInfo
+         */
+        static removeFromList<T extends Function>(list: CallbackInfo<T>[], handle: T, thisObj?: any): CallbackInfo<T>;
     }
 }
 declare namespace jy {
@@ -4716,7 +4758,7 @@ declare namespace jy {
     function tick(now: number): void;
     /**
      *
-     * 注册回调
+     * 注册回调  会对在同一个时间区间的 `callback`和`thisObj`相同的回调函数进行去重
      * @static
      * @param {number} time 回调的间隔时间，间隔时间会处理成30的倍数，向上取整，如 设置1ms，实际间隔为30ms，32ms，实际间隔会使用60ms
      * @param {Function} callback 回调函数，没有加this指针是因为做移除回调的操作会比较繁琐，如果函数中需要使用this，请通过箭头表达式()=>{}，或者将this放arg中传入
@@ -4725,8 +4767,20 @@ declare namespace jy {
      */
     function addCallback(time: number, callback: Function, thisObj?: any, ...args: any[]): void;
     /**
+     * 注册回调 会对在同一个时间区间的 `callback`相同的情况下，才会去重
+     * @param time
+     * @param callback
+     */
+    function add(time: number, callback: $CallbackInfo): void;
+    /**
      * 移除回调
-     *
+     * 不回收`CallbackInfo`
+     * @param {number} time
+     * @param {$CallbackInfo} callback
+     */
+    function remove(time: number, callback: $CallbackInfo): void;
+    /**
+     * 移除回调
      * @static
      * @param {number} time         回调的间隔时间，间隔时间会处理成30的倍数，向上取整，如 设置1ms，实际间隔为30ms，32ms，实际间隔会使用60ms
      * @param {Function} callback   回调函数，没有加this指针是因为做移除回调的操作会比较繁琐，如果函数中需要使用this，请通过箭头表达式()=>{}，或者将this放arg中传入
@@ -4737,6 +4791,8 @@ declare namespace jy {
         addCallback: typeof addCallback;
         removeCallback: typeof removeCallback;
         tick: typeof tick;
+        add: typeof add;
+        remove: typeof remove;
     };
 }
 declare namespace jy {

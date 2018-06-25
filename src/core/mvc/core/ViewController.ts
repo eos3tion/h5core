@@ -78,13 +78,14 @@ namespace jy {
         /**
          * 绑定定时处理的回调函数
          *
-         * @param {Function} callback
-         * @param {*} [time=Time.ONE_SECOND]
-         * @param {*} [thisObj=this]
-         * @param {*} args
+         * @param {Function} callback 执行回调函数
+         * @param {boolean} [trigger=true] 是否理解执行 
+         * @param {number} [time=Time.ONE_SECOND]
+         * @param {any} [thisObj=this]
+         * @param {any} args
          * @memberof ViewController
          */
-        bindTimer(callback: Function, time = Time.ONE_SECOND, thisObj = this, ...args) {
+        bindTimer(callback: Function, trigger = true, time = Time.ONE_SECOND, thisObj = this, ...args) {
             let _tList = this._tList;
             if (!_tList) {
                 this._tList = _tList = [];
@@ -92,6 +93,9 @@ namespace jy {
             let info = CallbackInfo.addToList(_tList, callback, thisObj, ...args);
             info.time = time;
             TimerUtil.add(time, info);
+            if (trigger) {
+                info.execute(false);
+            }
         }
 
         /**

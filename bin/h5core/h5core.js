@@ -3189,6 +3189,77 @@ var jy;
                 skin.on("addedToStage" /* ADDED_TO_STAGE */, this.stageHandler, this);
             }
         };
+        /**
+         * 绑定定时处理的回调函数
+         *
+         * @param {Function} callback 执行回调函数
+         * @param {boolean} [trigger=true] 是否理解执行
+         * @param {number} [time=Time.ONE_SECOND]
+         * @param {any} [thisObj=this]
+         * @param {any} args
+         * @memberof ViewController
+         */
+        ViewController.prototype.bindTimer = function (callback, trigger, time, thisObj) {
+            if (trigger === void 0) { trigger = true; }
+            if (time === void 0) { time = 1000 /* ONE_SECOND */; }
+            if (thisObj === void 0) { thisObj = this; }
+            var args = [];
+            for (var _i = 4; _i < arguments.length; _i++) {
+                args[_i - 4] = arguments[_i];
+            }
+            var _tList = this._tList;
+            if (!_tList) {
+                this._tList = _tList = [];
+            }
+            var info = jy.CallbackInfo.addToList.apply(jy.CallbackInfo, [_tList, callback, thisObj].concat(args));
+            info.time = time;
+            jy.TimerUtil.add(time, info);
+            if (trigger) {
+                info.execute(false);
+            }
+        };
+        /**
+         * 解除定时回调函数的绑定
+         * @param callback
+         * @param time
+         * @param thisObj
+         */
+        ViewController.prototype.looseTimer = function (callback, time, thisObj) {
+            if (time === void 0) { time = 1000 /* ONE_SECOND */; }
+            if (thisObj === void 0) { thisObj = this; }
+            var list = this._tList;
+            if (list) {
+                var info = jy.CallbackInfo.removeFromList(list, callback, thisObj);
+                if (info) {
+                    jy.TimerUtil.remove(time, info);
+                    info.recycle();
+                }
+            }
+        };
+        /**
+         * 添加到舞台时，自动添加定时回调
+         */
+        ViewController.prototype.awakeTimer = function () {
+            var list = this._tList;
+            if (list) {
+                for (var i = 0; i < list.length; i++) {
+                    var cb = list[i];
+                    jy.TimerUtil.add(cb.time, cb);
+                }
+            }
+        };
+        /**
+         * 从舞台移除时候，自动移除定时回调
+         */
+        ViewController.prototype.sleepTimer = function () {
+            var list = this._tList;
+            if (list) {
+                for (var i = 0; i < list.length; i++) {
+                    var cb = list[i];
+                    jy.TimerUtil.remove(cb.time, cb);
+                }
+            }
+        };
         Object.defineProperty(ViewController.prototype, "isReady", {
             get: function () {
                 return this._ready;
@@ -3210,6 +3281,8 @@ var jy;
                 for (var i = 0; i < _awakeCallers.length; i++) {
                     _awakeCallers[i].call(this);
                 }
+                //检查timer绑定
+                this.awakeTimer();
                 if (this.awake) {
                     this.awake();
                 }
@@ -3219,6 +3292,7 @@ var jy;
                     ins = _interests[type];
                     jy.off(type, ins.handler, this);
                 }
+                this.sleepTimer();
                 if (this.sleep) {
                     this.sleep();
                 }
@@ -6834,8 +6908,9 @@ var jy;
                 args[_i - 3] = arguments[_i];
             }
             //检查是否有this和handle相同的callback
-            for (var _a = 0, list_1 = list; _a < list_1.length; _a++) {
-                var callback = list_1[_a];
+            var callback;
+            for (var i = 0, len = list.length; i < len; i++) {
+                callback = list[i];
                 if (callback.checkHandle(handle, thisObj)) {
                     callback.args = args;
                     return callback;
@@ -6844,6 +6919,33 @@ var jy;
             callback = this.get.apply(this, [handle, thisObj].concat(args));
             list.push(callback);
             return callback;
+        };
+        /**
+         * 从列表中移除
+         *
+         * @static
+         * @template T
+         * @param {CallbackInfo<T>[]} list
+         * @param {T} handle
+         * @param {*} [thisObj]
+         * @returns
+         * @memberof CallbackInfo
+         */
+        CallbackInfo.removeFromList = function (list, handle, thisObj) {
+            var j = -1;
+            var info;
+            for (var i = 0, len = list.length; i < len; i++) {
+                var callback = list[i];
+                if (callback.checkHandle(handle, thisObj)) {
+                    j = i;
+                    info = callback;
+                    break;
+                }
+            }
+            if (info) {
+                list.splice(j, 1);
+            }
+            return info;
         };
         return CallbackInfo;
     }());
@@ -7629,7 +7731,7 @@ var jy;
     }
     /**
      *
-     * 注册回调
+     * 注册回调  会对在同一个时间区间的 `callback`和`thisObj`相同的回调函数进行去重
      * @static
      * @param {number} time 回调的间隔时间，间隔时间会处理成30的倍数，向上取整，如 设置1ms，实际间隔为30ms，32ms，实际间隔会使用60ms
      * @param {Function} callback 回调函数，没有加this指针是因为做移除回调的操作会比较繁琐，如果函数中需要使用this，请通过箭头表达式()=>{}，或者将this放arg中传入
@@ -7644,11 +7746,8 @@ var jy;
         time = getInterval(time);
         var timer = _timeobj[time];
         if (!timer) {
-            timer = {};
-            timer.tid = time; //setInterval(check, time, timer);
-            timer.nt = jy.Global.now + time;
             var list = [];
-            timer.list = list;
+            timer = { tid: time, nt: jy.Global.now + time, list: list };
             _timeobj[time] = timer;
             list.push(jy.CallbackInfo.get.apply(jy.CallbackInfo, [callback, thisObj].concat(args)));
         }
@@ -7657,8 +7756,34 @@ var jy;
         }
     }
     /**
+     * 注册回调 会对在同一个时间区间的 `callback`相同的情况下，才会去重
+     * @param time
+     * @param callback
+     */
+    function add(time, callback) {
+        time = getInterval(time);
+        var timer = _timeobj[time];
+        if (!timer) {
+            timer = { tid: time, nt: jy.Global.now + time, list: [] };
+            _timeobj[time] = timer;
+        }
+        timer.list.pushOnce(callback);
+    }
+    /**
      * 移除回调
-     *
+     * 不回收`CallbackInfo`
+     * @param {number} time
+     * @param {$CallbackInfo} callback
+     */
+    function remove(time, callback) {
+        time = getInterval(time);
+        var timer = _timeobj[time];
+        if (timer) {
+            timer.list.remove(callback);
+        }
+    }
+    /**
+     * 移除回调
      * @static
      * @param {number} time         回调的间隔时间，间隔时间会处理成30的倍数，向上取整，如 设置1ms，实际间隔为30ms，32ms，实际间隔会使用60ms
      * @param {Function} callback   回调函数，没有加this指针是因为做移除回调的操作会比较繁琐，如果函数中需要使用this，请通过箭头表达式()=>{}，或者将this放arg中传入
@@ -7669,20 +7794,13 @@ var jy;
         var timer = _timeobj[time];
         if (timer) {
             var list = timer.list;
-            var j = -1;
-            for (var i = 0, len = list.length; i < len; i++) {
-                var info = list[i];
-                if (info.checkHandle(callback, thisObj)) {
-                    j = i;
-                    break;
-                }
-            }
-            if (~j) {
-                list.splice(j, 1);
+            var info = jy.CallbackInfo.removeFromList(list, callback, thisObj);
+            if (info) {
+                info.recycle();
             }
         }
     }
-    jy.TimerUtil = { addCallback: addCallback, removeCallback: removeCallback, tick: tick };
+    jy.TimerUtil = { addCallback: addCallback, removeCallback: removeCallback, tick: tick, add: add, remove: remove };
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -11308,8 +11426,8 @@ var jy;
             this.x = 0;
             this.y = 0;
             var list = this.$children;
-            for (var _i = 0, list_2 = list; _i < list_2.length; _i++) {
-                var bmp = list_2[_i];
+            for (var _i = 0, list_1 = list; _i < list_1.length; _i++) {
+                var bmp = list_1[_i];
                 bmp.recycle();
             }
         };
@@ -15340,7 +15458,7 @@ var jy;
         return ListItemRenderer;
     }(egret.EventDispatcher));
     jy.ListItemRenderer = ListItemRenderer;
-    jy.expand(ListItemRenderer, jy.ViewController, "addReadyExecute", "addDepend", "stageHandler", "interest", "checkInject", "checkInterest");
+    jy.expand(ListItemRenderer, jy.ViewController, "addReadyExecute", "addDepend", "stageHandler", "interest", "checkInject", "checkInterest", "awakeTimer", "sleepTimer", "bindTimer", "looseTimer");
     // export abstract class AListItemRenderer<T, S extends egret.DisplayObject> extends ListItemRenderer<T, S> implements SuiDataCallback {
     //     /**
     //      * 子类重写设置皮肤
