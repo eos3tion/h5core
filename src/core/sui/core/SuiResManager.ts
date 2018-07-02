@@ -106,15 +106,16 @@ namespace jy {
                 callback && callback.suiDataComplete(suiData);
             } else {
                 let callbacks = suiData.callbacks;
+                if (!callbacks) {
+                    suiData.callbacks = callbacks = [];
+                }
+                callback && callbacks.pushOnce(callback);
                 if (state == RequestState.UNREQUEST) {
                     suiData.state = RequestState.REQUESTING;
-                    if (!callbacks) {
-                        suiData.callbacks = callbacks = [];
-                    }
                     //先加载配置
                     Res.load(suiData.uri, suiData.url, CallbackInfo.get(this.checkData, this), qid);
                 }
-                callback && callbacks.pushOnce(callback);
+
             }
         }
 
@@ -125,7 +126,7 @@ namespace jy {
             let { uri, data } = item;
             var suiData = this._urlKey[uri];
             if (!data) {//加载失败
-                suiData.state = RequestState.FAILED;
+                suiData.state = RequestState.UNREQUEST;
                 let callbacks = suiData.callbacks;
                 if (callbacks) {
                     for (let i = 0; i < callbacks.length; i++) {

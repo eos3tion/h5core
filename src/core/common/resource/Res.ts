@@ -1,4 +1,66 @@
 namespace jy.Res {
+
+    const enum Const {
+        /**
+         * 默认的失败超时时间
+         */
+        FailedExpiredTime = 10000,
+
+        /**
+         * 默认的单个资源，不做延迟重试的最大重试次数
+         */
+        MaxRetry = 3,
+        /**
+         * 默认的最大加载线程数
+         */
+        MaxThread = 6,
+    }
+
+    /**
+     *  失败的超时时间
+     */
+    let failedExpiredTime = Const.FailedExpiredTime;
+    /**
+     * 设置失败的过期时间  
+     * 失败次数超过`maxRetry`
+     * @export
+     * @param {number} second
+     */
+    export function setFailedExpired(second: number) {
+        let time = ~~second * Time.ONE_SECOND;
+        if (time <= 0) {//如果为小于0的时间，则将时间设置为1分钟过期
+            time = Const.FailedExpiredTime;
+        }
+        failedExpiredTime = time;
+    }
+
+
+    /**
+     * 最大重试次数
+     */
+    let maxRetry = Const.MaxRetry;
+    /**
+     * 设置单个资源，不做延迟重试的最大重试次数，默认为3
+     * @param val 
+     */
+    export function setMaxRetry(val: number) {
+        maxRetry = val;
+    }
+
+    /**
+     * 最大加载数量
+     * 目前所有主流浏览器针对 http 1.1 单域名最大加载数均为6个  
+     * http2 基本无限制
+     */
+    let maxThread = Const.MaxThread;
+    /**
+     * 设置最大加载线程  默认为 6
+     * @param val 
+     */
+    export function setMaxThread(val: number) {
+        maxThread = val;
+    }
+
     /**
      * 资源类型
      */
@@ -61,6 +123,15 @@ namespace jy.Res {
          * 默认为 UnRequest
          */
         state?: RequestState;
+
+        /**
+         * 上次失败的过期时间  
+         * 网络有时候不稳定，这次连续加载不到，但是后面可能能加载到
+         *
+         * @type {number}
+         * @memberof ResItem
+         */
+        ft?: number;
 
         /**
          * 是否被移除
@@ -284,37 +355,10 @@ namespace jy.Res {
     const queues: { [groupID: string]: ResQueue } = {};
 
     /**
-     * 最大加载数量
-     * 目前所有主流浏览器针对 http 1.1 单域名最大加载数均为6个  
-     * http2 基本无限制
-     */
-    let maxThread = 6;
-
-    /**
-     * 最大重试次数
-     */
-    let maxRetry = 3;
-
-    /**
      * 失败的资源加载列队
      */
     const failedList: ResItem[] = [];
 
-    /**
-     * 设置最大失败重试次数，默认为3
-     * @param val 
-     */
-    export function setMaxRetry(val: number) {
-        maxRetry = val;
-    }
-
-    /**
-     * 设置最大加载线程  默认为 6
-     * @param val 
-     */
-    export function setMaxThread(val: number) {
-        maxThread = val;
-    }
 
     /**
     * 获取资源的扩展名
@@ -541,7 +585,7 @@ namespace jy.Res {
     export function loadRes(resItem: ResItem, callback?: ResCallback, queueID = ResQueueID.Normal) {
         addRes(resItem, queueID);
         let state = resItem.state;
-        if (state == RequestState.COMPLETE || state == RequestState.FAILED && resItem.retry > maxRetry) {//已经加载完成的资源，直接在下一帧回调
+        if (state == RequestState.COMPLETE || (state == RequestState.FAILED && resItem.retry > maxRetry && Global.now < ~~resItem.ft)) {//已经加载完成的资源，直接在下一帧回调
             return callback && Global.nextTick(callback.callAndRecycle, callback, resItem);// callback.callAndRecycle(resItem);
         }
         resItem.removed = false;
@@ -560,36 +604,38 @@ namespace jy.Res {
      */
     function getNext() {
         let next: ResItem;
-        if (failedList.length > 0) {
-            next = failedList.shift();
-        } else {
-            //得到优先级最大并且
-            let high = -Infinity;
-            let highQueue: ResQueue;
-            for (let key in queues) {//同优先级的列队，基于hash规则加载，一般来说只用内置的3个列队即可解决常规问题
-                let queue = queues[key];
-
-                if (queue.list.length) {
-                    let priority = queue.priority;
-                    if (priority > high) {
-                        high = priority;
-                        highQueue = queue;
-                    }
-                }
-            }
-            if (highQueue) {
-                //检查列队类型
-                let list = highQueue.list;
-                switch (highQueue.type) {
-                    case QueueLoadType.FIFO:
-                        next = list.shift();
-                        break;
-                    case QueueLoadType.FILO:
-                        next = list.pop();
-                        break;
+        //得到优先级最大并且
+        let high = -Infinity;
+        let highQueue: ResQueue;
+        for (let key in queues) {//同优先级的列队，基于hash规则加载，一般来说只用内置的3个列队即可解决常规问题
+            let queue = queues[key];
+            if (queue.list.length) {
+                let priority = queue.priority;
+                if (priority > high) {
+                    high = priority;
+                    highQueue = queue;
                 }
             }
         }
+        if (highQueue) {
+            //检查列队类型
+            let list = highQueue.list;
+            switch (highQueue.type) {
+                case QueueLoadType.FIFO:
+                    next = list.shift();
+                    break;
+                case QueueLoadType.FILO:
+                    next = list.pop();
+                    break;
+            }
+        }
+
+        if (!next) {
+            if (failedList.length > 0) {//失败列队最后加载
+                next = failedList.shift();
+            }
+        }
+
         return next;
     }
 
@@ -604,6 +650,9 @@ namespace jy.Res {
             if (!item) break;
             loading.pushOnce(item);
             let state = ~~item.state;
+            if (state == RequestState.FAILED && item.ft < Global.now) {//如果失败时间已经超过了失败过期时间，则重新加载
+                state = RequestState.UNREQUEST;
+            }
             switch (state) {
                 case RequestState.FAILED:
                 case RequestState.COMPLETE:
@@ -633,7 +682,7 @@ namespace jy.Res {
     function doCallback(item: ResItem) {
         let callbacks = item.callbacks;
         if (callbacks) {//执行回调列队
-            delete item.callbacks;
+            item.callbacks = undefined;
             for (let i = 0; i < callbacks.length; i++) {
                 let cb = callbacks[i];
                 cb.callAndRecycle(item);
@@ -643,10 +692,16 @@ namespace jy.Res {
 
     function onItemComplete(item: ResItem) {
         loading.remove(item);
+        item.qid = undefined;
         let state = ~~item.state;
         if (state == RequestState.FAILED) {
             let retry = item.retry || 1;
             if (retry > maxRetry) {
+                let now = Global.now;
+                let ft = ~~item.ft;
+                if (now > ft) {
+                    item.ft = failedExpiredTime * (retry - maxRetry) + now;
+                }
                 doCallback(item);
                 return dispatch(EventConst.ResLoadFailed, item);
             }
@@ -654,12 +709,9 @@ namespace jy.Res {
             item.state = RequestState.UNREQUEST;
             failedList.push(item);
         } else if (state == RequestState.COMPLETE) {
-            /**
-             * 清除资源加载项目的列队ID
-             */
-            let queueID = item.qid;
+            //加载成功，清零retry
+            item.retry = 0;
             //检查资源是否被加入到列队中
-            delete item.qid;
             doCallback(item);
             dispatch(EventConst.ResLoadSuccess, item);
         }

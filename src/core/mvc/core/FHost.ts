@@ -94,7 +94,7 @@ namespace jy {
             let _asyncHelper = this._asyncHelper;
             if (!_asyncHelper) {
                 this._asyncHelper = _asyncHelper = new AsyncHelper();
-                _asyncHelper._ready = this.isReady;
+                _asyncHelper.isReady = this.isReady;
             }
             _asyncHelper.addReadyExecute(handle, thisObj, ...args);
         }

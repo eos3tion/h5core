@@ -13,21 +13,6 @@ namespace jy {
          */
         bg?: egret.DisplayObject;
         /**
-         * 模态颜色
-         * 
-         * @static
-         * @type {number}
-         */
-        public static MODAL_COLOR: number = 0x0;
-        /**
-         * 模态透明度
-         * 
-         * @static
-         * @type {number}
-         */
-        public static MODAL_ALPHA: number = 0.8;
-
-        /**
          * 异步的Helper
          */
         protected _asyncHelper: AsyncHelper;
@@ -101,7 +86,7 @@ namespace jy {
         }
 
         public startSync() {
-            if (this._readyState == RequestState.UNREQUEST) {
+            if (this._readyState <= RequestState.UNREQUEST) {//Failed情况下允许重新请求
                 if (this._otherDepends) {
                     this._depends = this._otherDepends.concat();
                 } else {
@@ -124,7 +109,7 @@ namespace jy {
             }
         }
 
-        public suiDataComplete(suiData: SuiData): void {
+        public suiDataComplete(suiData: SuiData) {
             if (this.preloadImage) {
                 suiData.loadBmd(CallbackInfo.get(this.loadNext, this));
             } else {
@@ -132,9 +117,19 @@ namespace jy {
             }
         }
 
-        public suiDataFailed(suiData: SuiData): void {
-            //暂时用alert
-            // alert(this._className + "加载失败");
+        public suiDataFailed(_: SuiData) {
+            this._readyState = RequestState.FAILED;
+            this.readyNow(true);
+        }
+
+        protected readyNow(failed?: boolean) {
+            let asyncHelper = this._asyncHelper;
+            if (asyncHelper) {
+                asyncHelper.readyNow();
+                if (failed) {//如果是加载失败执行的回调，则将`_ready`再恢复成`false`
+                    asyncHelper.isReady = false;
+                }
+            }
         }
 
 		/**
@@ -157,9 +152,7 @@ namespace jy {
                 bg.touchEnabled = true;
             }
             this._readyState = RequestState.COMPLETE;
-            if (this._asyncHelper) {
-                this._asyncHelper.readyNow();
-            }
+            this.readyNow();
         }
 
 
