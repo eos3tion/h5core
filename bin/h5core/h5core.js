@@ -1046,7 +1046,7 @@ var jy;
             var _asyncHelper = this._asyncHelper;
             if (!_asyncHelper) {
                 this._asyncHelper = _asyncHelper = new jy.AsyncHelper();
-                _asyncHelper._ready = this.isReady;
+                _asyncHelper.isReady = this.isReady;
             }
             _asyncHelper.addReadyExecute.apply(_asyncHelper, [handle, thisObj].concat(args));
         };
@@ -12773,36 +12773,25 @@ var jy;
      */
     var AsyncHelper = /** @class */ (function () {
         function AsyncHelper() {
-            this._ready = false;
-        }
-        Object.defineProperty(AsyncHelper.prototype, "isReady", {
             /**
              * 是否已经处理完成
              */
-            get: function () {
-                return this._ready;
-            },
-            enumerable: true,
-            configurable: true
-        });
+            this.isReady = false;
+        }
         /**
          * 异步数据已经加载完毕
          */
         AsyncHelper.prototype.readyNow = function () {
-            if (!this._ready) {
-                this._ready = true;
-                var _readyExecutes = this._readyExecutes;
+            if (!this.isReady) {
+                this.isReady = true;
+                var _readyExecutes = this._cbs;
                 if (_readyExecutes) {
-                    var temp = [];
-                    for (var i = 0, len = _readyExecutes.length; i < len; i++) {
-                        temp[i] = _readyExecutes[i];
-                    }
-                    _readyExecutes = undefined;
-                    for (i = 0; i < len; i++) {
+                    var temp = _readyExecutes.concat();
+                    _readyExecutes.length = 0;
+                    for (var i = 0; i < temp.length; i++) {
                         var callback = temp[i];
                         callback.execute();
                     }
-                    temp.length = 0;
                 }
             }
         };
@@ -12818,14 +12807,12 @@ var jy;
             for (var _i = 2; _i < arguments.length; _i++) {
                 args[_i - 2] = arguments[_i];
             }
-            if (this._ready) {
-                handle.apply(thisObj, args);
-                return;
+            if (this.isReady) {
+                return handle.apply(thisObj, args);
             }
-            var _readyExecutes = this._readyExecutes;
+            var _readyExecutes = this._cbs;
             if (!_readyExecutes) {
-                _readyExecutes = [];
-                this._readyExecutes = _readyExecutes;
+                this._cbs = _readyExecutes = [];
             }
             jy.CallbackInfo.addToList.apply(jy.CallbackInfo, [_readyExecutes, handle, thisObj].concat(args));
         };
@@ -13520,7 +13507,7 @@ var jy;
             if (jy.isIAsync($view)) {
                 viewReady = $view.isReady;
             }
-            this._preViewReady = viewReady;
+            this.viewReady = viewReady;
             if (!this.viewCheck(viewReady)) {
                 return;
             }
@@ -13541,7 +13528,7 @@ var jy;
          * @returns
          */
         Mediator.prototype.dependerReadyCheck = function () {
-            if (!this._preViewReady) {
+            if (!this.viewReady) {
                 return;
             }
             if (!this._ready) {
@@ -14548,7 +14535,7 @@ var jy;
             this._otherDepends = otherDepends;
         };
         Panel.prototype.startSync = function () {
-            if (this._readyState == 0 /* UNREQUEST */) {
+            if (this._readyState <= 0 /* UNREQUEST */) { //Failed情况下允许重新请求
                 if (this._otherDepends) {
                     this._depends = this._otherDepends.concat();
                 }
@@ -14578,9 +14565,18 @@ var jy;
                 this.loadNext();
             }
         };
-        Panel.prototype.suiDataFailed = function (suiData) {
-            //暂时用alert
-            // alert(this._className + "加载失败");
+        Panel.prototype.suiDataFailed = function (_) {
+            this._readyState = -1 /* FAILED */;
+            this.readyNow(true);
+        };
+        Panel.prototype.readyNow = function (failed) {
+            var asyncHelper = this._asyncHelper;
+            if (asyncHelper) {
+                asyncHelper.readyNow();
+                if (failed) { //如果是加载失败执行的回调，则将`_ready`再恢复成`false`
+                    asyncHelper.isReady = false;
+                }
+            }
         };
         /**
          * 绑定皮肤
@@ -14601,9 +14597,7 @@ var jy;
                 bg.touchEnabled = true;
             }
             this._readyState = 2 /* COMPLETE */;
-            if (this._asyncHelper) {
-                this._asyncHelper.readyNow();
-            }
+            this.readyNow();
         };
         Panel.prototype.modalToStage = function () {
             if (this._isModal) {
@@ -14720,20 +14714,6 @@ var jy;
         Panel.prototype.show = function () {
             jy.toggle(this.moduleID, 1 /* SHOW */);
         };
-        /**
-         * 模态颜色
-         *
-         * @static
-         * @type {number}
-         */
-        Panel.MODAL_COLOR = 0x0;
-        /**
-         * 模态透明度
-         *
-         * @static
-         * @type {number}
-         */
-        Panel.MODAL_ALPHA = 0.8;
         return Panel;
     }(egret.Sprite));
     jy.Panel = Panel;
@@ -17313,15 +17293,15 @@ var jy;
             }
             else {
                 var callbacks = suiData.callbacks;
+                if (!callbacks) {
+                    suiData.callbacks = callbacks = [];
+                }
+                callback && callbacks.pushOnce(callback);
                 if (state == 0 /* UNREQUEST */) {
                     suiData.state = 1 /* REQUESTING */;
-                    if (!callbacks) {
-                        suiData.callbacks = callbacks = [];
-                    }
                     //先加载配置
                     jy.Res.load(suiData.uri, suiData.url, jy.CallbackInfo.get(this.checkData, this), qid);
                 }
-                callback && callbacks.pushOnce(callback);
             }
         };
         /**
@@ -17331,7 +17311,7 @@ var jy;
             var uri = item.uri, data = item.data;
             var suiData = this._urlKey[uri];
             if (!data) { //加载失败
-                suiData.state = -1 /* FAILED */;
+                suiData.state = 0 /* UNREQUEST */;
                 var callbacks = suiData.callbacks;
                 if (callbacks) {
                     for (var i = 0; i < callbacks.length; i++) {
@@ -18027,6 +18007,50 @@ var jy;
     (function (Res) {
         var _a, _b;
         /**
+         *  失败的超时时间
+         */
+        var failedExpiredTime = 10000 /* FailedExpiredTime */;
+        /**
+         * 设置失败的过期时间
+         * 失败次数超过`maxRetry`
+         * @export
+         * @param {number} second
+         */
+        function setFailedExpired(second) {
+            var time = ~~second * 1000 /* ONE_SECOND */;
+            if (time <= 0) { //如果为小于0的时间，则将时间设置为1分钟过期
+                time = 10000 /* FailedExpiredTime */;
+            }
+            failedExpiredTime = time;
+        }
+        Res.setFailedExpired = setFailedExpired;
+        /**
+         * 最大重试次数
+         */
+        var maxRetry = 3 /* MaxRetry */;
+        /**
+         * 设置单个资源，不做延迟重试的最大重试次数，默认为3
+         * @param val
+         */
+        function setMaxRetry(val) {
+            maxRetry = val;
+        }
+        Res.setMaxRetry = setMaxRetry;
+        /**
+         * 最大加载数量
+         * 目前所有主流浏览器针对 http 1.1 单域名最大加载数均为6个
+         * http2 基本无限制
+         */
+        var maxThread = 6 /* MaxThread */;
+        /**
+         * 设置最大加载线程  默认为 6
+         * @param val
+         */
+        function setMaxThread(val) {
+            maxThread = val;
+        }
+        Res.setMaxThread = setMaxThread;
+        /**
          * 扩展名和类型的绑定字典
          */
         var extTypeDict = (_a = {},
@@ -18129,35 +18153,9 @@ var jy;
          */
         var queues = {};
         /**
-         * 最大加载数量
-         * 目前所有主流浏览器针对 http 1.1 单域名最大加载数均为6个
-         * http2 基本无限制
-         */
-        var maxThread = 6;
-        /**
-         * 最大重试次数
-         */
-        var maxRetry = 3;
-        /**
          * 失败的资源加载列队
          */
         var failedList = [];
-        /**
-         * 设置最大失败重试次数，默认为3
-         * @param val
-         */
-        function setMaxRetry(val) {
-            maxRetry = val;
-        }
-        Res.setMaxRetry = setMaxRetry;
-        /**
-         * 设置最大加载线程  默认为 6
-         * @param val
-         */
-        function setMaxThread(val) {
-            maxThread = val;
-        }
-        Res.setMaxThread = setMaxThread;
         /**
         * 获取资源的扩展名
         * @param url
@@ -18370,7 +18368,7 @@ var jy;
             if (queueID === void 0) { queueID = 0 /* Normal */; }
             addRes(resItem, queueID);
             var state = resItem.state;
-            if (state == 2 /* COMPLETE */ || state == -1 /* FAILED */ && resItem.retry > maxRetry) { //已经加载完成的资源，直接在下一帧回调
+            if (state == 2 /* COMPLETE */ || (state == -1 /* FAILED */ && resItem.retry > maxRetry && jy.Global.now < ~~resItem.ft)) { //已经加载完成的资源，直接在下一帧回调
                 return callback && jy.Global.nextTick(callback.callAndRecycle, callback, resItem); // callback.callAndRecycle(resItem);
             }
             resItem.removed = false;
@@ -18389,34 +18387,34 @@ var jy;
          */
         function getNext() {
             var next;
-            if (failedList.length > 0) {
-                next = failedList.shift();
-            }
-            else {
-                //得到优先级最大并且
-                var high = -Infinity;
-                var highQueue = void 0;
-                for (var key in queues) { //同优先级的列队，基于hash规则加载，一般来说只用内置的3个列队即可解决常规问题
-                    var queue = queues[key];
-                    if (queue.list.length) {
-                        var priority = queue.priority;
-                        if (priority > high) {
-                            high = priority;
-                            highQueue = queue;
-                        }
+            //得到优先级最大并且
+            var high = -Infinity;
+            var highQueue;
+            for (var key in queues) { //同优先级的列队，基于hash规则加载，一般来说只用内置的3个列队即可解决常规问题
+                var queue = queues[key];
+                if (queue.list.length) {
+                    var priority = queue.priority;
+                    if (priority > high) {
+                        high = priority;
+                        highQueue = queue;
                     }
                 }
-                if (highQueue) {
-                    //检查列队类型
-                    var list = highQueue.list;
-                    switch (highQueue.type) {
-                        case 1 /* FIFO */:
-                            next = list.shift();
-                            break;
-                        case 0 /* FILO */:
-                            next = list.pop();
-                            break;
-                    }
+            }
+            if (highQueue) {
+                //检查列队类型
+                var list = highQueue.list;
+                switch (highQueue.type) {
+                    case 1 /* FIFO */:
+                        next = list.shift();
+                        break;
+                    case 0 /* FILO */:
+                        next = list.pop();
+                        break;
+                }
+            }
+            if (!next) {
+                if (failedList.length > 0) { //失败列队最后加载
+                    next = failedList.shift();
                 }
             }
             return next;
@@ -18432,6 +18430,9 @@ var jy;
                     break;
                 loading.pushOnce(item);
                 var state = ~~item.state;
+                if (state == -1 /* FAILED */ && item.ft < jy.Global.now) { //如果失败时间已经超过了失败过期时间，则重新加载
+                    state = 0 /* UNREQUEST */;
+                }
                 switch (state) {
                     case -1 /* FAILED */:
                     case 2 /* COMPLETE */:
@@ -18460,7 +18461,7 @@ var jy;
         function doCallback(item) {
             var callbacks = item.callbacks;
             if (callbacks) { //执行回调列队
-                delete item.callbacks;
+                item.callbacks = undefined;
                 for (var i = 0; i < callbacks.length; i++) {
                     var cb = callbacks[i];
                     cb.callAndRecycle(item);
@@ -18469,10 +18470,16 @@ var jy;
         }
         function onItemComplete(item) {
             loading.remove(item);
+            item.qid = undefined;
             var state = ~~item.state;
             if (state == -1 /* FAILED */) {
                 var retry = item.retry || 1;
                 if (retry > maxRetry) {
+                    var now = jy.Global.now;
+                    var ft = ~~item.ft;
+                    if (now > ft) {
+                        item.ft = failedExpiredTime * (retry - maxRetry) + now;
+                    }
                     doCallback(item);
                     return jy.dispatch(-187 /* ResLoadFailed */, item);
                 }
@@ -18481,12 +18488,9 @@ var jy;
                 failedList.push(item);
             }
             else if (state == 2 /* COMPLETE */) {
-                /**
-                 * 清除资源加载项目的列队ID
-                 */
-                var queueID = item.qid;
+                //加载成功，清零retry
+                item.retry = 0;
                 //检查资源是否被加入到列队中
-                delete item.qid;
                 doCallback(item);
                 jy.dispatch(-186 /* ResLoadSuccess */, item);
             }

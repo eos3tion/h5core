@@ -10600,13 +10600,11 @@ declare namespace jy {
      *
      */
     class AsyncHelper {
-        _ready: boolean;
-        protected _readyExecutes: CallbackInfo<Function>[];
         /**
          * 是否已经处理完成
          */
-        readonly isReady: boolean;
-        constructor();
+        isReady: boolean;
+        protected _cbs: $CallbackInfo[];
         /**
          * 异步数据已经加载完毕
          */
@@ -10618,7 +10616,7 @@ declare namespace jy {
          * @param {*} thisObj this对象
          * @param {any[]} args 函数的参数
          */
-        addReadyExecute(handle: Function, thisObj?: any, ...args: any[]): void;
+        addReadyExecute(handle: Function, thisObj?: any, ...args: any[]): any;
     }
 }
 declare namespace jy {
@@ -11137,7 +11135,7 @@ declare namespace jy {
         /**
          * 视图加载完成
          */
-        protected _preViewReady: boolean;
+        protected viewReady: boolean;
         /**
          * 视图
          */
@@ -11891,20 +11889,6 @@ declare namespace jy {
          */
         bg?: egret.DisplayObject;
         /**
-         * 模态颜色
-         *
-         * @static
-         * @type {number}
-         */
-        static MODAL_COLOR: number;
-        /**
-         * 模态透明度
-         *
-         * @static
-         * @type {number}
-         */
-        static MODAL_ALPHA: number;
-        /**
          * 异步的Helper
          */
         protected _asyncHelper: AsyncHelper;
@@ -11958,7 +11942,8 @@ declare namespace jy {
         startSync(): void;
         protected loadNext(): void;
         suiDataComplete(suiData: SuiData): void;
-        suiDataFailed(suiData: SuiData): void;
+        suiDataFailed(_: SuiData): void;
+        protected readyNow(failed?: boolean): void;
         /**
          * 绑定皮肤
          */
@@ -13579,6 +13564,23 @@ declare namespace jy {
 }
 declare namespace jy.Res {
     /**
+     * 设置失败的过期时间
+     * 失败次数超过`maxRetry`
+     * @export
+     * @param {number} second
+     */
+    function setFailedExpired(second: number): void;
+    /**
+     * 设置单个资源，不做延迟重试的最大重试次数，默认为3
+     * @param val
+     */
+    function setMaxRetry(val: number): void;
+    /**
+     * 设置最大加载线程  默认为 6
+     * @param val
+     */
+    function setMaxThread(val: number): void;
+    /**
      * 资源类型
      */
     const enum ResItemType {
@@ -13635,6 +13637,14 @@ declare namespace jy.Res {
          * 默认为 UnRequest
          */
         state?: RequestState;
+        /**
+         * 上次失败的过期时间
+         * 网络有时候不稳定，这次连续加载不到，但是后面可能能加载到
+         *
+         * @type {number}
+         * @memberof ResItem
+         */
+        ft?: number;
         /**
          * 是否被移除
          */
@@ -13728,16 +13738,6 @@ declare namespace jy.Res {
         loadFile(resItem: ResItem, callback: ResLoadCallback): void;
         onLoadFinish(event: egret.Event): void;
     }
-    /**
-     * 设置最大失败重试次数，默认为3
-     * @param val
-     */
-    function setMaxRetry(val: number): void;
-    /**
-     * 设置最大加载线程  默认为 6
-     * @param val
-     */
-    function setMaxThread(val: number): void;
     /**
     * 获取资源的扩展名
     * @param url
