@@ -12,7 +12,7 @@ namespace jy {
 		/**
 		 * 视图加载完成
 		 */
-        protected _preViewReady: boolean;
+        protected viewReady: boolean;
 
         /**
          * 视图
@@ -71,7 +71,7 @@ namespace jy {
             if (isIAsync($view)) {
                 viewReady = $view.isReady;
             }
-            this._preViewReady = viewReady;
+            this.viewReady = viewReady;
             if (!this.viewCheck(viewReady)) {
                 return;
             }
@@ -111,7 +111,7 @@ namespace jy {
          * @returns
          */
         protected dependerReadyCheck() {
-            if (!this._preViewReady) {
+            if (!this.viewReady) {
                 return;
             }
             if (!this._ready) {
