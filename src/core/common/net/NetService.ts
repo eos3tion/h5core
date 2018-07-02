@@ -420,6 +420,11 @@ namespace jy {
         protected _tempBytes: ByteArray;
 
         /**
+         * 是否连通
+         */
+        readonly connected?: boolean;
+
+        /**
          * 接收消息的创建器
          * 
          */

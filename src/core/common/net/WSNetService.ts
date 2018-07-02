@@ -88,6 +88,11 @@ namespace jy {
             NetService._ins = this;
         }
 
+        get connected() {
+            let ws = this._ws;
+            return ws && ws.readyState == WebSocket.OPEN;
+        }
+
         /**
          * 
          * 设置websocket地址
