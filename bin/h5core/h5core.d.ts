@@ -1909,6 +1909,10 @@ declare namespace jy {
         protected _sendBuffer: ByteArray;
         protected _tempBytes: ByteArray;
         /**
+         * 是否连通
+         */
+        readonly connected?: boolean;
+        /**
          * 接收消息的创建器
          *
          */
@@ -12816,6 +12820,7 @@ declare namespace jy {
     class WSNetService extends NetService {
         protected _ws: WebSocket;
         constructor();
+        readonly connected: boolean;
         /**
          *
          * 设置websocket地址

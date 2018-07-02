@@ -16854,6 +16854,14 @@ var jy;
             jy.NetService._ins = _this;
             return _this;
         }
+        Object.defineProperty(WSNetService.prototype, "connected", {
+            get: function () {
+                var ws = this._ws;
+                return ws && ws.readyState == WebSocket.OPEN;
+            },
+            enumerable: true,
+            configurable: true
+        });
         /**
          *
          * 设置websocket地址
