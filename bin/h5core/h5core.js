@@ -7365,6 +7365,15 @@ var jy;
      */
     var C = [, [], []];
     var inited;
+    function setLib(data) {
+        var a = data.a, b = data.b, c1 = data.c1, c2 = data.c2;
+        var split = ";";
+        a && (A = a.split(split));
+        b && (B = b.split(split));
+        c1 && (C[1 /* Male */] = c1.split(split));
+        c2 && (C[2 /* Female */] = c2.split(split));
+        inited = true;
+    }
     var NameUtils = /** @class */ (function () {
         /**
          *
@@ -7381,13 +7390,7 @@ var jy;
             loadScript(url, function (err) {
                 if (!err) {
                     if ($nl_nc) {
-                        //a：姓,b:符号,c1:男名,c2:女名
-                        var a = $nl_nc.a, b = $nl_nc.b, c1 = $nl_nc.c1, c2 = $nl_nc.c2;
-                        var split = ";";
-                        a && (A = a.split(split));
-                        b && (B = b.split(split));
-                        c1 && (C[1 /* Male */] = c1.split(split));
-                        c2 && (C[2 /* Female */] = c2.split(split));
+                        setLib($nl_nc);
                         $nl_nc = undefined;
                         inited = true;
                         return callback && callback.execute();
@@ -7439,6 +7442,13 @@ var jy;
         NameUtils.prototype.dispose = function () {
             this._random = null;
         };
+        /**
+         * 设置名字库的数据
+         *
+         * @static
+         * @memberof NameUtils
+         */
+        NameUtils.setLib = setLib;
         return NameUtils;
     }());
     jy.NameUtils = NameUtils;

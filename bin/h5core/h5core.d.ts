@@ -4538,6 +4538,12 @@ declare const enum Sex {
     Nv = 2
 }
 declare namespace jy {
+    function setLib(data: {
+        a?: string;
+        b?: string;
+        c1?: string;
+        c2?: string;
+    }): void;
     class NameUtils {
         private _random;
         /**
@@ -4546,6 +4552,13 @@ declare namespace jy {
          *
          */
         constructor(randomFunc?: Function);
+        /**
+         * 设置名字库的数据
+         *
+         * @static
+         * @memberof NameUtils
+         */
+        static setLib: typeof setLib;
         static loadNameLib(url: string, callback?: $CallbackInfo): void;
         /**
          * 设置随机算法
