@@ -31,6 +31,16 @@ namespace jy {
 
 	let inited: boolean;
 
+	function setLib(data: { a?: string, b?: string, c1?: string, c2?: string }) {
+		const { a, b, c1, c2 } = data;
+		let split = ";";
+		a && (A = a.split(split));
+		b && (B = b.split(split));
+		c1 && (C[Sex.Male] = c1.split(split));
+		c2 && (C[Sex.Female] = c2.split(split));
+		inited = true;
+	}
+
 	export class NameUtils {
 
 		private _random: Function;
@@ -43,6 +53,14 @@ namespace jy {
 			this.setRandom(randomFunc);
 		}
 
+		/**
+		 * 设置名字库的数据
+		 *
+		 * @static
+		 * @memberof NameUtils
+		 */
+		static setLib = setLib;
+
 		static loadNameLib(url: string, callback?: $CallbackInfo): void {
 			if (inited) {
 				return callback && callback.execute();
@@ -50,13 +68,7 @@ namespace jy {
 			loadScript(url, err => {
 				if (!err) {
 					if ($nl_nc) {
-						//a：姓,b:符号,c1:男名,c2:女名
-						const { a, b, c1, c2 } = $nl_nc;
-						let split = ";";
-						a && (A = a.split(split));
-						b && (B = b.split(split));
-						c1 && (C[Sex.Male] = c1.split(split));
-						c2 && (C[Sex.Female] = c2.split(split));
+						setLib($nl_nc);
 						$nl_nc = undefined;
 						inited = true;
 						return callback && callback.execute();
