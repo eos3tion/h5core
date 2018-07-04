@@ -28,7 +28,15 @@ namespace jy {
         has(code: Key): boolean;
     }
 
-    let _msgDict: { [index: string]: string } = (window as any).$lang || {};
+    declare var $lang: { [index: string]: string };
+    let _msgDict: { [index: string]: string };
+
+    if (typeof $lang === "object") {
+        _msgDict = $lang;
+        $lang = undefined;//将全局变量清除，只保留闭包
+    } else {
+        _msgDict = {};
+    }
     /**
      * 用于处理语言/文字显示
      */
