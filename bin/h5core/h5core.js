@@ -15885,7 +15885,7 @@ var jy;
             else {
                 pool = new RecyclablePool(clazz);
                 var pt = clazz.prototype;
-                if (pt.recycle == undefined) {
+                if (!pt.hasOwnProperty("recycle")) {
                     pt.recycle = recycle;
                 }
             }
