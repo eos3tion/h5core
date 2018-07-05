@@ -157,7 +157,7 @@ namespace jy {
             } else {
                 pool = new RecyclablePool(clazz);
                 let pt = clazz.prototype;
-                if (pt.recycle == undefined) {
+                if (!pt.hasOwnProperty("recycle")) {
                     pt.recycle = recycle;
                 }
             }
