@@ -341,7 +341,7 @@ namespace jy {
         len: number;
     }
 
-    function send2(cmd: number, data?: any, msgType?: string | number, limit?: number) {
+    function send2(cmd: number, data?: any, msgType?: Key, limit?: number) {
         if (RequestLimit.check(cmd, limit)) {
             this._send(cmd, data, msgType);
         } else {
@@ -374,8 +374,8 @@ namespace jy {
 
         protected _limitAlert: boolean;
 
-        protected _limitSendFunc: { (cmd: number, data?: any, msgType?: string | number, limit?: number) };
-        protected _nolimitSendFunc: { (cmd: number, data?: any, msgType?: string | number, limit?: number) };
+        protected _limitSendFunc: { (cmd: number, data?: any, msgType?: Key, limit?: number) };
+        protected _nolimitSendFunc: { (cmd: number, data?: any, msgType?: Key, limit?: number) };
 
         public static get(): NetService {
             return this._ins;
@@ -428,7 +428,7 @@ namespace jy {
          * 接收消息的创建器
          * 
          */
-        _receiveMSG: { [index: number]: string | number };
+        _receiveMSG: { [index: number]: Key };
 
         /**
          * 设置地址
@@ -554,7 +554,7 @@ namespace jy {
     	/**
     	 * 基础类型消息
     	 */
-        public regReceiveMSGRef(cmd: number, ref: string | number) {
+        public regReceiveMSGRef(cmd: number, ref: Key) {
             this._receiveMSG[cmd] = ref;
         }
 
@@ -607,7 +607,7 @@ namespace jy {
          * @param {string} [msgType] 如果是复合数据，必须有此值
     	 * @param {number} [limit] 客户端发送时间限制，默认500毫秒
     	 */
-        public send(cmd: number, data?: any, msgType?: string | number, limit?: number) {
+        public send(cmd: number, data?: any, msgType?: Key, limit?: number) {
             if (RequestLimit.check(cmd, limit)) {
                 this._send(cmd, data, msgType);
             }
@@ -618,7 +618,7 @@ namespace jy {
         /**
          * 即时发送指令
          */
-        protected abstract _send(cmd: number, data: any, msgType: string | number);
+        protected abstract _send(cmd: number, data: any, msgType: Key);
 
         /**
          * 断开连接
@@ -636,7 +636,7 @@ namespace jy {
          * @param {any} [data] 数据，简单数据(number,boolean,string)复合数据
          * @param {string} [msgType] 如果是复合数据，必须有此值
          */
-        public sendPassive(cmd: number, data?: any, msgType?: string | number) {
+        public sendPassive(cmd: number, data?: any, msgType?: Key) {
             //合并同协议的指令
             var pcmdList = this._pcmdList;
             var len = pcmdList.length;
@@ -658,7 +658,7 @@ namespace jy {
         /**
          * 向缓冲数组中写入数据
          */
-        protected writeToBuffer(bytes: ByteArray, data: NetSendData) {
+        writeToBuffer(bytes: ByteArray, data: NetSendData) {
             let cmd = data.cmd;
             let dat = data.data;
             let type = data.msgType;
@@ -733,7 +733,7 @@ namespace jy {
          * @param bytes
          * @param out
          */
-        protected decodeBytes(bytes: ByteArray) {
+        decodeBytes(bytes: ByteArray) {
             let receiveMSG = this._receiveMSG;
             let tmpList = this._tmpList;
             let idx = 0;
