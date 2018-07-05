@@ -1871,10 +1871,10 @@ declare namespace jy {
         protected static _ins: NetService;
         protected _limitAlert: boolean;
         protected _limitSendFunc: {
-            (cmd: number, data?: any, msgType?: string | number, limit?: number): any;
+            (cmd: number, data?: any, msgType?: Key, limit?: number): any;
         };
         protected _nolimitSendFunc: {
-            (cmd: number, data?: any, msgType?: string | number, limit?: number): any;
+            (cmd: number, data?: any, msgType?: Key, limit?: number): any;
         };
         static get(): NetService;
         /**
@@ -1917,7 +1917,7 @@ declare namespace jy {
          *
          */
         _receiveMSG: {
-            [index: number]: string | number;
+            [index: number]: Key;
         };
         /**
          * 设置地址
@@ -1964,7 +1964,7 @@ declare namespace jy {
         /**
          * 基础类型消息
          */
-        regReceiveMSGRef(cmd: number, ref: string | number): void;
+        regReceiveMSGRef(cmd: number, ref: Key): void;
         /**
          * 注册处理器
          * @param {number} cmd 协议号
@@ -1995,11 +1995,11 @@ declare namespace jy {
          * @param {string} [msgType] 如果是复合数据，必须有此值
          * @param {number} [limit] 客户端发送时间限制，默认500毫秒
          */
-        send(cmd: number, data?: any, msgType?: string | number, limit?: number): void;
+        send(cmd: number, data?: any, msgType?: Key, limit?: number): void;
         /**
          * 即时发送指令
          */
-        protected abstract _send(cmd: number, data: any, msgType: string | number): any;
+        protected abstract _send(cmd: number, data: any, msgType: Key): any;
         /**
          * 断开连接
          */
@@ -2013,17 +2013,17 @@ declare namespace jy {
          * @param {any} [data] 数据，简单数据(number,boolean,string)复合数据
          * @param {string} [msgType] 如果是复合数据，必须有此值
          */
-        sendPassive(cmd: number, data?: any, msgType?: string | number): void;
+        sendPassive(cmd: number, data?: any, msgType?: Key): void;
         /**
          * 向缓冲数组中写入数据
          */
-        protected writeToBuffer(bytes: ByteArray, data: NetSendData): void;
+        writeToBuffer(bytes: ByteArray, data: NetSendData): void;
         /**
          * @private
          * @param bytes
          * @param out
          */
-        protected decodeBytes(bytes: ByteArray): void;
+        decodeBytes(bytes: ByteArray): void;
         /**
          * 解析头部信息
          *
@@ -11284,7 +11284,7 @@ declare namespace jy {
          * 检查在发送过程中的请求
          */
         protected checkUnsend(): void;
-        protected _send(cmd: number, data: any, msgType: string): void;
+        protected _send(cmd: number, data: any, msgType: Key): void;
         /**
          * 发送消息之前，用于预处理一些http头信息等
          *
@@ -12827,11 +12827,55 @@ declare namespace jy {
 }
 declare namespace jy {
     /**
+     * WSNetService的数据模式
+     */
+    const enum WSNetServiceDataMode {
+        /**
+         * 接收单数据帧单消息
+         */
+        ReceiveOneDataPerFrame = 0,
+        /**
+         * 接收单数据帧多消息
+         */
+        ReceiveMultiDataPerFrame = 1,
+        /**
+         * 接收掩码
+         */
+        ReceiveMask = 1,
+        /**
+         * 发送单数据帧多消息
+         */
+        SendMultiDataPerFrame = 0,
+        /**
+         * 发送单数据帧单消息
+         */
+        SendOneDataPerFrame = 2,
+        /**
+         * 发送掩码
+         */
+        SendMask = 2
+    }
+    /**
      * WebSocket版本的NetService
      * @author 3tion
      */
     class WSNetService extends NetService {
         protected _ws: WebSocket;
+        readonly dataMode: WSNetServiceDataMode;
+        $send: (this: WSNetService, cmd: number, data: any, msgType: Key) => void;
+        /**
+         * 设置数据模式
+         *
+         * @param {WSNetServiceDataMode} mode
+         * @memberof WSNetService
+         */
+        setDataMode(mode: WSNetServiceDataMode): void;
+        /**
+         * 检查数据模式
+         *
+         * @memberof WSNetService
+         */
+        checkDataMode(): void;
         constructor();
         readonly connected: boolean;
         /**
@@ -12845,6 +12889,7 @@ declare namespace jy {
          */
         connect(): void;
         protected onOpen: () => void;
+        protected _send(cmd: number, data: any, msgType: Key): void;
         /**
          *
          * 发生错误
@@ -12858,14 +12903,12 @@ declare namespace jy {
          */
         protected onClose: (ev: CloseEvent) => void;
         /**
+         * 主动断开连接
          *
-         * 收到消息
-         * @protected
+         * @returns
+         * @memberof WSNetService
          */
-        protected onData: (ev: MessageEvent) => void;
-        protected _send(cmd: number, data: any, msgType: string): void;
         disconnect(): void;
-        loose(ws: WebSocket): void;
     }
 }
 declare namespace jy {
