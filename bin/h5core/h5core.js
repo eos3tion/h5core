@@ -7298,7 +7298,14 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    var _msgDict = window.$lang || {};
+    var _msgDict;
+    if (typeof $lang === "object") {
+        _msgDict = $lang;
+        $lang = undefined; //将全局变量清除，只保留闭包
+    }
+    else {
+        _msgDict = {};
+    }
     /**
      * 用于处理语言/文字显示
      */
