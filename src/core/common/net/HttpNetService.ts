@@ -142,7 +142,7 @@ namespace jy {
             }
         }
 
-        protected _send(cmd: number, data: any, msgType: string) {
+        protected _send(cmd: number, data: any, msgType: Key) {
             //没有同协议的指令，新增数据
             let pdata = recyclable(NetData);
             pdata.cmd = cmd;
