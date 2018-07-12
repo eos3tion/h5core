@@ -130,7 +130,7 @@ namespace jy {
 		}
 
 		/*更新文本显示*/
-		private updateLabel() {
+		updateLabel() {
 			let tf = this.tf;
 			let fun = this._labelFun;
 			if (tf && fun) {
@@ -138,10 +138,14 @@ namespace jy {
 			}
 		}
 
+		getPercent() {
+			return this._value / this._maxValue;
+		}
+
 		/*更新进度条显示*/
-		private updateBar() {
+		updateBar() {
 			let bar = this.bar;
-			let v = this._value * this._barWidth / this._maxValue;
+			let v = this.getPercent() * this._barWidth;
 			if (this.useMask) {
 				let rect = bar.scrollRect;
 				if (!rect) {
@@ -155,7 +159,7 @@ namespace jy {
 		}
 
 		/*更新显示*/
-		private refresh() {
+		refresh() {
 			this.updateLabel();
 			this.updateBar();
 		}
