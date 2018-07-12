@@ -520,7 +520,7 @@ namespace jy {
                 }
             } catch (e) {
                 if (DEBUG) {
-                    ThrowError(`解析配置:${key}出错`, e);
+                    ThrowError(`解析配置:${key}出错，请重新打包配置`, e, true);
                 }
             }
             return dict;
