@@ -14175,9 +14175,10 @@ declare namespace jy {
         setWidth(width: number): void;
         skin: ProgressBarSkinDele;
         progress(value: number, maxValue: number): void;
-        private updateLabel;
-        private updateBar;
-        private refresh;
+        updateLabel(): void;
+        getPercent(): number;
+        updateBar(): void;
+        refresh(): void;
     }
     /**
      * 进度条创建

@@ -19463,10 +19463,13 @@ var jy;
                 tf.text = fun(this._value, this._maxValue);
             }
         };
+        ProgressBar.prototype.getPercent = function () {
+            return this._value / this._maxValue;
+        };
         /*更新进度条显示*/
         ProgressBar.prototype.updateBar = function () {
             var bar = this.bar;
-            var v = this._value * this._barWidth / this._maxValue;
+            var v = this.getPercent() * this._barWidth;
             if (this.useMask) {
                 var rect = bar.scrollRect;
                 if (!rect) {
