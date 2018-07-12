@@ -11040,7 +11040,7 @@ var jy;
             }
             catch (e) {
                 if (true) {
-                    jy.ThrowError("\u89E3\u6790\u914D\u7F6E:" + key + "\u51FA\u9519", e);
+                    jy.ThrowError("\u89E3\u6790\u914D\u7F6E:" + key + "\u51FA\u9519\uFF0C\u8BF7\u91CD\u65B0\u6253\u5305\u914D\u7F6E", e, true);
                 }
             }
             return dict;
