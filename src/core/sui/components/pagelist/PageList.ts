@@ -539,7 +539,7 @@ namespace jy {
 
         public selectItemByData<K extends keyof T>(key: K, value: T[K], useTween: boolean = false) {
             let data = this._data;
-            let len = data.length;
+            let len = data && data.length || 0;
             for (let i = 0; i < len; i++) {
                 if (key in data[i]) {
                     if (data[i][key] == value) {
