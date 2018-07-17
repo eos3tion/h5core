@@ -16406,7 +16406,7 @@ var jy;
         PageList.prototype.selectItemByData = function (key, value, useTween) {
             if (useTween === void 0) { useTween = false; }
             var data = this._data;
-            var len = data.length;
+            var len = data && data.length || 0;
             for (var i = 0; i < len; i++) {
                 if (key in data[i]) {
                     if (data[i][key] == value) {
