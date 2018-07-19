@@ -425,27 +425,49 @@ namespace jy.Res {
     getOrCreateQueue(ResQueueID.Backgroud, QueueLoadType.FILO, -9999);
 
     /**
+     * addRes方法的返回值
+     */
+    const addResResult = [] as [ResItem, boolean];
+
+    /**
+     * 添加资源的结果  
+     * 0 号为返回值
+     *
+     * @export
+     * @interface AddResResult
+     * @extends {Array<any>}
+     */
+    export interface AddResResult extends Array<any> {
+        readonly 0: ResItem;
+        readonly 1: boolean;
+        length: 2;
+    }
+
+    /**
      * 添加资源
      * @param {ResItem} resItem 
      * @param {ResQueueID} [queueID=ResQueueID.Normal]
-     * @returns {boolean} true 表示此资源成功添加到列队
+     * @returns {ResItem}
      */
-    export function addRes(resItem: ResItem, queueID = ResQueueID.Normal) {
+    export function addRes(resItem: ResItem, queueID = ResQueueID.Normal): AddResResult {
         let uri = resItem.uri;
         let old = resDict[uri];
+        addResResult[1] = false;
         if (old) {
             if (old != resItem && old.url != resItem.url) {
                 DEBUG && ThrowError(`资源[${uri}]重名，加载路径分布为[${old.url}]和[${resItem.url}]`);
             } else {//资源和加载路径完全相同
                 let state = old.state;
                 if (state >= RequestState.REQUESTING) { //正在处理的资源和已经加载完毕的资源，无需添加到任何列队
-                    return;
+                    addResResult[0] = old;
+                    return addResResult;
                 }
             }
             resItem = old;
         } else {
             resDict[uri] = resItem;
         }
+        addResResult[0] = resItem;
         let oQID = resItem.qid;
         if (oQID != queueID) {
             let oQueue = queues[oQID];
@@ -456,8 +478,9 @@ namespace jy.Res {
             resItem.qid = queueID;
             let queue = getOrCreateQueue(queueID);
             queue.list.pushOnce(resItem);
-            return true;
+            addResResult[1] = true;
         }
+        return addResResult;
     }
 
     /**
@@ -583,7 +606,7 @@ namespace jy.Res {
      * @param {ResQueueID} [queueID=ResQueueID.Normal]
      */
     export function loadRes(resItem: ResItem, callback?: ResCallback, queueID = ResQueueID.Normal) {
-        addRes(resItem, queueID);
+        [resItem] = addRes(resItem, queueID);
         let state = resItem.state;
         if (state == RequestState.COMPLETE || (state == RequestState.FAILED && resItem.retry > maxRetry && Global.now < ~~resItem.ft)) {//已经加载完成的资源，直接在下一帧回调
             return callback && Global.nextTick(callback.callAndRecycle, callback, resItem);// callback.callAndRecycle(resItem);
