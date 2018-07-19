@@ -13817,12 +13817,25 @@ declare namespace jy.Res {
      */
     function regAnalyzer(type: ResItemType, analyzer: ResLoader): void;
     /**
+     * 添加资源的结果
+     * 0 号为返回值
+     *
+     * @export
+     * @interface AddResResult
+     * @extends {Array<any>}
+     */
+    interface AddResResult extends Array<any> {
+        readonly 0: ResItem;
+        readonly 1: boolean;
+        length: 2;
+    }
+    /**
      * 添加资源
      * @param {ResItem} resItem
      * @param {ResQueueID} [queueID=ResQueueID.Normal]
-     * @returns {boolean} true 表示此资源成功添加到列队
+     * @returns {ResItem}
      */
-    function addRes(resItem: ResItem, queueID?: ResQueueID): boolean;
+    function addRes(resItem: ResItem, queueID?: ResQueueID): AddResResult;
     /**
      * 加载资源
      * @param {string} uri 资源标识

@@ -18258,15 +18258,20 @@ var jy;
         getOrCreateQueue(0 /* Normal */);
         getOrCreateQueue(1 /* Backgroud */, 0 /* FILO */, -9999);
         /**
+         * addRes方法的返回值
+         */
+        var addResResult = [];
+        /**
          * 添加资源
          * @param {ResItem} resItem
          * @param {ResQueueID} [queueID=ResQueueID.Normal]
-         * @returns {boolean} true 表示此资源成功添加到列队
+         * @returns {ResItem}
          */
         function addRes(resItem, queueID) {
             if (queueID === void 0) { queueID = 0 /* Normal */; }
             var uri = resItem.uri;
             var old = resDict[uri];
+            addResResult[1] = false;
             if (old) {
                 if (old != resItem && old.url != resItem.url) {
                     true && jy.ThrowError("\u8D44\u6E90[" + uri + "]\u91CD\u540D\uFF0C\u52A0\u8F7D\u8DEF\u5F84\u5206\u5E03\u4E3A[" + old.url + "]\u548C[" + resItem.url + "]");
@@ -18274,7 +18279,8 @@ var jy;
                 else { //资源和加载路径完全相同
                     var state = old.state;
                     if (state >= 1 /* REQUESTING */) { //正在处理的资源和已经加载完毕的资源，无需添加到任何列队
-                        return;
+                        addResResult[0] = old;
+                        return addResResult;
                     }
                 }
                 resItem = old;
@@ -18282,6 +18288,7 @@ var jy;
             else {
                 resDict[uri] = resItem;
             }
+            addResResult[0] = resItem;
             var oQID = resItem.qid;
             if (oQID != queueID) {
                 var oQueue = queues[oQID];
@@ -18292,8 +18299,9 @@ var jy;
                 resItem.qid = queueID;
                 var queue = getOrCreateQueue(queueID);
                 queue.list.pushOnce(resItem);
-                return true;
+                addResResult[1] = true;
             }
+            return addResResult;
         }
         Res.addRes = addRes;
         /**
@@ -18405,7 +18413,7 @@ var jy;
          */
         function loadRes(resItem, callback, queueID) {
             if (queueID === void 0) { queueID = 0 /* Normal */; }
-            addRes(resItem, queueID);
+            resItem = addRes(resItem, queueID)[0];
             var state = resItem.state;
             if (state == 2 /* COMPLETE */ || (state == -1 /* FAILED */ && resItem.retry > maxRetry && jy.Global.now < ~~resItem.ft)) { //已经加载完成的资源，直接在下一帧回调
                 return callback && jy.Global.nextTick(callback.callAndRecycle, callback, resItem); // callback.callAndRecycle(resItem);
