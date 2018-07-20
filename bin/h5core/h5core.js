@@ -6331,7 +6331,7 @@ var jy;
      * 获取运行时间
      * 此时间为进程运行时间，不会随着调整系统时间而变动
      */
-    var getTimer = window.performance ? function () { return ~~performance.now(); } : Date.now;
+    var getTimer = Date.now;
     var _defaultCountFormats;
     /**
      * 基于UTC的时间偏移
