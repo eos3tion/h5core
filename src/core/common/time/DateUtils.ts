@@ -258,7 +258,7 @@ namespace jy {
 	 * 获取运行时间  
 	 * 此时间为进程运行时间，不会随着调整系统时间而变动
 	 */
-	const getTimer = window.performance ? () => ~~performance.now() : Date.now;
+	const getTimer = Date.now;
 
 	let _defaultCountFormats: { [index: number]: CountDownFormatOption };
 	/**
