@@ -1410,7 +1410,7 @@ var jy;
         var update = ticker.render;
         var delta = 0 | 1000 / ticker.$frameRate;
         var temp = [];
-        ticker.render = function () {
+        ticker.render = function (triggerByFrame, costTicker) {
             var _now = jy.DateUtils.serverTime;
             var dis = _now - now;
             now = _now;
@@ -1454,7 +1454,7 @@ var jy;
                 _callLater.tick(_now);
                 jy.TimerUtil.tick(_now);
                 tweenManager.tick(dis);
-                update.call(ticker);
+                update.call(ticker, triggerByFrame, costTicker);
             }
         };
     }
