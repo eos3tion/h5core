@@ -41,7 +41,7 @@ namespace jy {
 		let delta = 0 | 1000 / ticker.$frameRate;
 		let temp: CallbackInfo<Function>[] = [];
 
-		ticker.render = function () {
+		ticker.render = function (triggerByFrame, costTicker) {
 			let _now = DateUtils.serverTime;
 			let dis = _now - now;
 			now = _now;
@@ -83,7 +83,7 @@ namespace jy {
 				_callLater.tick(_now);
 				TimerUtil.tick(_now);
 				tweenManager.tick(dis);
-				update.call(ticker);
+				update.call(ticker, triggerByFrame, costTicker);
 			}
 		}
 	}
