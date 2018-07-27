@@ -9374,8 +9374,8 @@ var jy;
          */
         UnitResource.prototype.draw = function (bitmap, drawInfo, now) {
             var frame = this.getTexture(drawInfo);
-            var a = drawInfo.a, d = drawInfo.d;
             if (frame) {
+                var a = drawInfo.a, d = drawInfo.d;
                 var res = this.loadRes(d, a);
                 res.lastUseTime = jy.Global.now;
                 if (frame.bitmapData) {
