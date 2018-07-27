@@ -139,8 +139,8 @@ namespace jy {
          */
         draw(bitmap: egret.Bitmap, drawInfo: IDrawInfo, now: number) {
             let frame = this.getTexture(drawInfo);
-            let { a, d } = drawInfo;
             if (frame) {
+                let { a, d } = drawInfo;
                 let res = this.loadRes(d, a);
                 res.lastUseTime = Global.now;
                 if (frame.bitmapData) {
