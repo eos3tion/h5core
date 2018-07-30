@@ -6,9 +6,7 @@ namespace jy {
     const enum MapConst {
         DefaultSize = 256,
 
-        DebugMapPath = "m/",
-
-        ReleaseMapPath = "m2/",
+        MapPath = "m2/",
     }
     const webp = Global.webp ? Ext.WEBP : "";
 
@@ -100,34 +98,20 @@ namespace jy {
         /**
         * 获取地图图块资源路径
         */
-        getMapUri: { (col: number, row: number) };
+        getMapUri(col: number, row: number) {
+            return `${MapInfo.prefix}${this.path}/${row}_${col}${this.ext}${webp}`;
+        }
 
         /**
          * 获取图片路径
          */
-        getImgUri: { (uri: string): string };
+        getImgUri(uri: string): string {
+            return `${MapInfo.prefix}${this.path}/${uri}`;
+        }
 
         /**
          * 地图前缀路径
          */
-        static readonly prefix: string = DEBUG ? MapConst.DebugMapPath : MapConst.ReleaseMapPath;
-    }
-
-    let mpt = MapInfo.prototype;
-    if (DEBUG) {
-        mpt.getImgUri = function (this: MapInfo, uri: string) {
-            return MapConst.DebugMapPath + this.path + "/" + uri;
-        }
-        mpt.getMapUri = function (this: MapInfo, col: number, row: number): string {
-            return MapConst.DebugMapPath + this.path + "/" + row.zeroize(3) + col.zeroize(3) + this.ext;
-        }
-    }
-    if (RELEASE) {
-        mpt.getImgUri = function (this: MapInfo, uri: string) {
-            return `${MapConst.ReleaseMapPath}${this.path}/${uri}`;
-        }
-        mpt.getMapUri = function (this: MapInfo, col: number, row: number) {
-            return `${MapConst.ReleaseMapPath}${this.path}/${row}_${col}${this.ext}${webp}`;
-        }
+        static prefix = MapConst.MapPath;
     }
 }

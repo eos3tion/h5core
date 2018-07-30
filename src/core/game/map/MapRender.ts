@@ -328,11 +328,11 @@ namespace jy {
         /**
          * 地图块的列
          */
-        private col: number;
+        col: number;
         /**
          * 地图块的行
          */
-        private row: number;
+        row: number;
 
         /**
          * 资源唯一标识
@@ -375,6 +375,9 @@ namespace jy {
          */
         loadComplete(item: Res.ResItem) {
             let { data, uri } = item as { data: egret.Texture, uri: string };
+            if (!data) {//没有data说明加载资源失败
+                return;
+            }
             if (uri == this.uri) {
                 if (data.textureWidth == 1 && data.textureHeight == 1) {//检查纹理大小，如果是 1×1 则为特殊图片，不被加到舞台上
                     this.empty = true;//只标记，不在此帧从舞台移除
@@ -394,8 +397,8 @@ namespace jy {
         dispose() {
             let texture = this.texture;
             if (texture) {
-                texture.dispose();
                 this.texture = undefined;
+                texture.dispose();
             }
         }
     }

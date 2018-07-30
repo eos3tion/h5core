@@ -8889,6 +8889,14 @@ declare namespace jy {
 }
 declare namespace jy {
     /**
+     * 默认地图宽/高
+     */
+    const enum MapConst {
+        DefaultSize = 256,
+        DebugMapPath = "m/",
+        ReleaseMapPath = "m2/"
+    }
+    /**
      * 地图基础信息<br/>
      * 由地图编辑器生成的地图信息
      * @author 3tion
@@ -8958,19 +8966,15 @@ declare namespace jy {
         /**
         * 获取地图图块资源路径
         */
-        getMapUri: {
-            (col: number, row: number): any;
-        };
+        getMapUri(col: number, row: number): string;
         /**
          * 获取图片路径
          */
-        getImgUri: {
-            (uri: string): string;
-        };
+        getImgUri(uri: string): string;
         /**
          * 地图前缀路径
          */
-        static readonly prefix: string;
+        static readonly prefix: MapConst;
     }
 }
 interface $gmType {

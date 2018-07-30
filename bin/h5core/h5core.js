@@ -4298,7 +4298,6 @@ var jy;
         add: function (dict) {
             //对默认值做预处理，减少后期遍历次数
             if (dict) {
-                var defD = defDict;
                 if (!dict.$$inted) { //检查字典是否初始化过
                     for (var name_3 in dict) {
                         var struct = dict[name_3];
@@ -10135,29 +10134,24 @@ var jy;
             return _this;
         }
         /**
+        * 获取地图图块资源路径
+        */
+        MapInfo.prototype.getMapUri = function (col, row) {
+            return "" + "m2/" /* ReleaseMapPath */ + this.path + "/" + row + "_" + col + this.ext + webp;
+        };
+        /**
+         * 获取图片路径
+         */
+        MapInfo.prototype.getImgUri = function (uri) {
+            return "" + "m2/" /* ReleaseMapPath */ + this.path + "/" + uri;
+        };
+        /**
          * 地图前缀路径
          */
-        MapInfo.prefix = true ? "m/" /* DebugMapPath */ : "m2/" /* ReleaseMapPath */;
+        MapInfo.prefix = "m2/" /* ReleaseMapPath */;
         return MapInfo;
     }(egret.HashObject));
     jy.MapInfo = MapInfo;
-    var mpt = MapInfo.prototype;
-    if (true) {
-        mpt.getImgUri = function (uri) {
-            return "m/" /* DebugMapPath */ + this.path + "/" + uri;
-        };
-        mpt.getMapUri = function (col, row) {
-            return "m/" /* DebugMapPath */ + this.path + "/" + row.zeroize(3) + col.zeroize(3) + this.ext;
-        };
-    }
-    if (false) {
-        mpt.getImgUri = function (uri) {
-            return "" + "m2/" /* ReleaseMapPath */ + this.path + "/" + uri;
-        };
-        mpt.getMapUri = function (col, row) {
-            return "" + "m2/" /* ReleaseMapPath */ + this.path + "/" + row + "_" + col + this.ext + webp;
-        };
-    }
 })(jy || (jy = {}));
 if (true) {
     var $gm = $gm || {};
