@@ -256,7 +256,6 @@ namespace jy {
         add(dict: PBStructDictInput) {
             //对默认值做预处理，减少后期遍历次数
             if (dict) {
-                let defD = defDict;
                 if (!dict.$$inted) {//检查字典是否初始化过
                     for (let name in dict) {
                         let struct = dict[name];
