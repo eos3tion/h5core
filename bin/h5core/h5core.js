@@ -10137,18 +10137,18 @@ var jy;
         * 获取地图图块资源路径
         */
         MapInfo.prototype.getMapUri = function (col, row) {
-            return "" + "m2/" /* ReleaseMapPath */ + this.path + "/" + row + "_" + col + this.ext + webp;
+            return "" + MapInfo.prefix + this.path + "/" + row + "_" + col + this.ext + webp;
         };
         /**
          * 获取图片路径
          */
         MapInfo.prototype.getImgUri = function (uri) {
-            return "" + "m2/" /* ReleaseMapPath */ + this.path + "/" + uri;
+            return "" + MapInfo.prefix + this.path + "/" + uri;
         };
         /**
          * 地图前缀路径
          */
-        MapInfo.prefix = "m2/" /* ReleaseMapPath */;
+        MapInfo.prefix = "m2/" /* MapPath */;
         return MapInfo;
     }(egret.HashObject));
     jy.MapInfo = MapInfo;
@@ -10414,6 +10414,9 @@ var jy;
          */
         TileMap.prototype.loadComplete = function (item) {
             var _a = item, data = _a.data, uri = _a.uri;
+            if (!data) { //没有data说明加载资源失败
+                return;
+            }
             if (uri == this.uri) {
                 if (data.textureWidth == 1 && data.textureHeight == 1) { //检查纹理大小，如果是 1×1 则为特殊图片，不被加到舞台上
                     this.empty = true; //只标记，不在此帧从舞台移除
@@ -10433,8 +10436,8 @@ var jy;
         TileMap.prototype.dispose = function () {
             var texture = this.texture;
             if (texture) {
-                texture.dispose();
                 this.texture = undefined;
+                texture.dispose();
             }
         };
         return TileMap;

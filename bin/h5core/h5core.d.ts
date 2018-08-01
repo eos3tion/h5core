@@ -8893,8 +8893,7 @@ declare namespace jy {
      */
     const enum MapConst {
         DefaultSize = 256,
-        DebugMapPath = "m/",
-        ReleaseMapPath = "m2/"
+        MapPath = "m2/"
     }
     /**
      * 地图基础信息<br/>
@@ -8974,7 +8973,7 @@ declare namespace jy {
         /**
          * 地图前缀路径
          */
-        static readonly prefix: MapConst;
+        static prefix: MapConst;
     }
 }
 interface $gmType {
@@ -9086,11 +9085,11 @@ declare namespace jy {
         /**
          * 地图块的列
          */
-        private col;
+        col: number;
         /**
          * 地图块的行
          */
-        private row;
+        row: number;
         /**
          * 资源唯一标识
          */
