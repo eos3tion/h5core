@@ -51,7 +51,11 @@ namespace jy {
             ins.handler = handler;
             ins.priority = priority || 0;
             ins.trigger = triggerOnStage;
-            this._interests[eventType] = ins;
+            let _interests = this._interests;
+            if (!_interests) {
+                this._interests = _interests = {};
+            }
+            _interests[eventType] = ins;
             if (triggerOnStage) {
                 let _awakeCallers = this._awakeCallers;
                 if (!_awakeCallers) {
