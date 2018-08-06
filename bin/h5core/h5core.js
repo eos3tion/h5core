@@ -3168,7 +3168,11 @@ var jy;
             ins.handler = handler;
             ins.priority = priority || 0;
             ins.trigger = triggerOnStage;
-            this._interests[eventType] = ins;
+            var _interests = this._interests;
+            if (!_interests) {
+                this._interests = _interests = {};
+            }
+            _interests[eventType] = ins;
             if (triggerOnStage) {
                 var _awakeCallers = this._awakeCallers;
                 if (!_awakeCallers) {
