@@ -18346,7 +18346,7 @@ var jy;
                 }
                 else {
                     param.current++;
-                    onProgress && onProgress.call();
+                    onProgress && onProgress.call(item);
                     if (param.current >= param.total) {
                         callback.callAndRecycle(true);
                         onProgress && onProgress.recycle();

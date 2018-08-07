@@ -13852,7 +13852,9 @@ declare namespace jy.Res {
             (flag: boolean): any;
         }>;
         group: Key;
-        onProgress?: $CallbackInfo;
+        onProgress?: CallbackInfo<{
+            (item: Res.ResItem): any;
+        }>;
     }
     function loadList(list: ResItem[], opt: LoadResListOption, queueID?: ResQueueID): void;
     /**
