@@ -8990,17 +8990,23 @@ var jy;
                 var len = 0;
                 if (prefixes) {
                     len = prefixes.length;
+                    if (typeof URL != undefined) { //支持URL
+                        for (var i = 0; i < len; i++) {
+                            var url = new URL(prefixes[i]);
+                            prefixes[i] = url.href;
+                        }
+                    }
                 }
                 switch (len) {
                     case 0:
-                        return function (uri) { return ""; };
+                        return function (_) { return ""; };
                     case 1: {
                         var prefix_1 = prefixes[0];
-                        return function (uri) { return prefix_1; };
+                        return function (_) { return prefix_1; };
                     }
                     default:
                         return function (uri) {
-                            var idx = uri.hash() % prefixes.length;
+                            var idx = uri.hash() % len;
                             return prefixes[idx] || "";
                         };
                 }
