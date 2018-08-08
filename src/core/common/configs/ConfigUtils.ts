@@ -157,7 +157,7 @@ namespace jy {
                 let len = 0;
                 if (prefixes) {
                     len = prefixes.length;
-                    if (typeof URL != undefined) {//支持URL
+                    if (typeof URL != "undefined") {//支持URL
                         for (let i = 0; i < len; i++) {
                             let url = new URL(prefixes[i]);
                             prefixes[i] = url.href;
