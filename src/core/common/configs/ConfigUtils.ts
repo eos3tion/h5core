@@ -157,17 +157,23 @@ namespace jy {
                 let len = 0;
                 if (prefixes) {
                     len = prefixes.length;
+                    if (typeof URL != undefined) {//支持URL
+                        for (let i = 0; i < len; i++) {
+                            let url = new URL(prefixes[i]);
+                            prefixes[i] = url.href;
+                        }
+                    }
                 }
                 switch (len) {
                     case 0:
-                        return uri => "";
+                        return _ => "";
                     case 1: {
                         let prefix = prefixes[0];
-                        return uri => prefix;
+                        return _ => prefix;
                     }
                     default:
                         return uri => {
-                            let idx = uri.hash() % prefixes.length;
+                            let idx = uri.hash() % len;
                             return prefixes[idx] || "";
                         }
                 }
