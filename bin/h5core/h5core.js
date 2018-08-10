@@ -8990,12 +8990,6 @@ var jy;
                 var len = 0;
                 if (prefixes) {
                     len = prefixes.length;
-                    if (typeof URL != "undefined") { //支持URL
-                        for (var i = 0; i < len; i++) {
-                            var url = new URL(prefixes[i]);
-                            prefixes[i] = url.href;
-                        }
-                    }
                 }
                 switch (len) {
                     case 0:
