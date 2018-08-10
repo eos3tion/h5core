@@ -14082,33 +14082,27 @@ var jy;
                     for (var id in _allById) {
                         var cfg = _allById[id];
                         var showtype = cfg.showtype;
-                        if (showtype) {
-                            checker = _checks[showtype];
-                            if (true) {
-                                if (!checker) {
-                                    unsolve += cfg.id + "的显示限制 ";
-                                }
+                        checker = _checks[showtype];
+                        if (true) {
+                            if (!checker) {
+                                unsolve += cfg.id + "的显示限制 ";
                             }
                         }
                         var limittype = cfg.limittype;
-                        if (limittype) {
-                            checker = _checks[limittype];
-                            if (true) {
-                                if (!checker) {
-                                    unsolve += cfg.id + "的使用限制 ";
-                                }
+                        checker = _checks[limittype];
+                        if (true) {
+                            if (!checker) {
+                                unsolve += cfg.id + "的使用限制 ";
                             }
                         }
                         if (showtype == limittype) {
-                            if (showtype) {
-                                if (checker) {
-                                    if (false) {
-                                        checker.adjustLimitDatas(cfg.showlimits, cfg.limits);
-                                    }
-                                    if (true) {
-                                        if (checker.adjustLimitDatas(cfg.showlimits, cfg.limits)) {
-                                            errString += cfg.id + " ";
-                                        }
+                            if (checker) {
+                                if (false) {
+                                    checker.adjustLimitDatas(cfg.showlimits, cfg.limits);
+                                }
+                                if (true) {
+                                    if (checker.adjustLimitDatas(cfg.showlimits, cfg.limits)) {
+                                        errString += cfg.id + " ";
                                     }
                                 }
                             }
