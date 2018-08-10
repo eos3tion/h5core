@@ -164,36 +164,32 @@ namespace jy {
                     for (let id in _allById) {
                         let cfg: IModuleCfg = _allById[id];
                         let showtype = cfg.showtype;
-                        if (showtype) {
-                            checker = _checks[showtype] as IModuleChecker;
-                            if (DEBUG) {
-                                if (!checker) {
-                                    unsolve += cfg.id + "的显示限制 ";
-                                }
+                        checker = _checks[showtype] as IModuleChecker;
+                        if (DEBUG) {
+                            if (!checker) {
+                                unsolve += cfg.id + "的显示限制 ";
                             }
                         }
                         let limittype = cfg.limittype;
-                        if (limittype) {
-                            checker = _checks[limittype] as IModuleChecker;
-                            if (DEBUG) {
-                                if (!checker) {
-                                    unsolve += cfg.id + "的使用限制 ";
-                                }
+                        checker = _checks[limittype] as IModuleChecker;
+                        if (DEBUG) {
+                            if (!checker) {
+                                unsolve += cfg.id + "的使用限制 ";
                             }
                         }
+
                         if (showtype == limittype) {
-                            if (showtype) {
-                                if (checker) {
-                                    if (RELEASE) {
-                                        checker.adjustLimitDatas(cfg.showlimits, cfg.limits);
-                                    }
-                                    if (DEBUG) {
-                                        if (checker.adjustLimitDatas(cfg.showlimits, cfg.limits)) {
-                                            errString += cfg.id + " ";
-                                        }
+                            if (checker) {
+                                if (RELEASE) {
+                                    checker.adjustLimitDatas(cfg.showlimits, cfg.limits);
+                                }
+                                if (DEBUG) {
+                                    if (checker.adjustLimitDatas(cfg.showlimits, cfg.limits)) {
+                                        errString += cfg.id + " ";
                                     }
                                 }
                             }
+
                         } else {
                             if (DEBUG) {
                                 limitWarn += cfg.id + " ";
