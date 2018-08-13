@@ -1,22 +1,27 @@
 declare function parseInt(s: number, radix?: number): number;
-/**
- * 对数字进行补0操作
- * @param value 要补0的数值
- * @param length 要补的总长度
- * @return 补0之后的字符串
- */
-declare function zeroize(value: number | string, length?: number): string;
-/**
- * 获取完整的 PropertyDescriptor
- *
- * @param {Partial<PropertyDescriptor>} descriptor
- * @param {boolean} [enumerable=false]
- * @param {boolean} [writable]
- * @param {boolean} [configurable=true]
- * @returns
- */
-declare function getDescriptor(descriptor: PropertyDescriptor, enumerable?: boolean, writable?: boolean, configurable?: boolean): PropertyDescriptor;
-declare function makeDefDescriptors(descriptors: object, enumerable?: boolean, writable?: boolean, configurable?: boolean): PropertyDescriptorMap;
+declare namespace jy {
+    /**
+     * 获取完整的 PropertyDescriptor
+     *
+     * @param {Partial<PropertyDescriptor>} descriptor
+     * @param {boolean} [enumerable=false]
+     * @param {boolean} [writable]
+     * @param {boolean} [configurable=true]
+     * @returns
+     */
+    function getDescriptor(descriptor: PropertyDescriptor, enumerable?: boolean, writable?: boolean, configurable?: boolean): PropertyDescriptor;
+    function makeDefDescriptors(descriptors: object, enumerable?: boolean, writable?: boolean, configurable?: boolean): PropertyDescriptorMap;
+    function is(instance: any, ref: {
+        new (): any;
+    }): boolean;
+    /**
+     * 移除可视对象
+     *
+     * @export
+     * @param {egret.DisplayObject} display
+     */
+    function removeDisplay(display: egret.DisplayObject): void;
+}
 /****************************************扩展Object****************************************/
 interface Object {
     /**
@@ -177,7 +182,7 @@ interface StringConstructor {
      * @param length 要补的总长度
      * @return 补0之后的字符串
      */
-    zeroize: (value: number, length: number) => string;
+    zeroize: (value: number, length?: number) => string;
     /**
      * 注册substitute的回调
      *
@@ -288,18 +293,6 @@ interface Array<T> {
      * @memberOf ArrayConstructor
      */
     appendTo<T>(to: Array<T>): any;
-}
-declare namespace jy {
-    function is(instance: any, ref: {
-        new (): any;
-    }): boolean;
-    /**
-     * 移除可视对象
-     *
-     * @export
-     * @param {egret.DisplayObject} display
-     */
-    function removeDisplay(display: egret.DisplayObject): void;
 }
 interface Console {
     table(...args: any[]): any;

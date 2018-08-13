@@ -9,55 +9,61 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-/**
- * 对数字进行补0操作
- * @param value 要补0的数值
- * @param length 要补的总长度
- * @return 补0之后的字符串
- */
-function zeroize(value, length) {
-    if (length === void 0) { length = 2; }
-    var str = "" + value;
-    var zeros = "";
-    for (var i = 0, len = length - str.length; i < len; i++) {
-        zeros += "0";
+var jy;
+(function (jy) {
+    /**
+     * 获取完整的 PropertyDescriptor
+     *
+     * @param {Partial<PropertyDescriptor>} descriptor
+     * @param {boolean} [enumerable=false]
+     * @param {boolean} [writable]
+     * @param {boolean} [configurable=true]
+     * @returns
+     */
+    function getDescriptor(descriptor, enumerable, writable, configurable) {
+        if (enumerable === void 0) { enumerable = false; }
+        if (writable === void 0) { writable = true; }
+        if (configurable === void 0) { configurable = true; }
+        if (!descriptor.set && !descriptor.get) {
+            descriptor.writable = writable;
+        }
+        descriptor.configurable = configurable;
+        descriptor.enumerable = enumerable;
+        return descriptor;
     }
-    return zeros + str;
-}
-/**
- * 获取完整的 PropertyDescriptor
- *
- * @param {Partial<PropertyDescriptor>} descriptor
- * @param {boolean} [enumerable=false]
- * @param {boolean} [writable]
- * @param {boolean} [configurable=true]
- * @returns
- */
-function getDescriptor(descriptor, enumerable, writable, configurable) {
-    if (enumerable === void 0) { enumerable = false; }
-    if (writable === void 0) { writable = true; }
-    if (configurable === void 0) { configurable = true; }
-    if (!descriptor.set && !descriptor.get) {
-        descriptor.writable = writable;
+    jy.getDescriptor = getDescriptor;
+    function makeDefDescriptors(descriptors, enumerable, writable, configurable) {
+        if (enumerable === void 0) { enumerable = false; }
+        if (writable === void 0) { writable = true; }
+        if (configurable === void 0) { configurable = true; }
+        for (var key in descriptors) {
+            var desc = descriptors[key];
+            var enumer = desc.enumerable == undefined ? enumerable : desc.enumerable;
+            var write = desc.writable == undefined ? writable : desc.writable;
+            var config = desc.configurable == undefined ? configurable : desc.configurable;
+            descriptors[key] = getDescriptor(desc, enumer, write, config);
+        }
+        return descriptors;
     }
-    descriptor.configurable = configurable;
-    descriptor.enumerable = enumerable;
-    return descriptor;
-}
-function makeDefDescriptors(descriptors, enumerable, writable, configurable) {
-    if (enumerable === void 0) { enumerable = false; }
-    if (writable === void 0) { writable = true; }
-    if (configurable === void 0) { configurable = true; }
-    for (var key in descriptors) {
-        var desc = descriptors[key];
-        var enumer = desc.enumerable == undefined ? enumerable : desc.enumerable;
-        var write = desc.writable == undefined ? writable : desc.writable;
-        var config = desc.configurable == undefined ? configurable : desc.configurable;
-        descriptors[key] = getDescriptor(desc, enumer, write, config);
+    jy.makeDefDescriptors = makeDefDescriptors;
+    function is(instance, ref) {
+        return egret.is(instance, egret.getQualifiedClassName(ref));
     }
-    return descriptors;
-}
-Object.defineProperties(Object.prototype, makeDefDescriptors({
+    jy.is = is;
+    /**
+     * 移除可视对象
+     *
+     * @export
+     * @param {egret.DisplayObject} display
+     */
+    function removeDisplay(display) {
+        if (display && display.parent) {
+            display.parent.removeChild(display);
+        }
+    }
+    jy.removeDisplay = removeDisplay;
+})(jy || (jy = {}));
+Object.defineProperties(Object.prototype, jy.makeDefDescriptors({
     clone: {
         value: function () {
             var o = {};
@@ -140,7 +146,7 @@ Object.defineProperties(Object.prototype, makeDefDescriptors({
         }
     }
 }));
-Object.defineProperties(Function.prototype, makeDefDescriptors({
+Object.defineProperties(Function.prototype, jy.makeDefDescriptors({
     isSubClass: {
         value: function (testBase) {
             if (typeof testBase !== "function") {
@@ -181,17 +187,17 @@ Math.random3 = function (center, delta) {
 if (!Number.isSafeInteger) { //防止低版本浏览器没有此方法
     Number.isSafeInteger = function (value) { return value < 9007199254740991 /*Number.MAX_SAFE_INTEGER*/ && value >= -9007199254740991; }; /*Number.MIN_SAFE_INTEGER*/
 }
-Object.defineProperties(Number.prototype, makeDefDescriptors({
-    zeroize: getDescriptor({
-        value: function (length) { return zeroize(this, length); }
+Object.defineProperties(Number.prototype, jy.makeDefDescriptors({
+    zeroize: jy.getDescriptor({
+        value: function (length) { return String.zeroize(this, length); }
     }),
-    between: getDescriptor({
+    between: jy.getDescriptor({
         value: function (min, max) { return min <= this && max >= this; }
     })
 }));
-Object.defineProperties(String.prototype, makeDefDescriptors({
+Object.defineProperties(String.prototype, jy.makeDefDescriptors({
     zeroize: {
-        value: function (length) { return zeroize(this, length); },
+        value: function (length) { return String.zeroize(this, length); },
     },
     substitute: {
         value: function () {
@@ -241,7 +247,15 @@ Object.defineProperties(String.prototype, makeDefDescriptors({
         }
     }
 }));
-String.zeroize = zeroize;
+String.zeroize = function (value, length) {
+    if (length === void 0) { length = 2; }
+    var str = "" + value;
+    var zeros = "";
+    for (var i = 0, len = length - str.length; i < len; i++) {
+        zeros += "0";
+    }
+    return zeros + str;
+};
 String.subHandler = {};
 String.regSubHandler = function (key, handler) {
     if (true) {
@@ -254,26 +268,26 @@ String.regSubHandler = function (key, handler) {
     }
     this.subHandler[key] = handler;
 };
-Object.defineProperties(Date.prototype, makeDefDescriptors({
+Object.defineProperties(Date.prototype, jy.makeDefDescriptors({
     format: {
         value: function (mask, local) {
             var d = this;
             return mask.replace(/"[^"]*"|'[^']*'|(?:d{1,2}|m{1,2}|yy(?:yy)?|([hHMs])\1?)/g, function ($0) {
                 switch ($0) {
                     case "d": return gd();
-                    case "dd": return zeroize(gd());
+                    case "dd": return String.zeroize(gd());
                     case "M": return gM() + 1;
-                    case "MM": return zeroize(gM() + 1);
+                    case "MM": return String.zeroize(gM() + 1);
                     case "yy": return (gy() + "").substr(2);
                     case "yyyy": return gy();
                     case "h": return gH() % 12 || 12;
-                    case "hh": return zeroize(gH() % 12 || 12);
+                    case "hh": return String.zeroize(gH() % 12 || 12);
                     case "H": return gH();
-                    case "HH": return zeroize(gH());
+                    case "HH": return String.zeroize(gH());
                     case "m": return gm();
-                    case "mm": return zeroize(gm());
+                    case "mm": return String.zeroize(gm());
                     case "s": return gs();
-                    case "ss": return zeroize(gs());
+                    case "ss": return String.zeroize(gs());
                     default: return $0.substr(1, $0.length - 2);
                 }
             });
@@ -315,7 +329,7 @@ Array.SORT_DEFAULT = {
     boolean: false
 };
 Object.freeze(Array.SORT_DEFAULT);
-Object.defineProperties(Array.prototype, makeDefDescriptors({
+Object.defineProperties(Array.prototype, jy.makeDefDescriptors({
     cloneTo: {
         value: function (b) {
             b.length = this.length;
@@ -427,25 +441,6 @@ Object.defineProperties(Array.prototype, makeDefDescriptors({
         }
     }
 }));
-var jy;
-(function (jy) {
-    function is(instance, ref) {
-        return egret.is(instance, egret.getQualifiedClassName(ref));
-    }
-    jy.is = is;
-    /**
-     * 移除可视对象
-     *
-     * @export
-     * @param {egret.DisplayObject} display
-     */
-    function removeDisplay(display) {
-        if (display && display.parent) {
-            display.parent.removeChild(display);
-        }
-    }
-    jy.removeDisplay = removeDisplay;
-})(jy || (jy = {}));
 /****************************************Map********************************************/
 if (typeof window["Map"] == "undefined" || !window["Map"]) {
     /**
@@ -593,7 +588,7 @@ var egret;
         egret.DisplayObject.$enterFrameCallBackList.remove(this);
         egret.DisplayObject.$renderCallBackList.remove(this);
     };
-    Object.defineProperties(dpt, makeDefDescriptors({
+    Object.defineProperties(dpt, jy.makeDefDescriptors({
         bright: {
             set: function (value) {
                 value = Math.clamp(value, -1, 1);
@@ -1210,7 +1205,7 @@ var jy;
         var pt = ref.prototype;
         pt.$setEnabled = $setEnabled;
         pt.useDisFilter = true;
-        Object.defineProperty(pt, "enabled", getDescriptor({
+        Object.defineProperty(pt, "enabled", jy.getDescriptor({
             set: function (value) {
                 if (this._enabled != value) {
                     this.$setEnabled(value);
