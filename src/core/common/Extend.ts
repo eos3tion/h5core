@@ -1,47 +1,50 @@
 declare function parseInt(s: number, radix?: number): number;
+namespace jy {
+    /**
+     * 获取完整的 PropertyDescriptor
+     * 
+     * @param {Partial<PropertyDescriptor>} descriptor 
+     * @param {boolean} [enumerable=false] 
+     * @param {boolean} [writable]
+     * @param {boolean} [configurable=true] 
+     * @returns 
+     */
+    export function getDescriptor(descriptor: PropertyDescriptor, enumerable = false, writable = true, configurable = true) {
+        if (!descriptor.set && !descriptor.get) {
+            descriptor.writable = writable;
+        }
+        descriptor.configurable = configurable;
+        descriptor.enumerable = enumerable;
+        return descriptor;
+    }
 
-/**
- * 对数字进行补0操作
- * @param value 要补0的数值
- * @param length 要补的总长度
- * @return 补0之后的字符串
- */
-function zeroize(value: number | string, length: number = 2): string {
-    let str = "" + value;
-    let zeros = "";
-    for (let i = 0, len = length - str.length; i < len; i++) {
-        zeros += "0";
+    export function makeDefDescriptors(descriptors: object, enumerable = false, writable = true, configurable = true) {
+        for (let key in descriptors) {
+            let desc: PropertyDescriptor = descriptors[key];
+            let enumer = desc.enumerable == undefined ? enumerable : desc.enumerable;
+            let write = desc.writable == undefined ? writable : desc.writable;
+            let config = desc.configurable == undefined ? configurable : desc.configurable;
+            descriptors[key] = getDescriptor(desc, enumer, write, config);
+        }
+        return descriptors as PropertyDescriptorMap;
     }
-    return zeros + str;
-}
-/**
- * 获取完整的 PropertyDescriptor
- * 
- * @param {Partial<PropertyDescriptor>} descriptor 
- * @param {boolean} [enumerable=false] 
- * @param {boolean} [writable]
- * @param {boolean} [configurable=true] 
- * @returns 
- */
-function getDescriptor(descriptor: PropertyDescriptor, enumerable = false, writable = true, configurable = true) {
-    if (!descriptor.set && !descriptor.get) {
-        descriptor.writable = writable;
+    export function is(instance: any, ref: { new(): any }): boolean {
+        return egret.is(instance, egret.getQualifiedClassName(ref));
     }
-    descriptor.configurable = configurable;
-    descriptor.enumerable = enumerable;
-    return descriptor;
+
+    /**
+     * 移除可视对象
+     * 
+     * @export
+     * @param {egret.DisplayObject} display
+     */
+    export function removeDisplay(display: egret.DisplayObject) {
+        if (display && display.parent) {
+            display.parent.removeChild(display);
+        }
+    }
 }
 
-function makeDefDescriptors(descriptors: object, enumerable = false, writable = true, configurable = true) {
-    for (let key in descriptors) {
-        let desc: PropertyDescriptor = descriptors[key];
-        let enumer = desc.enumerable == undefined ? enumerable : desc.enumerable;
-        let write = desc.writable == undefined ? writable : desc.writable;
-        let config = desc.configurable == undefined ? configurable : desc.configurable;
-        descriptors[key] = getDescriptor(desc, enumer, write, config);
-    }
-    return descriptors as PropertyDescriptorMap;
-}
 /****************************************扩展Object****************************************/
 interface Object {
     /**
@@ -88,7 +91,7 @@ interface Object {
     getSpecObject<T>(this: T, ...proNames: (keyof T)[]): object;
 }
 
-Object.defineProperties(Object.prototype, makeDefDescriptors({
+Object.defineProperties(Object.prototype, jy.makeDefDescriptors({
     clone: {
         value: function () {
             let o = {};
@@ -169,7 +172,7 @@ interface Function {
      */
     isSubClass(testBase: Function): boolean;
 }
-Object.defineProperties(Function.prototype, makeDefDescriptors({
+Object.defineProperties(Function.prototype, jy.makeDefDescriptors({
     isSubClass: {
         value: function (testBase: Function) {
             if (typeof testBase !== "function") {
@@ -299,11 +302,11 @@ interface Number {
     between(min: number, max: number): boolean;
 }
 
-Object.defineProperties(Number.prototype, makeDefDescriptors({
-    zeroize: getDescriptor({
-        value: function (this: number, length: number) { return zeroize(this, length) }
+Object.defineProperties(Number.prototype, jy.makeDefDescriptors({
+    zeroize: jy.getDescriptor({
+        value: function (this: number, length: number) { return String.zeroize(this, length) }
     }),
-    between: getDescriptor({
+    between: jy.getDescriptor({
         value: function (this: number, min: number, max: number) { return min <= this && max >= this }
     })
 }));
@@ -334,9 +337,9 @@ interface String {
 }
 
 
-Object.defineProperties(String.prototype, makeDefDescriptors({
+Object.defineProperties(String.prototype, jy.makeDefDescriptors({
     zeroize: {
-        value: function (length) { return zeroize(this, length) },
+        value: function (length) { return String.zeroize(this, length) },
     },
     substitute: {
         value: function (this: string) {
@@ -392,7 +395,7 @@ interface StringConstructor {
      * @param length 要补的总长度
      * @return 补0之后的字符串
      */
-    zeroize: (value: number, length: number) => string;
+    zeroize: (value: number, length?: number) => string;
     /**
      * 注册substitute的回调
      * 
@@ -412,7 +415,15 @@ interface StringConstructor {
     subHandler: Readonly<{ [index: string]: { (input: any): string } }>;
 }
 
-String.zeroize = zeroize;
+String.zeroize = function (value: jy.Key, length = 2) {
+    let str = "" + value;
+    let zeros = "";
+    for (let i = 0, len = length - str.length; i < len; i++) {
+        zeros += "0";
+    }
+    return zeros + str;
+};
+
 String.subHandler = {};
 
 String.regSubHandler = function (key, handler) {
@@ -442,26 +453,26 @@ interface Date {
     format(mask: string, local?: boolean): string;
 }
 
-Object.defineProperties(Date.prototype, makeDefDescriptors({
+Object.defineProperties(Date.prototype, jy.makeDefDescriptors({
     format: {
         value: function (mask, local?: boolean) {
             let d: Date = this;
             return mask.replace(/"[^"]*"|'[^']*'|(?:d{1,2}|m{1,2}|yy(?:yy)?|([hHMs])\1?)/g, function ($0) {
                 switch ($0) {
                     case "d": return gd();
-                    case "dd": return zeroize(gd());
+                    case "dd": return String.zeroize(gd());
                     case "M": return gM() + 1;
-                    case "MM": return zeroize(gM() + 1);
+                    case "MM": return String.zeroize(gM() + 1);
                     case "yy": return (gy() + "").substr(2);
                     case "yyyy": return gy();
                     case "h": return gH() % 12 || 12;
-                    case "hh": return zeroize(gH() % 12 || 12);
+                    case "hh": return String.zeroize(gH() % 12 || 12);
                     case "H": return gH();
-                    case "HH": return zeroize(gH());
+                    case "HH": return String.zeroize(gH());
                     case "m": return gm();
-                    case "mm": return zeroize(gm());
+                    case "mm": return String.zeroize(gm());
                     case "s": return gs();
-                    case "ss": return zeroize(gs());
+                    case "ss": return String.zeroize(gs());
                     default: return $0.substr(1, $0.length - 2);
                 }
             });
@@ -581,7 +592,7 @@ interface Array<T> {
     appendTo<T>(to: Array<T>);
 }
 
-Object.defineProperties(Array.prototype, makeDefDescriptors({
+Object.defineProperties(Array.prototype, jy.makeDefDescriptors({
     cloneTo: {
         value: function <T>(this: T[], b: any[]) {
             b.length = this.length;
@@ -688,23 +699,6 @@ Object.defineProperties(Array.prototype, makeDefDescriptors({
         }
     }
 }));
-namespace jy {
-    export function is(instance: any, ref: { new(): any }): boolean {
-        return egret.is(instance, egret.getQualifiedClassName(ref));
-    }
-
-    /**
-     * 移除可视对象
-     * 
-     * @export
-     * @param {egret.DisplayObject} display
-     */
-    export function removeDisplay(display: egret.DisplayObject) {
-        if (display && display.parent) {
-            display.parent.removeChild(display);
-        }
-    }
-}
 
 interface Console {
     table(...args);
@@ -812,7 +806,7 @@ module egret {
 		 * 占位用纹理
 		 * 
 		 */
-		placehoder?: egret.Texture;
+        placehoder?: egret.Texture;
     }
     export interface TextField {
         /**
@@ -1025,7 +1019,7 @@ module egret {
         DisplayObject.$renderCallBackList.remove(this);
     }
 
-    Object.defineProperties(dpt, makeDefDescriptors({
+    Object.defineProperties(dpt, jy.makeDefDescriptors({
         bright: {
             set: function (this: egret.DisplayObject, value: number) {
                 value = Math.clamp(value, -1, 1);
