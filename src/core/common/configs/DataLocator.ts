@@ -6,9 +6,9 @@ const $DD = {} as jy.CfgData;
 
 /**
  * DataLocator的附加数据 
- * 原junyou.DataLocator.extra 的全局别名简写
+ * 原 junyou.DataLocator.extra 的全局别名简写
  */
-let $DE: jy.ExtraData;
+const $DE = {} as jy.ExtraData;
 namespace jy {
 
     /**
@@ -73,7 +73,7 @@ namespace jy {
                 }
             }
 
-            let extraData = {};
+            let extraData = $DE;
             //处理额外数据
             for (let key in configs) {
                 if (key.charAt(0) == "$") {
@@ -95,7 +95,6 @@ namespace jy {
                     }
                 }
             }
-            $DE = <any>extraData;
             //清理内存
             parsers = null;
             _plist = null;
