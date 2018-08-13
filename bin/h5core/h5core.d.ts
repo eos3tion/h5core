@@ -9271,9 +9271,9 @@ declare namespace jy {
 declare const $DD: jy.CfgData;
 /**
  * DataLocator的附加数据
- * 原junyou.DataLocator.extra 的全局别名简写
+ * 原 junyou.DataLocator.extra 的全局别名简写
  */
-declare let $DE: jy.ExtraData;
+declare const $DE: jy.ExtraData;
 declare namespace jy {
     /**
      * 表单最终被解析成的类型

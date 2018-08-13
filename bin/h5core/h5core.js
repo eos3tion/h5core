@@ -10671,9 +10671,9 @@ var jy;
 var $DD = {};
 /**
  * DataLocator的附加数据
- * 原junyou.DataLocator.extra 的全局别名简写
+ * 原 junyou.DataLocator.extra 的全局别名简写
  */
-var $DE;
+var $DE = {};
 var jy;
 (function (jy) {
     var parsers = {};
@@ -10711,7 +10711,7 @@ var jy;
                     jy.dispatch(-185 /* OneCfgComplete */, key);
                 }
             }
-            var extraData = {};
+            var extraData = $DE;
             //处理额外数据
             for (var key in configs) {
                 if (key.charAt(0) == "$") {
@@ -10733,7 +10733,6 @@ var jy;
                     }
                 }
             }
-            $DE = extraData;
             //清理内存
             parsers = null;
             _plist = null;
