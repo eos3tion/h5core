@@ -12274,7 +12274,7 @@ var jy;
          *
          */
         UnitController.prototype.getCount = function (domain) {
-            return this._domainCounts[domain];
+            return this._domainCounts[domain] || 0;
         };
         /**
          * 根据GUID获取JUnit
