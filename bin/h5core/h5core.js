@@ -11578,11 +11578,14 @@ var jy;
              * 设置朝向
              */
             set: function (value) {
-                this._render.faceTo = value >> 0;
+                this.$setFaceTo(value);
             },
             enumerable: true,
             configurable: true
         });
+        Unit.prototype.$setFaceTo = function (value) {
+            this._render.faceTo = value >> 0;
+        };
         /**
          * 播放自定义动作
          *

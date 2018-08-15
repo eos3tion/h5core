@@ -179,6 +179,10 @@ namespace jy {
          * 设置朝向
          */
         public set faceTo(value: number) {
+            this.$setFaceTo(value);
+        }
+
+        $setFaceTo(value: number) {
             this._render.faceTo = value >> 0;
         }
 

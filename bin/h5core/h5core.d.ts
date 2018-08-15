@@ -9831,6 +9831,7 @@ declare namespace jy {
         * 获取朝向
         */
         faceTo: number;
+        $setFaceTo(value: number): void;
         /**
          * 播放自定义动作
          *
