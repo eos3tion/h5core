@@ -132,7 +132,7 @@ namespace jy {
          *
          */
         public getCount(domain: number) {
-            return this._domainCounts[domain];
+            return this._domainCounts[domain] || 0;
         }
 
         /**
