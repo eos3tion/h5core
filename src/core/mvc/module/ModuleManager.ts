@@ -152,9 +152,10 @@ namespace jy {
         checkLimits() {
             if (this._needCheck) {
                 this._needCheck = false;
-                let _checks = this._checkers;
-                let _allById = this._allById;
-                if (_checks) {
+                const { _checkers, _allById, _unopens, _unshowns, _bindedIOById } = this;
+                _unopens.length = 0;
+                _unshowns.length = 0;
+                if (_checkers) {
                     if (DEBUG) {
                         var errString = "";
                         var limitWarn = "";
@@ -164,14 +165,14 @@ namespace jy {
                     for (let id in _allById) {
                         let cfg: IModuleCfg = _allById[id];
                         let showtype = cfg.showtype;
-                        checker = _checks[showtype] as IModuleChecker;
+                        checker = _checkers[showtype] as IModuleChecker;
                         if (DEBUG) {
                             if (!checker) {
                                 unsolve += cfg.id + "的显示限制 ";
                             }
                         }
                         let limittype = cfg.limittype;
-                        checker = _checks[limittype] as IModuleChecker;
+                        checker = _checkers[limittype] as IModuleChecker;
                         if (DEBUG) {
                             if (!checker) {
                                 unsolve += cfg.id + "的使用限制 ";
@@ -197,8 +198,8 @@ namespace jy {
                         }
                         if (!this.isModuleShow(cfg)) {
                             let id = cfg.id;
-                            this._unshowns.push(id);
-                            let displays = this._bindedIOById[id];
+                            _unshowns.push(id);
+                            let displays = _bindedIOById[id];
                             if (displays) {
                                 for (let i = 0; i < displays.length; i++) {
                                     displays[i].visible = false;
@@ -206,7 +207,7 @@ namespace jy {
                             }
                         }
                         if (!this.isModuleOpened(cfg)) {
-                            this._unopens.push(id);
+                            _unopens.push(id);
                         }
                     }
 
@@ -282,12 +283,12 @@ namespace jy {
         }
 
         /**
-         * 将交互对象和功能id进行绑定，当交互对象抛出事件后，会执行功能对应的处理器
-         * @param id					功能id
-         * @param io					交互对象
-         * @param eventType		事件
-         *
-         */
+        * 将交互对象和功能id进行绑定，当交互对象抛出事件后，会执行功能对应的处理器
+        * @param id					功能id
+        * @param io					交互对象
+        * @param eventType		事件
+        *
+        */
         bindButton(id: string | number, io: egret.DisplayObject, eventType: string = EgretEvent.TOUCH_TAP): void {
             if (this._ioBind.has(io)) {
                 ThrowError("ModuleManager 注册按钮时候，重复注册了按钮");
@@ -396,6 +397,38 @@ namespace jy {
             }
         }
 
+        /**
+         * 重置 unopen 和 unshown 项  
+         * 还有 onShow 和  onOpen 注册的类型
+         */
+        resetLimits() {
+            let { _allById, _unshowns, _unopens } = this;
+            for (let i = 0; i < _unshowns.length; i++) {
+                let id = _unshowns[i];
+                let cfg = _allById[id];
+                let onShow = cfg.onShow;
+                if (onShow) {
+                    cfg.onShow = undefined;
+                    for (let d = 0; d < onShow.length; d++) {
+                        const callback = onShow[d];
+                        callback.recycle();
+                    }
+                }
+            }
+            for (let i = 0; i < _unopens.length; i++) {
+                let id = _unopens[i];
+                let cfg = _allById[id];
+                let onOpen = cfg.onOpen;
+                if (onOpen) {
+                    cfg.onOpen = undefined;
+                    for (let d = 0; d < onOpen.length; d++) {
+                        const callback = onOpen[d];
+                        callback.recycle();
+                    }
+                }
+            }
+            this.checkLimits();
+        }
 
         /**
          * 
