@@ -14067,9 +14067,10 @@ var jy;
         ModuleManager.prototype.checkLimits = function () {
             if (this._needCheck) {
                 this._needCheck = false;
-                var _checks = this._checkers;
-                var _allById = this._allById;
-                if (_checks) {
+                var _a = this, _checkers = _a._checkers, _allById = _a._allById, _unopens = _a._unopens, _unshowns = _a._unshowns, _bindedIOById = _a._bindedIOById;
+                _unopens.length = 0;
+                _unshowns.length = 0;
+                if (_checkers) {
                     if (true) {
                         var errString = "";
                         var limitWarn = "";
@@ -14079,14 +14080,14 @@ var jy;
                     for (var id in _allById) {
                         var cfg = _allById[id];
                         var showtype = cfg.showtype;
-                        checker = _checks[showtype];
+                        checker = _checkers[showtype];
                         if (true) {
                             if (!checker) {
                                 unsolve += cfg.id + "的显示限制 ";
                             }
                         }
                         var limittype = cfg.limittype;
-                        checker = _checks[limittype];
+                        checker = _checkers[limittype];
                         if (true) {
                             if (!checker) {
                                 unsolve += cfg.id + "的使用限制 ";
@@ -14111,8 +14112,8 @@ var jy;
                         }
                         if (!this.isModuleShow(cfg)) {
                             var id_1 = cfg.id;
-                            this._unshowns.push(id_1);
-                            var displays = this._bindedIOById[id_1];
+                            _unshowns.push(id_1);
+                            var displays = _bindedIOById[id_1];
                             if (displays) {
                                 for (var i = 0; i < displays.length; i++) {
                                     displays[i].visible = false;
@@ -14120,7 +14121,7 @@ var jy;
                             }
                         }
                         if (!this.isModuleOpened(cfg)) {
-                            this._unopens.push(id);
+                            _unopens.push(id);
                         }
                     }
                     if (true) {
@@ -14192,12 +14193,12 @@ var jy;
             }
         };
         /**
-         * 将交互对象和功能id进行绑定，当交互对象抛出事件后，会执行功能对应的处理器
-         * @param id					功能id
-         * @param io					交互对象
-         * @param eventType		事件
-         *
-         */
+        * 将交互对象和功能id进行绑定，当交互对象抛出事件后，会执行功能对应的处理器
+        * @param id					功能id
+        * @param io					交互对象
+        * @param eventType		事件
+        *
+        */
         ModuleManager.prototype.bindButton = function (id, io, eventType) {
             if (eventType === void 0) { eventType = "touchTap" /* TOUCH_TAP */; }
             if (this._ioBind.has(io)) {
@@ -14304,6 +14305,38 @@ var jy;
             if (changed) {
                 jy.dispatch(-994 /* MODULE_SHOW_CHANGED */, _unshowns.length);
             }
+        };
+        /**
+         * 重置 unopen 和 unshown 项
+         * 还有 onShow 和  onOpen 注册的类型
+         */
+        ModuleManager.prototype.resetLimits = function () {
+            var _a = this, _allById = _a._allById, _unshowns = _a._unshowns, _unopens = _a._unopens;
+            for (var i = 0; i < _unshowns.length; i++) {
+                var id = _unshowns[i];
+                var cfg = _allById[id];
+                var onShow = cfg.onShow;
+                if (onShow) {
+                    cfg.onShow = undefined;
+                    for (var d = 0; d < onShow.length; d++) {
+                        var callback = onShow[d];
+                        callback.recycle();
+                    }
+                }
+            }
+            for (var i = 0; i < _unopens.length; i++) {
+                var id = _unopens[i];
+                var cfg = _allById[id];
+                var onOpen = cfg.onOpen;
+                if (onOpen) {
+                    cfg.onOpen = undefined;
+                    for (var d = 0; d < onOpen.length; d++) {
+                        var callback = onOpen[d];
+                        callback.recycle();
+                    }
+                }
+            }
+            this.checkLimits();
         };
         /**
          *

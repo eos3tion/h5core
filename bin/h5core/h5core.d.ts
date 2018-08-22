@@ -11722,12 +11722,12 @@ declare namespace jy {
          */
         isModuleOpened(module: string | number | IModuleCfg, showtip?: boolean): boolean;
         /**
-         * 将交互对象和功能id进行绑定，当交互对象抛出事件后，会执行功能对应的处理器
-         * @param id					功能id
-         * @param io					交互对象
-         * @param eventType		事件
-         *
-         */
+        * 将交互对象和功能id进行绑定，当交互对象抛出事件后，会执行功能对应的处理器
+        * @param id					功能id
+        * @param io					交互对象
+        * @param eventType		事件
+        *
+        */
         bindButton(id: string | number, io: egret.DisplayObject, eventType?: string): void;
         /**
          * 交互事件的处理
@@ -11742,6 +11742,11 @@ declare namespace jy {
          */
         check(): void;
         _check(): void;
+        /**
+         * 重置 unopen 和 unshown 项
+         * 还有 onShow 和  onOpen 注册的类型
+         */
+        resetLimits(): void;
         /**
          *
          * 打开/关闭指定模块
