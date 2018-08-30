@@ -1,22 +1,27 @@
 declare function parseInt(s: number, radix?: number): number;
-/**
- * 对数字进行补0操作
- * @param value 要补0的数值
- * @param length 要补的总长度
- * @return 补0之后的字符串
- */
-declare function zeroize(value: number | string, length?: number): string;
-/**
- * 获取完整的 PropertyDescriptor
- *
- * @param {Partial<PropertyDescriptor>} descriptor
- * @param {boolean} [enumerable=false]
- * @param {boolean} [writable]
- * @param {boolean} [configurable=true]
- * @returns
- */
-declare function getDescriptor(descriptor: PropertyDescriptor, enumerable?: boolean, writable?: boolean, configurable?: boolean): PropertyDescriptor;
-declare function makeDefDescriptors(descriptors: object, enumerable?: boolean, writable?: boolean, configurable?: boolean): PropertyDescriptorMap;
+declare namespace jy {
+    /**
+     * 获取完整的 PropertyDescriptor
+     *
+     * @param {Partial<PropertyDescriptor>} descriptor
+     * @param {boolean} [enumerable=false]
+     * @param {boolean} [writable]
+     * @param {boolean} [configurable=true]
+     * @returns
+     */
+    function getDescriptor(descriptor: PropertyDescriptor, enumerable?: boolean, writable?: boolean, configurable?: boolean): PropertyDescriptor;
+    function makeDefDescriptors(descriptors: object, enumerable?: boolean, writable?: boolean, configurable?: boolean): PropertyDescriptorMap;
+    function is(instance: any, ref: {
+        new (): any;
+    }): boolean;
+    /**
+     * 移除可视对象
+     *
+     * @export
+     * @param {egret.DisplayObject} display
+     */
+    function removeDisplay(display: egret.DisplayObject): void;
+}
 /****************************************扩展Object****************************************/
 interface Object {
     /**
@@ -177,7 +182,7 @@ interface StringConstructor {
      * @param length 要补的总长度
      * @return 补0之后的字符串
      */
-    zeroize: (value: number, length: number) => string;
+    zeroize: (value: number, length?: number) => string;
     /**
      * 注册substitute的回调
      *
@@ -288,18 +293,6 @@ interface Array<T> {
      * @memberOf ArrayConstructor
      */
     appendTo<T>(to: Array<T>): any;
-}
-declare namespace jy {
-    function is(instance: any, ref: {
-        new(): any;
-    }): boolean;
-    /**
-     * 移除可视对象
-     *
-     * @export
-     * @param {egret.DisplayObject} display
-     */
-    function removeDisplay(display: egret.DisplayObject): void;
 }
 interface Console {
     table(...args: any[]): any;
@@ -482,7 +475,7 @@ interface $gmType {
 }
 declare namespace jy {
     type InjectProxy = {
-        new(): IAsync;
+        new (): IAsync;
     } | Key;
     interface InjectProxyBin {
         ref: InjectProxy;
@@ -1002,10 +995,10 @@ declare namespace jy {
         protected static _ins: NetService;
         protected _limitAlert: boolean;
         protected _limitSendFunc: {
-            (cmd: number, data?: any, msgType?: string | number, limit?: number): any;
+            (cmd: number, data?: any, msgType?: Key, limit?: number): any;
         };
         protected _nolimitSendFunc: {
-            (cmd: number, data?: any, msgType?: string | number, limit?: number): any;
+            (cmd: number, data?: any, msgType?: Key, limit?: number): any;
         };
         static get(): NetService;
         /**
@@ -1040,11 +1033,15 @@ declare namespace jy {
         protected _sendBuffer: ByteArray;
         protected _tempBytes: ByteArray;
         /**
+         * 是否连通
+         */
+        readonly connected?: boolean;
+        /**
          * 接收消息的创建器
          *
          */
         _receiveMSG: {
-            [index: number]: string | number;
+            [index: number]: Key;
         };
         /**
          * 设置地址
@@ -1091,7 +1088,7 @@ declare namespace jy {
         /**
          * 基础类型消息
          */
-        regReceiveMSGRef(cmd: number, ref: string | number): void;
+        regReceiveMSGRef(cmd: number, ref: Key): void;
         /**
          * 注册处理器
          * @param {number} cmd 协议号
@@ -1122,11 +1119,11 @@ declare namespace jy {
          * @param {string} [msgType] 如果是复合数据，必须有此值
          * @param {number} [limit] 客户端发送时间限制，默认500毫秒
          */
-        send(cmd: number, data?: any, msgType?: string | number, limit?: number): void;
+        send(cmd: number, data?: any, msgType?: Key, limit?: number): void;
         /**
          * 即时发送指令
          */
-        protected abstract _send(cmd: number, data: any, msgType: string | number): any;
+        protected abstract _send(cmd: number, data: any, msgType: Key): any;
         /**
          * 断开连接
          */
@@ -1140,17 +1137,17 @@ declare namespace jy {
          * @param {any} [data] 数据，简单数据(number,boolean,string)复合数据
          * @param {string} [msgType] 如果是复合数据，必须有此值
          */
-        sendPassive(cmd: number, data?: any, msgType?: string | number): void;
+        sendPassive(cmd: number, data?: any, msgType?: Key): void;
         /**
          * 向缓冲数组中写入数据
          */
-        protected writeToBuffer(bytes: ByteArray, data: NetSendData): void;
+        writeToBuffer(bytes: ByteArray, data: NetSendData): void;
         /**
          * @private
          * @param bytes
          * @param out
          */
-        protected decodeBytes(bytes: ByteArray): void;
+        decodeBytes(bytes: ByteArray): void;
         /**
          * 解析头部信息
          *
@@ -1355,7 +1352,7 @@ declare namespace jy {
          */
         def?: any;
         ref?: {
-            new(): any;
+            new (): any;
             prototype: any;
         };
     }
@@ -1390,7 +1387,7 @@ declare namespace jy {
      */
     function regStruct(msgType: Key, struct: PBStruct): void;
     function initDefault(struct: PBStruct, ref?: {
-        new(): any;
+        new (): any;
         prototype: any;
     }): void;
     /**
@@ -1664,7 +1661,7 @@ declare namespace jy {
             [adKey: number]: Point;
         };
         urCreator: {
-            new(key: string, pstInfo: PstInfo): UnitResource;
+            new (key: string, pstInfo: PstInfo): UnitResource;
         };
         /**
          * 获取施法点
@@ -1923,6 +1920,14 @@ declare namespace jy {
         protected _interests: {
             [index: string]: Interest;
         };
+        interestChecked: boolean;
+        _awakeCallers: {
+            (e?: egret.Event): void;
+        }[];
+        /**
+         * 定时回调的列表
+         */
+        _tList: $CallbackInfo[];
         /**
          * 用于内部增加关注
          *
@@ -1936,8 +1941,35 @@ declare namespace jy {
         }, triggerOnStage?: boolean, priority?: number): void;
         removeSkinListener(skin: egret.DisplayObject): void;
         addSkinListener(skin: egret.DisplayObject): void;
+        /**
+         * 绑定定时处理的回调函数
+         *
+         * @param {Function} callback 执行回调函数
+         * @param {boolean} [trigger=true] 是否理解执行
+         * @param {number} [time=Time.ONE_SECOND]
+         * @param {any} [thisObj=this]
+         * @param {any} args
+         * @memberof ViewController
+         */
+        bindTimer(callback: Function, trigger?: boolean, time?: Time, thisObj?: this, ...args: any[]): void;
+        /**
+         * 解除定时回调函数的绑定
+         * @param callback
+         * @param time
+         * @param thisObj
+         */
+        looseTimer(callback: Function, time?: Time, thisObj?: this): void;
+        /**
+         * 添加到舞台时，自动添加定时回调
+         */
+        awakeTimer(): void;
+        /**
+         * 从舞台移除时候，自动移除定时回调
+         */
+        sleepTimer(): void;
         readonly isReady: boolean;
         stageHandler(e: egret.Event): void;
+        checkInterest(): void;
     }
     interface Interest {
         /**
@@ -1972,7 +2004,7 @@ declare namespace jy {
      * @param {boolean} [isPrivate=false]           是否为私有方法，如果标记为私有方法，则不会被子类的关注继承
      * @param {number} [priority=0]                 优先级，默认为0
      */
-    function d_interest(eventType: Key, triggerOnStage?: boolean, isPrivate?: boolean, priority?: number): (target: any, key: string, value: any) => void;
+    function d_interest(eventType: Key, triggerOnStage?: boolean, isPrivate?: boolean, priority?: number): (target: any, _: string, value: any) => void;
 }
 declare namespace jy {
     class Scroller extends egret.EventDispatcher {
@@ -2325,7 +2357,7 @@ declare namespace jy {
          * @memberOf MixinOption
          */
         clazz: {
-            new(): T;
+            new (): T;
         };
         /**
          *
@@ -4179,6 +4211,18 @@ declare namespace jy {
          * @param thisObj
          */
         static addToList<T extends Function>(list: CallbackInfo<T>[], handle: T, thisObj?: any, ...args: any[]): CallbackInfo<T>;
+        /**
+         * 从列表中移除
+         *
+         * @static
+         * @template T
+         * @param {CallbackInfo<T>[]} list
+         * @param {T} handle
+         * @param {*} [thisObj]
+         * @returns
+         * @memberof CallbackInfo
+         */
+        static removeFromList<T extends Function>(list: CallbackInfo<T>[], handle: T, thisObj?: any): CallbackInfo<T>;
     }
 }
 declare namespace jy {
@@ -4383,6 +4427,12 @@ declare const enum Sex {
     Nv = 2
 }
 declare namespace jy {
+    function setLib(data: {
+        a?: string;
+        b?: string;
+        c1?: string;
+        c2?: string;
+    }): void;
     class NameUtils {
         private _random;
         /**
@@ -4391,6 +4441,13 @@ declare namespace jy {
          *
          */
         constructor(randomFunc?: Function);
+        /**
+         * 设置名字库的数据
+         *
+         * @static
+         * @memberof NameUtils
+         */
+        static setLib: typeof setLib;
         static loadNameLib(url: string, callback?: $CallbackInfo): void;
         /**
          * 设置随机算法
@@ -4607,7 +4664,7 @@ declare namespace jy {
     function tick(now: number): void;
     /**
      *
-     * 注册回调
+     * 注册回调  会对在同一个时间区间的 `callback`和`thisObj`相同的回调函数进行去重
      * @static
      * @param {number} time 回调的间隔时间，间隔时间会处理成30的倍数，向上取整，如 设置1ms，实际间隔为30ms，32ms，实际间隔会使用60ms
      * @param {Function} callback 回调函数，没有加this指针是因为做移除回调的操作会比较繁琐，如果函数中需要使用this，请通过箭头表达式()=>{}，或者将this放arg中传入
@@ -4616,8 +4673,20 @@ declare namespace jy {
      */
     function addCallback(time: number, callback: Function, thisObj?: any, ...args: any[]): void;
     /**
+     * 注册回调 会对在同一个时间区间的 `callback`相同的情况下，才会去重
+     * @param time
+     * @param callback
+     */
+    function add(time: number, callback: $CallbackInfo): void;
+    /**
      * 移除回调
-     *
+     * 不回收`CallbackInfo`
+     * @param {number} time
+     * @param {$CallbackInfo} callback
+     */
+    function remove(time: number, callback: $CallbackInfo): void;
+    /**
+     * 移除回调
      * @static
      * @param {number} time         回调的间隔时间，间隔时间会处理成30的倍数，向上取整，如 设置1ms，实际间隔为30ms，32ms，实际间隔会使用60ms
      * @param {Function} callback   回调函数，没有加this指针是因为做移除回调的操作会比较繁琐，如果函数中需要使用this，请通过箭头表达式()=>{}，或者将this放arg中传入
@@ -4628,6 +4697,8 @@ declare namespace jy {
         addCallback: typeof addCallback;
         removeCallback: typeof removeCallback;
         tick: typeof tick;
+        add: typeof add;
+        remove: typeof remove;
     };
 }
 declare namespace jy {
@@ -4808,7 +4879,7 @@ declare namespace jy {
         };
         static instance: GameEngine;
         static init(stage: egret.Stage, ref?: {
-            new(stage: egret.Stage): GameEngine;
+            new (stage: egret.Stage): GameEngine;
         }): void;
         static addLayerConfig(id: number, parentid?: number, ref?: new (id: number) => GameLayer): void;
         /**
@@ -8742,13 +8813,11 @@ declare namespace jy {
      *
      */
     class AsyncHelper {
-        _ready: boolean;
-        protected _readyExecutes: CallbackInfo<Function>[];
         /**
          * 是否已经处理完成
          */
-        readonly isReady: boolean;
-        constructor();
+        isReady: boolean;
+        protected _cbs: $CallbackInfo[];
         /**
          * 异步数据已经加载完毕
          */
@@ -8760,7 +8829,7 @@ declare namespace jy {
          * @param {*} thisObj this对象
          * @param {any[]} args 函数的参数
          */
-        addReadyExecute(handle: Function, thisObj?: any, ...args: any[]): void;
+        addReadyExecute(handle: Function, thisObj?: any, ...args: any[]): any;
     }
 }
 declare namespace jy {
@@ -8904,9 +8973,9 @@ declare namespace jy {
 declare const $DD: jy.CfgData;
 /**
  * DataLocator的附加数据
- * 原junyou.DataLocator.extra 的全局别名简写
+ * 原 junyou.DataLocator.extra 的全局别名简写
  */
-declare let $DE: jy.ExtraData;
+declare const $DE: jy.ExtraData;
 declare namespace jy {
     /**
      * 表单最终被解析成的类型
@@ -9018,7 +9087,7 @@ declare namespace jy {
          * @memberOf Facade
          */
         static getNameOfInline(inlineRef: {
-            new(): any;
+            new (): any;
         }, className?: string): string;
         /**
          * 存储的数据Proxy
@@ -9075,7 +9144,7 @@ declare namespace jy {
          * @param {boolean} [async=false] 是否异步初始化，默认直接初始化
          */
         registerInlineProxy(ref: {
-            new(): Proxy;
+            new (): Proxy;
         }, proxyName?: Key, async?: boolean): void;
         /**
          *
@@ -9084,7 +9153,7 @@ declare namespace jy {
          * @param {string} [mediatorName]   注册的模块名字
          */
         registerInlineMediator(ref: {
-            new(): Mediator;
+            new (): Mediator;
         }, mediatorName?: Key): void;
         /**
          * 注册Proxy的配置
@@ -9354,7 +9423,7 @@ declare namespace jy {
         /**
          * 视图加载完成
          */
-        protected _preViewReady: boolean;
+        protected viewReady: boolean;
         /**
          * 视图
          */
@@ -10007,12 +10076,12 @@ declare namespace jy {
          */
         isModuleOpened(module: string | number | IModuleCfg, showtip?: boolean): boolean;
         /**
-         * 将交互对象和功能id进行绑定，当交互对象抛出事件后，会执行功能对应的处理器
-         * @param id					功能id
-         * @param io					交互对象
-         * @param eventType		事件
-         *
-         */
+        * 将交互对象和功能id进行绑定，当交互对象抛出事件后，会执行功能对应的处理器
+        * @param id					功能id
+        * @param io					交互对象
+        * @param eventType		事件
+        *
+        */
         bindButton(id: string | number, io: egret.DisplayObject, eventType?: string): void;
         /**
          * 交互事件的处理
@@ -10027,6 +10096,11 @@ declare namespace jy {
          */
         check(): void;
         _check(): void;
+        /**
+         * 重置 unopen 和 unshown 项
+         * 还有 onShow 和  onOpen 注册的类型
+         */
+        resetLimits(): void;
         /**
          *
          * 打开/关闭指定模块
@@ -10188,20 +10262,6 @@ declare namespace jy {
          */
         bg?: egret.DisplayObject;
         /**
-         * 模态颜色
-         *
-         * @static
-         * @type {number}
-         */
-        static MODAL_COLOR: number;
-        /**
-         * 模态透明度
-         *
-         * @static
-         * @type {number}
-         */
-        static MODAL_ALPHA: number;
-        /**
          * 异步的Helper
          */
         protected _asyncHelper: AsyncHelper;
@@ -10255,7 +10315,8 @@ declare namespace jy {
         startSync(): void;
         protected loadNext(): void;
         suiDataComplete(suiData: SuiData): void;
-        suiDataFailed(suiData: SuiData): void;
+        suiDataFailed(_: SuiData): void;
+        protected readyNow(failed?: boolean): void;
         /**
          * 绑定皮肤
          */
@@ -10759,7 +10820,7 @@ declare namespace jy {
          * 检查在发送过程中的请求
          */
         protected checkUnsend(): void;
-        protected _send(cmd: number, data: any, msgType: string): void;
+        protected _send(cmd: number, data: any, msgType: Key): void;
         /**
          * 发送消息之前，用于预处理一些http头信息等
          *
@@ -11498,7 +11559,7 @@ declare namespace jy {
          */
         protected _creators: {
             [index: string]: {
-                new(): BaseCreator<egret.DisplayObject>;
+                new (): BaseCreator<egret.DisplayObject>;
             };
         };
         /**
@@ -11826,7 +11887,7 @@ declare namespace jy {
      * 创建器
      */
     type Creator<T> = {
-        new(): T;
+        new (): T;
     } | {
         (): T;
     };
@@ -11906,7 +11967,7 @@ declare namespace jy {
      * @param {({ new(): T & { _pool?: RecyclablePool<T> } })} clazz
      */
     function recyclable<T>(clazz: {
-        new(): T & {
+        new (): T & {
             _pool?: RecyclablePool<T>;
         };
     }): Recyclable<T>;
@@ -11928,18 +11989,63 @@ declare namespace jy {
      * @param clazz 要做单例的类型
      */
     function singleton<T>(clazz: {
-        new(): T;
+        new (): T;
         _instance?: T;
     }): T;
 }
 declare namespace jy {
+    /**
+     * WSNetService的数据模式
+     */
+    const enum WSNetServiceDataMode {
+        /**
+         * 接收单数据帧单消息
+         */
+        ReceiveOneDataPerFrame = 0,
+        /**
+         * 接收单数据帧多消息
+         */
+        ReceiveMultiDataPerFrame = 1,
+        /**
+         * 接收掩码
+         */
+        ReceiveMask = 1,
+        /**
+         * 发送单数据帧多消息
+         */
+        SendMultiDataPerFrame = 0,
+        /**
+         * 发送单数据帧单消息
+         */
+        SendOneDataPerFrame = 2,
+        /**
+         * 发送掩码
+         */
+        SendMask = 2
+    }
     /**
      * WebSocket版本的NetService
      * @author 3tion
      */
     class WSNetService extends NetService {
         protected _ws: WebSocket;
+        readonly dataMode: WSNetServiceDataMode;
+        $send: (this: WSNetService, cmd: number, data: any, msgType: Key) => void;
+        /**
+         * 设置数据模式
+         *
+         * @param {WSNetServiceDataMode} mode
+         * @memberof WSNetService
+         */
+        setDataMode(mode: WSNetServiceDataMode): void;
+        /**
+         * 检查数据模式
+         *
+         * @memberof WSNetService
+         */
+        checkDataMode(): void;
         constructor();
+        readonly connected: boolean;
         /**
          *
          * 设置websocket地址
@@ -11951,6 +12057,7 @@ declare namespace jy {
          */
         connect(): void;
         protected onOpen: () => void;
+        protected _send(cmd: number, data: any, msgType: Key): void;
         /**
          *
          * 发生错误
@@ -11964,14 +12071,12 @@ declare namespace jy {
          */
         protected onClose: (ev: CloseEvent) => void;
         /**
+         * 主动断开连接
          *
-         * 收到消息
-         * @protected
+         * @returns
+         * @memberof WSNetService
          */
-        protected onData: (ev: MessageEvent) => void;
-        protected _send(cmd: number, data: any, msgType: string): void;
         disconnect(): void;
-        loose(ws: WebSocket): void;
     }
 }
 declare namespace jy {
@@ -12197,9 +12302,10 @@ declare namespace jy {
         setWidth(width: number): void;
         skin: ProgressBarSkinDele;
         progress(value: number, maxValue: number): void;
-        private updateLabel;
-        private updateBar;
-        private refresh;
+        updateLabel(): void;
+        getPercent(): number;
+        updateBar(): void;
+        refresh(): void;
     }
     /**
      * 进度条创建
@@ -12896,6 +13002,23 @@ declare namespace jy {
 }
 declare namespace jy.Res {
     /**
+     * 设置失败的过期时间
+     * 失败次数超过`maxRetry`
+     * @export
+     * @param {number} second
+     */
+    function setFailedExpired(second: number): void;
+    /**
+     * 设置单个资源，不做延迟重试的最大重试次数，默认为3
+     * @param val
+     */
+    function setMaxRetry(val: number): void;
+    /**
+     * 设置最大加载线程  默认为 6
+     * @param val
+     */
+    function setMaxThread(val: number): void;
+    /**
      * 资源类型
      */
     const enum ResItemType {
@@ -12952,6 +13075,14 @@ declare namespace jy.Res {
          * 默认为 UnRequest
          */
         state?: RequestState;
+        /**
+         * 上次失败的过期时间
+         * 网络有时候不稳定，这次连续加载不到，但是后面可能能加载到
+         *
+         * @type {number}
+         * @memberof ResItem
+         */
+        ft?: number;
         /**
          * 是否被移除
          */
@@ -13046,16 +13177,6 @@ declare namespace jy.Res {
         onLoadFinish(event: egret.Event): void;
     }
     /**
-     * 设置最大失败重试次数，默认为3
-     * @param val
-     */
-    function setMaxRetry(val: number): void;
-    /**
-     * 设置最大加载线程  默认为 6
-     * @param val
-     */
-    function setMaxThread(val: number): void;
-    /**
     * 获取资源的扩展名
     * @param url
     */
@@ -13073,12 +13194,25 @@ declare namespace jy.Res {
      */
     function regAnalyzer(type: ResItemType, analyzer: ResLoader): void;
     /**
+     * 添加资源的结果
+     * 0 号为返回值
+     *
+     * @export
+     * @interface AddResResult
+     * @extends {Array<any>}
+     */
+    interface AddResResult extends Array<any> {
+        readonly 0: ResItem;
+        readonly 1: boolean;
+        length: 2;
+    }
+    /**
      * 添加资源
      * @param {ResItem} resItem
      * @param {ResQueueID} [queueID=ResQueueID.Normal]
-     * @returns {boolean} true 表示此资源成功添加到列队
+     * @returns {ResItem}
      */
-    function addRes(resItem: ResItem, queueID?: ResQueueID): boolean;
+    function addRes(resItem: ResItem, queueID?: ResQueueID): AddResResult;
     /**
      * 加载资源
      * @param {string} uri 资源标识
@@ -13092,7 +13226,9 @@ declare namespace jy.Res {
             (flag: boolean): any;
         }>;
         group: Key;
-        onProgress?: $CallbackInfo;
+        onProgress?: CallbackInfo<{
+            (item: Res.ResItem): any;
+        }>;
     }
     function loadList(list: ResItem[], opt: LoadResListOption, queueID?: ResQueueID): void;
     /**
@@ -13223,7 +13359,7 @@ declare namespace jy {
          * @type {{new():T}}
          */
         renderClass: {
-            new(): T;
+            new (): T;
         };
         /**
          * 背景

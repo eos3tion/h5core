@@ -9,55 +9,61 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-/**
- * 对数字进行补0操作
- * @param value 要补0的数值
- * @param length 要补的总长度
- * @return 补0之后的字符串
- */
-function zeroize(value, length) {
-    if (length === void 0) { length = 2; }
-    var str = "" + value;
-    var zeros = "";
-    for (var i = 0, len = length - str.length; i < len; i++) {
-        zeros += "0";
+var jy;
+(function (jy) {
+    /**
+     * 获取完整的 PropertyDescriptor
+     *
+     * @param {Partial<PropertyDescriptor>} descriptor
+     * @param {boolean} [enumerable=false]
+     * @param {boolean} [writable]
+     * @param {boolean} [configurable=true]
+     * @returns
+     */
+    function getDescriptor(descriptor, enumerable, writable, configurable) {
+        if (enumerable === void 0) { enumerable = false; }
+        if (writable === void 0) { writable = true; }
+        if (configurable === void 0) { configurable = true; }
+        if (!descriptor.set && !descriptor.get) {
+            descriptor.writable = writable;
+        }
+        descriptor.configurable = configurable;
+        descriptor.enumerable = enumerable;
+        return descriptor;
     }
-    return zeros + str;
-}
-/**
- * 获取完整的 PropertyDescriptor
- *
- * @param {Partial<PropertyDescriptor>} descriptor
- * @param {boolean} [enumerable=false]
- * @param {boolean} [writable]
- * @param {boolean} [configurable=true]
- * @returns
- */
-function getDescriptor(descriptor, enumerable, writable, configurable) {
-    if (enumerable === void 0) { enumerable = false; }
-    if (writable === void 0) { writable = true; }
-    if (configurable === void 0) { configurable = true; }
-    if (!descriptor.set && !descriptor.get) {
-        descriptor.writable = writable;
+    jy.getDescriptor = getDescriptor;
+    function makeDefDescriptors(descriptors, enumerable, writable, configurable) {
+        if (enumerable === void 0) { enumerable = false; }
+        if (writable === void 0) { writable = true; }
+        if (configurable === void 0) { configurable = true; }
+        for (var key in descriptors) {
+            var desc = descriptors[key];
+            var enumer = desc.enumerable == undefined ? enumerable : desc.enumerable;
+            var write = desc.writable == undefined ? writable : desc.writable;
+            var config = desc.configurable == undefined ? configurable : desc.configurable;
+            descriptors[key] = getDescriptor(desc, enumer, write, config);
+        }
+        return descriptors;
     }
-    descriptor.configurable = configurable;
-    descriptor.enumerable = enumerable;
-    return descriptor;
-}
-function makeDefDescriptors(descriptors, enumerable, writable, configurable) {
-    if (enumerable === void 0) { enumerable = false; }
-    if (writable === void 0) { writable = true; }
-    if (configurable === void 0) { configurable = true; }
-    for (var key in descriptors) {
-        var desc = descriptors[key];
-        var enumer = desc.enumerable == undefined ? enumerable : desc.enumerable;
-        var write = desc.writable == undefined ? writable : desc.writable;
-        var config = desc.configurable == undefined ? configurable : desc.configurable;
-        descriptors[key] = getDescriptor(desc, enumer, write, config);
+    jy.makeDefDescriptors = makeDefDescriptors;
+    function is(instance, ref) {
+        return egret.is(instance, egret.getQualifiedClassName(ref));
     }
-    return descriptors;
-}
-Object.defineProperties(Object.prototype, makeDefDescriptors({
+    jy.is = is;
+    /**
+     * 移除可视对象
+     *
+     * @export
+     * @param {egret.DisplayObject} display
+     */
+    function removeDisplay(display) {
+        if (display && display.parent) {
+            display.parent.removeChild(display);
+        }
+    }
+    jy.removeDisplay = removeDisplay;
+})(jy || (jy = {}));
+Object.defineProperties(Object.prototype, jy.makeDefDescriptors({
     clone: {
         value: function () {
             var o = {};
@@ -140,7 +146,7 @@ Object.defineProperties(Object.prototype, makeDefDescriptors({
         }
     }
 }));
-Object.defineProperties(Function.prototype, makeDefDescriptors({
+Object.defineProperties(Function.prototype, jy.makeDefDescriptors({
     isSubClass: {
         value: function (testBase) {
             if (typeof testBase !== "function") {
@@ -181,17 +187,17 @@ Math.random3 = function (center, delta) {
 if (!Number.isSafeInteger) { //防止低版本浏览器没有此方法
     Number.isSafeInteger = function (value) { return value < 9007199254740991 /*Number.MAX_SAFE_INTEGER*/ && value >= -9007199254740991; }; /*Number.MIN_SAFE_INTEGER*/
 }
-Object.defineProperties(Number.prototype, makeDefDescriptors({
-    zeroize: getDescriptor({
-        value: function (length) { return zeroize(this, length); }
+Object.defineProperties(Number.prototype, jy.makeDefDescriptors({
+    zeroize: jy.getDescriptor({
+        value: function (length) { return String.zeroize(this, length); }
     }),
-    between: getDescriptor({
+    between: jy.getDescriptor({
         value: function (min, max) { return min <= this && max >= this; }
     })
 }));
-Object.defineProperties(String.prototype, makeDefDescriptors({
+Object.defineProperties(String.prototype, jy.makeDefDescriptors({
     zeroize: {
-        value: function (length) { return zeroize(this, length); },
+        value: function (length) { return String.zeroize(this, length); },
     },
     substitute: {
         value: function () {
@@ -241,7 +247,15 @@ Object.defineProperties(String.prototype, makeDefDescriptors({
         }
     }
 }));
-String.zeroize = zeroize;
+String.zeroize = function (value, length) {
+    if (length === void 0) { length = 2; }
+    var str = "" + value;
+    var zeros = "";
+    for (var i = 0, len = length - str.length; i < len; i++) {
+        zeros += "0";
+    }
+    return zeros + str;
+};
 String.subHandler = {};
 String.regSubHandler = function (key, handler) {
     if (true) {
@@ -254,26 +268,26 @@ String.regSubHandler = function (key, handler) {
     }
     this.subHandler[key] = handler;
 };
-Object.defineProperties(Date.prototype, makeDefDescriptors({
+Object.defineProperties(Date.prototype, jy.makeDefDescriptors({
     format: {
         value: function (mask, local) {
             var d = this;
             return mask.replace(/"[^"]*"|'[^']*'|(?:d{1,2}|m{1,2}|yy(?:yy)?|([hHMs])\1?)/g, function ($0) {
                 switch ($0) {
                     case "d": return gd();
-                    case "dd": return zeroize(gd());
+                    case "dd": return String.zeroize(gd());
                     case "M": return gM() + 1;
-                    case "MM": return zeroize(gM() + 1);
+                    case "MM": return String.zeroize(gM() + 1);
                     case "yy": return (gy() + "").substr(2);
                     case "yyyy": return gy();
                     case "h": return gH() % 12 || 12;
-                    case "hh": return zeroize(gH() % 12 || 12);
+                    case "hh": return String.zeroize(gH() % 12 || 12);
                     case "H": return gH();
-                    case "HH": return zeroize(gH());
+                    case "HH": return String.zeroize(gH());
                     case "m": return gm();
-                    case "mm": return zeroize(gm());
+                    case "mm": return String.zeroize(gm());
                     case "s": return gs();
-                    case "ss": return zeroize(gs());
+                    case "ss": return String.zeroize(gs());
                     default: return $0.substr(1, $0.length - 2);
                 }
             });
@@ -315,7 +329,7 @@ Array.SORT_DEFAULT = {
     boolean: false
 };
 Object.freeze(Array.SORT_DEFAULT);
-Object.defineProperties(Array.prototype, makeDefDescriptors({
+Object.defineProperties(Array.prototype, jy.makeDefDescriptors({
     cloneTo: {
         value: function (b) {
             b.length = this.length;
@@ -427,25 +441,6 @@ Object.defineProperties(Array.prototype, makeDefDescriptors({
         }
     }
 }));
-var jy;
-(function (jy) {
-    function is(instance, ref) {
-        return egret.is(instance, egret.getQualifiedClassName(ref));
-    }
-    jy.is = is;
-    /**
-     * 移除可视对象
-     *
-     * @export
-     * @param {egret.DisplayObject} display
-     */
-    function removeDisplay(display) {
-        if (display && display.parent) {
-            display.parent.removeChild(display);
-        }
-    }
-    jy.removeDisplay = removeDisplay;
-})(jy || (jy = {}));
 /****************************************Map********************************************/
 if (typeof window["Map"] == "undefined" || !window["Map"]) {
     /**
@@ -593,7 +588,7 @@ var egret;
         egret.DisplayObject.$enterFrameCallBackList.remove(this);
         egret.DisplayObject.$renderCallBackList.remove(this);
     };
-    Object.defineProperties(dpt, makeDefDescriptors({
+    Object.defineProperties(dpt, jy.makeDefDescriptors({
         bright: {
             set: function (value) {
                 value = Math.clamp(value, -1, 1);
@@ -713,7 +708,7 @@ var jy;
             var _asyncHelper = this._asyncHelper;
             if (!_asyncHelper) {
                 this._asyncHelper = _asyncHelper = new jy.AsyncHelper();
-                _asyncHelper._ready = this.isReady;
+                _asyncHelper.isReady = this.isReady;
             }
             _asyncHelper.addReadyExecute.apply(_asyncHelper, [handle, thisObj].concat(args));
         };
@@ -877,7 +872,7 @@ var jy;
         var pt = ref.prototype;
         pt.$setEnabled = $setEnabled;
         pt.useDisFilter = true;
-        Object.defineProperty(pt, "enabled", getDescriptor({
+        Object.defineProperty(pt, "enabled", jy.getDescriptor({
             set: function (value) {
                 if (this._enabled != value) {
                     this.$setEnabled(value);
@@ -1890,7 +1885,6 @@ var jy;
         add: function (dict) {
             //对默认值做预处理，减少后期遍历次数
             if (dict) {
-                var defD = defDict;
                 if (!dict.$$inted) { //检查字典是否初始化过
                     for (var name_1 in dict) {
                         var struct = dict[name_1];
@@ -3084,7 +3078,18 @@ var jy;
             ins.handler = handler;
             ins.priority = priority || 0;
             ins.trigger = triggerOnStage;
-            this._interests[eventType] = ins;
+            var _interests = this._interests;
+            if (!_interests) {
+                this._interests = _interests = {};
+            }
+            _interests[eventType] = ins;
+            if (triggerOnStage) {
+                var _awakeCallers = this._awakeCallers;
+                if (!_awakeCallers) {
+                    this._awakeCallers = _awakeCallers = [];
+                }
+                _awakeCallers.pushOnce(handler);
+            }
         };
         ViewController.prototype.removeSkinListener = function (skin) {
             if (skin) {
@@ -3098,6 +3103,77 @@ var jy;
                 skin.on("addedToStage" /* ADDED_TO_STAGE */, this.stageHandler, this);
             }
         };
+        /**
+         * 绑定定时处理的回调函数
+         *
+         * @param {Function} callback 执行回调函数
+         * @param {boolean} [trigger=true] 是否理解执行
+         * @param {number} [time=Time.ONE_SECOND]
+         * @param {any} [thisObj=this]
+         * @param {any} args
+         * @memberof ViewController
+         */
+        ViewController.prototype.bindTimer = function (callback, trigger, time, thisObj) {
+            if (trigger === void 0) { trigger = true; }
+            if (time === void 0) { time = 1000 /* ONE_SECOND */; }
+            if (thisObj === void 0) { thisObj = this; }
+            var args = [];
+            for (var _i = 4; _i < arguments.length; _i++) {
+                args[_i - 4] = arguments[_i];
+            }
+            var _tList = this._tList;
+            if (!_tList) {
+                this._tList = _tList = [];
+            }
+            var info = jy.CallbackInfo.addToList.apply(jy.CallbackInfo, [_tList, callback, thisObj].concat(args));
+            info.time = time;
+            jy.TimerUtil.add(time, info);
+            if (trigger) {
+                info.execute(false);
+            }
+        };
+        /**
+         * 解除定时回调函数的绑定
+         * @param callback
+         * @param time
+         * @param thisObj
+         */
+        ViewController.prototype.looseTimer = function (callback, time, thisObj) {
+            if (time === void 0) { time = 1000 /* ONE_SECOND */; }
+            if (thisObj === void 0) { thisObj = this; }
+            var list = this._tList;
+            if (list) {
+                var info = jy.CallbackInfo.removeFromList(list, callback, thisObj);
+                if (info) {
+                    jy.TimerUtil.remove(time, info);
+                    info.recycle();
+                }
+            }
+        };
+        /**
+         * 添加到舞台时，自动添加定时回调
+         */
+        ViewController.prototype.awakeTimer = function () {
+            var list = this._tList;
+            if (list) {
+                for (var i = 0; i < list.length; i++) {
+                    var cb = list[i];
+                    jy.TimerUtil.add(cb.time, cb);
+                }
+            }
+        };
+        /**
+         * 从舞台移除时候，自动移除定时回调
+         */
+        ViewController.prototype.sleepTimer = function () {
+            var list = this._tList;
+            if (list) {
+                for (var i = 0; i < list.length; i++) {
+                    var cb = list[i];
+                    jy.TimerUtil.remove(cb.time, cb);
+                }
+            }
+        };
         Object.defineProperty(ViewController.prototype, "isReady", {
             get: function () {
                 return this._ready;
@@ -3108,15 +3184,19 @@ var jy;
         ViewController.prototype.stageHandler = function (e) {
             var type, ins;
             var _interests = this._interests;
+            this.checkInterest();
             if (e.type == "addedToStage" /* ADDED_TO_STAGE */) {
                 //加入关注的事件
                 for (type in _interests) {
                     ins = _interests[type];
                     jy.on(type, ins.handler, this, ins.priority);
-                    if (ins.trigger) {
-                        ins.handler.call(this);
-                    }
                 }
+                var _awakeCallers = this._awakeCallers;
+                for (var i = 0; i < _awakeCallers.length; i++) {
+                    _awakeCallers[i].call(this);
+                }
+                //检查timer绑定
+                this.awakeTimer();
                 if (this.awake) {
                     this.awake();
                 }
@@ -3126,9 +3206,26 @@ var jy;
                     ins = _interests[type];
                     jy.off(type, ins.handler, this);
                 }
+                this.sleepTimer();
                 if (this.sleep) {
                     this.sleep();
                 }
+            }
+        };
+        ViewController.prototype.checkInterest = function () {
+            if (!this.interestChecked) {
+                var _awakeCallers = this._awakeCallers;
+                if (!_awakeCallers) {
+                    this._awakeCallers = _awakeCallers = [];
+                }
+                var _interests = this._interests;
+                for (var type in _interests) {
+                    var ins = _interests[type];
+                    if (ins.trigger) {
+                        _awakeCallers.pushOnce(ins.handler);
+                    }
+                }
+                this.interestChecked = true;
             }
         };
         return ViewController;
@@ -3146,7 +3243,7 @@ var jy;
      */
     function d_interest(eventType, triggerOnStage, isPrivate, priority) {
         var pKey = "_interests";
-        return function (target, key, value) {
+        return function (target, _, value) {
             var _interests;
             if (target.hasOwnProperty(pKey)) {
                 _interests = target[pKey];
@@ -5708,7 +5805,7 @@ var jy;
         var update = ticker.render;
         var delta = 0 | 1000 / ticker.$frameRate;
         var temp = [];
-        ticker.render = function () {
+        ticker.render = function (triggerByFrame, costTicker) {
             var _now = jy.DateUtils.serverTime;
             var dis = _now - now;
             now = _now;
@@ -5752,7 +5849,7 @@ var jy;
                 _callLater.tick(_now);
                 jy.TimerUtil.tick(_now);
                 tweenManager.tick(dis);
-                update.call(ticker);
+                update.call(ticker, triggerByFrame, costTicker);
             }
         };
     }
@@ -5832,7 +5929,7 @@ var jy;
      * 获取运行时间
      * 此时间为进程运行时间，不会随着调整系统时间而变动
      */
-    var getTimer = window.performance ? function () { return ~~performance.now(); } : Date.now;
+    var getTimer = Date.now;
     var _defaultCountFormats;
     /**
      * 基于UTC的时间偏移
@@ -6409,8 +6506,9 @@ var jy;
                 args[_i - 3] = arguments[_i];
             }
             //检查是否有this和handle相同的callback
-            for (var _a = 0, list_1 = list; _a < list_1.length; _a++) {
-                var callback = list_1[_a];
+            var callback;
+            for (var i = 0, len = list.length; i < len; i++) {
+                callback = list[i];
                 if (callback.checkHandle(handle, thisObj)) {
                     callback.args = args;
                     return callback;
@@ -6419,6 +6517,33 @@ var jy;
             callback = this.get.apply(this, [handle, thisObj].concat(args));
             list.push(callback);
             return callback;
+        };
+        /**
+         * 从列表中移除
+         *
+         * @static
+         * @template T
+         * @param {CallbackInfo<T>[]} list
+         * @param {T} handle
+         * @param {*} [thisObj]
+         * @returns
+         * @memberof CallbackInfo
+         */
+        CallbackInfo.removeFromList = function (list, handle, thisObj) {
+            var j = -1;
+            var info;
+            for (var i = 0, len = list.length; i < len; i++) {
+                var callback = list[i];
+                if (callback.checkHandle(handle, thisObj)) {
+                    j = i;
+                    info = callback;
+                    break;
+                }
+            }
+            if (info) {
+                list.splice(j, 1);
+            }
+            return info;
         };
         return CallbackInfo;
     }());
@@ -6771,7 +6896,14 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    var _msgDict = window.$lang || {};
+    var _msgDict;
+    if (typeof $lang === "object") {
+        _msgDict = $lang;
+        $lang = undefined; //将全局变量清除，只保留闭包
+    }
+    else {
+        _msgDict = {};
+    }
     /**
      * 用于处理语言/文字显示
      */
@@ -6838,6 +6970,15 @@ var jy;
      */
     var C = [, [], []];
     var inited;
+    function setLib(data) {
+        var a = data.a, b = data.b, c1 = data.c1, c2 = data.c2;
+        var split = ";";
+        a && (A = a.split(split));
+        b && (B = b.split(split));
+        c1 && (C[1 /* Male */] = c1.split(split));
+        c2 && (C[2 /* Female */] = c2.split(split));
+        inited = true;
+    }
     var NameUtils = /** @class */ (function () {
         /**
          *
@@ -6854,13 +6995,7 @@ var jy;
             loadScript(url, function (err) {
                 if (!err) {
                     if ($nl_nc) {
-                        //a：姓,b:符号,c1:男名,c2:女名
-                        var a = $nl_nc.a, b = $nl_nc.b, c1 = $nl_nc.c1, c2 = $nl_nc.c2;
-                        var split = ";";
-                        a && (A = a.split(split));
-                        b && (B = b.split(split));
-                        c1 && (C[1 /* Male */] = c1.split(split));
-                        c2 && (C[2 /* Female */] = c2.split(split));
+                        setLib($nl_nc);
                         $nl_nc = undefined;
                         inited = true;
                         return callback && callback.execute();
@@ -6912,6 +7047,13 @@ var jy;
         NameUtils.prototype.dispose = function () {
             this._random = null;
         };
+        /**
+         * 设置名字库的数据
+         *
+         * @static
+         * @memberof NameUtils
+         */
+        NameUtils.setLib = setLib;
         return NameUtils;
     }());
     jy.NameUtils = NameUtils;
@@ -7204,7 +7346,7 @@ var jy;
     }
     /**
      *
-     * 注册回调
+     * 注册回调  会对在同一个时间区间的 `callback`和`thisObj`相同的回调函数进行去重
      * @static
      * @param {number} time 回调的间隔时间，间隔时间会处理成30的倍数，向上取整，如 设置1ms，实际间隔为30ms，32ms，实际间隔会使用60ms
      * @param {Function} callback 回调函数，没有加this指针是因为做移除回调的操作会比较繁琐，如果函数中需要使用this，请通过箭头表达式()=>{}，或者将this放arg中传入
@@ -7219,11 +7361,8 @@ var jy;
         time = getInterval(time);
         var timer = _timeobj[time];
         if (!timer) {
-            timer = {};
-            timer.tid = time; //setInterval(check, time, timer);
-            timer.nt = jy.Global.now + time;
             var list = [];
-            timer.list = list;
+            timer = { tid: time, nt: jy.Global.now + time, list: list };
             _timeobj[time] = timer;
             list.push(jy.CallbackInfo.get.apply(jy.CallbackInfo, [callback, thisObj].concat(args)));
         }
@@ -7232,8 +7371,34 @@ var jy;
         }
     }
     /**
+     * 注册回调 会对在同一个时间区间的 `callback`相同的情况下，才会去重
+     * @param time
+     * @param callback
+     */
+    function add(time, callback) {
+        time = getInterval(time);
+        var timer = _timeobj[time];
+        if (!timer) {
+            timer = { tid: time, nt: jy.Global.now + time, list: [] };
+            _timeobj[time] = timer;
+        }
+        timer.list.pushOnce(callback);
+    }
+    /**
      * 移除回调
-     *
+     * 不回收`CallbackInfo`
+     * @param {number} time
+     * @param {$CallbackInfo} callback
+     */
+    function remove(time, callback) {
+        time = getInterval(time);
+        var timer = _timeobj[time];
+        if (timer) {
+            timer.list.remove(callback);
+        }
+    }
+    /**
+     * 移除回调
      * @static
      * @param {number} time         回调的间隔时间，间隔时间会处理成30的倍数，向上取整，如 设置1ms，实际间隔为30ms，32ms，实际间隔会使用60ms
      * @param {Function} callback   回调函数，没有加this指针是因为做移除回调的操作会比较繁琐，如果函数中需要使用this，请通过箭头表达式()=>{}，或者将this放arg中传入
@@ -7244,20 +7409,13 @@ var jy;
         var timer = _timeobj[time];
         if (timer) {
             var list = timer.list;
-            var j = -1;
-            for (var i = 0, len = list.length; i < len; i++) {
-                var info = list[i];
-                if (info.checkHandle(callback, thisObj)) {
-                    j = i;
-                    break;
-                }
-            }
-            if (~j) {
-                list.splice(j, 1);
+            var info = jy.CallbackInfo.removeFromList(list, callback, thisObj);
+            if (info) {
+                info.recycle();
             }
         }
     }
-    jy.TimerUtil = { addCallback: addCallback, removeCallback: removeCallback, tick: tick };
+    jy.TimerUtil = { addCallback: addCallback, removeCallback: removeCallback, tick: tick, add: add, remove: remove };
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -8681,8 +8839,8 @@ var jy;
          */
         UnitResource.prototype.draw = function (bitmap, drawInfo, now) {
             var frame = this.getTexture(drawInfo);
-            var a = drawInfo.a, d = drawInfo.d;
             if (frame) {
+                var a = drawInfo.a, d = drawInfo.d;
                 var res = this.loadRes(d, a);
                 res.lastUseTime = jy.Global.now;
                 if (frame.bitmapData) {
@@ -9044,14 +9202,14 @@ var jy;
                 }
                 switch (len) {
                     case 0:
-                        return function (uri) { return ""; };
+                        return function (_) { return ""; };
                     case 1: {
                         var prefix_1 = prefixes[0];
-                        return function (uri) { return prefix_1; };
+                        return function (_) { return prefix_1; };
                     }
                     default:
                         return function (uri) {
-                            var idx = uri.hash() % prefixes.length;
+                            var idx = uri.hash() % len;
                             return prefixes[idx] || "";
                         };
                 }
@@ -9479,36 +9637,25 @@ var jy;
      */
     var AsyncHelper = /** @class */ (function () {
         function AsyncHelper() {
-            this._ready = false;
-        }
-        Object.defineProperty(AsyncHelper.prototype, "isReady", {
             /**
              * 是否已经处理完成
              */
-            get: function () {
-                return this._ready;
-            },
-            enumerable: true,
-            configurable: true
-        });
+            this.isReady = false;
+        }
         /**
          * 异步数据已经加载完毕
          */
         AsyncHelper.prototype.readyNow = function () {
-            if (!this._ready) {
-                this._ready = true;
-                var _readyExecutes = this._readyExecutes;
+            if (!this.isReady) {
+                this.isReady = true;
+                var _readyExecutes = this._cbs;
                 if (_readyExecutes) {
-                    var temp = [];
-                    for (var i = 0, len = _readyExecutes.length; i < len; i++) {
-                        temp[i] = _readyExecutes[i];
-                    }
-                    _readyExecutes = undefined;
-                    for (i = 0; i < len; i++) {
+                    var temp = _readyExecutes.concat();
+                    _readyExecutes.length = 0;
+                    for (var i = 0; i < temp.length; i++) {
                         var callback = temp[i];
                         callback.execute();
                     }
-                    temp.length = 0;
                 }
             }
         };
@@ -9524,14 +9671,12 @@ var jy;
             for (var _i = 2; _i < arguments.length; _i++) {
                 args[_i - 2] = arguments[_i];
             }
-            if (this._ready) {
-                handle.apply(thisObj, args);
-                return;
+            if (this.isReady) {
+                return handle.apply(thisObj, args);
             }
-            var _readyExecutes = this._readyExecutes;
+            var _readyExecutes = this._cbs;
             if (!_readyExecutes) {
-                _readyExecutes = [];
-                this._readyExecutes = _readyExecutes;
+                this._cbs = _readyExecutes = [];
             }
             jy.CallbackInfo.addToList.apply(jy.CallbackInfo, [_readyExecutes, handle, thisObj].concat(args));
         };
@@ -9641,9 +9786,9 @@ var jy;
 var $DD = {};
 /**
  * DataLocator的附加数据
- * 原junyou.DataLocator.extra 的全局别名简写
+ * 原 junyou.DataLocator.extra 的全局别名简写
  */
-var $DE;
+var $DE = {};
 var jy;
 (function (jy) {
     var parsers = {};
@@ -9681,7 +9826,7 @@ var jy;
                     jy.dispatch(-185 /* OneCfgComplete */, key);
                 }
             }
-            var extraData = {};
+            var extraData = $DE;
             //处理额外数据
             for (var key in configs) {
                 if (key.charAt(0) == "$") {
@@ -9703,7 +9848,6 @@ var jy;
                     }
                 }
             }
-            $DE = extraData;
             //清理内存
             parsers = null;
             _plist = null;
@@ -9978,7 +10122,6 @@ var jy;
                 var headLen = i;
                 i = 0;
                 count = bytes.readVarint(); //行的数量
-                var constructor = CfgCreator;
                 while (bytes.readAvailable && count--) {
                     var len = bytes.readVarint();
                     var obj = jy.PBUtils.readFrom(struct, bytes, len);
@@ -10012,7 +10155,7 @@ var jy;
             }
             catch (e) {
                 if (true) {
-                    jy.ThrowError("\u89E3\u6790\u914D\u7F6E:" + key + "\u51FA\u9519", e);
+                    jy.ThrowError("\u89E3\u6790\u914D\u7F6E:" + key + "\u51FA\u9519\uFF0C\u8BF7\u91CD\u65B0\u6253\u5305\u914D\u7F6E", e, true);
                 }
             }
             return dict;
@@ -10611,7 +10754,7 @@ var jy;
             if (jy.isIAsync($view)) {
                 viewReady = $view.isReady;
             }
-            this._preViewReady = viewReady;
+            this.viewReady = viewReady;
             if (!this.viewCheck(viewReady)) {
                 return;
             }
@@ -10632,7 +10775,7 @@ var jy;
          * @returns
          */
         Mediator.prototype.dependerReadyCheck = function () {
-            if (!this._preViewReady) {
+            if (!this.viewReady) {
                 return;
             }
             if (!this._ready) {
@@ -11028,9 +11171,10 @@ var jy;
         ModuleManager.prototype.checkLimits = function () {
             if (this._needCheck) {
                 this._needCheck = false;
-                var _checks = this._checkers;
-                var _allById = this._allById;
-                if (_checks) {
+                var _a = this, _checkers = _a._checkers, _allById = _a._allById, _unopens = _a._unopens, _unshowns = _a._unshowns, _bindedIOById = _a._bindedIOById;
+                _unopens.length = 0;
+                _unshowns.length = 0;
+                if (_checkers) {
                     if (true) {
                         var errString = "";
                         var limitWarn = "";
@@ -11040,33 +11184,27 @@ var jy;
                     for (var id in _allById) {
                         var cfg = _allById[id];
                         var showtype = cfg.showtype;
-                        if (showtype) {
-                            checker = _checks[showtype];
-                            if (true) {
-                                if (!checker) {
-                                    unsolve += cfg.id + "的显示限制 ";
-                                }
+                        checker = _checkers[showtype];
+                        if (true) {
+                            if (!checker) {
+                                unsolve += cfg.id + "的显示限制 ";
                             }
                         }
                         var limittype = cfg.limittype;
-                        if (limittype) {
-                            checker = _checks[limittype];
-                            if (true) {
-                                if (!checker) {
-                                    unsolve += cfg.id + "的使用限制 ";
-                                }
+                        checker = _checkers[limittype];
+                        if (true) {
+                            if (!checker) {
+                                unsolve += cfg.id + "的使用限制 ";
                             }
                         }
                         if (showtype == limittype) {
-                            if (showtype) {
-                                if (checker) {
-                                    if (false) {
-                                        checker.adjustLimitDatas(cfg.showlimits, cfg.limits);
-                                    }
-                                    if (true) {
-                                        if (checker.adjustLimitDatas(cfg.showlimits, cfg.limits)) {
-                                            errString += cfg.id + " ";
-                                        }
+                            if (checker) {
+                                if (false) {
+                                    checker.adjustLimitDatas(cfg.showlimits, cfg.limits);
+                                }
+                                if (true) {
+                                    if (checker.adjustLimitDatas(cfg.showlimits, cfg.limits)) {
+                                        errString += cfg.id + " ";
                                     }
                                 }
                             }
@@ -11078,8 +11216,8 @@ var jy;
                         }
                         if (!this.isModuleShow(cfg)) {
                             var id_1 = cfg.id;
-                            this._unshowns.push(id_1);
-                            var displays = this._bindedIOById[id_1];
+                            _unshowns.push(id_1);
+                            var displays = _bindedIOById[id_1];
                             if (displays) {
                                 for (var i = 0; i < displays.length; i++) {
                                     displays[i].visible = false;
@@ -11087,7 +11225,7 @@ var jy;
                             }
                         }
                         if (!this.isModuleOpened(cfg)) {
-                            this._unopens.push(id);
+                            _unopens.push(id);
                         }
                     }
                     if (true) {
@@ -11159,12 +11297,12 @@ var jy;
             }
         };
         /**
-         * 将交互对象和功能id进行绑定，当交互对象抛出事件后，会执行功能对应的处理器
-         * @param id					功能id
-         * @param io					交互对象
-         * @param eventType		事件
-         *
-         */
+        * 将交互对象和功能id进行绑定，当交互对象抛出事件后，会执行功能对应的处理器
+        * @param id					功能id
+        * @param io					交互对象
+        * @param eventType		事件
+        *
+        */
         ModuleManager.prototype.bindButton = function (id, io, eventType) {
             if (eventType === void 0) { eventType = "touchTap" /* TOUCH_TAP */; }
             if (this._ioBind.has(io)) {
@@ -11271,6 +11409,38 @@ var jy;
             if (changed) {
                 jy.dispatch(-994 /* MODULE_SHOW_CHANGED */, _unshowns.length);
             }
+        };
+        /**
+         * 重置 unopen 和 unshown 项
+         * 还有 onShow 和  onOpen 注册的类型
+         */
+        ModuleManager.prototype.resetLimits = function () {
+            var _a = this, _allById = _a._allById, _unshowns = _a._unshowns, _unopens = _a._unopens;
+            for (var i = 0; i < _unshowns.length; i++) {
+                var id = _unshowns[i];
+                var cfg = _allById[id];
+                var onShow = cfg.onShow;
+                if (onShow) {
+                    cfg.onShow = undefined;
+                    for (var d = 0; d < onShow.length; d++) {
+                        var callback = onShow[d];
+                        callback.recycle();
+                    }
+                }
+            }
+            for (var i = 0; i < _unopens.length; i++) {
+                var id = _unopens[i];
+                var cfg = _allById[id];
+                var onOpen = cfg.onOpen;
+                if (onOpen) {
+                    cfg.onOpen = undefined;
+                    for (var d = 0; d < onOpen.length; d++) {
+                        var callback = onOpen[d];
+                        callback.recycle();
+                    }
+                }
+            }
+            this.checkLimits();
         };
         /**
          *
@@ -11511,7 +11681,7 @@ var jy;
             this._otherDepends = otherDepends;
         };
         Panel.prototype.startSync = function () {
-            if (this._readyState == 0 /* UNREQUEST */) {
+            if (this._readyState <= 0 /* UNREQUEST */) { //Failed情况下允许重新请求
                 if (this._otherDepends) {
                     this._depends = this._otherDepends.concat();
                 }
@@ -11541,9 +11711,18 @@ var jy;
                 this.loadNext();
             }
         };
-        Panel.prototype.suiDataFailed = function (suiData) {
-            //暂时用alert
-            // alert(this._className + "加载失败");
+        Panel.prototype.suiDataFailed = function (_) {
+            this._readyState = -1 /* FAILED */;
+            this.readyNow(true);
+        };
+        Panel.prototype.readyNow = function (failed) {
+            var asyncHelper = this._asyncHelper;
+            if (asyncHelper) {
+                asyncHelper.readyNow();
+                if (failed) { //如果是加载失败执行的回调，则将`_ready`再恢复成`false`
+                    asyncHelper.isReady = false;
+                }
+            }
         };
         /**
          * 绑定皮肤
@@ -11564,9 +11743,7 @@ var jy;
                 bg.touchEnabled = true;
             }
             this._readyState = 2 /* COMPLETE */;
-            if (this._asyncHelper) {
-                this._asyncHelper.readyNow();
-            }
+            this.readyNow();
         };
         Panel.prototype.modalToStage = function () {
             if (this._isModal) {
@@ -11683,20 +11860,6 @@ var jy;
         Panel.prototype.show = function () {
             jy.toggle(this.moduleID, 1 /* SHOW */);
         };
-        /**
-         * 模态颜色
-         *
-         * @static
-         * @type {number}
-         */
-        Panel.MODAL_COLOR = 0x0;
-        /**
-         * 模态透明度
-         *
-         * @static
-         * @type {number}
-         */
-        Panel.MODAL_ALPHA = 0.8;
         return Panel;
     }(egret.Sprite));
     jy.Panel = Panel;
@@ -12421,7 +12584,7 @@ var jy;
         return ListItemRenderer;
     }(egret.EventDispatcher));
     jy.ListItemRenderer = ListItemRenderer;
-    jy.expand(ListItemRenderer, jy.ViewController, "addReadyExecute", "addDepend", "stageHandler", "interest", "checkInject");
+    jy.expand(ListItemRenderer, jy.ViewController, "addReadyExecute", "addDepend", "stageHandler", "interest", "checkInject", "checkInterest", "awakeTimer", "sleepTimer", "bindTimer", "looseTimer");
     // export abstract class AListItemRenderer<T, S extends egret.DisplayObject> extends ListItemRenderer<T, S> implements SuiDataCallback {
     //     /**
     //      * 子类重写设置皮肤
@@ -13285,7 +13448,7 @@ var jy;
         PageList.prototype.selectItemByData = function (key, value, useTween) {
             if (useTween === void 0) { useTween = false; }
             var data = this._data;
-            var len = data.length;
+            var len = data && data.length || 0;
             for (var i = 0; i < len; i++) {
                 if (key in data[i]) {
                     if (data[i][key] == value) {
@@ -14140,15 +14303,15 @@ var jy;
             }
             else {
                 var callbacks = suiData.callbacks;
+                if (!callbacks) {
+                    suiData.callbacks = callbacks = [];
+                }
+                callback && callbacks.pushOnce(callback);
                 if (state == 0 /* UNREQUEST */) {
                     suiData.state = 1 /* REQUESTING */;
-                    if (!callbacks) {
-                        suiData.callbacks = callbacks = [];
-                    }
                     //先加载配置
                     jy.Res.load(suiData.uri, suiData.url, jy.CallbackInfo.get(this.checkData, this), qid);
                 }
-                callback && callbacks.pushOnce(callback);
             }
         };
         /**
@@ -14158,7 +14321,7 @@ var jy;
             var uri = item.uri, data = item.data;
             var suiData = this._urlKey[uri];
             if (!data) { //加载失败
-                suiData.state = -1 /* FAILED */;
+                suiData.state = 0 /* UNREQUEST */;
                 var callbacks = suiData.callbacks;
                 if (callbacks) {
                     for (var i = 0; i < callbacks.length; i++) {
@@ -14949,7 +15112,7 @@ var jy;
             else {
                 pool = new RecyclablePool(clazz);
                 var pt = clazz.prototype;
-                if (pt.recycle == undefined) {
+                if (!pt.hasOwnProperty("recycle")) {
                     pt.recycle = recycle;
                 }
             }
@@ -14985,74 +15148,115 @@ var jy;
 var jy;
 (function (jy) {
     // const enum Const {
-    //     /**
-    //      * 
-    //      * ## 概述
-    //      * 首先要看TCP/IP协议，涉及到四层：链路层，网络层，传输层，应用层。  
-    //      * 其中以太网（Ethernet）的数据帧在链路层  
-    //      * IP包在网络层  
-    //      * TCP或UDP包在传输层  
-    //      * TCP或UDP中的数据（Data)在应用层  
-    //      * 它们的关系是 数据帧｛IP包｛TCP或UDP包｛Data｝｝｝  
-    //      *
-    //      * 不同的协议层对数据包有不同的称谓，在传输层叫做段(segment)，在网络层叫做数据报(datagram)，在链路层叫做帧(frame)。数据封装成帧后发到传输介质上，到达目的主机后每层协议再剥掉相应的首部，最后将应用层数据交给应用程序处理。
-    //      *
-    //      * 在应用程序中我们用到的Data的长度最大是多少，直接取决于底层的限制。  
-    //      * 我们从下到上分析一下：  
-    //      *      1. 在链路层，由以太网的物理特性决定了数据帧的长度为(46＋18)－(1500＋18)，其中的18是数据帧的头和尾，也就是说数据帧的内容最大为1500(不包括帧头和帧尾)，即MTU(Maximum Transmission Unit)为1500； 　
-    //      *      2. 在网络层，因为IP包的首部要占用20字节，所以这的MTU为1500－20＝1480；　
-    //      *      3. 在传输层，对于UDP包的首部要占用8字节，所以这的MTU为1480－8＝1472；  
-    //      * 
-    //      * 所以，在应用层，你的Data最大长度为1472。当我们的UDP包中的数据多于MTU(1472)时，发送方的IP层需要分片fragmentation进行传输，而在接收方IP层则需要进行数据报重组，由于UDP是不可靠的传输协议，如果分片丢失导致重* 组失败，将导致UDP数据包被丢弃。  
-    //      * 从上面的分析来看，在普通的局域网环境下，UDP的数据最大为1472字节最好(避免分片重组)。  
-    //      * 但在网络编程中，Internet中的路由器可能有设置成不同的值(小于默认值)，Internet上的标准MTU值为576，所以Internet的UDP编程时数据长度最好在576－20－8＝548字节以内。
-    //      *
-    //      * 
-    //      * ## TCP、UDP数据包最大值的确定
-    //      * UDP和TCP协议利用端口号实现多项应用同时发送和接收数据。数据通过源端口发送出去，通过目标端口接收。有的网络应用只能使用预留或注册的静态端口；而另外一些网络应用则可以使用未被注册的动态端口。因为UDP和TCP报头使* 用两个字节存放端口号，所以端口号的有效范围是从0到65535。动态端口的范围是从1024到65535。  
-    //      * MTU最大传输单元，这个最大传输单元实际上和链路层协议有着密切的关系，EthernetII帧的结构DMAC+SMAC+Type+Data+CRC由于以太网传输电气方面的限制，每个以太网帧都有最小的大小64Bytes最大不能超过1518Bytes，对于小* 于或者大于这个限制的以太网帧我们都可以视之为错误的数据帧，一般的以太网转发设备会丢弃这些数据帧。  
-    //      * 
-    //      * 由于以太网EthernetII最大的数据帧是1518Bytes这样，刨去以太网帧的帧头（DMAC目的MAC地址48bits=6Bytes+SMAC源MAC地址48bits=6Bytes+Type域2Bytes）14Bytes和帧尾CRC校验部分4Bytes那么剩下承载上层协议的地方也就是Data域最大就只能有1500Bytes这个值我们就把它称之为MTU。  
-    //      * UDP 包的大小就应该是 1500 - IP头(20) - UDP头(8) = 1472(Bytes)  
-    //      * TCP 包的大小就应该是 1500 - IP头(20) - TCP头(20) = 1460 (Bytes)  
-    //      * 以上内容原网址：http://blog.csdn.net/caoshangpa/article/details/51530685
-    //      * 
-    //      * WebSocket的头部字节数为 2 - 8 字节  
-    //      * 
-    //      * ```
-    //      *  0                   1                   2                   3  
-    //      *  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1  
-    //      * +-+-+-+-+-------+-+-------------+-------------------------------+  
-    //      * |F|R|R|R| opcode|M| Payload len |    Extended payload length    |  
-    //      * |I|S|S|S|  (4)  |A|     (7)     |             (16/64)           |  
-    //      * |N|V|V|V|       |S|             |   (if payload len==126/127)   |  
-    //      * | |1|2|3|       |K|             |                               |  
-    //      * +-+-+-+-+-------+-+-------------+ - - - - - - - - - - - - - - - +  
-    //      * |     Extended payload length continued, if payload len == 127  |  
-    //      * + - - - - - - - - - - - - - - - +-------------------------------+  
-    //      * |                               |Masking-key, if MASK set to 1  |  
-    //      * +-------------------------------+-------------------------------+  
-    //      * | Masking-key (continued)       |          Payload Data         |  
-    //      * +-------------------------------- - - - - - - - - - - - - - - - +  
-    //      * :                     Payload Data continued ...                :  
-    //      * + - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - +  
-    //      * |                     Payload Data continued ...                |  
-    //      * +---------------------------------------------------------------+  
-    //      * ```
-    // }
-    // 上面操作是多余的，参看netty的源码
-    // https://github.com/netty/netty/tree/4.1/codec/src/main/java/io/netty/handler/codec
-    // https://github.com/netty/netty/tree/4.1/codec-socks/src/main/java/io/netty/handler/codec/socks
-    // https://github.com/netty/netty/tree/4.1/transport/src/main/java/io/netty
-    // 参看Chrome的源码 
-    // https://src.chromium.org/viewvc/chrome/trunk/src/net/socket/
-    // https://src.chromium.org/viewvc/chrome/trunk/src/net/socket_stream/
-    // https://src.chromium.org/viewvc/chrome/trunk/src/net/websockets/
-    // 均没有针对[MTU](http://baike.baidu.com/item/mtu)进行业务层面的分帧的代码处理  
-    // 然后和服务端重新进行调试，发送大的(50003Bytes)的一帧WebSocketFrame，让服务端也开[WireShark](http://www.wireshark.org)进行捕获
-    // 发现客户端对服务端发送的数据帧是多个TCP帧的，并且每个帧都复合`MTU`，故删除以上代码
-    // 仔细研读`WireShark`的客户端向服务端发送的数据帧的说明，其中提到`[Total Length: 50051 bytes (reported as 0, presumed to be because of "TCP segmentation offload" (TSO))]`
-    // **TSO**（TCP Segment Offload）是一种利用网卡的少量处理能力，降低CPU发送数据包负载的技术，需要网卡硬件及驱动的支持。  http://baike.baidu.com/item/tso/1843452
+    function sendMultiDataPerFrame(cmd, data, msgType) {
+        //@ts-ignore
+        var ws = this._ws;
+        if (!ws || ws.readyState != WebSocket.OPEN) {
+            return;
+        }
+        //@ts-ignore
+        var _a = this, _pcmdList = _a._pcmdList, _sendBuffer = _a._sendBuffer;
+        //没有同协议的指令，新增数据
+        var pdata = jy.recyclable(jy.NetSendData);
+        pdata.cmd = cmd;
+        pdata.data = data;
+        pdata.msgType = msgType;
+        _sendBuffer.reset();
+        this.writeToBuffer(_sendBuffer, pdata);
+        pdata.recycle();
+        for (var _i = 0, _pcmdList_1 = _pcmdList; _i < _pcmdList_1.length; _i++) {
+            var pdata_1 = _pcmdList_1[_i];
+            this.writeToBuffer(_sendBuffer, pdata_1);
+            pdata_1.recycle();
+        }
+        //清空被动数据
+        _pcmdList.length = 0;
+        ws.send(_sendBuffer.outBytes);
+    }
+    function sendOneDataPerFrame(cmd, data, msgType) {
+        //@ts-ignore
+        var ws = this._ws;
+        if (!ws || ws.readyState != WebSocket.OPEN) {
+            return;
+        }
+        //@ts-ignore
+        var _a = this, _pcmdList = _a._pcmdList, _sendBuffer = _a._sendBuffer;
+        //没有同协议的指令，新增数据
+        var pdata = jy.recyclable(jy.NetSendData);
+        pdata.cmd = cmd;
+        pdata.data = data;
+        pdata.msgType = msgType;
+        _sendBuffer.reset();
+        this.writeToBuffer(_sendBuffer, pdata);
+        pdata.recycle();
+        ws.send(_sendBuffer.outBytes);
+        for (var _i = 0, _pcmdList_2 = _pcmdList; _i < _pcmdList_2.length; _i++) {
+            var pdata_2 = _pcmdList_2[_i];
+            _sendBuffer.reset();
+            this.writeToBuffer(_sendBuffer, pdata_2);
+            pdata_2.recycle();
+            ws.send(_sendBuffer.outBytes);
+        }
+        //清空被动数据
+        _pcmdList.length = 0;
+    }
+    /**
+     * 单BinaryFrame单消息模式 的消息处理
+     *
+     * @protected
+     * @memberof WSNetService
+     */
+    function onData(ev) {
+        //@ts-ignore
+        var readBuffer = this._readBuffer;
+        readBuffer.replaceBuffer(ev.data);
+        readBuffer.position = 0;
+        this.decodeBytes(readBuffer);
+    }
+    /**
+     *
+     * 单BinaryFrame 多消息模式 的消息处理
+     * @protected
+     */
+    function onDataN(ev) {
+        //@ts-ignore
+        var readBuffer = this._readBuffer;
+        var ab = new Uint8Array(ev.data);
+        var temp;
+        var position = readBuffer.position;
+        var buffer = readBuffer.buffer;
+        var length = buffer.byteLength;
+        if (position < length) { //还有剩余未读取的数据
+            var rb = new Uint8Array(buffer);
+            var rbLen = length - position;
+            var abLen = ab.length;
+            temp = new Uint8Array(rbLen + abLen);
+            var i = 0, m = void 0;
+            for (m = 0; m < rbLen; m++) {
+                temp[i++] = rb[position + m];
+            }
+            for (m = 0; m < abLen; m++) {
+                temp[i++] = ab[m];
+            }
+        }
+        else {
+            temp = ab;
+        }
+        readBuffer.replaceBuffer(temp.buffer);
+        readBuffer.position = 0;
+        this.decodeBytes(readBuffer);
+    }
+    /**
+     * 解除ws绑定
+     *
+     * @param {WebSocket} ws
+     */
+    function loose(ws) {
+        ws.onclose = null;
+        ws.onerror = null;
+        ws.onmessage = null;
+        ws.onopen = null;
+    }
     /**
      * WebSocket版本的NetService
      * @author 3tion
@@ -15089,44 +15293,46 @@ var jy;
                 if (true) {
                     console.log("socket断开连接");
                 }
-                egret.callLater(jy.dispatch, jy, -195 /* Disconnect */);
-            };
-            /**
-             *
-             * 收到消息
-             * @protected
-             */
-            _this.onData = function (ev) {
-                var readBuffer = _this._readBuffer;
-                var ab = new Uint8Array(ev.data);
-                var temp;
-                var position = readBuffer.position;
-                var buffer = readBuffer.buffer;
-                var length = buffer.byteLength;
-                if (position < length) { //还有剩余未读取的数据
-                    var rb = new Uint8Array(buffer);
-                    var rbLen = length - position;
-                    var abLen = ab.length;
-                    temp = new Uint8Array(rbLen + abLen);
-                    var i = 0, m = void 0;
-                    for (m = 0; m < rbLen; m++) {
-                        temp[i++] = rb[position + m];
-                    }
-                    for (m = 0; m < abLen; m++) {
-                        temp[i++] = ab[m];
-                    }
-                }
-                else {
-                    temp = ab;
-                }
-                readBuffer.replaceBuffer(temp.buffer);
-                readBuffer.position = 0;
-                _this.decodeBytes(readBuffer);
+                jy.Global.nextTick(jy.dispatch, jy, -195 /* Disconnect */);
             };
             //覆盖instance
             jy.NetService._ins = _this;
             return _this;
         }
+        /**
+         * 设置数据模式
+         *
+         * @param {WSNetServiceDataMode} mode
+         * @memberof WSNetService
+         */
+        WSNetService.prototype.setDataMode = function (mode) {
+            if (this.dataMode != mode) {
+                //@ts-ignore
+                this.dataMode = mode;
+                this.checkDataMode();
+            }
+        };
+        /**
+         * 检查数据模式
+         *
+         * @memberof WSNetService
+         */
+        WSNetService.prototype.checkDataMode = function () {
+            var ws = this._ws;
+            if (ws) {
+                var mode = ~~this.dataMode;
+                ws.onmessage = (mode & 1 /* ReceiveMask */) == 1 /* ReceiveMultiDataPerFrame */ ? onDataN.bind(this) : onData.bind(this);
+                this.$send = (mode & 2 /* SendMask */) == 2 /* SendOneDataPerFrame */ ? sendOneDataPerFrame : sendMultiDataPerFrame;
+            }
+        };
+        Object.defineProperty(WSNetService.prototype, "connected", {
+            get: function () {
+                var ws = this._ws;
+                return ws && ws.readyState == WebSocket.OPEN;
+            },
+            enumerable: true,
+            configurable: true
+        });
         /**
          *
          * 设置websocket地址
@@ -15147,53 +15353,32 @@ var jy;
         WSNetService.prototype.connect = function () {
             var ws = this._ws;
             if (ws) {
-                this.loose(ws);
+                loose(ws);
             }
             this._ws = ws = new WebSocket(this._actionUrl);
             ws.binaryType = "arraybuffer";
             ws.onclose = this.onClose;
             ws.onerror = this.onError;
-            ws.onmessage = this.onData;
             ws.onopen = this.onOpen;
+            this.checkDataMode();
         };
         WSNetService.prototype._send = function (cmd, data, msgType) {
-            var ws = this._ws;
-            if (!ws || ws.readyState != WebSocket.OPEN) {
-                return;
-            }
-            //没有同协议的指令，新增数据
-            var pdata = jy.recyclable(jy.NetSendData);
-            pdata.cmd = cmd;
-            pdata.data = data;
-            pdata.msgType = msgType;
-            var sendBuffer = this._sendBuffer;
-            sendBuffer.reset();
-            this.writeToBuffer(sendBuffer, pdata);
-            pdata.recycle();
-            var pcmdList = this._pcmdList;
-            for (var _i = 0, pcmdList_3 = pcmdList; _i < pcmdList_3.length; _i++) {
-                var pdata_1 = pcmdList_3[_i];
-                this.writeToBuffer(sendBuffer, pdata_1);
-                pdata_1.recycle();
-            }
-            //清空被动数据
-            pcmdList.length = 0;
-            ws.send(sendBuffer.outBytes);
+            this.$send(cmd, data, msgType);
         };
+        /**
+         * 主动断开连接
+         *
+         * @returns
+         * @memberof WSNetService
+         */
         WSNetService.prototype.disconnect = function () {
             var ws = this._ws;
             if (!ws || ws.readyState != WebSocket.OPEN) {
                 return;
             }
-            this.loose(ws);
+            loose(ws);
             this._ws = null;
             ws.close();
-        };
-        WSNetService.prototype.loose = function (ws) {
-            ws.onclose = null;
-            ws.onerror = null;
-            ws.onmessage = null;
-            ws.onopen = null;
         };
         return WSNetService;
     }(jy.NetService));
@@ -15701,10 +15886,13 @@ var jy;
                 tf.text = fun(this._value, this._maxValue);
             }
         };
+        ProgressBar.prototype.getPercent = function () {
+            return this._value / this._maxValue;
+        };
         /*更新进度条显示*/
         ProgressBar.prototype.updateBar = function () {
             var bar = this.bar;
-            var v = this._value * this._barWidth / this._maxValue;
+            var v = this.getPercent() * this._barWidth;
             if (this.useMask) {
                 var rect = bar.scrollRect;
                 if (!rect) {
@@ -17130,6 +17318,50 @@ var jy;
     (function (Res) {
         var _a, _b;
         /**
+         *  失败的超时时间
+         */
+        var failedExpiredTime = 10000 /* FailedExpiredTime */;
+        /**
+         * 设置失败的过期时间
+         * 失败次数超过`maxRetry`
+         * @export
+         * @param {number} second
+         */
+        function setFailedExpired(second) {
+            var time = ~~second * 1000 /* ONE_SECOND */;
+            if (time <= 0) { //如果为小于0的时间，则将时间设置为1分钟过期
+                time = 10000 /* FailedExpiredTime */;
+            }
+            failedExpiredTime = time;
+        }
+        Res.setFailedExpired = setFailedExpired;
+        /**
+         * 最大重试次数
+         */
+        var maxRetry = 3 /* MaxRetry */;
+        /**
+         * 设置单个资源，不做延迟重试的最大重试次数，默认为3
+         * @param val
+         */
+        function setMaxRetry(val) {
+            maxRetry = val;
+        }
+        Res.setMaxRetry = setMaxRetry;
+        /**
+         * 最大加载数量
+         * 目前所有主流浏览器针对 http 1.1 单域名最大加载数均为6个
+         * http2 基本无限制
+         */
+        var maxThread = 6 /* MaxThread */;
+        /**
+         * 设置最大加载线程  默认为 6
+         * @param val
+         */
+        function setMaxThread(val) {
+            maxThread = val;
+        }
+        Res.setMaxThread = setMaxThread;
+        /**
          * 扩展名和类型的绑定字典
          */
         var extTypeDict = (_a = {},
@@ -17232,35 +17464,9 @@ var jy;
          */
         var queues = {};
         /**
-         * 最大加载数量
-         * 目前所有主流浏览器针对 http 1.1 单域名最大加载数均为6个
-         * http2 基本无限制
-         */
-        var maxThread = 6;
-        /**
-         * 最大重试次数
-         */
-        var maxRetry = 3;
-        /**
          * 失败的资源加载列队
          */
         var failedList = [];
-        /**
-         * 设置最大失败重试次数，默认为3
-         * @param val
-         */
-        function setMaxRetry(val) {
-            maxRetry = val;
-        }
-        Res.setMaxRetry = setMaxRetry;
-        /**
-         * 设置最大加载线程  默认为 6
-         * @param val
-         */
-        function setMaxThread(val) {
-            maxThread = val;
-        }
-        Res.setMaxThread = setMaxThread;
         /**
         * 获取资源的扩展名
         * @param url
@@ -17324,15 +17530,20 @@ var jy;
         getOrCreateQueue(0 /* Normal */);
         getOrCreateQueue(1 /* Backgroud */, 0 /* FILO */, -9999);
         /**
+         * addRes方法的返回值
+         */
+        var addResResult = [];
+        /**
          * 添加资源
          * @param {ResItem} resItem
          * @param {ResQueueID} [queueID=ResQueueID.Normal]
-         * @returns {boolean} true 表示此资源成功添加到列队
+         * @returns {ResItem}
          */
         function addRes(resItem, queueID) {
             if (queueID === void 0) { queueID = 0 /* Normal */; }
             var uri = resItem.uri;
             var old = resDict[uri];
+            addResResult[1] = false;
             if (old) {
                 if (old != resItem && old.url != resItem.url) {
                     true && jy.ThrowError("\u8D44\u6E90[" + uri + "]\u91CD\u540D\uFF0C\u52A0\u8F7D\u8DEF\u5F84\u5206\u5E03\u4E3A[" + old.url + "]\u548C[" + resItem.url + "]");
@@ -17340,7 +17551,8 @@ var jy;
                 else { //资源和加载路径完全相同
                     var state = old.state;
                     if (state >= 1 /* REQUESTING */) { //正在处理的资源和已经加载完毕的资源，无需添加到任何列队
-                        return;
+                        addResResult[0] = old;
+                        return addResResult;
                     }
                 }
                 resItem = old;
@@ -17348,6 +17560,7 @@ var jy;
             else {
                 resDict[uri] = resItem;
             }
+            addResResult[0] = resItem;
             var oQID = resItem.qid;
             if (oQID != queueID) {
                 var oQueue = queues[oQID];
@@ -17358,8 +17571,9 @@ var jy;
                 resItem.qid = queueID;
                 var queue = getOrCreateQueue(queueID);
                 queue.list.pushOnce(resItem);
-                return true;
+                addResResult[1] = true;
             }
+            return addResResult;
         }
         Res.addRes = addRes;
         /**
@@ -17403,7 +17617,7 @@ var jy;
                 }
                 else {
                     param.current++;
-                    onProgress && onProgress.call();
+                    onProgress && onProgress.call(item);
                     if (param.current >= param.total) {
                         callback.callAndRecycle(true);
                         onProgress && onProgress.recycle();
@@ -17471,9 +17685,9 @@ var jy;
          */
         function loadRes(resItem, callback, queueID) {
             if (queueID === void 0) { queueID = 0 /* Normal */; }
-            addRes(resItem, queueID);
+            resItem = addRes(resItem, queueID)[0];
             var state = resItem.state;
-            if (state == 2 /* COMPLETE */ || state == -1 /* FAILED */ && resItem.retry > maxRetry) { //已经加载完成的资源，直接在下一帧回调
+            if (state == 2 /* COMPLETE */ || (state == -1 /* FAILED */ && resItem.retry > maxRetry && jy.Global.now < ~~resItem.ft)) { //已经加载完成的资源，直接在下一帧回调
                 return callback && jy.Global.nextTick(callback.callAndRecycle, callback, resItem); // callback.callAndRecycle(resItem);
             }
             resItem.removed = false;
@@ -17492,34 +17706,34 @@ var jy;
          */
         function getNext() {
             var next;
-            if (failedList.length > 0) {
-                next = failedList.shift();
-            }
-            else {
-                //得到优先级最大并且
-                var high = -Infinity;
-                var highQueue = void 0;
-                for (var key in queues) { //同优先级的列队，基于hash规则加载，一般来说只用内置的3个列队即可解决常规问题
-                    var queue = queues[key];
-                    if (queue.list.length) {
-                        var priority = queue.priority;
-                        if (priority > high) {
-                            high = priority;
-                            highQueue = queue;
-                        }
+            //得到优先级最大并且
+            var high = -Infinity;
+            var highQueue;
+            for (var key in queues) { //同优先级的列队，基于hash规则加载，一般来说只用内置的3个列队即可解决常规问题
+                var queue = queues[key];
+                if (queue.list.length) {
+                    var priority = queue.priority;
+                    if (priority > high) {
+                        high = priority;
+                        highQueue = queue;
                     }
                 }
-                if (highQueue) {
-                    //检查列队类型
-                    var list = highQueue.list;
-                    switch (highQueue.type) {
-                        case 1 /* FIFO */:
-                            next = list.shift();
-                            break;
-                        case 0 /* FILO */:
-                            next = list.pop();
-                            break;
-                    }
+            }
+            if (highQueue) {
+                //检查列队类型
+                var list = highQueue.list;
+                switch (highQueue.type) {
+                    case 1 /* FIFO */:
+                        next = list.shift();
+                        break;
+                    case 0 /* FILO */:
+                        next = list.pop();
+                        break;
+                }
+            }
+            if (!next) {
+                if (failedList.length > 0) { //失败列队最后加载
+                    next = failedList.shift();
                 }
             }
             return next;
@@ -17535,6 +17749,9 @@ var jy;
                     break;
                 loading.pushOnce(item);
                 var state = ~~item.state;
+                if (state == -1 /* FAILED */ && item.ft < jy.Global.now) { //如果失败时间已经超过了失败过期时间，则重新加载
+                    state = 0 /* UNREQUEST */;
+                }
                 switch (state) {
                     case -1 /* FAILED */:
                     case 2 /* COMPLETE */:
@@ -17563,7 +17780,7 @@ var jy;
         function doCallback(item) {
             var callbacks = item.callbacks;
             if (callbacks) { //执行回调列队
-                delete item.callbacks;
+                item.callbacks = undefined;
                 for (var i = 0; i < callbacks.length; i++) {
                     var cb = callbacks[i];
                     cb.callAndRecycle(item);
@@ -17572,10 +17789,16 @@ var jy;
         }
         function onItemComplete(item) {
             loading.remove(item);
+            item.qid = undefined;
             var state = ~~item.state;
             if (state == -1 /* FAILED */) {
                 var retry = item.retry || 1;
                 if (retry > maxRetry) {
+                    var now = jy.Global.now;
+                    var ft = ~~item.ft;
+                    if (now > ft) {
+                        item.ft = failedExpiredTime * (retry - maxRetry) + now;
+                    }
                     doCallback(item);
                     return jy.dispatch(-187 /* ResLoadFailed */, item);
                 }
@@ -17584,12 +17807,9 @@ var jy;
                 failedList.push(item);
             }
             else if (state == 2 /* COMPLETE */) {
-                /**
-                 * 清除资源加载项目的列队ID
-                 */
-                var queueID = item.qid;
+                //加载成功，清零retry
+                item.retry = 0;
                 //检查资源是否被加入到列队中
-                delete item.qid;
                 doCallback(item);
                 jy.dispatch(-186 /* ResLoadSuccess */, item);
             }
