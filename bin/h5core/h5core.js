@@ -9177,6 +9177,25 @@ var jy;
     function getResVer(uri) {
         return ~~(_hash && _hash[uri.hash()]);
     }
+    function tryReplace(v, replacer) {
+        if (replacer) {
+            if (typeof v === "string") {
+                return doReplace(v, replacer);
+            }
+            else if (typeof v === "object") {
+                for (var k in v) {
+                    v[k] = tryReplace(v[k], replacer);
+                }
+            }
+        }
+        return v;
+    }
+    function doReplace(value, replacer) {
+        return value.replace(/[$][{]([^{}]+)[}]/g, function (match, subkey) {
+            var value = replacer[subkey];
+            return value !== undefined ? "" + value : match;
+        });
+    }
     /**
      * 配置工具
      * @author 3tion
@@ -9184,6 +9203,18 @@ var jy;
      * @class ConfigUtils
      */
     jy.ConfigUtils = {
+        replace: function (data) {
+            var replacer = data.replacer;
+            if (replacer) {
+                Object.keys(data).forEach(function (key) {
+                    if (key != "replacer") {
+                        var v = data[key];
+                        data[key] = tryReplace(v, replacer);
+                    }
+                });
+            }
+            return data;
+        },
         setData: function (data) {
             _data = data;
             !_data.params && (_data.params = {});
@@ -9191,7 +9222,7 @@ var jy;
             var paths = _data.paths;
             for (var key in paths) {
                 var p = paths[key];
-                p.tPath = getPath(p);
+                p.tPath = getPath(p, paths);
             }
             _res = _data.paths.res;
             //检查前缀
@@ -9214,12 +9245,12 @@ var jy;
                         };
                 }
             })(_data.prefixes);
-            function getPath(p) {
+            function getPath(p, paths) {
                 var parentKey = p.parent;
                 if (parentKey) {
                     var parent_3 = paths[parentKey];
                     if (parent_3) {
-                        return getPath(parent_3) + p.path;
+                        return getPath(parent_3, paths) + p.path;
                     }
                     else if (true) {
                         jy.ThrowError("\u8DEF\u5F84[" + p.path + "]\u914D\u7F6E\u4E86\u7236\u7EA7(parent)\uFF0C\u4F46\u662F\u627E\u4E0D\u5230\u5BF9\u5E94\u7684\u7236\u7EA7");

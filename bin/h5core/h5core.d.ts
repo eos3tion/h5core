@@ -8425,6 +8425,12 @@ declare namespace jy {
     }
     interface JConfig {
         /**
+         * 替换用参数
+         */
+        replacer?: {
+            [replacer: string]: string;
+        };
+        /**
          * 参数字典
          * key      {string}    标识
          * value    {any}       对应数据
@@ -8441,21 +8447,18 @@ declare namespace jy {
          */
         prefixes: string[];
         /**
-         * 路径
-         *
-         * @type {{
-         *             res: Path,
-         *             skin: Path,
-         *             [indes: string]: Path
-         *         }}
-         * @memberOf JConfig
+         * 路径信息的字典
          */
-        paths: {
-            res: Path;
-            skin: Path;
-            [indes: string]: Path;
-        };
+        paths: PathMap;
         preload?: Res.ResItem[];
+    }
+    /**
+     * 路径信息
+     */
+    interface PathMap {
+        res: Path;
+        skin: Path;
+        [indes: string]: Path;
     }
     /**
      * 获取皮肤路径
@@ -8477,6 +8480,7 @@ declare namespace jy {
      * @class ConfigUtils
      */
     const ConfigUtils: {
+        replace(data: JConfig): JConfig;
         setData(data: JConfig): void;
         /**
          * 解析版本控制文件
