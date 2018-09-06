@@ -34,6 +34,11 @@ namespace jy {
     }
 
     export interface JConfig {
+
+        /**
+         * 替换用参数
+         */
+        replacer?: { [replacer: string]: string };
         /**
          * 参数字典  
          * key      {string}    标识
@@ -42,31 +47,30 @@ namespace jy {
          * @type {{}}
          * @memberOf JConfig
          */
-        params?: {},
+        params?: {};
         /**
          * 前缀字典
          * 
          * @type {string[]}
          * @memberOf JConfig
          */
-        prefixes: string[],
+        prefixes: string[];
         /**
-         * 路径
-         * 
-         * @type {{
-         *             res: Path,
-         *             skin: Path,
-         *             [indes: string]: Path
-         *         }}
-         * @memberOf JConfig
+         * 路径信息的字典
          */
-        paths: {
-            res: Path,
-            skin: Path,
-            [indes: string]: Path
-        };
+        paths: PathMap;
 
         preload?: Res.ResItem[];
+    }
+
+    /**
+     * 路径信息
+     */
+    interface PathMap {
+        res: Path;
+        skin: Path;
+
+        [indes: string]: Path;
     }
 
 
@@ -135,6 +139,24 @@ namespace jy {
     function getResVer(uri: string) {
         return ~~(_hash && _hash[uri.hash()]);
     }
+    function tryReplace(v: any, replacer: { [index: string]: string }) {
+        if (replacer) {
+            if (typeof v === "string") {
+                return doReplace(v, replacer);
+            } else if (typeof v === "object") {
+                for (let k in v) {
+                    v[k] = tryReplace(v[k], replacer);
+                }
+            }
+        }
+        return v;
+    }
+    function doReplace(value: string, replacer: { [index: string]: string }) {
+        return value.replace(/[$][{]([^{}]+)[}]/g, (match, subkey) => {
+            let value = replacer[subkey];
+            return value !== undefined ? "" + value : match;
+        });
+    }
     /**
      * 配置工具
      * @author 3tion
@@ -142,6 +164,18 @@ namespace jy {
      * @class ConfigUtils
      */
     export const ConfigUtils = {
+        replace(data: JConfig) {
+            let replacer = data.replacer;
+            if (replacer) {
+                Object.keys(data).forEach(key => {
+                    if (key != "replacer") {
+                        let v = data[key];
+                        data[key] = tryReplace(v, replacer);
+                    }
+                })
+            }
+            return data;
+        },
         setData(data: JConfig) {
             _data = data;
             !_data.params && (_data.params = {})
@@ -149,7 +183,7 @@ namespace jy {
             let paths = _data.paths;
             for (let key in paths) {
                 let p = paths[key];
-                p.tPath = getPath(p);
+                p.tPath = getPath(p, paths);
             }
             _res = _data.paths.res;
             //检查前缀
@@ -173,12 +207,12 @@ namespace jy {
                 }
             })(_data.prefixes)
 
-            function getPath(p: Path) {
+            function getPath(p: Path, paths: PathMap) {
                 let parentKey = p.parent;
                 if (parentKey) {
                     let parent = paths[parentKey];
                     if (parent) {
-                        return getPath(parent) + p.path;
+                        return getPath(parent, paths) + p.path;
                     } else if (DEBUG) {
                         ThrowError(`路径[${p.path}]配置了父级(parent)，但是找不到对应的父级`);
                     }
