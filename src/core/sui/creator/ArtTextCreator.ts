@@ -1,5 +1,18 @@
 namespace jy {
 
+    const alignHandler: { [layoutType: number]: { (bmp: egret.DisplayObject, maxHeight: number) } } = {
+        [LayoutTypeVertical.TOP]: function (bmp: egret.DisplayObject) {
+            bmp.y = 0;
+        },
+        [LayoutTypeVertical.MIDDLE]: function (bmp: egret.DisplayObject, maxHeight: number) {
+            bmp.y = maxHeight - bmp.height >> 1;
+        },
+        [LayoutTypeVertical.BOTTOM]: function (bmp: egret.DisplayObject, maxHeight: number) {
+            bmp.y = maxHeight - bmp.height;
+        },
+    }
+
+
     /**
      * 艺术字
      */
@@ -108,27 +121,17 @@ namespace jy {
         $getWidth() {
             return this.artwidth;
         }
+
         protected checkAlign() {
             let children = this.$children;
             let _maxHeight = this._maxHeight;
-            switch (this._align) {
-                case LayoutTypeVertical.TOP:
-                    children.forEach(bmp => {
-                        bmp.y = 0;
-                    })
-                    break;
-                case LayoutTypeVertical.BOTTOM:
-                    children.forEach(bmp => {
-                        bmp.y = _maxHeight - bmp.height;
-                    })
-                    break;
-                case LayoutTypeVertical.MIDDLE:
-                    children.forEach(bmp => {
-                        bmp.y = _maxHeight - bmp.height >> 1;
-                    })
-                    break;
+            let handler = alignHandler[this._align];
+            for (let i = 0; i < children.length; i++) {
+                const bmp = children[i];
+                handler(bmp, _maxHeight);
             }
         }
+
         public dispose() {
             super.dispose();
             removeDisplay(this);
