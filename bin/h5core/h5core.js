@@ -17920,6 +17920,18 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
+    var _a;
+    var alignHandler = (_a = {},
+        _a[4 /* TOP */] = function (bmp) {
+            bmp.y = 0;
+        },
+        _a[8 /* MIDDLE */] = function (bmp, maxHeight) {
+            bmp.y = maxHeight - bmp.height >> 1;
+        },
+        _a[12 /* BOTTOM */] = function (bmp, maxHeight) {
+            bmp.y = maxHeight - bmp.height;
+        },
+        _a);
     /**
      * 艺术字
      */
@@ -18017,22 +18029,10 @@ var jy;
         ArtText.prototype.checkAlign = function () {
             var children = this.$children;
             var _maxHeight = this._maxHeight;
-            switch (this._align) {
-                case 4 /* TOP */:
-                    children.forEach(function (bmp) {
-                        bmp.y = 0;
-                    });
-                    break;
-                case 12 /* BOTTOM */:
-                    children.forEach(function (bmp) {
-                        bmp.y = _maxHeight - bmp.height;
-                    });
-                    break;
-                case 8 /* MIDDLE */:
-                    children.forEach(function (bmp) {
-                        bmp.y = _maxHeight - bmp.height >> 1;
-                    });
-                    break;
+            var handler = alignHandler[this._align];
+            for (var i = 0; i < children.length; i++) {
+                var bmp = children[i];
+                handler(bmp, _maxHeight);
             }
         };
         ArtText.prototype.dispose = function () {
