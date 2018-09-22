@@ -14163,7 +14163,7 @@ var jy;
                             jy.ThrowError("id为:" + errString + "的功能配置使用限制和显示限制配置有误，自动进行修正");
                         }
                         if (unsolve) {
-                            jy.ThrowError("有功能配置的限制类型并未实现：");
+                            jy.ThrowError("有功能配置的限制类型并未实现：" + unsolve);
                         }
                     }
                     jy.dispatch(-998 /* MODULE_CHECKER_INITED */);
