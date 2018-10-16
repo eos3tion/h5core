@@ -1113,7 +1113,6 @@ declare namespace jy {
          * @type {boolean}
          */
         static dispatchSlowRender: boolean;
-        private static onSlowRender;
         /**
          * 全局单位播放速度
          */
@@ -2179,7 +2178,7 @@ declare namespace jy {
          */
         sleepTimer(): void;
         readonly isReady: boolean;
-        stageHandler(e: egret.Event): void;
+        onStage(e: egret.Event): void;
         checkInterest(): void;
     }
     interface Interest {
@@ -2698,8 +2697,8 @@ declare namespace jy {
         constructor(value?: SuiData);
         parseSelfData(data: any): void;
         protected bindEvent(bmp: egret.Bitmap): void;
-        protected onAddedToStage(e: egret.Event): void;
-        protected onRemoveFromStage(e: egret.Event): void;
+        protected awake(e: egret.Event): void;
+        protected sleep(): void;
     }
 }
 declare namespace jy {
@@ -5401,7 +5400,12 @@ declare namespace jy {
      *
      */
     class AniRender extends BaseRender implements IRecyclable {
-        _render: any;
+        /**
+         * 当前调用的render
+         */
+        protected _render: {
+            (): any;
+        };
         /**
          * 0 初始化，未运行
          * 1 正在运行
@@ -5434,7 +5438,7 @@ declare namespace jy {
          * @type {boolean}
          * @memberof AniRender
          */
-        waitTexture?: boolean;
+        waitTexture: boolean;
         /**
          * 资源是否加载完成
          *
@@ -5455,9 +5459,12 @@ declare namespace jy {
         /**
          * 显示对象
          */
-        display: Recyclable<ResourceBitmap>;
+        readonly display: Recyclable<ResourceBitmap>;
         protected _aniInfo: AniInfo;
         constructor();
+        /**
+         * render方法基于
+         */
         protected render(): void;
         /**
          * 处理数据
@@ -5482,6 +5489,7 @@ declare namespace jy {
         private checkPlay;
         onRecycle(): void;
         onSpawn(): void;
+        protected onStage(e: egret.Event): void;
         init(aniInfo: AniInfo, display: Recyclable<ResourceBitmap>, guid: number): void;
         /***********************************静态方法****************************************/
         private static _renderByGuid;
@@ -9955,6 +9963,8 @@ declare namespace jy {
          * @memberOf Unit
          */
         addToContainer(container: egret.DisplayObjectContainer, doRender?: boolean): void;
+        protected play(): void;
+        protected onStage(e: egret.Event): void;
         protected _depth: number;
         protected _x: number;
         protected _y: number;
