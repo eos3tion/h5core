@@ -112,14 +112,17 @@ namespace jy {
 	 *
 	 */
     export class AniRender extends BaseRender implements IRecyclable {
-        _render: any;
+        /**
+         * 当前调用的render
+         */
+        protected _render: { () };
 
         /**
          * 0 初始化，未运行
          * 1 正在运行
          * 2 已回收
          */
-        public state: AniPlayState = AniPlayState.Standby;
+        public state = AniPlayState.Standby;
 
         /**
          * 非循环动画，播放完毕后的回收策略  
@@ -147,7 +150,7 @@ namespace jy {
          * @type {boolean}
          * @memberof AniRender
          */
-        waitTexture?: boolean;
+        waitTexture = false;
 
         /**
          * 资源是否加载完成
@@ -174,7 +177,7 @@ namespace jy {
         /**
          * 显示对象
          */
-        public display: Recyclable<ResourceBitmap>;
+        public readonly display: Recyclable<ResourceBitmap>;
 
         protected _aniInfo: AniInfo;
 
@@ -184,6 +187,9 @@ namespace jy {
             this.a = 0;
         }
 
+        /**
+         * render方法基于
+         */
         protected render() {
             let aniinfo = this._aniInfo;
             if (aniinfo) {
@@ -248,6 +254,7 @@ namespace jy {
                     display.off(EgretEvent.ENTER_FRAME, this.render, this);
                     if ((policy & AniRecyclePolicy.RecycleDisplay) == AniRecyclePolicy.RecycleDisplay) {
                         //回收策略要求回收可视对象，才移除引用
+                        //@ts-ignore
                         this.display = undefined;
                         display.recycle();
                     }
@@ -289,7 +296,9 @@ namespace jy {
             this.state = AniPlayState.Playing;
             this.resOK = false;
             this._render = undefined;
-            this.checkPlay();
+            if (this.display.stage) {
+                this.checkPlay();
+            }
             if (DEBUG) {
                 if ($gm._recordAni) {
                     let stack = new Error().stack;
@@ -305,7 +314,7 @@ namespace jy {
             let res = display.res;
             if (res) {//资源已经ok
                 let old = this._render;
-                let render;
+                let render: { () };
                 if (this.waitTexture) {
                     let { a, d } = this;
                     if (res.isResOK(a, d)) {
@@ -352,21 +361,26 @@ namespace jy {
             let display = this.display;
             if (display) {
                 //这里必须移除和可视对象的关联
+                //@ts-ignore
                 this.display = undefined;
-                display.off(EgretEvent.ENTER_FRAME, this.render, this);
+                display.off(EgretEvent.ADDED_TO_STAGE, this.onStage, this);
+                display.off(EgretEvent.REMOVED_FROM_STAGE, this.onStage, this);
+                let render = this._render;
+                if (render) {
+                    display.off(EgretEvent.ENTER_FRAME, render, this);
+                }
                 if ((this.recyclePolicy & AniRecyclePolicy.RecycleDisplay) == AniRecyclePolicy.RecycleDisplay) {
                     display.recycle();
                 }
             }
-            if (this._aniInfo) {
-                this._aniInfo.loose(this);
+            let info = this._aniInfo;
+            if (info) {
+                info.loose(this);
                 this._aniInfo = undefined;
             }
             this.idx = 0;
             this._guid = NaN;
-            if (this.waitTexture) {
-                this.waitTexture = false;
-            }
+            this.waitTexture = false;
             this.loop = undefined;
             this._render = undefined;
         }
@@ -378,9 +392,25 @@ namespace jy {
             this._playSpeed = 1;
         }
 
+        protected onStage(e: egret.Event) {
+            if (e.type == EgretEvent.ADDED_TO_STAGE) {
+                this.checkPlay();
+            } else {
+                let display = e.currentTarget as egret.EventDispatcher;
+                let render = this._render;
+                if (render) {
+                    display.off(EgretEvent.ENTER_FRAME, render, this);
+                    this._render = undefined;
+                }
+            }
+        }
+
         public init(aniInfo: AniInfo, display: Recyclable<ResourceBitmap>, guid: number) {
             this._aniInfo = aniInfo;
+            //@ts-ignore
             this.display = display;
+            display.on(EgretEvent.ADDED_TO_STAGE, this.onStage, this);
+            display.on(EgretEvent.REMOVED_FROM_STAGE, this.onStage, this);
             if (aniInfo.state == RequestState.COMPLETE) {
                 display.res = aniInfo.getResource();
             } else {
