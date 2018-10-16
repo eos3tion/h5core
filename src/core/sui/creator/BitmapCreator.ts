@@ -26,25 +26,25 @@ namespace jy {
                     let bmp = new egret.Bitmap;
                     bmp.texture = this._suiData.getTexture(data);
                     this.bindEvent(bmp);
-                    return <T>bmp;
+                    return bmp as T;
                 }
             }
         }
 
         protected bindEvent(bmp: egret.Bitmap) {
-            bmp.on(EgretEvent.ADDED_TO_STAGE, this.onAddedToStage, this);
-            bmp.on(EgretEvent.REMOVED_FROM_STAGE, this.onRemoveFromStage, this);
+            bmp.on(EgretEvent.ADDED_TO_STAGE, this.awake, this);
+            bmp.on(EgretEvent.REMOVED_FROM_STAGE, this.sleep, this);
         }
 
-        protected onAddedToStage(e: egret.Event) {
+        protected awake(e: egret.Event) {
             const suiData = this._suiData;
             if (suiData) {
-                let bmp = <egret.Bitmap>e.currentTarget;
+                let bmp = e.currentTarget as egret.Bitmap;
                 suiData.checkRefreshBmp(bmp, this.isjpg);
             }
         }
 
-        protected onRemoveFromStage(e: egret.Event) {
+        protected sleep() {
             const suiData = this._suiData;
             if (suiData) {
                 let bmd = this.isjpg ? suiData.jpgbmd : suiData.pngbmd;

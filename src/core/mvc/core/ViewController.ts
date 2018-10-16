@@ -67,15 +67,15 @@ namespace jy {
 
         removeSkinListener(skin: egret.DisplayObject) {
             if (skin) {
-                skin.off(EgretEvent.REMOVED_FROM_STAGE, this.stageHandler, this);
-                skin.off(EgretEvent.ADDED_TO_STAGE, this.stageHandler, this);
+                skin.off(EgretEvent.REMOVED_FROM_STAGE, this.onStage, this);
+                skin.off(EgretEvent.ADDED_TO_STAGE, this.onStage, this);
             }
         }
 
         addSkinListener(skin: egret.DisplayObject) {
             if (skin) {
-                skin.on(EgretEvent.REMOVED_FROM_STAGE, this.stageHandler, this);
-                skin.on(EgretEvent.ADDED_TO_STAGE, this.stageHandler, this);
+                skin.on(EgretEvent.REMOVED_FROM_STAGE, this.onStage, this);
+                skin.on(EgretEvent.ADDED_TO_STAGE, this.onStage, this);
             }
         }
 
@@ -148,7 +148,7 @@ namespace jy {
         public get isReady() {
             return this._ready;
         }
-        stageHandler(e: egret.Event) {
+        onStage(e: egret.Event) {
             let type: string, ins: Interest;
             const _interests = this._interests;
             this.checkInterest();
