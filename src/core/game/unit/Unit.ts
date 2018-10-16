@@ -343,16 +343,17 @@ namespace jy {
          * 回收
          */
         public onRecycle() {
-            removeDisplay(this.body);
-            const model = this._model;
-            model.off(EgretEvent.ENTER_FRAME, this.$render, this);
-            model.clear();
+            const { _model, $render, onStage, body, _resDict } = this;
+            removeDisplay(body);
+            _model.off(EgretEvent.ENTER_FRAME, $render, this);
+            _model.off(EgretEvent.ADDED_TO_STAGE, onStage, this);
+            _model.off(EgretEvent.REMOVED_FROM_STAGE, onStage, this);
+            _model.clear();
             this.rotation = 0;
             this.z = 0;
             // 回收ResourceBitmap
-            let dict = this._resDict;
-            for (let key in dict) {
-                delete dict[key];
+            for (let key in _resDict) {
+                delete _resDict[key];
             }
             let current = this._currentAction;
             if (current) {
@@ -549,7 +550,7 @@ namespace jy {
             // 子类实现其他层的添加
             (GameEngine.instance.getLayer(GameLayerID.Sorted) as BaseLayer).addChild(this.body);
             if (doRender) {
-                this.model.on(EgretEvent.ENTER_FRAME, this.$render, this);
+                this.play();
             }
             this.state = UnitState.Stage;
             this.dispatch(EventConst.UnitAddToStage);
@@ -566,10 +567,29 @@ namespace jy {
         public addToContainer(container: egret.DisplayObjectContainer, doRender = true) {
             container.addChild(this.body);
             if (doRender) {
-                this.model.on(EgretEvent.ENTER_FRAME, this.$render, this);
+                this.play();
             }
             this.state = UnitState.Stage;
             this.dispatch(EventConst.UnitAddToStage);
+        }
+
+        protected play() {
+            const { _model, onStage, $render } = this;
+            _model.on(EgretEvent.ADDED_TO_STAGE, onStage, this);
+            _model.on(EgretEvent.REMOVED_FROM_STAGE, onStage, this);
+            if (_model.stage) {
+                _model.on(EgretEvent.ENTER_FRAME, $render, this);
+            }
+        }
+
+        protected onStage(e: egret.Event) {
+            const { _model, $render } = this;
+            const eventType = EgretEvent.ENTER_FRAME;
+            if (e.type == EgretEvent.ADDED_TO_STAGE) {
+                _model.on(eventType, $render, this);
+            } else {
+                _model.off(eventType, $render, this);
+            }
         }
 
         protected _depth: number;
