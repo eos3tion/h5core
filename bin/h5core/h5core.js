@@ -2359,6 +2359,11 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
+    var slowDispatching;
+    function onSlowRender() {
+        jy.dispatch(-1996 /* SlowRender */);
+        slowDispatching = false;
+    }
     /**
      * 基础渲染器
      * @author 3tion
@@ -2388,9 +2393,6 @@ var jy;
              */
             this._playSpeed = 1;
         }
-        BaseRender.onSlowRender = function () {
-            jy.dispatch(-1996 /* SlowRender */);
-        };
         Object.defineProperty(BaseRender.prototype, "playSpeed", {
             /**
              * 播放速度，默认为1倍速度<br/>
@@ -2433,7 +2435,10 @@ var jy;
                         if (nextRenderTime != 0) {
                             true && printSlow(delta);
                             if (BaseRender.dispatchSlowRender) {
-                                jy.Global.callLater(BaseRender.onSlowRender);
+                                if (!slowDispatching) {
+                                    slowDispatching = true;
+                                    jy.Global.nextTick(onSlowRender);
+                                }
                             }
                         }
                         nextRenderTime = now;
@@ -3093,14 +3098,14 @@ var jy;
         };
         ViewController.prototype.removeSkinListener = function (skin) {
             if (skin) {
-                skin.off("removedFromStage" /* REMOVED_FROM_STAGE */, this.stageHandler, this);
-                skin.off("addedToStage" /* ADDED_TO_STAGE */, this.stageHandler, this);
+                skin.off("removedFromStage" /* REMOVED_FROM_STAGE */, this.onStage, this);
+                skin.off("addedToStage" /* ADDED_TO_STAGE */, this.onStage, this);
             }
         };
         ViewController.prototype.addSkinListener = function (skin) {
             if (skin) {
-                skin.on("removedFromStage" /* REMOVED_FROM_STAGE */, this.stageHandler, this);
-                skin.on("addedToStage" /* ADDED_TO_STAGE */, this.stageHandler, this);
+                skin.on("removedFromStage" /* REMOVED_FROM_STAGE */, this.onStage, this);
+                skin.on("addedToStage" /* ADDED_TO_STAGE */, this.onStage, this);
             }
         };
         /**
@@ -3181,7 +3186,7 @@ var jy;
             enumerable: true,
             configurable: true
         });
-        ViewController.prototype.stageHandler = function (e) {
+        ViewController.prototype.onStage = function (e) {
             var type, ins;
             var _interests = this._interests;
             this.checkInterest();
@@ -4343,17 +4348,17 @@ var jy;
             }
         };
         BitmapCreator.prototype.bindEvent = function (bmp) {
-            bmp.on("addedToStage" /* ADDED_TO_STAGE */, this.onAddedToStage, this);
-            bmp.on("removedFromStage" /* REMOVED_FROM_STAGE */, this.onRemoveFromStage, this);
+            bmp.on("addedToStage" /* ADDED_TO_STAGE */, this.awake, this);
+            bmp.on("removedFromStage" /* REMOVED_FROM_STAGE */, this.sleep, this);
         };
-        BitmapCreator.prototype.onAddedToStage = function (e) {
+        BitmapCreator.prototype.awake = function (e) {
             var suiData = this._suiData;
             if (suiData) {
                 var bmp = e.currentTarget;
                 suiData.checkRefreshBmp(bmp, this.isjpg);
             }
         };
-        BitmapCreator.prototype.onRemoveFromStage = function (e) {
+        BitmapCreator.prototype.sleep = function () {
             var suiData = this._suiData;
             if (suiData) {
                 var bmd = this.isjpg ? suiData.jpgbmd : suiData.pngbmd;
@@ -7605,17 +7610,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 客户端检测
-     * @author 3tion
-     *
-     */
-    jy.ClientCheck = {
-        /**
-         * 是否做客户端检查
-         */
-        isClientCheck: true
-    };
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -8080,6 +8074,13 @@ var jy;
              * 默认为全部回收
              */
             _this.recyclePolicy = 3 /* RecycleAll */;
+            /**
+             * 是否等待纹理数据加载完成，才播放
+             *
+             * @type {boolean}
+             * @memberof AniRender
+             */
+            _this.waitTexture = false;
             // ani动画的`暂定`动作固定值0
             _this.a = 0;
             return _this;
@@ -8094,6 +8095,9 @@ var jy;
             enumerable: true,
             configurable: true
         });
+        /**
+         * render方法基于
+         */
         AniRender.prototype.render = function () {
             var aniinfo = this._aniInfo;
             if (aniinfo) {
@@ -8156,6 +8160,7 @@ var jy;
                     display.off("enterFrame" /* ENTER_FRAME */, this.render, this);
                     if ((policy & 1 /* RecycleDisplay */) == 1 /* RecycleDisplay */) {
                         //回收策略要求回收可视对象，才移除引用
+                        //@ts-ignore
                         this.display = undefined;
                         display.recycle();
                     }
@@ -8194,7 +8199,9 @@ var jy;
             this.state = 1 /* Playing */;
             this.resOK = false;
             this._render = undefined;
-            this.checkPlay();
+            if (this.display.stage) {
+                this.checkPlay();
+            }
             if (true) {
                 if ($gm._recordAni) {
                     var stack = new Error().stack;
@@ -8257,21 +8264,26 @@ var jy;
             var display = this.display;
             if (display) {
                 //这里必须移除和可视对象的关联
+                //@ts-ignore
                 this.display = undefined;
-                display.off("enterFrame" /* ENTER_FRAME */, this.render, this);
+                display.off("addedToStage" /* ADDED_TO_STAGE */, this.onStage, this);
+                display.off("removedFromStage" /* REMOVED_FROM_STAGE */, this.onStage, this);
+                var render = this._render;
+                if (render) {
+                    display.off("enterFrame" /* ENTER_FRAME */, render, this);
+                }
                 if ((this.recyclePolicy & 1 /* RecycleDisplay */) == 1 /* RecycleDisplay */) {
                     display.recycle();
                 }
             }
-            if (this._aniInfo) {
-                this._aniInfo.loose(this);
+            var info = this._aniInfo;
+            if (info) {
+                info.loose(this);
                 this._aniInfo = undefined;
             }
             this.idx = 0;
             this._guid = NaN;
-            if (this.waitTexture) {
-                this.waitTexture = false;
-            }
+            this.waitTexture = false;
             this.loop = undefined;
             this._render = undefined;
         };
@@ -8281,9 +8293,25 @@ var jy;
             this.recyclePolicy = 3 /* RecycleAll */;
             this._playSpeed = 1;
         };
+        AniRender.prototype.onStage = function (e) {
+            if (e.type == "addedToStage" /* ADDED_TO_STAGE */) {
+                this.checkPlay();
+            }
+            else {
+                var display = e.currentTarget;
+                var render = this._render;
+                if (render) {
+                    display.off("enterFrame" /* ENTER_FRAME */, render, this);
+                    this._render = undefined;
+                }
+            }
+        };
         AniRender.prototype.init = function (aniInfo, display, guid) {
             this._aniInfo = aniInfo;
+            //@ts-ignore
             this.display = display;
+            display.on("addedToStage" /* ADDED_TO_STAGE */, this.onStage, this);
+            display.on("removedFromStage" /* REMOVED_FROM_STAGE */, this.onStage, this);
             if (aniInfo.state == 2 /* COMPLETE */) {
                 display.res = aniInfo.getResource();
             }
@@ -11267,7 +11295,7 @@ var jy;
                             jy.ThrowError("id为:" + errString + "的功能配置使用限制和显示限制配置有误，自动进行修正");
                         }
                         if (unsolve) {
-                            jy.ThrowError("有功能配置的限制类型并未实现：");
+                            jy.ThrowError("有功能配置的限制类型并未实现：" + unsolve);
                         }
                     }
                     jy.dispatch(-998 /* MODULE_CHECKER_INITED */);
@@ -11306,7 +11334,7 @@ var jy;
                     jy.ThrowError("\u6CA1\u6709\u627E\u5230\u5BF9\u5E94\u7684\u529F\u80FD\u914D\u7F6E[" + module + "]");
                 }
             }
-            if (false || jy.ClientCheck.isClientCheck) { //屏蔽客户端检测只针对open，不针对show
+            if (false || !jy.noClientCheck) { //屏蔽客户端检测只针对open，不针对show
                 var flag = cfg && !cfg.close && cfg.serverOpen;
                 if (flag) {
                     if (this._checkers) {
@@ -12615,7 +12643,7 @@ var jy;
         return ListItemRenderer;
     }(egret.EventDispatcher));
     jy.ListItemRenderer = ListItemRenderer;
-    jy.expand(ListItemRenderer, jy.ViewController, "addReadyExecute", "addDepend", "stageHandler", "interest", "checkInject", "checkInterest", "awakeTimer", "sleepTimer", "bindTimer", "looseTimer");
+    jy.expand(ListItemRenderer, jy.ViewController, "addReadyExecute", "addDepend", "onStage", "interest", "checkInject", "checkInterest", "awakeTimer", "sleepTimer", "bindTimer", "looseTimer");
     // export abstract class AListItemRenderer<T, S extends egret.DisplayObject> extends ListItemRenderer<T, S> implements SuiDataCallback {
     //     /**
     //      * 子类重写设置皮肤
@@ -14866,6 +14894,18 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
+    var _a;
+    var alignHandler = (_a = {},
+        _a[4 /* TOP */] = function (bmp) {
+            bmp.y = 0;
+        },
+        _a[8 /* MIDDLE */] = function (bmp, maxHeight) {
+            bmp.y = maxHeight - bmp.height >> 1;
+        },
+        _a[12 /* BOTTOM */] = function (bmp, maxHeight) {
+            bmp.y = maxHeight - bmp.height;
+        },
+        _a);
     /**
      * 艺术字
      */
@@ -14963,22 +15003,10 @@ var jy;
         ArtText.prototype.checkAlign = function () {
             var children = this.$children;
             var _maxHeight = this._maxHeight;
-            switch (this._align) {
-                case 4 /* TOP */:
-                    children.forEach(function (bmp) {
-                        bmp.y = 0;
-                    });
-                    break;
-                case 12 /* BOTTOM */:
-                    children.forEach(function (bmp) {
-                        bmp.y = _maxHeight - bmp.height;
-                    });
-                    break;
-                case 8 /* MIDDLE */:
-                    children.forEach(function (bmp) {
-                        bmp.y = _maxHeight - bmp.height >> 1;
-                    });
-                    break;
+            var handler = alignHandler[this._align];
+            for (var i = 0; i < children.length; i++) {
+                var bmp = children[i];
+                handler(bmp, _maxHeight);
             }
         };
         ArtText.prototype.dispose = function () {
