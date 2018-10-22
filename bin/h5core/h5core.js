@@ -8011,20 +8011,6 @@ var jy;
 var jy;
 (function (jy) {
     /**
-     * 客户端检测
-     * @author 3tion
-     *
-     */
-    jy.ClientCheck = {
-        /**
-         * 是否做客户端检查
-         */
-        isClientCheck: true
-    };
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
-    /**
      * 错误前缀
      */
     jy.errorPrefix = "";
@@ -12496,6 +12482,47 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
+    var UnitSetting = /** @class */ (function () {
+        function UnitSetting() {
+            /**
+             * 是否添加UI层
+             */
+            this.hasUILayer = true;
+            /**
+             * 是否添加Buff容器
+             */
+            this.hasBuffLayer = true;
+            /**
+             * 是否添加光环容器
+             */
+            this.hasHaloLayer = true;
+            /**
+             * 是否添加到游戏场景中
+             */
+            this.addToEngine = true;
+            /**
+             * 深度的参数A
+             */
+            this.depthA = 0;
+            /**
+             * 深度的参数B
+             */
+            this.depthB = 0.19;
+        }
+        //防止同一坐标的单位排序深度相同，出现闪烁的情况
+        UnitSetting.prototype.getDepth = function () {
+            return this.depthA + Math.random() * this.depthB;
+        };
+        return UnitSetting;
+    }());
+    jy.UnitSetting = UnitSetting;
+    /**
+     * 默认的单位设置
+     */
+    jy.defaultUnitSetting = new UnitSetting();
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 序列的记录器
      * 用于做残影或者时光倒流的操作
@@ -14260,7 +14287,7 @@ var jy;
                     jy.ThrowError("\u6CA1\u6709\u627E\u5230\u5BF9\u5E94\u7684\u529F\u80FD\u914D\u7F6E[" + module + "]");
                 }
             }
-            if (false || jy.ClientCheck.isClientCheck) { //屏蔽客户端检测只针对open，不针对show
+            if (false || !jy.noClientCheck) { //屏蔽客户端检测只针对open，不针对show
                 var flag = cfg && !cfg.close && cfg.serverOpen;
                 if (flag) {
                     if (this._checkers) {
@@ -22274,45 +22301,4 @@ var jy;
         return Tween;
     }(egret.EventDispatcher));
     jy.Tween = Tween;
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
-    var UnitSetting = /** @class */ (function () {
-        function UnitSetting() {
-            /**
-             * 是否添加UI层
-             */
-            this.hasUILayer = true;
-            /**
-             * 是否添加Buff容器
-             */
-            this.hasBuffLayer = true;
-            /**
-             * 是否添加光环容器
-             */
-            this.hasHaloLayer = true;
-            /**
-             * 是否添加到游戏场景中
-             */
-            this.addToEngine = true;
-            /**
-             * 深度的参数A
-             */
-            this.depthA = 0;
-            /**
-             * 深度的参数B
-             */
-            this.depthB = 0.19;
-        }
-        //防止同一坐标的单位排序深度相同，出现闪烁的情况
-        UnitSetting.prototype.getDepth = function () {
-            return this.depthA + Math.random() * this.depthB;
-        };
-        return UnitSetting;
-    }());
-    jy.UnitSetting = UnitSetting;
-    /**
-     * 默认的单位设置
-     */
-    jy.defaultUnitSetting = new UnitSetting();
 })(jy || (jy = {}));
