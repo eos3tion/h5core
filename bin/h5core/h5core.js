@@ -8010,6 +8010,9 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 错误前缀
      */
@@ -12479,47 +12482,6 @@ var jy;
         return UnitRender;
     }(jy.BaseRender));
     jy.UnitRender = UnitRender;
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
-    var UnitSetting = /** @class */ (function () {
-        function UnitSetting() {
-            /**
-             * 是否添加UI层
-             */
-            this.hasUILayer = true;
-            /**
-             * 是否添加Buff容器
-             */
-            this.hasBuffLayer = true;
-            /**
-             * 是否添加光环容器
-             */
-            this.hasHaloLayer = true;
-            /**
-             * 是否添加到游戏场景中
-             */
-            this.addToEngine = true;
-            /**
-             * 深度的参数A
-             */
-            this.depthA = 0;
-            /**
-             * 深度的参数B
-             */
-            this.depthB = 0.19;
-        }
-        //防止同一坐标的单位排序深度相同，出现闪烁的情况
-        UnitSetting.prototype.getDepth = function () {
-            return this.depthA + Math.random() * this.depthB;
-        };
-        return UnitSetting;
-    }());
-    jy.UnitSetting = UnitSetting;
-    /**
-     * 默认的单位设置
-     */
-    jy.defaultUnitSetting = new UnitSetting();
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -22301,4 +22263,45 @@ var jy;
         return Tween;
     }(egret.EventDispatcher));
     jy.Tween = Tween;
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    var UnitSetting = /** @class */ (function () {
+        function UnitSetting() {
+            /**
+             * 是否添加UI层
+             */
+            this.hasUILayer = true;
+            /**
+             * 是否添加Buff容器
+             */
+            this.hasBuffLayer = true;
+            /**
+             * 是否添加光环容器
+             */
+            this.hasHaloLayer = true;
+            /**
+             * 是否添加到游戏场景中
+             */
+            this.addToEngine = true;
+            /**
+             * 深度的参数A
+             */
+            this.depthA = 0;
+            /**
+             * 深度的参数B
+             */
+            this.depthB = 0.19;
+        }
+        //防止同一坐标的单位排序深度相同，出现闪烁的情况
+        UnitSetting.prototype.getDepth = function () {
+            return this.depthA + Math.random() * this.depthB;
+        };
+        return UnitSetting;
+    }());
+    jy.UnitSetting = UnitSetting;
+    /**
+     * 默认的单位设置
+     */
+    jy.defaultUnitSetting = new UnitSetting();
 })(jy || (jy = {}));

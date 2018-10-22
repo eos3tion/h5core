@@ -4871,6 +4871,19 @@ declare namespace jy {
 }
 declare namespace jy {
     /**
+     * 是否不做客户端检查
+     * 客户端检查的部分，后续统一按下面例子处理
+     * @example
+     *  if ((RELEASE ||  !jy.noClientCheck)) {
+     *       if (!$hero.clan) {
+     *          return CoreFunction.showClientTips(MsgCodeConst.Code_883);
+     *      }
+     *  }
+     */
+    var noClientCheck: boolean;
+}
+declare namespace jy {
+    /**
      * 错误前缀
      */
     var errorPrefix: string;
@@ -10282,39 +10295,6 @@ declare namespace jy {
     }
 }
 declare namespace jy {
-    class UnitSetting {
-        /**
-         * 是否添加UI层
-         */
-        hasUILayer: boolean;
-        /**
-         * 是否添加Buff容器
-         */
-        hasBuffLayer: boolean;
-        /**
-         * 是否添加光环容器
-         */
-        hasHaloLayer: boolean;
-        /**
-         * 是否添加到游戏场景中
-         */
-        addToEngine: boolean;
-        getDepth(): number;
-        /**
-         * 深度的参数A
-         */
-        depthA: number;
-        /**
-         * 深度的参数B
-         */
-        depthB: number;
-    }
-    /**
-     * 默认的单位设置
-     */
-    const defaultUnitSetting: UnitSetting;
-}
-declare namespace jy {
     /**
      * 网络事件的常量集
      * @author
@@ -10380,6 +10360,46 @@ declare namespace jy {
          * data {string} 配置的Key
          */
         OneCfgComplete = -185
+    }
+}
+declare namespace jy {
+    /**
+     * 单位的状态
+     * @author 3tion
+     */
+    const enum UnitState {
+        /**
+         * 创建了对象
+         */
+        Init = 0,
+        /**
+         * 添加到舞台上
+         */
+        Stage = 1,
+        /**
+         * 正在创建，往舞台上添加的动画
+         */
+        Spawning = 2,
+        /**
+         * 在舞台上活着
+         */
+        Alive = 3,
+        /**
+         * 正在死亡，执行死亡的动画
+         */
+        Deading = 4,
+        /**
+         * 死透了，在地板上
+         */
+        Dead = 5,
+        /**
+         * 正在销毁，尸体蚕食的动画
+         */
+        Disposing = 6,
+        /**
+         * 从舞台销毁，回收资源
+         */
+        Disposed = 7
     }
 }
 declare namespace jy {
@@ -15821,42 +15841,35 @@ declare namespace jy {
     }
 }
 declare namespace jy {
-    /**
-     * 单位的状态
-     * @author 3tion
-     */
-    const enum UnitState {
+    class UnitSetting {
         /**
-         * 创建了对象
+         * 是否添加UI层
          */
-        Init = 0,
+        hasUILayer: boolean;
         /**
-         * 添加到舞台上
+         * 是否添加Buff容器
          */
-        Stage = 1,
+        hasBuffLayer: boolean;
         /**
-         * 正在创建，往舞台上添加的动画
+         * 是否添加光环容器
          */
-        Spawning = 2,
+        hasHaloLayer: boolean;
         /**
-         * 在舞台上活着
+         * 是否添加到游戏场景中
          */
-        Alive = 3,
+        addToEngine: boolean;
+        getDepth(): number;
         /**
-         * 正在死亡，执行死亡的动画
+         * 深度的参数A
          */
-        Deading = 4,
+        depthA: number;
         /**
-         * 死透了，在地板上
+         * 深度的参数B
          */
-        Dead = 5,
-        /**
-         * 正在销毁，尸体蚕食的动画
-         */
-        Disposing = 6,
-        /**
-         * 从舞台销毁，回收资源
-         */
-        Disposed = 7
+        depthB: number;
     }
+    /**
+     * 默认的单位设置
+     */
+    const defaultUnitSetting: UnitSetting;
 }
