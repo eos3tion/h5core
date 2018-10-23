@@ -149,7 +149,48 @@ namespace jy {
          * @returns {number} 成功解析到的key的数量
          */
         parseXAttr2(from: object, xattr: object, keyPrefix?: string, valuePrefix?: string, delOriginKey?: boolean): number
+        /**
+         * 按君游的数据格式，处理用`|`,`:`分隔的字符串  
+         * `|`为`1级`分隔符  
+         * `:`为`2级`分隔符  
+         * @param value 
+         */
+        getArray2D(value: any): any[][]
 
+        /**
+         * 按君游的数据格式，处理用`|`,`:`分隔的字符串  
+         * @param value 
+         */
+        getArray(value: any): any[]
+
+        /**
+         * 尝试将数据转成number类型，如果无法转换，用原始类型
+         * 
+         * @param {*} value 数据
+         * @returns 
+         */
+        tryParseNumber(value: any);
+    }
+
+    /**
+     * 尝试将数据转成number类型，如果无法转换，用原始类型
+     * 
+     * @param {*} value 数据
+     * @returns 
+     */
+    function tryParseNumber(value: any) {
+        if (typeof value === "boolean") {
+            return value ? 1 : 0;
+        }
+        if (value == +value && value.length == (+value + "").length) { // 数值类型
+            // "12132123414.12312312"==+"12132123414.12312312"
+            // true
+            // "12132123414.12312312".length==(+"12132123414.12312312"+"").length
+            // false
+            return +value;
+        } else {
+            return value;
+        }
     }
 
     function getData(valueList: any[], keyList: string[], o?: Object): any {
@@ -288,6 +329,37 @@ namespace jy {
             for (let i = 0; i < data.length; i++) {
                 out.push(getZuobiao(data[i]));
             }
+        },
+        getArray2D(value: any) {
+            if (Array.isArray(value)) {
+                return value;
+            }
+            if (value.trim() == "") {
+                return;
+            }
+            let arr: any[] = value.split("|");
+            arr.forEach((item, idx) => {
+                let subArr: any[] = item.split(":");
+                arr[idx] = subArr;
+                subArr.forEach((sitem, idx) => {
+                    subArr[idx] = tryParseNumber(sitem);
+                });
+            })
+            return arr;
+        },
+        getArray(value: string) {
+            if (Array.isArray(value)) {
+                return value;
+            }
+            value = value + "";
+            if (value.trim() == "") {
+                return;
+            }
+            let arr = value.split(/[:|]/g);
+            arr.forEach((item, idx) => {
+                arr[idx] = tryParseNumber(item);
+            })
+            return arr;
         }
     } as DataUtilsType;
 }
