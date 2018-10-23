@@ -10152,6 +10152,25 @@ declare namespace jy {
          * @returns {number} 成功解析到的key的数量
          */
         parseXAttr2(from: object, xattr: object, keyPrefix?: string, valuePrefix?: string, delOriginKey?: boolean): number;
+        /**
+         * 按君游的数据格式，处理用`|`,`:`分隔的字符串
+         * `|`为`1级`分隔符
+         * `:`为`2级`分隔符
+         * @param value
+         */
+        getArray2D(value: any): any[][];
+        /**
+         * 按君游的数据格式，处理用`|`,`:`分隔的字符串
+         * @param value
+         */
+        getArray(value: any): any[];
+        /**
+         * 尝试将数据转成number类型，如果无法转换，用原始类型
+         *
+         * @param {*} value 数据
+         * @returns
+         */
+        tryParseNumber(value: any): any;
     }
     /**
      *

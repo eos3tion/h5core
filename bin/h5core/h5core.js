@@ -12128,6 +12128,27 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
+    /**
+     * 尝试将数据转成number类型，如果无法转换，用原始类型
+     *
+     * @param {*} value 数据
+     * @returns
+     */
+    function tryParseNumber(value) {
+        if (typeof value === "boolean") {
+            return value ? 1 : 0;
+        }
+        if (value == +value && value.length == (+value + "").length) { // 数值类型
+            // "12132123414.12312312"==+"12132123414.12312312"
+            // true
+            // "12132123414.12312312".length==(+"12132123414.12312312"+"").length
+            // false
+            return +value;
+        }
+        else {
+            return value;
+        }
+    }
     function getData(valueList, keyList, o) {
         o = o || {};
         for (var i = 0, len = keyList.length; i < len; i++) {
@@ -12274,6 +12295,37 @@ var jy;
             for (var i = 0; i < data.length; i++) {
                 out.push(getZuobiao(data[i]));
             }
+        },
+        getArray2D: function (value) {
+            if (Array.isArray(value)) {
+                return value;
+            }
+            if (value.trim() == "") {
+                return;
+            }
+            var arr = value.split("|");
+            arr.forEach(function (item, idx) {
+                var subArr = item.split(":");
+                arr[idx] = subArr;
+                subArr.forEach(function (sitem, idx) {
+                    subArr[idx] = tryParseNumber(sitem);
+                });
+            });
+            return arr;
+        },
+        getArray: function (value) {
+            if (Array.isArray(value)) {
+                return value;
+            }
+            value = value + "";
+            if (value.trim() == "") {
+                return;
+            }
+            var arr = value.split(/[:|]/g);
+            arr.forEach(function (item, idx) {
+                arr[idx] = tryParseNumber(item);
+            });
+            return arr;
         }
     };
 })(jy || (jy = {}));
