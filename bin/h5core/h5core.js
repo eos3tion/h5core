@@ -3784,15 +3784,16 @@ var jy;
             idx = idx >>> 0;
             return this._list[idx];
         };
-        AbsPageList.prototype.selectItemByData = function (key, value, useTween) {
+        AbsPageList.prototype.selectItemByData = function (key, value, _useTween) {
             var _this = this;
-            if (useTween === void 0) { useTween = false; }
-            this.find(function (dat, render, idx) {
+            if (_useTween === void 0) { _useTween = false; }
+            this.find(function (dat, _, idx) {
                 if (dat && (key in dat) && dat[key] == value) {
                     _this.selectedIndex = idx;
                     return true;
                 }
             });
+            return this;
         };
         /**
          * 遍历列表
@@ -3813,6 +3814,7 @@ var jy;
                 var render = renders[i];
                 handle.apply(void 0, [data, render, i].concat(otherParams));
             }
+            return this;
         };
         /**
          * 找到第一个符合要求的render
@@ -3902,6 +3904,7 @@ var jy;
                     this.refreshAt(i);
                 }
             }
+            return this;
         };
         /**
          * 根据index使某个在舞台上的render刷新
@@ -3921,6 +3924,7 @@ var jy;
                     renderer.dataChange = false;
                 }
             }
+            return this;
         };
         /**
          * render进行切换
@@ -10898,6 +10902,27 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
+    /**
+     * 尝试将数据转成number类型，如果无法转换，用原始类型
+     *
+     * @param {*} value 数据
+     * @returns
+     */
+    function tryParseNumber(value) {
+        if (typeof value === "boolean") {
+            return value ? 1 : 0;
+        }
+        if (value == +value && value.length == (+value + "").length) { // 数值类型
+            // "12132123414.12312312"==+"12132123414.12312312"
+            // true
+            // "12132123414.12312312".length==(+"12132123414.12312312"+"").length
+            // false
+            return +value;
+        }
+        else {
+            return value;
+        }
+    }
     function getData(valueList, keyList, o) {
         o = o || {};
         for (var i = 0, len = keyList.length; i < len; i++) {
@@ -10914,6 +10939,9 @@ var jy;
             var key = keyList[i];
             to[key] = valueList[i];
         }
+    }
+    function getZuobiao(data) {
+        return { x: data[0], y: data[1] };
     }
     /**
      *
@@ -10981,6 +11009,98 @@ var jy;
                 }
             }
         },
+        parseXAttr2: function (from, xattr, keyPrefix, valuePrefix, delOriginKey) {
+            if (keyPrefix === void 0) { keyPrefix = "pro"; }
+            if (valuePrefix === void 0) { valuePrefix = "provalue"; }
+            if (delOriginKey === void 0) { delOriginKey = true; }
+            var xReg = new RegExp("^" + keyPrefix + "(\\d+)$");
+            if (true) {
+                var repeatedErr = "";
+            }
+            var keyCount = 0;
+            for (var key in from) {
+                var obj = xReg.exec(key);
+                if (obj) {
+                    var idx = +(obj[1]) || 0;
+                    var valueKey = valuePrefix + idx;
+                    if (true) {
+                        if (key in xattr) {
+                            repeatedErr += key + " ";
+                        }
+                    }
+                    var value = +(from[valueKey]);
+                    if (value > 0) { //只有大于0做处理
+                        keyCount++;
+                        xattr[from[key]] = value;
+                    }
+                    if (delOriginKey) {
+                        delete from[key];
+                        delete from[valueKey];
+                    }
+                }
+            }
+            if (true) {
+                if (repeatedErr) {
+                    jy.ThrowError("有重复的属性值:" + repeatedErr);
+                }
+            }
+            return keyCount;
+        },
+        parseXAttr: function (from, xattr, delOriginKey, xReg) {
+            if (delOriginKey === void 0) { delOriginKey = true; }
+            if (xReg === void 0) { xReg = /^x\d+$/; }
+            var keyCount = 0;
+            for (var key in from) {
+                if (xReg.test(key)) {
+                    var value = +(from[key]);
+                    if (value > 0) { //只有大于0做处理
+                        keyCount++;
+                        xattr[key] = value;
+                    }
+                    if (delOriginKey) {
+                        delete from[key];
+                    }
+                }
+            }
+            return keyCount;
+        },
+        getZuobiaos: function (data, out) {
+            out = out || [];
+            for (var i = 0; i < data.length; i++) {
+                out.push(getZuobiao(data[i]));
+            }
+        },
+        getArray2D: function (value) {
+            if (Array.isArray(value)) {
+                return value;
+            }
+            if (value.trim() == "") {
+                return;
+            }
+            var arr = value.split("|");
+            arr.forEach(function (item, idx) {
+                var subArr = item.split(":");
+                arr[idx] = subArr;
+                subArr.forEach(function (sitem, idx) {
+                    subArr[idx] = tryParseNumber(sitem);
+                });
+            });
+            return arr;
+        },
+        getArray: function (value) {
+            if (Array.isArray(value)) {
+                return value;
+            }
+            value = value + "";
+            if (value.trim() == "") {
+                return;
+            }
+            var arr = value.split(/[:|]/g);
+            arr.forEach(function (item, idx) {
+                arr[idx] = tryParseNumber(item);
+            });
+            return arr;
+        }
     };
 })(jy || (jy = {}));
 var jy;
@@ -13031,7 +13151,7 @@ var jy;
     var MPageList = /** @class */ (function (_super) {
         __extends(MPageList, _super);
         function MPageList() {
-            var _this = _super.call(this, null) || this;
+            var _this = _super !== null && _super.apply(this, arguments) || this;
             _this._viewCount = 0;
             return _this;
         }
@@ -13053,6 +13173,7 @@ var jy;
             this._data = data;
             this._dataLen = dataLen;
             this.doRender(0, dataLen - 1);
+            return this;
         };
         /**
          * 更新item数据
@@ -13069,6 +13190,7 @@ var jy;
                     item.handleView();
                 }
             }
+            return this;
         };
         MPageList.prototype.addItem = function (item, index) {
             var list = this._list;
@@ -13080,6 +13202,7 @@ var jy;
             }
             item.index = index == undefined ? idx : index;
             this._viewCount = list.length;
+            return this;
         };
         MPageList.prototype._get = function (index) {
             var list = this._list;
@@ -13098,6 +13221,7 @@ var jy;
             }
             this._selectedIndex = -1;
             this._selectedItem = undefined;
+            return this;
         };
         MPageList.prototype.dispose = function () {
             for (var _i = 0, _a = this._list; _i < _a.length; _i++) {
@@ -13132,6 +13256,20 @@ var jy;
             _this.init(option);
             return _this;
         }
+        Object.defineProperty(PageList.prototype, "w", {
+            get: function () {
+                return this._w;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(PageList.prototype, "h", {
+            get: function () {
+                return this._h;
+            },
+            enumerable: true,
+            configurable: true
+        });
         Object.defineProperty(PageList.prototype, "container", {
             /**
              * 容器
@@ -13209,17 +13347,39 @@ var jy;
             this._data = data;
             this._lastRect = undefined;
             if (!nlen) {
-                this.dispose();
+                this.clear();
                 this._dataLen = 0;
                 this.rawDataChanged = false;
                 return;
             }
             this._dataLen = nlen;
             this.initItems();
-            if (this.scroller) {
-                this.scroller.scrollToHead();
+            var scroller = this.scroller;
+            if (scroller) {
+                scroller.scrollToHead();
             }
             this.rawDataChanged = false;
+            return this;
+        };
+        /**
+         * 基于容器原始坐标进行排布
+         * @param type 如果设置 `LayoutType.FullScreen(0)`，基于`LayoutType.TOP_LEFT`定位
+         */
+        PageList.prototype.layout = function (type) {
+            if (!this.scroller) { //有scroller的不处理
+                var con = this._con;
+                var suiRawRect = con.suiRawRect;
+                if (suiRawRect) {
+                    if (type == 0 /* FullScreen */) { //设0恢复原样，基于 top_left 定位
+                        type = 5 /* TOP_LEFT */;
+                    }
+                    var pt = jy.Temp.SharedPoint1;
+                    jy.Layout.getLayoutPos(this._w, this._h, suiRawRect.width, suiRawRect.height, type, pt);
+                    con.x = suiRawRect.x + pt.x;
+                    con.y = suiRawRect.y + pt.y;
+                }
+            }
+            return this;
         };
         /**
          * 初始化render占据array，不做任何初始化容器操作
@@ -13354,7 +13514,6 @@ var jy;
             }
         };
         PageList.prototype.$setSelectedIndex = function (value) {
-            this._waitIndex = value;
             if (!this._data) {
                 this._waitForSetIndex = true;
                 return;
@@ -13521,6 +13680,7 @@ var jy;
                     }
                 }
             }
+            return this;
         };
         /**
          * 更新item数据
@@ -13534,6 +13694,7 @@ var jy;
                 this._data[index] = data;
                 this.doRender(index);
             }
+            return this;
         };
         PageList.prototype.removeAt = function (idx) {
             idx = idx >>> 0;
@@ -13593,9 +13754,9 @@ var jy;
             list.length = 0;
             this._selectedItem = undefined;
             this._waitForSetIndex = false;
-            this._waitIndex = -1;
             this._w = 0;
             this._h = 0;
+            return this;
         };
         Object.defineProperty(PageList.prototype, "showStart", {
             /**
