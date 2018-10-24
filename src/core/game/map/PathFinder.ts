@@ -164,11 +164,17 @@ namespace jy {
          * @memberOf PathFinder
          */
         public getPath(fx: number, fy: number, tx: number, ty: number, callback: CallbackInfo<PathFinderCallback>, opt?: PathFinderOption) {
+            const map = this._map;
+            if (!map) {
+                callback.callAndRecycle(null, true);
+                return;
+            }
+
             if (fx == tx && fy == ty) {
                 callback.callAndRecycle(null, true);
                 return;
             }
-            const map = this._map;
+
             const w = map.columns;
             const h = map.rows;
 
