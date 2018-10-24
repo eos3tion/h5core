@@ -102,13 +102,14 @@ namespace jy {
             idx = idx >>> 0;
             return this._list[idx];
         }
-        public selectItemByData<K extends keyof T>(key: K, value: T[K], useTween: boolean = false) {
-            this.find((dat, render, idx) => {
+        public selectItemByData<K extends keyof T>(key: K, value: T[K], _useTween: boolean = false) {
+            this.find((dat, _, idx) => {
                 if (dat && (key in dat) && dat[key] == value) {
                     this.selectedIndex = idx;
                     return true;
                 }
             });
+            return this;
         }
 
         /**
@@ -126,6 +127,7 @@ namespace jy {
                 let render = renders[i];
                 handle(data, render, i, ...otherParams);
             }
+            return this;
         }
         /**
          * 找到第一个符合要求的render
@@ -157,7 +159,7 @@ namespace jy {
          * @param {number} index (description)
          * @param {*} data (description)
          */
-        abstract updateByIdx(index: number, data: T);
+        abstract updateByIdx(index: number, data: T): this;
 
         /**
          * 根据key value获取item,将item的data重新赋值为data
@@ -181,7 +183,7 @@ namespace jy {
          * 
          * @abstract
          */
-        abstract clear();
+        abstract clear(): this;
         /**
          * 销毁
          * 
@@ -189,7 +191,7 @@ namespace jy {
          */
         abstract dispose();
 
-        abstract displayList(data?: T[]);
+        abstract displayList(data?: T[]): this;
 
 
         protected onTouchItem(e: egret.TouchEvent) {
@@ -235,6 +237,7 @@ namespace jy {
                     this.refreshAt(i);
                 }
             }
+            return this;
         }
         /**
          * 根据index使某个在舞台上的render刷新
@@ -254,6 +257,7 @@ namespace jy {
                     renderer.dataChange = false;
                 }
             }
+            return this;
         }
 
         /**

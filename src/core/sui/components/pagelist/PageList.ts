@@ -78,10 +78,18 @@ namespace jy {
          */
         protected _w: number;
 
+        get w() {
+            return this._w;
+        }
+
         /**
          * 根据render的最下方，得到的最大高度
          */
         protected _h: number;
+
+        get h() {
+            return this._h;
+        }
 
         /**
          * 水平间距
@@ -114,7 +122,6 @@ namespace jy {
         readonly scrollType: ScrollDirection;
 
         private _waitForSetIndex: boolean = false;
-        private _waitIndex: number;
 
 
         private renderChange = false;
@@ -238,17 +245,40 @@ namespace jy {
             this._data = data;
             this._lastRect = undefined;
             if (!nlen) {
-                this.dispose();
+                this.clear();
                 this._dataLen = 0;
                 this.rawDataChanged = false;
                 return;
             }
             this._dataLen = nlen;
             this.initItems();
-            if (this.scroller) {
-                this.scroller.scrollToHead();
+            let scroller = this.scroller;
+            if (scroller) {
+                scroller.scrollToHead();
             }
             this.rawDataChanged = false;
+            return this;
+        }
+
+        /**
+         * 基于容器原始坐标进行排布
+         * @param type 如果设置 `LayoutType.FullScreen(0)`，基于`LayoutType.TOP_LEFT`定位 
+         */
+        layout(type: LayoutType) {
+            if (!this.scroller) {//有scroller的不处理
+                let con = this._con;
+                let suiRawRect = con.suiRawRect;
+                if (suiRawRect) {
+                    if (type == LayoutType.FullScreen) {//设0恢复原样，基于 top_left 定位
+                        type = LayoutType.TOP_LEFT;
+                    }
+                    let pt = Temp.SharedPoint1;
+                    Layout.getLayoutPos(this._w, this._h, suiRawRect.width, suiRawRect.height, type, pt);
+                    con.x = suiRawRect.x + pt.x;
+                    con.y = suiRawRect.y + pt.y;
+                }
+            }
+            return this;
         }
 
 
@@ -392,7 +422,6 @@ namespace jy {
         }
 
         public $setSelectedIndex(value: number) {
-            this._waitIndex = value;
             if (!this._data) {
                 this._waitForSetIndex = true;
                 return;
@@ -552,6 +581,7 @@ namespace jy {
                     }
                 }
             }
+            return this;
         }
 
         /**
@@ -566,6 +596,7 @@ namespace jy {
                 this._data[index] = data;
                 this.doRender(index);
             }
+            return this;
         }
 
 
@@ -632,9 +663,9 @@ namespace jy {
             list.length = 0;
             this._selectedItem = undefined;
             this._waitForSetIndex = false;
-            this._waitIndex = -1;
             this._w = 0;
             this._h = 0;
+            return this;
         }
 
         /**
