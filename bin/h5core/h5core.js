@@ -3869,15 +3869,16 @@ var jy;
             idx = idx >>> 0;
             return this._list[idx];
         };
-        AbsPageList.prototype.selectItemByData = function (key, value, useTween) {
+        AbsPageList.prototype.selectItemByData = function (key, value, _useTween) {
             var _this = this;
-            if (useTween === void 0) { useTween = false; }
-            this.find(function (dat, render, idx) {
+            if (_useTween === void 0) { _useTween = false; }
+            this.find(function (dat, _, idx) {
                 if (dat && (key in dat) && dat[key] == value) {
                     _this.selectedIndex = idx;
                     return true;
                 }
             });
+            return this;
         };
         /**
          * 遍历列表
@@ -3898,6 +3899,7 @@ var jy;
                 var render = renders[i];
                 handle.apply(void 0, [data, render, i].concat(otherParams));
             }
+            return this;
         };
         /**
          * 找到第一个符合要求的render
@@ -3987,6 +3989,7 @@ var jy;
                     this.refreshAt(i);
                 }
             }
+            return this;
         };
         /**
          * 根据index使某个在舞台上的render刷新
@@ -4006,6 +4009,7 @@ var jy;
                     renderer.dataChange = false;
                 }
             }
+            return this;
         };
         /**
          * render进行切换
@@ -10546,11 +10550,15 @@ var jy;
          * @memberOf PathFinder
          */
         Astar.prototype.getPath = function (fx, fy, tx, ty, callback, opt) {
+            var map = this._map;
+            if (!map) {
+                callback.callAndRecycle(null, true);
+                return;
+            }
             if (fx == tx && fy == ty) {
                 callback.callAndRecycle(null, true);
                 return;
             }
-            var map = this._map;
             var w = map.columns;
             var h = map.rows;
             if (fx > w || fy > h) { //超过最大格位数量
@@ -16085,7 +16093,7 @@ var jy;
     var MPageList = /** @class */ (function (_super) {
         __extends(MPageList, _super);
         function MPageList() {
-            var _this = _super.call(this, null) || this;
+            var _this = _super !== null && _super.apply(this, arguments) || this;
             _this._viewCount = 0;
             return _this;
         }
@@ -16107,6 +16115,7 @@ var jy;
             this._data = data;
             this._dataLen = dataLen;
             this.doRender(0, dataLen - 1);
+            return this;
         };
         /**
          * 更新item数据
@@ -16123,6 +16132,7 @@ var jy;
                     item.handleView();
                 }
             }
+            return this;
         };
         MPageList.prototype.addItem = function (item, index) {
             var list = this._list;
@@ -16134,6 +16144,7 @@ var jy;
             }
             item.index = index == undefined ? idx : index;
             this._viewCount = list.length;
+            return this;
         };
         MPageList.prototype._get = function (index) {
             var list = this._list;
@@ -16152,6 +16163,7 @@ var jy;
             }
             this._selectedIndex = -1;
             this._selectedItem = undefined;
+            return this;
         };
         MPageList.prototype.dispose = function () {
             for (var _i = 0, _a = this._list; _i < _a.length; _i++) {
@@ -16186,6 +16198,20 @@ var jy;
             _this.init(option);
             return _this;
         }
+        Object.defineProperty(PageList.prototype, "w", {
+            get: function () {
+                return this._w;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(PageList.prototype, "h", {
+            get: function () {
+                return this._h;
+            },
+            enumerable: true,
+            configurable: true
+        });
         Object.defineProperty(PageList.prototype, "container", {
             /**
              * 容器
@@ -16263,17 +16289,39 @@ var jy;
             this._data = data;
             this._lastRect = undefined;
             if (!nlen) {
-                this.dispose();
+                this.clear();
                 this._dataLen = 0;
                 this.rawDataChanged = false;
                 return;
             }
             this._dataLen = nlen;
             this.initItems();
-            if (this.scroller) {
-                this.scroller.scrollToHead();
+            var scroller = this.scroller;
+            if (scroller) {
+                scroller.scrollToHead();
             }
             this.rawDataChanged = false;
+            return this;
+        };
+        /**
+         * 基于容器原始坐标进行排布
+         * @param type 如果设置 `LayoutType.FullScreen(0)`，基于`LayoutType.TOP_LEFT`定位
+         */
+        PageList.prototype.layout = function (type) {
+            if (!this.scroller) { //有scroller的不处理
+                var con = this._con;
+                var suiRawRect = con.suiRawRect;
+                if (suiRawRect) {
+                    if (type == 0 /* FullScreen */) { //设0恢复原样，基于 top_left 定位
+                        type = 5 /* TOP_LEFT */;
+                    }
+                    var pt = jy.Temp.SharedPoint1;
+                    jy.Layout.getLayoutPos(this._w, this._h, suiRawRect.width, suiRawRect.height, type, pt);
+                    con.x = suiRawRect.x + pt.x;
+                    con.y = suiRawRect.y + pt.y;
+                }
+            }
+            return this;
         };
         /**
          * 初始化render占据array，不做任何初始化容器操作
@@ -16408,7 +16456,6 @@ var jy;
             }
         };
         PageList.prototype.$setSelectedIndex = function (value) {
-            this._waitIndex = value;
             if (!this._data) {
                 this._waitForSetIndex = true;
                 return;
@@ -16575,6 +16622,7 @@ var jy;
                     }
                 }
             }
+            return this;
         };
         /**
          * 更新item数据
@@ -16588,6 +16636,7 @@ var jy;
                 this._data[index] = data;
                 this.doRender(index);
             }
+            return this;
         };
         PageList.prototype.removeAt = function (idx) {
             idx = idx >>> 0;
@@ -16647,9 +16696,9 @@ var jy;
             list.length = 0;
             this._selectedItem = undefined;
             this._waitForSetIndex = false;
-            this._waitIndex = -1;
             this._w = 0;
             this._h = 0;
+            return this;
         };
         Object.defineProperty(PageList.prototype, "showStart", {
             /**

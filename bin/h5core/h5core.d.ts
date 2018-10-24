@@ -2343,7 +2343,7 @@ declare namespace jy {
          * @returns
          */
         getItemAt(idx: number): R;
-        selectItemByData<K extends keyof T>(key: K, value: T[K], useTween?: boolean): void;
+        selectItemByData<K extends keyof T>(key: K, value: T[K], _useTween?: boolean): this;
         /**
          * 遍历列表
          *
@@ -2352,7 +2352,7 @@ declare namespace jy {
          */
         forEach(handle: {
             (data: T, render: R, idx: number, ...args: any[]): any;
-        }, ...otherParams: any[]): void;
+        }, ...otherParams: any[]): this;
         /**
          * 找到第一个符合要求的render
          *
@@ -2370,7 +2370,7 @@ declare namespace jy {
          * @param {number} index (description)
          * @param {*} data (description)
          */
-        abstract updateByIdx(index: number, data: T): any;
+        abstract updateByIdx(index: number, data: T): this;
         /**
          * 根据key value获取item,将item的data重新赋值为data
          *
@@ -2385,14 +2385,14 @@ declare namespace jy {
          *
          * @abstract
          */
-        abstract clear(): any;
+        abstract clear(): this;
         /**
          * 销毁
          *
          * @abstract
          */
         abstract dispose(): any;
-        abstract displayList(data?: T[]): any;
+        abstract displayList(data?: T[]): this;
         protected onTouchItem(e: egret.TouchEvent): void;
         protected changeRender(render: R, index?: number): void;
         getAllItems(): R[];
@@ -2403,7 +2403,7 @@ declare namespace jy {
          *
          * @memberOf PageList
          */
-        refresh(): void;
+        refresh(): this;
         /**
          * 根据index使某个在舞台上的render刷新
          *
@@ -2411,7 +2411,7 @@ declare namespace jy {
          * @param {boolean} [force]     是否强制执行setData和handleView
          * @memberOf PageList
          */
-        refreshAt(idx: number, force?: boolean): void;
+        refreshAt(idx: number, force?: boolean): this;
         /**
          * render进行切换
          *
@@ -12591,18 +12591,17 @@ declare namespace jy {
      */
     class MPageList<T, R extends ListItemRender<T>> extends AbsPageList<T, R> {
         protected _viewCount: number;
-        constructor();
-        displayList(data?: T[]): void;
+        displayList(data?: T[]): this;
         /**
          * 更新item数据
          *
          * @param {number} index (description)
          * @param {*} data (description)
          */
-        updateByIdx(index: number, data: T): void;
-        addItem(item: R, index?: number): void;
+        updateByIdx(index: number, data: T): this;
+        addItem(item: R, index?: number): this;
         protected _get(index: number): R;
-        clear(): void;
+        clear(): this;
         dispose(): void;
     }
 }
@@ -12676,10 +12675,12 @@ declare namespace jy {
          * 根据render的最右侧，得到的最大宽度
          */
         protected _w: number;
+        readonly w: number;
         /**
          * 根据render的最下方，得到的最大高度
          */
         protected _h: number;
+        readonly h: number;
         /**
          * 水平间距
          *
@@ -12706,7 +12707,6 @@ declare namespace jy {
         /**0纵向，1横向 */
         readonly scrollType: ScrollDirection;
         private _waitForSetIndex;
-        private _waitIndex;
         private renderChange;
         /**
          * itemrender固定宽度
@@ -12746,7 +12746,12 @@ declare namespace jy {
          */
         constructor(renderfactory: ClassFactory<R> | Creator<R>, option?: PageListOption);
         protected init(option: PageListOption): void;
-        displayList(data?: T[]): void;
+        displayList(data?: T[]): this;
+        /**
+         * 基于容器原始坐标进行排布
+         * @param type 如果设置 `LayoutType.FullScreen(0)`，基于`LayoutType.TOP_LEFT`定位
+         */
+        layout(type: LayoutType): this;
         /**
          * 初始化render占据array，不做任何初始化容器操作
          *
@@ -12774,14 +12779,14 @@ declare namespace jy {
          * 滚动到指定index
          */
         tweenToIndex(index: number): void;
-        selectItemByData<K extends keyof T>(key: K, value: T[K], useTween?: boolean): void;
+        selectItemByData<K extends keyof T>(key: K, value: T[K], useTween?: boolean): this;
         /**
          * 更新item数据
          *
          * @param {number} index (description)
          * @param {*} data (description)
          */
-        updateByIdx(index: number, data: T): void;
+        updateByIdx(index: number, data: T): this;
         removeAt(idx: number): void;
         removeItem(item: R): void;
         protected _removeRender(item: R): void;
@@ -12795,7 +12800,7 @@ declare namespace jy {
          * 清理
          *
          */
-        clear(): void;
+        clear(): this;
         /**
          * 在舞台之上的起始索引
          *
