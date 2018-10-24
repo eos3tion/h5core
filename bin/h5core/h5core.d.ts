@@ -4750,6 +4750,14 @@ declare namespace jy {
          */
         willReplacedFunction: () => any;
         /**
+         * 返回 true 的函数
+         */
+        retTrueFunc: () => boolean;
+        /**
+         * 返回 false 的函数
+         */
+        retFalseFunc: () => boolean;
+        /**
          * 空对象
          */
         EmptyObject: Readonly<{}>;

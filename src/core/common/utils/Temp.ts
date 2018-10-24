@@ -54,6 +54,18 @@ namespace jy {
             }
         },
         /**
+         * 返回 true 的函数
+         */
+        retTrueFunc: function () {
+            return true;
+        },
+        /**
+         * 返回 false 的函数
+         */
+        retFalseFunc: function () {
+            return false;
+        },
+        /**
          * 空对象
          */
         EmptyObject: Object.freeze({}),
