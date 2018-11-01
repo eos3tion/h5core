@@ -297,18 +297,8 @@ interface Array<T> {
 interface Console {
     table(...args: any[]): any;
 }
-interface Map<K, V> {
-    set(key: K, value: V): Map<K, V>;
-    get(key: K): V;
-    has(key: K): boolean;
-    delete(key: K): boolean;
-    forEach(callbackfn: (value: V, index: K, map: Map<K, V>) => void, thisArg?: any): any;
-    clear(): any;
-}
-interface MapConstructor {
-    new <K, V>(): Map<K, V>;
-}
-declare const Map: MapConstructor;
+/****************************************Map********************************************/
+declare var Map: MapConstructor;
 declare module egret {
     interface Bitmap {
         /**
