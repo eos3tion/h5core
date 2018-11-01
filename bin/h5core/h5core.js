@@ -442,13 +442,14 @@ Object.defineProperties(Array.prototype, jy.makeDefDescriptors({
     }
 }));
 /****************************************Map********************************************/
-if (typeof window["Map"] == "undefined" || !window["Map"]) {
+var Map;
+if (typeof Map == "undefined") {
     /**
     * 为了兼容低版本浏览器，使用数组实现的map
     * @author 3tion
     *
     */
-    var PolyfillMap = /** @class */ (function () {
+    Map = /** @class */ (function () {
         function PolyfillMap() {
             this._keys = [];
             this._values = [];
@@ -510,7 +511,6 @@ if (typeof window["Map"] == "undefined" || !window["Map"]) {
         });
         return PolyfillMap;
     }());
-    window["Map"] = PolyfillMap;
 }
 var egret;
 (function (egret) {
