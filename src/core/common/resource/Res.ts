@@ -504,7 +504,7 @@ namespace jy.Res {
 
     export interface LoadResListOption {
 
-        callback: CallbackInfo<{ (flag: boolean) }>;
+        callback: CallbackInfo<{ (flag: boolean, ...args) }>;
         group: Key;
         onProgress?: CallbackInfo<{ (item: Res.ResItem) }>;
     }

@@ -13884,7 +13884,7 @@ declare namespace jy.Res {
     function load(uri: string, url?: string, callback?: ResCallback, queueID?: ResQueueID): void;
     interface LoadResListOption {
         callback: CallbackInfo<{
-            (flag: boolean): any;
+            (flag: boolean, ...args: any[]): any;
         }>;
         group: Key;
         onProgress?: CallbackInfo<{
