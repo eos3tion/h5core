@@ -6865,7 +6865,6 @@ var jy;
          * @param {boolean} [doRecycle] 是否回收CallbackInfo，默认为true
          */
         CallbackInfo.prototype.execute = function (doRecycle) {
-            var callback = this.callback;
             var result = call(this);
             if (doRecycle == undefined) {
                 doRecycle = this.doRecycle;

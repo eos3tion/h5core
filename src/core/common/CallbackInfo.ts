@@ -90,7 +90,6 @@ namespace jy {
          * @param {boolean} [doRecycle] 是否回收CallbackInfo，默认为true
          */
         execute(doRecycle?: boolean) {
-            let callback = this.callback;
             let result = call(this);
             if (doRecycle == undefined) {
                 doRecycle = this.doRecycle;
