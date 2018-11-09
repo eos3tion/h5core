@@ -16044,6 +16044,15 @@ var jy;
     if (true) {
         var _recid = 0;
     }
+    /**
+     * 获取一个recyclable的对象
+     *
+     * @export
+     * @template T
+     * @param {(Creator<T> & { _pool?: RecyclablePool<T> })} clazz 对象定义
+     * @param {boolean} [addInstanceRecycle] 是否将回收方法附加在实例上，默认将回收方法放在实例
+     * @returns {Recyclable<T>}
+     */
     function recyclable(clazz, addInstanceRecycle) {
         var pool;
         if (clazz.hasOwnProperty("_pool")) {

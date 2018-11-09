@@ -126,21 +126,13 @@ namespace jy {
 
     /**
      * 获取一个recyclable的对象
-     * 
+     *
      * @export
-     * @template T 
-     * @param {({ new(): T & { _pool?: RecyclablePool<T> } })} clazz 
+     * @template T
+     * @param {(Creator<T> & { _pool?: RecyclablePool<T> })} clazz 对象定义
+     * @param {boolean} [addInstanceRecycle] 是否将回收方法附加在实例上，默认将回收方法放在实例
+     * @returns {Recyclable<T>}
      */
-    export function recyclable<T>(clazz: { new(): T & { _pool?: RecyclablePool<T> } }): Recyclable<T>
-    /**
-     * 使用创建函数进行创建
-     * 
-     * @export
-     * @template T 
-     * @param {({ (): T & { _pool?: RecyclablePool<T> } })} clazz 
-     * @param {true} addInstanceRecycle
-     */
-    export function recyclable<T>(clazz: { (): T & { _pool?: RecyclablePool<T> } }, addInstanceRecycle?: boolean): Recyclable<T>
     export function recyclable<T>(clazz: Creator<T> & { _pool?: RecyclablePool<T> }, addInstanceRecycle?: boolean): Recyclable<T> {
         let pool: RecyclablePool<T>;
         if (clazz.hasOwnProperty("_pool")) {
