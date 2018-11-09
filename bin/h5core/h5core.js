@@ -20782,8 +20782,8 @@ var jy;
             parentHeight = par.stageHeight;
         }
         else {
-            parentWidth = parent.width;
-            parentHeight = parent.height;
+            parentWidth = par.width;
+            parentHeight = par.height;
         }
         var size = layoutDis.$layoutSize;
         if (!size) {
