@@ -297,18 +297,8 @@ interface Array<T> {
 interface Console {
     table(...args: any[]): any;
 }
-interface Map<K, V> {
-    set(key: K, value: V): Map<K, V>;
-    get(key: K): V;
-    has(key: K): boolean;
-    delete(key: K): boolean;
-    forEach(callbackfn: (value: V, index: K, map: Map<K, V>) => void, thisArg?: any): any;
-    clear(): any;
-}
-interface MapConstructor {
-    new <K, V>(): Map<K, V>;
-}
-declare const Map: MapConstructor;
+/****************************************Map********************************************/
+declare var Map: MapConstructor;
 declare module egret {
     interface Bitmap {
         /**
@@ -4645,6 +4635,14 @@ declare namespace jy {
          * 用于替换的方法,接收任意长度的数据，返回null
          */
         willReplacedFunction: () => any;
+        /**
+         * 返回 true 的函数
+         */
+        retTrueFunc: () => boolean;
+        /**
+         * 返回 false 的函数
+         */
+        retFalseFunc: () => boolean;
         /**
          * 空对象
          */
@@ -12039,25 +12037,12 @@ declare namespace jy {
      *
      * @export
      * @template T
-     * @param {({ new(): T & { _pool?: RecyclablePool<T> } })} clazz
+     * @param {(Creator<T> & { _pool?: RecyclablePool<T> })} clazz 对象定义
+     * @param {boolean} [addInstanceRecycle] 是否将回收方法附加在实例上，默认将回收方法放在实例
+     * @returns {Recyclable<T>}
      */
-    function recyclable<T>(clazz: {
-        new (): T & {
-            _pool?: RecyclablePool<T>;
-        };
-    }): Recyclable<T>;
-    /**
-     * 使用创建函数进行创建
-     *
-     * @export
-     * @template T
-     * @param {({ (): T & { _pool?: RecyclablePool<T> } })} clazz
-     * @param {true} addInstanceRecycle
-     */
-    function recyclable<T>(clazz: {
-        (): T & {
-            _pool?: RecyclablePool<T>;
-        };
+    function recyclable<T>(clazz: Creator<T> & {
+        _pool?: RecyclablePool<T>;
     }, addInstanceRecycle?: boolean): Recyclable<T>;
     /**
      * 单例工具
@@ -13298,7 +13283,7 @@ declare namespace jy.Res {
     function load(uri: string, url?: string, callback?: ResCallback, queueID?: ResQueueID): void;
     interface LoadResListOption {
         callback: CallbackInfo<{
-            (flag: boolean): any;
+            (flag: boolean, ...args: any[]): any;
         }>;
         group: Key;
         onProgress?: CallbackInfo<{

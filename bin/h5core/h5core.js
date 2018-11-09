@@ -442,13 +442,14 @@ Object.defineProperties(Array.prototype, jy.makeDefDescriptors({
     }
 }));
 /****************************************Map********************************************/
-if (typeof window["Map"] == "undefined" || !window["Map"]) {
+var Map;
+if (typeof Map == "undefined") {
     /**
     * 为了兼容低版本浏览器，使用数组实现的map
     * @author 3tion
     *
     */
-    var PolyfillMap = /** @class */ (function () {
+    Map = /** @class */ (function () {
         function PolyfillMap() {
             this._keys = [];
             this._values = [];
@@ -510,7 +511,6 @@ if (typeof window["Map"] == "undefined" || !window["Map"]) {
         });
         return PolyfillMap;
     }());
-    window["Map"] = PolyfillMap;
 }
 var egret;
 (function (egret) {
@@ -7302,6 +7302,18 @@ var jy;
             if (true) {
                 jy.ThrowError("\u9700\u8981\u88AB\u66FF\u6362\u7684\u65B9\u6CD5\uFF0C\u6CA1\u6709\u88AB\u66FF\u6362\uFF0C\u5806\u6808\u4FE1\u606F\uFF1A" + new Error().stack);
             }
+        },
+        /**
+         * 返回 true 的函数
+         */
+        retTrueFunc: function () {
+            return true;
+        },
+        /**
+         * 返回 false 的函数
+         */
+        retFalseFunc: function () {
+            return false;
         },
         /**
          * 空对象
@@ -15316,6 +15328,15 @@ var jy;
     if (true) {
         var _recid = 0;
     }
+    /**
+     * 获取一个recyclable的对象
+     *
+     * @export
+     * @template T
+     * @param {(Creator<T> & { _pool?: RecyclablePool<T> })} clazz 对象定义
+     * @param {boolean} [addInstanceRecycle] 是否将回收方法附加在实例上，默认将回收方法放在实例
+     * @returns {Recyclable<T>}
+     */
     function recyclable(clazz, addInstanceRecycle) {
         var pool;
         if (clazz.hasOwnProperty("_pool")) {
