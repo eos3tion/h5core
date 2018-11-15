@@ -13361,7 +13361,7 @@ var jy;
                 this.clear();
                 this._dataLen = 0;
                 this.rawDataChanged = false;
-                return;
+                return this;
             }
             this._dataLen = nlen;
             this.initItems();
