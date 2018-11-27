@@ -128,13 +128,10 @@ namespace jy {
                 }
                 return
             }
-            let className = egret.getQualifiedClassName(ref);
-            if (!proxyName) {
-                proxyName = Facade.getNameOfInline(ref, className);
-            }
-            this.registerProxyConfig(className, proxyName);
+            let dict = this._proxys;
+            this.regConfig(ref, proxyName, dict);
             if (!async) { //如果直接初始化
-                let dele = this._proxys[proxyName];
+                let dele = dict[proxyName];
                 let host: Proxy = new ref();
                 dele.host = host;
                 facade.inject(host);
@@ -148,65 +145,36 @@ namespace jy {
          * @param {{ new (): Mediator }} ref Mediator创建器
          * @param {string} [mediatorName]   注册的模块名字
          */
-        public registerInlineMediator(ref: { new(): Mediator }, mediatorName?: Key) {
+        public registerInlineMediator(ref: { new(): Mediator }, mediatorName: Key) {
             if (!ref) {
                 if (DEBUG) {
                     ThrowError(`registerInlineMediator时,没有ref`)
                 }
                 return
             }
-            let className = egret.getQualifiedClassName(ref);
-            if (!mediatorName) {
-                mediatorName = Facade.getNameOfInline(ref, className);
-            }
-            this.registerMediatorConfig(className, mediatorName);
+            this.regConfig(ref, mediatorName, this._mediators);
         }
 
-
-        /**
-         * 注册Proxy的配置
-         * @param className     类名字，完整名字
-         * @param name     模块名称
-         * @param scriptid      要加载的脚本ID，用于加载脚本代码，空的id表示是主脚本
-         */
-        public registerProxyConfig(className: string, proxyName: Key, url?: string, scriptid?: string) {
-            let dele: ScriptHelper<Proxy>;
+        regConfig<T extends FHost>(clazz: string | { new(): T }, key: Key, dict: { [key: string]: ScriptHelper<T> }, url?: string, scriptid?: string) {
+            let dele: ScriptHelper<T>;
             if (DEBUG) {
-                dele = this._proxys[proxyName];
+                dele = dict[key];
                 if (dele) {
                     ThrowError("模块定义重复:" + name);
                 }
             }
-            dele = <ScriptHelper<Proxy>>{};
+            dele = <ScriptHelper<T>>{};
             dele.scriptid = scriptid;
-            dele.className = className;
-            dele.name = proxyName;
-            dele.url = url;
-            this._proxys[proxyName] = dele;
-        }
-
-
-        /**
-         * 注册模块的配置 
-         * @param className
-         * @param name
-         * @param scriptid      要加载的脚本ID，用于加载脚本代码
-         */
-        public registerMediatorConfig(className: string, moduleID: Key, url?: string, scriptid?: string) {
-            let dele: ScriptHelper<Mediator>;
-            if (DEBUG) {
-                dele = this._mediators[moduleID];
-                if (dele) {
-                    ThrowError("模块定义重复:" + name);
-                }
+            if (typeof clazz === "string") {
+                dele.className = clazz;
+            } else {
+                dele.ref = clazz;
             }
-            dele = <ScriptHelper<Mediator>>{};
-            dele.scriptid = scriptid;
-            dele.className = className;
-            dele.name = moduleID;
+            dele.name = key;
             dele.url = url;
-            this._mediators[moduleID] = dele;
+            dict[key] = dele;
         }
+
 
         private getOrCreateScript(dele: ScriptHelper<FHost>) {
             let scriptid = dele.scriptid;
@@ -301,8 +269,9 @@ namespace jy {
         }
 
         private _solveScriptCallback(bin: ScriptSolveBin) {
-            if (bin.dele.scriptid) {
-                let script = this.getOrCreateScript(bin.dele);
+            let dele = bin.dele;
+            if (dele.scriptid) {
+                let script = this.getOrCreateScript(dele);
                 if (script.state != RequestState.COMPLETE) {
                     script.callbacks.push(CallbackInfo.get(this._getHost, this, bin));
                     script.load();
@@ -317,7 +286,10 @@ namespace jy {
             let dele = bin.dele;
             let host = dele.host;
             if (!host) {
-                let ref = egret.getDefinitionByName(dele.className);
+                let ref = dele.ref;
+                if (!ref) {
+                    dele.ref = ref = egret.getDefinitionByName(dele.className);
+                }
                 dele.host = host = new ref();
                 facade.inject(host);
                 host.onRegister();
@@ -463,6 +435,11 @@ namespace jy {
          * 数据主体
          */
         host: T;
+
+        /**
+         * 创建器
+         */
+        ref?: { new(): T }
 
         url?: string;
     }
