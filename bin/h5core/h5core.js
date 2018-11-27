@@ -1,8 +1,14 @@
 "use strict";
+var __reflect = (this && this.__reflect) || function (p, c, t) {
+    p.__class__ = c, t ? t.push(c) : t = [c], p.__types__ = p.__types__ ? t.concat(p.__types__) : t;
+};
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -901,6 +907,7 @@ var jy;
         return TweenManager;
     }());
     jy.TweenManager = TweenManager;
+    __reflect(TweenManager.prototype, "jy.TweenManager");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -975,6 +982,7 @@ var jy;
         return CallLater;
     }());
     jy.CallLater = CallLater;
+    __reflect(CallLater.prototype, "jy.CallLater");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -1088,6 +1096,7 @@ var jy;
         return FHost;
     }());
     jy.FHost = FHost;
+    __reflect(FHost.prototype, "jy.FHost", ["jy.IDepender", "jy.IAsync"]);
     /**
      *
      * 附加依赖的Proxy
@@ -1198,6 +1207,7 @@ var jy;
         return BaseCreator;
     }());
     jy.BaseCreator = BaseCreator;
+    __reflect(BaseCreator.prototype, "jy.BaseCreator");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -1371,6 +1381,7 @@ var jy;
         return Component;
     }(egret.Sprite));
     jy.Component = Component;
+    __reflect(Component.prototype, "jy.Component");
     ;
     addEnable(Component);
 })(jy || (jy = {}));
@@ -1589,6 +1600,7 @@ var jy;
         return BaseLayer;
     }(egret.Sprite));
     jy.BaseLayer = BaseLayer;
+    __reflect(BaseLayer.prototype, "jy.BaseLayer");
     /**
      * UI使用的层级，宽度和高度设定为和stage一致
      *
@@ -1618,6 +1630,7 @@ var jy;
         return UILayer;
     }(BaseLayer));
     jy.UILayer = UILayer;
+    __reflect(UILayer.prototype, "jy.UILayer");
     /**
      * 需要对子对象排序的层
      */
@@ -1646,6 +1659,7 @@ var jy;
         return SortedLayer;
     }(BaseLayer));
     jy.SortedLayer = SortedLayer;
+    __reflect(SortedLayer.prototype, "jy.SortedLayer");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -1835,6 +1849,7 @@ var jy;
         return BaseRender;
     }());
     jy.BaseRender = BaseRender;
+    __reflect(BaseRender.prototype, "jy.BaseRender", ["jy.IDrawInfo"]);
     if (true) {
         var printSlow = (function () {
             return function (delta) {
@@ -1978,6 +1993,7 @@ var jy;
         return PstInfo;
     }());
     jy.PstInfo = PstInfo;
+    __reflect(PstInfo.prototype, "jy.PstInfo");
     /**
      * 资源打包分隔信息
      * 只保留了最主流的单动作，单方向
@@ -2030,6 +2046,7 @@ var jy;
         return SplitInfo;
     }());
     jy.SplitInfo = SplitInfo;
+    __reflect(SplitInfo.prototype, "jy.SplitInfo");
     function getRep(data, repArr) {
         var str = data + "";
         if (repArr && (data in repArr)) {
@@ -2259,6 +2276,7 @@ var jy;
         return BaseShake;
     }());
     jy.BaseShake = BaseShake;
+    __reflect(BaseShake.prototype, "jy.BaseShake", ["jy.Shake"]);
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -2361,6 +2379,7 @@ var jy;
         return UnitAction;
     }());
     jy.UnitAction = UnitAction;
+    __reflect(UnitAction.prototype, "jy.UnitAction");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -3048,6 +3067,7 @@ var jy;
         return NetService;
     }());
     jy.NetService = NetService;
+    __reflect(NetService.prototype, "jy.NetService");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -3139,6 +3159,7 @@ var jy;
         return Proxy;
     }(jy.FHost));
     jy.Proxy = Proxy;
+    __reflect(Proxy.prototype, "jy.Proxy");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -3321,6 +3342,7 @@ var jy;
         return ViewController;
     }(jy.FHost));
     jy.ViewController = ViewController;
+    __reflect(ViewController.prototype, "jy.ViewController");
     /**
      * 使用@d_interest 注入 添加关注
      * 关注为事件处理回调，只会在awake时，添加到事件监听列表
@@ -3758,6 +3780,7 @@ var jy;
         return Scroller;
     }(egret.EventDispatcher));
     jy.Scroller = Scroller;
+    __reflect(Scroller.prototype, "jy.Scroller");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -4020,6 +4043,7 @@ var jy;
         return AbsPageList;
     }(egret.EventDispatcher));
     jy.AbsPageList = AbsPageList;
+    __reflect(AbsPageList.prototype, "jy.AbsPageList");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -4182,6 +4206,7 @@ var jy;
         return StateMachine;
     }());
     jy.StateMachine = StateMachine;
+    __reflect(StateMachine.prototype, "jy.StateMachine", ["jy.IStateListener"]);
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -4699,6 +4724,7 @@ var jy;
         return BitmapCreator;
     }(jy.BaseCreator));
     jy.BitmapCreator = BitmapCreator;
+    __reflect(BitmapCreator.prototype, "jy.BitmapCreator");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -4859,6 +4885,7 @@ var jy;
         return Button;
     }(jy.Component));
     jy.Button = Button;
+    __reflect(Button.prototype, "jy.Button", ["jy.IButton", "jy.Component", "jy.ComponentWithEnable"]);
     /**
      * 按钮创建器
      * @author 3tion
@@ -4922,6 +4949,7 @@ var jy;
         return ButtonCreator;
     }(jy.BaseCreator));
     jy.ButtonCreator = ButtonCreator;
+    __reflect(ButtonCreator.prototype, "jy.ButtonCreator");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -5032,6 +5060,7 @@ var jy;
         return LayoutContainer;
     }());
     jy.LayoutContainer = LayoutContainer;
+    __reflect(LayoutContainer.prototype, "jy.LayoutContainer");
     /**
      * @param sw 舞台宽度
      * @param sh 舞台高度
@@ -5133,6 +5162,7 @@ var jy;
         return MenuBaseRender;
     }());
     jy.MenuBaseRender = MenuBaseRender;
+    __reflect(MenuBaseRender.prototype, "jy.MenuBaseRender");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -5280,6 +5310,7 @@ var jy;
         return Group;
     }(egret.EventDispatcher));
     jy.Group = Group;
+    __reflect(Group.prototype, "jy.Group");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -5459,6 +5490,7 @@ var jy;
         return LimitQueue;
     }());
     jy.LimitQueue = LimitQueue;
+    __reflect(LimitQueue.prototype, "jy.LimitQueue", ["jy.ILimit"]);
     /**
      * 像浏览器的历史记录;
      */
@@ -5517,11 +5549,11 @@ var jy;
         }
     };
     function addToStates(value) {
-        var _a;
         var ids = [];
         for (var _i = 1; _i < arguments.length; _i++) {
             ids[_i - 1] = arguments[_i];
         }
+        var _a;
         (_a = jy.UILimiter.listener).addToStates.apply(_a, [value].concat(ids));
     }
     jy.addToStates = addToStates;
@@ -5696,6 +5728,7 @@ var jy;
         return ArraySet;
     }());
     jy.ArraySet = ArraySet;
+    __reflect(ArraySet.prototype, "jy.ArraySet");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -5996,6 +6029,7 @@ var jy;
         return ByteArray;
     }(egret.ByteArray));
     jy.ByteArray = ByteArray;
+    __reflect(ByteArray.prototype, "jy.ByteArray");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -6068,6 +6102,7 @@ var jy;
         return Int64;
     }());
     jy.Int64 = Int64;
+    __reflect(Int64.prototype, "jy.Int64");
     /**
      * 2的16次方
      */
@@ -6611,6 +6646,7 @@ var jy;
         return TimeVO;
     }());
     jy.TimeVO = TimeVO;
+    __reflect(TimeVO.prototype, "jy.TimeVO");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -6789,6 +6825,7 @@ var jy;
         return CircleCountdown;
     }());
     jy.CircleCountdown = CircleCountdown;
+    __reflect(CircleCountdown.prototype, "jy.CircleCountdown");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -6956,6 +6993,7 @@ var jy;
         return CallbackInfo;
     }());
     jy.CallbackInfo = CallbackInfo;
+    __reflect(CallbackInfo.prototype, "jy.CallbackInfo", ["jy.IRecyclable"]);
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -7465,6 +7503,7 @@ var jy;
         return NameUtils;
     }());
     jy.NameUtils = NameUtils;
+    __reflect(NameUtils.prototype, "jy.NameUtils");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -8242,6 +8281,7 @@ var jy;
         return GameEngine;
     }(egret.EventDispatcher));
     jy.GameEngine = GameEngine;
+    __reflect(GameEngine.prototype, "jy.GameEngine");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -8355,6 +8395,7 @@ var jy;
         return DSprite;
     }(egret.Sprite));
     jy.DSprite = DSprite;
+    __reflect(DSprite.prototype, "jy.DSprite", ["jy.IDepth"]);
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -8445,6 +8486,7 @@ var jy;
         return AniInfo;
     }(jy.PstInfo));
     jy.AniInfo = AniInfo;
+    __reflect(AniInfo.prototype, "jy.AniInfo");
 })(jy || (jy = {}));
 if (true) {
     var $gm = $gm || {};
@@ -8857,6 +8899,7 @@ var jy;
         return AniRender;
     }(jy.BaseRender));
     jy.AniRender = AniRender;
+    __reflect(AniRender.prototype, "jy.AniRender", ["jy.IRecyclable"]);
     function checkStart(aniInfo, loop, startFrame) {
         var actionInfo = aniInfo.actionInfo;
         if (loop || (loop == undefined && actionInfo && actionInfo.isCircle)) {
@@ -9243,6 +9286,7 @@ var jy;
         return ResourceBitmap;
     }(egret.Bitmap));
     jy.ResourceBitmap = ResourceBitmap;
+    __reflect(ResourceBitmap.prototype, "jy.ResourceBitmap", ["jy.IRecyclable", "jy.IDepth"]);
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -9346,6 +9390,7 @@ var jy;
         return SplitUnitResource;
     }());
     jy.SplitUnitResource = SplitUnitResource;
+    __reflect(SplitUnitResource.prototype, "jy.SplitUnitResource", ["jy.IResource"]);
 })(jy || (jy = {}));
 /**
  * @author 3tion
@@ -9524,6 +9569,7 @@ var jy;
         return UnitResource;
     }());
     jy.UnitResource = UnitResource;
+    __reflect(UnitResource.prototype, "jy.UnitResource");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -9712,6 +9758,7 @@ var jy;
         return Camera;
     }(egret.HashObject));
     jy.Camera = Camera;
+    __reflect(Camera.prototype, "jy.Camera");
     /**
      * 获取坐标点的hash值
      *
@@ -9827,6 +9874,7 @@ var jy;
         return Cooldown;
     }());
     jy.Cooldown = Cooldown;
+    __reflect(Cooldown.prototype, "jy.Cooldown");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -10041,6 +10089,7 @@ var jy;
         return CooldownManager;
     }());
     jy.CooldownManager = CooldownManager;
+    __reflect(CooldownManager.prototype, "jy.CooldownManager");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -10178,6 +10227,7 @@ var jy;
         return CooldownMask;
     }());
     jy.CooldownMask = CooldownMask;
+    __reflect(CooldownMask.prototype, "jy.CooldownMask", ["jy.ICooldownDisplay"]);
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -10225,6 +10275,7 @@ var jy;
         return MapInfo;
     }(egret.HashObject));
     jy.MapInfo = MapInfo;
+    __reflect(MapInfo.prototype, "jy.MapInfo");
 })(jy || (jy = {}));
 if (true) {
     var $gm = $gm || {};
@@ -10464,6 +10515,7 @@ var jy;
         return TileMapLayer;
     }(jy.BaseLayer));
     jy.TileMapLayer = TileMapLayer;
+    __reflect(TileMapLayer.prototype, "jy.TileMapLayer");
     TileMapLayer.checkRect = checkRect;
     /**
     * TileMap
@@ -10516,6 +10568,7 @@ var jy;
         return TileMap;
     }(egret.Bitmap));
     jy.TileMap = TileMap;
+    __reflect(TileMap.prototype, "jy.TileMap", ["jy.IResource"]);
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -10736,6 +10789,7 @@ var jy;
         return Astar;
     }());
     jy.Astar = Astar;
+    __reflect(Astar.prototype, "jy.Astar", ["jy.PathFinder"]);
 })(jy || (jy = {}));
 /**
  * DataLocator的主数据
@@ -11172,6 +11226,7 @@ var jy;
         return CircleShake;
     }(jy.BaseShake));
     jy.CircleShake = CircleShake;
+    __reflect(CircleShake.prototype, "jy.CircleShake");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -11252,6 +11307,7 @@ var jy;
         return DirectionShake;
     }(jy.BaseShake));
     jy.DirectionShake = DirectionShake;
+    __reflect(DirectionShake.prototype, "jy.DirectionShake");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -11301,6 +11357,7 @@ var jy;
         return RotateShake;
     }(jy.BaseShake));
     jy.RotateShake = RotateShake;
+    __reflect(RotateShake.prototype, "jy.RotateShake");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -11398,6 +11455,7 @@ var jy;
         return ScreenShakeManager;
     }());
     jy.ScreenShakeManager = ScreenShakeManager;
+    __reflect(ScreenShakeManager.prototype, "jy.ScreenShakeManager");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -11419,6 +11477,7 @@ var jy;
         return MUnitAction;
     }(jy.UnitAction));
     jy.MUnitAction = MUnitAction;
+    __reflect(MUnitAction.prototype, "jy.MUnitAction");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -11528,6 +11587,7 @@ var jy;
         return UModel;
     }(egret.DisplayObjectContainer));
     jy.UModel = UModel;
+    __reflect(UModel.prototype, "jy.UModel");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -12144,6 +12204,7 @@ var jy;
         return Unit;
     }(egret.EventDispatcher));
     jy.Unit = Unit;
+    __reflect(Unit.prototype, "jy.Unit");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -12483,6 +12544,7 @@ var jy;
         return UnitController;
     }());
     jy.UnitController = UnitController;
+    __reflect(UnitController.prototype, "jy.UnitController");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -12553,6 +12615,7 @@ var jy;
         return UnitRender;
     }(jy.BaseRender));
     jy.UnitRender = UnitRender;
+    __reflect(UnitRender.prototype, "jy.UnitRender");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -12676,6 +12739,7 @@ var jy;
         return PSRecorder;
     }());
     jy.PSRecorder = PSRecorder;
+    __reflect(PSRecorder.prototype, "jy.PSRecorder");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -12700,6 +12764,7 @@ var jy;
         return PSeries;
     }());
     jy.PSeries = PSeries;
+    __reflect(PSeries.prototype, "jy.PSeries");
 })(jy || (jy = {}));
 /**
  * @author 3tion
@@ -12983,6 +13048,7 @@ var jy;
         return AsyncHelper;
     }());
     jy.AsyncHelper = AsyncHelper;
+    __reflect(AsyncHelper.prototype, "jy.AsyncHelper");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -13059,6 +13125,7 @@ var jy;
         return DependerHelper;
     }());
     jy.DependerHelper = DependerHelper;
+    __reflect(DependerHelper.prototype, "jy.DependerHelper");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -13181,13 +13248,10 @@ var jy;
                 }
                 return;
             }
-            var className = egret.getQualifiedClassName(ref);
-            if (!proxyName) {
-                proxyName = Facade.getNameOfInline(ref, className);
-            }
-            this.registerProxyConfig(className, proxyName);
+            var dict = this._proxys;
+            this.regConfig(ref, proxyName, dict);
             if (!async) { //如果直接初始化
-                var dele = this._proxys[proxyName];
+                var dele = dict[proxyName];
                 var host = new ref();
                 dele.host = host;
                 jy.facade.inject(host);
@@ -13207,53 +13271,27 @@ var jy;
                 }
                 return;
             }
-            var className = egret.getQualifiedClassName(ref);
-            if (!mediatorName) {
-                mediatorName = Facade.getNameOfInline(ref, className);
-            }
-            this.registerMediatorConfig(className, mediatorName);
+            this.regConfig(ref, mediatorName, this._mediators);
         };
-        /**
-         * 注册Proxy的配置
-         * @param className     类名字，完整名字
-         * @param name     模块名称
-         * @param scriptid      要加载的脚本ID，用于加载脚本代码，空的id表示是主脚本
-         */
-        Facade.prototype.registerProxyConfig = function (className, proxyName, url, scriptid) {
+        Facade.prototype.regConfig = function (clazz, key, dict, url, scriptid) {
             var dele;
             if (true) {
-                dele = this._proxys[proxyName];
+                dele = dict[key];
                 if (dele) {
                     jy.ThrowError("模块定义重复:" + name);
                 }
             }
             dele = {};
             dele.scriptid = scriptid;
-            dele.className = className;
-            dele.name = proxyName;
-            dele.url = url;
-            this._proxys[proxyName] = dele;
-        };
-        /**
-         * 注册模块的配置
-         * @param className
-         * @param name
-         * @param scriptid      要加载的脚本ID，用于加载脚本代码
-         */
-        Facade.prototype.registerMediatorConfig = function (className, moduleID, url, scriptid) {
-            var dele;
-            if (true) {
-                dele = this._mediators[moduleID];
-                if (dele) {
-                    jy.ThrowError("模块定义重复:" + name);
-                }
+            if (typeof clazz === "string") {
+                dele.className = clazz;
             }
-            dele = {};
-            dele.scriptid = scriptid;
-            dele.className = className;
-            dele.name = moduleID;
+            else {
+                dele.ref = clazz;
+            }
+            dele.name = key;
             dele.url = url;
-            this._mediators[moduleID] = dele;
+            dict[key] = dele;
         };
         Facade.prototype.getOrCreateScript = function (dele) {
             var scriptid = dele.scriptid;
@@ -13351,8 +13389,9 @@ var jy;
             }
         };
         Facade.prototype._solveScriptCallback = function (bin) {
-            if (bin.dele.scriptid) {
-                var script = this.getOrCreateScript(bin.dele);
+            var dele = bin.dele;
+            if (dele.scriptid) {
+                var script = this.getOrCreateScript(dele);
                 if (script.state != 2 /* COMPLETE */) {
                     script.callbacks.push(jy.CallbackInfo.get(this._getHost, this, bin));
                     script.load();
@@ -13366,7 +13405,10 @@ var jy;
             var dele = bin.dele;
             var host = dele.host;
             if (!host) {
-                var ref = egret.getDefinitionByName(dele.className);
+                var ref = dele.ref;
+                if (!ref) {
+                    dele.ref = ref = egret.getDefinitionByName(dele.className);
+                }
                 dele.host = host = new ref();
                 jy.facade.inject(host);
                 host.onRegister();
@@ -13506,6 +13548,7 @@ var jy;
         return Facade;
     }(egret.EventDispatcher));
     jy.Facade = Facade;
+    __reflect(Facade.prototype, "jy.Facade");
     jy.facade = new Facade();
     function proxyCall() {
         return jy.facade.getProxy.apply(jy.facade, arguments);
@@ -13709,6 +13752,7 @@ var jy;
         return Mediator;
     }(jy.ViewController));
     jy.Mediator = Mediator;
+    __reflect(Mediator.prototype, "jy.Mediator");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -13753,6 +13797,7 @@ var jy;
         return ModuleScript;
     }());
     jy.ModuleScript = ModuleScript;
+    __reflect(ModuleScript.prototype, "jy.ModuleScript");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -13938,6 +13983,7 @@ var jy;
         return HttpNetService;
     }(jy.NetService));
     jy.HttpNetService = HttpNetService;
+    __reflect(HttpNetService.prototype, "jy.HttpNetService");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -14034,6 +14080,7 @@ var jy;
         return Service;
     }(jy.Proxy));
     jy.Service = Service;
+    __reflect(Service.prototype, "jy.Service");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -14087,6 +14134,7 @@ var jy;
         return NetSendData;
     }());
     jy.NetSendData = NetSendData;
+    __reflect(NetSendData.prototype, "jy.NetSendData", ["jy.IRecyclable"]);
     /**
      * 网络数据，类似AS3项目中Stream<br/>
      * @author 3tion
@@ -14100,6 +14148,7 @@ var jy;
         return NetData;
     }(NetSendData));
     jy.NetData = NetData;
+    __reflect(NetData.prototype, "jy.NetData");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -14128,6 +14177,7 @@ var jy;
         return BaseMCfg;
     }());
     jy.BaseMCfg = BaseMCfg;
+    __reflect(BaseMCfg.prototype, "jy.BaseMCfg");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -14601,6 +14651,7 @@ var jy;
         return ModuleManager;
     }());
     jy.ModuleManager = ModuleManager;
+    __reflect(ModuleManager.prototype, "jy.ModuleManager");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -14688,6 +14739,7 @@ var jy;
         return BlurScreen;
     }());
     jy.BlurScreen = BlurScreen;
+    __reflect(BlurScreen.prototype, "jy.BlurScreen");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -14908,6 +14960,7 @@ var jy;
         return Panel;
     }(egret.Sprite));
     jy.Panel = Panel;
+    __reflect(Panel.prototype, "jy.Panel", ["jy.SuiDataCallback", "jy.IAsyncPanel", "jy.IAsync", "jy.IModulePanel", "egret.DisplayObject"]);
     jy.expand(Panel, jy.FHost, "addReadyExecute");
     jy.addEnable(Panel);
 })(jy || (jy = {}));
@@ -14925,6 +14978,7 @@ var jy;
         return View;
     }(egret.Sprite));
     jy.View = View;
+    __reflect(View.prototype, "jy.View");
     ;
     jy.addEnable(View);
 })(jy || (jy = {}));
@@ -15257,6 +15311,7 @@ var jy;
         return Flip;
     }(egret.Sprite));
     jy.Flip = Flip;
+    __reflect(Flip.prototype, "jy.Flip");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -15328,6 +15383,7 @@ var jy;
         return Image;
     }(egret.Bitmap));
     jy.Image = Image;
+    __reflect(Image.prototype, "jy.Image");
     ;
     jy.addEnable(Image);
 })(jy || (jy = {}));
@@ -15629,6 +15685,7 @@ var jy;
         return ListItemRenderer;
     }(egret.EventDispatcher));
     jy.ListItemRenderer = ListItemRenderer;
+    __reflect(ListItemRenderer.prototype, "jy.ListItemRenderer", ["jy.ListItemRender", "egret.EventDispatcher", "jy.SelectableComponents"]);
     jy.expand(ListItemRenderer, jy.ViewController, "addReadyExecute", "addDepend", "onStage", "interest", "checkInject", "checkInterest", "awakeTimer", "sleepTimer", "bindTimer", "looseTimer");
     // export abstract class AListItemRenderer<T, S extends egret.DisplayObject> extends ListItemRenderer<T, S> implements SuiDataCallback {
     //     /**
@@ -15819,6 +15876,7 @@ var jy;
         return PageScroller;
     }(jy.Scroller));
     jy.PageScroller = PageScroller;
+    __reflect(PageScroller.prototype, "jy.PageScroller");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -15956,6 +16014,7 @@ var jy;
         return NetRouter;
     }());
     jy.NetRouter = NetRouter;
+    __reflect(NetRouter.prototype, "jy.NetRouter");
     ;
 })(jy || (jy = {}));
 var jy;
@@ -15993,6 +16052,7 @@ var jy;
         return ClassFactory;
     }());
     jy.ClassFactory = ClassFactory;
+    __reflect(ClassFactory.prototype, "jy.ClassFactory");
     /**
      * 回收池
      * @author 3tion
@@ -16040,6 +16100,7 @@ var jy;
         return RecyclablePool;
     }());
     jy.RecyclablePool = RecyclablePool;
+    __reflect(RecyclablePool.prototype, "jy.RecyclablePool");
     if (true) {
         var _recid = 0;
     }
@@ -16195,6 +16256,7 @@ var jy;
         return MPageList;
     }(jy.AbsPageList));
     jy.MPageList = MPageList;
+    __reflect(MPageList.prototype, "jy.MPageList");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -16897,6 +16959,7 @@ var jy;
         return PageList;
     }(jy.AbsPageList));
     jy.PageList = PageList;
+    __reflect(PageList.prototype, "jy.PageList");
     var define = {
         set: function (rect) {
             egret.DisplayObject.prototype.$setScrollRect.call(this, rect);
@@ -16949,6 +17012,7 @@ var jy;
         return ArtWord;
     }());
     jy.ArtWord = ArtWord;
+    __reflect(ArtWord.prototype, "jy.ArtWord");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -17188,6 +17252,7 @@ var jy;
         return WSNetService;
     }(jy.NetService));
     jy.WSNetService = WSNetService;
+    __reflect(WSNetService.prototype, "jy.WSNetService");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -17385,6 +17450,7 @@ var jy;
         return SuiBmd;
     }());
     jy.SuiBmd = SuiBmd;
+    __reflect(SuiBmd.prototype, "jy.SuiBmd", ["jy.IResource"]);
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -17479,6 +17545,7 @@ var jy;
         return SuiData;
     }());
     jy.SuiData = SuiData;
+    __reflect(SuiData.prototype, "jy.SuiData");
     var CallbackBin = /** @class */ (function () {
         function CallbackBin() {
         }
@@ -17497,6 +17564,7 @@ var jy;
         };
         return CallbackBin;
     }());
+    __reflect(CallbackBin.prototype, "CallbackBin");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -18059,6 +18127,7 @@ var jy;
         return SuiResManager;
     }());
     jy.SuiResManager = SuiResManager;
+    __reflect(SuiResManager.prototype, "jy.SuiResManager");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -18210,6 +18279,7 @@ var jy;
         return ArtText;
     }(jy.Component));
     jy.ArtText = ArtText;
+    __reflect(ArtText.prototype, "jy.ArtText");
     /**
      *
      * @author gushuai
@@ -18263,6 +18333,7 @@ var jy;
         return ArtTextCreator;
     }(jy.BaseCreator));
     jy.ArtTextCreator = ArtTextCreator;
+    __reflect(ArtTextCreator.prototype, "jy.ArtTextCreator");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -18369,6 +18440,7 @@ var jy;
             return BinLoader;
         }());
         Res.BinLoader = BinLoader;
+        __reflect(BinLoader.prototype, "jy.Res.BinLoader", ["jy.Res.ResLoader"]);
         var ImageLoader = /** @class */ (function () {
             function ImageLoader() {
             }
@@ -18392,6 +18464,7 @@ var jy;
             return ImageLoader;
         }());
         Res.ImageLoader = ImageLoader;
+        __reflect(ImageLoader.prototype, "jy.Res.ImageLoader", ["jy.Res.ResLoader"]);
         var binLoader = new BinLoader();
         /**
          * 资源字典
@@ -19237,6 +19310,7 @@ var jy;
         return MCButton;
     }(jy.Button));
     jy.MCButton = MCButton;
+    __reflect(MCButton.prototype, "jy.MCButton");
     MCButton.prototype.addChild = jy.Component.prototype.addChild;
     /**
      * MC按钮创建器
@@ -19258,6 +19332,7 @@ var jy;
         return MCButtonCreator;
     }(jy.BaseCreator));
     jy.MCButtonCreator = MCButtonCreator;
+    __reflect(MCButtonCreator.prototype, "jy.MCButtonCreator");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -19394,6 +19469,7 @@ var jy;
         return MovieClip;
     }(jy.Component));
     jy.MovieClip = MovieClip;
+    __reflect(MovieClip.prototype, "jy.MovieClip");
     /**
      * MC创建器
      *
@@ -19428,6 +19504,7 @@ var jy;
         return MovieClipCreator;
     }(jy.BaseCreator));
     jy.MovieClipCreator = MovieClipCreator;
+    __reflect(MovieClipCreator.prototype, "jy.MovieClipCreator");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -19544,6 +19621,7 @@ var jy;
         return NumericStepper;
     }(jy.Component));
     jy.NumericStepper = NumericStepper;
+    __reflect(NumericStepper.prototype, "jy.NumericStepper");
     var NumericStepperCreator = /** @class */ (function (_super) {
         __extends(NumericStepperCreator, _super);
         function NumericStepperCreator() {
@@ -19603,6 +19681,7 @@ var jy;
         return NumericStepperCreator;
     }(jy.BaseCreator));
     jy.NumericStepperCreator = NumericStepperCreator;
+    __reflect(NumericStepperCreator.prototype, "jy.NumericStepperCreator");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -19725,6 +19804,7 @@ var jy;
         return ProgressBar;
     }(jy.Component));
     jy.ProgressBar = ProgressBar;
+    __reflect(ProgressBar.prototype, "jy.ProgressBar");
     /**
      * 进度条创建
      *
@@ -19771,6 +19851,7 @@ var jy;
         return ProgressBarCreator;
     }(jy.BaseCreator));
     jy.ProgressBarCreator = ProgressBarCreator;
+    __reflect(ProgressBarCreator.prototype, "jy.ProgressBarCreator");
     /**
      * MC进度条创建
      *
@@ -19797,6 +19878,7 @@ var jy;
         return MCProgressCreator;
     }(jy.BaseCreator));
     jy.MCProgressCreator = MCProgressCreator;
+    __reflect(MCProgressCreator.prototype, "jy.MCProgressCreator");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -19842,6 +19924,7 @@ var jy;
         return ScaleBitmapCreator;
     }(jy.BitmapCreator));
     jy.ScaleBitmapCreator = ScaleBitmapCreator;
+    __reflect(ScaleBitmapCreator.prototype, "jy.ScaleBitmapCreator");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -20022,6 +20105,7 @@ var jy;
         return ScrollBar;
     }(jy.Component));
     jy.ScrollBar = ScrollBar;
+    __reflect(ScrollBar.prototype, "jy.ScrollBar");
     var ScrollBarCreator = /** @class */ (function (_super) {
         __extends(ScrollBarCreator, _super);
         function ScrollBarCreator() {
@@ -20058,6 +20142,7 @@ var jy;
         return ScrollBarCreator;
     }(jy.BaseCreator));
     jy.ScrollBarCreator = ScrollBarCreator;
+    __reflect(ScrollBarCreator.prototype, "jy.ScrollBarCreator");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -20072,6 +20157,7 @@ var jy;
         return ShareBitmapCreator;
     }(jy.BitmapCreator));
     jy.ShareBitmapCreator = ShareBitmapCreator;
+    __reflect(ShareBitmapCreator.prototype, "jy.ShareBitmapCreator");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -20279,6 +20365,7 @@ var jy;
         return Slider;
     }(jy.Component));
     jy.Slider = Slider;
+    __reflect(Slider.prototype, "jy.Slider");
     var SliderCreator = /** @class */ (function (_super) {
         __extends(SliderCreator, _super);
         function SliderCreator() {
@@ -20323,6 +20410,7 @@ var jy;
         return SliderCreator;
     }(jy.BaseCreator));
     jy.SliderCreator = SliderCreator;
+    __reflect(SliderCreator.prototype, "jy.SliderCreator");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -20508,6 +20596,7 @@ var jy;
         return Slot;
     }(jy.Component));
     jy.Slot = Slot;
+    __reflect(Slot.prototype, "jy.Slot");
     /**
      * 格位创建器
      *
@@ -20550,6 +20639,7 @@ var jy;
         return SlotCreator;
     }(jy.BaseCreator));
     jy.SlotCreator = SlotCreator;
+    __reflect(SlotCreator.prototype, "jy.SlotCreator");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -20609,6 +20699,7 @@ var jy;
         return TextFieldCreator;
     }(jy.BaseCreator));
     jy.TextFieldCreator = TextFieldCreator;
+    __reflect(TextFieldCreator.prototype, "jy.TextFieldCreator");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -20664,6 +20755,7 @@ var jy;
         return BGContainer;
     }(jy.LayoutContainer));
     jy.BGContainer = BGContainer;
+    __reflect(BGContainer.prototype, "jy.BGContainer");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -20980,6 +21072,7 @@ var jy;
         return TextureResource;
     }());
     jy.TextureResource = TextureResource;
+    __reflect(TextureResource.prototype, "jy.TextureResource", ["jy.IResource"]);
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -21051,6 +21144,7 @@ var jy;
         return MainUIContainer;
     }(jy.LayoutContainer));
     jy.MainUIContainer = MainUIContainer;
+    __reflect(MainUIContainer.prototype, "jy.MainUIContainer");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -21123,6 +21217,7 @@ var jy;
         return ResizeManager;
     }());
     jy.ResizeManager = ResizeManager;
+    __reflect(ResizeManager.prototype, "jy.ResizeManager");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -21153,6 +21248,7 @@ var jy;
         return ButtonMenuRender;
     }(jy.MenuBaseRender));
     jy.ButtonMenuRender = ButtonMenuRender;
+    __reflect(ButtonMenuRender.prototype, "jy.ButtonMenuRender");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -21289,6 +21385,7 @@ var jy;
         return Menu;
     }(egret.Sprite));
     jy.Menu = Menu;
+    __reflect(Menu.prototype, "jy.Menu");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -21332,6 +21429,7 @@ var jy;
         return ErrorTips;
     }());
     jy.ErrorTips = ErrorTips;
+    __reflect(ErrorTips.prototype, "jy.ErrorTips");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -21397,6 +21495,7 @@ var jy;
         return SimToolTip;
     }(egret.Sprite));
     jy.SimToolTip = SimToolTip;
+    __reflect(SimToolTip.prototype, "jy.SimToolTip", ["jy.IToolTip"]);
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -21447,6 +21546,7 @@ var jy;
         return ToolTipData;
     }());
     jy.ToolTipData = ToolTipData;
+    __reflect(ToolTipData.prototype, "jy.ToolTipData", ["jy.IRecyclable"]);
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -21555,6 +21655,7 @@ var jy;
         return ToolTipManager;
     }());
     jy.ToolTipManager = ToolTipManager;
+    __reflect(ToolTipManager.prototype, "jy.ToolTipManager");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -21739,6 +21840,7 @@ var jy;
         return CheckBoxGroup;
     }(jy.Group));
     jy.CheckBoxGroup = CheckBoxGroup;
+    __reflect(CheckBoxGroup.prototype, "jy.CheckBoxGroup");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -21973,6 +22075,7 @@ var jy;
         return Ease;
     }());
     jy.Ease = Ease;
+    __reflect(Ease.prototype, "jy.Ease");
 })(jy || (jy = {}));
 /**
  * 参考createjs和白鹭的tween
@@ -22384,6 +22487,7 @@ var jy;
         return Tween;
     }(egret.EventDispatcher));
     jy.Tween = Tween;
+    __reflect(Tween.prototype, "jy.Tween");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -22421,6 +22525,7 @@ var jy;
         return UnitSetting;
     }());
     jy.UnitSetting = UnitSetting;
+    __reflect(UnitSetting.prototype, "jy.UnitSetting");
     /**
      * 默认的单位设置
      */
