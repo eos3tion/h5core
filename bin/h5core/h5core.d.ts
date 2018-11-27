@@ -9164,21 +9164,12 @@ declare namespace jy {
          */
         registerInlineMediator(ref: {
             new (): Mediator;
-        }, mediatorName?: Key): void;
-        /**
-         * 注册Proxy的配置
-         * @param className     类名字，完整名字
-         * @param name     模块名称
-         * @param scriptid      要加载的脚本ID，用于加载脚本代码，空的id表示是主脚本
-         */
-        registerProxyConfig(className: string, proxyName: Key, url?: string, scriptid?: string): void;
-        /**
-         * 注册模块的配置
-         * @param className
-         * @param name
-         * @param scriptid      要加载的脚本ID，用于加载脚本代码
-         */
-        registerMediatorConfig(className: string, moduleID: Key, url?: string, scriptid?: string): void;
+        }, mediatorName: Key): void;
+        regConfig<T extends FHost>(clazz: string | {
+            new (): T;
+        }, key: Key, dict: {
+            [key: string]: ScriptHelper<T>;
+        }, url?: string, scriptid?: string): void;
         private getOrCreateScript;
         /**
          * 获取Proxy
@@ -9297,6 +9288,12 @@ declare namespace jy {
          * 数据主体
          */
         host: T;
+        /**
+         * 创建器
+         */
+        ref?: {
+            new (): T;
+        };
         url?: string;
     }
     const facade: Facade;
@@ -13320,7 +13317,7 @@ declare namespace jy.Res {
          * @param {ResItem} data
          * @param {(this: IDBRequest, ev: Event) => any} callback 存储资源执行完成后的回调
          */
-        save(data: ResItem, callback?: (ev: Event | Error) => any): void;
+        save(data: ResItem, callback?: (ev: Error | Event) => any): void;
         /**
          * 获取资源
          *
@@ -13334,13 +13331,13 @@ declare namespace jy.Res {
          * @param {string} url
          * @param {{ (this: IDBRequest, ev: Event) }} callback 删除指定资源执行完成后的回调
          */
-        delete(url: string, callback?: (url: string, ev: Event | Error) => any): void;
+        delete(url: string, callback?: (url: string, ev: Error | Event) => any): void;
         /**
          * 删除全部资源
          *
          * @param {{ (this: IDBRequest, ev: Event) }} callback 删除全部资源执行完成后的回调
          */
-        clear(callback?: (ev: Event | Error) => any): void;
+        clear(callback?: (ev: Error | Event) => any): void;
     };
     /**
      *  尝试启用本地资源缓存
@@ -13356,7 +13353,7 @@ declare namespace jy.Res {
          * @param {ResItem} data
          * @param {(this: IDBRequest, ev: Event) => any} callback 存储资源执行完成后的回调
          */
-        save(data: ResItem, callback?: (ev: Event | Error) => any): void;
+        save(data: ResItem, callback?: (ev: Error | Event) => any): void;
         /**
          * 获取资源
          *
@@ -13370,13 +13367,13 @@ declare namespace jy.Res {
          * @param {string} url
          * @param {{ (this: IDBRequest, ev: Event) }} callback 删除指定资源执行完成后的回调
          */
-        delete(url: string, callback?: (url: string, ev: Event | Error) => any): void;
+        delete(url: string, callback?: (url: string, ev: Error | Event) => any): void;
         /**
          * 删除全部资源
          *
          * @param {{ (this: IDBRequest, ev: Event) }} callback 删除全部资源执行完成后的回调
          */
-        clear(callback?: (ev: Event | Error) => any): void;
+        clear(callback?: (ev: Error | Event) => any): void;
     };
 }
 declare namespace jy {
