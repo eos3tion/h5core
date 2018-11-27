@@ -10,9 +10,6 @@ namespace jy {
     export class MPageList<T, R extends ListItemRender<T>> extends AbsPageList<T, R>{
 
         protected _viewCount = 0;
-        public constructor() {
-            super(null);
-        }
 
         public displayList(data?: T[]) {
             this._selectedIndex = -1;
@@ -32,6 +29,7 @@ namespace jy {
             this._data = data;
             this._dataLen = dataLen;
             this.doRender(0, dataLen - 1);
+            return this;
         }
         /**
          * 更新item数据
@@ -48,6 +46,7 @@ namespace jy {
                     item.handleView();
                 }
             }
+            return this;
         }
 
 
@@ -61,6 +60,7 @@ namespace jy {
             }
             item.index = index == undefined ? idx : index;
             this._viewCount = list.length;
+            return this;
         }
 
         protected _get(index: number) {
@@ -80,6 +80,7 @@ namespace jy {
             }
             this._selectedIndex = -1;
             this._selectedItem = undefined;
+            return this;
         }
 
         public dispose() {

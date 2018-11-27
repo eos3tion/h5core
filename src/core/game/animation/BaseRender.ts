@@ -1,4 +1,10 @@
 namespace jy {
+    let slowDispatching: boolean;
+
+    function onSlowRender() {
+        dispatch(EventConst.SlowRender);
+        slowDispatching = false;
+    }
 	/**
 	 * 基础渲染器
 	 * @author 3tion
@@ -13,9 +19,6 @@ namespace jy {
          */
         public static dispatchSlowRender: boolean;
 
-        private static onSlowRender() {
-            dispatch(EventConst.SlowRender);
-        }
 
     	/**
     	 * 全局单位播放速度
@@ -94,7 +97,10 @@ namespace jy {
                         if (nextRenderTime != 0) {
                             DEBUG && printSlow(delta);
                             if (BaseRender.dispatchSlowRender) {
-                                Global.callLater(BaseRender.onSlowRender);
+                                if (!slowDispatching) {
+                                    slowDispatching = true;
+                                    Global.nextTick(onSlowRender);
+                                }
                             }
                         }
                         nextRenderTime = now;

@@ -1,13 +1,13 @@
 namespace jy {
-	/**
-	 * 客户端检测
-	 * @author 3tion
-	 *
-	 */
-	export var ClientCheck = {
-    	/**
-    	 * 是否做客户端检查
-    	 */
-		isClientCheck: true
-	}
+    /**
+     * 是否不做客户端检查  
+     * 客户端检查的部分，后续统一按下面例子处理  
+     * @example 
+     *  if ((RELEASE ||  !jy.noClientCheck)) {
+     *       if (!$hero.clan) {
+     *          return CoreFunction.showClientTips(MsgCodeConst.Code_883);
+     *      }
+     *  }
+     */
+    export var noClientCheck: boolean;
 }

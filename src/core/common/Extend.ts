@@ -704,27 +704,15 @@ interface Console {
     table(...args);
 }
 
-interface Map<K, V> {
-    set(key: K, value: V): Map<K, V>;
-    get(key: K): V;
-    has(key: K): boolean;
-    delete(key: K): boolean;
-    forEach(callbackfn: (value: V, index: K, map: Map<K, V>) => void, thisArg?: any);
-    clear();
-    // size: number;
-}
-interface MapConstructor {
-    new <K, V>(): Map<K, V>
-}
-declare const Map: MapConstructor;
 /****************************************Map********************************************/
-if (typeof window["Map"] == "undefined" || !window["Map"]) {
+var Map: MapConstructor;
+if (typeof Map == "undefined") {
     /**
     * 为了兼容低版本浏览器，使用数组实现的map
     * @author 3tion
     *
     */
-    class PolyfillMap<K, V> implements Map<K, V>{
+    Map = class PolyfillMap<K, V> implements Map<K, V>{
         private _keys: K[];
         private _values: V[];
 
@@ -736,7 +724,7 @@ if (typeof window["Map"] == "undefined" || !window["Map"]) {
             this._size = 0;
         }
 
-        public set(key: K, value: V): Map<K, V> {
+        public set(key: K, value: V): this {
             var keys = this._keys;
             var idx = keys.indexOf(key);
             if (~idx) {// idx != -1  覆盖values数组的数据
@@ -792,7 +780,6 @@ if (typeof window["Map"] == "undefined" || !window["Map"]) {
             return this._size;
         }
     }
-    window["Map"] = PolyfillMap;
 }
 
 module egret {

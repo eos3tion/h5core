@@ -251,8 +251,8 @@ namespace jy {
             parentWidth = par.stageWidth;
             parentHeight = par.stageHeight;
         } else {
-            parentWidth = parent.width;
-            parentHeight = parent.height;
+            parentWidth = par.width;
+            parentHeight = par.height;
         }
         let size = layoutDis.$layoutSize;
         if (!size) {

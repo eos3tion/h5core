@@ -219,7 +219,7 @@ namespace jy {
                             ThrowError("id为:" + errString + "的功能配置使用限制和显示限制配置有误，自动进行修正");
                         }
                         if (unsolve) {
-                            ThrowError("有功能配置的限制类型并未实现：");
+                            ThrowError("有功能配置的限制类型并未实现：" + unsolve);
                         }
                     }
                     dispatch(EventConst.MODULE_CHECKER_INITED);
@@ -261,7 +261,7 @@ namespace jy {
                     ThrowError(`没有找到对应的功能配置[${module}]`);
                 }
             }
-            if (RELEASE || ClientCheck.isClientCheck) { //屏蔽客户端检测只针对open，不针对show
+            if (RELEASE || !jy.noClientCheck) { //屏蔽客户端检测只针对open，不针对show
                 let flag = cfg && !cfg.close && cfg.serverOpen;
                 if (flag) {
                     if (this._checkers) {
