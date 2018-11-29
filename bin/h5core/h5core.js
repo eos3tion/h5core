@@ -18501,6 +18501,8 @@ var jy;
         * @param url
         */
         function getExt(url) {
+            if (!url)
+                return;
             var hash = url.lastIndexOf("?");
             hash == -1 && (hash = undefined);
             var ext = url.substring(url.lastIndexOf("."), hash);
