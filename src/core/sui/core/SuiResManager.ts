@@ -244,7 +244,7 @@ namespace jy {
         /**
          * 处理控件数据
          */
-        protected parseComponentData(allComData: { 0: string[], 1: any[], 2: SizeData[] }[], suiData: SuiData) {
+        protected parseComponentData(allComData: SourceComponentDataDict, suiData: SuiData) {
             suiData.sourceComponentData = allComData;
             for (let type in allComData) {
                 let comsData = allComData[type];
@@ -582,6 +582,10 @@ namespace jy {
                         SuiResManager.initBaseData(v, bd);
                         return v;
                     } else {
+                        if (typeof sd == "string" && type == ExportType.MCButton) {
+                            let v = this.createDisplayObject(libKey, sd, bd);
+                            return new MCButton(v as MovieClip);
+                        }
                         let source = suiData.sourceComponentData;
                         if (source) {
                             let sourceData = source[type];
@@ -627,6 +631,25 @@ namespace jy {
 
     }
 
+    export type SourceComponentDataDict = { [type in ExportType]: SourceComponentData };
+
+    /**
+     * 原始组件数据，通过`ExportUIFromFlash`项目导出的数据
+     */
+    export interface SourceComponentData {
+        /**
+         * 控件名称数组
+         */
+        0: string[];
+        /**
+         * 组件数据的数组
+         */
+        1: any[];
+        /**
+         * 尺寸数据的数组
+         */
+        2: SizeData[]
+    }
     export interface SizeData {
         /**
          * x坐标
