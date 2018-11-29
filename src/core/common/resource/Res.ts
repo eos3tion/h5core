@@ -365,6 +365,7 @@ namespace jy.Res {
     * @param url 
     */
     export function getExt(url: string) {
+        if (!url) return;
         let hash = url.lastIndexOf("?");
         hash == -1 && (hash = undefined);
         let ext = url.substring(url.lastIndexOf("."), hash);
