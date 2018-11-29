@@ -14,9 +14,9 @@ namespace jy {
 
         constructor(mc?: MovieClip) {
             super();
-           if(mc){
-               this.setSkin(mc)
-           }
+            if (mc) {
+                this.setSkin(mc)
+            }
         }
 
         setSkin(mc: MovieClip) {
@@ -35,7 +35,7 @@ namespace jy {
             }
         }
 
-        dispose(){
+        dispose() {
             super.dispose();
             let mc = this.mc;
             if (mc) {

@@ -13254,7 +13254,7 @@ declare namespace jy {
         /***
          * 未经过解析的源组件数据
          */
-        sourceComponentData: Object;
+        sourceComponentData: SourceComponentDataDict;
         constructor(key: string);
         createBmpLoader(ispng: boolean, textures: egret.Texture[]): void;
         noRes(uri: string, file: string, textures: egret.Texture[]): SuiBmd;
@@ -13360,11 +13360,7 @@ declare namespace jy {
         /**
          * 处理控件数据
          */
-        protected parseComponentData(allComData: {
-            0: string[];
-            1: any[];
-            2: SizeData[];
-        }[], suiData: SuiData): void;
+        protected parseComponentData(allComData: SourceComponentDataDict, suiData: SuiData): void;
         /**
          * 解析图片数据
          *  0 图片宽  1图片高度   2偏移X   3偏移Y
@@ -13458,6 +13454,26 @@ declare namespace jy {
          * @returns
          */
         getSize(key: string, className: string, outRect?: egret.Rectangle): egret.Rectangle;
+    }
+    type SourceComponentDataDict = {
+        [type in ExportType]: SourceComponentData;
+    };
+    /**
+     * 原始组件数据，通过`ExportUIFromFlash`项目导出的数据
+     */
+    interface SourceComponentData {
+        /**
+         * 控件名称数组
+         */
+        0: string[];
+        /**
+         * 组件数据的数组
+         */
+        1: any[];
+        /**
+         * 尺寸数据的数组
+         */
+        2: SizeData[];
     }
     interface SizeData {
         /**

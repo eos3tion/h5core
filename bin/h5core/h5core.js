@@ -18083,6 +18083,10 @@ var jy;
                         return v;
                     }
                     else {
+                        if (typeof sd == "string" && type == 20 /* MCButton */) {
+                            var v = this.createDisplayObject(libKey, sd, bd);
+                            return new jy.MCButton(v);
+                        }
                         var source = suiData.sourceComponentData;
                         if (source) {
                             var sourceData = source[type];

@@ -113,7 +113,7 @@ namespace jy {
         /***
          * 未经过解析的源组件数据
          */
-        public sourceComponentData: Object;
+        public sourceComponentData: SourceComponentDataDict;
 
         constructor(key: string) {
             this.key = key;
