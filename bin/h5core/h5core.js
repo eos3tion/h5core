@@ -17928,6 +17928,7 @@ var jy;
             var group = opt.group;
             opt.current = 0;
             opt.total = total;
+            opt.list = list;
             for (var i = 0; i < total; i++) {
                 var item = list[i];
                 item.group = group;
@@ -17936,17 +17937,34 @@ var jy;
         }
         Res.loadList = loadList;
         function doLoadList(item, param) {
-            var group = param.group, callback = param.callback, onProgress = param.onProgress;
+            var callback = param.callback;
+            if (!callback) {
+                return;
+            }
+            var group = param.group;
             if (item.group == group) {
+                var onProgress = param.onProgress;
+                var doRec = void 0, flag = void 0;
                 if (item.state == -1 /* FAILED */) {
-                    callback.callAndRecycle(false);
+                    doRec = true;
+                    flag = false;
                 }
                 else {
                     param.current++;
                     onProgress && onProgress.call(item);
                     if (param.current >= param.total) {
-                        callback.callAndRecycle(true);
-                        onProgress && onProgress.recycle();
+                        doRec = true;
+                        flag = true;
+                    }
+                }
+                if (doRec) {
+                    param.callback = undefined;
+                    param.onProgress = undefined;
+                    callback.callAndRecycle(flag);
+                    onProgress && onProgress.recycle();
+                    var list = param.list;
+                    if (!flag && list) {
+                        list.forEach(removeItem);
                     }
                 }
             }
@@ -17975,8 +17993,12 @@ var jy;
          */
         function remove(uri) {
             var item = resDict[uri];
+            removeItem(item);
+        }
+        Res.remove = remove;
+        function removeItem(item) {
             if (item) {
-                delete resDict[uri];
+                delete resDict[item.uri];
                 var qid = item.qid;
                 var queue = queues[qid];
                 if (queue) {
@@ -17985,7 +18007,6 @@ var jy;
                 item.removed = true;
             }
         }
-        Res.remove = remove;
         /**
          * 阻止尝试某个资源加载，目前是还未加载的资源，从列队中做移除，其他状态不处理
          * @param uri
