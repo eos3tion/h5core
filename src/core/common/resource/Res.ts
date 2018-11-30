@@ -519,12 +519,15 @@ namespace jy.Res {
          * 总量
          */
         total: number;
+
+        list: ResItem[];
     }
     export function loadList(list: ResItem[], opt: LoadResListOption, queueID = ResQueueID.Normal) {
         let total = list.length;
         let group = opt.group;
         (opt as LoadResListParam).current = 0;
         (opt as LoadResListParam).total = total;
+        (opt as LoadResListParam).list = list;
         for (let i = 0; i < total; i++) {
             let item = list[i];
             item.group = group;
@@ -533,16 +536,33 @@ namespace jy.Res {
     }
 
     function doLoadList(item: ResItem, param: LoadResListParam) {
-        let { group, callback, onProgress } = param;
+        let callback = param.callback;
+        if (!callback) {
+            return;
+        }
+        let group = param.group;
         if (item.group == group) {
+            let onProgress = param.onProgress;
+            let doRec: boolean, flag: boolean;
             if (item.state == RequestState.FAILED) {
-                callback.callAndRecycle(false);
+                doRec = true;
+                flag = false;
             } else {
                 param.current++;
                 onProgress && onProgress.call(item);
                 if (param.current >= param.total) {
-                    callback.callAndRecycle(true);
-                    onProgress && onProgress.recycle();
+                    doRec = true;
+                    flag = true;
+                }
+            }
+            if (doRec) {
+                param.callback = undefined;
+                param.onProgress = undefined;
+                callback.callAndRecycle(flag);
+                onProgress && onProgress.recycle();
+                let list = param.list;
+                if (!flag && list) {
+                    list.forEach(removeItem)
                 }
             }
         }
@@ -572,8 +592,12 @@ namespace jy.Res {
      */
     export function remove(uri: string) {
         let item = resDict[uri];
+        removeItem(item);
+    }
+
+    function removeItem(item: ResItem) {
         if (item) {
-            delete resDict[uri];
+            delete resDict[item.uri];
             let qid = item.qid;
             let queue = queues[qid];
             if (queue) {
