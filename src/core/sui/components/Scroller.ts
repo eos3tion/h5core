@@ -102,7 +102,7 @@ namespace jy {
          * @ scrollRect (显示的区域大小)
          * @ scrollbar (可选，如果不想显示滚动条可不传)
          */
-        public bindObj(content: egret.DisplayObject, scrollRect: egret.Rectangle, scrollbar?: ScrollBar) {
+        public bindObj(content: egret.DisplayObject & { scroller?: Scroller }, scrollRect: egret.Rectangle, scrollbar?: ScrollBar) {
             content.scrollRect = scrollRect;
             let old = this._content;
             if (old != content) {
@@ -121,7 +121,7 @@ namespace jy {
                     content.on(EventConst.Resize, this.onResize, this);
                 }
                 if ("scroller" in content) {
-                    content["scroller"] = this;
+                    content.scroller = this;
                 }
             }
             if (scrollbar) {

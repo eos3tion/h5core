@@ -428,7 +428,7 @@ namespace jy.Res {
     /**
      * addRes方法的返回值
      */
-    const addResResult = [] as [ResItem, boolean];
+    const addResResult: [ResItem, boolean] = [] as any;
 
     /**
      * 添加资源的结果  
