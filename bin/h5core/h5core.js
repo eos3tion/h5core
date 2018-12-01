@@ -3475,7 +3475,7 @@ var jy;
                     content.on(-1999 /* Resize */, this.onResize, this);
                 }
                 if ("scroller" in content) {
-                    content["scroller"] = this;
+                    content.scroller = this;
                 }
             }
             if (scrollbar) {

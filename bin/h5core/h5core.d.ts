@@ -2251,7 +2251,9 @@ declare namespace jy {
          * @ scrollRect (显示的区域大小)
          * @ scrollbar (可选，如果不想显示滚动条可不传)
          */
-        bindObj(content: egret.DisplayObject, scrollRect: egret.Rectangle, scrollbar?: ScrollBar): void;
+        bindObj(content: egret.DisplayObject & {
+            scroller?: Scroller;
+        }, scrollRect: egret.Rectangle, scrollbar?: ScrollBar): void;
         /**
          * 对content绘制鼠标触发区域
          * 将会对content的graphics先进行清理
