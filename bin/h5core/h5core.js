@@ -18397,6 +18397,7 @@ var jy;
             _a[".webp" /* WEBP */] = 2 /* Image */,
             _a[".json" /* JSON */] = 3 /* Json */,
             _a[".bin" /* BIN */] = 0 /* Binary */,
+            _a[".mp3" /* MP3 */] = 4 /* Sound */,
             _a);
         function checkItemState(item, event) {
             var state = item.state;
@@ -18417,7 +18418,7 @@ var jy;
             request.off("ioError" /* IO_ERROR */, loader.onLoadFinish, loader);
             request.item = undefined;
             request.resCB = undefined;
-            request.recycle();
+            request.recycle && request.recycle();
         }
         var BinLoader = /** @class */ (function () {
             function BinLoader(type) {
@@ -18469,6 +18470,27 @@ var jy;
         }());
         Res.ImageLoader = ImageLoader;
         __reflect(ImageLoader.prototype, "jy.Res.ImageLoader", ["jy.Res.ResLoader"]);
+        var EgretSoundLoader = /** @class */ (function () {
+            function EgretSoundLoader() {
+            }
+            EgretSoundLoader.prototype.loadFile = function (resItem, callback) {
+                var request = new egret.Sound();
+                bindRequest(this, request, resItem, callback);
+                request.load(resItem.url);
+            };
+            EgretSoundLoader.prototype.onLoadFinish = function (event) {
+                var request = event.target;
+                var item = request.item, resCB = request.resCB;
+                looseRequest(this, request);
+                var state = checkItemState(item, event);
+                if (state == 2 /* COMPLETE */) {
+                    item.data = request;
+                }
+                resCB.callAndRecycle(item);
+            };
+            return EgretSoundLoader;
+        }());
+        __reflect(EgretSoundLoader.prototype, "EgretSoundLoader", ["jy.Res.ResLoader"]);
         var binLoader = new BinLoader();
         /**
          * 资源字典
@@ -18487,6 +18509,7 @@ var jy;
             _b[1 /* Text */] = new BinLoader("text"),
             _b[3 /* Json */] = new BinLoader("json"),
             _b[2 /* Image */] = new ImageLoader,
+            _b[4 /* Sound */] = new EgretSoundLoader,
             _b);
         /**
          * 加载列队的总数
