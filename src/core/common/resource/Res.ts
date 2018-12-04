@@ -69,6 +69,14 @@ namespace jy.Res {
         Text,
         Image,
         Json,
+        /**
+         * 音频资源
+         */
+        Sound,
+        /**
+         * 视频资源
+         */
+        Video,
     }
 
 
@@ -159,6 +167,7 @@ namespace jy.Res {
         [Ext.WEBP]: ResItemType.Image,
         [Ext.JSON]: ResItemType.Json,
         [Ext.BIN]: ResItemType.Binary,
+        [Ext.MP3]: ResItemType.Sound,
     }
 
 
@@ -261,19 +270,19 @@ namespace jy.Res {
         return state;
     }
 
-    function bindRequest(loader: InternalResLoader, request: Recyclable<ResRequest>, item: ResItem, callback: ResLoadCallback) {
+    function bindRequest(loader: InternalResLoader, request: ResRequest, item: ResItem, callback: ResLoadCallback) {
         request.on(EgretEvent.COMPLETE, loader.onLoadFinish, loader);
         request.on(EgretEvent.IO_ERROR, loader.onLoadFinish, loader);
         request.item = item;
         request.resCB = callback;
     }
 
-    function looseRequest(loader: InternalResLoader, request: Recyclable<ResRequest>) {
+    function looseRequest(loader: InternalResLoader, request: ResRequest & { recycle?() }) {
         request.off(EgretEvent.COMPLETE, loader.onLoadFinish, loader);
         request.off(EgretEvent.IO_ERROR, loader.onLoadFinish, loader);
         request.item = undefined;
         request.resCB = undefined;
-        request.recycle();
+        request.recycle && request.recycle();
     }
 
     export class BinLoader implements ResLoader {
@@ -310,7 +319,7 @@ namespace jy.Res {
             request.load(resItem.url);
         }
 
-        onLoadFinish(event: egret.Event): void {
+        onLoadFinish(event: egret.Event) {
             let request = event.target as ResImgRequest;
             let { item, resCB, data } = request;
             looseRequest(this, request);
@@ -319,6 +328,25 @@ namespace jy.Res {
                 let texture = new egret.Texture();
                 texture._setBitmapData(data);
                 item.data = texture;
+            }
+            resCB.callAndRecycle(item);
+        }
+    }
+
+    type ResSound = egret.Sound & ResRequest;
+    class EgretSoundLoader implements Res.ResLoader {
+        loadFile(resItem: Res.ResItem, callback: Res.ResLoadCallback) {
+            let request: ResSound = new egret.Sound();
+            bindRequest(this, request, resItem, callback);
+            request.load(resItem.url);
+        }
+        onLoadFinish(event: egret.Event) {
+            let request = event.target as ResSound;
+            let { item, resCB } = request;
+            looseRequest(this, request);
+            let state = checkItemState(item, event);
+            if (state == RequestState.COMPLETE) {
+                item.data = request;
             }
             resCB.callAndRecycle(item);
         }
@@ -345,6 +373,7 @@ namespace jy.Res {
         [ResItemType.Text]: new BinLoader("text"),
         [ResItemType.Json]: new BinLoader("json"),
         [ResItemType.Image]: new ImageLoader,
+        [ResItemType.Sound]: new EgretSoundLoader,
     };
 
 

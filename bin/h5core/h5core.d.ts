@@ -1821,7 +1821,8 @@ declare namespace jy {
         PNG = ".png",
         WEBP = ".webp",
         BIN = ".bin",
-        JSON = ".json"
+        JSON = ".json",
+        MP3 = ".mp3"
     }
 }
 declare namespace jy {
@@ -13100,7 +13101,15 @@ declare namespace jy.Res {
         Binary = 0,
         Text = 1,
         Image = 2,
-        Json = 3
+        Json = 3,
+        /**
+         * 音频资源
+         */
+        Sound = 4,
+        /**
+         * 视频资源
+         */
+        Video = 5
     }
     /**
      * 资源加载的回调

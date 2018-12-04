@@ -9,5 +9,6 @@ namespace jy {
         WEBP = ".webp",
         BIN = ".bin",
         JSON = ".json",
+        MP3 = ".mp3",
     }
 }
