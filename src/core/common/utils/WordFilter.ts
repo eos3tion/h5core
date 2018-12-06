@@ -1,7 +1,3 @@
-/**
- * 脏字内容
- */
-var $dirty: string;
 namespace jy {
 
     /**
@@ -120,14 +116,13 @@ namespace jy {
         /**
          * 由于脏字文件使用ajax读取，可能存在跨域问题，所以在H5中使用javascript方式加载
          */
-        loadDirtyWord(url: string, split = ";") {
-            loadScript(url, function () {
+        loadDirtyWord(url: string, split = "\n") {
+            Res.loadRes({ uri: "$dirty", url, type: Res.ResItemType.Text }, CallbackInfo.get(item => {
+                let $dirty = item.data;
                 if ($dirty) {
                     initFilterstring($dirty, split);
-                    // 清理脏字原始数据
-                    $dirty = undefined;
                 }
-            })
+            }))
         },
         /**
          * 初始化屏蔽字
