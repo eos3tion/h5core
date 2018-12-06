@@ -28,10 +28,6 @@ namespace jy {
         }
         return descriptors as PropertyDescriptorMap;
     }
-    export function is(instance: any, ref: { new(): any }): boolean {
-        return egret.is(instance, egret.getQualifiedClassName(ref));
-    }
-
     /**
      * 移除可视对象
      * 
