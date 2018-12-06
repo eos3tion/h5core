@@ -1,17 +1,16 @@
-var $nl_nc;
-const enum Sex {
-	/**
-	 * 男
-	 */
-	Male = 1,
-	/**
-	 * 女
-	 */
-	Female = 2,
-	Nan = Male,
-	Nv = Female
-}
 namespace jy {
+	export const enum Sex {
+		/**
+		 * 男
+		 */
+		Male = 1,
+		/**
+		 * 女
+		 */
+		Female = 2,
+		Nan = Male,
+		Nv = Female
+	}
 	/**
 	 * 姓 集合
 	 * 对应配置中 姓 列
@@ -61,20 +60,23 @@ namespace jy {
 		 */
 		static setLib = setLib;
 
-		static loadNameLib(url: string, callback?: $CallbackInfo): void {
+		/**
+		 * 加载名字库
+		 * @param url 
+		 * @param callback 
+		 */
+		static loadNameLib(url: string, callback?: $CallbackInfo) {
 			if (inited) {
 				return callback && callback.execute();
 			}
-			loadScript(url, err => {
-				if (!err) {
-					if ($nl_nc) {
-						setLib($nl_nc);
-						$nl_nc = undefined;
-						inited = true;
-						return callback && callback.execute();
-					}
+			Res.loadRes({ uri: "$nameLib", url, type: Res.ResItemType.Json }, CallbackInfo.get(item => {
+				let $nl_nc = item.data;
+				if ($nl_nc) {
+					setLib($nl_nc);
+					inited = true;
+					return callback && callback.execute();
 				}
-			})
+			}));
 		}
 
 		/**

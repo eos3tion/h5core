@@ -52,10 +52,6 @@ var jy;
         return descriptors;
     }
     jy.makeDefDescriptors = makeDefDescriptors;
-    function is(instance, ref) {
-        return egret.is(instance, egret.getQualifiedClassName(ref));
-    }
-    jy.is = is;
     /**
      * 移除可视对象
      *
@@ -7396,7 +7392,6 @@ var jy;
         }
     };
 })(jy || (jy = {}));
-var $nl_nc;
 var jy;
 (function (jy) {
     /**
@@ -7434,20 +7429,23 @@ var jy;
         function NameUtils(randomFunc) {
             this.setRandom(randomFunc);
         }
+        /**
+         * 加载名字库
+         * @param url
+         * @param callback
+         */
         NameUtils.loadNameLib = function (url, callback) {
             if (inited) {
                 return callback && callback.execute();
             }
-            loadScript(url, function (err) {
-                if (!err) {
-                    if ($nl_nc) {
-                        setLib($nl_nc);
-                        $nl_nc = undefined;
-                        inited = true;
-                        return callback && callback.execute();
-                    }
+            jy.Res.loadRes({ uri: "$nameLib", url: url, type: 3 /* Json */ }, jy.CallbackInfo.get(function (item) {
+                var $nl_nc = item.data;
+                if ($nl_nc) {
+                    setLib($nl_nc);
+                    inited = true;
+                    return callback && callback.execute();
                 }
-            });
+            }));
         };
         /**
          * 设置随机算法
@@ -7907,10 +7905,6 @@ var jy;
     }
     jy.solveLink = solveLink;
 })(jy || (jy = {}));
-/**
- * 脏字内容
- */
-var $dirty;
 var jy;
 (function (jy) {
     /**
@@ -8021,14 +8015,13 @@ var jy;
          * 由于脏字文件使用ajax读取，可能存在跨域问题，所以在H5中使用javascript方式加载
          */
         loadDirtyWord: function (url, split) {
-            if (split === void 0) { split = ";"; }
-            loadScript(url, function () {
+            if (split === void 0) { split = "\n"; }
+            jy.Res.loadRes({ uri: "$dirty", url: url, type: 1 /* Text */ }, jy.CallbackInfo.get(function (item) {
+                var $dirty = item.data;
                 if ($dirty) {
                     initFilterstring($dirty, split);
-                    // 清理脏字原始数据
-                    $dirty = undefined;
                 }
-            });
+            }));
         },
         /**
          * 初始化屏蔽字
