@@ -11,9 +11,6 @@ declare namespace jy {
      */
     function getDescriptor(descriptor: PropertyDescriptor, enumerable?: boolean, writable?: boolean, configurable?: boolean): PropertyDescriptor;
     function makeDefDescriptors(descriptors: object, enumerable?: boolean, writable?: boolean, configurable?: boolean): PropertyDescriptorMap;
-    function is(instance: any, ref: {
-        new (): any;
-    }): boolean;
     /**
      * 移除可视对象
      *
@@ -4405,20 +4402,19 @@ declare namespace jy {
      */
     const LangUtil: LangUtilInterface;
 }
-declare var $nl_nc: any;
-declare const enum Sex {
-    /**
-     * 男
-     */
-    Male = 1,
-    /**
-     * 女
-     */
-    Female = 2,
-    Nan = 1,
-    Nv = 2
-}
 declare namespace jy {
+    const enum Sex {
+        /**
+         * 男
+         */
+        Male = 1,
+        /**
+         * 女
+         */
+        Female = 2,
+        Nan = 1,
+        Nv = 2
+    }
     function setLib(data: {
         a?: string;
         b?: string;
@@ -4440,7 +4436,12 @@ declare namespace jy {
          * @memberof NameUtils
          */
         static setLib: typeof setLib;
-        static loadNameLib(url: string, callback?: $CallbackInfo): void;
+        /**
+         * 加载名字库
+         * @param url
+         * @param callback
+         */
+        static loadNameLib(url: string, callback?: $CallbackInfo): any;
         /**
          * 设置随机算法
          * @param randomFunc
@@ -4713,10 +4714,6 @@ declare namespace jy {
      */
     function solveLink(link: string, origin?: string): string;
 }
-/**
- * 脏字内容
- */
-declare var $dirty: string;
 declare namespace jy {
     /**
      * 初始化屏蔽字
