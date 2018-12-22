@@ -290,6 +290,10 @@ interface Array<T> {
      * @memberOf ArrayConstructor
      */
     appendTo<T>(to: Array<T>): any;
+    /**
+     * 从数组中随机获取一个数据
+     */
+    random(): T;
 }
 interface Console {
     table(...args: any[]): any;
