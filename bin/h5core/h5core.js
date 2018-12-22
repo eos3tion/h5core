@@ -441,6 +441,11 @@ Object.defineProperties(Array.prototype, jy.makeDefDescriptors({
                 return 0;
             });
         }
+    },
+    random: {
+        value: function () {
+            return this[this.length * Math.random() | 0];
+        }
     }
 }));
 /****************************************Map********************************************/
