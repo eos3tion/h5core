@@ -88,6 +88,14 @@ namespace jy {
             this.changeRender(render, value);
         }
 
+        /**
+         * 获取选中对象的数据
+         */
+        get selectedData() {
+            let item = this.selectedItem;
+            return item && item.data;
+        }
+
 
         public get selectedIndex(): number {
             return this._selectedIndex;

@@ -3794,6 +3794,17 @@ var jy;
             render = this._list[value];
             this.changeRender(render, value);
         };
+        Object.defineProperty(AbsPageList.prototype, "selectedData", {
+            /**
+             * 获取选中对象的数据
+             */
+            get: function () {
+                var item = this.selectedItem;
+                return item && item.data;
+            },
+            enumerable: true,
+            configurable: true
+        });
         /**
          *
          * 根据索引获得视图
