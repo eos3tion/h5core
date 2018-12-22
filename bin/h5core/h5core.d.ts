@@ -2331,6 +2331,10 @@ declare namespace jy {
         selectedIndex: number;
         protected $setSelectedIndex(value: number): void;
         /**
+         * 获取选中对象的数据
+         */
+        readonly selectedData: T;
+        /**
          *
          * 根据索引获得视图
          * @param {number} idx
