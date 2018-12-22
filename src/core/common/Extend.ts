@@ -586,6 +586,11 @@ interface Array<T> {
      * @memberOf ArrayConstructor
      */
     appendTo<T>(to: Array<T>);
+
+    /**
+     * 从数组中随机获取一个数据
+     */
+    random(): T;
 }
 
 Object.defineProperties(Array.prototype, jy.makeDefDescriptors({
@@ -692,6 +697,11 @@ Object.defineProperties(Array.prototype, jy.makeDefDescriptors({
                 }
                 return 0;
             });
+        }
+    },
+    random: {
+        value: function () {
+            return this[this.length * Math.random() | 0];
         }
     }
 }));
