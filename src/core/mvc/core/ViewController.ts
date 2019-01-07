@@ -149,10 +149,15 @@ namespace jy {
             return this._ready;
         }
         onStage(e: egret.Event) {
-            let type: string, ins: Interest;
-            const _interests = this._interests;
             this.checkInterest();
-            if (e.type == EgretEvent.ADDED_TO_STAGE) {
+            if (!this._ready) return;
+            this.stageChange(e.type == EgretEvent.ADDED_TO_STAGE);
+        }
+
+        protected stageChange(onStage: boolean) {
+            const _interests = this._interests;
+            let type: string, ins: Interest;
+            if (onStage) {
                 //加入关注的事件
                 for (type in _interests) {
                     ins = _interests[type];

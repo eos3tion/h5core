@@ -117,6 +117,9 @@ namespace jy {
             if (!this._ready) {
                 this._ready = true;
                 this.afterAllReady();
+                if (this.$view.stage) {
+                    this.stageChange(true);
+                }
                 if (this._asyncHelper) {
                     this._asyncHelper.readyNow();
                 }
