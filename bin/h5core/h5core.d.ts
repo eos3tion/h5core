@@ -1960,6 +1960,7 @@ declare namespace jy {
         sleepTimer(): void;
         readonly isReady: boolean;
         onStage(e: egret.Event): void;
+        protected stageChange(onStage: boolean): void;
         checkInterest(): void;
     }
     interface Interest {
