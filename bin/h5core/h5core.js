@@ -3294,10 +3294,15 @@ var jy;
             configurable: true
         });
         ViewController.prototype.onStage = function (e) {
-            var type, ins;
-            var _interests = this._interests;
             this.checkInterest();
-            if (e.type == "addedToStage" /* ADDED_TO_STAGE */) {
+            if (!this._ready)
+                return;
+            this.stageChange(e.type == "addedToStage" /* ADDED_TO_STAGE */);
+        };
+        ViewController.prototype.stageChange = function (onStage) {
+            var _interests = this._interests;
+            var type, ins;
+            if (onStage) {
                 //加入关注的事件
                 for (type in _interests) {
                     ins = _interests[type];
@@ -13750,6 +13755,9 @@ var jy;
             if (!this._ready) {
                 this._ready = true;
                 this.afterAllReady();
+                if (this.$view.stage) {
+                    this.stageChange(true);
+                }
                 if (this._asyncHelper) {
                     this._asyncHelper.readyNow();
                 }
