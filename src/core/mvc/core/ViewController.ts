@@ -154,7 +154,7 @@ namespace jy {
             this.stageChange(e.type == EgretEvent.ADDED_TO_STAGE);
         }
 
-        protected stageChange(onStage: boolean) {
+        stageChange(onStage: boolean) {
             const _interests = this._interests;
             let type: string, ins: Interest;
             if (onStage) {

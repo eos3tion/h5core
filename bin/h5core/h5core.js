@@ -15412,6 +15412,7 @@ var jy;
             var _this = _super.call(this) || this;
             _this._defaultWidth = 5;
             _this._defalutHeight = 5;
+            _this._ready = true;
             _this._oldWidth = -1;
             _this._oldHeight = -1;
             _this.inited = false;
@@ -15692,7 +15693,7 @@ var jy;
         };
         Object.defineProperty(ListItemRenderer.prototype, "isReady", {
             get: function () {
-                return false;
+                return this._ready;
             },
             enumerable: true,
             configurable: true
@@ -15703,7 +15704,7 @@ var jy;
     }(egret.EventDispatcher));
     jy.ListItemRenderer = ListItemRenderer;
     __reflect(ListItemRenderer.prototype, "jy.ListItemRenderer", ["jy.ListItemRender", "egret.EventDispatcher", "jy.SelectableComponents"]);
-    jy.expand(ListItemRenderer, jy.ViewController, "addReadyExecute", "addDepend", "onStage", "interest", "checkInject", "checkInterest", "awakeTimer", "sleepTimer", "bindTimer", "looseTimer");
+    jy.expand(ListItemRenderer, jy.ViewController, "addReadyExecute", "addDepend", "onStage", "interest", "checkInject", "checkInterest", "awakeTimer", "sleepTimer", "bindTimer", "looseTimer", "stageChange");
     // export abstract class AListItemRenderer<T, S extends egret.DisplayObject> extends ListItemRenderer<T, S> implements SuiDataCallback {
     //     /**
     //      * 子类重写设置皮肤

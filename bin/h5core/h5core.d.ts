@@ -2171,7 +2171,7 @@ declare namespace jy {
         sleepTimer(): void;
         readonly isReady: boolean;
         onStage(e: egret.Event): void;
-        protected stageChange(onStage: boolean): void;
+        stageChange(onStage: boolean): void;
         checkInterest(): void;
     }
     interface Interest {
@@ -12274,6 +12274,7 @@ declare namespace jy {
         protected _defaultWidth: number;
         protected _defalutHeight: number;
         protected _skin: S;
+        protected _ready: boolean;
         protected _container: egret.DisplayObjectContainer;
         /**
          * 是否已经检查过尺寸

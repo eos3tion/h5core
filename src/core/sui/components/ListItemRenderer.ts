@@ -104,6 +104,8 @@ namespace jy {
 
         protected _skin: S;
 
+        protected _ready = true;
+
         protected _container: egret.DisplayObjectContainer;
 
         // protected _skinTemplete: S;
@@ -399,14 +401,14 @@ namespace jy {
         protected _dependerHelper: DependerHelper;
 
         public get isReady() {
-            return false;
+            return this._ready;
         }
 
         public startSync() {
 
         }
     }
-    expand(ListItemRenderer, ViewController, "addReadyExecute", "addDepend", "onStage", "interest", "checkInject", "checkInterest", "awakeTimer", "sleepTimer", "bindTimer", "looseTimer");
+    expand(ListItemRenderer, ViewController, "addReadyExecute", "addDepend", "onStage", "interest", "checkInject", "checkInterest", "awakeTimer", "sleepTimer", "bindTimer", "looseTimer", "stageChange");
 
     // export abstract class AListItemRenderer<T, S extends egret.DisplayObject> extends ListItemRenderer<T, S> implements SuiDataCallback {
     //     /**
