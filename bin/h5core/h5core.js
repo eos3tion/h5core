@@ -12492,6 +12492,7 @@ var jy;
                     res.loose(this);
                 }
             }
+            this.texture = undefined;
         };
         Object.defineProperty(Image.prototype, "source", {
             /**

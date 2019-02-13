@@ -44,6 +44,7 @@ namespace jy {
 					res.loose(this);
 				}
 			}
+			this.texture = undefined;
 		}
 
 		/**
