@@ -163,16 +163,6 @@ namespace jy {
 
         }
 
-        /**
-         * 启动时调用
-         */
-        public awake?(): void;
-
-        /**
-         * 
-         */
-        public sleep?(): void;
-
     }
 
 

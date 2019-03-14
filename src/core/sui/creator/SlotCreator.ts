@@ -171,7 +171,7 @@ namespace jy {
         /**
          * 皮肤添加到舞台
          */
-        public awake() {
+        public onAwake() {
             this.refreshDisplay();
             this.refreshCount();
         }

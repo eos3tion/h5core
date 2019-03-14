@@ -106,15 +106,15 @@ namespace jy {
 
         protected stageEvent(remove?: boolean) {
             let handler = remove ? this.off : this.on;
-            handler.call(this, EgretEvent.ADDED_TO_STAGE, this.awake, this);
-            handler.call(this, EgretEvent.REMOVED_FROM_STAGE, this.sleep, this);
+            handler.call(this, EgretEvent.ADDED_TO_STAGE, this.onAwake, this);
+            handler.call(this, EgretEvent.REMOVED_FROM_STAGE, this.onSleep, this);
         }
 
-        protected awake() {
+        protected onAwake() {
 
         }
 
-        protected sleep() {
+        protected onSleep() {
 
         }
 

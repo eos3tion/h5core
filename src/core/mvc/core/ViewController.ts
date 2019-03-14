@@ -4,11 +4,11 @@ namespace jy {
         /**
          * 面板加入到舞台时执行
          */
-        awake?();
+        onAwake?();
         /**
          * 面板从舞台移除时执行
          */
-        sleep?();
+        onSleep?();
     }
 
     /**
@@ -169,8 +169,8 @@ namespace jy {
                 }
                 //检查timer绑定
                 this.awakeTimer();
-                if (this.awake) {
-                    this.awake();
+                if (this.onAwake) {
+                    this.onAwake();
                 }
             } else {
                 for (type in _interests) {
@@ -178,8 +178,8 @@ namespace jy {
                     off(type, ins.handler, this);
                 }
                 this.sleepTimer();
-                if (this.sleep) {
-                    this.sleep();
+                if (this.onSleep) {
+                    this.onSleep();
                 }
             }
         }
