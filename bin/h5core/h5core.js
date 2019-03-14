@@ -650,266 +650,6 @@ var egret;
         };
     }
 })(egret || (egret = {}));
-/**
- * 参考createjs和白鹭的tween
- * 调整tick的驱动方式
- * https://github.com/CreateJS/TweenJS
- * @author 3tion
- */
-var jy;
-(function (jy) {
-    var TweenManager = /** @class */ (function () {
-        function TweenManager() {
-            this._tweens = [];
-            /**
-             * 注册过的插件列表
-             * Key      {string}            属性
-             * Value    {ITweenPlugin[]}    插件列表
-             *
-             * @type {{ [index: string]: ITweenPlugin[] }}
-             */
-            this._plugins = {};
-        }
-        /**
-         * Returns a new tween instance. This is functionally identical to using "new Tween(...)", but looks cleaner
-         * with the chained syntax of TweenJS.
-         * <h4>Example</h4>
-         *
-         *		var tween = createjs. this.get(target);
-        *
-        * @method get
-        * @param {Object} target The target object that will have its properties tweened.
-        * @param {TweenOption} [props] The configuration properties to apply to this tween instance (ex. `{loop:true, paused:true}`).
-        * All properties default to `false`. Supported props are:
-        * <UL>
-        *    <LI> loop: sets the loop property on this tween.</LI>
-        *    <LI> useTicks: uses ticks for all durations instead of milliseconds.</LI>
-        *    <LI> ignoreGlobalPause: sets the {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}} property on
-        *    this tween.</LI>
-        *    <LI> override: if true, `createjs. this.removeTweens(target)` will be called to remove any other tweens with
-        *    the same target.
-        *    <LI> paused: indicates whether to start the tween paused.</LI>
-        *    <LI> position: indicates the initial position for this tween.</LI>
-        *    <LI> onChange: specifies a listener for the {{#crossLink "Tween/change:event"}}{{/crossLink}} event.</LI>
-        * </UL>
-        * @param {Object} [pluginData] An object containing data for use by installed plugins. See individual plugins'
-        * documentation for details.
-        * @param {Boolean} [override=false] If true, any previous tweens on the same target will be removed. This is the
-        * same as calling ` this.removeTweens(target)`.
-        * @return {Tween} A reference to the created tween. Additional chained tweens, method calls, or callbacks can be
-        * applied to the returned tween instance.
-        * @static
-        */
-        TweenManager.prototype.get = function (target, props, pluginData, override) {
-            if (override) {
-                this.removeTweens(target);
-            }
-            return new jy.Tween(target, props, pluginData, this);
-        };
-        /**
-         * 移除指定对象的所有tween
-         * Removes all existing tweens for a target. This is called automatically by new tweens if the `override`
-         * property is `true`.
-         * @method removeTweens
-         * @param {Object} target The target object to remove existing tweens from.
-         * @static
-         */
-        TweenManager.prototype.removeTweens = function (target) {
-            if (!target.tween_count) {
-                return;
-            }
-            var tweens = this._tweens;
-            var j = 0;
-            for (var i = 0, len = tweens.length; i < len; i++) {
-                var tween = tweens[i];
-                if (tween.target == target) {
-                    tween.paused = true;
-                    tween.onRecycle();
-                }
-                else {
-                    tweens[j++] = tween;
-                }
-            }
-            tweens.length = j;
-            target.tween_count = 0;
-        };
-        /**
-         * 移除单个tween
-         *
-         * @param {Tween} twn
-         * @returns
-         *
-         * @memberOf TweenManager
-         */
-        TweenManager.prototype.removeTween = function (twn) {
-            if (!twn) {
-                return;
-            }
-            var tweens = this._tweens;
-            for (var i = tweens.length - 1; i >= 0; i--) {
-                var tween = tweens[i];
-                if (tween == twn) {
-                    tween.paused = true;
-                    tweens.splice(i, 1);
-                    tween.onRecycle();
-                    break;
-                }
-            }
-        };
-        /**
-         * 暂停某个对象的全部Tween
-         *
-         * @static
-         * @param {*} target 指定对象
-         */
-        TweenManager.prototype.pauseTweens = function (target) {
-            if (!target.tween_count) {
-                return;
-            }
-            var tweens = this._tweens;
-            for (var i = tweens.length - 1; i >= 0; i--) {
-                if (tweens[i].target == target) {
-                    tweens[i].paused = true;
-                }
-            }
-        };
-        /**
-         * 恢复某个对象的全部Tween
-         *
-         * @static
-         * @param {*} target 指定对象
-         */
-        TweenManager.prototype.resumeTweens = function (target) {
-            if (!target.tween_count) {
-                return;
-            }
-            var tweens = this._tweens;
-            for (var i = tweens.length - 1; i >= 0; i--) {
-                if (tweens[i].target == target) {
-                    tweens[i].paused = false;
-                }
-            }
-        };
-        /**
-         * 由外部进行调用，进行心跳
-         * Advances all tweens. This typically uses the {{#crossLink "Ticker"}}{{/crossLink}} class, but you can call it
-         * manually if you prefer to use your own "heartbeat" implementation.
-         * @method tick
-         * @param {Number} delta The change in time in milliseconds since the last tick. Required unless all tweens have
-         * `useTicks` set to true.
-         * @param {Boolean} paused Indicates whether a global pause is in effect. Tweens with {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}}
-         * will ignore this, but all others will pause if this is `true`.
-         * @static
-         */
-        TweenManager.prototype.tick = function (delta, paused) {
-            if (!this._tweens.length) {
-                return;
-            }
-            var tweens = this._tweens.concat();
-            for (var i = tweens.length - 1; i >= 0; i--) {
-                var tween = tweens[i];
-                if ((paused && !tween.ignoreGlobalPause) || tween.paused) {
-                    continue;
-                }
-                tween.tick(tween._useTicks ? 1 : delta);
-            }
-        };
-        /**
-         * 将tween注册/注销到管理器中，
-         *
-         * @param {Tween} tween
-         * @param {boolean} [value] (description)
-         * @returns {void}
-         * @private 此方法只允许tween调用
-         */
-        TweenManager.prototype._register = function (tween, value) {
-            var target = tween.target;
-            var tweens = this._tweens;
-            if (value && !tween._registered) {
-                if (target) {
-                    target.tween_count = target.tween_count > 0 ? target.tween_count + 1 : 1;
-                }
-                tweens.push(tween);
-            }
-            else {
-                if (target) {
-                    target.tween_count--;
-                }
-                var i = tweens.length;
-                while (i--) {
-                    if (tweens[i] == tween) {
-                        tweens.splice(i, 1);
-                        tween.onRecycle();
-                        return;
-                    }
-                }
-            }
-        };
-        /**
-         * Stop and remove all existing tweens.
-         * 终止并移除所有的tween
-         * @method removeAllTweens
-         * @static
-         * @since 0.4.1
-         */
-        TweenManager.prototype.removeAllTweens = function () {
-            var tweens = this._tweens;
-            for (var i = 0, l = tweens.length; i < l; i++) {
-                var tween = tweens[i];
-                tween.paused = true;
-                tween.onRecycle();
-                tween.target.tweenjs_count = 0;
-            }
-            tweens.length = 0;
-        };
-        /**
-         * Indicates whether there are any active tweens (and how many) on the target object (if specified) or in general.
-         * @method hasActiveTweens
-         * @param {Object} [target] The target to check for active tweens. If not specified, the return value will indicate
-         * if there are any active tweens on any target.
-         * @return {Boolean} If there are active tweens.
-         * @static
-         */
-        TweenManager.prototype.hasActiveTweens = function (target) {
-            if (target) {
-                return target.tweenjs_count != null && !!target.tweenjs_count;
-            }
-            return this._tweens && !!this._tweens.length;
-        };
-        /**
-         * Installs a plugin, which can modify how certain properties are handled when tweened. See the {{#crossLink "CSSPlugin"}}{{/crossLink}}
-         * for an example of how to write TweenJS plugins.
-         * @method installPlugin
-         * @static
-         * @param {Object} plugin The plugin class to install
-         * @param {Array} properties An array of properties that the plugin will handle.
-         */
-        TweenManager.prototype.installPlugin = function (plugin, properties) {
-            var priority = plugin.priority;
-            if (priority == null) {
-                plugin.priority = priority = 0;
-            }
-            for (var i = 0, l = properties.length, p = this._plugins; i < l; i++) {
-                var n = properties[i];
-                if (!p[n]) {
-                    p[n] = [plugin];
-                }
-                else {
-                    var arr = p[n];
-                    for (var j = 0, jl = arr.length; j < jl; j++) {
-                        if (priority < arr[j].priority) {
-                            break;
-                        }
-                    }
-                    p[n].splice(j, 0, plugin);
-                }
-            }
-        };
-        return TweenManager;
-    }());
-    jy.TweenManager = TweenManager;
-    __reflect(TweenManager.prototype, "jy.TweenManager");
-})(jy || (jy = {}));
 var jy;
 (function (jy) {
     /**
@@ -1287,12 +1027,12 @@ var jy;
         };
         Component.prototype.stageEvent = function (remove) {
             var handler = remove ? this.off : this.on;
-            handler.call(this, "addedToStage" /* ADDED_TO_STAGE */, this.awake, this);
-            handler.call(this, "removedFromStage" /* REMOVED_FROM_STAGE */, this.sleep, this);
+            handler.call(this, "addedToStage" /* ADDED_TO_STAGE */, this.onAwake, this);
+            handler.call(this, "removedFromStage" /* REMOVED_FROM_STAGE */, this.onSleep, this);
         };
-        Component.prototype.awake = function () {
+        Component.prototype.onAwake = function () {
         };
-        Component.prototype.sleep = function () {
+        Component.prototype.onSleep = function () {
         };
         Component.prototype.dispose = function () {
             this.removeAllListeners();
@@ -1385,6 +1125,266 @@ var jy;
     __reflect(Component.prototype, "jy.Component");
     ;
     addEnable(Component);
+})(jy || (jy = {}));
+/**
+ * 参考createjs和白鹭的tween
+ * 调整tick的驱动方式
+ * https://github.com/CreateJS/TweenJS
+ * @author 3tion
+ */
+var jy;
+(function (jy) {
+    var TweenManager = /** @class */ (function () {
+        function TweenManager() {
+            this._tweens = [];
+            /**
+             * 注册过的插件列表
+             * Key      {string}            属性
+             * Value    {ITweenPlugin[]}    插件列表
+             *
+             * @type {{ [index: string]: ITweenPlugin[] }}
+             */
+            this._plugins = {};
+        }
+        /**
+         * Returns a new tween instance. This is functionally identical to using "new Tween(...)", but looks cleaner
+         * with the chained syntax of TweenJS.
+         * <h4>Example</h4>
+         *
+         *		var tween = createjs. this.get(target);
+        *
+        * @method get
+        * @param {Object} target The target object that will have its properties tweened.
+        * @param {TweenOption} [props] The configuration properties to apply to this tween instance (ex. `{loop:true, paused:true}`).
+        * All properties default to `false`. Supported props are:
+        * <UL>
+        *    <LI> loop: sets the loop property on this tween.</LI>
+        *    <LI> useTicks: uses ticks for all durations instead of milliseconds.</LI>
+        *    <LI> ignoreGlobalPause: sets the {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}} property on
+        *    this tween.</LI>
+        *    <LI> override: if true, `createjs. this.removeTweens(target)` will be called to remove any other tweens with
+        *    the same target.
+        *    <LI> paused: indicates whether to start the tween paused.</LI>
+        *    <LI> position: indicates the initial position for this tween.</LI>
+        *    <LI> onChange: specifies a listener for the {{#crossLink "Tween/change:event"}}{{/crossLink}} event.</LI>
+        * </UL>
+        * @param {Object} [pluginData] An object containing data for use by installed plugins. See individual plugins'
+        * documentation for details.
+        * @param {Boolean} [override=false] If true, any previous tweens on the same target will be removed. This is the
+        * same as calling ` this.removeTweens(target)`.
+        * @return {Tween} A reference to the created tween. Additional chained tweens, method calls, or callbacks can be
+        * applied to the returned tween instance.
+        * @static
+        */
+        TweenManager.prototype.get = function (target, props, pluginData, override) {
+            if (override) {
+                this.removeTweens(target);
+            }
+            return new jy.Tween(target, props, pluginData, this);
+        };
+        /**
+         * 移除指定对象的所有tween
+         * Removes all existing tweens for a target. This is called automatically by new tweens if the `override`
+         * property is `true`.
+         * @method removeTweens
+         * @param {Object} target The target object to remove existing tweens from.
+         * @static
+         */
+        TweenManager.prototype.removeTweens = function (target) {
+            if (!target.tween_count) {
+                return;
+            }
+            var tweens = this._tweens;
+            var j = 0;
+            for (var i = 0, len = tweens.length; i < len; i++) {
+                var tween = tweens[i];
+                if (tween.target == target) {
+                    tween.paused = true;
+                    tween.onRecycle();
+                }
+                else {
+                    tweens[j++] = tween;
+                }
+            }
+            tweens.length = j;
+            target.tween_count = 0;
+        };
+        /**
+         * 移除单个tween
+         *
+         * @param {Tween} twn
+         * @returns
+         *
+         * @memberOf TweenManager
+         */
+        TweenManager.prototype.removeTween = function (twn) {
+            if (!twn) {
+                return;
+            }
+            var tweens = this._tweens;
+            for (var i = tweens.length - 1; i >= 0; i--) {
+                var tween = tweens[i];
+                if (tween == twn) {
+                    tween.paused = true;
+                    tweens.splice(i, 1);
+                    tween.onRecycle();
+                    break;
+                }
+            }
+        };
+        /**
+         * 暂停某个对象的全部Tween
+         *
+         * @static
+         * @param {*} target 指定对象
+         */
+        TweenManager.prototype.pauseTweens = function (target) {
+            if (!target.tween_count) {
+                return;
+            }
+            var tweens = this._tweens;
+            for (var i = tweens.length - 1; i >= 0; i--) {
+                if (tweens[i].target == target) {
+                    tweens[i].paused = true;
+                }
+            }
+        };
+        /**
+         * 恢复某个对象的全部Tween
+         *
+         * @static
+         * @param {*} target 指定对象
+         */
+        TweenManager.prototype.resumeTweens = function (target) {
+            if (!target.tween_count) {
+                return;
+            }
+            var tweens = this._tweens;
+            for (var i = tweens.length - 1; i >= 0; i--) {
+                if (tweens[i].target == target) {
+                    tweens[i].paused = false;
+                }
+            }
+        };
+        /**
+         * 由外部进行调用，进行心跳
+         * Advances all tweens. This typically uses the {{#crossLink "Ticker"}}{{/crossLink}} class, but you can call it
+         * manually if you prefer to use your own "heartbeat" implementation.
+         * @method tick
+         * @param {Number} delta The change in time in milliseconds since the last tick. Required unless all tweens have
+         * `useTicks` set to true.
+         * @param {Boolean} paused Indicates whether a global pause is in effect. Tweens with {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}}
+         * will ignore this, but all others will pause if this is `true`.
+         * @static
+         */
+        TweenManager.prototype.tick = function (delta, paused) {
+            if (!this._tweens.length) {
+                return;
+            }
+            var tweens = this._tweens.concat();
+            for (var i = tweens.length - 1; i >= 0; i--) {
+                var tween = tweens[i];
+                if ((paused && !tween.ignoreGlobalPause) || tween.paused) {
+                    continue;
+                }
+                tween.tick(tween._useTicks ? 1 : delta);
+            }
+        };
+        /**
+         * 将tween注册/注销到管理器中，
+         *
+         * @param {Tween} tween
+         * @param {boolean} [value] (description)
+         * @returns {void}
+         * @private 此方法只允许tween调用
+         */
+        TweenManager.prototype._register = function (tween, value) {
+            var target = tween.target;
+            var tweens = this._tweens;
+            if (value && !tween._registered) {
+                if (target) {
+                    target.tween_count = target.tween_count > 0 ? target.tween_count + 1 : 1;
+                }
+                tweens.push(tween);
+            }
+            else {
+                if (target) {
+                    target.tween_count--;
+                }
+                var i = tweens.length;
+                while (i--) {
+                    if (tweens[i] == tween) {
+                        tweens.splice(i, 1);
+                        tween.onRecycle();
+                        return;
+                    }
+                }
+            }
+        };
+        /**
+         * Stop and remove all existing tweens.
+         * 终止并移除所有的tween
+         * @method removeAllTweens
+         * @static
+         * @since 0.4.1
+         */
+        TweenManager.prototype.removeAllTweens = function () {
+            var tweens = this._tweens;
+            for (var i = 0, l = tweens.length; i < l; i++) {
+                var tween = tweens[i];
+                tween.paused = true;
+                tween.onRecycle();
+                tween.target.tweenjs_count = 0;
+            }
+            tweens.length = 0;
+        };
+        /**
+         * Indicates whether there are any active tweens (and how many) on the target object (if specified) or in general.
+         * @method hasActiveTweens
+         * @param {Object} [target] The target to check for active tweens. If not specified, the return value will indicate
+         * if there are any active tweens on any target.
+         * @return {Boolean} If there are active tweens.
+         * @static
+         */
+        TweenManager.prototype.hasActiveTweens = function (target) {
+            if (target) {
+                return target.tweenjs_count != null && !!target.tweenjs_count;
+            }
+            return this._tweens && !!this._tweens.length;
+        };
+        /**
+         * Installs a plugin, which can modify how certain properties are handled when tweened. See the {{#crossLink "CSSPlugin"}}{{/crossLink}}
+         * for an example of how to write TweenJS plugins.
+         * @method installPlugin
+         * @static
+         * @param {Object} plugin The plugin class to install
+         * @param {Array} properties An array of properties that the plugin will handle.
+         */
+        TweenManager.prototype.installPlugin = function (plugin, properties) {
+            var priority = plugin.priority;
+            if (priority == null) {
+                plugin.priority = priority = 0;
+            }
+            for (var i = 0, l = properties.length, p = this._plugins; i < l; i++) {
+                var n = properties[i];
+                if (!p[n]) {
+                    p[n] = [plugin];
+                }
+                else {
+                    var arr = p[n];
+                    for (var j = 0, jl = arr.length; j < jl; j++) {
+                        if (priority < arr[j].priority) {
+                            break;
+                        }
+                    }
+                    p[n].splice(j, 0, plugin);
+                }
+            }
+        };
+        return TweenManager;
+    }());
+    jy.TweenManager = TweenManager;
+    __reflect(TweenManager.prototype, "jy.TweenManager");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -1529,6 +1529,1323 @@ var jy;
             _intervals.remove(callback);
         },
     };
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    /**
+     * 扩展一个实例，如果A类型实例本身并没有B类型的方法，则直接对实例的属性进行赋值，否则将不会赋值
+     *
+     * @export
+     * @template A
+     * @template B
+     * @param {A} instance                  要扩展的实例
+     * @param {{ prototype: B }} clazzB     需要扩展的对象方法
+     * @param {boolean} override            是否强制覆盖原有方法
+     * @returns {(A & B)}
+     */
+    function expandInstance(instance, clazzB) {
+        var keys = [];
+        for (var _i = 2; _i < arguments.length; _i++) {
+            keys[_i - 2] = arguments[_i];
+        }
+        var bpt = clazzB.prototype;
+        for (var _a = 0, _b = Object.getOwnPropertyNames(bpt); _a < _b.length; _a++) {
+            var name_1 = _b[_a];
+            if (!keys || ~keys.indexOf(name_1)) {
+                var define = bpt.getPropertyDescriptor(name_1);
+                if (define) {
+                    Object.defineProperty(instance, name_1, define);
+                }
+                else {
+                    instance[name_1] = bpt[name_1];
+                }
+            }
+        }
+        return instance;
+    }
+    jy.expandInstance = expandInstance;
+    /**
+     * 将类型A扩展类型B的指定属性，并返回引用
+     *
+     * @export
+     * @template A
+     * @template B
+     * @template K
+     * @template B
+     * @param {{ prototype: A }} clazzA     要被扩展的类型
+     * @param {{ prototype: B }} clazzB     扩展的模板，已经模板的父类型也会作为模板
+     * @param {...K[]} keys      如果没有参数，则将B的全部属性复制给类型A
+     * @returns {(A & Record<K, B>)}
+     */
+    function expand(clazzA, clazzB) {
+        var keys = [];
+        for (var _i = 2; _i < arguments.length; _i++) {
+            keys[_i - 2] = arguments[_i];
+        }
+        _expand(clazzA.prototype, clazzB.prototype, keys);
+        return clazzA;
+    }
+    jy.expand = expand;
+    function _expand(pt, bpt, keys) {
+        for (var _i = 0, _a = Object.getOwnPropertyNames(bpt); _i < _a.length; _i++) {
+            var name_2 = _a[_i];
+            if (!keys || ~keys.indexOf(name_2)) {
+                if (!(name_2 in pt)) {
+                    pt[name_2] = bpt[name_2];
+                }
+            }
+        }
+        var sup = Object.getPrototypeOf(bpt);
+        if (sup) {
+            return _expand(pt, sup, keys);
+        }
+    }
+    /**
+     * 获取一个复合类型
+     *
+     * @export
+     * @template A
+     * @template B
+     * @param {{ prototype: A }} clazzA     类型A
+     * @param {{ prototype: B }} clazzB     类型B
+     * @returns
+     */
+    function getMixin(clazzA, clazzB) {
+        var merged = function () { };
+        if (Object.assign) { //高级版本的浏览器有Object.assign原生方法
+            Object.assign(merged.prototype, clazzA.prototype, clazzB.prototype);
+        }
+        else {
+            merged = expand(merged, clazzA);
+            merged = expand(merged, clazzB);
+        }
+        return merged;
+    }
+    jy.getMixin = getMixin;
+    /**
+     * 拷贝属性
+     *
+     * @export
+     * @template To
+     * @template From
+     * @param {To} to
+     * @param {From} from
+     * @param {keyof B} key
+     */
+    function copyProperty(to, from, key) {
+        Object.defineProperty(to, key, Object.getOwnPropertyDescriptor(from, key));
+    }
+    jy.copyProperty = copyProperty;
+    /**
+     * 批量拷贝属性
+     *
+     * @export
+     * @template To
+     * @template From
+     * @param {To} to
+     * @param {From} from
+     * @param {...(keyof From)[]} keys
+     */
+    function copyProperties(to, from) {
+        var keys = [];
+        for (var _i = 2; _i < arguments.length; _i++) {
+            keys[_i - 2] = arguments[_i];
+        }
+        for (var i = 0; i < keys.length; i++) {
+            var key = keys[i];
+            copyProperty(to, from, key);
+        }
+    }
+    jy.copyProperties = copyProperties;
+})(jy || (jy = {}));
+if (true) {
+    var $gm = $gm || {};
+    $gm.__getNSFilter = function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        var nsFilter = {};
+        if (args.length) {
+            var filter = args[0];
+            if (filter != undefined) {
+                var tof = typeof filter;
+                if (tof === "function") {
+                    nsFilter.filter = filter;
+                    nsFilter.filterParams = args.slice(1);
+                }
+                else {
+                    if (tof === "boolean") {
+                        nsFilter.isWhite = filter;
+                        nsFilter.cmds = args.slice(1);
+                    }
+                    else if (tof === "number") {
+                        nsFilter.cmds = args;
+                    }
+                }
+            }
+        }
+        return nsFilter;
+    };
+    $gm.print = function () {
+        $gm.printSend();
+        $gm.printReceive();
+    };
+    $gm.printSend = function (filter) {
+        var args = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            args[_i - 1] = arguments[_i];
+        }
+        if (arguments.length == 0 && $gm.printSendFilter) {
+            $gm.printSendFilter = undefined;
+        }
+        else {
+            $gm.printSendFilter = $gm.__getNSFilter.apply($gm, [filter].concat(args));
+        }
+    };
+    $gm.printReceive = function (filter) {
+        var args = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            args[_i - 1] = arguments[_i];
+        }
+        if (arguments.length == 0 && $gm.printReceiveFilter) {
+            $gm.printReceiveFilter = undefined;
+        }
+        else {
+            $gm.printReceiveFilter = $gm.__getNSFilter.apply($gm, [filter].concat(args));
+        }
+    };
+    $gm.showNSLog = function (filter) {
+        var args = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            args[_i - 1] = arguments[_i];
+        }
+        var nsFilter = $gm.__getNSFilter.apply($gm, [filter].concat(args));
+        var output = [];
+        var msg = "";
+        $gm.nsLogs.forEach(function (log) {
+            if ($gm.__nsLogCheck(log, nsFilter)) {
+                output.push({ type: log.type, time: log.time, cmd: log.cmd, data: log.data, json: JSON.stringify(log.data) });
+                msg += log.time + "\t" + log.type + "\t" + log.cmd + "\t" + JSON.stringify(log.data) + "\n";
+            }
+        });
+        console.table(output);
+        jy.doCopy(msg) && console.log("%c 已将网络数据复制到剪贴板", "color:red;font-size:50px;");
+        return output;
+    };
+    $gm.__nsLogCheck = function (log, nsFilter) {
+        var cmd = log.cmd;
+        if (nsFilter) {
+            var filter = nsFilter.filter, cmds = nsFilter.cmds, filterParams = nsFilter.filterParams, isWhite = nsFilter.isWhite;
+            if (cmds) {
+                var idx = cmds.indexOf(cmd);
+                if (isWhite && ~idx || !isWhite && !~idx) {
+                    return true;
+                }
+            }
+            else if (filter) {
+                return filter.apply(void 0, [log].concat(filterParams));
+            }
+            else {
+                return true;
+            }
+        }
+    };
+    $gm.maxNSLogCount = 1000;
+    $gm.nsLogs = [];
+    $gm.route = function (cmd, data) {
+        jy.NetService.get().route(cmd, data);
+    };
+    $gm.batchRoute = function (logs) {
+        //过滤send
+        logs = logs.filter(function (log) {
+            return log.type != "send";
+        });
+        if (logs.length) {
+            var time_1 = logs[0].time | 0;
+            logs.forEach(function (log) {
+                setTimeout($gm.route, (log.time | 0) - time_1, log.cmd, log.data);
+            });
+        }
+    };
+}
+var jy;
+(function (jy) {
+    jy.NSBytesLen = {
+        /**NSType.Null */ 0: 0,
+        /**NSType.Boolean */ 1: 1,
+        /**NSType.Double */ 5: 8,
+        /**NSType.Int32 */ 6: 4,
+        /**NSType.Uint32 */ 7: 4,
+        /**NSType.Int64 */ 8: 8
+    };
+    /**
+     * 用于存储头部的临时变量
+     */
+    jy.nsHeader = { cmd: 0, len: 0 };
+    function send2(cmd, data, msgType, limit) {
+        if (jy.RequestLimit.check(cmd, limit)) {
+            this._send(cmd, data, msgType);
+        }
+        else {
+            jy.dispatch(-189 /* NetServiceSendLimit */, cmd);
+        }
+    }
+    /**
+     * 通信服务
+     * 收发的协议结构：
+     * 2字节协议号 2字节包长度(n) n字节包
+     * @author 3tion
+     *
+     */
+    var NetService = /** @class */ (function () {
+        function NetService() {
+            var _this = this;
+            this.netChange = function () {
+                if (navigator.onLine) {
+                    jy.dispatch(-192 /* Online */);
+                    _this.showReconnect();
+                }
+                else {
+                    jy.dispatch(-191 /* Offline */);
+                }
+            };
+            /**
+             * 基础连接时间
+             *
+             *
+             * @memberOf NetService
+             */
+            this.baseConTime = 10000;
+            /**
+             * 最大连接时间
+             *
+             *
+             * @memberOf NetService
+             */
+            this.maxConTime = 60000 /* ONE_MINUTE */;
+            /**
+             * 重连次数
+             *
+             * @private
+             * @type {number}
+             * @memberOf NetService
+             */
+            this._reconCount = 0;
+            /**
+             * 下次自动拉取请求的时间戳
+             */
+            this._nextAutoTime = 0;
+            this._router = new jy.NetRouter();
+            this._pcmdList = [];
+            this._tmpList = [];
+            this._readBuffer = new jy.ByteArray();
+            this._sendBuffer = new jy.ByteArray();
+            this._tempBytes = new jy.ByteArray();
+            this._receiveMSG = {};
+            if (true) {
+                this.$writeNSLog = function (time, type, cmd, data) {
+                    data = data == undefined ? undefined : JSON.parse(JSON.stringify(data));
+                    var log = doFreeze({ time: time, type: type, cmd: cmd, data: data });
+                    var nsLogs = $gm.nsLogs;
+                    //清理多余的日志
+                    while (nsLogs.length > $gm.maxNSLogCount) {
+                        nsLogs.shift();
+                    }
+                    nsLogs.push(log);
+                    var nsFilter = type == "send" ? $gm.printSendFilter : $gm.printReceiveFilter;
+                    if ($gm.__nsLogCheck(log, nsFilter)) {
+                        console.log(type, time, cmd, data);
+                    }
+                    function doFreeze(obj) {
+                        if (typeof obj == "object" && obj) {
+                            var pool = [obj];
+                            while (pool.length) {
+                                var tmp = pool.pop();
+                                Object.freeze(tmp);
+                                for (var key in tmp) {
+                                    var x = tmp[key];
+                                    if (typeof x == "object" && x) {
+                                        pool.push(x);
+                                    }
+                                }
+                            }
+                        }
+                        return obj;
+                    }
+                };
+            }
+            if (window.addEventListener) { //防止native报错
+                addEventListener("online", this.netChange);
+                addEventListener("offline", this.netChange);
+            }
+            jy.on(-190 /* Awake */, this.onawake, this);
+        }
+        NetService.prototype.setLimitEventEmitable = function (emit) {
+            if (emit) {
+                this.send = send2;
+            }
+            else {
+                delete this.send;
+            }
+        };
+        NetService.get = function () {
+            return this._ins;
+        };
+        NetService.prototype.setEndian = function (endian) {
+            this._sendBuffer.$endian = this._readBuffer.$endian = this._tempBytes.$endian = endian;
+        };
+        NetService.prototype.showReconnect = function () {
+            this._reconCount += 1;
+            var time = this._reconCount * this.baseConTime;
+            var maxConTime = this.maxConTime;
+            if (time > maxConTime) {
+                time = maxConTime;
+            }
+            this._nextAutoTime = jy.Global.now + time;
+            jy.dispatch(-194 /* ShowReconnect */, this._reconCount);
+        };
+        NetService.prototype.onawake = function () {
+            this._reconCount = 0;
+            this._nextAutoTime = jy.Global.now + this._autoTimeDelay;
+        };
+        /**
+         * 基础类型消息
+         */
+        NetService.prototype.regReceiveMSGRef = function (cmd, ref) {
+            this._receiveMSG[cmd] = ref;
+        };
+        /**
+         * 注册处理器
+         * @param {number} cmd 协议号
+         * @param {INetHandler} handler 处理网络数据的处理器
+         * @param {number} [priority=0] 处理优先级
+         */
+        NetService.prototype.register = function (cmd, handler, priotity) {
+            if (priotity === void 0) { priotity = 0; }
+            return this._register(cmd, handler, priotity, false);
+        };
+        /**
+         * 注册单次执行的处理器
+         * @param {number} cmd 协议号
+         * @param {INetHandler} handler 处理网络数据的处理器
+         * @param {number} [priority=0] 处理优先级
+         */
+        NetService.prototype.regOnce = function (cmd, handler, priotity) {
+            if (priotity === void 0) { priotity = 0; }
+            return this._register(cmd, handler, priotity, true);
+        };
+        /**
+         * 移除协议号和处理器的监听
+         *
+         * @param {number} cmd 协议号
+         * @param {INetHandler} handler 处理网络数据的处理器
+         */
+        NetService.prototype.remove = function (cmd, handler) {
+            this._router.remove(cmd, handler);
+        };
+        NetService.prototype._register = function (cmd, handler, priotity, once) {
+            if (cmd > 32767 || cmd < -32768) {
+                if (true) {
+                    jy.Log("\u534F\u8BAE\u53F7\u7684\u8303\u56F4\u5FC5\u987B\u662F-32768~32767\u4E4B\u95F4\uFF0C\u5F53\u524Dcmd:" + cmd);
+                }
+                return false;
+            }
+            this._router.register(cmd, handler, priotity, once);
+            return true;
+        };
+        /**
+         * 即时发送指令<br/>
+         * 用于处理角色主动操作的请求，如点击合成道具，使用物品等
+         * @param {number} cmd 协议号
+         * @param {any} [data] 数据，简单数据(number,boolean,string)复合数据
+         * @param {string} [msgType] 如果是复合数据，必须有此值
+         * @param {number} [limit] 客户端发送时间限制，默认500毫秒
+         */
+        NetService.prototype.send = function (cmd, data, msgType, limit) {
+            if (jy.RequestLimit.check(cmd, limit)) {
+                this._send(cmd, data, msgType);
+            }
+        };
+        /**
+         * 断开连接
+         */
+        NetService.prototype.disconnect = function () {
+            // TODO
+        };
+        /**
+         * 消极发送指令
+         * 如果使用通协议的指令，有堆积的指令，先合并，新的替换旧的
+         * __`请勿将一些用户操作使用此指令发送`__
+         * 处理一些实时性要求不高的指令，这些指令先缓存堆积，等到用户主动发指令的时候，一起发送
+         * @param {number} cmd 协议号
+         * @param {any} [data] 数据，简单数据(number,boolean,string)复合数据
+         * @param {string} [msgType] 如果是复合数据，必须有此值
+         */
+        NetService.prototype.sendPassive = function (cmd, data, msgType) {
+            //合并同协议的指令
+            var pcmdList = this._pcmdList;
+            var len = pcmdList.length;
+            for (var _i = 0, pcmdList_1 = pcmdList; _i < pcmdList_1.length; _i++) {
+                var temp = pcmdList_1[_i];
+                if (temp.cmd == cmd) {
+                    temp.data = data;
+                    return;
+                }
+            }
+            //没有同协议的指令，新增数据
+            var pdata = jy.recyclable(jy.NetSendData);
+            pdata.cmd = cmd;
+            pdata.data = data;
+            pdata.msgType = msgType;
+            //将数据缓存在pcmdList中，等到下次send的时候发送
+            this._pcmdList[len] = pdata;
+        };
+        /**
+         * 向缓冲数组中写入数据
+         */
+        NetService.prototype.writeToBuffer = function (bytes, data) {
+            var cmd = data.cmd;
+            var dat = data.data;
+            var type = data.msgType;
+            bytes.writeShort(cmd);
+            if (dat == undefined) {
+                this.writeBytesLength(bytes, 0);
+                if (true) {
+                    var outdata = undefined;
+                }
+            }
+            else {
+                if (type in jy.NSBytesLen) {
+                    this.writeBytesLength(bytes, jy.NSBytesLen[type]);
+                }
+                if (true) {
+                    outdata = dat;
+                }
+                switch (type) {
+                    case 0 /* Null */:
+                        if (true) {
+                            outdata = undefined;
+                        }
+                        break;
+                    case 1 /* Boolean */:
+                        bytes.writeBoolean(dat);
+                        break;
+                    case 5 /* Double */:
+                        bytes.writeDouble(dat);
+                        break;
+                    case 6 /* Int32 */:
+                        bytes.writeInt(dat);
+                        break;
+                    case 7 /* Uint32 */:
+                        bytes.writeUnsignedInt(dat);
+                        break;
+                    case 8 /* Int64 */:
+                        bytes.writeInt64(dat);
+                        break;
+                    case 2 /* String */:
+                        bytes.writeUTF(dat);
+                        break;
+                    case 4 /* Bytes */:
+                        var b = dat;
+                        bytes.writeUnsignedShort(b.length);
+                        bytes.writeBytes(b);
+                        if (true) {
+                            outdata = Uint8Array.from(b.bytes);
+                        }
+                        break;
+                    default:
+                        var tempBytes = this._tempBytes;
+                        tempBytes.clear();
+                        if (true) {
+                            outdata = {};
+                            jy.PBUtils.writeTo(dat, data.msgType, tempBytes, outdata);
+                        }
+                        else {
+                            jy.PBUtils.writeTo(dat, data.msgType, tempBytes);
+                        }
+                        this.writeBytesLength(bytes, tempBytes.length);
+                        bytes.writeBytes(tempBytes);
+                        break;
+                }
+            }
+            if (true) {
+                this.$writeNSLog(jy.Global.now, "send", cmd, outdata);
+            }
+        };
+        /**
+         * @private
+         * @param bytes
+         * @param out
+         */
+        NetService.prototype.decodeBytes = function (bytes) {
+            var receiveMSG = this._receiveMSG;
+            var tmpList = this._tmpList;
+            var idx = 0;
+            var header = jy.nsHeader;
+            var decodeHeader = this.decodeHeader;
+            while (true) {
+                if (!decodeHeader(bytes, header)) {
+                    //回滚
+                    break;
+                }
+                var cmd = header.cmd, len = header.len;
+                //尝试读取结束后，应该在的索引
+                var endPos = bytes.position + len;
+                var type = receiveMSG[cmd];
+                if (type !== undefined) {
+                    var flag = true;
+                    var data = undefined;
+                    if (len > 0 && type in jy.NSBytesLen) {
+                        var blen = jy.NSBytesLen[type];
+                        if (true && blen != len) {
+                            jy.Log("\u89E3\u6790\u6307\u4EE4\u65F6\uFF0C\u7C7B\u578B[" + type + "]\u7684\u6307\u4EE4\u957F\u5EA6[" + len + "]\u548C\u9884\u8BBE\u7684\u957F\u5EA6[" + blen + "]\u4E0D\u5339\u914D");
+                        }
+                        if (len < blen) {
+                            flag = false;
+                        }
+                    }
+                    if (flag) {
+                        switch (type) {
+                            case 0 /* Null */:
+                                break;
+                            case 1 /* Boolean */:
+                                data = bytes.readBoolean();
+                                break;
+                            case 5 /* Double */:
+                                data = bytes.readDouble();
+                                break;
+                            case 6 /* Int32 */:
+                                data = bytes.readInt();
+                                break;
+                            case 7 /* Uint32 */:
+                                data = bytes.readUnsignedInt();
+                                break;
+                            case 8 /* Int64 */:
+                                data = bytes.readInt64();
+                                break;
+                            case 2 /* String */:
+                                data = bytes.readUTFBytes(len);
+                                break;
+                            case 4 /* Bytes */:
+                                data = bytes.readByteArray(len);
+                                break;
+                            default:
+                                data = jy.PBUtils.readFrom(type, bytes, len);
+                                break;
+                        }
+                    }
+                    if (flag) {
+                        //容错用，不管数据解析成功或者失败，将索引移至结束索引
+                        var nData = jy.recyclable(jy.NetData);
+                        nData.cmd = cmd;
+                        nData.data = data;
+                        tmpList[idx++] = nData;
+                    }
+                }
+                else if (true) {
+                    jy.Log("\u901A\u4FE1\u6D88\u606F\u89E3\u6790\u65F6cmd[" + cmd + "]\uFF0C\u51FA\u73B0\u672A\u6CE8\u518C\u7684\u7C7B\u578B");
+                }
+                bytes.position = endPos;
+            }
+            //调试时,显示接收的数据
+            if (true) {
+                var now = jy.Global.now;
+                //分发数据
+                for (var i = 0; i < idx; i++) {
+                    var ndata = tmpList[i];
+                    this.$writeNSLog(now, "receive", ndata.cmd, ndata.data);
+                }
+            }
+            var router = this._router;
+            //分发数据
+            for (var i = 0; i < idx; i++) {
+                var nData = tmpList[i];
+                router.dispatch(nData);
+            }
+        };
+        /**
+         * 解析头部信息
+         *
+         * @protected
+         * @param {ByteArray} bytes
+         * @param {NSHeader} header
+         * @returns 是否可以继续  true    继续后续解析
+         *                       false   取消后续解析
+         * @memberof NetService
+         */
+        NetService.prototype.decodeHeader = function (bytes, header) {
+            if (bytes.readAvailable < 4) {
+                return false;
+            }
+            //先读取2字节协议号
+            header.cmd = bytes.readShort();
+            //增加2字节的数据长度读取(这2字节是用于增加容错的，方便即便没有读到type，也能跳过指定长度的数据，让下一个指令能正常处理)
+            var len = bytes.readUnsignedShort();
+            if (bytes.readAvailable < len) {
+                // 回滚
+                bytes.position -= 4;
+                return false;
+            }
+            header.len = len;
+            return true;
+        };
+        /**
+         * 存储数据长度
+         *
+         * @protected
+         * @param {ByteArray} bytes
+         * @param {number} val
+         * @memberof NetService
+         */
+        NetService.prototype.writeBytesLength = function (bytes, val) {
+            bytes.writeUnsignedShort(val);
+        };
+        /**
+         *
+         * 模拟服务端
+         * @param {number} cmd
+         * @param {*} [data]
+         */
+        NetService.prototype.route = function (cmd, data) {
+            var nData = jy.recyclable(jy.NetData);
+            nData.cmd = cmd;
+            nData.data = data;
+            this._router.dispatch(nData);
+        };
+        return NetService;
+    }());
+    jy.NetService = NetService;
+    __reflect(NetService.prototype, "jy.NetService");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    /**
+     * 状态机
+     * @author 3tion
+     */
+    var StateMachine = /** @class */ (function () {
+        function StateMachine() {
+            this.swis = {};
+            this.liss = [];
+            this._stas = [];
+        }
+        Object.defineProperty(StateMachine.prototype, "states", {
+            /**
+             * 获取当前已有的状态列表
+             *
+             * @readonly
+             */
+            get: function () {
+                return this._stas;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        StateMachine.prototype.add = function (value) {
+            if (!value) {
+                true && jy.ThrowError("addStateListener没有设置正确!");
+            }
+            this.liss.pushOnce(value);
+        };
+        StateMachine.prototype.remove = function (value) {
+            this.liss.remove(value);
+        };
+        StateMachine.prototype.addToStates = function () {
+            var args = arguments;
+            var value = args[0];
+            if (!value) {
+                true && jy.ThrowError("addToStateList没有设置正确!");
+            }
+            for (var i = 1; i < args.length; i++) {
+                this.addToState(args[i], value);
+            }
+        };
+        /**
+         * 从所有状态中删除侦听;
+         * @param value
+         *
+         */
+        StateMachine.prototype.removeAllState = function (value) {
+            if (!value) {
+                return;
+            }
+            var states = this._stas;
+            for (var i = 0; i < states.length; i++) {
+                this.removeFromState(states[i], value);
+            }
+        };
+        /**
+         * 从单个状态中,删了一个具体侦听;
+         * @param type
+         * @param value
+         * @return
+         *
+         */
+        StateMachine.prototype.removeFromState = function (state, value) {
+            var list = this.swis[state];
+            return list && list.remove(value);
+        };
+        /**
+         * 单个状态中加入一个侦听;
+         * @param value
+         * @param list
+         *
+         */
+        StateMachine.prototype.addToState = function (state, value) {
+            if (!value) {
+                jy.ThrowError("addToState没有设置正确!");
+            }
+            var list = this.swis[state];
+            if (list) {
+                if (~list.indexOf(value))
+                    return;
+            }
+            else {
+                this.swis[state] = list = [];
+                this._stas.push(state);
+            }
+            list.push(value);
+            if (this.current == state) {
+                value.awakeBy(this.current);
+            }
+        };
+        /**
+         *  清理状态机;
+         *
+         */
+        StateMachine.prototype.clear = function () {
+            this.swis = {};
+            this.liss.length = 0;
+            this.current = undefined;
+        };
+        /**
+         * 设置当前的状态
+         * @param value
+         *
+         */
+        StateMachine.prototype.setState = function (value) {
+            var old = this.current;
+            if (old == value) {
+                return;
+            }
+            this.current = value;
+            var states = this.swis;
+            var oldList = states[old];
+            var newList = states[value];
+            var newLen = newList && newList.length || 0;
+            //新的开启
+            if (this.checkBeforeSleep) {
+                for (var i = 0; i < newLen; i++) {
+                    var item = newList[i];
+                    item.beforeLastSleep && item.beforeLastSleep(value);
+                }
+            }
+            //旧的关闭
+            if (oldList) {
+                for (var i = 0; i < oldList.length; i++) {
+                    var item = oldList[i];
+                    if (!newList || !~newList.indexOf(item)) {
+                        item.sleepBy && item.sleepBy(value);
+                    }
+                }
+            }
+            //新的开启
+            for (var i = 0; i < newLen; i++) {
+                var item = newList[i];
+                item.awakeBy && item.awakeBy(value);
+            }
+            var aways = this.liss;
+            if (aways) {
+                for (var i = 0; i < aways.length; i++) {
+                    aways[i].setState(value);
+                }
+            }
+        };
+        /**
+         * 检查状态实现(switcher)是否添加到某个状态中
+         *
+         * @param {IStateSwitcher} switcher    某个状态实现
+         * @param {Key} [type] 状态
+         * @returns {boolean}
+         */
+        StateMachine.prototype.isInState = function (switcher, type) {
+            type == void 0 && (type = this.current);
+            var list = this.swis[type];
+            if (list) {
+                return list.indexOf(switcher) > -1;
+            }
+        };
+        return StateMachine;
+    }());
+    jy.StateMachine = StateMachine;
+    __reflect(StateMachine.prototype, "jy.StateMachine", ["jy.IStateListener"]);
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    var structDict = {};
+    /**
+     * protobuf wiretype的字典
+     * key  {number}    ProtoBuf的类型
+     * Value {number}   WireType
+     *
+     * @private
+     * @static
+     * @type {{ [index: number]: number }}
+     */
+    var wireTypeMap = [
+        /* 无 */ ,
+        /* PBType.Double */ 1,
+        /* PBType.Float */ 5,
+        /* PBType.Int64 */ 0,
+        /* PBType.UInt64 */ 0,
+        /* PBType.Int32 */ 0,
+        /* PBType.Fixed64 */ 1,
+        /* PBType.Fixed32 */ 5,
+        /* PBType.Bool */ 0,
+        /* PBType.String */ 2,
+        /* PBType.Group */ ,
+        /* PBType.Message */ 2,
+        /* PBType.Bytes */ 2,
+        /* PBType.Uint32 */ 0,
+        /* PBType.Enum */ 0,
+        /* PBType.SFixed32 */ 5,
+        /* PBType.SFixed64 */ 1,
+        /* PBType.SInt32 */ 0,
+        /* PBType.SInt64 */ 0
+    ];
+    /**
+     * 消息定义的字典
+     */
+    var defDict = {};
+    function regDef(m, def) {
+        var msg;
+        if (typeof m != "object") {
+            msg = structDict[m];
+            if (!msg) {
+                defDict[m] = def;
+                return;
+            }
+        }
+        else {
+            msg = m;
+        }
+        Object.defineProperty(msg, "def" /* defKey */, {
+            value: def
+        });
+    }
+    /**
+     * 注册消息的结构
+     * @param msgType 消息类型标识
+     * @param struct 结构
+     */
+    function regStruct(msgType, struct) {
+        if (true && (msgType in structDict)) {
+            jy.ThrowError("PB\u7684\u7ED3\u6784\u5B9A\u4E49\u7684key[" + msgType + "]\u6CE8\u518C\u91CD\u590D");
+        }
+        var def = defDict[msgType];
+        if (def) {
+            regDef(struct, def);
+        }
+        //检查处理默认值
+        initDefault(struct);
+        structDict[msgType] = struct;
+    }
+    function initDefault(struct, ref) {
+        //检查处理默认值
+        for (var idx in struct) {
+            var body = struct[idx];
+            //0 key
+            //1 required optional repeated
+            //2 数据类型
+            //3 Message
+            //4 默认值
+            if (4 in body) { //有默认值
+                var def = struct.def;
+                if (!def) {
+                    def = ref && ref.prototype || {};
+                    //不使用encode.def=def=[]; 是为了防止def被遍历
+                    Object.defineProperty(struct, "def" /* defKey */, {
+                        value: def
+                    });
+                }
+                //消息中没有对应key的数据，先赋值成默认值，等待后续处理
+                def[body[0]] = body[4];
+            }
+        }
+        if (ref) {
+            struct.ref = ref;
+        }
+    }
+    /**
+     *
+     * @author 3tion
+     * ProtoBuf工具集
+     *
+     */
+    jy.PBUtils = {
+        /**
+         * 注册定义
+         */
+        regDef: regDef,
+        regStruct: regStruct,
+        /**
+         * 初始化默认值
+         */
+        initDefault: initDefault,
+        /**
+         * 增加ProtoBuf的消息的结构字典
+         *
+         * @static
+         * @param {PBStructDict} dict
+         *
+         * @memberOf PBMessageUtils
+         */
+        add: function (dict) {
+            //对默认值做预处理，减少后期遍历次数
+            if (dict) {
+                if (!dict.$$inted) { //检查字典是否初始化过
+                    for (var name_3 in dict) {
+                        var struct = dict[name_3];
+                        if (typeof struct != "object") {
+                            var cycle = [name_3, struct];
+                            while (true) { //防止出现多重关联的情况 
+                                struct = dict[struct];
+                                if (struct == null) { //或者undefiend
+                                    return true && jy.Log("\u6DFB\u52A0ProtoBuf\u5B57\u5178\u6709\u8BEF\uFF0C\u8BF7\u68C0\u67E5\u6570\u636E");
+                                }
+                                if (typeof struct == "object") {
+                                    break;
+                                }
+                                if (~cycle.indexOf(struct)) {
+                                    return true && jy.Log("\u6DFB\u52A0ProtoBuf\u5B57\u5178\u6709\u8BEF\uFF0C\u51FA\u73B0\u5FAA\u73AF\u7684\u914D\u7F6E");
+                                }
+                                cycle.push(struct);
+                            }
+                        }
+                        regStruct(name_3, struct);
+                    }
+                    dict.$$inted = 1;
+                }
+            }
+        },
+        readFrom: readFrom,
+        writeTo: writeTo
+    };
+    /**
+     * 读取消息
+     *
+     * @param {(Key | PBStruct)} msgType
+     * @param {ByteArray} bytes
+     * @param {number} [len]
+     * @returns {any}
+     */
+    function readFrom(msgType, bytes, len) {
+        if (len === undefined)
+            len = -1;
+        var afterLen = 0;
+        if (len > -1) {
+            afterLen = bytes.bytesAvailable - len;
+        }
+        var struct = typeof msgType == "object" ? msgType : structDict[msgType];
+        if (!struct) {
+            jy.ThrowError("\u975E\u6CD5\u7684\u901A\u4FE1\u7C7B\u578B[" + msgType + "]");
+            return;
+        }
+        //检查处理默认值
+        var ref = struct.ref, def = struct.def;
+        var msg = ref ? new ref() : def ? Object.create(struct.def) : {};
+        while (bytes.bytesAvailable > afterLen) {
+            var tag = bytes.readVarint();
+            if (tag == 0)
+                continue;
+            var idx = tag >>> 3;
+            var body = struct[idx];
+            if (!body) {
+                jy.ThrowError("\u8BFB\u53D6\u6D88\u606F\u7C7B\u578B\u4E3A\uFF1A" + msgType + "\uFF0C\u7D22\u5F15" + idx + "\u65F6\u6570\u636E\u51FA\u73B0\u9519\u8BEF\uFF0C\u627E\u4E0D\u5230\u5BF9\u5E94\u7684\u6570\u636E\u7ED3\u6784\u914D\u7F6E");
+                // 使用默认读取
+                readValue(tag, bytes);
+                continue;
+            }
+            var name_4 = body[0];
+            var label = body[1];
+            var type = body[2];
+            var subMsgType = body[3];
+            var value = void 0;
+            var isRepeated = label == 3 /* Repeated */;
+            if (!isRepeated || (tag & 7) != 7) { //自定义  tag & 0b111 == 7 为 数组中 undefined的情况
+                switch (type) {
+                    case 1 /* Double */:
+                        value = bytes.readPBDouble();
+                        break;
+                    case 2 /* Float */:
+                        value = bytes.readPBFloat();
+                        break;
+                    case 3 /* Int64 */:
+                    case 4 /* UInt64 */:
+                    case 18 /* SInt64 */:
+                        value = bytes.readVarint64(); //理论上项目不使用
+                        break;
+                    case 17 /* SInt32 */:
+                        value = decodeZigzag32(bytes.readVarint());
+                        break;
+                    case 5 /* Int32 */:
+                    case 13 /* Uint32 */:
+                    case 14 /* Enum */:
+                        value = bytes.readVarint();
+                        break;
+                    case 6 /* Fixed64 */:
+                    case 16 /* SFixed64 */:
+                        value = bytes.readFix64(); //理论上项目不使用
+                        break;
+                    case 7 /* Fixed32 */:
+                        value = bytes.readFix32();
+                        break;
+                    case 8 /* Bool */:
+                        value = bytes.readBoolean();
+                        break;
+                    case 9 /* String */:
+                        value = readString(bytes);
+                        break;
+                    case 10 /* Group */: //(protobuf 已弃用)
+                        value = undefined;
+                        if (true) {
+                            jy.ThrowError("\u8BFB\u53D6\u6D88\u606F\u7C7B\u578B\u4E3A\uFF1A" + msgType + "\uFF0C\u7D22\u5F15" + idx + "\u65F6\u6570\u636E\u51FA\u73B0\u5DF2\u5F03\u7528\u7684GROUP\u5206\u7EC4\u7C7B\u578B");
+                        }
+                        break;
+                    case 11 /* Message */: //消息
+                        value = readMessage(bytes, subMsgType);
+                        break;
+                    case 12 /* Bytes */:
+                        value = readBytes(bytes);
+                        break;
+                    case 15 /* SFixed32 */:
+                        value = bytes.readSFix32();
+                        break;
+                    default:
+                        value = readValue(tag, bytes);
+                }
+            }
+            if (isRepeated) { //repeated
+                var arr = msg[name_4];
+                if (!arr)
+                    msg[name_4] = arr = [];
+                arr.push(value);
+            }
+            else {
+                msg[name_4] = value;
+            }
+        }
+        return msg;
+    }
+    function readValue(tag, bytes) {
+        var wireType = tag & 7;
+        var value;
+        switch (wireType) {
+            case 0: //Varint	int32, int64, uint32, uint64, sint32, sint64, bool, enum
+                value = bytes.readVarint();
+                break;
+            case 2: //Length-delimi	string, bytes, embedded messages, packed repeated fields
+                value = readString(bytes);
+                break;
+            case 5: //32-bit	fixed32, sfixed32, float
+                value = bytes.readInt();
+                break;
+            case 1: //64-bit	fixed64, sfixed64, double
+                value = bytes.readDouble();
+                break;
+            default:
+                jy.ThrowError("protobuf的wireType未知");
+                break;
+        }
+        return value;
+    }
+    function readString(bytes) {
+        var blen = bytes.readVarint();
+        return blen > 0 ? bytes.readUTFBytes(blen) : "";
+    }
+    /**
+     *
+     * 读取消息
+     * @private
+     * @static
+     * @param {number} tag          标签
+     * @param {ByteArray} bytes     被处理的字节数组
+     * @param {string} subMsgType   类型标识
+     * @returns {Object}
+     */
+    function readMessage(bytes, msgType) {
+        var blen = bytes.readVarint();
+        return readFrom(msgType, bytes, blen);
+    }
+    function readBytes(bytes) {
+        var blen = bytes.readVarint();
+        return bytes.readByteArray(blen);
+    }
+    /**
+     * 写入消息
+     *
+     * @param {object} msg
+     * @param {(Key | PBStruct)} msgType
+     * @param {ByteArray} [bytes]
+     * @returns {ByteArray}
+     */
+    function writeTo(msg, msgType, bytes, debugOutData) {
+        if (msg == undefined) {
+            return;
+        }
+        var struct = typeof msgType == "object" ? msgType : structDict[msgType];
+        if (!struct) {
+            jy.ThrowError("\u975E\u6CD5\u7684\u901A\u4FE1\u7C7B\u578B[" + msgType + "]\uFF0C\u5806\u6808\u4FE1\u606F:" + new Error());
+            return;
+        }
+        if (!bytes) {
+            bytes = new jy.ByteArray;
+        }
+        for (var numberStr in struct) {
+            var num = +numberStr;
+            var body = struct[num];
+            var name_5 = body[0], label = body[1];
+            if (label == 1 /* Optional */ && !(name_5 in msg)) {
+                continue;
+            }
+            var value = msg[name_5];
+            if (value == undefined || value === body[4] /* 默认值 */) {
+                continue;
+            }
+            var type = body[2];
+            var subMsgType = body[3];
+            var wireType = wireTypeMap[type];
+            var tag = (num << 3) | wireType;
+            if (label == 3 /* Repeated */) {
+                if (true && debugOutData) {
+                    var arr = [];
+                    debugOutData[name_5] = arr;
+                }
+                for (var key in value) {
+                    var element = value[key];
+                    // 针对repeated中无法处理空的占位数组做处理，Protobuf 2 中不支持undefined进行占位  由于 wireType 只使用 0 1 2 3 4 5
+                    // 现在使用 7 作为  undefined 占位使用
+                    if (true && debugOutData) {
+                        arr.push(writeElementTo(element, type, element == undefined ? ((num << 3) | 7) : tag, bytes, subMsgType));
+                    }
+                    else {
+                        writeElementTo(element, type, element == undefined ? ((num << 3) | 7) : tag, bytes, subMsgType);
+                    }
+                }
+            }
+            else {
+                if (true && debugOutData) {
+                    debugOutData[name_5] = writeElementTo(value, type, tag, bytes, subMsgType);
+                }
+                else {
+                    writeElementTo(value, type, tag, bytes, subMsgType);
+                }
+            }
+        }
+        return bytes;
+    }
+    function writeElementTo(value, type, tag, bytes, subMsgType) {
+        if (true) {
+            var out = value;
+        }
+        bytes.writeVarint(tag);
+        switch (type) {
+            case 7 /* Fixed32 */:
+                bytes.writeFix32(checkUInt32(value, type));
+                break;
+            case 15 /* SFixed32 */:
+                bytes.writeSFix32(checkInt32(value, type));
+                break;
+            case 2 /* Float */:
+                bytes.writePBFloat(value);
+                break;
+            case 1 /* Double */:
+                bytes.writePBDouble(value);
+                break;
+            case 6 /* Fixed64 */: //理论上项目不使用
+            case 16 /* SFixed64 */: //理论上项目不使用
+                bytes.writeFix64(value);
+                break;
+            case 5 /* Int32 */:
+                value = checkInt32(value, type);
+                if (value < 0) {
+                    bytes.writeVarint64(value);
+                }
+                else {
+                    bytes.writeVarint(value);
+                }
+                break;
+            case 17 /* SInt32 */:
+                bytes.writeVarint(zigzag32(checkInt32(value, type)));
+                break;
+            case 14 /* Enum */:
+            case 13 /* Uint32 */:
+                bytes.writeVarint(checkUInt32(value, type));
+                break;
+            case 3 /* Int64 */:
+            case 18 /* SInt64 */:
+            case 4 /* UInt64 */:
+                bytes.writeVarint64(value);
+                break;
+            case 8 /* Bool */:
+                bytes.writeVarint(value ? 1 : 0);
+                break;
+            case 9 /* String */:
+            case 12 /* Bytes */:
+            case 11 /* Message */:
+                if (type == 11 /* Message */) {
+                    if (true) {
+                        out = {};
+                        temp = writeTo(value, subMsgType, null, out);
+                    }
+                    else {
+                        var temp = writeTo(value, subMsgType);
+                    }
+                }
+                else if (type == 12 /* Bytes */) {
+                    temp = value;
+                    if (true) {
+                        out = Uint8Array.from(temp.bytes);
+                    }
+                }
+                else {
+                    temp = new jy.ByteArray;
+                    temp.writeUTFBytes(value);
+                }
+                var len = temp ? temp.length : 0;
+                bytes.writeVarint(len);
+                if (len > 0) {
+                    bytes.writeBytes(temp, 0, len);
+                }
+                break;
+        }
+        if (true) {
+            return out;
+        }
+    }
+    function checkUInt32(value, type) {
+        value = +value || 0;
+        if (value > 4294967295 || value < 0) {
+            jy.ThrowError("PBMessageUtils\u5199\u5165\u6570\u636E\u65F6\u5019\uFF0C\u4F7F\u7528\u7684\u7C7B\u578B\uFF1A" + type + "\uFF0C\u503C\u4E3A\uFF1A" + value + "\uFF0C\u4F46\u8D85\u51FA\u6574\u578B\u8303\u56F4\u3002");
+            value >>> 0;
+        }
+        return value;
+    }
+    function checkInt32(value, type) {
+        value = +value || 0;
+        if (value > 2147483647 || value < -2147483648) {
+            jy.ThrowError("PBMessageUtils\u5199\u5165\u6570\u636E\u65F6\u5019\uFF0C\u4F7F\u7528\u7684\u7C7B\u578B\uFF1A" + type + "\uFF0C\u503C\u4E3A\uFF1A" + value + "\uFF0C\u4F46\u8D85\u51FA\u6574\u578B\u8303\u56F4\u3002");
+            value >> 0;
+        }
+        return value;
+    }
+    function zigzag32(n) {
+        return (n << 1) ^ (n >> 31);
+    }
+    function decodeZigzag32(n) {
+        return n >> 1 ^ (((n & 1) << 31) >> 31);
+    }
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -2385,694 +3702,6 @@ var jy;
 var jy;
 (function (jy) {
     /**
-     * 扩展一个实例，如果A类型实例本身并没有B类型的方法，则直接对实例的属性进行赋值，否则将不会赋值
-     *
-     * @export
-     * @template A
-     * @template B
-     * @param {A} instance                  要扩展的实例
-     * @param {{ prototype: B }} clazzB     需要扩展的对象方法
-     * @param {boolean} override            是否强制覆盖原有方法
-     * @returns {(A & B)}
-     */
-    function expandInstance(instance, clazzB) {
-        var keys = [];
-        for (var _i = 2; _i < arguments.length; _i++) {
-            keys[_i - 2] = arguments[_i];
-        }
-        var bpt = clazzB.prototype;
-        for (var _a = 0, _b = Object.getOwnPropertyNames(bpt); _a < _b.length; _a++) {
-            var name_1 = _b[_a];
-            if (!keys || ~keys.indexOf(name_1)) {
-                var define = bpt.getPropertyDescriptor(name_1);
-                if (define) {
-                    Object.defineProperty(instance, name_1, define);
-                }
-                else {
-                    instance[name_1] = bpt[name_1];
-                }
-            }
-        }
-        return instance;
-    }
-    jy.expandInstance = expandInstance;
-    /**
-     * 将类型A扩展类型B的指定属性，并返回引用
-     *
-     * @export
-     * @template A
-     * @template B
-     * @template K
-     * @template B
-     * @param {{ prototype: A }} clazzA     要被扩展的类型
-     * @param {{ prototype: B }} clazzB     扩展的模板，已经模板的父类型也会作为模板
-     * @param {...K[]} keys      如果没有参数，则将B的全部属性复制给类型A
-     * @returns {(A & Record<K, B>)}
-     */
-    function expand(clazzA, clazzB) {
-        var keys = [];
-        for (var _i = 2; _i < arguments.length; _i++) {
-            keys[_i - 2] = arguments[_i];
-        }
-        _expand(clazzA.prototype, clazzB.prototype, keys);
-        return clazzA;
-    }
-    jy.expand = expand;
-    function _expand(pt, bpt, keys) {
-        for (var _i = 0, _a = Object.getOwnPropertyNames(bpt); _i < _a.length; _i++) {
-            var name_2 = _a[_i];
-            if (!keys || ~keys.indexOf(name_2)) {
-                if (!(name_2 in pt)) {
-                    pt[name_2] = bpt[name_2];
-                }
-            }
-        }
-        var sup = Object.getPrototypeOf(bpt);
-        if (sup) {
-            return _expand(pt, sup, keys);
-        }
-    }
-    /**
-     * 获取一个复合类型
-     *
-     * @export
-     * @template A
-     * @template B
-     * @param {{ prototype: A }} clazzA     类型A
-     * @param {{ prototype: B }} clazzB     类型B
-     * @returns
-     */
-    function getMixin(clazzA, clazzB) {
-        var merged = function () { };
-        if (Object.assign) { //高级版本的浏览器有Object.assign原生方法
-            Object.assign(merged.prototype, clazzA.prototype, clazzB.prototype);
-        }
-        else {
-            merged = expand(merged, clazzA);
-            merged = expand(merged, clazzB);
-        }
-        return merged;
-    }
-    jy.getMixin = getMixin;
-    /**
-     * 拷贝属性
-     *
-     * @export
-     * @template To
-     * @template From
-     * @param {To} to
-     * @param {From} from
-     * @param {keyof B} key
-     */
-    function copyProperty(to, from, key) {
-        Object.defineProperty(to, key, Object.getOwnPropertyDescriptor(from, key));
-    }
-    jy.copyProperty = copyProperty;
-    /**
-     * 批量拷贝属性
-     *
-     * @export
-     * @template To
-     * @template From
-     * @param {To} to
-     * @param {From} from
-     * @param {...(keyof From)[]} keys
-     */
-    function copyProperties(to, from) {
-        var keys = [];
-        for (var _i = 2; _i < arguments.length; _i++) {
-            keys[_i - 2] = arguments[_i];
-        }
-        for (var i = 0; i < keys.length; i++) {
-            var key = keys[i];
-            copyProperty(to, from, key);
-        }
-    }
-    jy.copyProperties = copyProperties;
-})(jy || (jy = {}));
-if (true) {
-    var $gm = $gm || {};
-    $gm.__getNSFilter = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
-        var nsFilter = {};
-        if (args.length) {
-            var filter = args[0];
-            if (filter != undefined) {
-                var tof = typeof filter;
-                if (tof === "function") {
-                    nsFilter.filter = filter;
-                    nsFilter.filterParams = args.slice(1);
-                }
-                else {
-                    if (tof === "boolean") {
-                        nsFilter.isWhite = filter;
-                        nsFilter.cmds = args.slice(1);
-                    }
-                    else if (tof === "number") {
-                        nsFilter.cmds = args;
-                    }
-                }
-            }
-        }
-        return nsFilter;
-    };
-    $gm.print = function () {
-        $gm.printSend();
-        $gm.printReceive();
-    };
-    $gm.printSend = function (filter) {
-        var args = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            args[_i - 1] = arguments[_i];
-        }
-        if (arguments.length == 0 && $gm.printSendFilter) {
-            $gm.printSendFilter = undefined;
-        }
-        else {
-            $gm.printSendFilter = $gm.__getNSFilter.apply($gm, [filter].concat(args));
-        }
-    };
-    $gm.printReceive = function (filter) {
-        var args = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            args[_i - 1] = arguments[_i];
-        }
-        if (arguments.length == 0 && $gm.printReceiveFilter) {
-            $gm.printReceiveFilter = undefined;
-        }
-        else {
-            $gm.printReceiveFilter = $gm.__getNSFilter.apply($gm, [filter].concat(args));
-        }
-    };
-    $gm.showNSLog = function (filter) {
-        var args = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            args[_i - 1] = arguments[_i];
-        }
-        var nsFilter = $gm.__getNSFilter.apply($gm, [filter].concat(args));
-        var output = [];
-        var msg = "";
-        $gm.nsLogs.forEach(function (log) {
-            if ($gm.__nsLogCheck(log, nsFilter)) {
-                output.push({ type: log.type, time: log.time, cmd: log.cmd, data: log.data, json: JSON.stringify(log.data) });
-                msg += log.time + "\t" + log.type + "\t" + log.cmd + "\t" + JSON.stringify(log.data) + "\n";
-            }
-        });
-        console.table(output);
-        jy.doCopy(msg) && console.log("%c 已将网络数据复制到剪贴板", "color:red;font-size:50px;");
-        return output;
-    };
-    $gm.__nsLogCheck = function (log, nsFilter) {
-        var cmd = log.cmd;
-        if (nsFilter) {
-            var filter = nsFilter.filter, cmds = nsFilter.cmds, filterParams = nsFilter.filterParams, isWhite = nsFilter.isWhite;
-            if (cmds) {
-                var idx = cmds.indexOf(cmd);
-                if (isWhite && ~idx || !isWhite && !~idx) {
-                    return true;
-                }
-            }
-            else if (filter) {
-                return filter.apply(void 0, [log].concat(filterParams));
-            }
-            else {
-                return true;
-            }
-        }
-    };
-    $gm.maxNSLogCount = 1000;
-    $gm.nsLogs = [];
-    $gm.route = function (cmd, data) {
-        jy.NetService.get().route(cmd, data);
-    };
-    $gm.batchRoute = function (logs) {
-        //过滤send
-        logs = logs.filter(function (log) {
-            return log.type != "send";
-        });
-        if (logs.length) {
-            var time_1 = logs[0].time | 0;
-            logs.forEach(function (log) {
-                setTimeout($gm.route, (log.time | 0) - time_1, log.cmd, log.data);
-            });
-        }
-    };
-}
-var jy;
-(function (jy) {
-    jy.NSBytesLen = {
-        /**NSType.Null */ 0: 0,
-        /**NSType.Boolean */ 1: 1,
-        /**NSType.Double */ 5: 8,
-        /**NSType.Int32 */ 6: 4,
-        /**NSType.Uint32 */ 7: 4,
-        /**NSType.Int64 */ 8: 8
-    };
-    /**
-     * 用于存储头部的临时变量
-     */
-    jy.nsHeader = { cmd: 0, len: 0 };
-    function send2(cmd, data, msgType, limit) {
-        if (jy.RequestLimit.check(cmd, limit)) {
-            this._send(cmd, data, msgType);
-        }
-        else {
-            jy.dispatch(-189 /* NetServiceSendLimit */, cmd);
-        }
-    }
-    /**
-     * 通信服务
-     * 收发的协议结构：
-     * 2字节协议号 2字节包长度(n) n字节包
-     * @author 3tion
-     *
-     */
-    var NetService = /** @class */ (function () {
-        function NetService() {
-            var _this = this;
-            this.netChange = function () {
-                if (navigator.onLine) {
-                    jy.dispatch(-192 /* Online */);
-                    _this.showReconnect();
-                }
-                else {
-                    jy.dispatch(-191 /* Offline */);
-                }
-            };
-            /**
-             * 基础连接时间
-             *
-             *
-             * @memberOf NetService
-             */
-            this.baseConTime = 10000;
-            /**
-             * 最大连接时间
-             *
-             *
-             * @memberOf NetService
-             */
-            this.maxConTime = 60000 /* ONE_MINUTE */;
-            /**
-             * 重连次数
-             *
-             * @private
-             * @type {number}
-             * @memberOf NetService
-             */
-            this._reconCount = 0;
-            /**
-             * 下次自动拉取请求的时间戳
-             */
-            this._nextAutoTime = 0;
-            this._router = new jy.NetRouter();
-            this._pcmdList = [];
-            this._tmpList = [];
-            this._readBuffer = new jy.ByteArray();
-            this._sendBuffer = new jy.ByteArray();
-            this._tempBytes = new jy.ByteArray();
-            this._receiveMSG = {};
-            if (true) {
-                this.$writeNSLog = function (time, type, cmd, data) {
-                    data = data == undefined ? undefined : JSON.parse(JSON.stringify(data));
-                    var log = doFreeze({ time: time, type: type, cmd: cmd, data: data });
-                    var nsLogs = $gm.nsLogs;
-                    //清理多余的日志
-                    while (nsLogs.length > $gm.maxNSLogCount) {
-                        nsLogs.shift();
-                    }
-                    nsLogs.push(log);
-                    var nsFilter = type == "send" ? $gm.printSendFilter : $gm.printReceiveFilter;
-                    if ($gm.__nsLogCheck(log, nsFilter)) {
-                        console.log(type, time, cmd, data);
-                    }
-                    function doFreeze(obj) {
-                        if (typeof obj == "object" && obj) {
-                            var pool = [obj];
-                            while (pool.length) {
-                                var tmp = pool.pop();
-                                Object.freeze(tmp);
-                                for (var key in tmp) {
-                                    var x = tmp[key];
-                                    if (typeof x == "object" && x) {
-                                        pool.push(x);
-                                    }
-                                }
-                            }
-                        }
-                        return obj;
-                    }
-                };
-            }
-            if (window.addEventListener) { //防止native报错
-                addEventListener("online", this.netChange);
-                addEventListener("offline", this.netChange);
-            }
-            jy.on(-190 /* Awake */, this.onawake, this);
-        }
-        NetService.prototype.setLimitEventEmitable = function (emit) {
-            if (emit) {
-                this.send = send2;
-            }
-            else {
-                delete this.send;
-            }
-        };
-        NetService.get = function () {
-            return this._ins;
-        };
-        NetService.prototype.setEndian = function (endian) {
-            this._sendBuffer.$endian = this._readBuffer.$endian = this._tempBytes.$endian = endian;
-        };
-        NetService.prototype.showReconnect = function () {
-            this._reconCount += 1;
-            var time = this._reconCount * this.baseConTime;
-            var maxConTime = this.maxConTime;
-            if (time > maxConTime) {
-                time = maxConTime;
-            }
-            this._nextAutoTime = jy.Global.now + time;
-            jy.dispatch(-194 /* ShowReconnect */, this._reconCount);
-        };
-        NetService.prototype.onawake = function () {
-            this._reconCount = 0;
-            this._nextAutoTime = jy.Global.now + this._autoTimeDelay;
-        };
-        /**
-         * 基础类型消息
-         */
-        NetService.prototype.regReceiveMSGRef = function (cmd, ref) {
-            this._receiveMSG[cmd] = ref;
-        };
-        /**
-         * 注册处理器
-         * @param {number} cmd 协议号
-         * @param {INetHandler} handler 处理网络数据的处理器
-         * @param {number} [priority=0] 处理优先级
-         */
-        NetService.prototype.register = function (cmd, handler, priotity) {
-            if (priotity === void 0) { priotity = 0; }
-            return this._register(cmd, handler, priotity, false);
-        };
-        /**
-         * 注册单次执行的处理器
-         * @param {number} cmd 协议号
-         * @param {INetHandler} handler 处理网络数据的处理器
-         * @param {number} [priority=0] 处理优先级
-         */
-        NetService.prototype.regOnce = function (cmd, handler, priotity) {
-            if (priotity === void 0) { priotity = 0; }
-            return this._register(cmd, handler, priotity, true);
-        };
-        /**
-         * 移除协议号和处理器的监听
-         *
-         * @param {number} cmd 协议号
-         * @param {INetHandler} handler 处理网络数据的处理器
-         */
-        NetService.prototype.remove = function (cmd, handler) {
-            this._router.remove(cmd, handler);
-        };
-        NetService.prototype._register = function (cmd, handler, priotity, once) {
-            if (cmd > 32767 || cmd < -32768) {
-                if (true) {
-                    jy.Log("\u534F\u8BAE\u53F7\u7684\u8303\u56F4\u5FC5\u987B\u662F-32768~32767\u4E4B\u95F4\uFF0C\u5F53\u524Dcmd:" + cmd);
-                }
-                return false;
-            }
-            this._router.register(cmd, handler, priotity, once);
-            return true;
-        };
-        /**
-         * 即时发送指令<br/>
-         * 用于处理角色主动操作的请求，如点击合成道具，使用物品等
-         * @param {number} cmd 协议号
-         * @param {any} [data] 数据，简单数据(number,boolean,string)复合数据
-         * @param {string} [msgType] 如果是复合数据，必须有此值
-         * @param {number} [limit] 客户端发送时间限制，默认500毫秒
-         */
-        NetService.prototype.send = function (cmd, data, msgType, limit) {
-            if (jy.RequestLimit.check(cmd, limit)) {
-                this._send(cmd, data, msgType);
-            }
-        };
-        /**
-         * 断开连接
-         */
-        NetService.prototype.disconnect = function () {
-            // TODO
-        };
-        /**
-         * 消极发送指令
-         * 如果使用通协议的指令，有堆积的指令，先合并，新的替换旧的
-         * __`请勿将一些用户操作使用此指令发送`__
-         * 处理一些实时性要求不高的指令，这些指令先缓存堆积，等到用户主动发指令的时候，一起发送
-         * @param {number} cmd 协议号
-         * @param {any} [data] 数据，简单数据(number,boolean,string)复合数据
-         * @param {string} [msgType] 如果是复合数据，必须有此值
-         */
-        NetService.prototype.sendPassive = function (cmd, data, msgType) {
-            //合并同协议的指令
-            var pcmdList = this._pcmdList;
-            var len = pcmdList.length;
-            for (var _i = 0, pcmdList_1 = pcmdList; _i < pcmdList_1.length; _i++) {
-                var temp = pcmdList_1[_i];
-                if (temp.cmd == cmd) {
-                    temp.data = data;
-                    return;
-                }
-            }
-            //没有同协议的指令，新增数据
-            var pdata = jy.recyclable(jy.NetSendData);
-            pdata.cmd = cmd;
-            pdata.data = data;
-            pdata.msgType = msgType;
-            //将数据缓存在pcmdList中，等到下次send的时候发送
-            this._pcmdList[len] = pdata;
-        };
-        /**
-         * 向缓冲数组中写入数据
-         */
-        NetService.prototype.writeToBuffer = function (bytes, data) {
-            var cmd = data.cmd;
-            var dat = data.data;
-            var type = data.msgType;
-            bytes.writeShort(cmd);
-            if (dat == undefined) {
-                this.writeBytesLength(bytes, 0);
-                if (true) {
-                    var outdata = undefined;
-                }
-            }
-            else {
-                if (type in jy.NSBytesLen) {
-                    this.writeBytesLength(bytes, jy.NSBytesLen[type]);
-                }
-                if (true) {
-                    outdata = dat;
-                }
-                switch (type) {
-                    case 0 /* Null */:
-                        if (true) {
-                            outdata = undefined;
-                        }
-                        break;
-                    case 1 /* Boolean */:
-                        bytes.writeBoolean(dat);
-                        break;
-                    case 5 /* Double */:
-                        bytes.writeDouble(dat);
-                        break;
-                    case 6 /* Int32 */:
-                        bytes.writeInt(dat);
-                        break;
-                    case 7 /* Uint32 */:
-                        bytes.writeUnsignedInt(dat);
-                        break;
-                    case 8 /* Int64 */:
-                        bytes.writeInt64(dat);
-                        break;
-                    case 2 /* String */:
-                        bytes.writeUTF(dat);
-                        break;
-                    case 4 /* Bytes */:
-                        var b = dat;
-                        bytes.writeUnsignedShort(b.length);
-                        bytes.writeBytes(b);
-                        if (true) {
-                            outdata = Uint8Array.from(b.bytes);
-                        }
-                        break;
-                    default:
-                        var tempBytes = this._tempBytes;
-                        tempBytes.clear();
-                        if (true) {
-                            outdata = {};
-                            jy.PBUtils.writeTo(dat, data.msgType, tempBytes, outdata);
-                        }
-                        else {
-                            jy.PBUtils.writeTo(dat, data.msgType, tempBytes);
-                        }
-                        this.writeBytesLength(bytes, tempBytes.length);
-                        bytes.writeBytes(tempBytes);
-                        break;
-                }
-            }
-            if (true) {
-                this.$writeNSLog(jy.Global.now, "send", cmd, outdata);
-            }
-        };
-        /**
-         * @private
-         * @param bytes
-         * @param out
-         */
-        NetService.prototype.decodeBytes = function (bytes) {
-            var receiveMSG = this._receiveMSG;
-            var tmpList = this._tmpList;
-            var idx = 0;
-            var header = jy.nsHeader;
-            var decodeHeader = this.decodeHeader;
-            while (true) {
-                if (!decodeHeader(bytes, header)) {
-                    //回滚
-                    break;
-                }
-                var cmd = header.cmd, len = header.len;
-                //尝试读取结束后，应该在的索引
-                var endPos = bytes.position + len;
-                var type = receiveMSG[cmd];
-                if (type !== undefined) {
-                    var flag = true;
-                    var data = undefined;
-                    if (len > 0 && type in jy.NSBytesLen) {
-                        var blen = jy.NSBytesLen[type];
-                        if (true && blen != len) {
-                            jy.Log("\u89E3\u6790\u6307\u4EE4\u65F6\uFF0C\u7C7B\u578B[" + type + "]\u7684\u6307\u4EE4\u957F\u5EA6[" + len + "]\u548C\u9884\u8BBE\u7684\u957F\u5EA6[" + blen + "]\u4E0D\u5339\u914D");
-                        }
-                        if (len < blen) {
-                            flag = false;
-                        }
-                    }
-                    if (flag) {
-                        switch (type) {
-                            case 0 /* Null */:
-                                break;
-                            case 1 /* Boolean */:
-                                data = bytes.readBoolean();
-                                break;
-                            case 5 /* Double */:
-                                data = bytes.readDouble();
-                                break;
-                            case 6 /* Int32 */:
-                                data = bytes.readInt();
-                                break;
-                            case 7 /* Uint32 */:
-                                data = bytes.readUnsignedInt();
-                                break;
-                            case 8 /* Int64 */:
-                                data = bytes.readInt64();
-                                break;
-                            case 2 /* String */:
-                                data = bytes.readUTFBytes(len);
-                                break;
-                            case 4 /* Bytes */:
-                                data = bytes.readByteArray(len);
-                                break;
-                            default:
-                                data = jy.PBUtils.readFrom(type, bytes, len);
-                                break;
-                        }
-                    }
-                    if (flag) {
-                        //容错用，不管数据解析成功或者失败，将索引移至结束索引
-                        var nData = jy.recyclable(jy.NetData);
-                        nData.cmd = cmd;
-                        nData.data = data;
-                        tmpList[idx++] = nData;
-                    }
-                }
-                else if (true) {
-                    jy.Log("\u901A\u4FE1\u6D88\u606F\u89E3\u6790\u65F6cmd[" + cmd + "]\uFF0C\u51FA\u73B0\u672A\u6CE8\u518C\u7684\u7C7B\u578B");
-                }
-                bytes.position = endPos;
-            }
-            //调试时,显示接收的数据
-            if (true) {
-                var now = jy.Global.now;
-                //分发数据
-                for (var i = 0; i < idx; i++) {
-                    var ndata = tmpList[i];
-                    this.$writeNSLog(now, "receive", ndata.cmd, ndata.data);
-                }
-            }
-            var router = this._router;
-            //分发数据
-            for (var i = 0; i < idx; i++) {
-                var nData = tmpList[i];
-                router.dispatch(nData);
-            }
-        };
-        /**
-         * 解析头部信息
-         *
-         * @protected
-         * @param {ByteArray} bytes
-         * @param {NSHeader} header
-         * @returns 是否可以继续  true    继续后续解析
-         *                       false   取消后续解析
-         * @memberof NetService
-         */
-        NetService.prototype.decodeHeader = function (bytes, header) {
-            if (bytes.readAvailable < 4) {
-                return false;
-            }
-            //先读取2字节协议号
-            header.cmd = bytes.readShort();
-            //增加2字节的数据长度读取(这2字节是用于增加容错的，方便即便没有读到type，也能跳过指定长度的数据，让下一个指令能正常处理)
-            var len = bytes.readUnsignedShort();
-            if (bytes.readAvailable < len) {
-                // 回滚
-                bytes.position -= 4;
-                return false;
-            }
-            header.len = len;
-            return true;
-        };
-        /**
-         * 存储数据长度
-         *
-         * @protected
-         * @param {ByteArray} bytes
-         * @param {number} val
-         * @memberof NetService
-         */
-        NetService.prototype.writeBytesLength = function (bytes, val) {
-            bytes.writeUnsignedShort(val);
-        };
-        /**
-         *
-         * 模拟服务端
-         * @param {number} cmd
-         * @param {*} [data]
-         */
-        NetService.prototype.route = function (cmd, data) {
-            var nData = jy.recyclable(jy.NetData);
-            nData.cmd = cmd;
-            nData.data = data;
-            this._router.dispatch(nData);
-        };
-        return NetService;
-    }());
-    jy.NetService = NetService;
-    __reflect(NetService.prototype, "jy.NetService");
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
-    /**
      * 用于君游项目数据同步，后台运行<br/>
      * 只有注册和注销，没有awake和sleep
      * @author 3tion
@@ -3314,8 +3943,8 @@ var jy;
                 }
                 //检查timer绑定
                 this.awakeTimer();
-                if (this.awake) {
-                    this.awake();
+                if (this.onAwake) {
+                    this.onAwake();
                 }
             }
             else {
@@ -3324,8 +3953,8 @@ var jy;
                     jy.off(type, ins.handler, this);
                 }
                 this.sleepTimer();
-                if (this.sleep) {
-                    this.sleep();
+                if (this.onSleep) {
+                    this.onSleep();
                 }
             }
         };
@@ -4065,635 +4694,6 @@ var jy;
 var jy;
 (function (jy) {
     /**
-     * 状态机
-     * @author 3tion
-     */
-    var StateMachine = /** @class */ (function () {
-        function StateMachine() {
-            this.swis = {};
-            this.liss = [];
-            this._stas = [];
-        }
-        Object.defineProperty(StateMachine.prototype, "states", {
-            /**
-             * 获取当前已有的状态列表
-             *
-             * @readonly
-             */
-            get: function () {
-                return this._stas;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        StateMachine.prototype.add = function (value) {
-            if (!value) {
-                true && jy.ThrowError("addStateListener没有设置正确!");
-            }
-            this.liss.pushOnce(value);
-        };
-        StateMachine.prototype.remove = function (value) {
-            this.liss.remove(value);
-        };
-        StateMachine.prototype.addToStates = function () {
-            var args = arguments;
-            var value = args[0];
-            if (!value) {
-                true && jy.ThrowError("addToStateList没有设置正确!");
-            }
-            for (var i = 1; i < args.length; i++) {
-                this.addToState(args[i], value);
-            }
-        };
-        /**
-         * 从所有状态中删除侦听;
-         * @param value
-         *
-         */
-        StateMachine.prototype.removeAllState = function (value) {
-            if (!value) {
-                return;
-            }
-            var states = this._stas;
-            for (var i = 0; i < states.length; i++) {
-                this.removeFromState(states[i], value);
-            }
-        };
-        /**
-         * 从单个状态中,删了一个具体侦听;
-         * @param type
-         * @param value
-         * @return
-         *
-         */
-        StateMachine.prototype.removeFromState = function (state, value) {
-            var list = this.swis[state];
-            return list && list.remove(value);
-        };
-        /**
-         * 单个状态中加入一个侦听;
-         * @param value
-         * @param list
-         *
-         */
-        StateMachine.prototype.addToState = function (state, value) {
-            if (!value) {
-                jy.ThrowError("addToState没有设置正确!");
-            }
-            var list = this.swis[state];
-            if (list) {
-                if (~list.indexOf(value))
-                    return;
-            }
-            else {
-                this.swis[state] = list = [];
-                this._stas.push(state);
-            }
-            list.push(value);
-            if (this.current == state) {
-                value.awakeBy(this.current);
-            }
-        };
-        /**
-         *  清理状态机;
-         *
-         */
-        StateMachine.prototype.clear = function () {
-            this.swis = {};
-            this.liss.length = 0;
-            this.current = undefined;
-        };
-        /**
-         * 设置当前的状态
-         * @param value
-         *
-         */
-        StateMachine.prototype.setState = function (value) {
-            var old = this.current;
-            if (old == value) {
-                return;
-            }
-            this.current = value;
-            var states = this.swis;
-            var oldList = states[old];
-            var newList = states[value];
-            var newLen = newList && newList.length || 0;
-            //新的开启
-            if (this.checkBeforeSleep) {
-                for (var i = 0; i < newLen; i++) {
-                    var item = newList[i];
-                    item.beforeLastSleep && item.beforeLastSleep(value);
-                }
-            }
-            //旧的关闭
-            if (oldList) {
-                for (var i = 0; i < oldList.length; i++) {
-                    var item = oldList[i];
-                    if (!newList || !~newList.indexOf(item)) {
-                        item.sleepBy && item.sleepBy(value);
-                    }
-                }
-            }
-            //新的开启
-            for (var i = 0; i < newLen; i++) {
-                var item = newList[i];
-                item.awakeBy && item.awakeBy(value);
-            }
-            var aways = this.liss;
-            if (aways) {
-                for (var i = 0; i < aways.length; i++) {
-                    aways[i].setState(value);
-                }
-            }
-        };
-        /**
-         * 检查状态实现(switcher)是否添加到某个状态中
-         *
-         * @param {IStateSwitcher} switcher    某个状态实现
-         * @param {Key} [type] 状态
-         * @returns {boolean}
-         */
-        StateMachine.prototype.isInState = function (switcher, type) {
-            type == void 0 && (type = this.current);
-            var list = this.swis[type];
-            if (list) {
-                return list.indexOf(switcher) > -1;
-            }
-        };
-        return StateMachine;
-    }());
-    jy.StateMachine = StateMachine;
-    __reflect(StateMachine.prototype, "jy.StateMachine", ["jy.IStateListener"]);
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
-    var structDict = {};
-    /**
-     * protobuf wiretype的字典
-     * key  {number}    ProtoBuf的类型
-     * Value {number}   WireType
-     *
-     * @private
-     * @static
-     * @type {{ [index: number]: number }}
-     */
-    var wireTypeMap = [
-        /* 无 */ ,
-        /* PBType.Double */ 1,
-        /* PBType.Float */ 5,
-        /* PBType.Int64 */ 0,
-        /* PBType.UInt64 */ 0,
-        /* PBType.Int32 */ 0,
-        /* PBType.Fixed64 */ 1,
-        /* PBType.Fixed32 */ 5,
-        /* PBType.Bool */ 0,
-        /* PBType.String */ 2,
-        /* PBType.Group */ ,
-        /* PBType.Message */ 2,
-        /* PBType.Bytes */ 2,
-        /* PBType.Uint32 */ 0,
-        /* PBType.Enum */ 0,
-        /* PBType.SFixed32 */ 5,
-        /* PBType.SFixed64 */ 1,
-        /* PBType.SInt32 */ 0,
-        /* PBType.SInt64 */ 0
-    ];
-    /**
-     * 消息定义的字典
-     */
-    var defDict = {};
-    function regDef(m, def) {
-        var msg;
-        if (typeof m != "object") {
-            msg = structDict[m];
-            if (!msg) {
-                defDict[m] = def;
-                return;
-            }
-        }
-        else {
-            msg = m;
-        }
-        Object.defineProperty(msg, "def" /* defKey */, {
-            value: def
-        });
-    }
-    /**
-     * 注册消息的结构
-     * @param msgType 消息类型标识
-     * @param struct 结构
-     */
-    function regStruct(msgType, struct) {
-        if (true && (msgType in structDict)) {
-            jy.ThrowError("PB\u7684\u7ED3\u6784\u5B9A\u4E49\u7684key[" + msgType + "]\u6CE8\u518C\u91CD\u590D");
-        }
-        var def = defDict[msgType];
-        if (def) {
-            regDef(struct, def);
-        }
-        //检查处理默认值
-        initDefault(struct);
-        structDict[msgType] = struct;
-    }
-    function initDefault(struct, ref) {
-        //检查处理默认值
-        for (var idx in struct) {
-            var body = struct[idx];
-            //0 key
-            //1 required optional repeated
-            //2 数据类型
-            //3 Message
-            //4 默认值
-            if (4 in body) { //有默认值
-                var def = struct.def;
-                if (!def) {
-                    def = ref && ref.prototype || {};
-                    //不使用encode.def=def=[]; 是为了防止def被遍历
-                    Object.defineProperty(struct, "def" /* defKey */, {
-                        value: def
-                    });
-                }
-                //消息中没有对应key的数据，先赋值成默认值，等待后续处理
-                def[body[0]] = body[4];
-            }
-        }
-        if (ref) {
-            struct.ref = ref;
-        }
-    }
-    /**
-     *
-     * @author 3tion
-     * ProtoBuf工具集
-     *
-     */
-    jy.PBUtils = {
-        /**
-         * 注册定义
-         */
-        regDef: regDef,
-        regStruct: regStruct,
-        /**
-         * 初始化默认值
-         */
-        initDefault: initDefault,
-        /**
-         * 增加ProtoBuf的消息的结构字典
-         *
-         * @static
-         * @param {PBStructDict} dict
-         *
-         * @memberOf PBMessageUtils
-         */
-        add: function (dict) {
-            //对默认值做预处理，减少后期遍历次数
-            if (dict) {
-                if (!dict.$$inted) { //检查字典是否初始化过
-                    for (var name_3 in dict) {
-                        var struct = dict[name_3];
-                        if (typeof struct != "object") {
-                            var cycle = [name_3, struct];
-                            while (true) { //防止出现多重关联的情况 
-                                struct = dict[struct];
-                                if (struct == null) { //或者undefiend
-                                    return true && jy.Log("\u6DFB\u52A0ProtoBuf\u5B57\u5178\u6709\u8BEF\uFF0C\u8BF7\u68C0\u67E5\u6570\u636E");
-                                }
-                                if (typeof struct == "object") {
-                                    break;
-                                }
-                                if (~cycle.indexOf(struct)) {
-                                    return true && jy.Log("\u6DFB\u52A0ProtoBuf\u5B57\u5178\u6709\u8BEF\uFF0C\u51FA\u73B0\u5FAA\u73AF\u7684\u914D\u7F6E");
-                                }
-                                cycle.push(struct);
-                            }
-                        }
-                        regStruct(name_3, struct);
-                    }
-                    dict.$$inted = 1;
-                }
-            }
-        },
-        readFrom: readFrom,
-        writeTo: writeTo
-    };
-    /**
-     * 读取消息
-     *
-     * @param {(Key | PBStruct)} msgType
-     * @param {ByteArray} bytes
-     * @param {number} [len]
-     * @returns {any}
-     */
-    function readFrom(msgType, bytes, len) {
-        if (len === undefined)
-            len = -1;
-        var afterLen = 0;
-        if (len > -1) {
-            afterLen = bytes.bytesAvailable - len;
-        }
-        var struct = typeof msgType == "object" ? msgType : structDict[msgType];
-        if (!struct) {
-            jy.ThrowError("\u975E\u6CD5\u7684\u901A\u4FE1\u7C7B\u578B[" + msgType + "]");
-            return;
-        }
-        //检查处理默认值
-        var ref = struct.ref, def = struct.def;
-        var msg = ref ? new ref() : def ? Object.create(struct.def) : {};
-        while (bytes.bytesAvailable > afterLen) {
-            var tag = bytes.readVarint();
-            if (tag == 0)
-                continue;
-            var idx = tag >>> 3;
-            var body = struct[idx];
-            if (!body) {
-                jy.ThrowError("\u8BFB\u53D6\u6D88\u606F\u7C7B\u578B\u4E3A\uFF1A" + msgType + "\uFF0C\u7D22\u5F15" + idx + "\u65F6\u6570\u636E\u51FA\u73B0\u9519\u8BEF\uFF0C\u627E\u4E0D\u5230\u5BF9\u5E94\u7684\u6570\u636E\u7ED3\u6784\u914D\u7F6E");
-                // 使用默认读取
-                readValue(tag, bytes);
-                continue;
-            }
-            var name_4 = body[0];
-            var label = body[1];
-            var type = body[2];
-            var subMsgType = body[3];
-            var value = void 0;
-            var isRepeated = label == 3 /* Repeated */;
-            if (!isRepeated || (tag & 7) != 7) { //自定义  tag & 0b111 == 7 为 数组中 undefined的情况
-                switch (type) {
-                    case 1 /* Double */:
-                        value = bytes.readPBDouble();
-                        break;
-                    case 2 /* Float */:
-                        value = bytes.readPBFloat();
-                        break;
-                    case 3 /* Int64 */:
-                    case 4 /* UInt64 */:
-                    case 18 /* SInt64 */:
-                        value = bytes.readVarint64(); //理论上项目不使用
-                        break;
-                    case 17 /* SInt32 */:
-                        value = decodeZigzag32(bytes.readVarint());
-                        break;
-                    case 5 /* Int32 */:
-                    case 13 /* Uint32 */:
-                    case 14 /* Enum */:
-                        value = bytes.readVarint();
-                        break;
-                    case 6 /* Fixed64 */:
-                    case 16 /* SFixed64 */:
-                        value = bytes.readFix64(); //理论上项目不使用
-                        break;
-                    case 7 /* Fixed32 */:
-                        value = bytes.readFix32();
-                        break;
-                    case 8 /* Bool */:
-                        value = bytes.readBoolean();
-                        break;
-                    case 9 /* String */:
-                        value = readString(bytes);
-                        break;
-                    case 10 /* Group */: //(protobuf 已弃用)
-                        value = undefined;
-                        if (true) {
-                            jy.ThrowError("\u8BFB\u53D6\u6D88\u606F\u7C7B\u578B\u4E3A\uFF1A" + msgType + "\uFF0C\u7D22\u5F15" + idx + "\u65F6\u6570\u636E\u51FA\u73B0\u5DF2\u5F03\u7528\u7684GROUP\u5206\u7EC4\u7C7B\u578B");
-                        }
-                        break;
-                    case 11 /* Message */: //消息
-                        value = readMessage(bytes, subMsgType);
-                        break;
-                    case 12 /* Bytes */:
-                        value = readBytes(bytes);
-                        break;
-                    case 15 /* SFixed32 */:
-                        value = bytes.readSFix32();
-                        break;
-                    default:
-                        value = readValue(tag, bytes);
-                }
-            }
-            if (isRepeated) { //repeated
-                var arr = msg[name_4];
-                if (!arr)
-                    msg[name_4] = arr = [];
-                arr.push(value);
-            }
-            else {
-                msg[name_4] = value;
-            }
-        }
-        return msg;
-    }
-    function readValue(tag, bytes) {
-        var wireType = tag & 7;
-        var value;
-        switch (wireType) {
-            case 0: //Varint	int32, int64, uint32, uint64, sint32, sint64, bool, enum
-                value = bytes.readVarint();
-                break;
-            case 2: //Length-delimi	string, bytes, embedded messages, packed repeated fields
-                value = readString(bytes);
-                break;
-            case 5: //32-bit	fixed32, sfixed32, float
-                value = bytes.readInt();
-                break;
-            case 1: //64-bit	fixed64, sfixed64, double
-                value = bytes.readDouble();
-                break;
-            default:
-                jy.ThrowError("protobuf的wireType未知");
-                break;
-        }
-        return value;
-    }
-    function readString(bytes) {
-        var blen = bytes.readVarint();
-        return blen > 0 ? bytes.readUTFBytes(blen) : "";
-    }
-    /**
-     *
-     * 读取消息
-     * @private
-     * @static
-     * @param {number} tag          标签
-     * @param {ByteArray} bytes     被处理的字节数组
-     * @param {string} subMsgType   类型标识
-     * @returns {Object}
-     */
-    function readMessage(bytes, msgType) {
-        var blen = bytes.readVarint();
-        return readFrom(msgType, bytes, blen);
-    }
-    function readBytes(bytes) {
-        var blen = bytes.readVarint();
-        return bytes.readByteArray(blen);
-    }
-    /**
-     * 写入消息
-     *
-     * @param {object} msg
-     * @param {(Key | PBStruct)} msgType
-     * @param {ByteArray} [bytes]
-     * @returns {ByteArray}
-     */
-    function writeTo(msg, msgType, bytes, debugOutData) {
-        if (msg == undefined) {
-            return;
-        }
-        var struct = typeof msgType == "object" ? msgType : structDict[msgType];
-        if (!struct) {
-            jy.ThrowError("\u975E\u6CD5\u7684\u901A\u4FE1\u7C7B\u578B[" + msgType + "]\uFF0C\u5806\u6808\u4FE1\u606F:" + new Error());
-            return;
-        }
-        if (!bytes) {
-            bytes = new jy.ByteArray;
-        }
-        for (var numberStr in struct) {
-            var num = +numberStr;
-            var body = struct[num];
-            var name_5 = body[0], label = body[1];
-            if (label == 1 /* Optional */ && !(name_5 in msg)) {
-                continue;
-            }
-            var value = msg[name_5];
-            if (value == undefined || value === body[4] /* 默认值 */) {
-                continue;
-            }
-            var type = body[2];
-            var subMsgType = body[3];
-            var wireType = wireTypeMap[type];
-            var tag = (num << 3) | wireType;
-            if (label == 3 /* Repeated */) {
-                if (true && debugOutData) {
-                    var arr = [];
-                    debugOutData[name_5] = arr;
-                }
-                for (var key in value) {
-                    var element = value[key];
-                    // 针对repeated中无法处理空的占位数组做处理，Protobuf 2 中不支持undefined进行占位  由于 wireType 只使用 0 1 2 3 4 5
-                    // 现在使用 7 作为  undefined 占位使用
-                    if (true && debugOutData) {
-                        arr.push(writeElementTo(element, type, element == undefined ? ((num << 3) | 7) : tag, bytes, subMsgType));
-                    }
-                    else {
-                        writeElementTo(element, type, element == undefined ? ((num << 3) | 7) : tag, bytes, subMsgType);
-                    }
-                }
-            }
-            else {
-                if (true && debugOutData) {
-                    debugOutData[name_5] = writeElementTo(value, type, tag, bytes, subMsgType);
-                }
-                else {
-                    writeElementTo(value, type, tag, bytes, subMsgType);
-                }
-            }
-        }
-        return bytes;
-    }
-    function writeElementTo(value, type, tag, bytes, subMsgType) {
-        if (true) {
-            var out = value;
-        }
-        bytes.writeVarint(tag);
-        switch (type) {
-            case 7 /* Fixed32 */:
-                bytes.writeFix32(checkUInt32(value, type));
-                break;
-            case 15 /* SFixed32 */:
-                bytes.writeSFix32(checkInt32(value, type));
-                break;
-            case 2 /* Float */:
-                bytes.writePBFloat(value);
-                break;
-            case 1 /* Double */:
-                bytes.writePBDouble(value);
-                break;
-            case 6 /* Fixed64 */: //理论上项目不使用
-            case 16 /* SFixed64 */: //理论上项目不使用
-                bytes.writeFix64(value);
-                break;
-            case 5 /* Int32 */:
-                value = checkInt32(value, type);
-                if (value < 0) {
-                    bytes.writeVarint64(value);
-                }
-                else {
-                    bytes.writeVarint(value);
-                }
-                break;
-            case 17 /* SInt32 */:
-                bytes.writeVarint(zigzag32(checkInt32(value, type)));
-                break;
-            case 14 /* Enum */:
-            case 13 /* Uint32 */:
-                bytes.writeVarint(checkUInt32(value, type));
-                break;
-            case 3 /* Int64 */:
-            case 18 /* SInt64 */:
-            case 4 /* UInt64 */:
-                bytes.writeVarint64(value);
-                break;
-            case 8 /* Bool */:
-                bytes.writeVarint(value ? 1 : 0);
-                break;
-            case 9 /* String */:
-            case 12 /* Bytes */:
-            case 11 /* Message */:
-                if (type == 11 /* Message */) {
-                    if (true) {
-                        out = {};
-                        temp = writeTo(value, subMsgType, null, out);
-                    }
-                    else {
-                        var temp = writeTo(value, subMsgType);
-                    }
-                }
-                else if (type == 12 /* Bytes */) {
-                    temp = value;
-                    if (true) {
-                        out = Uint8Array.from(temp.bytes);
-                    }
-                }
-                else {
-                    temp = new jy.ByteArray;
-                    temp.writeUTFBytes(value);
-                }
-                var len = temp ? temp.length : 0;
-                bytes.writeVarint(len);
-                if (len > 0) {
-                    bytes.writeBytes(temp, 0, len);
-                }
-                break;
-        }
-        if (true) {
-            return out;
-        }
-    }
-    function checkUInt32(value, type) {
-        value = +value || 0;
-        if (value > 4294967295 || value < 0) {
-            jy.ThrowError("PBMessageUtils\u5199\u5165\u6570\u636E\u65F6\u5019\uFF0C\u4F7F\u7528\u7684\u7C7B\u578B\uFF1A" + type + "\uFF0C\u503C\u4E3A\uFF1A" + value + "\uFF0C\u4F46\u8D85\u51FA\u6574\u578B\u8303\u56F4\u3002");
-            value >>> 0;
-        }
-        return value;
-    }
-    function checkInt32(value, type) {
-        value = +value || 0;
-        if (value > 2147483647 || value < -2147483648) {
-            jy.ThrowError("PBMessageUtils\u5199\u5165\u6570\u636E\u65F6\u5019\uFF0C\u4F7F\u7528\u7684\u7C7B\u578B\uFF1A" + type + "\uFF0C\u503C\u4E3A\uFF1A" + value + "\uFF0C\u4F46\u8D85\u51FA\u6574\u578B\u8303\u56F4\u3002");
-            value >> 0;
-        }
-        return value;
-    }
-    function zigzag32(n) {
-        return (n << 1) ^ (n >> 31);
-    }
-    function decodeZigzag32(n) {
-        return n >> 1 ^ (((n & 1) << 31) >> 31);
-    }
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
-    /**
      * 位图的创建器
      * @author 3tion
      *
@@ -5331,6 +5331,319 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
+    function call(info, ars) {
+        var args = [];
+        var i = 0;
+        if (ars) {
+            for (; i < ars.length; i++) {
+                args[i] = ars[i];
+            }
+        }
+        var argus = info.args;
+        if (argus) {
+            for (var j = 0; j < argus.length; j++) {
+                args[i++] = argus[j];
+            }
+        }
+        var callback = info.callback;
+        if (callback != undefined) {
+            try {
+                return callback.apply(info.thisObj, args);
+            }
+            catch (e) {
+                if (true) {
+                    var debug = info["_debug"];
+                    jy.ThrowError("CallbackInfo\u6267\u884C\u62A5\u9519\uFF0C\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n}==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + e.stack);
+                    console.log.apply(console, ["参数列表"].concat(args));
+                }
+            }
+        }
+        else if (true) {
+            var debug = info["_debug"];
+            jy.ThrowError("\u5BF9\u5DF2\u56DE\u6536\u7684CallbackInfo\u6267\u884C\u4E86\u56DE\u8C03\uFF0C\u6700\u540E\u4E00\u6B21\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + new Error().stack);
+        }
+    }
+    /**
+     * 回调信息，用于存储回调数据
+     * @author 3tion
+     *
+     */
+    var CallbackInfo = /** @class */ (function () {
+        function CallbackInfo() {
+            this.doRecycle = true;
+            if (true) {
+                var data = { enumerable: true, configurable: true };
+                data.get = function () {
+                    return this._cb;
+                };
+                data.set = function (value) {
+                    if (this._cb != value) {
+                        this._cb = value;
+                        if (value != undefined) {
+                            this._debug = { handle: value.toString(), stack: new Error().stack };
+                        }
+                    }
+                };
+                Object.defineProperty(this, "callback", data);
+            }
+        }
+        CallbackInfo.prototype.init = function (callback, thisObj, args) {
+            this.callback = callback;
+            this.args = args;
+            this.thisObj = thisObj;
+        };
+        /**
+         * 检查回调是否一致，只检查参数和this对象,不检查参数
+         */
+        CallbackInfo.prototype.checkHandle = function (callback, thisObj) {
+            return this.callback === callback && this.thisObj == thisObj /* 允许null==undefined */;
+        };
+        /**
+         * 执行回调
+         * 回调函数，将以args作为参数，callback作为函数执行
+         * @param {boolean} [doRecycle] 是否回收CallbackInfo，默认为true
+         */
+        CallbackInfo.prototype.execute = function (doRecycle) {
+            var result = call(this);
+            if (doRecycle == undefined) {
+                doRecycle = this.doRecycle;
+            }
+            if (doRecycle) {
+                this.recycle();
+            }
+            return result;
+        };
+        CallbackInfo.prototype.call = function () {
+            return call(this, arguments);
+        };
+        CallbackInfo.prototype.callAndRecycle = function () {
+            var result = call(this, arguments);
+            this.recycle();
+            return result;
+        };
+        CallbackInfo.prototype.onRecycle = function () {
+            this.callback = undefined;
+            this.args = undefined;
+            this.thisObj = undefined;
+            this.doRecycle = true;
+        };
+        /**
+         * 获取CallbackInfo的实例
+         */
+        CallbackInfo.get = function (callback, thisObj) {
+            var args = [];
+            for (var _i = 2; _i < arguments.length; _i++) {
+                args[_i - 2] = arguments[_i];
+            }
+            var info = jy.recyclable(CallbackInfo);
+            info.init(callback, thisObj, args);
+            return info;
+        };
+        /**
+         * 加入到数组
+         * 检查是否有this和handle相同的callback，如果有，就用新的参数替换旧参数
+         * @param list
+         * @param handle
+         * @param args
+         * @param thisObj
+         */
+        CallbackInfo.addToList = function (list, handle, thisObj) {
+            var args = [];
+            for (var _i = 3; _i < arguments.length; _i++) {
+                args[_i - 3] = arguments[_i];
+            }
+            //检查是否有this和handle相同的callback
+            var callback;
+            for (var i = 0, len = list.length; i < len; i++) {
+                callback = list[i];
+                if (callback.checkHandle(handle, thisObj)) {
+                    callback.args = args;
+                    return callback;
+                }
+            }
+            callback = this.get.apply(this, [handle, thisObj].concat(args));
+            list.push(callback);
+            return callback;
+        };
+        /**
+         * 从列表中移除
+         *
+         * @static
+         * @template T
+         * @param {CallbackInfo<T>[]} list
+         * @param {T} handle
+         * @param {*} [thisObj]
+         * @returns
+         * @memberof CallbackInfo
+         */
+        CallbackInfo.removeFromList = function (list, handle, thisObj) {
+            var j = -1;
+            var info;
+            for (var i = 0, len = list.length; i < len; i++) {
+                var callback = list[i];
+                if (callback.checkHandle(handle, thisObj)) {
+                    j = i;
+                    info = callback;
+                    break;
+                }
+            }
+            if (info) {
+                list.splice(j, 1);
+            }
+            return info;
+        };
+        return CallbackInfo;
+    }());
+    jy.CallbackInfo = CallbackInfo;
+    __reflect(CallbackInfo.prototype, "jy.CallbackInfo", ["jy.IRecyclable"]);
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    /**
+     *
+     * 调整ClassFactory
+     * @export
+     * @class ClassFactory
+     * @template T
+     */
+    var ClassFactory = /** @class */ (function () {
+        /**
+         * @param {Creator<T>} creator
+         * @param {Partial<T>} [props] 属性模板
+         * @memberof ClassFactory
+         */
+        function ClassFactory(creator, props) {
+            this._creator = creator;
+            this._props = props;
+        }
+        /**
+         * 获取实例
+         *
+         * @returns
+         */
+        ClassFactory.prototype.get = function () {
+            var ins = new this._creator();
+            var p = this._props;
+            for (var key in p) {
+                ins[key] = p[key];
+            }
+            return ins;
+        };
+        return ClassFactory;
+    }());
+    jy.ClassFactory = ClassFactory;
+    __reflect(ClassFactory.prototype, "jy.ClassFactory");
+    /**
+     * 回收池
+     * @author 3tion
+     *
+     */
+    var RecyclablePool = /** @class */ (function () {
+        function RecyclablePool(TCreator, max) {
+            if (max === void 0) { max = 100; }
+            this._pool = [];
+            this._max = max;
+            this._creator = TCreator;
+        }
+        RecyclablePool.prototype.get = function () {
+            var ins;
+            var pool = this._pool;
+            if (pool.length) {
+                ins = pool.pop();
+            }
+            else {
+                ins = new this._creator();
+            }
+            if (typeof ins.onSpawn === "function") {
+                ins.onSpawn();
+            }
+            if (true) {
+                ins._insid = _recid++;
+            }
+            return ins;
+        };
+        /**
+         * 回收
+         */
+        RecyclablePool.prototype.recycle = function (t) {
+            var pool = this._pool;
+            var idx = pool.indexOf(t);
+            if (!~idx) { //不在池中才进行回收
+                if (typeof t.onRecycle === "function") {
+                    t.onRecycle();
+                }
+                if (pool.length < this._max) {
+                    pool.push(t);
+                }
+            }
+        };
+        return RecyclablePool;
+    }());
+    jy.RecyclablePool = RecyclablePool;
+    __reflect(RecyclablePool.prototype, "jy.RecyclablePool");
+    if (true) {
+        var _recid = 0;
+    }
+    /**
+     * 获取一个recyclable的对象
+     *
+     * @export
+     * @template T
+     * @param {(Creator<T> & { _pool?: RecyclablePool<T> })} clazz 对象定义
+     * @param {boolean} [addInstanceRecycle] 是否将回收方法附加在实例上，默认将回收方法放在实例
+     * @returns {Recyclable<T>}
+     */
+    function recyclable(clazz, addInstanceRecycle) {
+        var pool;
+        if (clazz.hasOwnProperty("_pool")) {
+            pool = clazz._pool;
+        }
+        if (!pool) {
+            if (addInstanceRecycle) {
+                pool = new RecyclablePool(function () {
+                    var ins = new clazz();
+                    ins.recycle = recycle;
+                    return ins;
+                });
+            }
+            else {
+                pool = new RecyclablePool(clazz);
+                var pt = clazz.prototype;
+                if (!pt.hasOwnProperty("recycle")) {
+                    pt.recycle = recycle;
+                }
+            }
+            Object.defineProperty(clazz, "_pool", {
+                value: pool
+            });
+        }
+        return pool.get();
+        function recycle() {
+            pool.recycle(this);
+        }
+    }
+    jy.recyclable = recyclable;
+    /**
+     * 单例工具
+     * @param clazz 要做单例的类型
+     */
+    function singleton(clazz) {
+        var instance;
+        if (clazz.hasOwnProperty("_instance")) {
+            instance = clazz._instance;
+        }
+        if (!instance) {
+            instance = new clazz;
+            Object.defineProperty(clazz, "_instance", {
+                value: instance
+            });
+        }
+        return instance;
+    }
+    jy.singleton = singleton;
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 绑定属性名，当属性值发生改变时，可自动对外抛eventType事件
      *
@@ -5441,6 +5754,2602 @@ var jy;
         };
     }
     jy.d_memoize = d_memoize;
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    function isPowerOfTwo(n) {
+        return (n !== 0) && ((n & (n - 1)) === 0);
+    }
+    function getAngle(getParameter) {
+        var _a = getParameter(33902 /* ALIASED_LINE_WIDTH_RANGE */), min = _a[0], max = _a[1];
+        // Heuristic: ANGLE is only on Windows, not in IE, and not in Edge, and does not implement line width greater than one.
+        var angle = ((navigator.platform === 'Win32') || (navigator.platform === 'Win64')) &&
+            (getParameter(7937 /* RENDERER */) !== 'Internet Explorer') &&
+            (getParameter(7937 /* RENDERER */) !== 'Microsoft Edge') &&
+            (min === 0 && max === 1);
+        if (angle) {
+            // Heuristic: D3D11 backend does not appear to reserve uniforms like the D3D9 backend, e.g.,
+            // D3D11 may have 1024 uniforms per stage, but D3D9 has 254 and 221.
+            //
+            // We could also test for WEBGL_draw_buffers, but many systems do not have it yet
+            // due to driver bugs, etc.
+            if (isPowerOfTwo(getParameter(36347 /* MAX_VERTEX_UNIFORM_VECTORS */)) && isPowerOfTwo(getParameter(36349 /* MAX_FRAGMENT_UNIFORM_VECTORS */))) {
+                return 2 /* D3D11 */;
+            }
+            else {
+                return 1 /* D3D9 */;
+            }
+        }
+        return 0 /* No */;
+    }
+    function getMaxAnisotropy(g) {
+        var e = g.getExtension('EXT_texture_filter_anisotropic')
+            || g.getExtension('WEBKIT_EXT_texture_filter_anisotropic')
+            || g.getExtension('MOZ_EXT_texture_filter_anisotropic');
+        if (e) {
+            var max = g.getParameter(34047 /* MAX_TEXTURE_MAX_ANISOTROPY_EXT */);
+            if (max === 0) {
+                max = 2;
+            }
+            return max;
+        }
+    }
+    function getMaxDrawBuffers(g) {
+        var maxDrawBuffers = 1;
+        var ext = g.getExtension("WEBGL_draw_buffers");
+        if (ext != null) {
+            maxDrawBuffers = g.getParameter(34852 /* MAX_DRAW_BUFFERS_WEBGL */);
+        }
+        return maxDrawBuffers;
+    }
+    function getWebGLCaps(g) {
+        if (!g) {
+            var canvas = document.createElement("canvas");
+            var webglAttr = {
+                stencil: true,
+                failIfMajorPerformanceCaveat: true
+            };
+            g = canvas.getContext("webgl", webglAttr) || canvas.getContext("experimental-webgl", webglAttr);
+        }
+        if (!g) {
+            return;
+        }
+        var getParameter = g.getParameter.bind(g);
+        var unmaskedRenderer, unmaskedVendor;
+        var dbgRenderInfo = g.getExtension("WEBGL_debug_renderer_info");
+        if (dbgRenderInfo) {
+            unmaskedVendor = getParameter(37445 /* UNMASKED_VENDOR_WEBGL */);
+            unmaskedRenderer = getParameter(37446 /* UNMASKED_RENDERER_WEBGL */);
+        }
+        return {
+            unmaskedRenderer: unmaskedRenderer,
+            unmaskedVendor: unmaskedVendor,
+            version: getParameter(7938 /* VERSION */),
+            shaderVersion: getParameter(35724 /* SHADING_LANGUAGE_VERSION */),
+            vendor: getParameter(7936 /* VENDOR */),
+            renderer: getParameter(7937 /* RENDERER */),
+            antialias: g.getContextAttributes().antialias,
+            angle: getAngle(getParameter),
+            maxVertAttr: getParameter(34921 /* MAX_VERTEX_ATTRIBS */),
+            maxVertTextureCount: getParameter(35660 /* MAX_VERTEX_TEXTURE_IMAGE_UNITS */),
+            maxVertUniforms: getParameter(36347 /* MAX_VERTEX_UNIFORM_VECTORS */),
+            maxVaryings: getParameter(36348 /* MAX_VARYING_VECTORS */),
+            aliasedLineWidth: getParameter(33902 /* ALIASED_LINE_WIDTH_RANGE */),
+            aliasedPointSize: getParameter(33901 /* ALIASED_POINT_SIZE_RANGE */),
+            maxFragUniform: getParameter(36349 /* MAX_FRAGMENT_UNIFORM_VECTORS */),
+            maxTextureCount: getParameter(34930 /* MAX_TEXTURE_IMAGE_UNITS */),
+            maxTextureSize: getParameter(3379 /* MAX_TEXTURE_SIZE */),
+            maxCubeMapTextureSize: getParameter(34076 /* MAX_CUBE_MAP_TEXTURE_SIZE */),
+            maxCombinedTextureCount: getParameter(35661 /* MAX_COMBINED_TEXTURE_IMAGE_UNITS */),
+            maxAnisotropy: getMaxAnisotropy(g),
+            maxDrawBuffers: getMaxDrawBuffers(g),
+            redBits: getParameter(3410 /* RED_BITS */),
+            greenBits: getParameter(3411 /* GREEN_BITS */),
+            blueBits: getParameter(3412 /* BLUE_BITS */),
+            alphaBits: getParameter(3413 /* ALPHA_BITS */),
+            depthBits: getParameter(3414 /* DEPTH_BITS */),
+            stencilBits: getParameter(3415 /* STENCIL_BITS */),
+            maxRenderBufferSize: getParameter(34024 /* MAX_RENDERBUFFER_SIZE */),
+            maxViewportSize: getParameter(3386 /* MAX_VIEWPORT_DIMS */),
+        };
+    }
+    jy.getWebGLCaps = getWebGLCaps;
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    /**
+     * 资源的 版本字典
+     */
+    var _hash = {};
+    /**
+     * 配置数据
+     */
+    var _data;
+    /**
+     * 注册的皮肤路径
+     * key      {string}   皮肤的key
+     * value    {Path}    皮肤实际路径地址
+     */
+    var _regedSkinPath = {};
+    var getPrefix;
+    var _res;
+    /**
+     * 获取皮肤路径
+     *
+     * @param {string} key
+     * @param {string} fileName
+     * @returns
+     */
+    function getSkinPath(key, fileName) {
+        return key + "/" + fileName;
+    }
+    /**
+     * 通过Path获取完整url
+     *
+     * @private
+     * @static
+     * @param {string} uri 路径标识
+     * @param {Path} path Path对象
+     * @returns
+     */
+    function getUrlWithPath(uri, path) {
+        if (!path || /^((http|https):)?\/\//.test(uri)) { //如果是http://或者https://，或者//开头，即为完整地址，不加前缀
+            return uri;
+        }
+        uri = path.tPath + uri;
+        var prefix = path.iPrefix ? "" : getPrefix(uri);
+        return prefix + uri;
+    }
+    /**
+     * 根据uri缓存url的字典
+     */
+    var uriDict = {};
+    /**
+     * 获取资源版本号
+     * @param uri
+     */
+    function getResVer(uri) {
+        return ~~(_hash && _hash[uri.hash()]);
+    }
+    function tryReplace(v, replacer) {
+        if (replacer) {
+            if (typeof v === "string") {
+                return doReplace(v, replacer);
+            }
+            else if (typeof v === "object") {
+                for (var k in v) {
+                    v[k] = tryReplace(v[k], replacer);
+                }
+            }
+        }
+        return v;
+    }
+    function doReplace(value, replacer) {
+        return value.replace(/[$][{]([^{}]+)[}]/g, function (match, subkey) {
+            var value = replacer[subkey];
+            return value !== undefined ? "" + value : match;
+        });
+    }
+    /**
+     * 配置工具
+     * @author 3tion
+     * @export
+     * @class ConfigUtils
+     */
+    jy.ConfigUtils = {
+        replace: function (data) {
+            var replacer = data.replacer;
+            if (replacer) {
+                Object.keys(data).forEach(function (key) {
+                    if (key != "replacer") {
+                        var v = data[key];
+                        data[key] = tryReplace(v, replacer);
+                    }
+                });
+            }
+            return data;
+        },
+        setData: function (data) {
+            _data = data;
+            !_data.params && (_data.params = {});
+            //检查路径是否存在有路径有父路径的，如果有，进行预处理
+            var paths = _data.paths;
+            for (var key in paths) {
+                var p = paths[key];
+                p.tPath = getPath(p, paths);
+            }
+            _res = _data.paths.res;
+            //检查前缀
+            getPrefix = (function (prefixes) {
+                var len = 0;
+                if (prefixes) {
+                    len = prefixes.length;
+                }
+                switch (len) {
+                    case 0:
+                        return function (_) { return ""; };
+                    case 1: {
+                        var prefix_1 = prefixes[0];
+                        return function (_) { return prefix_1; };
+                    }
+                    default:
+                        return function (uri) {
+                            var idx = uri.hash() % len;
+                            return prefixes[idx] || "";
+                        };
+                }
+            })(_data.prefixes);
+            function getPath(p, paths) {
+                var parentKey = p.parent;
+                if (parentKey) {
+                    var parent_1 = paths[parentKey];
+                    if (parent_1) {
+                        return getPath(parent_1, paths) + p.path;
+                    }
+                    else if (true) {
+                        jy.ThrowError("\u8DEF\u5F84[" + p.path + "]\u914D\u7F6E\u4E86\u7236\u7EA7(parent)\uFF0C\u4F46\u662F\u627E\u4E0D\u5230\u5BF9\u5E94\u7684\u7236\u7EA7");
+                    }
+                }
+                return p.path;
+            }
+        },
+        /**
+         * 解析版本控制文件
+         * @param {ArrayBufferLike} hash
+         */
+        parseHash: function (hash) {
+            var dv = new DataView(hash);
+            var pos = 0;
+            var len = dv.byteLength;
+            _hash = {};
+            while (pos < len) {
+                var hash_1 = dv.getUint32(pos);
+                pos += 4 /* SIZE_OF_UINT32 */;
+                var version = dv.getUint16(pos);
+                pos += 2 /* SIZE_OF_UINT16 */;
+                _hash[hash_1] = version;
+            }
+            jy.dispatch(-188 /* ParseResHash */);
+        },
+        /**
+         * 设置版本控制文件
+         * @param hash
+         */
+        setHash: function (hash) {
+            _hash = hash;
+        },
+        getResVer: getResVer,
+        /**
+         * 获取资源完整路径
+         *
+         * @static
+         * @param {string} uri                  路径标识
+         * @returns {string}
+         */
+        getResUrl: function (uri) {
+            var url = uriDict[uri];
+            if (!url) {
+                var ver = getResVer(uri);
+                if (ver) {
+                    if (uri.indexOf("?") == -1) {
+                        uri = uri + "?" + ver;
+                    }
+                    else {
+                        uri = uri + "&jyver=" + ver;
+                    }
+                }
+                url = getUrlWithPath(uri, _res);
+                uriDict[uri] = url;
+            }
+            return url;
+        },
+        /**
+         * 获取参数
+         */
+        getParam: function (key) {
+            return _data.params[key];
+        },
+        getSkinPath: getSkinPath,
+        /**
+         * 获取皮肤文件地址
+         */
+        getSkinFile: function (key, fileName) {
+            return getUrlWithPath(getSkinPath(key, fileName), _regedSkinPath[key] || _data.paths.skin);
+        },
+        /**
+         * 设置皮肤路径
+         * 如 `lib` 原本应该放在当前项目  resource/skin/ 目录下
+         * 现在要将`lib`的指向改到  a/ 目录下
+         * 则使用下列代码
+         * ```typescript
+         * ConfigUtils.regSkinPath("lib","a/");
+         * ```
+         * 如果要将`lib`的指向改到 http://www.xxx.com/a/下
+         * 则使用下列代码
+         * ```typescript
+         * ConfigUtils.regSkinPath("lib","http://www.xxx.com/a/",true);
+         * ```
+         * 如果域名不同，`自行做好跨域策略CROS`
+         *
+         * @param {string} key
+         * @param {string} path
+         * @param {boolean} [iPrefix] 是否忽略皮肤前缀
+         */
+        regSkinPath: function (key, path, iPrefix) {
+            _regedSkinPath[key] = { tPath: path, path: path, iPrefix: iPrefix };
+        },
+        /**
+         * 获取路径
+         *
+         * @param {string} uri
+         * @param {string} pathKey
+         * @returns
+         */
+        getUrl: function (uri, pathKey) {
+            var path = _data.paths[pathKey];
+            if (path) {
+                return getUrlWithPath(uri, path);
+            }
+        }
+    };
+})(jy || (jy = {}));
+/**
+ * DataLocator的主数据
+ * 原 junyou.DataLocator.data  的全局别名简写
+ */
+var $DD = {};
+/**
+ * DataLocator的附加数据
+ * 原 junyou.DataLocator.extra 的全局别名简写
+ */
+var $DE = {};
+var jy;
+(function (jy) {
+    var parsers = {};
+    /**
+     *
+     * 用于处理顺序
+     * @private
+     * @static
+     */
+    var _plist = [];
+    /**
+     * 配置加载器<br/>
+     * 用于预加载数据的解析
+     * @author 3tion
+     *
+     */
+    jy.DataLocator = {
+        regParser: regParser,
+        /**
+         * 解析打包的配置
+         */
+        parsePakedDatas: function (type) {
+            var configs = jy.Res.get("cfgs");
+            jy.Res.remove("cfgs");
+            if (type == 1) {
+                configs = decodePakCfgs(new jy.ByteArray(configs));
+            }
+            // 按顺序解析
+            for (var _i = 0, _plist_1 = _plist; _i < _plist_1.length; _i++) {
+                var key = _plist_1[_i];
+                var parser = parsers[key];
+                var data = parser(configs[key]);
+                if (data) { // 支持一些void的情况
+                    $DD[key] = data;
+                    jy.dispatch(-185 /* OneCfgComplete */, key);
+                }
+            }
+            var extraData = $DE;
+            //处理额外数据
+            for (var key in configs) {
+                if (key.charAt(0) == "$") {
+                    var raw = configs[key];
+                    key = key.substr(1);
+                    if (raw) {
+                        var i = 0, len = raw.length, data = {};
+                        while (i < len) {
+                            var sub = raw[i++];
+                            var value = raw[i++];
+                            var test = raw[i];
+                            if (typeof test === "number") {
+                                i++;
+                                value = getJSONValue(value, test);
+                            }
+                            data[sub] = value;
+                        }
+                        extraData[key] = data;
+                    }
+                }
+            }
+            //清理内存
+            parsers = null;
+            _plist = null;
+            delete jy.DataLocator;
+        },
+        /**
+         *
+         * 注册通过H5ExcelTool导出的数据并且有唯一标识的使用此方法注册
+         * @param {keyof CfgData} key 数据的标识
+         * @param {(Creator<any> | 0)} CfgCreator 配置的类名
+         * @param {(string | 0)} [idkey="id"] 唯一标识 0用于标识数组
+         * @param {CfgDataType} [type]
+         */
+        regCommonParser: regCommonParser,
+        regBytesParser: regBytesParser
+    };
+    /**
+     *
+     * 注册通过H5ExcelTool导出的数据并且有唯一标识的使用此方法注册
+     * @param {keyof CfgData} key 数据的标识
+     * @param {(Creator<any> | 0)} CfgCreator 配置的类名
+     * @param {(string | 0)} [idkey="id"] 唯一标识 0用于标识数组
+     * @param {CfgDataType} [type]
+     */
+    function regCommonParser(key, CfgCreator, idkey, type) {
+        if (idkey === void 0) { idkey = "id"; }
+        regParser(key, function (data) {
+            var _a;
+            if (!data)
+                return;
+            var dict, forEach;
+            var headersRaw = data[0];
+            var hasLocal;
+            for (var j = 0; j < headersRaw.length; j++) {
+                var head = headersRaw[j];
+                if ((head[2] & 2 /* Local */) == 2 /* Local */) {
+                    hasLocal = 1;
+                }
+            }
+            (_a = getParserOption(idkey, type), type = _a[0], dict = _a[1], forEach = _a[2]);
+            try {
+                var ref = CfgCreator || Object;
+                for (var i = 1; i < data.length; i++) {
+                    var rowData = data[i];
+                    var ins = new ref();
+                    var local = hasLocal && {};
+                    for (var j = 0; j < headersRaw.length; j++) {
+                        var head = headersRaw[j];
+                        var name_6 = head[0], test = head[1], type_1 = head[2], def = head[3];
+                        var v = getJSONValue(rowData[j], test, def);
+                        if ((type_1 & 2 /* Local */) == 2 /* Local */) {
+                            local[name_6] = v;
+                        }
+                        else {
+                            ins[name_6] = v;
+                        }
+                    }
+                    forEach(ins, i - 1, key, dict, idkey);
+                    if (typeof ins.decode === "function") {
+                        ins.decode(local);
+                    }
+                }
+                if (type == 1 /* ArraySet */) {
+                    dict = new jy.ArraySet().setRawList(dict, idkey);
+                }
+            }
+            catch (e) {
+                if (true) {
+                    jy.ThrowError("\u89E3\u6790\u914D\u7F6E:" + key + "\u51FA\u9519", e);
+                }
+            }
+            return dict;
+        });
+    }
+    /**
+     * 注册配置解析
+     * @param key       配置的标识
+     * @param parser    解析器
+     */
+    function regParser(key, parser) {
+        parsers[key] = parser;
+        _plist.push(key);
+    }
+    function getJSONValue(value, type, def) {
+        // 特殊类型数据
+        switch (type) {
+            case 0 /* Any */:
+                if (value == null) { //value == null 同时判断 null 和 undefined 并且字符串较少
+                    value = def;
+                }
+                break;
+            case 1 /* String */:
+                if (value === 0 || value == null) {
+                    value = def || "";
+                }
+                break;
+            case 2 /* Number */:
+            case 9 /* Int32 */:
+                // 0 == "" // true
+                if (value === "" || value == null) {
+                    value = +def || 0;
+                }
+                break;
+            case 3 /* Bool */:
+                if (value == null) {
+                    value = def;
+                }
+                value = !!value;
+                break;
+            case 4 /* Array */:
+            case 5 /* Array2D */:
+                if (value === 0) {
+                    value = undefined;
+                }
+                if (!value && def) {
+                    value = def;
+                }
+                break;
+            case 6 /* Date */:
+            case 8 /* DateTime */:
+                value = new Date((value || def || 0) * 10000);
+                break;
+            case 7 /* Time */:
+                value = new jy.TimeVO().decodeBit(value || def || 0);
+                break;
+        }
+        return value;
+    }
+    /**
+     * 用于解析数组
+     *
+     * @memberOf DataLocator
+     */
+    function arrayParserForEach(t, idx, key, dict) {
+        dict.push(t);
+    }
+    /**
+     * 用于解析字典
+     */
+    function commonParserForEach(t, idx, key, dict, idKey) {
+        if (idKey in t) {
+            var id = t[idKey];
+            if (true) {
+                if (typeof id === "object") {
+                    jy.Log("\u914D\u7F6E" + key + "\u7684\u6570\u636E\u6709\u8BEF\uFF0C\u552F\u4E00\u6807\u8BC6" + idKey + "\u4E0D\u80FD\u4E3A\u5BF9\u8C61");
+                }
+                if (id in dict) {
+                    jy.Log("\u914D\u7F6E" + key + "\u7684\u6570\u636E\u6709\u8BEF\uFF0C\u552F\u4E00\u6807\u8BC6" + idKey + "\u6709\u91CD\u590D\u503C\uFF1A" + id);
+                }
+            }
+            dict[id] = t;
+        }
+        else if (true) {
+            jy.Log("\u914D\u7F6E" + key + "\u89E3\u6790\u6709\u8BEF\uFF0C\u65E0\u6CD5\u627E\u5230\u6307\u5B9A\u7684\u552F\u4E00\u6807\u793A\uFF1A" + idKey + "\uFF0C\u6570\u636E\u7D22\u5F15\uFF1A" + idx);
+        }
+    }
+    var CfgHeadStruct = {
+        1: [0, 2 /* Required */, 9 /* String */] /*必有 属性名字*/,
+        2: [1, 2 /* Required */, 14 /* Enum */] /*必有 数值的数据类型*/,
+        3: [2, 1 /* Optional */, 14 /* Enum */] /*可选 此列的状态*/,
+        4: [3, 1 /* Optional */, 17 /* SInt32 */] /*可选 bool / int32 型默认值 */,
+        5: [4, 1 /* Optional */, 1 /* Double */] /*可选 double 型默认值 */,
+        6: [5, 1 /* Optional */, 9 /* String */] /*可选 字符串型默认值 */
+    };
+    jy.PBUtils.initDefault(CfgHeadStruct);
+    //配置数据 打包的文件结构数据
+    //readUnsignedByte 字符串长度 readString 表名字 readUnsignedByte 配置类型(0 PBBytes 1 JSON字符串) readVarint 数据长度
+    function decodePakCfgs(buffer) {
+        var cfgs = {};
+        while (buffer.readAvailable) {
+            var len = buffer.readUnsignedByte();
+            var key = buffer.readUTFBytes(len); //得到表名
+            var type = buffer.readUnsignedByte();
+            var value = void 0;
+            len = buffer.readVarint();
+            switch (type) {
+                case 0: //JSON字符串
+                    var str = buffer.readUTFBytes(len);
+                    value = JSON.parse(str);
+                    break;
+                case 1: //PBBytes
+                    value = buffer.readByteArray(len);
+                    break;
+            }
+            cfgs[key] = value;
+        }
+        return cfgs;
+    }
+    function getParserOption(idkey, type) {
+        if (idkey === void 0) { idkey = "id"; }
+        var dict, forEach;
+        if (idkey == "" || idkey == 0) {
+            type = 2 /* Array */;
+        }
+        else if (!type) {
+            type = 3 /* Dictionary */;
+        }
+        switch (type) {
+            case 2 /* Array */:
+            case 1 /* ArraySet */:
+                dict = [];
+                forEach = arrayParserForEach;
+                break;
+            case 3 /* Dictionary */:
+                dict = {};
+                forEach = commonParserForEach;
+                break;
+        }
+        return [type, dict, forEach];
+    }
+    /**
+     * 通用的Bytes版本的配置解析器
+     * @param buffer
+     */
+    function regBytesParser(key, CfgCreator, idkey, type) {
+        if (idkey === void 0) { idkey = "id"; }
+        regParser(key, function (bytes) {
+            var _a;
+            if (!bytes) {
+                return;
+            }
+            var dict, forEach;
+            (_a = getParserOption(idkey, type), type = _a[0], dict = _a[1], forEach = _a[2]);
+            try {
+                var struct = {};
+                var headersRaw = [];
+                var i = 0;
+                var count = bytes.readVarint(); //头的数量
+                var hasLocal = void 0;
+                while (bytes.readAvailable && count--) {
+                    var len = bytes.readVarint();
+                    var head = jy.PBUtils.readFrom(CfgHeadStruct, bytes, len);
+                    var name_7 = head[0], headType = head[1], headState = head[2], i32Def = head[3], dblDef = head[4], strDef = head[5];
+                    var def = void 0, isJSON = 0, pbType = void 0;
+                    switch (headType) {
+                        case 0 /* Any */:
+                        case 1 /* String */:
+                            def = strDef;
+                            pbType = 9 /* String */;
+                            break;
+                        case 2 /* Number */:
+                            def = dblDef;
+                            pbType = 1 /* Double */;
+                            break;
+                        case 3 /* Bool */:
+                        case 9 /* Int32 */:
+                        case 6 /* Date */:
+                        case 7 /* Time */:
+                        case 8 /* DateTime */:
+                            def = i32Def;
+                            pbType = 17 /* SInt32 */;
+                            break;
+                        case 4 /* Array */:
+                        case 5 /* Array2D */:
+                            if (strDef) {
+                                def = JSON.parse(strDef);
+                            }
+                            pbType = 9 /* String */;
+                            isJSON = 1;
+                            break;
+                    }
+                    struct[i + 1] = [name_7, 1 /* Optional */, pbType, def];
+                    head.length = 5;
+                    head[3] = def;
+                    head[4] = isJSON;
+                    headersRaw[i++] = head;
+                    if ((headState & 2 /* Local */) == 2 /* Local */) {
+                        hasLocal = 1;
+                    }
+                }
+                jy.PBUtils.initDefault(struct, CfgCreator);
+                var headLen = i;
+                i = 0;
+                count = bytes.readVarint(); //行的数量
+                while (bytes.readAvailable && count--) {
+                    var len = bytes.readVarint();
+                    var obj = jy.PBUtils.readFrom(struct, bytes, len);
+                    if (!obj) {
+                        continue;
+                    }
+                    var local = hasLocal && {};
+                    for (var j = 0; j < headLen; j++) {
+                        var head = headersRaw[j];
+                        var name_8 = head[0], test = head[1], type_2 = head[2], def = head[3], isJSON = head[4];
+                        var value = obj[name_8];
+                        if (value && isJSON) {
+                            value = JSON.parse(value);
+                        }
+                        var v = getJSONValue(value, test, def);
+                        if ((type_2 & 2 /* Local */) == 2 /* Local */) {
+                            local[name_8] = v;
+                        }
+                        else {
+                            obj[name_8] = v;
+                        }
+                    }
+                    forEach(obj, i++, key, dict, idkey);
+                    if (typeof obj.decode === "function") {
+                        obj.decode(local);
+                    }
+                }
+                if (type == 1 /* ArraySet */) {
+                    dict = new jy.ArraySet().setRawList(dict, idkey);
+                }
+            }
+            catch (e) {
+                if (true) {
+                    jy.ThrowError("\u89E3\u6790\u914D\u7F6E:" + key + "\u51FA\u9519\uFF0C\u8BF7\u91CD\u65B0\u6253\u5305\u914D\u7F6E", e, true);
+                }
+            }
+            return dict;
+        });
+    }
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    /**
+     * 尝试将数据转成number类型，如果无法转换，用原始类型
+     *
+     * @param {*} value 数据
+     * @returns
+     */
+    function tryParseNumber(value) {
+        if (typeof value === "boolean") {
+            return value ? 1 : 0;
+        }
+        if (value == +value && value.length == (+value + "").length) { // 数值类型
+            // "12132123414.12312312"==+"12132123414.12312312"
+            // true
+            // "12132123414.12312312".length==(+"12132123414.12312312"+"").length
+            // false
+            return +value;
+        }
+        else {
+            return value;
+        }
+    }
+    function getData(valueList, keyList, o) {
+        o = o || {};
+        for (var i = 0, len = keyList.length; i < len; i++) {
+            var key = keyList[i];
+            var v = valueList[i];
+            if (v != undefined) {
+                o[key] = valueList[i];
+            }
+        }
+        return o;
+    }
+    function copyData(to, valueList, keyList) {
+        for (var i = 0, len = keyList.length; i < len; i++) {
+            var key = keyList[i];
+            to[key] = valueList[i];
+        }
+    }
+    function getZuobiao(data) {
+        return { x: data[0], y: data[1] };
+    }
+    /**
+     *
+     * @author 君游项目解析工具
+     *
+     */
+    jy.DataUtils = {
+        parseDatas: function (to, from, checkStart, checkEnd, dataKey, toDatasKey) {
+            var arr = [];
+            for (var i = checkStart, j = 0; i <= checkEnd; i++) {
+                var key = dataKey + i;
+                if (key in from) {
+                    arr[j++] = from[key];
+                }
+            }
+            to[toDatasKey] = arr;
+        },
+        parseDatas2: function (to, valueList, keyList, checkStart, checkEnd, dataKey, toDatasKey) {
+            var arr = [];
+            for (var i = checkStart, j = 0; i <= checkEnd; i++) {
+                var key = dataKey + i;
+                var idx = keyList.indexOf(key);
+                if (~idx) {
+                    arr[j++] = valueList[idx];
+                }
+            }
+            to[toDatasKey] = arr;
+        },
+        getData: getData,
+        getDataList: function (dataList, keyList) {
+            var list = [];
+            if (dataList) {
+                for (var i = 0, len = dataList.length; i < len; i++) {
+                    var valueList = dataList[i];
+                    list.push(getData(valueList, keyList));
+                }
+            }
+            return list;
+        },
+        parseDataList: function (dataList, keyList, forEach, thisObj) {
+            var args = [];
+            for (var _i = 4; _i < arguments.length; _i++) {
+                args[_i - 4] = arguments[_i];
+            }
+            if (dataList) {
+                for (var i = 0, len = dataList.length; i < len; i++) {
+                    var valueList = dataList[i];
+                    var to = getData(valueList, keyList);
+                    forEach.call(thisObj, to, args, i);
+                }
+            }
+        },
+        copyData: copyData,
+        copyDataList: function (creator, dataList, keyList, forEach, thisObj) {
+            var args = [];
+            for (var _i = 5; _i < arguments.length; _i++) {
+                args[_i - 5] = arguments[_i];
+            }
+            if (dataList) {
+                for (var i = 0, len = dataList.length; i < len; i++) {
+                    var valueList = dataList[i];
+                    var to = new creator();
+                    copyData(to, valueList, keyList);
+                    forEach.call(thisObj, to, args, i);
+                }
+            }
+        },
+        parseXAttr2: function (from, xattr, keyPrefix, valuePrefix, delOriginKey) {
+            if (keyPrefix === void 0) { keyPrefix = "pro"; }
+            if (valuePrefix === void 0) { valuePrefix = "provalue"; }
+            if (delOriginKey === void 0) { delOriginKey = true; }
+            var xReg = new RegExp("^" + keyPrefix + "(\\d+)$");
+            if (true) {
+                var repeatedErr = "";
+            }
+            var keyCount = 0;
+            for (var key in from) {
+                var obj = xReg.exec(key);
+                if (obj) {
+                    var idx = +(obj[1]) || 0;
+                    var valueKey = valuePrefix + idx;
+                    if (true) {
+                        if (key in xattr) {
+                            repeatedErr += key + " ";
+                        }
+                    }
+                    var value = +(from[valueKey]);
+                    if (value > 0) { //只有大于0做处理
+                        keyCount++;
+                        xattr[from[key]] = value;
+                    }
+                    if (delOriginKey) {
+                        delete from[key];
+                        delete from[valueKey];
+                    }
+                }
+            }
+            if (true) {
+                if (repeatedErr) {
+                    jy.ThrowError("有重复的属性值:" + repeatedErr);
+                }
+            }
+            return keyCount;
+        },
+        parseXAttr: function (from, xattr, delOriginKey, xReg) {
+            if (delOriginKey === void 0) { delOriginKey = true; }
+            if (xReg === void 0) { xReg = /^x\d+$/; }
+            var keyCount = 0;
+            for (var key in from) {
+                if (xReg.test(key)) {
+                    var value = +(from[key]);
+                    if (value > 0) { //只有大于0做处理
+                        keyCount++;
+                        xattr[key] = value;
+                    }
+                    if (delOriginKey) {
+                        delete from[key];
+                    }
+                }
+            }
+            return keyCount;
+        },
+        getZuobiaos: function (data, out) {
+            out = out || [];
+            for (var i = 0; i < data.length; i++) {
+                out.push(getZuobiao(data[i]));
+            }
+        },
+        getArray2D: function (value) {
+            if (Array.isArray(value)) {
+                return value;
+            }
+            if (value.trim() == "") {
+                return;
+            }
+            var arr = value.split("|");
+            arr.forEach(function (item, idx) {
+                var subArr = item.split(":");
+                arr[idx] = subArr;
+                subArr.forEach(function (sitem, idx) {
+                    subArr[idx] = tryParseNumber(sitem);
+                });
+            });
+            return arr;
+        },
+        getArray: function (value) {
+            if (Array.isArray(value)) {
+                return value;
+            }
+            value = value + "";
+            if (value.trim() == "") {
+                return;
+            }
+            var arr = value.split(/[:|]/g);
+            arr.forEach(function (item, idx) {
+                arr[idx] = tryParseNumber(item);
+            });
+            return arr;
+        }
+    };
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    /**
+     * 使用http进行通信的网络服务
+     * @author 3tion
+     *
+     */
+    var HttpNetService = /** @class */ (function (_super) {
+        __extends(HttpNetService, _super);
+        function HttpNetService() {
+            var _this = _super.call(this) || this;
+            _this._state = 0 /* UNREQUEST */;
+            /**
+             * 请求发送成功的次数
+             */
+            _this._success = 0;
+            /**
+             * 请求连续发送失败的次数
+             */
+            _this._cerror = 0;
+            /**
+             * 请求失败次数
+             */
+            _this._error = 0;
+            //覆盖instance
+            jy.NetService._ins = _this;
+            _this._unsendRequest = [];
+            _this._sendingList = [];
+            _this._loader = new XMLHttpRequest;
+            return _this;
+        }
+        /**
+         * 重置
+         * @param actionUrl             请求地址
+         * @param autoTimeDelay         自动发送的最短延迟时间
+         */
+        HttpNetService.prototype.setUrl = function (actionUrl, autoTimeDelay) {
+            if (autoTimeDelay === void 0) { autoTimeDelay = 5000; }
+            this._actionUrl = actionUrl;
+            if (autoTimeDelay != this._autoTimeDelay) {
+                this._autoTimeDelay = autoTimeDelay;
+            }
+            // 200毫秒检查一次，是否可以自动拉数据了
+            jy.TimerUtil.addCallback(200, this.checkUnsend, this);
+            var loader = this._loader;
+            loader.onreadystatechange = this.onReadyStateChange.bind(this);
+            loader.ontimeout = this.errorHandler.bind(this);
+        };
+        /**
+        * @protected
+        */
+        HttpNetService.prototype.onReadyStateChange = function () {
+            var xhr = this._loader;
+            if (xhr.readyState == 4) { // 4 = "loaded"
+                var ioError_1 = (xhr.status >= 400 || xhr.status == 0);
+                var self_1 = this;
+                setTimeout(function () {
+                    if (ioError_1) { //请求错误
+                        self_1.errorHandler();
+                    }
+                    else {
+                        self_1.complete();
+                    }
+                }, 0);
+            }
+        };
+        /**
+         * 发生错误
+         */
+        HttpNetService.prototype.errorHandler = function () {
+            this._error++;
+            this._cerror++;
+            this._state = -1 /* FAILED */;
+            if (this._cerror > 1) {
+                this.showReconnect();
+                return;
+            }
+            //曾经成功过
+            //数据未发送成功
+            var sending = this._sendingList;
+            var idx = sending.length;
+            var unrequest = this._unsendRequest;
+            for (var _i = 0, unrequest_1 = unrequest; _i < unrequest_1.length; _i++) {
+                var pdata = unrequest_1[_i];
+                sending[idx++] = pdata;
+            }
+            //交互未发送的请求和发送中的请求列表
+            unrequest.length = 0;
+            this._unsendRequest = sending;
+            this._sendingList = unrequest;
+            //尝试重新发送请求
+            this.checkUnsend();
+        };
+        HttpNetService.prototype.complete = function () {
+            this._state = 2 /* COMPLETE */;
+            this._reconCount = 0;
+            //处理Response
+            var readBuffer = this._readBuffer;
+            readBuffer.replaceBuffer(this._loader.response);
+            readBuffer.position = 0;
+            //成功一次清零连续失败次数
+            this._cerror = 0;
+            this._success++;
+            //清理正在发送的数据            
+            for (var _i = 0, _a = this._sendingList; _i < _a.length; _i++) {
+                var pdata = _a[_i];
+                pdata.recycle();
+            }
+            //数据发送成功
+            this._sendingList.length = 0;
+            this.onBeforeSolveData();
+            this.decodeBytes(readBuffer);
+            this.checkUnsend();
+        };
+        /**
+         * 检查在发送过程中的请求
+         */
+        HttpNetService.prototype.checkUnsend = function () {
+            //有在发送过程中，主动发送的数据
+            if (this._unsendRequest.length || jy.Global.now > this._nextAutoTime) {
+                this.trySend();
+            }
+        };
+        HttpNetService.prototype._send = function (cmd, data, msgType) {
+            //没有同协议的指令，新增数据
+            var pdata = jy.recyclable(jy.NetData);
+            pdata.cmd = cmd;
+            pdata.data = data;
+            pdata.msgType = msgType;
+            this._unsendRequest.push(pdata);
+            this.trySend();
+        };
+        /**
+         * 发送消息之前，用于预处理一些http头信息等
+         *
+         * @protected
+         */
+        HttpNetService.prototype.onBeforeSend = function () {
+        };
+        /**
+         * 接收到服务端Response，用于预处理一些信息
+         *
+         * @protected
+         */
+        HttpNetService.prototype.onBeforeSolveData = function () {
+        };
+        /**
+         * 尝试发送
+         */
+        HttpNetService.prototype.trySend = function () {
+            if (this._state == 1 /* REQUESTING */) {
+                return;
+            }
+            this._state = 1 /* REQUESTING */;
+            var loader = this._loader;
+            loader.open("POST", this._actionUrl, true);
+            loader.responseType = "arraybuffer";
+            this.onBeforeSend();
+            var sendBuffer = this._sendBuffer;
+            sendBuffer.reset();
+            var unsend = this._unsendRequest;
+            var sending = this._sendingList;
+            for (var i = 0, len = unsend.length; i < len; i++) {
+                var pdata = unsend[i];
+                this.writeToBuffer(sendBuffer, pdata);
+                sending[i] = pdata;
+            }
+            var pcmdList = this._pcmdList;
+            for (var _i = 0, pcmdList_2 = pcmdList; _i < pcmdList_2.length; _i++) {
+                var pdata = pcmdList_2[_i];
+                this.writeToBuffer(sendBuffer, pdata);
+                sending[i++] = pdata;
+            }
+            //清空被动数据
+            pcmdList.length = 0;
+            //清空未发送的数据
+            unsend.length = 0;
+            loader.send(sendBuffer.outBytes);
+            //重置自动发送的时间
+            this._nextAutoTime = jy.Global.now + this._autoTimeDelay;
+        };
+        return HttpNetService;
+    }(jy.NetService));
+    jy.HttpNetService = HttpNetService;
+    __reflect(HttpNetService.prototype, "jy.HttpNetService");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    /**
+     * 用于发送的网络数据<br/>
+     * @author 3tion
+     */
+    var NetSendData = /** @class */ (function () {
+        function NetSendData() {
+        }
+        NetSendData.prototype.onRecycle = function () {
+            this.data = undefined;
+            this.msgType = undefined;
+        };
+        return NetSendData;
+    }());
+    jy.NetSendData = NetSendData;
+    __reflect(NetSendData.prototype, "jy.NetSendData", ["jy.IRecyclable"]);
+    /**
+     * 网络数据，类似AS3项目中Stream<br/>
+     * @author 3tion
+     *
+     */
+    var NetData = /** @class */ (function (_super) {
+        __extends(NetData, _super);
+        function NetData() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        return NetData;
+    }(NetSendData));
+    jy.NetData = NetData;
+    __reflect(NetData.prototype, "jy.NetData");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    /**
+     *
+     * @author 3tion
+     *
+     */
+    var NetRouter = /** @class */ (function () {
+        function NetRouter() {
+            this.dispatchList = [];
+            this._listenerMaps = {};
+        }
+        /**
+         * 注册一cmd侦听;
+         * @param cmd      协议号
+         * @param handler   处理器
+         * @param priority  越大越优先
+         * @param once      是否只执行一次
+         * @return boolean true 做为新的兼听添加进去，false 原来就有处理器
+         *
+         */
+        NetRouter.prototype.register = function (cmd, handler, priority, once) {
+            if (priority === void 0) { priority = 0; }
+            if (once === void 0) { once = false; }
+            var listenerMaps = this._listenerMaps;
+            var netBin = { handler: handler, priority: priority, once: once };
+            var list = listenerMaps[cmd];
+            if (!list) {
+                list = [];
+                listenerMaps[cmd] = list;
+                //以前单条是没有存储优先级信息的，会导致，如果先加入的大的，后加入小的，可能会出现问题
+                list.push(netBin);
+            }
+            else {
+                var i = void 0;
+                var len = list.length;
+                //=====同样的CODE 同样的Function 不会被注册多次=====
+                for (i = 0; i < len; i++) {
+                    var temp = list[i];
+                    if (temp.handler == handler) {
+                        if (temp.priority == priority) {
+                            return false;
+                        }
+                        //新的同指令，同处理器的函数会被新的once,priority属性覆盖
+                        list.splice(i, 1);
+                        len--;
+                        break;
+                    }
+                }
+                for (i = 0; i < len; i++) {
+                    if (priority > list[i].priority) {
+                        list.splice(i, 0, netBin);
+                        return true;
+                    }
+                }
+                list[len] = netBin;
+            }
+            return true;
+        };
+        /**
+         * 删除兼听处理器
+         * @param cmd      协议号
+         * @param handler   处理器
+         * @return boolean true 删除成功  <br/>
+         *                 false 没有这个兼听
+         */
+        NetRouter.prototype.remove = function (cmd, handler) {
+            var listenerMaps = this._listenerMaps;
+            var list = listenerMaps[cmd];
+            if (!list) {
+                return false;
+            }
+            var len = list.length;
+            for (var i = 0; i < len; i++) {
+                if (list[i].handler == handler) {
+                    list.splice(i, 1);
+                    //如果没有项了就清理;
+                    if (len == 1) {
+                        delete listenerMaps[cmd];
+                    }
+                    return true;
+                }
+            }
+            return false;
+        };
+        /**
+        * 调用列表
+        */
+        NetRouter.prototype.dispatch = function (data) {
+            egret.callLater(this._dispatch, this, data);
+        };
+        NetRouter.prototype._dispatch = function (data) {
+            var cmd = data.cmd;
+            var list = this._listenerMaps[cmd];
+            if (!list) {
+                return;
+            }
+            var dispatchList = this.dispatchList;
+            var idx = 0, len = list.length;
+            for (; idx < len; idx++) {
+                dispatchList[idx] = list[idx];
+            }
+            if (true) { //DEBUG的直接报错，方便调试
+                for (var i = 0; i < idx; i++) {
+                    var bin = dispatchList[i];
+                    bin.handler(data);
+                    if (bin.once) { //如果只执行一次的，就移除
+                        this.remove(cmd, bin.handler);
+                    }
+                    if (data.stopPropagation) {
+                        break;
+                    }
+                }
+            }
+            else { //正式版的进行try catch，防止因为一个指令影响后续指令
+                for (var i = 0; i < idx; i++) {
+                    var bin = dispatchList[i];
+                    try {
+                        bin.handler(data);
+                    }
+                    catch (e) {
+                        jy.ThrowError("NetHander Error:" + JSON.stringify(data), e);
+                    }
+                    if (bin.once) { //如果只执行一次的，就移除
+                        this.remove(cmd, bin.handler);
+                    }
+                    if (data.stopPropagation) {
+                        break;
+                    }
+                }
+            }
+            data.recycle();
+        };
+        return NetRouter;
+    }());
+    jy.NetRouter = NetRouter;
+    __reflect(NetRouter.prototype, "jy.NetRouter");
+    ;
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    // const enum Const {
+    function sendMultiDataPerFrame(cmd, data, msgType) {
+        //@ts-ignore
+        var ws = this._ws;
+        if (!ws || ws.readyState != WebSocket.OPEN) {
+            return;
+        }
+        //@ts-ignore
+        var _a = this, _pcmdList = _a._pcmdList, _sendBuffer = _a._sendBuffer;
+        //没有同协议的指令，新增数据
+        var pdata = jy.recyclable(jy.NetSendData);
+        pdata.cmd = cmd;
+        pdata.data = data;
+        pdata.msgType = msgType;
+        _sendBuffer.reset();
+        this.writeToBuffer(_sendBuffer, pdata);
+        pdata.recycle();
+        for (var _i = 0, _pcmdList_1 = _pcmdList; _i < _pcmdList_1.length; _i++) {
+            var pdata_1 = _pcmdList_1[_i];
+            this.writeToBuffer(_sendBuffer, pdata_1);
+            pdata_1.recycle();
+        }
+        //清空被动数据
+        _pcmdList.length = 0;
+        ws.send(_sendBuffer.outBytes);
+    }
+    function sendOneDataPerFrame(cmd, data, msgType) {
+        //@ts-ignore
+        var ws = this._ws;
+        if (!ws || ws.readyState != WebSocket.OPEN) {
+            return;
+        }
+        //@ts-ignore
+        var _a = this, _pcmdList = _a._pcmdList, _sendBuffer = _a._sendBuffer;
+        //没有同协议的指令，新增数据
+        var pdata = jy.recyclable(jy.NetSendData);
+        pdata.cmd = cmd;
+        pdata.data = data;
+        pdata.msgType = msgType;
+        _sendBuffer.reset();
+        this.writeToBuffer(_sendBuffer, pdata);
+        pdata.recycle();
+        ws.send(_sendBuffer.outBytes);
+        for (var _i = 0, _pcmdList_2 = _pcmdList; _i < _pcmdList_2.length; _i++) {
+            var pdata_2 = _pcmdList_2[_i];
+            _sendBuffer.reset();
+            this.writeToBuffer(_sendBuffer, pdata_2);
+            pdata_2.recycle();
+            ws.send(_sendBuffer.outBytes);
+        }
+        //清空被动数据
+        _pcmdList.length = 0;
+    }
+    /**
+     * 单BinaryFrame单消息模式 的消息处理
+     *
+     * @protected
+     * @memberof WSNetService
+     */
+    function onData(ev) {
+        //@ts-ignore
+        var readBuffer = this._readBuffer;
+        readBuffer.replaceBuffer(ev.data);
+        readBuffer.position = 0;
+        this.decodeBytes(readBuffer);
+    }
+    /**
+     *
+     * 单BinaryFrame 多消息模式 的消息处理
+     * @protected
+     */
+    function onDataN(ev) {
+        //@ts-ignore
+        var readBuffer = this._readBuffer;
+        var ab = new Uint8Array(ev.data);
+        var temp;
+        var position = readBuffer.position;
+        var buffer = readBuffer.buffer;
+        var length = buffer.byteLength;
+        if (position < length) { //还有剩余未读取的数据
+            var rb = new Uint8Array(buffer);
+            var rbLen = length - position;
+            var abLen = ab.length;
+            temp = new Uint8Array(rbLen + abLen);
+            var i = 0, m = void 0;
+            for (m = 0; m < rbLen; m++) {
+                temp[i++] = rb[position + m];
+            }
+            for (m = 0; m < abLen; m++) {
+                temp[i++] = ab[m];
+            }
+        }
+        else {
+            temp = ab;
+        }
+        readBuffer.replaceBuffer(temp.buffer);
+        readBuffer.position = 0;
+        this.decodeBytes(readBuffer);
+    }
+    /**
+     * 解除ws绑定
+     *
+     * @param {WebSocket} ws
+     */
+    function loose(ws) {
+        ws.onclose = null;
+        ws.onerror = null;
+        ws.onmessage = null;
+        ws.onopen = null;
+    }
+    /**
+     * WebSocket版本的NetService
+     * @author 3tion
+     */
+    var WSNetService = /** @class */ (function (_super) {
+        __extends(WSNetService, _super);
+        function WSNetService() {
+            var _this = _super.call(this) || this;
+            _this.onOpen = function () {
+                var ws = _this._ws;
+                ws && (ws.onopen = null);
+                if (true) {
+                    console.log("webSocket连接成功");
+                }
+                jy.dispatch(-197 /* Connected */);
+            };
+            /**
+             *
+             * 发生错误
+             * @protected
+             */
+            _this.onError = function (ev) {
+                if (true) {
+                    jy.ThrowError("socket发生错误", ev.error);
+                }
+                jy.dispatch(-196 /* ConnectFailed */);
+            };
+            /**
+             *
+             * 断开连接
+             * @protected
+             */
+            _this.onClose = function (ev) {
+                if (true) {
+                    console.log("socket断开连接");
+                }
+                jy.Global.nextTick(jy.dispatch, jy, -195 /* Disconnect */);
+            };
+            //覆盖instance
+            jy.NetService._ins = _this;
+            return _this;
+        }
+        /**
+         * 设置数据模式
+         *
+         * @param {WSNetServiceDataMode} mode
+         * @memberof WSNetService
+         */
+        WSNetService.prototype.setDataMode = function (mode) {
+            if (this.dataMode != mode) {
+                //@ts-ignore
+                this.dataMode = mode;
+                this.checkDataMode();
+            }
+        };
+        /**
+         * 检查数据模式
+         *
+         * @memberof WSNetService
+         */
+        WSNetService.prototype.checkDataMode = function () {
+            var ws = this._ws;
+            if (ws) {
+                var mode = ~~this.dataMode;
+                ws.onmessage = (mode & 1 /* ReceiveMask */) == 1 /* ReceiveMultiDataPerFrame */ ? onDataN.bind(this) : onData.bind(this);
+                this.$send = (mode & 2 /* SendMask */) == 2 /* SendOneDataPerFrame */ ? sendOneDataPerFrame : sendMultiDataPerFrame;
+            }
+        };
+        Object.defineProperty(WSNetService.prototype, "connected", {
+            get: function () {
+                var ws = this._ws;
+                return ws && ws.readyState == WebSocket.OPEN;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         *
+         * 设置websocket地址
+         * @param {string} actionUrl
+         */
+        WSNetService.prototype.setUrl = function (actionUrl) {
+            if (this._actionUrl != actionUrl) {
+                this._actionUrl = actionUrl;
+                var ws = this._ws;
+                if (ws && ws.readyState <= WebSocket.OPEN) { //已经有连接，重置连接
+                    this.connect();
+                }
+            }
+        };
+        /**
+         * 打开新的连接
+         */
+        WSNetService.prototype.connect = function () {
+            var ws = this._ws;
+            if (ws) {
+                loose(ws);
+            }
+            this._ws = ws = new WebSocket(this._actionUrl);
+            ws.binaryType = "arraybuffer";
+            ws.onclose = this.onClose;
+            ws.onerror = this.onError;
+            ws.onopen = this.onOpen;
+            this.checkDataMode();
+        };
+        WSNetService.prototype._send = function (cmd, data, msgType) {
+            this.$send(cmd, data, msgType);
+        };
+        /**
+         * 主动断开连接
+         *
+         * @returns
+         * @memberof WSNetService
+         */
+        WSNetService.prototype.disconnect = function () {
+            var ws = this._ws;
+            if (!ws || ws.readyState != WebSocket.OPEN) {
+                return;
+            }
+            loose(ws);
+            this._ws = null;
+            ws.close();
+        };
+        return WSNetService;
+    }(jy.NetService));
+    jy.WSNetService = WSNetService;
+    __reflect(WSNetService.prototype, "jy.WSNetService");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    var Res;
+    (function (Res) {
+        var _a, _b;
+        /**
+         *  失败的超时时间
+         */
+        var failedExpiredTime = 10000 /* FailedExpiredTime */;
+        /**
+         * 设置失败的过期时间
+         * 失败次数超过`maxRetry`
+         * @export
+         * @param {number} second
+         */
+        function setFailedExpired(second) {
+            var time = ~~second * 1000 /* ONE_SECOND */;
+            if (time <= 0) { //如果为小于0的时间，则将时间设置为1分钟过期
+                time = 10000 /* FailedExpiredTime */;
+            }
+            failedExpiredTime = time;
+        }
+        Res.setFailedExpired = setFailedExpired;
+        /**
+         * 最大重试次数
+         */
+        var maxRetry = 3 /* MaxRetry */;
+        /**
+         * 设置单个资源，不做延迟重试的最大重试次数，默认为3
+         * @param val
+         */
+        function setMaxRetry(val) {
+            maxRetry = val;
+        }
+        Res.setMaxRetry = setMaxRetry;
+        /**
+         * 最大加载数量
+         * 目前所有主流浏览器针对 http 1.1 单域名最大加载数均为6个
+         * http2 基本无限制
+         */
+        var maxThread = 6 /* MaxThread */;
+        /**
+         * 设置最大加载线程  默认为 6
+         * @param val
+         */
+        function setMaxThread(val) {
+            maxThread = val;
+        }
+        Res.setMaxThread = setMaxThread;
+        /**
+         * 扩展名和类型的绑定字典
+         */
+        var extTypeDict = (_a = {},
+            _a[".jpg" /* JPG */] = 2 /* Image */,
+            _a[".png" /* PNG */] = 2 /* Image */,
+            _a[".webp" /* WEBP */] = 2 /* Image */,
+            _a[".json" /* JSON */] = 3 /* Json */,
+            _a[".bin" /* BIN */] = 0 /* Binary */,
+            _a[".mp3" /* MP3 */] = 4 /* Sound */,
+            _a);
+        function checkItemState(item, event) {
+            var state = item.state;
+            if (!item.removed) {
+                state = event.type == "complete" /* COMPLETE */ ? 2 /* COMPLETE */ : -1 /* FAILED */;
+            }
+            item.state = state;
+            return state;
+        }
+        function bindRequest(loader, request, item, callback) {
+            request.on("complete" /* COMPLETE */, loader.onLoadFinish, loader);
+            request.on("ioError" /* IO_ERROR */, loader.onLoadFinish, loader);
+            request.item = item;
+            request.resCB = callback;
+        }
+        function looseRequest(loader, request) {
+            request.off("complete" /* COMPLETE */, loader.onLoadFinish, loader);
+            request.off("ioError" /* IO_ERROR */, loader.onLoadFinish, loader);
+            request.item = undefined;
+            request.resCB = undefined;
+            request.recycle && request.recycle();
+        }
+        var BinLoader = /** @class */ (function () {
+            function BinLoader(type) {
+                if (type === void 0) { type = "arraybuffer"; }
+                this.type = type;
+            }
+            BinLoader.prototype.loadFile = function (resItem, callback) {
+                var request = jy.recyclable(egret.HttpRequest);
+                bindRequest(this, request, resItem, callback);
+                request.responseType = this.type;
+                request.open(resItem.url);
+                request.send();
+            };
+            BinLoader.prototype.onLoadFinish = function (event) {
+                var request = event.target;
+                var item = request.item, resCB = request.resCB, response = request.response;
+                looseRequest(this, request);
+                var state = checkItemState(item, event);
+                if (state == 2 /* COMPLETE */) {
+                    item.data = response;
+                }
+                resCB.callAndRecycle(item);
+            };
+            return BinLoader;
+        }());
+        Res.BinLoader = BinLoader;
+        __reflect(BinLoader.prototype, "jy.Res.BinLoader", ["jy.Res.ResLoader"]);
+        var ImageLoader = /** @class */ (function () {
+            function ImageLoader() {
+            }
+            ImageLoader.prototype.loadFile = function (resItem, callback) {
+                var request = jy.recyclable(egret.ImageLoader);
+                bindRequest(this, request, resItem, callback);
+                request.load(resItem.url);
+            };
+            ImageLoader.prototype.onLoadFinish = function (event) {
+                var request = event.target;
+                var item = request.item, resCB = request.resCB, data = request.data;
+                looseRequest(this, request);
+                var state = checkItemState(item, event);
+                if (state == 2 /* COMPLETE */) {
+                    var texture = new egret.Texture();
+                    texture._setBitmapData(data);
+                    item.data = texture;
+                }
+                resCB.callAndRecycle(item);
+            };
+            return ImageLoader;
+        }());
+        Res.ImageLoader = ImageLoader;
+        __reflect(ImageLoader.prototype, "jy.Res.ImageLoader", ["jy.Res.ResLoader"]);
+        var EgretSoundLoader = /** @class */ (function () {
+            function EgretSoundLoader() {
+            }
+            EgretSoundLoader.prototype.loadFile = function (resItem, callback) {
+                var request = new egret.Sound();
+                bindRequest(this, request, resItem, callback);
+                request.load(resItem.url);
+            };
+            EgretSoundLoader.prototype.onLoadFinish = function (event) {
+                var request = event.target;
+                var item = request.item, resCB = request.resCB;
+                looseRequest(this, request);
+                var state = checkItemState(item, event);
+                if (state == 2 /* COMPLETE */) {
+                    item.data = request;
+                }
+                resCB.callAndRecycle(item);
+            };
+            return EgretSoundLoader;
+        }());
+        __reflect(EgretSoundLoader.prototype, "EgretSoundLoader", ["jy.Res.ResLoader"]);
+        var binLoader = new BinLoader();
+        /**
+         * 资源字典
+         * Key {Key} 资源标识
+         * Value {ResItem} 资源
+         *
+         */
+        var resDict = {};
+        /**
+         * 加载器字典
+         * Key {number}             加载器类型
+         * Value {ResAnalyzer}      加载器
+         */
+        var loaderMap = (_b = {},
+            _b[0 /* Binary */] = binLoader,
+            _b[1 /* Text */] = new BinLoader("text"),
+            _b[3 /* Json */] = new BinLoader("json"),
+            _b[2 /* Image */] = new ImageLoader,
+            _b[4 /* Sound */] = new EgretSoundLoader,
+            _b);
+        /**
+         * 加载列队的总数
+         */
+        var queues = {};
+        /**
+         * 失败的资源加载列队
+         */
+        var failedList = [];
+        /**
+        * 获取资源的扩展名
+        * @param url
+        */
+        function getExt(url) {
+            if (!url)
+                return;
+            var hash = url.lastIndexOf("?");
+            hash == -1 && (hash = undefined);
+            var ext = url.substring(url.lastIndexOf("."), hash);
+            return ext.toLocaleLowerCase();
+        }
+        Res.getExt = getExt;
+        /**
+         * 内联绑定
+         * @param ext 扩展名
+         * @param type 类型
+         */
+        function bindExtType(ext, type) {
+            extTypeDict[ext] = type;
+        }
+        Res.bindExtType = bindExtType;
+        /**
+         * 注册资源分析器
+         * @param type 分析器类型
+         * @param analyzer 分析器
+         */
+        function regAnalyzer(type, analyzer) {
+            loaderMap[type] = analyzer;
+        }
+        Res.regAnalyzer = regAnalyzer;
+        /**
+         * 根据 url 获取资源的处理类型
+         * @param url
+         */
+        function getType(url) {
+            var ext = getExt(url);
+            return ~~extTypeDict[ext]; //默认使用binary类型
+        }
+        /**
+         * 获取或创建一个加载列队
+         * @param queueID
+         * @param list
+         * @param priority
+         */
+        function getOrCreateQueue(queueID, type, priority, list) {
+            if (type === void 0) { type = 1 /* FIFO */; }
+            var old = queues[queueID];
+            if (old) { //已经存在
+                if (list) {
+                    list.appendTo(old.list);
+                }
+                return old;
+            }
+            list = list || [];
+            priority = ~~priority;
+            var queue = { id: queueID, list: list, priority: priority, type: type };
+            queues[queueID] = queue;
+            return queue;
+        }
+        //创建内置分组
+        getOrCreateQueue(2 /* Highway */, 1 /* FIFO */, 9999);
+        getOrCreateQueue(0 /* Normal */);
+        getOrCreateQueue(1 /* Backgroud */, 0 /* FILO */, -9999);
+        /**
+         * addRes方法的返回值
+         */
+        var addResResult = [];
+        /**
+         * 添加资源
+         * @param {ResItem} resItem
+         * @param {ResQueueID} [queueID=ResQueueID.Normal]
+         * @returns {ResItem}
+         */
+        function addRes(resItem, queueID) {
+            if (queueID === void 0) { queueID = 0 /* Normal */; }
+            var uri = resItem.uri;
+            var old = resDict[uri];
+            addResResult[1] = false;
+            if (old) {
+                if (old != resItem && old.url != resItem.url) {
+                    true && jy.ThrowError("\u8D44\u6E90[" + uri + "]\u91CD\u540D\uFF0C\u52A0\u8F7D\u8DEF\u5F84\u5206\u5E03\u4E3A[" + old.url + "]\u548C[" + resItem.url + "]");
+                }
+                else { //资源和加载路径完全相同
+                    var state = old.state;
+                    if (state >= 1 /* REQUESTING */) { //正在处理的资源和已经加载完毕的资源，无需添加到任何列队
+                        addResResult[0] = old;
+                        return addResResult;
+                    }
+                }
+                resItem = old;
+            }
+            else {
+                resDict[uri] = resItem;
+            }
+            addResResult[0] = resItem;
+            var oQID = resItem.qid;
+            if (oQID != queueID) {
+                var oQueue = queues[oQID];
+                if (oQueue) { //从旧列表中移除
+                    oQueue.list.remove(resItem);
+                }
+                //更新列表
+                resItem.qid = queueID;
+                var queue = getOrCreateQueue(queueID);
+                queue.list.pushOnce(resItem);
+                addResResult[1] = true;
+            }
+            return addResResult;
+        }
+        Res.addRes = addRes;
+        /**
+         * 加载资源
+         * @param {string} uri 资源标识
+         * @param {ResCallback} callback 加载完成的回调
+         * @param {string} [url] 资源路径
+         * @param {ResQueueID} [queueID=ResQueueID.Normal]
+         */
+        function load(uri, url, callback, queueID) {
+            if (queueID === void 0) { queueID = 0 /* Normal */; }
+            //检查是否已经有资源
+            var item = resDict[uri];
+            if (!item) {
+                if (!url) {
+                    url = jy.ConfigUtils.getResUrl(uri);
+                }
+                item = { uri: uri, url: url, type: getType(url) };
+            }
+            loadRes(item, callback, queueID);
+        }
+        Res.load = load;
+        function loadList(list, opt, queueID) {
+            if (queueID === void 0) { queueID = 0 /* Normal */; }
+            var total = list.length;
+            var group = opt.group;
+            opt.current = 0;
+            opt.total = total;
+            opt.list = list;
+            for (var i = 0; i < total; i++) {
+                var item = list[i];
+                item.group = group;
+                loadRes(item, jy.CallbackInfo.get(doLoadList, null, opt), queueID);
+            }
+        }
+        Res.loadList = loadList;
+        function doLoadList(item, param) {
+            var callback = param.callback;
+            if (!callback) {
+                return;
+            }
+            var group = param.group;
+            if (item.group == group) {
+                var onProgress = param.onProgress;
+                var doRec = void 0, flag = void 0;
+                if (item.state == -1 /* FAILED */) {
+                    doRec = true;
+                    flag = false;
+                }
+                else {
+                    param.current++;
+                    onProgress && onProgress.call(item);
+                    if (param.current >= param.total) {
+                        doRec = true;
+                        flag = true;
+                    }
+                }
+                if (doRec) {
+                    param.callback = undefined;
+                    param.onProgress = undefined;
+                    callback.callAndRecycle(flag);
+                    onProgress && onProgress.recycle();
+                    var list = param.list;
+                    if (!flag && list) {
+                        list.forEach(removeItem);
+                    }
+                }
+            }
+        }
+        /**
+         * 同步获取某个资源，如果资源未加载完成，则返回空
+         * @param uri 资源标识
+         */
+        function get(uri) {
+            var item = resDict[uri];
+            if (item && item.state == 2 /* COMPLETE */) {
+                return item.data;
+            }
+        }
+        Res.get = get;
+        function set(uri, item) {
+            if (!resDict[uri]) {
+                resDict[uri] = item;
+                return true;
+            }
+        }
+        Res.set = set;
+        /**
+         * 移除某个资源
+         * @param uri
+         */
+        function remove(uri) {
+            var item = resDict[uri];
+            removeItem(item);
+        }
+        Res.remove = remove;
+        function removeItem(item) {
+            if (item) {
+                delete resDict[item.uri];
+                var qid = item.qid;
+                var queue = queues[qid];
+                if (queue) {
+                    queue.list.remove(item);
+                }
+                item.removed = true;
+            }
+        }
+        /**
+         * 阻止尝试某个资源加载，目前是还未加载的资源，从列队中做移除，其他状态不处理
+         * @param uri
+         */
+        function cancel(uri) {
+            var item = resDict[uri];
+            if (item) {
+                if (item.state == 0 /* UNREQUEST */) {
+                    var qid = item.qid;
+                    var queue = queues[qid];
+                    if (queue) {
+                        queue.list.remove(item);
+                    }
+                    doCallback(item);
+                }
+            }
+        }
+        Res.cancel = cancel;
+        /**
+         * 加载资源
+         * @param {ResItem} resItem
+         * @param {ResQueueID} [queueID=ResQueueID.Normal]
+         */
+        function loadRes(resItem, callback, queueID) {
+            if (queueID === void 0) { queueID = 0 /* Normal */; }
+            resItem = addRes(resItem, queueID)[0];
+            var state = resItem.state;
+            if (state == 2 /* COMPLETE */ || (state == -1 /* FAILED */ && resItem.retry > maxRetry && jy.Global.now < ~~resItem.ft)) { //已经加载完成的资源，直接在下一帧回调
+                return callback && jy.Global.nextTick(callback.callAndRecycle, callback, resItem); // callback.callAndRecycle(resItem);
+            }
+            resItem.removed = false;
+            if (callback) {
+                var list = resItem.callbacks;
+                if (!list) {
+                    resItem.callbacks = list = [];
+                }
+                list.push(callback);
+            }
+            return next();
+        }
+        Res.loadRes = loadRes;
+        /**
+         * 获取下一个要加载的资源
+         */
+        function getNext() {
+            var next;
+            //得到优先级最大并且
+            var high = -Infinity;
+            var highQueue;
+            for (var key in queues) { //同优先级的列队，基于hash规则加载，一般来说只用内置的3个列队即可解决常规问题
+                var queue = queues[key];
+                if (queue.list.length) {
+                    var priority = queue.priority;
+                    if (priority > high) {
+                        high = priority;
+                        highQueue = queue;
+                    }
+                }
+            }
+            if (highQueue) {
+                //检查列队类型
+                var list = highQueue.list;
+                switch (highQueue.type) {
+                    case 1 /* FIFO */:
+                        next = list.shift();
+                        break;
+                    case 0 /* FILO */:
+                        next = list.pop();
+                        break;
+                }
+            }
+            if (!next) {
+                if (failedList.length > 0) { //失败列队最后加载
+                    next = failedList.shift();
+                }
+            }
+            return next;
+        }
+        /**
+         * 正在加载的资源列队
+         */
+        var loading = [];
+        function next() {
+            while (loading.length < maxThread) {
+                var item = getNext();
+                if (!item)
+                    break;
+                loading.pushOnce(item);
+                var state = ~~item.state;
+                if (state == -1 /* FAILED */ && item.ft < jy.Global.now) { //如果失败时间已经超过了失败过期时间，则重新加载
+                    state = 0 /* UNREQUEST */;
+                }
+                switch (state) {
+                    case -1 /* FAILED */:
+                    case 2 /* COMPLETE */:
+                        onItemComplete(item);
+                        break;
+                    case 0 /* UNREQUEST */: //其他情况不处理
+                        var type = item.type;
+                        if (type == undefined) {
+                            type = getType(item.url);
+                        }
+                        var loader = loaderMap[type];
+                        if (!loader) {
+                            loader = binLoader;
+                        }
+                        //标记为加载中
+                        item.state = 1 /* REQUESTING */;
+                        loader.loadFile(item, jy.CallbackInfo.get(onItemComplete));
+                        break;
+                }
+            }
+        }
+        /**
+         * 资源加载结束，执行item的回调
+         * @param item
+         */
+        function doCallback(item) {
+            var callbacks = item.callbacks;
+            if (callbacks) { //执行回调列队
+                item.callbacks = undefined;
+                for (var i = 0; i < callbacks.length; i++) {
+                    var cb = callbacks[i];
+                    cb.callAndRecycle(item);
+                }
+            }
+        }
+        function onItemComplete(item) {
+            loading.remove(item);
+            item.qid = undefined;
+            var state = ~~item.state;
+            if (state == -1 /* FAILED */) {
+                var retry = item.retry || 1;
+                if (retry > maxRetry) {
+                    var now = jy.Global.now;
+                    var ft = ~~item.ft;
+                    if (now > ft) {
+                        item.ft = failedExpiredTime * (retry - maxRetry) + now;
+                    }
+                    doCallback(item);
+                    return jy.dispatch(-187 /* ResLoadFailed */, item);
+                }
+                item.retry = retry + 1;
+                item.state = 0 /* UNREQUEST */;
+                failedList.push(item);
+            }
+            else if (state == 2 /* COMPLETE */) {
+                //加载成功，清零retry
+                item.retry = 0;
+                //检查资源是否被加入到列队中
+                doCallback(item);
+                jy.dispatch(-186 /* ResLoadSuccess */, item);
+            }
+            return next();
+        }
+        function getLocalDB(version, keyPath, storeName) {
+            //检查浏览器是否支持IndexedDB
+            var w = window;
+            w.indexedDB = w.indexedDB ||
+                w.mozIndexedDB ||
+                w.webkitIndexedDB ||
+                w.msIndexedDB;
+            if (!w.indexedDB) {
+                //不支持indexedDB，不对白鹭的RES做任何调整，直接return
+                return;
+            }
+            w.IDBTransaction = w.IDBTransaction ||
+                w.webkitIDBTransaction ||
+                w.msIDBTransaction;
+            w.IDBKeyRange = w.IDBKeyRange ||
+                w.webkitIDBKeyRange ||
+                w.msIDBKeyRange;
+            try {
+                indexedDB.open(storeName, version);
+            }
+            catch (e) {
+                true && jy.ThrowError("\u65E0\u6CD5\u5F00\u542F indexedDB,error:", e);
+                return;
+            }
+            var RW = "readwrite";
+            var R = "readonly";
+            return {
+                /**
+                 * 存储资源
+                 *
+                 * @param {ResItem} data
+                 * @param {(this: IDBRequest, ev: Event) => any} callback 存储资源执行完成后的回调
+                 */
+                save: function (data, callback) {
+                    open(function (result) {
+                        try {
+                            var store = getObjectStore(result, RW);
+                            var request = data.uri ? store.put(data) : store.add(data);
+                            if (callback) {
+                                request.onsuccess = callback;
+                                request.onerror = callback;
+                            }
+                        }
+                        catch (e) {
+                            return callback && callback(e);
+                        }
+                    }, function (e) { callback && callback(e); });
+                },
+                /**
+                 * 获取资源
+                 *
+                 * @param {string} url
+                 * @param {{ (data: ResItem) }} callback
+                 */
+                get: function (url, callback) {
+                    open(function (result) {
+                        try {
+                            var store = getObjectStore(result, R);
+                            var request = store.get(url);
+                            request.onsuccess = function (e) {
+                                callback(e.target.result, url);
+                            };
+                            request.onerror = function () {
+                                callback(null, url);
+                            };
+                        }
+                        catch (e) {
+                            true && jy.ThrowError("indexedDB error", e);
+                            callback(null, url);
+                        }
+                    }, function (e) { callback(null, url); });
+                },
+                /**
+                 * 删除指定资源
+                 *
+                 * @param {string} url
+                 * @param {{ (this: IDBRequest, ev: Event) }} callback 删除指定资源执行完成后的回调
+                 */
+                delete: function (url, callback) {
+                    open(function (result) {
+                        try {
+                            var store = getObjectStore(result, RW);
+                            var request = store.delete(url);
+                            if (callback) {
+                                request.onerror = request.onsuccess = function (e) { callback(url, e); };
+                            }
+                        }
+                        catch (e) {
+                            return callback && callback(url, e);
+                        }
+                    }, function (e) { callback && callback(url, e); });
+                },
+                /**
+                 * 删除全部资源
+                 *
+                 * @param {{ (this: IDBRequest, ev: Event) }} callback 删除全部资源执行完成后的回调
+                 */
+                clear: function (callback) {
+                    open(function (result) {
+                        try {
+                            var store = getObjectStore(result, RW);
+                            var request = store.clear();
+                            if (callback) {
+                                request.onsuccess = callback;
+                                request.onerror = callback;
+                            }
+                        }
+                        catch (e) {
+                            return callback(e);
+                        }
+                    }, callback);
+                },
+            };
+            function open(callback, onError) {
+                try {
+                    var request = indexedDB.open(storeName, version);
+                }
+                catch (e) {
+                    true && jy.ThrowError("indexedDB error", e);
+                    return onError && onError(e);
+                }
+                request.onerror = function (e) {
+                    onError && onError(e.error);
+                    errorHandler(e);
+                };
+                request.onupgradeneeded = function (e) {
+                    var _db = e.target.result;
+                    var names = _db.objectStoreNames;
+                    if (!names.contains(storeName)) {
+                        _db.createObjectStore(storeName, { keyPath: keyPath });
+                    }
+                };
+                request.onsuccess = function (e) {
+                    var result = request.result;
+                    result.onerror = errorHandler;
+                    callback(result);
+                };
+            }
+            function getObjectStore(result, mode) {
+                return result.transaction([storeName], mode).objectStore(storeName);
+            }
+            function errorHandler(ev) {
+                jy.ThrowError("indexedDB error", ev.error);
+            }
+        }
+        Res.getLocalDB = getLocalDB;
+        /**
+         *  尝试启用本地资源缓存
+         * @author 3tion(https://github.com/eos3tion/)
+         * @export
+         * @param {number} [version=1]
+         * @returns
+         */
+        function tryLocal(version, keyPath, storeName) {
+            if (version === void 0) { version = 1; }
+            if (keyPath === void 0) { keyPath = "uri"; }
+            if (storeName === void 0) { storeName = "res"; }
+            if (egret.Capabilities.runtimeType != egret.RuntimeType.WEB) { //不处理native的情况
+                return;
+            }
+            var db = getLocalDB(version, keyPath, storeName);
+            //尝试
+            if (!db) { //无法开启 indexedDB，不做后续注入操作
+                return;
+            }
+            var w = window;
+            w.URL = window.URL || w.webkitURL;
+            //当前ios10还不支持IndexedDB的Blob存储，所以如果是ios，则此值为false
+            var canUseBlob = egret.Capabilities.os == "iOS" ? false : !!(window.Blob && window.URL);
+            function saveLocal(item, data) {
+                item.local = true;
+                var uri = item.uri;
+                var local = { data: data, version: jy.ConfigUtils.getResVer(uri), uri: uri, url: item.url };
+                //存储数据
+                db.save(local);
+            }
+            var canvas = document.createElement("canvas");
+            var context = canvas.getContext("2d");
+            var BApt = BinLoader.prototype;
+            var BAptLoadFile = BApt.loadFile;
+            BApt.loadFile = function (resItem, callback) {
+                var _this = this;
+                if (resItem.noLocal) {
+                    BAptLoadFile.call(this, resItem, callback);
+                }
+                else {
+                    return db.get(resItem.uri, function (data) {
+                        if (data) { //有数据
+                            var local = data.data;
+                            if (local) {
+                                var ver = jy.ConfigUtils.getResVer(data.uri);
+                                if (ver == data.version) {
+                                    resItem.data = local;
+                                    resItem.state = 2 /* COMPLETE */;
+                                    resItem.local = true;
+                                    return callback.call(resItem);
+                                }
+                            }
+                        }
+                        BAptLoadFile.call(_this, resItem, callback);
+                    });
+                }
+            };
+            BApt.onLoadFinish = function (event) {
+                var request = event.target;
+                var item = request.item, resCB = request.resCB, response = request.response;
+                looseRequest(this, request);
+                var state = checkItemState(item, event);
+                var data;
+                if (state == 2 /* COMPLETE */) {
+                    data = response;
+                }
+                var uri = item.uri;
+                if (data && !item.local && uri) {
+                    //存储数据
+                    saveLocal(item, data);
+                }
+                item.data = data;
+                resCB.callAndRecycle(item);
+            };
+            var eWeb = egret.web;
+            if (eWeb) {
+                var WILpt = eWeb.WebImageLoader.prototype;
+                var obl_1 = WILpt.onBlobLoaded;
+                WILpt.onBlobLoaded = function (e) {
+                    this.blob = this.request.response;
+                    obl_1.call(this, e);
+                };
+            }
+            //注入
+            var IApt = ImageLoader.prototype;
+            var IAptLoadFile = IApt.loadFile;
+            IApt.loadFile = function (resItem, callback) {
+                var _this = this;
+                var uri = resItem.uri, url = resItem.url, noLocal = resItem.noLocal;
+                if (noLocal) {
+                    IAptLoadFile.call(this, resItem, callback);
+                }
+                else {
+                    db.get(uri, function (data) {
+                        if (data) { //有数据
+                            var ver = jy.ConfigUtils.getResVer(uri);
+                            if (ver == data.version) {
+                                var rawData = data.data;
+                                if (rawData instanceof Blob) {
+                                    url = URL.createObjectURL(rawData);
+                                }
+                                else if (typeof rawData === "string") { //DataURL的情况
+                                    url = rawData;
+                                }
+                                else {
+                                    if (true) { //其他情况不处理
+                                        jy.ThrowError("出现ImageAnalyzer本地缓存不支持的情况");
+                                    }
+                                }
+                                resItem.local = true;
+                            }
+                        }
+                        resItem.url = url;
+                        IAptLoadFile.call(_this, resItem, callback);
+                    });
+                }
+            };
+            IApt.onLoadFinish = function (event) {
+                var request = event.target;
+                var item = request.item, resCB = request.resCB, blob = request.blob, dat = request.data;
+                request.blob = undefined;
+                looseRequest(this, request);
+                var uri = item.uri;
+                if (!item.local) {
+                    item.local = true;
+                    var url = item.url;
+                    var local = blob;
+                    if (!local) {
+                        // 普通图片
+                        // 尝试转换成DataURL，此方法为同步方法，可能会影响性能
+                        if (dat instanceof egret.BitmapData) {
+                            var img = dat.source;
+                            if (!img) {
+                                return;
+                            }
+                            var w_1 = img.width;
+                            var h = img.height;
+                            var type = "image/" + url.substring(url.lastIndexOf(".") + 1);
+                            canvas.width = w_1;
+                            canvas.height = h;
+                            context.clearRect(0, 0, w_1, h);
+                            context.drawImage(img, 0, 0);
+                            try {
+                                if (canUseBlob && url.indexOf("wxLocalResource:") != 0) { //微信专用不能使用 blob
+                                    canvas.toBlob(function (blob) {
+                                        saveLocal(item, blob);
+                                    }, type);
+                                }
+                                else {
+                                    local = canvas.toDataURL(type);
+                                }
+                            }
+                            catch (e) {
+                                //一般跨域并且没有权限的时候，会参数错误
+                            }
+                        }
+                    }
+                    if (local) {
+                        if (!canUseBlob && typeof local !== "string") {
+                            var a = new FileReader();
+                            a.onload = function (e) {
+                                saveLocal(item, this.result);
+                            };
+                            a.readAsDataURL(local);
+                        }
+                        else {
+                            saveLocal(item, local);
+                        }
+                    }
+                }
+                var state = checkItemState(item, event);
+                if (state == 2 /* COMPLETE */) {
+                    var texture = new egret.Texture();
+                    texture._setBitmapData(dat);
+                    item.data = texture;
+                }
+                resCB.callAndRecycle(item);
+            };
+            return db;
+        }
+        Res.tryLocal = tryLocal;
+    })(Res = jy.Res || (jy.Res = {}));
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    /**
+     * 资源管理器
+     */
+    var _resources = {};
+    function get(resid, noResHandler, thisObj) {
+        var res = getResource(resid);
+        if (!res) {
+            var args = [];
+            for (var i = 3; i < arguments.length; i++) {
+                args[i - 3] = arguments[i];
+            }
+            res = noResHandler.apply(thisObj, args);
+            regResource(resid, res);
+        }
+        return res;
+    }
+    jy.ResManager = {
+        get: get,
+        /**
+         * 获取纹理资源
+         *
+         * @param {string} resID 资源id
+         * @param {boolean} [noWebp] 是否不加webp后缀
+         * @returns {TextureResource}
+         */
+        getTextureRes: function (resID, noWebp) {
+            var resources = _resources;
+            var res = resources[resID];
+            if (res) {
+                if (!(res instanceof jy.TextureResource)) {
+                    jy.ThrowError("[" + resID + "]\u8D44\u6E90\u6709\u8BEF\uFF0C\u4E0D\u662FTextureResource");
+                    res = undefined;
+                }
+            }
+            if (!res) {
+                res = new jy.TextureResource(resID, noWebp);
+                resources[resID] = res;
+            }
+            return res;
+        },
+        /**
+         * 获取资源
+         */
+        getResource: getResource,
+        // /**
+        //  * 注册资源
+        //  */
+        // regResource,
+        //按时间检测资源
+        init: function () {
+            var tobeDele = [];
+            jy.TimerUtil.addCallback(30000 /* CheckTime */, function () {
+                var expire = jy.Global.now - 300000 /* DisposeTime */;
+                var reses = _resources;
+                var delLen = 0;
+                for (var key in reses) {
+                    var res = reses[key];
+                    if (!res.isStatic && res.lastUseTime < expire) {
+                        tobeDele[delLen++] = key;
+                    }
+                }
+                // //对附加的checker进行检查
+                // for (let i = 0; i < _checkers.length; i++) {
+                //     _checkers[i].resCheck(expire);
+                // }
+                for (var i = 0; i < delLen; i++) {
+                    var key = tobeDele[i];
+                    var res = reses[key];
+                    if (res) {
+                        res.dispose();
+                        jy.Res.remove(res.uri);
+                        delete reses[key];
+                    }
+                }
+            });
+        }
+    };
+    /**
+     * 获取资源
+     */
+    function getResource(resID) {
+        return _resources[resID];
+    }
+    /**
+     * 注册资源
+     */
+    function regResource(resID, res) {
+        var resources = _resources;
+        if (resID in resources) { //资源id重复                
+            return resources[resID] === res;
+        }
+        resources[resID] = res;
+        return true;
+    }
+})(jy || (jy = {}));
+if (true) {
+    var ErrorTexture = jy.ColorUtil.getTexture(0xff0000, 1);
+}
+var jy;
+(function (jy) {
+    /**
+     *
+     * 纹理资源
+     * @export
+     * @class TextureResource
+     * @implements {IResource}
+     */
+    var TextureResource = /** @class */ (function () {
+        function TextureResource(uri, noWebp) {
+            /**
+             *
+             * 绑定的对象列表
+             * @private
+             * @type {Bitmap[]}
+             */
+            this._list = [];
+            this.uri = uri;
+            this.url = jy.ConfigUtils.getResUrl(uri + (!noWebp ? jy.Global.webp : ""));
+        }
+        Object.defineProperty(TextureResource.prototype, "isStatic", {
+            /**
+             *
+             * 是否为静态不销毁的资源
+             * @type {boolean}
+             */
+            get: function () {
+                return this._list.length > 0;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         *
+         * 绑定一个目标
+         * @param {Bitmap} target
+         */
+        TextureResource.prototype.bind = function (bmp) {
+            if (this._tex) {
+                bmp.texture = this._tex;
+                bmp.dispatch(-193 /* Texture_Complete */);
+            }
+            this._list.pushOnce(bmp);
+            this.lastUseTime = jy.Global.now;
+        };
+        /**
+         *
+         * 解除目标的绑定
+         * @param {Bitmap} target
+         */
+        TextureResource.prototype.loose = function (bmp) {
+            this._list.remove(bmp);
+            this.lastUseTime = jy.Global.now;
+        };
+        TextureResource.prototype.load = function () {
+            jy.Res.load(this.uri, this.url, jy.CallbackInfo.get(this.loadComplete, this), this.qid);
+        };
+        /**
+         * 资源加载完成
+         */
+        TextureResource.prototype.loadComplete = function (item) {
+            var data = item.data, uri = item.uri;
+            if (uri == this.uri) {
+                this._tex = data;
+                for (var _i = 0, _a = this._list; _i < _a.length; _i++) {
+                    var bmp = _a[_i];
+                    bmp.texture = data;
+                    if (true && !data) {
+                        bmp.texture = bmp.placehoder || ErrorTexture;
+                        var rect = bmp.suiRawRect;
+                        if (rect) {
+                            bmp.width = rect.width;
+                            bmp.height = rect.height;
+                        }
+                    }
+                    bmp.dispatch(-193 /* Texture_Complete */);
+                }
+            }
+        };
+        /**
+         * 销毁资源
+         */
+        TextureResource.prototype.dispose = function () {
+            if (this._tex) {
+                this._tex.dispose();
+                this._tex = undefined;
+            }
+            this._list.length = 0;
+        };
+        return TextureResource;
+    }());
+    jy.TextureResource = TextureResource;
+    __reflect(TextureResource.prototype, "jy.TextureResource", ["jy.IResource"]);
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -6163,224 +9072,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    jy.MotionGuidePlugin = (function () {
-        return {
-            priority: 0,
-            install: function (manager) {
-                manager.installPlugin(this, ["guide", "x", "y", "rotation"]);
-            },
-            init: function (tween, prop, value) {
-                var target = tween.target;
-                if (target.x == undefined) {
-                    target.x = 0;
-                }
-                if (target.y == undefined) {
-                    target.y = 0;
-                }
-                if (target.rotation == undefined) {
-                    target.rotation = 0;
-                }
-                if (prop == "rotation") {
-                    tween.__needsRot = true;
-                }
-                return prop == "guide" ? null : value;
-            },
-            step: function (tween, prop, startValue, endValue, injectProps) {
-                // other props
-                if (prop == "rotation") {
-                    tween.__rotGlobalS = startValue;
-                    tween.__rotGlobalE = endValue;
-                    testRotData(tween, injectProps);
-                }
-                if (prop != "guide") {
-                    return endValue;
-                }
-                // guide only information - Start -
-                var temp, data = endValue;
-                if (!data.hasOwnProperty("path")) {
-                    data.path = [];
-                }
-                var path = data.path;
-                if (!data.hasOwnProperty("end")) {
-                    data.end = 1;
-                }
-                if (!data.hasOwnProperty("start")) {
-                    data.start = (startValue && startValue.hasOwnProperty("end") && startValue.path === path) ? startValue.end : 0;
-                }
-                // Figure out subline information
-                if (data.hasOwnProperty("_segments") && data._length) {
-                    return endValue;
-                }
-                var l = path.length;
-                var accuracy = 10; // Adjust to improve line following precision but sacrifice performance (# of seg)
-                if (l >= 6 && (l - 2) % 4 == 0) { // Enough points && contains correct number per entry ignoring start
-                    data._segments = [];
-                    data._length = 0;
-                    for (var i = 2; i < l; i += 4) {
-                        var sx = path[i - 2], sy = path[i - 1];
-                        var cx = path[i + 0], cy = path[i + 1];
-                        var ex = path[i + 2], ey = path[i + 3];
-                        var oldX = sx, oldY = sy;
-                        var tempX, tempY, total = 0;
-                        var sublines = [];
-                        for (var j = 1; j <= accuracy; j++) {
-                            var t = j / accuracy;
-                            var inv = 1 - t;
-                            tempX = inv * inv * sx + 2 * inv * t * cx + t * t * ex;
-                            tempY = inv * inv * sy + 2 * inv * t * cy + t * t * ey;
-                            total += sublines[sublines.push(Math.sqrt((temp = tempX - oldX) * temp + (temp = tempY - oldY) * temp)) - 1];
-                            oldX = tempX;
-                            oldY = tempY;
-                        }
-                        data._segments.push(total);
-                        data._segments.push(sublines);
-                        data._length += total;
-                    }
-                }
-                else {
-                    throw ("invalid 'path' data, please see documentation for valid paths");
-                }
-                // Setup x/y tweens
-                temp = data.orient;
-                data.orient = true;
-                var o = {};
-                calc(data, data.start, o);
-                tween.__rotPathS = Number(o.rotation.toFixed(5));
-                calc(data, data.end, o);
-                tween.__rotPathE = Number(o.rotation.toFixed(5));
-                data.orient = false; //here and now we don't know if we need to
-                calc(data, data.end, injectProps);
-                data.orient = temp;
-                // Setup rotation properties
-                if (!data.orient) {
-                    return endValue;
-                }
-                tween.__guideData = data;
-                testRotData(tween, injectProps);
-                return endValue;
-            },
-            tween: function (tween, prop, value, startValues, endValues, ratio, wait, end) {
-                var data = endValues.guide;
-                if (data == undefined || data === startValues.guide) {
-                    return value;
-                }
-                if (data.lastRatio != ratio) {
-                    // first time through so calculate what I need to
-                    var t = ((data.end - data.start) * (wait ? data.end : ratio) + data.start);
-                    calc(data, t, tween.target);
-                    switch (data.orient) {
-                        case "cw": // mix in the original rotation
-                        case "ccw":
-                        case "auto":
-                            tween.target.rotation += data.rotOffS + data.rotDelta * ratio || 0;
-                            break;
-                        case "fixed": // follow fixed behaviour to solve potential issues
-                        default:
-                            tween.target.rotation += data.rotOffS || 0;
-                            break;
-                    }
-                    data.lastRatio = ratio;
-                }
-                if (prop == "rotation" && ((!data.orient) || data.orient == "false")) {
-                    return value;
-                }
-                return tween.target[prop];
-            }
-        };
-        function testRotData(tween, injectProps) {
-            // no rotation informat? if we need it come back, if we don't use 0 & ensure we have guide data
-            if (tween.__rotGlobalS === undefined || tween.__rotGlobalE === undefined) {
-                if (tween.__needsRot) {
-                    return;
-                }
-                var _curQueueProps = tween._curQueueProps;
-                if (_curQueueProps.rotation !== undefined) {
-                    tween.__rotGlobalS = tween.__rotGlobalE = _curQueueProps.rotation;
-                }
-                else {
-                    tween.__rotGlobalS = tween.__rotGlobalE = injectProps.rotation = tween.target.rotation || 0;
-                }
-            }
-            if (tween.__guideData === undefined) {
-                return;
-            }
-            // Process rotation properties
-            var data = tween.__guideData;
-            var rotGlobalD = tween.__rotGlobalE - tween.__rotGlobalS || 0;
-            var rotPathD = tween.__rotPathE - tween.__rotPathS || 0;
-            var rot = rotGlobalD - rotPathD || 0;
-            if (data.orient == "auto") {
-                if (rot > 180) {
-                    rot -= 360;
-                }
-                else if (rot < -180) {
-                    rot += 360;
-                }
-            }
-            else if (data.orient == "cw") {
-                while (rot < 0) {
-                    rot += 360;
-                }
-                if (rot == 0 && rotGlobalD > 0 && rotGlobalD != 180) {
-                    rot += 360;
-                }
-            }
-            else if (data.orient == "ccw") {
-                rot = rotGlobalD - ((rotPathD > 180) ? (360 - rotPathD) : (rotPathD)); // sign flipping on path
-                while (rot > 0) {
-                    rot -= 360;
-                }
-                if (rot == 0 && rotGlobalD < 0 && rotGlobalD != -180) {
-                    rot -= 360;
-                }
-            }
-            data.rotDelta = rot;
-            data.rotOffS = tween.__rotGlobalS - tween.__rotPathS;
-            // reset
-            tween.__rotGlobalS = tween.__rotGlobalE = tween.__guideData = tween.__needsRot = undefined;
-        }
-        function calc(data, ratio, target) {
-            if (data._segments == undefined) {
-                throw ("Missing critical pre-calculated information, please file a bug");
-            }
-            if (target == undefined) {
-                target = { x: 0, y: 0, rotation: 0 };
-            }
-            var seg = data._segments;
-            var path = data.path;
-            // find segment
-            var pos = data._length * ratio;
-            var cap = seg.length - 2;
-            var n = 0;
-            while (pos > seg[n] && n < cap) {
-                pos -= seg[n];
-                n += 2;
-            }
-            // find subline
-            var sublines = seg[n + 1];
-            var i = 0;
-            cap = sublines.length - 1;
-            while (pos > sublines[i] && i < cap) {
-                pos -= sublines[i];
-                i++;
-            }
-            var t = (i / ++cap) + (pos / (cap * sublines[i]));
-            // find x/y
-            n = (n * 2) + 2;
-            var inv = 1 - t;
-            target.x = inv * inv * path[n - 2] + 2 * inv * t * path[n + 0] + t * t * path[n + 2];
-            target.y = inv * inv * path[n - 1] + 2 * inv * t * path[n + 1] + t * t * path[n + 3];
-            // orientation
-            if (data.orient) {
-                target.rotation = 57.2957795 * Math.atan2((path[n + 1] - path[n - 1]) * inv + (path[n + 3] - path[n + 1]) * t, (path[n + 0] - path[n - 2]) * inv + (path[n + 2] - path[n + 0]) * t);
-            }
-            return target;
-        }
-        ;
-    })();
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
     /**
      * 时间处理函数
      * DateUtils
@@ -6843,174 +9534,6 @@ var jy;
     }());
     jy.CircleCountdown = CircleCountdown;
     __reflect(CircleCountdown.prototype, "jy.CircleCountdown");
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
-    function call(info, ars) {
-        var args = [];
-        var i = 0;
-        if (ars) {
-            for (; i < ars.length; i++) {
-                args[i] = ars[i];
-            }
-        }
-        var argus = info.args;
-        if (argus) {
-            for (var j = 0; j < argus.length; j++) {
-                args[i++] = argus[j];
-            }
-        }
-        var callback = info.callback;
-        if (callback != undefined) {
-            try {
-                return callback.apply(info.thisObj, args);
-            }
-            catch (e) {
-                if (true) {
-                    var debug = info["_debug"];
-                    jy.ThrowError("CallbackInfo\u6267\u884C\u62A5\u9519\uFF0C\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n}==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + e.stack);
-                    console.log.apply(console, ["参数列表"].concat(args));
-                }
-            }
-        }
-        else if (true) {
-            var debug = info["_debug"];
-            jy.ThrowError("\u5BF9\u5DF2\u56DE\u6536\u7684CallbackInfo\u6267\u884C\u4E86\u56DE\u8C03\uFF0C\u6700\u540E\u4E00\u6B21\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + new Error().stack);
-        }
-    }
-    /**
-     * 回调信息，用于存储回调数据
-     * @author 3tion
-     *
-     */
-    var CallbackInfo = /** @class */ (function () {
-        function CallbackInfo() {
-            this.doRecycle = true;
-            if (true) {
-                var data = { enumerable: true, configurable: true };
-                data.get = function () {
-                    return this._cb;
-                };
-                data.set = function (value) {
-                    if (this._cb != value) {
-                        this._cb = value;
-                        if (value != undefined) {
-                            this._debug = { handle: value.toString(), stack: new Error().stack };
-                        }
-                    }
-                };
-                Object.defineProperty(this, "callback", data);
-            }
-        }
-        CallbackInfo.prototype.init = function (callback, thisObj, args) {
-            this.callback = callback;
-            this.args = args;
-            this.thisObj = thisObj;
-        };
-        /**
-         * 检查回调是否一致，只检查参数和this对象,不检查参数
-         */
-        CallbackInfo.prototype.checkHandle = function (callback, thisObj) {
-            return this.callback === callback && this.thisObj == thisObj /* 允许null==undefined */;
-        };
-        /**
-         * 执行回调
-         * 回调函数，将以args作为参数，callback作为函数执行
-         * @param {boolean} [doRecycle] 是否回收CallbackInfo，默认为true
-         */
-        CallbackInfo.prototype.execute = function (doRecycle) {
-            var result = call(this);
-            if (doRecycle == undefined) {
-                doRecycle = this.doRecycle;
-            }
-            if (doRecycle) {
-                this.recycle();
-            }
-            return result;
-        };
-        CallbackInfo.prototype.call = function () {
-            return call(this, arguments);
-        };
-        CallbackInfo.prototype.callAndRecycle = function () {
-            var result = call(this, arguments);
-            this.recycle();
-            return result;
-        };
-        CallbackInfo.prototype.onRecycle = function () {
-            this.callback = undefined;
-            this.args = undefined;
-            this.thisObj = undefined;
-            this.doRecycle = true;
-        };
-        /**
-         * 获取CallbackInfo的实例
-         */
-        CallbackInfo.get = function (callback, thisObj) {
-            var args = [];
-            for (var _i = 2; _i < arguments.length; _i++) {
-                args[_i - 2] = arguments[_i];
-            }
-            var info = jy.recyclable(CallbackInfo);
-            info.init(callback, thisObj, args);
-            return info;
-        };
-        /**
-         * 加入到数组
-         * 检查是否有this和handle相同的callback，如果有，就用新的参数替换旧参数
-         * @param list
-         * @param handle
-         * @param args
-         * @param thisObj
-         */
-        CallbackInfo.addToList = function (list, handle, thisObj) {
-            var args = [];
-            for (var _i = 3; _i < arguments.length; _i++) {
-                args[_i - 3] = arguments[_i];
-            }
-            //检查是否有this和handle相同的callback
-            var callback;
-            for (var i = 0, len = list.length; i < len; i++) {
-                callback = list[i];
-                if (callback.checkHandle(handle, thisObj)) {
-                    callback.args = args;
-                    return callback;
-                }
-            }
-            callback = this.get.apply(this, [handle, thisObj].concat(args));
-            list.push(callback);
-            return callback;
-        };
-        /**
-         * 从列表中移除
-         *
-         * @static
-         * @template T
-         * @param {CallbackInfo<T>[]} list
-         * @param {T} handle
-         * @param {*} [thisObj]
-         * @returns
-         * @memberof CallbackInfo
-         */
-        CallbackInfo.removeFromList = function (list, handle, thisObj) {
-            var j = -1;
-            var info;
-            for (var i = 0, len = list.length; i < len; i++) {
-                var callback = list[i];
-                if (callback.checkHandle(handle, thisObj)) {
-                    j = i;
-                    info = callback;
-                    break;
-                }
-            }
-            if (info) {
-                list.splice(j, 1);
-            }
-            return info;
-        };
-        return CallbackInfo;
-    }());
-    jy.CallbackInfo = CallbackInfo;
-    __reflect(CallbackInfo.prototype, "jy.CallbackInfo", ["jy.IRecyclable"]);
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -8264,9 +10787,9 @@ var jy;
         };
         GameEngine.prototype.addLayer = function (layer, cfg) {
             if (cfg && cfg.parentid) {
-                var parent_1 = this.getLayer(cfg.parentid);
-                if (parent_1 instanceof egret.DisplayObjectContainer) {
-                    this.addLayerToContainer(layer, parent_1);
+                var parent_2 = this.getLayer(cfg.parentid);
+                if (parent_2 instanceof egret.DisplayObjectContainer) {
+                    this.addLayerToContainer(layer, parent_2);
                 }
             }
             else {
@@ -8296,106 +10819,6 @@ var jy;
     }(egret.EventDispatcher));
     jy.GameEngine = GameEngine;
     __reflect(GameEngine.prototype, "jy.GameEngine");
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
-    function isPowerOfTwo(n) {
-        return (n !== 0) && ((n & (n - 1)) === 0);
-    }
-    function getAngle(getParameter) {
-        var _a = getParameter(33902 /* ALIASED_LINE_WIDTH_RANGE */), min = _a[0], max = _a[1];
-        // Heuristic: ANGLE is only on Windows, not in IE, and not in Edge, and does not implement line width greater than one.
-        var angle = ((navigator.platform === 'Win32') || (navigator.platform === 'Win64')) &&
-            (getParameter(7937 /* RENDERER */) !== 'Internet Explorer') &&
-            (getParameter(7937 /* RENDERER */) !== 'Microsoft Edge') &&
-            (min === 0 && max === 1);
-        if (angle) {
-            // Heuristic: D3D11 backend does not appear to reserve uniforms like the D3D9 backend, e.g.,
-            // D3D11 may have 1024 uniforms per stage, but D3D9 has 254 and 221.
-            //
-            // We could also test for WEBGL_draw_buffers, but many systems do not have it yet
-            // due to driver bugs, etc.
-            if (isPowerOfTwo(getParameter(36347 /* MAX_VERTEX_UNIFORM_VECTORS */)) && isPowerOfTwo(getParameter(36349 /* MAX_FRAGMENT_UNIFORM_VECTORS */))) {
-                return 2 /* D3D11 */;
-            }
-            else {
-                return 1 /* D3D9 */;
-            }
-        }
-        return 0 /* No */;
-    }
-    function getMaxAnisotropy(g) {
-        var e = g.getExtension('EXT_texture_filter_anisotropic')
-            || g.getExtension('WEBKIT_EXT_texture_filter_anisotropic')
-            || g.getExtension('MOZ_EXT_texture_filter_anisotropic');
-        if (e) {
-            var max = g.getParameter(34047 /* MAX_TEXTURE_MAX_ANISOTROPY_EXT */);
-            if (max === 0) {
-                max = 2;
-            }
-            return max;
-        }
-    }
-    function getMaxDrawBuffers(g) {
-        var maxDrawBuffers = 1;
-        var ext = g.getExtension("WEBGL_draw_buffers");
-        if (ext != null) {
-            maxDrawBuffers = g.getParameter(34852 /* MAX_DRAW_BUFFERS_WEBGL */);
-        }
-        return maxDrawBuffers;
-    }
-    function getWebGLCaps(g) {
-        if (!g) {
-            var canvas = document.createElement("canvas");
-            var webglAttr = {
-                stencil: true,
-                failIfMajorPerformanceCaveat: true
-            };
-            g = canvas.getContext("webgl", webglAttr) || canvas.getContext("experimental-webgl", webglAttr);
-        }
-        if (!g) {
-            return;
-        }
-        var getParameter = g.getParameter.bind(g);
-        var unmaskedRenderer, unmaskedVendor;
-        var dbgRenderInfo = g.getExtension("WEBGL_debug_renderer_info");
-        if (dbgRenderInfo) {
-            unmaskedVendor = getParameter(37445 /* UNMASKED_VENDOR_WEBGL */);
-            unmaskedRenderer = getParameter(37446 /* UNMASKED_RENDERER_WEBGL */);
-        }
-        return {
-            unmaskedRenderer: unmaskedRenderer,
-            unmaskedVendor: unmaskedVendor,
-            version: getParameter(7938 /* VERSION */),
-            shaderVersion: getParameter(35724 /* SHADING_LANGUAGE_VERSION */),
-            vendor: getParameter(7936 /* VENDOR */),
-            renderer: getParameter(7937 /* RENDERER */),
-            antialias: g.getContextAttributes().antialias,
-            angle: getAngle(getParameter),
-            maxVertAttr: getParameter(34921 /* MAX_VERTEX_ATTRIBS */),
-            maxVertTextureCount: getParameter(35660 /* MAX_VERTEX_TEXTURE_IMAGE_UNITS */),
-            maxVertUniforms: getParameter(36347 /* MAX_VERTEX_UNIFORM_VECTORS */),
-            maxVaryings: getParameter(36348 /* MAX_VARYING_VECTORS */),
-            aliasedLineWidth: getParameter(33902 /* ALIASED_LINE_WIDTH_RANGE */),
-            aliasedPointSize: getParameter(33901 /* ALIASED_POINT_SIZE_RANGE */),
-            maxFragUniform: getParameter(36349 /* MAX_FRAGMENT_UNIFORM_VECTORS */),
-            maxTextureCount: getParameter(34930 /* MAX_TEXTURE_IMAGE_UNITS */),
-            maxTextureSize: getParameter(3379 /* MAX_TEXTURE_SIZE */),
-            maxCubeMapTextureSize: getParameter(34076 /* MAX_CUBE_MAP_TEXTURE_SIZE */),
-            maxCombinedTextureCount: getParameter(35661 /* MAX_COMBINED_TEXTURE_IMAGE_UNITS */),
-            maxAnisotropy: getMaxAnisotropy(g),
-            maxDrawBuffers: getMaxDrawBuffers(g),
-            redBits: getParameter(3410 /* RED_BITS */),
-            greenBits: getParameter(3411 /* GREEN_BITS */),
-            blueBits: getParameter(3412 /* BLUE_BITS */),
-            alphaBits: getParameter(3413 /* ALPHA_BITS */),
-            depthBits: getParameter(3414 /* DEPTH_BITS */),
-            stencilBits: getParameter(3415 /* STENCIL_BITS */),
-            maxRenderBufferSize: getParameter(34024 /* MAX_RENDERBUFFER_SIZE */),
-            maxViewportSize: getParameter(3386 /* MAX_VIEWPORT_DIMS */),
-        };
-    }
-    jy.getWebGLCaps = getWebGLCaps;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -8861,14 +11284,14 @@ var jy;
                     display.scaleX = display.scaleY = scale;
                 }
                 stop = option.stop;
-                var parent_2 = option.parent;
-                if (parent_2) {
+                var parent_3 = option.parent;
+                if (parent_3) {
                     var idx = option.childIdx;
                     if (idx == undefined) {
-                        parent_2.addChild(display);
+                        parent_3.addChild(display);
                     }
                     else {
-                        parent_2.addChildAt(display, idx);
+                        parent_3.addChildAt(display, idx);
                     }
                 }
                 var loop = option.loop;
@@ -9006,244 +11429,6 @@ var jy;
         return { key: key, frames: frames, totalTime: totalTime };
     }
     jy.getCustomAction = getCustomAction;
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
-    /**
-     * 资源的 版本字典
-     */
-    var _hash = {};
-    /**
-     * 配置数据
-     */
-    var _data;
-    /**
-     * 注册的皮肤路径
-     * key      {string}   皮肤的key
-     * value    {Path}    皮肤实际路径地址
-     */
-    var _regedSkinPath = {};
-    var getPrefix;
-    var _res;
-    /**
-     * 获取皮肤路径
-     *
-     * @param {string} key
-     * @param {string} fileName
-     * @returns
-     */
-    function getSkinPath(key, fileName) {
-        return key + "/" + fileName;
-    }
-    /**
-     * 通过Path获取完整url
-     *
-     * @private
-     * @static
-     * @param {string} uri 路径标识
-     * @param {Path} path Path对象
-     * @returns
-     */
-    function getUrlWithPath(uri, path) {
-        if (!path || /^((http|https):)?\/\//.test(uri)) { //如果是http://或者https://，或者//开头，即为完整地址，不加前缀
-            return uri;
-        }
-        uri = path.tPath + uri;
-        var prefix = path.iPrefix ? "" : getPrefix(uri);
-        return prefix + uri;
-    }
-    /**
-     * 根据uri缓存url的字典
-     */
-    var uriDict = {};
-    /**
-     * 获取资源版本号
-     * @param uri
-     */
-    function getResVer(uri) {
-        return ~~(_hash && _hash[uri.hash()]);
-    }
-    function tryReplace(v, replacer) {
-        if (replacer) {
-            if (typeof v === "string") {
-                return doReplace(v, replacer);
-            }
-            else if (typeof v === "object") {
-                for (var k in v) {
-                    v[k] = tryReplace(v[k], replacer);
-                }
-            }
-        }
-        return v;
-    }
-    function doReplace(value, replacer) {
-        return value.replace(/[$][{]([^{}]+)[}]/g, function (match, subkey) {
-            var value = replacer[subkey];
-            return value !== undefined ? "" + value : match;
-        });
-    }
-    /**
-     * 配置工具
-     * @author 3tion
-     * @export
-     * @class ConfigUtils
-     */
-    jy.ConfigUtils = {
-        replace: function (data) {
-            var replacer = data.replacer;
-            if (replacer) {
-                Object.keys(data).forEach(function (key) {
-                    if (key != "replacer") {
-                        var v = data[key];
-                        data[key] = tryReplace(v, replacer);
-                    }
-                });
-            }
-            return data;
-        },
-        setData: function (data) {
-            _data = data;
-            !_data.params && (_data.params = {});
-            //检查路径是否存在有路径有父路径的，如果有，进行预处理
-            var paths = _data.paths;
-            for (var key in paths) {
-                var p = paths[key];
-                p.tPath = getPath(p, paths);
-            }
-            _res = _data.paths.res;
-            //检查前缀
-            getPrefix = (function (prefixes) {
-                var len = 0;
-                if (prefixes) {
-                    len = prefixes.length;
-                }
-                switch (len) {
-                    case 0:
-                        return function (_) { return ""; };
-                    case 1: {
-                        var prefix_1 = prefixes[0];
-                        return function (_) { return prefix_1; };
-                    }
-                    default:
-                        return function (uri) {
-                            var idx = uri.hash() % len;
-                            return prefixes[idx] || "";
-                        };
-                }
-            })(_data.prefixes);
-            function getPath(p, paths) {
-                var parentKey = p.parent;
-                if (parentKey) {
-                    var parent_3 = paths[parentKey];
-                    if (parent_3) {
-                        return getPath(parent_3, paths) + p.path;
-                    }
-                    else if (true) {
-                        jy.ThrowError("\u8DEF\u5F84[" + p.path + "]\u914D\u7F6E\u4E86\u7236\u7EA7(parent)\uFF0C\u4F46\u662F\u627E\u4E0D\u5230\u5BF9\u5E94\u7684\u7236\u7EA7");
-                    }
-                }
-                return p.path;
-            }
-        },
-        /**
-         * 解析版本控制文件
-         * @param {ArrayBufferLike} hash
-         */
-        parseHash: function (hash) {
-            var dv = new DataView(hash);
-            var pos = 0;
-            var len = dv.byteLength;
-            _hash = {};
-            while (pos < len) {
-                var hash_1 = dv.getUint32(pos);
-                pos += 4 /* SIZE_OF_UINT32 */;
-                var version = dv.getUint16(pos);
-                pos += 2 /* SIZE_OF_UINT16 */;
-                _hash[hash_1] = version;
-            }
-            jy.dispatch(-188 /* ParseResHash */);
-        },
-        /**
-         * 设置版本控制文件
-         * @param hash
-         */
-        setHash: function (hash) {
-            _hash = hash;
-        },
-        getResVer: getResVer,
-        /**
-         * 获取资源完整路径
-         *
-         * @static
-         * @param {string} uri                  路径标识
-         * @returns {string}
-         */
-        getResUrl: function (uri) {
-            var url = uriDict[uri];
-            if (!url) {
-                var ver = getResVer(uri);
-                if (ver) {
-                    if (uri.indexOf("?") == -1) {
-                        uri = uri + "?" + ver;
-                    }
-                    else {
-                        uri = uri + "&jyver=" + ver;
-                    }
-                }
-                url = getUrlWithPath(uri, _res);
-                uriDict[uri] = url;
-            }
-            return url;
-        },
-        /**
-         * 获取参数
-         */
-        getParam: function (key) {
-            return _data.params[key];
-        },
-        getSkinPath: getSkinPath,
-        /**
-         * 获取皮肤文件地址
-         */
-        getSkinFile: function (key, fileName) {
-            return getUrlWithPath(getSkinPath(key, fileName), _regedSkinPath[key] || _data.paths.skin);
-        },
-        /**
-         * 设置皮肤路径
-         * 如 `lib` 原本应该放在当前项目  resource/skin/ 目录下
-         * 现在要将`lib`的指向改到  a/ 目录下
-         * 则使用下列代码
-         * ```typescript
-         * ConfigUtils.regSkinPath("lib","a/");
-         * ```
-         * 如果要将`lib`的指向改到 http://www.xxx.com/a/下
-         * 则使用下列代码
-         * ```typescript
-         * ConfigUtils.regSkinPath("lib","http://www.xxx.com/a/",true);
-         * ```
-         * 如果域名不同，`自行做好跨域策略CROS`
-         *
-         * @param {string} key
-         * @param {string} path
-         * @param {boolean} [iPrefix] 是否忽略皮肤前缀
-         */
-        regSkinPath: function (key, path, iPrefix) {
-            _regedSkinPath[key] = { tPath: path, path: path, iPrefix: iPrefix };
-        },
-        /**
-         * 获取路径
-         *
-         * @param {string} uri
-         * @param {string} pathKey
-         * @returns
-         */
-        getUrl: function (uri, pathKey) {
-            var path = _data.paths[pathKey];
-            if (path) {
-                return getUrlWithPath(uri, path);
-            }
-        }
-    };
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -10805,389 +12990,6 @@ var jy;
     jy.Astar = Astar;
     __reflect(Astar.prototype, "jy.Astar", ["jy.PathFinder"]);
 })(jy || (jy = {}));
-/**
- * DataLocator的主数据
- * 原 junyou.DataLocator.data  的全局别名简写
- */
-var $DD = {};
-/**
- * DataLocator的附加数据
- * 原 junyou.DataLocator.extra 的全局别名简写
- */
-var $DE = {};
-var jy;
-(function (jy) {
-    var parsers = {};
-    /**
-     *
-     * 用于处理顺序
-     * @private
-     * @static
-     */
-    var _plist = [];
-    /**
-     * 配置加载器<br/>
-     * 用于预加载数据的解析
-     * @author 3tion
-     *
-     */
-    jy.DataLocator = {
-        regParser: regParser,
-        /**
-         * 解析打包的配置
-         */
-        parsePakedDatas: function (type) {
-            var configs = jy.Res.get("cfgs");
-            jy.Res.remove("cfgs");
-            if (type == 1) {
-                configs = decodePakCfgs(new jy.ByteArray(configs));
-            }
-            // 按顺序解析
-            for (var _i = 0, _plist_1 = _plist; _i < _plist_1.length; _i++) {
-                var key = _plist_1[_i];
-                var parser = parsers[key];
-                var data = parser(configs[key]);
-                if (data) { // 支持一些void的情况
-                    $DD[key] = data;
-                    jy.dispatch(-185 /* OneCfgComplete */, key);
-                }
-            }
-            var extraData = $DE;
-            //处理额外数据
-            for (var key in configs) {
-                if (key.charAt(0) == "$") {
-                    var raw = configs[key];
-                    key = key.substr(1);
-                    if (raw) {
-                        var i = 0, len = raw.length, data = {};
-                        while (i < len) {
-                            var sub = raw[i++];
-                            var value = raw[i++];
-                            var test = raw[i];
-                            if (typeof test === "number") {
-                                i++;
-                                value = getJSONValue(value, test);
-                            }
-                            data[sub] = value;
-                        }
-                        extraData[key] = data;
-                    }
-                }
-            }
-            //清理内存
-            parsers = null;
-            _plist = null;
-            delete jy.DataLocator;
-        },
-        /**
-         *
-         * 注册通过H5ExcelTool导出的数据并且有唯一标识的使用此方法注册
-         * @param {keyof CfgData} key 数据的标识
-         * @param {(Creator<any> | 0)} CfgCreator 配置的类名
-         * @param {(string | 0)} [idkey="id"] 唯一标识 0用于标识数组
-         * @param {CfgDataType} [type]
-         */
-        regCommonParser: regCommonParser,
-        regBytesParser: regBytesParser
-    };
-    /**
-     *
-     * 注册通过H5ExcelTool导出的数据并且有唯一标识的使用此方法注册
-     * @param {keyof CfgData} key 数据的标识
-     * @param {(Creator<any> | 0)} CfgCreator 配置的类名
-     * @param {(string | 0)} [idkey="id"] 唯一标识 0用于标识数组
-     * @param {CfgDataType} [type]
-     */
-    function regCommonParser(key, CfgCreator, idkey, type) {
-        if (idkey === void 0) { idkey = "id"; }
-        regParser(key, function (data) {
-            var _a;
-            if (!data)
-                return;
-            var dict, forEach;
-            var headersRaw = data[0];
-            var hasLocal;
-            for (var j = 0; j < headersRaw.length; j++) {
-                var head = headersRaw[j];
-                if ((head[2] & 2 /* Local */) == 2 /* Local */) {
-                    hasLocal = 1;
-                }
-            }
-            (_a = getParserOption(idkey, type), type = _a[0], dict = _a[1], forEach = _a[2]);
-            try {
-                var ref = CfgCreator || Object;
-                for (var i = 1; i < data.length; i++) {
-                    var rowData = data[i];
-                    var ins = new ref();
-                    var local = hasLocal && {};
-                    for (var j = 0; j < headersRaw.length; j++) {
-                        var head = headersRaw[j];
-                        var name_6 = head[0], test = head[1], type_1 = head[2], def = head[3];
-                        var v = getJSONValue(rowData[j], test, def);
-                        if ((type_1 & 2 /* Local */) == 2 /* Local */) {
-                            local[name_6] = v;
-                        }
-                        else {
-                            ins[name_6] = v;
-                        }
-                    }
-                    forEach(ins, i - 1, key, dict, idkey);
-                    if (typeof ins.decode === "function") {
-                        ins.decode(local);
-                    }
-                }
-                if (type == 1 /* ArraySet */) {
-                    dict = new jy.ArraySet().setRawList(dict, idkey);
-                }
-            }
-            catch (e) {
-                if (true) {
-                    jy.ThrowError("\u89E3\u6790\u914D\u7F6E:" + key + "\u51FA\u9519", e);
-                }
-            }
-            return dict;
-        });
-    }
-    /**
-     * 注册配置解析
-     * @param key       配置的标识
-     * @param parser    解析器
-     */
-    function regParser(key, parser) {
-        parsers[key] = parser;
-        _plist.push(key);
-    }
-    function getJSONValue(value, type, def) {
-        // 特殊类型数据
-        switch (type) {
-            case 0 /* Any */:
-                if (value == null) { //value == null 同时判断 null 和 undefined 并且字符串较少
-                    value = def;
-                }
-                break;
-            case 1 /* String */:
-                if (value === 0 || value == null) {
-                    value = def || "";
-                }
-                break;
-            case 2 /* Number */:
-            case 9 /* Int32 */:
-                // 0 == "" // true
-                if (value === "" || value == null) {
-                    value = +def || 0;
-                }
-                break;
-            case 3 /* Bool */:
-                if (value == null) {
-                    value = def;
-                }
-                value = !!value;
-                break;
-            case 4 /* Array */:
-            case 5 /* Array2D */:
-                if (value === 0) {
-                    value = undefined;
-                }
-                if (!value && def) {
-                    value = def;
-                }
-                break;
-            case 6 /* Date */:
-            case 8 /* DateTime */:
-                value = new Date((value || def || 0) * 10000);
-                break;
-            case 7 /* Time */:
-                value = new jy.TimeVO().decodeBit(value || def || 0);
-                break;
-        }
-        return value;
-    }
-    /**
-     * 用于解析数组
-     *
-     * @memberOf DataLocator
-     */
-    function arrayParserForEach(t, idx, key, dict) {
-        dict.push(t);
-    }
-    /**
-     * 用于解析字典
-     */
-    function commonParserForEach(t, idx, key, dict, idKey) {
-        if (idKey in t) {
-            var id = t[idKey];
-            if (true) {
-                if (typeof id === "object") {
-                    jy.Log("\u914D\u7F6E" + key + "\u7684\u6570\u636E\u6709\u8BEF\uFF0C\u552F\u4E00\u6807\u8BC6" + idKey + "\u4E0D\u80FD\u4E3A\u5BF9\u8C61");
-                }
-                if (id in dict) {
-                    jy.Log("\u914D\u7F6E" + key + "\u7684\u6570\u636E\u6709\u8BEF\uFF0C\u552F\u4E00\u6807\u8BC6" + idKey + "\u6709\u91CD\u590D\u503C\uFF1A" + id);
-                }
-            }
-            dict[id] = t;
-        }
-        else if (true) {
-            jy.Log("\u914D\u7F6E" + key + "\u89E3\u6790\u6709\u8BEF\uFF0C\u65E0\u6CD5\u627E\u5230\u6307\u5B9A\u7684\u552F\u4E00\u6807\u793A\uFF1A" + idKey + "\uFF0C\u6570\u636E\u7D22\u5F15\uFF1A" + idx);
-        }
-    }
-    var CfgHeadStruct = {
-        1: [0, 2 /* Required */, 9 /* String */] /*必有 属性名字*/,
-        2: [1, 2 /* Required */, 14 /* Enum */] /*必有 数值的数据类型*/,
-        3: [2, 1 /* Optional */, 14 /* Enum */] /*可选 此列的状态*/,
-        4: [3, 1 /* Optional */, 17 /* SInt32 */] /*可选 bool / int32 型默认值 */,
-        5: [4, 1 /* Optional */, 1 /* Double */] /*可选 double 型默认值 */,
-        6: [5, 1 /* Optional */, 9 /* String */] /*可选 字符串型默认值 */
-    };
-    jy.PBUtils.initDefault(CfgHeadStruct);
-    //配置数据 打包的文件结构数据
-    //readUnsignedByte 字符串长度 readString 表名字 readUnsignedByte 配置类型(0 PBBytes 1 JSON字符串) readVarint 数据长度
-    function decodePakCfgs(buffer) {
-        var cfgs = {};
-        while (buffer.readAvailable) {
-            var len = buffer.readUnsignedByte();
-            var key = buffer.readUTFBytes(len); //得到表名
-            var type = buffer.readUnsignedByte();
-            var value = void 0;
-            len = buffer.readVarint();
-            switch (type) {
-                case 0: //JSON字符串
-                    var str = buffer.readUTFBytes(len);
-                    value = JSON.parse(str);
-                    break;
-                case 1: //PBBytes
-                    value = buffer.readByteArray(len);
-                    break;
-            }
-            cfgs[key] = value;
-        }
-        return cfgs;
-    }
-    function getParserOption(idkey, type) {
-        if (idkey === void 0) { idkey = "id"; }
-        var dict, forEach;
-        if (idkey == "" || idkey == 0) {
-            type = 2 /* Array */;
-        }
-        else if (!type) {
-            type = 3 /* Dictionary */;
-        }
-        switch (type) {
-            case 2 /* Array */:
-            case 1 /* ArraySet */:
-                dict = [];
-                forEach = arrayParserForEach;
-                break;
-            case 3 /* Dictionary */:
-                dict = {};
-                forEach = commonParserForEach;
-                break;
-        }
-        return [type, dict, forEach];
-    }
-    /**
-     * 通用的Bytes版本的配置解析器
-     * @param buffer
-     */
-    function regBytesParser(key, CfgCreator, idkey, type) {
-        if (idkey === void 0) { idkey = "id"; }
-        regParser(key, function (bytes) {
-            var _a;
-            if (!bytes) {
-                return;
-            }
-            var dict, forEach;
-            (_a = getParserOption(idkey, type), type = _a[0], dict = _a[1], forEach = _a[2]);
-            try {
-                var struct = {};
-                var headersRaw = [];
-                var i = 0;
-                var count = bytes.readVarint(); //头的数量
-                var hasLocal = void 0;
-                while (bytes.readAvailable && count--) {
-                    var len = bytes.readVarint();
-                    var head = jy.PBUtils.readFrom(CfgHeadStruct, bytes, len);
-                    var name_7 = head[0], headType = head[1], headState = head[2], i32Def = head[3], dblDef = head[4], strDef = head[5];
-                    var def = void 0, isJSON = 0, pbType = void 0;
-                    switch (headType) {
-                        case 0 /* Any */:
-                        case 1 /* String */:
-                            def = strDef;
-                            pbType = 9 /* String */;
-                            break;
-                        case 2 /* Number */:
-                            def = dblDef;
-                            pbType = 1 /* Double */;
-                            break;
-                        case 3 /* Bool */:
-                        case 9 /* Int32 */:
-                        case 6 /* Date */:
-                        case 7 /* Time */:
-                        case 8 /* DateTime */:
-                            def = i32Def;
-                            pbType = 17 /* SInt32 */;
-                            break;
-                        case 4 /* Array */:
-                        case 5 /* Array2D */:
-                            if (strDef) {
-                                def = JSON.parse(strDef);
-                            }
-                            pbType = 9 /* String */;
-                            isJSON = 1;
-                            break;
-                    }
-                    struct[i + 1] = [name_7, 1 /* Optional */, pbType, def];
-                    head.length = 5;
-                    head[3] = def;
-                    head[4] = isJSON;
-                    headersRaw[i++] = head;
-                    if ((headState & 2 /* Local */) == 2 /* Local */) {
-                        hasLocal = 1;
-                    }
-                }
-                jy.PBUtils.initDefault(struct, CfgCreator);
-                var headLen = i;
-                i = 0;
-                count = bytes.readVarint(); //行的数量
-                while (bytes.readAvailable && count--) {
-                    var len = bytes.readVarint();
-                    var obj = jy.PBUtils.readFrom(struct, bytes, len);
-                    if (!obj) {
-                        continue;
-                    }
-                    var local = hasLocal && {};
-                    for (var j = 0; j < headLen; j++) {
-                        var head = headersRaw[j];
-                        var name_8 = head[0], test = head[1], type_2 = head[2], def = head[3], isJSON = head[4];
-                        var value = obj[name_8];
-                        if (value && isJSON) {
-                            value = JSON.parse(value);
-                        }
-                        var v = getJSONValue(value, test, def);
-                        if ((type_2 & 2 /* Local */) == 2 /* Local */) {
-                            local[name_8] = v;
-                        }
-                        else {
-                            obj[name_8] = v;
-                        }
-                    }
-                    forEach(obj, i++, key, dict, idkey);
-                    if (typeof obj.decode === "function") {
-                        obj.decode(local);
-                    }
-                }
-                if (type == 1 /* ArraySet */) {
-                    dict = new jy.ArraySet().setRawList(dict, idkey);
-                }
-            }
-            catch (e) {
-                if (true) {
-                    jy.ThrowError("\u89E3\u6790\u914D\u7F6E:" + key + "\u51FA\u9519\uFF0C\u8BF7\u91CD\u65B0\u6253\u5305\u914D\u7F6E", e, true);
-                }
-            }
-            return dict;
-        });
-    }
-})(jy || (jy = {}));
 var jy;
 (function (jy) {
     /**
@@ -12223,209 +14025,6 @@ var jy;
 var jy;
 (function (jy) {
     /**
-     * 尝试将数据转成number类型，如果无法转换，用原始类型
-     *
-     * @param {*} value 数据
-     * @returns
-     */
-    function tryParseNumber(value) {
-        if (typeof value === "boolean") {
-            return value ? 1 : 0;
-        }
-        if (value == +value && value.length == (+value + "").length) { // 数值类型
-            // "12132123414.12312312"==+"12132123414.12312312"
-            // true
-            // "12132123414.12312312".length==(+"12132123414.12312312"+"").length
-            // false
-            return +value;
-        }
-        else {
-            return value;
-        }
-    }
-    function getData(valueList, keyList, o) {
-        o = o || {};
-        for (var i = 0, len = keyList.length; i < len; i++) {
-            var key = keyList[i];
-            var v = valueList[i];
-            if (v != undefined) {
-                o[key] = valueList[i];
-            }
-        }
-        return o;
-    }
-    function copyData(to, valueList, keyList) {
-        for (var i = 0, len = keyList.length; i < len; i++) {
-            var key = keyList[i];
-            to[key] = valueList[i];
-        }
-    }
-    function getZuobiao(data) {
-        return { x: data[0], y: data[1] };
-    }
-    /**
-     *
-     * @author 君游项目解析工具
-     *
-     */
-    jy.DataUtils = {
-        parseDatas: function (to, from, checkStart, checkEnd, dataKey, toDatasKey) {
-            var arr = [];
-            for (var i = checkStart, j = 0; i <= checkEnd; i++) {
-                var key = dataKey + i;
-                if (key in from) {
-                    arr[j++] = from[key];
-                }
-            }
-            to[toDatasKey] = arr;
-        },
-        parseDatas2: function (to, valueList, keyList, checkStart, checkEnd, dataKey, toDatasKey) {
-            var arr = [];
-            for (var i = checkStart, j = 0; i <= checkEnd; i++) {
-                var key = dataKey + i;
-                var idx = keyList.indexOf(key);
-                if (~idx) {
-                    arr[j++] = valueList[idx];
-                }
-            }
-            to[toDatasKey] = arr;
-        },
-        getData: getData,
-        getDataList: function (dataList, keyList) {
-            var list = [];
-            if (dataList) {
-                for (var i = 0, len = dataList.length; i < len; i++) {
-                    var valueList = dataList[i];
-                    list.push(getData(valueList, keyList));
-                }
-            }
-            return list;
-        },
-        parseDataList: function (dataList, keyList, forEach, thisObj) {
-            var args = [];
-            for (var _i = 4; _i < arguments.length; _i++) {
-                args[_i - 4] = arguments[_i];
-            }
-            if (dataList) {
-                for (var i = 0, len = dataList.length; i < len; i++) {
-                    var valueList = dataList[i];
-                    var to = getData(valueList, keyList);
-                    forEach.call(thisObj, to, args, i);
-                }
-            }
-        },
-        copyData: copyData,
-        copyDataList: function (creator, dataList, keyList, forEach, thisObj) {
-            var args = [];
-            for (var _i = 5; _i < arguments.length; _i++) {
-                args[_i - 5] = arguments[_i];
-            }
-            if (dataList) {
-                for (var i = 0, len = dataList.length; i < len; i++) {
-                    var valueList = dataList[i];
-                    var to = new creator();
-                    copyData(to, valueList, keyList);
-                    forEach.call(thisObj, to, args, i);
-                }
-            }
-        },
-        parseXAttr2: function (from, xattr, keyPrefix, valuePrefix, delOriginKey) {
-            if (keyPrefix === void 0) { keyPrefix = "pro"; }
-            if (valuePrefix === void 0) { valuePrefix = "provalue"; }
-            if (delOriginKey === void 0) { delOriginKey = true; }
-            var xReg = new RegExp("^" + keyPrefix + "(\\d+)$");
-            if (true) {
-                var repeatedErr = "";
-            }
-            var keyCount = 0;
-            for (var key in from) {
-                var obj = xReg.exec(key);
-                if (obj) {
-                    var idx = +(obj[1]) || 0;
-                    var valueKey = valuePrefix + idx;
-                    if (true) {
-                        if (key in xattr) {
-                            repeatedErr += key + " ";
-                        }
-                    }
-                    var value = +(from[valueKey]);
-                    if (value > 0) { //只有大于0做处理
-                        keyCount++;
-                        xattr[from[key]] = value;
-                    }
-                    if (delOriginKey) {
-                        delete from[key];
-                        delete from[valueKey];
-                    }
-                }
-            }
-            if (true) {
-                if (repeatedErr) {
-                    jy.ThrowError("有重复的属性值:" + repeatedErr);
-                }
-            }
-            return keyCount;
-        },
-        parseXAttr: function (from, xattr, delOriginKey, xReg) {
-            if (delOriginKey === void 0) { delOriginKey = true; }
-            if (xReg === void 0) { xReg = /^x\d+$/; }
-            var keyCount = 0;
-            for (var key in from) {
-                if (xReg.test(key)) {
-                    var value = +(from[key]);
-                    if (value > 0) { //只有大于0做处理
-                        keyCount++;
-                        xattr[key] = value;
-                    }
-                    if (delOriginKey) {
-                        delete from[key];
-                    }
-                }
-            }
-            return keyCount;
-        },
-        getZuobiaos: function (data, out) {
-            out = out || [];
-            for (var i = 0; i < data.length; i++) {
-                out.push(getZuobiao(data[i]));
-            }
-        },
-        getArray2D: function (value) {
-            if (Array.isArray(value)) {
-                return value;
-            }
-            if (value.trim() == "") {
-                return;
-            }
-            var arr = value.split("|");
-            arr.forEach(function (item, idx) {
-                var subArr = item.split(":");
-                arr[idx] = subArr;
-                subArr.forEach(function (sitem, idx) {
-                    subArr[idx] = tryParseNumber(sitem);
-                });
-            });
-            return arr;
-        },
-        getArray: function (value) {
-            if (Array.isArray(value)) {
-                return value;
-            }
-            value = value + "";
-            if (value.trim() == "") {
-                return;
-            }
-            var arr = value.split(/[:|]/g);
-            arr.forEach(function (item, idx) {
-                arr[idx] = tryParseNumber(item);
-            });
-            return arr;
-        }
-    };
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
-    /**
      * 单位管理器
      * @author 3tion
      *
@@ -12630,6 +14229,48 @@ var jy;
     }(jy.BaseRender));
     jy.UnitRender = UnitRender;
     __reflect(UnitRender.prototype, "jy.UnitRender");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    var UnitSetting = /** @class */ (function () {
+        function UnitSetting() {
+            /**
+             * 是否添加UI层
+             */
+            this.hasUILayer = true;
+            /**
+             * 是否添加Buff容器
+             */
+            this.hasBuffLayer = true;
+            /**
+             * 是否添加光环容器
+             */
+            this.hasHaloLayer = true;
+            /**
+             * 是否添加到游戏场景中
+             */
+            this.addToEngine = true;
+            /**
+             * 深度的参数A
+             */
+            this.depthA = 0;
+            /**
+             * 深度的参数B
+             */
+            this.depthB = 0.19;
+        }
+        //防止同一坐标的单位排序深度相同，出现闪烁的情况
+        UnitSetting.prototype.getDepth = function () {
+            return this.depthA + Math.random() * this.depthB;
+        };
+        return UnitSetting;
+    }());
+    jy.UnitSetting = UnitSetting;
+    __reflect(UnitSetting.prototype, "jy.UnitSetting");
+    /**
+     * 默认的单位设置
+     */
+    jy.defaultUnitSetting = new UnitSetting();
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -13819,192 +15460,6 @@ var jy;
 var jy;
 (function (jy) {
     /**
-     * 使用http进行通信的网络服务
-     * @author 3tion
-     *
-     */
-    var HttpNetService = /** @class */ (function (_super) {
-        __extends(HttpNetService, _super);
-        function HttpNetService() {
-            var _this = _super.call(this) || this;
-            _this._state = 0 /* UNREQUEST */;
-            /**
-             * 请求发送成功的次数
-             */
-            _this._success = 0;
-            /**
-             * 请求连续发送失败的次数
-             */
-            _this._cerror = 0;
-            /**
-             * 请求失败次数
-             */
-            _this._error = 0;
-            //覆盖instance
-            jy.NetService._ins = _this;
-            _this._unsendRequest = [];
-            _this._sendingList = [];
-            _this._loader = new XMLHttpRequest;
-            return _this;
-        }
-        /**
-         * 重置
-         * @param actionUrl             请求地址
-         * @param autoTimeDelay         自动发送的最短延迟时间
-         */
-        HttpNetService.prototype.setUrl = function (actionUrl, autoTimeDelay) {
-            if (autoTimeDelay === void 0) { autoTimeDelay = 5000; }
-            this._actionUrl = actionUrl;
-            if (autoTimeDelay != this._autoTimeDelay) {
-                this._autoTimeDelay = autoTimeDelay;
-            }
-            // 200毫秒检查一次，是否可以自动拉数据了
-            jy.TimerUtil.addCallback(200, this.checkUnsend, this);
-            var loader = this._loader;
-            loader.onreadystatechange = this.onReadyStateChange.bind(this);
-            loader.ontimeout = this.errorHandler.bind(this);
-        };
-        /**
-        * @protected
-        */
-        HttpNetService.prototype.onReadyStateChange = function () {
-            var xhr = this._loader;
-            if (xhr.readyState == 4) { // 4 = "loaded"
-                var ioError_1 = (xhr.status >= 400 || xhr.status == 0);
-                var self_1 = this;
-                setTimeout(function () {
-                    if (ioError_1) { //请求错误
-                        self_1.errorHandler();
-                    }
-                    else {
-                        self_1.complete();
-                    }
-                }, 0);
-            }
-        };
-        /**
-         * 发生错误
-         */
-        HttpNetService.prototype.errorHandler = function () {
-            this._error++;
-            this._cerror++;
-            this._state = -1 /* FAILED */;
-            if (this._cerror > 1) {
-                this.showReconnect();
-                return;
-            }
-            //曾经成功过
-            //数据未发送成功
-            var sending = this._sendingList;
-            var idx = sending.length;
-            var unrequest = this._unsendRequest;
-            for (var _i = 0, unrequest_1 = unrequest; _i < unrequest_1.length; _i++) {
-                var pdata = unrequest_1[_i];
-                sending[idx++] = pdata;
-            }
-            //交互未发送的请求和发送中的请求列表
-            unrequest.length = 0;
-            this._unsendRequest = sending;
-            this._sendingList = unrequest;
-            //尝试重新发送请求
-            this.checkUnsend();
-        };
-        HttpNetService.prototype.complete = function () {
-            this._state = 2 /* COMPLETE */;
-            this._reconCount = 0;
-            //处理Response
-            var readBuffer = this._readBuffer;
-            readBuffer.replaceBuffer(this._loader.response);
-            readBuffer.position = 0;
-            //成功一次清零连续失败次数
-            this._cerror = 0;
-            this._success++;
-            //清理正在发送的数据            
-            for (var _i = 0, _a = this._sendingList; _i < _a.length; _i++) {
-                var pdata = _a[_i];
-                pdata.recycle();
-            }
-            //数据发送成功
-            this._sendingList.length = 0;
-            this.onBeforeSolveData();
-            this.decodeBytes(readBuffer);
-            this.checkUnsend();
-        };
-        /**
-         * 检查在发送过程中的请求
-         */
-        HttpNetService.prototype.checkUnsend = function () {
-            //有在发送过程中，主动发送的数据
-            if (this._unsendRequest.length || jy.Global.now > this._nextAutoTime) {
-                this.trySend();
-            }
-        };
-        HttpNetService.prototype._send = function (cmd, data, msgType) {
-            //没有同协议的指令，新增数据
-            var pdata = jy.recyclable(jy.NetData);
-            pdata.cmd = cmd;
-            pdata.data = data;
-            pdata.msgType = msgType;
-            this._unsendRequest.push(pdata);
-            this.trySend();
-        };
-        /**
-         * 发送消息之前，用于预处理一些http头信息等
-         *
-         * @protected
-         */
-        HttpNetService.prototype.onBeforeSend = function () {
-        };
-        /**
-         * 接收到服务端Response，用于预处理一些信息
-         *
-         * @protected
-         */
-        HttpNetService.prototype.onBeforeSolveData = function () {
-        };
-        /**
-         * 尝试发送
-         */
-        HttpNetService.prototype.trySend = function () {
-            if (this._state == 1 /* REQUESTING */) {
-                return;
-            }
-            this._state = 1 /* REQUESTING */;
-            var loader = this._loader;
-            loader.open("POST", this._actionUrl, true);
-            loader.responseType = "arraybuffer";
-            this.onBeforeSend();
-            var sendBuffer = this._sendBuffer;
-            sendBuffer.reset();
-            var unsend = this._unsendRequest;
-            var sending = this._sendingList;
-            for (var i = 0, len = unsend.length; i < len; i++) {
-                var pdata = unsend[i];
-                this.writeToBuffer(sendBuffer, pdata);
-                sending[i] = pdata;
-            }
-            var pcmdList = this._pcmdList;
-            for (var _i = 0, pcmdList_2 = pcmdList; _i < pcmdList_2.length; _i++) {
-                var pdata = pcmdList_2[_i];
-                this.writeToBuffer(sendBuffer, pdata);
-                sending[i++] = pdata;
-            }
-            //清空被动数据
-            pcmdList.length = 0;
-            //清空未发送的数据
-            unsend.length = 0;
-            loader.send(sendBuffer.outBytes);
-            //重置自动发送的时间
-            this._nextAutoTime = jy.Global.now + this._autoTimeDelay;
-        };
-        return HttpNetService;
-    }(jy.NetService));
-    jy.HttpNetService = HttpNetService;
-    __reflect(HttpNetService.prototype, "jy.HttpNetService");
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
-    /**
      * 用于和服务端通信的数据
      * @author 3tion
      */
@@ -14134,38 +15589,6 @@ var jy;
         return stateMed;
     }
     jy.transformToStateMediator = transformToStateMediator;
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
-    /**
-     * 用于发送的网络数据<br/>
-     * @author 3tion
-     */
-    var NetSendData = /** @class */ (function () {
-        function NetSendData() {
-        }
-        NetSendData.prototype.onRecycle = function () {
-            this.data = undefined;
-            this.msgType = undefined;
-        };
-        return NetSendData;
-    }());
-    jy.NetSendData = NetSendData;
-    __reflect(NetSendData.prototype, "jy.NetSendData", ["jy.IRecyclable"]);
-    /**
-     * 网络数据，类似AS3项目中Stream<br/>
-     * @author 3tion
-     *
-     */
-    var NetData = /** @class */ (function (_super) {
-        __extends(NetData, _super);
-        function NetData() {
-            return _super !== null && _super.apply(this, arguments) || this;
-        }
-        return NetData;
-    }(NetSendData));
-    jy.NetData = NetData;
-    __reflect(NetData.prototype, "jy.NetData");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -15900,290 +17323,6 @@ var jy;
 var jy;
 (function (jy) {
     /**
-     *
-     * @author 3tion
-     *
-     */
-    var NetRouter = /** @class */ (function () {
-        function NetRouter() {
-            this.dispatchList = [];
-            this._listenerMaps = {};
-        }
-        /**
-         * 注册一cmd侦听;
-         * @param cmd      协议号
-         * @param handler   处理器
-         * @param priority  越大越优先
-         * @param once      是否只执行一次
-         * @return boolean true 做为新的兼听添加进去，false 原来就有处理器
-         *
-         */
-        NetRouter.prototype.register = function (cmd, handler, priority, once) {
-            if (priority === void 0) { priority = 0; }
-            if (once === void 0) { once = false; }
-            var listenerMaps = this._listenerMaps;
-            var netBin = { handler: handler, priority: priority, once: once };
-            var list = listenerMaps[cmd];
-            if (!list) {
-                list = [];
-                listenerMaps[cmd] = list;
-                //以前单条是没有存储优先级信息的，会导致，如果先加入的大的，后加入小的，可能会出现问题
-                list.push(netBin);
-            }
-            else {
-                var i = void 0;
-                var len = list.length;
-                //=====同样的CODE 同样的Function 不会被注册多次=====
-                for (i = 0; i < len; i++) {
-                    var temp = list[i];
-                    if (temp.handler == handler) {
-                        if (temp.priority == priority) {
-                            return false;
-                        }
-                        //新的同指令，同处理器的函数会被新的once,priority属性覆盖
-                        list.splice(i, 1);
-                        len--;
-                        break;
-                    }
-                }
-                for (i = 0; i < len; i++) {
-                    if (priority > list[i].priority) {
-                        list.splice(i, 0, netBin);
-                        return true;
-                    }
-                }
-                list[len] = netBin;
-            }
-            return true;
-        };
-        /**
-         * 删除兼听处理器
-         * @param cmd      协议号
-         * @param handler   处理器
-         * @return boolean true 删除成功  <br/>
-         *                 false 没有这个兼听
-         */
-        NetRouter.prototype.remove = function (cmd, handler) {
-            var listenerMaps = this._listenerMaps;
-            var list = listenerMaps[cmd];
-            if (!list) {
-                return false;
-            }
-            var len = list.length;
-            for (var i = 0; i < len; i++) {
-                if (list[i].handler == handler) {
-                    list.splice(i, 1);
-                    //如果没有项了就清理;
-                    if (len == 1) {
-                        delete listenerMaps[cmd];
-                    }
-                    return true;
-                }
-            }
-            return false;
-        };
-        /**
-        * 调用列表
-        */
-        NetRouter.prototype.dispatch = function (data) {
-            egret.callLater(this._dispatch, this, data);
-        };
-        NetRouter.prototype._dispatch = function (data) {
-            var cmd = data.cmd;
-            var list = this._listenerMaps[cmd];
-            if (!list) {
-                return;
-            }
-            var dispatchList = this.dispatchList;
-            var idx = 0, len = list.length;
-            for (; idx < len; idx++) {
-                dispatchList[idx] = list[idx];
-            }
-            if (true) { //DEBUG的直接报错，方便调试
-                for (var i = 0; i < idx; i++) {
-                    var bin = dispatchList[i];
-                    bin.handler(data);
-                    if (bin.once) { //如果只执行一次的，就移除
-                        this.remove(cmd, bin.handler);
-                    }
-                    if (data.stopPropagation) {
-                        break;
-                    }
-                }
-            }
-            else { //正式版的进行try catch，防止因为一个指令影响后续指令
-                for (var i = 0; i < idx; i++) {
-                    var bin = dispatchList[i];
-                    try {
-                        bin.handler(data);
-                    }
-                    catch (e) {
-                        jy.ThrowError("NetHander Error:" + JSON.stringify(data), e);
-                    }
-                    if (bin.once) { //如果只执行一次的，就移除
-                        this.remove(cmd, bin.handler);
-                    }
-                    if (data.stopPropagation) {
-                        break;
-                    }
-                }
-            }
-            data.recycle();
-        };
-        return NetRouter;
-    }());
-    jy.NetRouter = NetRouter;
-    __reflect(NetRouter.prototype, "jy.NetRouter");
-    ;
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
-    /**
-     *
-     * 调整ClassFactory
-     * @export
-     * @class ClassFactory
-     * @template T
-     */
-    var ClassFactory = /** @class */ (function () {
-        /**
-         * @param {Creator<T>} creator
-         * @param {Partial<T>} [props] 属性模板
-         * @memberof ClassFactory
-         */
-        function ClassFactory(creator, props) {
-            this._creator = creator;
-            this._props = props;
-        }
-        /**
-         * 获取实例
-         *
-         * @returns
-         */
-        ClassFactory.prototype.get = function () {
-            var ins = new this._creator();
-            var p = this._props;
-            for (var key in p) {
-                ins[key] = p[key];
-            }
-            return ins;
-        };
-        return ClassFactory;
-    }());
-    jy.ClassFactory = ClassFactory;
-    __reflect(ClassFactory.prototype, "jy.ClassFactory");
-    /**
-     * 回收池
-     * @author 3tion
-     *
-     */
-    var RecyclablePool = /** @class */ (function () {
-        function RecyclablePool(TCreator, max) {
-            if (max === void 0) { max = 100; }
-            this._pool = [];
-            this._max = max;
-            this._creator = TCreator;
-        }
-        RecyclablePool.prototype.get = function () {
-            var ins;
-            var pool = this._pool;
-            if (pool.length) {
-                ins = pool.pop();
-            }
-            else {
-                ins = new this._creator();
-            }
-            if (typeof ins.onSpawn === "function") {
-                ins.onSpawn();
-            }
-            if (true) {
-                ins._insid = _recid++;
-            }
-            return ins;
-        };
-        /**
-         * 回收
-         */
-        RecyclablePool.prototype.recycle = function (t) {
-            var pool = this._pool;
-            var idx = pool.indexOf(t);
-            if (!~idx) { //不在池中才进行回收
-                if (typeof t.onRecycle === "function") {
-                    t.onRecycle();
-                }
-                if (pool.length < this._max) {
-                    pool.push(t);
-                }
-            }
-        };
-        return RecyclablePool;
-    }());
-    jy.RecyclablePool = RecyclablePool;
-    __reflect(RecyclablePool.prototype, "jy.RecyclablePool");
-    if (true) {
-        var _recid = 0;
-    }
-    /**
-     * 获取一个recyclable的对象
-     *
-     * @export
-     * @template T
-     * @param {(Creator<T> & { _pool?: RecyclablePool<T> })} clazz 对象定义
-     * @param {boolean} [addInstanceRecycle] 是否将回收方法附加在实例上，默认将回收方法放在实例
-     * @returns {Recyclable<T>}
-     */
-    function recyclable(clazz, addInstanceRecycle) {
-        var pool;
-        if (clazz.hasOwnProperty("_pool")) {
-            pool = clazz._pool;
-        }
-        if (!pool) {
-            if (addInstanceRecycle) {
-                pool = new RecyclablePool(function () {
-                    var ins = new clazz();
-                    ins.recycle = recycle;
-                    return ins;
-                });
-            }
-            else {
-                pool = new RecyclablePool(clazz);
-                var pt = clazz.prototype;
-                if (!pt.hasOwnProperty("recycle")) {
-                    pt.recycle = recycle;
-                }
-            }
-            Object.defineProperty(clazz, "_pool", {
-                value: pool
-            });
-        }
-        return pool.get();
-        function recycle() {
-            pool.recycle(this);
-        }
-    }
-    jy.recyclable = recyclable;
-    /**
-     * 单例工具
-     * @param clazz 要做单例的类型
-     */
-    function singleton(clazz) {
-        var instance;
-        if (clazz.hasOwnProperty("_instance")) {
-            instance = clazz._instance;
-        }
-        if (!instance) {
-            instance = new clazz;
-            Object.defineProperty(clazz, "_instance", {
-                value: instance
-            });
-        }
-        return instance;
-    }
-    jy.singleton = singleton;
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
-    /**
      * 为已布局好的render提供List功能
      *
      * @export
@@ -17032,246 +18171,6 @@ var jy;
     }());
     jy.ArtWord = ArtWord;
     __reflect(ArtWord.prototype, "jy.ArtWord");
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
-    // const enum Const {
-    function sendMultiDataPerFrame(cmd, data, msgType) {
-        //@ts-ignore
-        var ws = this._ws;
-        if (!ws || ws.readyState != WebSocket.OPEN) {
-            return;
-        }
-        //@ts-ignore
-        var _a = this, _pcmdList = _a._pcmdList, _sendBuffer = _a._sendBuffer;
-        //没有同协议的指令，新增数据
-        var pdata = jy.recyclable(jy.NetSendData);
-        pdata.cmd = cmd;
-        pdata.data = data;
-        pdata.msgType = msgType;
-        _sendBuffer.reset();
-        this.writeToBuffer(_sendBuffer, pdata);
-        pdata.recycle();
-        for (var _i = 0, _pcmdList_1 = _pcmdList; _i < _pcmdList_1.length; _i++) {
-            var pdata_1 = _pcmdList_1[_i];
-            this.writeToBuffer(_sendBuffer, pdata_1);
-            pdata_1.recycle();
-        }
-        //清空被动数据
-        _pcmdList.length = 0;
-        ws.send(_sendBuffer.outBytes);
-    }
-    function sendOneDataPerFrame(cmd, data, msgType) {
-        //@ts-ignore
-        var ws = this._ws;
-        if (!ws || ws.readyState != WebSocket.OPEN) {
-            return;
-        }
-        //@ts-ignore
-        var _a = this, _pcmdList = _a._pcmdList, _sendBuffer = _a._sendBuffer;
-        //没有同协议的指令，新增数据
-        var pdata = jy.recyclable(jy.NetSendData);
-        pdata.cmd = cmd;
-        pdata.data = data;
-        pdata.msgType = msgType;
-        _sendBuffer.reset();
-        this.writeToBuffer(_sendBuffer, pdata);
-        pdata.recycle();
-        ws.send(_sendBuffer.outBytes);
-        for (var _i = 0, _pcmdList_2 = _pcmdList; _i < _pcmdList_2.length; _i++) {
-            var pdata_2 = _pcmdList_2[_i];
-            _sendBuffer.reset();
-            this.writeToBuffer(_sendBuffer, pdata_2);
-            pdata_2.recycle();
-            ws.send(_sendBuffer.outBytes);
-        }
-        //清空被动数据
-        _pcmdList.length = 0;
-    }
-    /**
-     * 单BinaryFrame单消息模式 的消息处理
-     *
-     * @protected
-     * @memberof WSNetService
-     */
-    function onData(ev) {
-        //@ts-ignore
-        var readBuffer = this._readBuffer;
-        readBuffer.replaceBuffer(ev.data);
-        readBuffer.position = 0;
-        this.decodeBytes(readBuffer);
-    }
-    /**
-     *
-     * 单BinaryFrame 多消息模式 的消息处理
-     * @protected
-     */
-    function onDataN(ev) {
-        //@ts-ignore
-        var readBuffer = this._readBuffer;
-        var ab = new Uint8Array(ev.data);
-        var temp;
-        var position = readBuffer.position;
-        var buffer = readBuffer.buffer;
-        var length = buffer.byteLength;
-        if (position < length) { //还有剩余未读取的数据
-            var rb = new Uint8Array(buffer);
-            var rbLen = length - position;
-            var abLen = ab.length;
-            temp = new Uint8Array(rbLen + abLen);
-            var i = 0, m = void 0;
-            for (m = 0; m < rbLen; m++) {
-                temp[i++] = rb[position + m];
-            }
-            for (m = 0; m < abLen; m++) {
-                temp[i++] = ab[m];
-            }
-        }
-        else {
-            temp = ab;
-        }
-        readBuffer.replaceBuffer(temp.buffer);
-        readBuffer.position = 0;
-        this.decodeBytes(readBuffer);
-    }
-    /**
-     * 解除ws绑定
-     *
-     * @param {WebSocket} ws
-     */
-    function loose(ws) {
-        ws.onclose = null;
-        ws.onerror = null;
-        ws.onmessage = null;
-        ws.onopen = null;
-    }
-    /**
-     * WebSocket版本的NetService
-     * @author 3tion
-     */
-    var WSNetService = /** @class */ (function (_super) {
-        __extends(WSNetService, _super);
-        function WSNetService() {
-            var _this = _super.call(this) || this;
-            _this.onOpen = function () {
-                var ws = _this._ws;
-                ws && (ws.onopen = null);
-                if (true) {
-                    console.log("webSocket连接成功");
-                }
-                jy.dispatch(-197 /* Connected */);
-            };
-            /**
-             *
-             * 发生错误
-             * @protected
-             */
-            _this.onError = function (ev) {
-                if (true) {
-                    jy.ThrowError("socket发生错误", ev.error);
-                }
-                jy.dispatch(-196 /* ConnectFailed */);
-            };
-            /**
-             *
-             * 断开连接
-             * @protected
-             */
-            _this.onClose = function (ev) {
-                if (true) {
-                    console.log("socket断开连接");
-                }
-                jy.Global.nextTick(jy.dispatch, jy, -195 /* Disconnect */);
-            };
-            //覆盖instance
-            jy.NetService._ins = _this;
-            return _this;
-        }
-        /**
-         * 设置数据模式
-         *
-         * @param {WSNetServiceDataMode} mode
-         * @memberof WSNetService
-         */
-        WSNetService.prototype.setDataMode = function (mode) {
-            if (this.dataMode != mode) {
-                //@ts-ignore
-                this.dataMode = mode;
-                this.checkDataMode();
-            }
-        };
-        /**
-         * 检查数据模式
-         *
-         * @memberof WSNetService
-         */
-        WSNetService.prototype.checkDataMode = function () {
-            var ws = this._ws;
-            if (ws) {
-                var mode = ~~this.dataMode;
-                ws.onmessage = (mode & 1 /* ReceiveMask */) == 1 /* ReceiveMultiDataPerFrame */ ? onDataN.bind(this) : onData.bind(this);
-                this.$send = (mode & 2 /* SendMask */) == 2 /* SendOneDataPerFrame */ ? sendOneDataPerFrame : sendMultiDataPerFrame;
-            }
-        };
-        Object.defineProperty(WSNetService.prototype, "connected", {
-            get: function () {
-                var ws = this._ws;
-                return ws && ws.readyState == WebSocket.OPEN;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        /**
-         *
-         * 设置websocket地址
-         * @param {string} actionUrl
-         */
-        WSNetService.prototype.setUrl = function (actionUrl) {
-            if (this._actionUrl != actionUrl) {
-                this._actionUrl = actionUrl;
-                var ws = this._ws;
-                if (ws && ws.readyState <= WebSocket.OPEN) { //已经有连接，重置连接
-                    this.connect();
-                }
-            }
-        };
-        /**
-         * 打开新的连接
-         */
-        WSNetService.prototype.connect = function () {
-            var ws = this._ws;
-            if (ws) {
-                loose(ws);
-            }
-            this._ws = ws = new WebSocket(this._actionUrl);
-            ws.binaryType = "arraybuffer";
-            ws.onclose = this.onClose;
-            ws.onerror = this.onError;
-            ws.onopen = this.onOpen;
-            this.checkDataMode();
-        };
-        WSNetService.prototype._send = function (cmd, data, msgType) {
-            this.$send(cmd, data, msgType);
-        };
-        /**
-         * 主动断开连接
-         *
-         * @returns
-         * @memberof WSNetService
-         */
-        WSNetService.prototype.disconnect = function () {
-            var ws = this._ws;
-            if (!ws || ws.readyState != WebSocket.OPEN) {
-                return;
-            }
-            loose(ws);
-            this._ws = null;
-            ws.close();
-        };
-        return WSNetService;
-    }(jy.NetService));
-    jy.WSNetService = WSNetService;
-    __reflect(WSNetService.prototype, "jy.WSNetService");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -18357,983 +19256,6 @@ var jy;
     }(jy.BaseCreator));
     jy.ArtTextCreator = ArtTextCreator;
     __reflect(ArtTextCreator.prototype, "jy.ArtTextCreator");
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
-    var Res;
-    (function (Res) {
-        var _a, _b;
-        /**
-         *  失败的超时时间
-         */
-        var failedExpiredTime = 10000 /* FailedExpiredTime */;
-        /**
-         * 设置失败的过期时间
-         * 失败次数超过`maxRetry`
-         * @export
-         * @param {number} second
-         */
-        function setFailedExpired(second) {
-            var time = ~~second * 1000 /* ONE_SECOND */;
-            if (time <= 0) { //如果为小于0的时间，则将时间设置为1分钟过期
-                time = 10000 /* FailedExpiredTime */;
-            }
-            failedExpiredTime = time;
-        }
-        Res.setFailedExpired = setFailedExpired;
-        /**
-         * 最大重试次数
-         */
-        var maxRetry = 3 /* MaxRetry */;
-        /**
-         * 设置单个资源，不做延迟重试的最大重试次数，默认为3
-         * @param val
-         */
-        function setMaxRetry(val) {
-            maxRetry = val;
-        }
-        Res.setMaxRetry = setMaxRetry;
-        /**
-         * 最大加载数量
-         * 目前所有主流浏览器针对 http 1.1 单域名最大加载数均为6个
-         * http2 基本无限制
-         */
-        var maxThread = 6 /* MaxThread */;
-        /**
-         * 设置最大加载线程  默认为 6
-         * @param val
-         */
-        function setMaxThread(val) {
-            maxThread = val;
-        }
-        Res.setMaxThread = setMaxThread;
-        /**
-         * 扩展名和类型的绑定字典
-         */
-        var extTypeDict = (_a = {},
-            _a[".jpg" /* JPG */] = 2 /* Image */,
-            _a[".png" /* PNG */] = 2 /* Image */,
-            _a[".webp" /* WEBP */] = 2 /* Image */,
-            _a[".json" /* JSON */] = 3 /* Json */,
-            _a[".bin" /* BIN */] = 0 /* Binary */,
-            _a[".mp3" /* MP3 */] = 4 /* Sound */,
-            _a);
-        function checkItemState(item, event) {
-            var state = item.state;
-            if (!item.removed) {
-                state = event.type == "complete" /* COMPLETE */ ? 2 /* COMPLETE */ : -1 /* FAILED */;
-            }
-            item.state = state;
-            return state;
-        }
-        function bindRequest(loader, request, item, callback) {
-            request.on("complete" /* COMPLETE */, loader.onLoadFinish, loader);
-            request.on("ioError" /* IO_ERROR */, loader.onLoadFinish, loader);
-            request.item = item;
-            request.resCB = callback;
-        }
-        function looseRequest(loader, request) {
-            request.off("complete" /* COMPLETE */, loader.onLoadFinish, loader);
-            request.off("ioError" /* IO_ERROR */, loader.onLoadFinish, loader);
-            request.item = undefined;
-            request.resCB = undefined;
-            request.recycle && request.recycle();
-        }
-        var BinLoader = /** @class */ (function () {
-            function BinLoader(type) {
-                if (type === void 0) { type = "arraybuffer"; }
-                this.type = type;
-            }
-            BinLoader.prototype.loadFile = function (resItem, callback) {
-                var request = jy.recyclable(egret.HttpRequest);
-                bindRequest(this, request, resItem, callback);
-                request.responseType = this.type;
-                request.open(resItem.url);
-                request.send();
-            };
-            BinLoader.prototype.onLoadFinish = function (event) {
-                var request = event.target;
-                var item = request.item, resCB = request.resCB, response = request.response;
-                looseRequest(this, request);
-                var state = checkItemState(item, event);
-                if (state == 2 /* COMPLETE */) {
-                    item.data = response;
-                }
-                resCB.callAndRecycle(item);
-            };
-            return BinLoader;
-        }());
-        Res.BinLoader = BinLoader;
-        __reflect(BinLoader.prototype, "jy.Res.BinLoader", ["jy.Res.ResLoader"]);
-        var ImageLoader = /** @class */ (function () {
-            function ImageLoader() {
-            }
-            ImageLoader.prototype.loadFile = function (resItem, callback) {
-                var request = jy.recyclable(egret.ImageLoader);
-                bindRequest(this, request, resItem, callback);
-                request.load(resItem.url);
-            };
-            ImageLoader.prototype.onLoadFinish = function (event) {
-                var request = event.target;
-                var item = request.item, resCB = request.resCB, data = request.data;
-                looseRequest(this, request);
-                var state = checkItemState(item, event);
-                if (state == 2 /* COMPLETE */) {
-                    var texture = new egret.Texture();
-                    texture._setBitmapData(data);
-                    item.data = texture;
-                }
-                resCB.callAndRecycle(item);
-            };
-            return ImageLoader;
-        }());
-        Res.ImageLoader = ImageLoader;
-        __reflect(ImageLoader.prototype, "jy.Res.ImageLoader", ["jy.Res.ResLoader"]);
-        var EgretSoundLoader = /** @class */ (function () {
-            function EgretSoundLoader() {
-            }
-            EgretSoundLoader.prototype.loadFile = function (resItem, callback) {
-                var request = new egret.Sound();
-                bindRequest(this, request, resItem, callback);
-                request.load(resItem.url);
-            };
-            EgretSoundLoader.prototype.onLoadFinish = function (event) {
-                var request = event.target;
-                var item = request.item, resCB = request.resCB;
-                looseRequest(this, request);
-                var state = checkItemState(item, event);
-                if (state == 2 /* COMPLETE */) {
-                    item.data = request;
-                }
-                resCB.callAndRecycle(item);
-            };
-            return EgretSoundLoader;
-        }());
-        __reflect(EgretSoundLoader.prototype, "EgretSoundLoader", ["jy.Res.ResLoader"]);
-        var binLoader = new BinLoader();
-        /**
-         * 资源字典
-         * Key {Key} 资源标识
-         * Value {ResItem} 资源
-         *
-         */
-        var resDict = {};
-        /**
-         * 加载器字典
-         * Key {number}             加载器类型
-         * Value {ResAnalyzer}      加载器
-         */
-        var loaderMap = (_b = {},
-            _b[0 /* Binary */] = binLoader,
-            _b[1 /* Text */] = new BinLoader("text"),
-            _b[3 /* Json */] = new BinLoader("json"),
-            _b[2 /* Image */] = new ImageLoader,
-            _b[4 /* Sound */] = new EgretSoundLoader,
-            _b);
-        /**
-         * 加载列队的总数
-         */
-        var queues = {};
-        /**
-         * 失败的资源加载列队
-         */
-        var failedList = [];
-        /**
-        * 获取资源的扩展名
-        * @param url
-        */
-        function getExt(url) {
-            if (!url)
-                return;
-            var hash = url.lastIndexOf("?");
-            hash == -1 && (hash = undefined);
-            var ext = url.substring(url.lastIndexOf("."), hash);
-            return ext.toLocaleLowerCase();
-        }
-        Res.getExt = getExt;
-        /**
-         * 内联绑定
-         * @param ext 扩展名
-         * @param type 类型
-         */
-        function bindExtType(ext, type) {
-            extTypeDict[ext] = type;
-        }
-        Res.bindExtType = bindExtType;
-        /**
-         * 注册资源分析器
-         * @param type 分析器类型
-         * @param analyzer 分析器
-         */
-        function regAnalyzer(type, analyzer) {
-            loaderMap[type] = analyzer;
-        }
-        Res.regAnalyzer = regAnalyzer;
-        /**
-         * 根据 url 获取资源的处理类型
-         * @param url
-         */
-        function getType(url) {
-            var ext = getExt(url);
-            return ~~extTypeDict[ext]; //默认使用binary类型
-        }
-        /**
-         * 获取或创建一个加载列队
-         * @param queueID
-         * @param list
-         * @param priority
-         */
-        function getOrCreateQueue(queueID, type, priority, list) {
-            if (type === void 0) { type = 1 /* FIFO */; }
-            var old = queues[queueID];
-            if (old) { //已经存在
-                if (list) {
-                    list.appendTo(old.list);
-                }
-                return old;
-            }
-            list = list || [];
-            priority = ~~priority;
-            var queue = { id: queueID, list: list, priority: priority, type: type };
-            queues[queueID] = queue;
-            return queue;
-        }
-        //创建内置分组
-        getOrCreateQueue(2 /* Highway */, 1 /* FIFO */, 9999);
-        getOrCreateQueue(0 /* Normal */);
-        getOrCreateQueue(1 /* Backgroud */, 0 /* FILO */, -9999);
-        /**
-         * addRes方法的返回值
-         */
-        var addResResult = [];
-        /**
-         * 添加资源
-         * @param {ResItem} resItem
-         * @param {ResQueueID} [queueID=ResQueueID.Normal]
-         * @returns {ResItem}
-         */
-        function addRes(resItem, queueID) {
-            if (queueID === void 0) { queueID = 0 /* Normal */; }
-            var uri = resItem.uri;
-            var old = resDict[uri];
-            addResResult[1] = false;
-            if (old) {
-                if (old != resItem && old.url != resItem.url) {
-                    true && jy.ThrowError("\u8D44\u6E90[" + uri + "]\u91CD\u540D\uFF0C\u52A0\u8F7D\u8DEF\u5F84\u5206\u5E03\u4E3A[" + old.url + "]\u548C[" + resItem.url + "]");
-                }
-                else { //资源和加载路径完全相同
-                    var state = old.state;
-                    if (state >= 1 /* REQUESTING */) { //正在处理的资源和已经加载完毕的资源，无需添加到任何列队
-                        addResResult[0] = old;
-                        return addResResult;
-                    }
-                }
-                resItem = old;
-            }
-            else {
-                resDict[uri] = resItem;
-            }
-            addResResult[0] = resItem;
-            var oQID = resItem.qid;
-            if (oQID != queueID) {
-                var oQueue = queues[oQID];
-                if (oQueue) { //从旧列表中移除
-                    oQueue.list.remove(resItem);
-                }
-                //更新列表
-                resItem.qid = queueID;
-                var queue = getOrCreateQueue(queueID);
-                queue.list.pushOnce(resItem);
-                addResResult[1] = true;
-            }
-            return addResResult;
-        }
-        Res.addRes = addRes;
-        /**
-         * 加载资源
-         * @param {string} uri 资源标识
-         * @param {ResCallback} callback 加载完成的回调
-         * @param {string} [url] 资源路径
-         * @param {ResQueueID} [queueID=ResQueueID.Normal]
-         */
-        function load(uri, url, callback, queueID) {
-            if (queueID === void 0) { queueID = 0 /* Normal */; }
-            //检查是否已经有资源
-            var item = resDict[uri];
-            if (!item) {
-                if (!url) {
-                    url = jy.ConfigUtils.getResUrl(uri);
-                }
-                item = { uri: uri, url: url, type: getType(url) };
-            }
-            loadRes(item, callback, queueID);
-        }
-        Res.load = load;
-        function loadList(list, opt, queueID) {
-            if (queueID === void 0) { queueID = 0 /* Normal */; }
-            var total = list.length;
-            var group = opt.group;
-            opt.current = 0;
-            opt.total = total;
-            opt.list = list;
-            for (var i = 0; i < total; i++) {
-                var item = list[i];
-                item.group = group;
-                loadRes(item, jy.CallbackInfo.get(doLoadList, null, opt), queueID);
-            }
-        }
-        Res.loadList = loadList;
-        function doLoadList(item, param) {
-            var callback = param.callback;
-            if (!callback) {
-                return;
-            }
-            var group = param.group;
-            if (item.group == group) {
-                var onProgress = param.onProgress;
-                var doRec = void 0, flag = void 0;
-                if (item.state == -1 /* FAILED */) {
-                    doRec = true;
-                    flag = false;
-                }
-                else {
-                    param.current++;
-                    onProgress && onProgress.call(item);
-                    if (param.current >= param.total) {
-                        doRec = true;
-                        flag = true;
-                    }
-                }
-                if (doRec) {
-                    param.callback = undefined;
-                    param.onProgress = undefined;
-                    callback.callAndRecycle(flag);
-                    onProgress && onProgress.recycle();
-                    var list = param.list;
-                    if (!flag && list) {
-                        list.forEach(removeItem);
-                    }
-                }
-            }
-        }
-        /**
-         * 同步获取某个资源，如果资源未加载完成，则返回空
-         * @param uri 资源标识
-         */
-        function get(uri) {
-            var item = resDict[uri];
-            if (item && item.state == 2 /* COMPLETE */) {
-                return item.data;
-            }
-        }
-        Res.get = get;
-        function set(uri, item) {
-            if (!resDict[uri]) {
-                resDict[uri] = item;
-                return true;
-            }
-        }
-        Res.set = set;
-        /**
-         * 移除某个资源
-         * @param uri
-         */
-        function remove(uri) {
-            var item = resDict[uri];
-            removeItem(item);
-        }
-        Res.remove = remove;
-        function removeItem(item) {
-            if (item) {
-                delete resDict[item.uri];
-                var qid = item.qid;
-                var queue = queues[qid];
-                if (queue) {
-                    queue.list.remove(item);
-                }
-                item.removed = true;
-            }
-        }
-        /**
-         * 阻止尝试某个资源加载，目前是还未加载的资源，从列队中做移除，其他状态不处理
-         * @param uri
-         */
-        function cancel(uri) {
-            var item = resDict[uri];
-            if (item) {
-                if (item.state == 0 /* UNREQUEST */) {
-                    var qid = item.qid;
-                    var queue = queues[qid];
-                    if (queue) {
-                        queue.list.remove(item);
-                    }
-                    doCallback(item);
-                }
-            }
-        }
-        Res.cancel = cancel;
-        /**
-         * 加载资源
-         * @param {ResItem} resItem
-         * @param {ResQueueID} [queueID=ResQueueID.Normal]
-         */
-        function loadRes(resItem, callback, queueID) {
-            if (queueID === void 0) { queueID = 0 /* Normal */; }
-            resItem = addRes(resItem, queueID)[0];
-            var state = resItem.state;
-            if (state == 2 /* COMPLETE */ || (state == -1 /* FAILED */ && resItem.retry > maxRetry && jy.Global.now < ~~resItem.ft)) { //已经加载完成的资源，直接在下一帧回调
-                return callback && jy.Global.nextTick(callback.callAndRecycle, callback, resItem); // callback.callAndRecycle(resItem);
-            }
-            resItem.removed = false;
-            if (callback) {
-                var list = resItem.callbacks;
-                if (!list) {
-                    resItem.callbacks = list = [];
-                }
-                list.push(callback);
-            }
-            return next();
-        }
-        Res.loadRes = loadRes;
-        /**
-         * 获取下一个要加载的资源
-         */
-        function getNext() {
-            var next;
-            //得到优先级最大并且
-            var high = -Infinity;
-            var highQueue;
-            for (var key in queues) { //同优先级的列队，基于hash规则加载，一般来说只用内置的3个列队即可解决常规问题
-                var queue = queues[key];
-                if (queue.list.length) {
-                    var priority = queue.priority;
-                    if (priority > high) {
-                        high = priority;
-                        highQueue = queue;
-                    }
-                }
-            }
-            if (highQueue) {
-                //检查列队类型
-                var list = highQueue.list;
-                switch (highQueue.type) {
-                    case 1 /* FIFO */:
-                        next = list.shift();
-                        break;
-                    case 0 /* FILO */:
-                        next = list.pop();
-                        break;
-                }
-            }
-            if (!next) {
-                if (failedList.length > 0) { //失败列队最后加载
-                    next = failedList.shift();
-                }
-            }
-            return next;
-        }
-        /**
-         * 正在加载的资源列队
-         */
-        var loading = [];
-        function next() {
-            while (loading.length < maxThread) {
-                var item = getNext();
-                if (!item)
-                    break;
-                loading.pushOnce(item);
-                var state = ~~item.state;
-                if (state == -1 /* FAILED */ && item.ft < jy.Global.now) { //如果失败时间已经超过了失败过期时间，则重新加载
-                    state = 0 /* UNREQUEST */;
-                }
-                switch (state) {
-                    case -1 /* FAILED */:
-                    case 2 /* COMPLETE */:
-                        onItemComplete(item);
-                        break;
-                    case 0 /* UNREQUEST */: //其他情况不处理
-                        var type = item.type;
-                        if (type == undefined) {
-                            type = getType(item.url);
-                        }
-                        var loader = loaderMap[type];
-                        if (!loader) {
-                            loader = binLoader;
-                        }
-                        //标记为加载中
-                        item.state = 1 /* REQUESTING */;
-                        loader.loadFile(item, jy.CallbackInfo.get(onItemComplete));
-                        break;
-                }
-            }
-        }
-        /**
-         * 资源加载结束，执行item的回调
-         * @param item
-         */
-        function doCallback(item) {
-            var callbacks = item.callbacks;
-            if (callbacks) { //执行回调列队
-                item.callbacks = undefined;
-                for (var i = 0; i < callbacks.length; i++) {
-                    var cb = callbacks[i];
-                    cb.callAndRecycle(item);
-                }
-            }
-        }
-        function onItemComplete(item) {
-            loading.remove(item);
-            item.qid = undefined;
-            var state = ~~item.state;
-            if (state == -1 /* FAILED */) {
-                var retry = item.retry || 1;
-                if (retry > maxRetry) {
-                    var now = jy.Global.now;
-                    var ft = ~~item.ft;
-                    if (now > ft) {
-                        item.ft = failedExpiredTime * (retry - maxRetry) + now;
-                    }
-                    doCallback(item);
-                    return jy.dispatch(-187 /* ResLoadFailed */, item);
-                }
-                item.retry = retry + 1;
-                item.state = 0 /* UNREQUEST */;
-                failedList.push(item);
-            }
-            else if (state == 2 /* COMPLETE */) {
-                //加载成功，清零retry
-                item.retry = 0;
-                //检查资源是否被加入到列队中
-                doCallback(item);
-                jy.dispatch(-186 /* ResLoadSuccess */, item);
-            }
-            return next();
-        }
-        function getLocalDB(version, keyPath, storeName) {
-            //检查浏览器是否支持IndexedDB
-            var w = window;
-            w.indexedDB = w.indexedDB ||
-                w.mozIndexedDB ||
-                w.webkitIndexedDB ||
-                w.msIndexedDB;
-            if (!w.indexedDB) {
-                //不支持indexedDB，不对白鹭的RES做任何调整，直接return
-                return;
-            }
-            w.IDBTransaction = w.IDBTransaction ||
-                w.webkitIDBTransaction ||
-                w.msIDBTransaction;
-            w.IDBKeyRange = w.IDBKeyRange ||
-                w.webkitIDBKeyRange ||
-                w.msIDBKeyRange;
-            try {
-                indexedDB.open(storeName, version);
-            }
-            catch (e) {
-                true && jy.ThrowError("\u65E0\u6CD5\u5F00\u542F indexedDB,error:", e);
-                return;
-            }
-            var RW = "readwrite";
-            var R = "readonly";
-            return {
-                /**
-                 * 存储资源
-                 *
-                 * @param {ResItem} data
-                 * @param {(this: IDBRequest, ev: Event) => any} callback 存储资源执行完成后的回调
-                 */
-                save: function (data, callback) {
-                    open(function (result) {
-                        try {
-                            var store = getObjectStore(result, RW);
-                            var request = data.uri ? store.put(data) : store.add(data);
-                            if (callback) {
-                                request.onsuccess = callback;
-                                request.onerror = callback;
-                            }
-                        }
-                        catch (e) {
-                            return callback && callback(e);
-                        }
-                    }, function (e) { callback && callback(e); });
-                },
-                /**
-                 * 获取资源
-                 *
-                 * @param {string} url
-                 * @param {{ (data: ResItem) }} callback
-                 */
-                get: function (url, callback) {
-                    open(function (result) {
-                        try {
-                            var store = getObjectStore(result, R);
-                            var request = store.get(url);
-                            request.onsuccess = function (e) {
-                                callback(e.target.result, url);
-                            };
-                            request.onerror = function () {
-                                callback(null, url);
-                            };
-                        }
-                        catch (e) {
-                            true && jy.ThrowError("indexedDB error", e);
-                            callback(null, url);
-                        }
-                    }, function (e) { callback(null, url); });
-                },
-                /**
-                 * 删除指定资源
-                 *
-                 * @param {string} url
-                 * @param {{ (this: IDBRequest, ev: Event) }} callback 删除指定资源执行完成后的回调
-                 */
-                delete: function (url, callback) {
-                    open(function (result) {
-                        try {
-                            var store = getObjectStore(result, RW);
-                            var request = store.delete(url);
-                            if (callback) {
-                                request.onerror = request.onsuccess = function (e) { callback(url, e); };
-                            }
-                        }
-                        catch (e) {
-                            return callback && callback(url, e);
-                        }
-                    }, function (e) { callback && callback(url, e); });
-                },
-                /**
-                 * 删除全部资源
-                 *
-                 * @param {{ (this: IDBRequest, ev: Event) }} callback 删除全部资源执行完成后的回调
-                 */
-                clear: function (callback) {
-                    open(function (result) {
-                        try {
-                            var store = getObjectStore(result, RW);
-                            var request = store.clear();
-                            if (callback) {
-                                request.onsuccess = callback;
-                                request.onerror = callback;
-                            }
-                        }
-                        catch (e) {
-                            return callback(e);
-                        }
-                    }, callback);
-                },
-            };
-            function open(callback, onError) {
-                try {
-                    var request = indexedDB.open(storeName, version);
-                }
-                catch (e) {
-                    true && jy.ThrowError("indexedDB error", e);
-                    return onError && onError(e);
-                }
-                request.onerror = function (e) {
-                    onError && onError(e.error);
-                    errorHandler(e);
-                };
-                request.onupgradeneeded = function (e) {
-                    var _db = e.target.result;
-                    var names = _db.objectStoreNames;
-                    if (!names.contains(storeName)) {
-                        _db.createObjectStore(storeName, { keyPath: keyPath });
-                    }
-                };
-                request.onsuccess = function (e) {
-                    var result = request.result;
-                    result.onerror = errorHandler;
-                    callback(result);
-                };
-            }
-            function getObjectStore(result, mode) {
-                return result.transaction([storeName], mode).objectStore(storeName);
-            }
-            function errorHandler(ev) {
-                jy.ThrowError("indexedDB error", ev.error);
-            }
-        }
-        Res.getLocalDB = getLocalDB;
-        /**
-         *  尝试启用本地资源缓存
-         * @author 3tion(https://github.com/eos3tion/)
-         * @export
-         * @param {number} [version=1]
-         * @returns
-         */
-        function tryLocal(version, keyPath, storeName) {
-            if (version === void 0) { version = 1; }
-            if (keyPath === void 0) { keyPath = "uri"; }
-            if (storeName === void 0) { storeName = "res"; }
-            if (egret.Capabilities.runtimeType != egret.RuntimeType.WEB) { //不处理native的情况
-                return;
-            }
-            var db = getLocalDB(version, keyPath, storeName);
-            //尝试
-            if (!db) { //无法开启 indexedDB，不做后续注入操作
-                return;
-            }
-            var w = window;
-            w.URL = window.URL || w.webkitURL;
-            //当前ios10还不支持IndexedDB的Blob存储，所以如果是ios，则此值为false
-            var canUseBlob = egret.Capabilities.os == "iOS" ? false : !!(window.Blob && window.URL);
-            function saveLocal(item, data) {
-                item.local = true;
-                var uri = item.uri;
-                var local = { data: data, version: jy.ConfigUtils.getResVer(uri), uri: uri, url: item.url };
-                //存储数据
-                db.save(local);
-            }
-            var canvas = document.createElement("canvas");
-            var context = canvas.getContext("2d");
-            var BApt = BinLoader.prototype;
-            var BAptLoadFile = BApt.loadFile;
-            BApt.loadFile = function (resItem, callback) {
-                var _this = this;
-                if (resItem.noLocal) {
-                    BAptLoadFile.call(this, resItem, callback);
-                }
-                else {
-                    return db.get(resItem.uri, function (data) {
-                        if (data) { //有数据
-                            var local = data.data;
-                            if (local) {
-                                var ver = jy.ConfigUtils.getResVer(data.uri);
-                                if (ver == data.version) {
-                                    resItem.data = local;
-                                    resItem.state = 2 /* COMPLETE */;
-                                    resItem.local = true;
-                                    return callback.call(resItem);
-                                }
-                            }
-                        }
-                        BAptLoadFile.call(_this, resItem, callback);
-                    });
-                }
-            };
-            BApt.onLoadFinish = function (event) {
-                var request = event.target;
-                var item = request.item, resCB = request.resCB, response = request.response;
-                looseRequest(this, request);
-                var state = checkItemState(item, event);
-                var data;
-                if (state == 2 /* COMPLETE */) {
-                    data = response;
-                }
-                var uri = item.uri;
-                if (data && !item.local && uri) {
-                    //存储数据
-                    saveLocal(item, data);
-                }
-                item.data = data;
-                resCB.callAndRecycle(item);
-            };
-            var eWeb = egret.web;
-            if (eWeb) {
-                var WILpt = eWeb.WebImageLoader.prototype;
-                var obl_1 = WILpt.onBlobLoaded;
-                WILpt.onBlobLoaded = function (e) {
-                    this.blob = this.request.response;
-                    obl_1.call(this, e);
-                };
-            }
-            //注入
-            var IApt = ImageLoader.prototype;
-            var IAptLoadFile = IApt.loadFile;
-            IApt.loadFile = function (resItem, callback) {
-                var _this = this;
-                var uri = resItem.uri, url = resItem.url, noLocal = resItem.noLocal;
-                if (noLocal) {
-                    IAptLoadFile.call(this, resItem, callback);
-                }
-                else {
-                    db.get(uri, function (data) {
-                        if (data) { //有数据
-                            var ver = jy.ConfigUtils.getResVer(uri);
-                            if (ver == data.version) {
-                                var rawData = data.data;
-                                if (rawData instanceof Blob) {
-                                    url = URL.createObjectURL(rawData);
-                                }
-                                else if (typeof rawData === "string") { //DataURL的情况
-                                    url = rawData;
-                                }
-                                else {
-                                    if (true) { //其他情况不处理
-                                        jy.ThrowError("出现ImageAnalyzer本地缓存不支持的情况");
-                                    }
-                                }
-                                resItem.local = true;
-                            }
-                        }
-                        resItem.url = url;
-                        IAptLoadFile.call(_this, resItem, callback);
-                    });
-                }
-            };
-            IApt.onLoadFinish = function (event) {
-                var request = event.target;
-                var item = request.item, resCB = request.resCB, blob = request.blob, dat = request.data;
-                request.blob = undefined;
-                looseRequest(this, request);
-                var uri = item.uri;
-                if (!item.local) {
-                    item.local = true;
-                    var url = item.url;
-                    var local = blob;
-                    if (!local) {
-                        // 普通图片
-                        // 尝试转换成DataURL，此方法为同步方法，可能会影响性能
-                        if (dat instanceof egret.BitmapData) {
-                            var img = dat.source;
-                            if (!img) {
-                                return;
-                            }
-                            var w_1 = img.width;
-                            var h = img.height;
-                            var type = "image/" + url.substring(url.lastIndexOf(".") + 1);
-                            canvas.width = w_1;
-                            canvas.height = h;
-                            context.clearRect(0, 0, w_1, h);
-                            context.drawImage(img, 0, 0);
-                            try {
-                                if (canUseBlob && url.indexOf("wxLocalResource:") != 0) { //微信专用不能使用 blob
-                                    canvas.toBlob(function (blob) {
-                                        saveLocal(item, blob);
-                                    }, type);
-                                }
-                                else {
-                                    local = canvas.toDataURL(type);
-                                }
-                            }
-                            catch (e) {
-                                //一般跨域并且没有权限的时候，会参数错误
-                            }
-                        }
-                    }
-                    if (local) {
-                        if (!canUseBlob && typeof local !== "string") {
-                            var a = new FileReader();
-                            a.onload = function (e) {
-                                saveLocal(item, this.result);
-                            };
-                            a.readAsDataURL(local);
-                        }
-                        else {
-                            saveLocal(item, local);
-                        }
-                    }
-                }
-                var state = checkItemState(item, event);
-                if (state == 2 /* COMPLETE */) {
-                    var texture = new egret.Texture();
-                    texture._setBitmapData(dat);
-                    item.data = texture;
-                }
-                resCB.callAndRecycle(item);
-            };
-            return db;
-        }
-        Res.tryLocal = tryLocal;
-    })(Res = jy.Res || (jy.Res = {}));
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
-    /**
-     * 资源管理器
-     */
-    var _resources = {};
-    function get(resid, noResHandler, thisObj) {
-        var res = getResource(resid);
-        if (!res) {
-            var args = [];
-            for (var i = 3; i < arguments.length; i++) {
-                args[i - 3] = arguments[i];
-            }
-            res = noResHandler.apply(thisObj, args);
-            regResource(resid, res);
-        }
-        return res;
-    }
-    jy.ResManager = {
-        get: get,
-        /**
-         * 获取纹理资源
-         *
-         * @param {string} resID 资源id
-         * @param {boolean} [noWebp] 是否不加webp后缀
-         * @returns {TextureResource}
-         */
-        getTextureRes: function (resID, noWebp) {
-            var resources = _resources;
-            var res = resources[resID];
-            if (res) {
-                if (!(res instanceof jy.TextureResource)) {
-                    jy.ThrowError("[" + resID + "]\u8D44\u6E90\u6709\u8BEF\uFF0C\u4E0D\u662FTextureResource");
-                    res = undefined;
-                }
-            }
-            if (!res) {
-                res = new jy.TextureResource(resID, noWebp);
-                resources[resID] = res;
-            }
-            return res;
-        },
-        /**
-         * 获取资源
-         */
-        getResource: getResource,
-        // /**
-        //  * 注册资源
-        //  */
-        // regResource,
-        //按时间检测资源
-        init: function () {
-            var tobeDele = [];
-            jy.TimerUtil.addCallback(30000 /* CheckTime */, function () {
-                var expire = jy.Global.now - 300000 /* DisposeTime */;
-                var reses = _resources;
-                var delLen = 0;
-                for (var key in reses) {
-                    var res = reses[key];
-                    if (!res.isStatic && res.lastUseTime < expire) {
-                        tobeDele[delLen++] = key;
-                    }
-                }
-                // //对附加的checker进行检查
-                // for (let i = 0; i < _checkers.length; i++) {
-                //     _checkers[i].resCheck(expire);
-                // }
-                for (var i = 0; i < delLen; i++) {
-                    var key = tobeDele[i];
-                    var res = reses[key];
-                    if (res) {
-                        res.dispose();
-                        jy.Res.remove(res.uri);
-                        delete reses[key];
-                    }
-                }
-            });
-        }
-    };
-    /**
-     * 获取资源
-     */
-    function getResource(resID) {
-        return _resources[resID];
-    }
-    /**
-     * 注册资源
-     */
-    function regResource(resID, res) {
-        var resources = _resources;
-        if (resID in resources) { //资源id重复                
-            return resources[resID] === res;
-        }
-        resources[resID] = res;
-        return true;
-    }
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -20630,7 +20552,7 @@ var jy;
         /**
          * 皮肤添加到舞台
          */
-        Slot.prototype.awake = function () {
+        Slot.prototype.onAwake = function () {
             this.refreshDisplay();
             this.refreshCount();
         };
@@ -21044,104 +20966,6 @@ var jy;
             bottom: 0
         }
     };
-})(jy || (jy = {}));
-if (true) {
-    var ErrorTexture = jy.ColorUtil.getTexture(0xff0000, 1);
-}
-var jy;
-(function (jy) {
-    /**
-     *
-     * 纹理资源
-     * @export
-     * @class TextureResource
-     * @implements {IResource}
-     */
-    var TextureResource = /** @class */ (function () {
-        function TextureResource(uri, noWebp) {
-            /**
-             *
-             * 绑定的对象列表
-             * @private
-             * @type {Bitmap[]}
-             */
-            this._list = [];
-            this.uri = uri;
-            this.url = jy.ConfigUtils.getResUrl(uri + (!noWebp ? jy.Global.webp : ""));
-        }
-        Object.defineProperty(TextureResource.prototype, "isStatic", {
-            /**
-             *
-             * 是否为静态不销毁的资源
-             * @type {boolean}
-             */
-            get: function () {
-                return this._list.length > 0;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        /**
-         *
-         * 绑定一个目标
-         * @param {Bitmap} target
-         */
-        TextureResource.prototype.bind = function (bmp) {
-            if (this._tex) {
-                bmp.texture = this._tex;
-                bmp.dispatch(-193 /* Texture_Complete */);
-            }
-            this._list.pushOnce(bmp);
-            this.lastUseTime = jy.Global.now;
-        };
-        /**
-         *
-         * 解除目标的绑定
-         * @param {Bitmap} target
-         */
-        TextureResource.prototype.loose = function (bmp) {
-            this._list.remove(bmp);
-            this.lastUseTime = jy.Global.now;
-        };
-        TextureResource.prototype.load = function () {
-            jy.Res.load(this.uri, this.url, jy.CallbackInfo.get(this.loadComplete, this), this.qid);
-        };
-        /**
-         * 资源加载完成
-         */
-        TextureResource.prototype.loadComplete = function (item) {
-            var data = item.data, uri = item.uri;
-            if (uri == this.uri) {
-                this._tex = data;
-                for (var _i = 0, _a = this._list; _i < _a.length; _i++) {
-                    var bmp = _a[_i];
-                    bmp.texture = data;
-                    if (true && !data) {
-                        bmp.texture = bmp.placehoder || ErrorTexture;
-                        var rect = bmp.suiRawRect;
-                        if (rect) {
-                            bmp.width = rect.width;
-                            bmp.height = rect.height;
-                        }
-                    }
-                    bmp.dispatch(-193 /* Texture_Complete */);
-                }
-            }
-        };
-        /**
-         * 销毁资源
-         */
-        TextureResource.prototype.dispose = function () {
-            if (this._tex) {
-                this._tex.dispose();
-                this._tex = undefined;
-            }
-            this._list.length = 0;
-        };
-        return TextureResource;
-    }());
-    jy.TextureResource = TextureResource;
-    __reflect(TextureResource.prototype, "jy.TextureResource", ["jy.IResource"]);
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -22560,43 +22384,219 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    var UnitSetting = /** @class */ (function () {
-        function UnitSetting() {
-            /**
-             * 是否添加UI层
-             */
-            this.hasUILayer = true;
-            /**
-             * 是否添加Buff容器
-             */
-            this.hasBuffLayer = true;
-            /**
-             * 是否添加光环容器
-             */
-            this.hasHaloLayer = true;
-            /**
-             * 是否添加到游戏场景中
-             */
-            this.addToEngine = true;
-            /**
-             * 深度的参数A
-             */
-            this.depthA = 0;
-            /**
-             * 深度的参数B
-             */
-            this.depthB = 0.19;
-        }
-        //防止同一坐标的单位排序深度相同，出现闪烁的情况
-        UnitSetting.prototype.getDepth = function () {
-            return this.depthA + Math.random() * this.depthB;
+    jy.MotionGuidePlugin = (function () {
+        return {
+            priority: 0,
+            install: function (manager) {
+                manager.installPlugin(this, ["guide", "x", "y", "rotation"]);
+            },
+            init: function (tween, prop, value) {
+                var target = tween.target;
+                if (target.x == undefined) {
+                    target.x = 0;
+                }
+                if (target.y == undefined) {
+                    target.y = 0;
+                }
+                if (target.rotation == undefined) {
+                    target.rotation = 0;
+                }
+                if (prop == "rotation") {
+                    tween.__needsRot = true;
+                }
+                return prop == "guide" ? null : value;
+            },
+            step: function (tween, prop, startValue, endValue, injectProps) {
+                // other props
+                if (prop == "rotation") {
+                    tween.__rotGlobalS = startValue;
+                    tween.__rotGlobalE = endValue;
+                    testRotData(tween, injectProps);
+                }
+                if (prop != "guide") {
+                    return endValue;
+                }
+                // guide only information - Start -
+                var temp, data = endValue;
+                if (!data.hasOwnProperty("path")) {
+                    data.path = [];
+                }
+                var path = data.path;
+                if (!data.hasOwnProperty("end")) {
+                    data.end = 1;
+                }
+                if (!data.hasOwnProperty("start")) {
+                    data.start = (startValue && startValue.hasOwnProperty("end") && startValue.path === path) ? startValue.end : 0;
+                }
+                // Figure out subline information
+                if (data.hasOwnProperty("_segments") && data._length) {
+                    return endValue;
+                }
+                var l = path.length;
+                var accuracy = 10; // Adjust to improve line following precision but sacrifice performance (# of seg)
+                if (l >= 6 && (l - 2) % 4 == 0) { // Enough points && contains correct number per entry ignoring start
+                    data._segments = [];
+                    data._length = 0;
+                    for (var i = 2; i < l; i += 4) {
+                        var sx = path[i - 2], sy = path[i - 1];
+                        var cx = path[i + 0], cy = path[i + 1];
+                        var ex = path[i + 2], ey = path[i + 3];
+                        var oldX = sx, oldY = sy;
+                        var tempX, tempY, total = 0;
+                        var sublines = [];
+                        for (var j = 1; j <= accuracy; j++) {
+                            var t = j / accuracy;
+                            var inv = 1 - t;
+                            tempX = inv * inv * sx + 2 * inv * t * cx + t * t * ex;
+                            tempY = inv * inv * sy + 2 * inv * t * cy + t * t * ey;
+                            total += sublines[sublines.push(Math.sqrt((temp = tempX - oldX) * temp + (temp = tempY - oldY) * temp)) - 1];
+                            oldX = tempX;
+                            oldY = tempY;
+                        }
+                        data._segments.push(total);
+                        data._segments.push(sublines);
+                        data._length += total;
+                    }
+                }
+                else {
+                    throw ("invalid 'path' data, please see documentation for valid paths");
+                }
+                // Setup x/y tweens
+                temp = data.orient;
+                data.orient = true;
+                var o = {};
+                calc(data, data.start, o);
+                tween.__rotPathS = Number(o.rotation.toFixed(5));
+                calc(data, data.end, o);
+                tween.__rotPathE = Number(o.rotation.toFixed(5));
+                data.orient = false; //here and now we don't know if we need to
+                calc(data, data.end, injectProps);
+                data.orient = temp;
+                // Setup rotation properties
+                if (!data.orient) {
+                    return endValue;
+                }
+                tween.__guideData = data;
+                testRotData(tween, injectProps);
+                return endValue;
+            },
+            tween: function (tween, prop, value, startValues, endValues, ratio, wait, end) {
+                var data = endValues.guide;
+                if (data == undefined || data === startValues.guide) {
+                    return value;
+                }
+                if (data.lastRatio != ratio) {
+                    // first time through so calculate what I need to
+                    var t = ((data.end - data.start) * (wait ? data.end : ratio) + data.start);
+                    calc(data, t, tween.target);
+                    switch (data.orient) {
+                        case "cw": // mix in the original rotation
+                        case "ccw":
+                        case "auto":
+                            tween.target.rotation += data.rotOffS + data.rotDelta * ratio || 0;
+                            break;
+                        case "fixed": // follow fixed behaviour to solve potential issues
+                        default:
+                            tween.target.rotation += data.rotOffS || 0;
+                            break;
+                    }
+                    data.lastRatio = ratio;
+                }
+                if (prop == "rotation" && ((!data.orient) || data.orient == "false")) {
+                    return value;
+                }
+                return tween.target[prop];
+            }
         };
-        return UnitSetting;
-    }());
-    jy.UnitSetting = UnitSetting;
-    __reflect(UnitSetting.prototype, "jy.UnitSetting");
-    /**
-     * 默认的单位设置
-     */
-    jy.defaultUnitSetting = new UnitSetting();
+        function testRotData(tween, injectProps) {
+            // no rotation informat? if we need it come back, if we don't use 0 & ensure we have guide data
+            if (tween.__rotGlobalS === undefined || tween.__rotGlobalE === undefined) {
+                if (tween.__needsRot) {
+                    return;
+                }
+                var _curQueueProps = tween._curQueueProps;
+                if (_curQueueProps.rotation !== undefined) {
+                    tween.__rotGlobalS = tween.__rotGlobalE = _curQueueProps.rotation;
+                }
+                else {
+                    tween.__rotGlobalS = tween.__rotGlobalE = injectProps.rotation = tween.target.rotation || 0;
+                }
+            }
+            if (tween.__guideData === undefined) {
+                return;
+            }
+            // Process rotation properties
+            var data = tween.__guideData;
+            var rotGlobalD = tween.__rotGlobalE - tween.__rotGlobalS || 0;
+            var rotPathD = tween.__rotPathE - tween.__rotPathS || 0;
+            var rot = rotGlobalD - rotPathD || 0;
+            if (data.orient == "auto") {
+                if (rot > 180) {
+                    rot -= 360;
+                }
+                else if (rot < -180) {
+                    rot += 360;
+                }
+            }
+            else if (data.orient == "cw") {
+                while (rot < 0) {
+                    rot += 360;
+                }
+                if (rot == 0 && rotGlobalD > 0 && rotGlobalD != 180) {
+                    rot += 360;
+                }
+            }
+            else if (data.orient == "ccw") {
+                rot = rotGlobalD - ((rotPathD > 180) ? (360 - rotPathD) : (rotPathD)); // sign flipping on path
+                while (rot > 0) {
+                    rot -= 360;
+                }
+                if (rot == 0 && rotGlobalD < 0 && rotGlobalD != -180) {
+                    rot -= 360;
+                }
+            }
+            data.rotDelta = rot;
+            data.rotOffS = tween.__rotGlobalS - tween.__rotPathS;
+            // reset
+            tween.__rotGlobalS = tween.__rotGlobalE = tween.__guideData = tween.__needsRot = undefined;
+        }
+        function calc(data, ratio, target) {
+            if (data._segments == undefined) {
+                throw ("Missing critical pre-calculated information, please file a bug");
+            }
+            if (target == undefined) {
+                target = { x: 0, y: 0, rotation: 0 };
+            }
+            var seg = data._segments;
+            var path = data.path;
+            // find segment
+            var pos = data._length * ratio;
+            var cap = seg.length - 2;
+            var n = 0;
+            while (pos > seg[n] && n < cap) {
+                pos -= seg[n];
+                n += 2;
+            }
+            // find subline
+            var sublines = seg[n + 1];
+            var i = 0;
+            cap = sublines.length - 1;
+            while (pos > sublines[i] && i < cap) {
+                pos -= sublines[i];
+                i++;
+            }
+            var t = (i / ++cap) + (pos / (cap * sublines[i]));
+            // find x/y
+            n = (n * 2) + 2;
+            var inv = 1 - t;
+            target.x = inv * inv * path[n - 2] + 2 * inv * t * path[n + 0] + t * t * path[n + 2];
+            target.y = inv * inv * path[n - 1] + 2 * inv * t * path[n + 1] + t * t * path[n + 3];
+            // orientation
+            if (data.orient) {
+                target.rotation = 57.2957795 * Math.atan2((path[n + 1] - path[n - 1]) * inv + (path[n + 3] - path[n + 1]) * t, (path[n + 0] - path[n - 2]) * inv + (path[n + 2] - path[n + 0]) * t);
+            }
+            return target;
+        }
+        ;
+    })();
 })(jy || (jy = {}));
