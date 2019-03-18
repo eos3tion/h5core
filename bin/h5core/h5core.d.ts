@@ -8818,6 +8818,17 @@ declare namespace jy {
         checkWord: typeof checkWord1;
     };
 }
+/**
+ * 是否不做客户端检查
+ * 客户端检查的部分，后续统一按下面例子处理
+ * @example
+ *  if (!noClientCheck) {
+ *       if (!$hero.clan) {
+ *          return CoreFunction.showClientTips(MsgCodeConst.Code_883);
+ *      }
+ *  }
+ */
+declare var noClientCheck: boolean;
 declare namespace jy {
     /**
      * 错误前缀
@@ -10051,17 +10062,6 @@ declare namespace jy {
         dispose(): void;
     }
 }
-/**
- * 是否不做客户端检查
- * 客户端检查的部分，后续统一按下面例子处理
- * @example
- *  if (!noClientCheck) {
- *       if (!$hero.clan) {
- *          return CoreFunction.showClientTips(MsgCodeConst.Code_883);
- *      }
- *  }
- */
-declare var noClientCheck: boolean;
 declare namespace jy {
     /**
      * 默认地图宽/高
