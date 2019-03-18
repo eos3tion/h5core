@@ -10599,6 +10599,12 @@ var jy;
         checkWord: checkWord1,
     };
 })(jy || (jy = {}));
+if (true) {
+    var $gm = $gm || {};
+    $gm.toggleClientCheck = function () {
+        noClientCheck = !noClientCheck;
+    };
+}
 var jy;
 (function (jy) {
     /**
