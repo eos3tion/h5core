@@ -10601,9 +10601,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
     /**
      * 错误前缀
      */
@@ -15810,7 +15807,7 @@ var jy;
                     jy.ThrowError("\u6CA1\u6709\u627E\u5230\u5BF9\u5E94\u7684\u529F\u80FD\u914D\u7F6E[" + module + "]");
                 }
             }
-            if (false || !jy.noClientCheck) { //屏蔽客户端检测只针对open，不针对show
+            if (!noClientCheck) { //屏蔽客户端检测只针对open，不针对show
                 var flag = cfg && !cfg.close && cfg.serverOpen;
                 if (flag) {
                     if (this._checkers) {

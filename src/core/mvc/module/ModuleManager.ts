@@ -261,7 +261,7 @@ namespace jy {
                     ThrowError(`没有找到对应的功能配置[${module}]`);
                 }
             }
-            if (RELEASE || !jy.noClientCheck) { //屏蔽客户端检测只针对open，不针对show
+            if (!noClientCheck) { //屏蔽客户端检测只针对open，不针对show
                 let flag = cfg && !cfg.close && cfg.serverOpen;
                 if (flag) {
                     if (this._checkers) {
