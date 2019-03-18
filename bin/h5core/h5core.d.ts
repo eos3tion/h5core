@@ -8691,6 +8691,13 @@ declare namespace jy {
  *  }
  */
 declare var noClientCheck: boolean;
+interface $gmType {
+    /**
+     * 切换客户端检查的`开/关`状态
+     *
+     */
+    toggleClientCheck(): any;
+}
 declare namespace jy {
     /**
      * 错误前缀
