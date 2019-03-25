@@ -210,8 +210,9 @@ namespace jy {
          * @param { (uri: string, adKey: number): any } forEach 如果 forEach 方法返回 真 ，则停止遍历
          */
         checkRes(forEach: { (uri: string, adKey: number): any }) {
-            this.pst.splitInfo.forEach(function (resKey, adKey) {
-                forEach(this.getUri2(resKey), adKey);
+            let self = this;
+            self.pst.splitInfo.forEach(function (resKey, adKey) {
+                forEach(self.getUri2(resKey), adKey);
             });
         }
     }

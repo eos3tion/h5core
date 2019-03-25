@@ -11792,8 +11792,9 @@ var jy;
          * @param { (uri: string, adKey: number): any } forEach 如果 forEach 方法返回 真 ，则停止遍历
          */
         UnitResource.prototype.checkRes = function (forEach) {
-            this.pst.splitInfo.forEach(function (resKey, adKey) {
-                forEach(this.getUri2(resKey), adKey);
+            var self = this;
+            self.pst.splitInfo.forEach(function (resKey, adKey) {
+                forEach(self.getUri2(resKey), adKey);
             });
         };
         return UnitResource;
