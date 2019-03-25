@@ -58,10 +58,10 @@ namespace jy {
          */
         getResource,
 
-        // /**
-        //  * 注册资源
-        //  */
-        // regResource,
+        /**
+         * 注册资源
+         */
+        regResource,
 
         //按时间检测资源
         init() {
