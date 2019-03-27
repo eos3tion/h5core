@@ -10103,13 +10103,6 @@ declare namespace jy {
 }
 declare namespace jy {
     /**
-     * 默认地图宽/高
-     */
-    const enum MapConst {
-        DefaultSize = 256,
-        MapPath = "m2/"
-    }
-    /**
      * 地图基础信息<br/>
      * 由地图编辑器生成的地图信息
      * @author 3tion
@@ -10187,7 +10180,7 @@ declare namespace jy {
         /**
          * 地图前缀路径
          */
-        static prefix: MapConst;
+        static prefix: string;
     }
 }
 interface $gmType {

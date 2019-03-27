@@ -12502,7 +12502,7 @@ var jy;
         /**
          * 地图前缀路径
          */
-        MapInfo.prefix = "m2/" /* MapPath */;
+        MapInfo.prefix = "m/" /* MapPath */;
         return MapInfo;
     }(egret.HashObject));
     jy.MapInfo = MapInfo;

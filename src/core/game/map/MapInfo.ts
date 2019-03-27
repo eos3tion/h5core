@@ -6,7 +6,7 @@ namespace jy {
     const enum MapConst {
         DefaultSize = 256,
 
-        MapPath = "m2/",
+        MapPath = "m/",
     }
     const webp = Global.webp ? Ext.WEBP : "";
 
@@ -112,6 +112,6 @@ namespace jy {
         /**
          * 地图前缀路径
          */
-        static prefix = MapConst.MapPath;
+        static prefix: string = MapConst.MapPath;
     }
 }
