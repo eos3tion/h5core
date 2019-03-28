@@ -8344,7 +8344,11 @@ var jy;
             this.lastUseTime = jy.Global.now;
         };
         TextureResource.prototype.load = function () {
-            jy.Res.load(this.uri, this.url, jy.CallbackInfo.get(this.loadComplete, this), this.qid);
+            jy.Res.loadRes({
+                uri: this.uri,
+                url: this.url,
+                type: 2 /* Image */
+            }, jy.CallbackInfo.get(this.loadComplete, this), this.qid);
         };
         /**
          * 资源加载完成
