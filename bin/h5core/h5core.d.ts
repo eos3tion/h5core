@@ -12692,6 +12692,9 @@ declare namespace jy {
     }
 }
 declare namespace jy {
+    const enum Const {
+        defaultModalAlpha = 0.8
+    }
     interface Panel extends IAsync, ComponentWithEnable {
         createNativeDisplayObject(): void;
     }
@@ -12751,6 +12754,14 @@ declare namespace jy {
          * @type {boolean}
          */
         preloadImage: boolean;
+        /**
+         * 模式窗口的Alpha
+         */
+        modalAlpha: number;
+        /**
+         * 公共的模式窗口的alpha
+         */
+        static modalAlpha: Const;
         protected _readyState: RequestState;
         constructor();
         readonly isReady: boolean;

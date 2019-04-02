@@ -16369,7 +16369,14 @@ var jy;
             var m = this.modal;
             if (!m) {
                 this.modal = m = new egret.Bitmap();
-                m.texture = jy.ColorUtil.getTexture();
+                var alpha = this.modalAlpha;
+                if (alpha == undefined) {
+                    alpha = Panel.modalAlpha;
+                }
+                if (alpha == undefined) {
+                    alpha = 0.8 /* defaultModalAlpha */;
+                }
+                m.texture = jy.ColorUtil.getTexture(0, alpha);
                 m.touchEnabled = true;
             }
             return m;
@@ -16433,6 +16440,10 @@ var jy;
         Panel.prototype.show = function () {
             jy.toggle(this.moduleID, 1 /* SHOW */);
         };
+        /**
+         * 公共的模式窗口的alpha
+         */
+        Panel.modalAlpha = 0.8 /* defaultModalAlpha */;
         return Panel;
     }(egret.Sprite));
     jy.Panel = Panel;
