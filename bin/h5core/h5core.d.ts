@@ -3581,6 +3581,9 @@ declare namespace jy {
     function recyclable<T>(clazz: Creator<T> & {
         _pool?: RecyclablePool<T>;
     }, addInstanceRecycle?: boolean): Recyclable<T>;
+    namespace recyclable {
+        var recycleList: <T>(list: Recyclable<T>[], len: number) => void;
+    }
     /**
      * 单例工具
      * @param clazz 要做单例的类型
