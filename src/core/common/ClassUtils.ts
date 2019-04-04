@@ -163,6 +163,26 @@ namespace jy {
         }
     }
 
+    recyclable.recycleList =
+        /**
+         * 按指定长度，回收Recycleable的数组
+         * @param list 要被处理的数组
+         * @param len 如果指定的`len`超过数组长度，数组不做任何处理
+         */
+        function <T>(list: jy.Recyclable<T>[], len: number) {
+            let i = len;
+            let lLen = list.length;
+            if (len < lLen) {
+                while (i < list.length) {
+                    let recyclable = list[i++];
+                    if (recyclable) {
+                        recyclable.recycle();
+                    }
+                }
+                list.length = len;
+            }
+        }
+
     /**
      * 单例工具
      * @param clazz 要做单例的类型
