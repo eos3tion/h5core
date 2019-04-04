@@ -1,4 +1,9 @@
 namespace jy {
+
+    const enum Const {
+        defaultModalAlpha = .8
+    }
+
     export interface Panel extends IAsync, ComponentWithEnable {
         createNativeDisplayObject(): void;
     }
@@ -60,6 +65,16 @@ namespace jy {
          * @type {boolean}
          */
         public preloadImage: boolean;
+
+        /**
+         * 模式窗口的Alpha
+         */
+        modalAlpha: number;
+
+        /**
+         * 公共的模式窗口的alpha
+         */
+        static modalAlpha = Const.defaultModalAlpha;
 
         protected _readyState: RequestState = RequestState.UNREQUEST;
 
@@ -207,7 +222,14 @@ namespace jy {
             let m = this.modal;
             if (!m) {
                 this.modal = m = new egret.Bitmap();
-                m.texture = ColorUtil.getTexture();
+                let alpha = this.modalAlpha;
+                if (alpha == undefined) {
+                    alpha = Panel.modalAlpha;
+                }
+                if (alpha == undefined) {
+                    alpha = Const.defaultModalAlpha;
+                }
+                m.texture = ColorUtil.getTexture(0, alpha);
                 m.touchEnabled = true;
             }
             return m;

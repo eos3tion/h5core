@@ -1,6 +1,6 @@
 
 if (DEBUG) {
-    var ErrorTexture = jy.ColorUtil.getTexture(0xff0000,1);
+    var ErrorTexture = jy.ColorUtil.getTexture(0xff0000, 1);
 }
 namespace jy {
 
@@ -81,7 +81,11 @@ namespace jy {
         }
 
         load() {
-            Res.load(this.uri, this.url, CallbackInfo.get(this.loadComplete, this), this.qid);
+            Res.loadRes({
+                uri: this.uri,
+                url: this.url,
+                type: Res.ResItemType.Image
+            }, CallbackInfo.get(this.loadComplete, this), this.qid);
         }
 
         /**

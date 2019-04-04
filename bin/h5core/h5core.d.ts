@@ -2422,6 +2422,31 @@ declare namespace jy {
  */
 declare namespace jy {
     /**
+     * 打包类型
+     */
+    const enum PakSaveType {
+        /**
+         * 0 全部打包
+         */
+        PAK_ALL = 0,
+        /**
+         * 1 按方向打包 (弃用)
+         */
+        PAK_BY_DIRECTION = 1,
+        /**
+         * 2 按动作打包
+         */
+        PAK_BY_ACTION = 2,
+        /**
+         * 3 混合打包 (弃用)
+         */
+        PAK_COMPLEX = 3,
+        /**
+         * 单方向单动作
+         */
+        PAK_ONE_A_D = 4
+    }
+    /**
      * 存储pst信息
      */
     class PstInfo {
@@ -2437,6 +2462,7 @@ declare namespace jy {
          * pst的唯一标识
          */
         key: string;
+        type: number;
         /**
          * 动作信息，帧的播放信息的数组
          * Key      {number}        动作标识
@@ -2477,7 +2503,9 @@ declare namespace jy {
          */
         getCastPoint(action: number, direction: number): Point;
         getResKey(direction: number, action: number): string;
-        getADKey(r: any): number;
+        bindResource(resKey: string, resouce: SplitUnitResource, textures: {
+            [index: number]: egret.Texture[][];
+        }): any;
         splitInfo: SplitInfo;
         constructor();
         init(key: string, data: any[]): void;
@@ -2498,7 +2526,7 @@ declare namespace jy {
      * 资源打包分隔信息
      * 只保留了最主流的单动作，单方向
      */
-    class SplitInfo {
+    abstract class SplitInfo {
         /**
          * 资源字典
          */
@@ -2509,28 +2537,24 @@ declare namespace jy {
          * 子资源列表
          */
         protected _subReses: string[];
-        /**
-         * key
-         */
-        protected _key: string;
-        /**
-         * 动作/方向的字典<br/>
-         * key      {string}  资源key<br/>
-         * value    {Array}   action<<8|direction
-         *
-         */
-        adDict: {
-            [resKey: string]: ADKey;
-        };
+        readonly key: string;
         constructor(key: string);
-        protected _n: string;
-        protected _a: any[];
-        protected _d: any[];
         parseFrameData(data: any): {
             [index: number]: ActionInfo;
         };
-        parseSplitInfo(infos: any): void;
-        getResKey(direction: number, action: number): string;
+        protected parseADDict(_alist: number[]): void;
+        parseSplitInfo(_infos: any): void;
+        abstract getResKey(direction: number, action: number): string;
+        /**
+         * 遍历资源
+         * @param _forEach
+         */
+        forEach(_forEach: {
+            (resKey: string, adKey: number): any;
+        }): void;
+        abstract bindResource(resKey: string, resouce: SplitUnitResource, textures: {
+            [index: number]: egret.Texture[][];
+        }): any;
     }
     /**
      * action << 8 | direction
@@ -7361,12 +7385,20 @@ declare namespace jy {
          * 获取资源
          */
         getResource: typeof getResource;
+        /**
+         * 注册资源
+         */
+        regResource: typeof regResource;
         init(): void;
     };
     /**
      * 获取资源
      */
     function getResource(resID: string): IResource;
+    /**
+     * 注册资源
+     */
+    function regResource(resID: string, res: IResource): boolean;
 }
 declare namespace jy {
     import Bitmap = egret.Bitmap;
@@ -9696,7 +9728,7 @@ declare namespace jy {
          */
         getTexture(info: IDrawInfo): egret.Texture;
         loadRes(direction: number, action: number): SplitUnitResource;
-        noRes(uri: string, r: string): SplitUnitResource;
+        noRes(uri: string, resKey: string): SplitUnitResource;
         getUri(direction: number, action: number): string;
         getUri2(resKey: string): string;
         getUrl(uri: string): string;
@@ -10074,13 +10106,6 @@ declare namespace jy {
 }
 declare namespace jy {
     /**
-     * 默认地图宽/高
-     */
-    const enum MapConst {
-        DefaultSize = 256,
-        MapPath = "m2/"
-    }
-    /**
      * 地图基础信息<br/>
      * 由地图编辑器生成的地图信息
      * @author 3tion
@@ -10158,7 +10183,7 @@ declare namespace jy {
         /**
          * 地图前缀路径
          */
-        static prefix: MapConst;
+        static prefix: string;
     }
 }
 interface $gmType {
@@ -12670,6 +12695,9 @@ declare namespace jy {
     }
 }
 declare namespace jy {
+    const enum Const {
+        defaultModalAlpha = 0.8
+    }
     interface Panel extends IAsync, ComponentWithEnable {
         createNativeDisplayObject(): void;
     }
@@ -12729,6 +12757,14 @@ declare namespace jy {
          * @type {boolean}
          */
         preloadImage: boolean;
+        /**
+         * 模式窗口的Alpha
+         */
+        modalAlpha: number;
+        /**
+         * 公共的模式窗口的alpha
+         */
+        static modalAlpha: Const;
         protected _readyState: RequestState;
         constructor();
         readonly isReady: boolean;
