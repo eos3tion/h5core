@@ -2706,37 +2706,19 @@ var jy;
  */
 var jy;
 (function (jy) {
-    // /**
-    //  * 打包类型
-    //  */
-    // const enum PakSaveType {
-    //     // /**全部打包 (弃用)*/
-    //     // PAK_ALL = 0,
-    //     // /**1 按方向打包 (弃用)*/
-    //     // PAK_BY_DIRECTION = 1,
-    //     // /**2 按动作打包 (弃用)*/
-    //     // PAK_BY_ACTION = 2,
-    //     // /**3 混合打包 (弃用)*/
-    //     // PAK_COMPLEX = 3,
-    //     /**
-    //      * 单方向单动作
-    //      */
-    //     PAK_ONE_A_D = 4
-    // }
-    // var parsers: { [index: number]: { new (key: string): SplitInfo } };
-    // /**
-    //  * 获取处理器
-    //  */
-    // function getParsers(t: number): { new (key: string): SplitInfo } {
-    //     if (!parsers) {
-    //         parsers = {};
-    //         // 后续H5项目只使用PAK_ONE_A_D一种打包方式
-    //         // 其他方式弃用
-    //         // parsers[PakSaveType.PAK_BY_ACTION] = ActionSInfo;
-    //         parsers[PakSaveType.PAK_ONE_A_D] = OneADSInfo;
-    //     }
-    //     return parsers[t];
-    // }
+    var parsers;
+    /**
+     * 获取处理器
+     */
+    function getParsers(t) {
+        if (!parsers) {
+            parsers = {};
+            parsers[0 /* PAK_ALL */] = AllSInfo;
+            parsers[2 /* PAK_BY_ACTION */] = ActionSInfo;
+            parsers[4 /* PAK_ONE_A_D */] = OneADSInfo;
+        }
+        return parsers[t];
+    }
     /**
      * 存储pst信息
      */
@@ -2762,18 +2744,19 @@ var jy;
         PstInfo.prototype.getResKey = function (direction, action) {
             return this.splitInfo.getResKey(direction, action);
         };
-        PstInfo.prototype.getADKey = function (r) {
-            return this.splitInfo.adDict[r];
+        PstInfo.prototype.bindResource = function (resKey, resouce, textures) {
+            return this.splitInfo.bindResource(resKey, resouce, textures);
         };
         PstInfo.prototype.init = function (key, data) {
             this.key = key;
             this._resources = {};
-            // let parserRef = getParsers(data[0]);
-            // if (!parserRef) {
-            //     return;
-            // }
-            // let parser = new parserRef(key);
-            var parser = new SplitInfo(key);
+            var type = +data[0];
+            this.type = type;
+            var parserRef = getParsers(type);
+            if (!parserRef) {
+                return;
+            }
+            var parser = new parserRef(key);
             //处理数据
             this.splitInfo = parser;
             parser.parseSplitInfo(data[1]);
@@ -2837,11 +2820,10 @@ var jy;
      */
     var SplitInfo = /** @class */ (function () {
         function SplitInfo(key) {
-            this._key = key;
+            this.key = key;
         }
         SplitInfo.prototype.parseFrameData = function (data) {
             this._resDict = {};
-            var adDict = this.adDict = {};
             var frames = {};
             /**
              * 有效的动作数组，有些动作是自定义出来的，不是原始动作
@@ -2857,28 +2839,16 @@ var jy;
                     alist.pushOnce(frame.a);
                 }
             }
-            //检查有效动作
-            for (var i = 0; i < alist.length; i++) {
-                var a = alist[i];
-                for (var d = 0; d < 5; d++) {
-                    var res = this.getResKey(d, a);
-                    adDict[res] = jy.ADKey.get(a, d);
-                }
-            }
+            this.parseADDict(alist);
             return frames;
         };
-        SplitInfo.prototype.parseSplitInfo = function (infos) {
-            this._n = infos.n || "{a}{d}";
-            this._a = infos.a || _pst$a;
-            this._d = infos.d;
-        };
-        SplitInfo.prototype.getResKey = function (direction, action) {
-            var key = jy.ADKey.get(action, direction);
-            var res = this._resDict[key];
-            if (!res) {
-                this._resDict[key] = res = this._n.substitute({ "f": this._key, "a": getRep(action, this._a), "d": getRep(direction, this._d) });
-            }
-            return res;
+        SplitInfo.prototype.parseADDict = function (_alist) { };
+        SplitInfo.prototype.parseSplitInfo = function (_infos) { };
+        /**
+         * 遍历资源
+         * @param _forEach
+         */
+        SplitInfo.prototype.forEach = function (_forEach) {
         };
         return SplitInfo;
     }());
@@ -2939,102 +2909,164 @@ var jy;
             }
         }
     }();
-    // /**
-    //  * 单方向单动作分隔数据
-    //  * 后面只用这种打包方式
-    //  */
-    // export class OneADSInfo extends SplitInfo {
-    //     protected _n: string;
-    //     protected _a: any[];
-    //     protected _d: any[];
-    //     parseFrameData(data: any) {
-    //         this._resDict = {};
-    //         let adDict = this.adDict = {};
-    //         let frames: { [index: number]: ActionInfo } = {};
-    //         for (let key in data) {
-    //             let a = +key;
-    //             frames[a] = getActionInfo(data[a], a);
-    //             for (let d = 0; d < 5; d++) {
-    //                 let res = this.getResUri(d, a);
-    //                 adDict[res] = ADKey.get(a, d);
-    //             }
-    //         }
-    //         return frames;
-    //     }
-    //     parseSplitInfo(infos: any) {
-    //         this._n = infos.n || "{a}{d}";
-    //         this._a = infos.a || _pst$a;
-    //         this._d = infos.d;
-    //     }
-    //     getResUri(direction: number, action: number): string {
-    //         let key = ADKey.get(action, direction);
-    //         let res = this._resDict[key];
-    //         if (!res) {
-    //             this._resDict[key] = res = this._n.substitute({ "f": this._key, "a": getRep(action, this._a), "d": getRep(direction, this._d) });
-    //         }
-    //         return res;
-    //         function getRep(data: number, repArr: any[]): string {
-    //             var str = data + "";
-    //             if (repArr && (data in repArr)) {
-    //                 str = repArr[data];
-    //             }
-    //             return str;
-    //         }
-    //     }
-    // }
-    // /**
-    //  * 基于动作打包的分隔数据
-    //  * @deprecated 已弃用
-    //  */
-    // export class ActionSInfo extends SplitInfo {
-    //     parseSplitInfo(infos: any[]) {
-    //         var flag = true;
-    //         if (infos) {
-    //             this._resDict = {};
-    //             this._subReses = [];
-    //             var _adDict: { [index: string]: number[] } = {};
-    //             this.adDict = _adDict;
-    //             var _resDict = this._resDict;
-    //             var _subReses = this._subReses;
-    //             var len = infos.length;
-    //             for (let i = 0; i < len; i++) {
-    //                 let pak = infos[i][0];
-    //                 let acts = pak.a;
-    //                 if (acts) {
-    //                     let dlen = acts.length;
-    //                     if (dlen) {
-    //                         flag = false;
-    //                         let res = this.getFileName(pak);
-    //                         let arr = _adDict[res];
-    //                         if (!arr) {
-    //                             arr = [];
-    //                             _adDict[res] = arr;
-    //                         }
-    //                         if (res && _subReses.indexOf(res) == -1) {
-    //                             _subReses.push(res);
-    //                         }
-    //                         for (let j = 0; j < dlen; j++) {
-    //                             let a = acts[j];
-    //                             _resDict[a] = res;
-    //                             //push所有动作的数据
-    //                             arr.push(SplitInfo.getADKey(a, 0), SplitInfo.getADKey(a, 1), SplitInfo.getADKey(a, 2), SplitInfo.getADKey(a, 3), SplitInfo.getADKey(a, 4));
-    //                         }
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //         if (flag) {
-    //             throw new Error("no pak split info");
-    //         }
-    //     }
-    //     getFileName(pakInfo: any) {
-    //         var dirs = pakInfo.a;
-    //         return PakSaveType.PAK_BY_ACTION + "-" + dirs.join("_");
-    //     }
-    //     getResource(direction: number, action: number): string {
-    //         return this._resDict[action];
-    //     }
-    // }
+    /**
+     * 单方向单动作分隔数据
+     * 后面只用这种打包方式
+     */
+    var OneADSInfo = /** @class */ (function (_super) {
+        __extends(OneADSInfo, _super);
+        function OneADSInfo() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        OneADSInfo.prototype.parseADDict = function (alist) {
+            var adDict = this.adDict = {};
+            //检查有效动作
+            for (var i = 0; i < alist.length; i++) {
+                var a = alist[i];
+                for (var d = 0; d < 5; d++) {
+                    var res = this.getResKey(d, a);
+                    adDict[res] = jy.ADKey.get(a, d);
+                }
+            }
+        };
+        OneADSInfo.prototype.parseSplitInfo = function (infos) {
+            this._n = infos.n || "{a}{d}";
+            this._a = infos.a || _pst$a;
+            this._d = infos.d;
+        };
+        OneADSInfo.prototype.getResKey = function (direction, action) {
+            var key = jy.ADKey.get(action, direction);
+            var res = this._resDict[key];
+            if (!res) {
+                this._resDict[key] = res = this._n.substitute({ "f": this.key, "a": getRep(action, this._a), "d": getRep(direction, this._d) });
+            }
+            return res;
+        };
+        /**
+         * 遍历资源
+         * @param _forEach
+         */
+        OneADSInfo.prototype.forEach = function (_forEach) {
+            var dict = this.adDict;
+            for (var resKey in dict) {
+                if (_forEach(resKey, dict[resKey])) {
+                    return;
+                }
+            }
+        };
+        OneADSInfo.prototype.bindResource = function (resKey, resouce, textures) {
+            var adKey = this.adDict[resKey];
+            bindResource(adKey, resouce, textures);
+        };
+        return OneADSInfo;
+    }(SplitInfo));
+    __reflect(OneADSInfo.prototype, "OneADSInfo");
+    /**
+     * 基于动作打包的分隔数据
+     * @deprecated 已弃用
+     */
+    var ActionSInfo = /** @class */ (function (_super) {
+        __extends(ActionSInfo, _super);
+        function ActionSInfo() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        ActionSInfo.prototype.getADKey = function (resKey) {
+            return this.adDict[resKey];
+        };
+        ActionSInfo.prototype.parseSplitInfo = function (infos) {
+            var flag = true;
+            if (infos) {
+                this._resDict = {};
+                this._subReses = [];
+                var adDict = this.adDict = {};
+                var _resDict = this._resDict;
+                var _subReses = this._subReses;
+                var len = infos.length;
+                for (var i = 0; i < len; i++) {
+                    var pak = infos[i][0];
+                    var acts = pak.a;
+                    if (acts) {
+                        var dlen = acts.length;
+                        if (dlen) {
+                            flag = false;
+                            var res = this.getFileName(pak);
+                            var arr = adDict[res];
+                            if (!arr) {
+                                arr = [];
+                                adDict[res] = arr;
+                            }
+                            if (res) {
+                                _subReses.pushOnce(res);
+                            }
+                            for (var j = 0; j < dlen; j++) {
+                                var a = acts[j];
+                                _resDict[a] = res;
+                                //push所有动作的数据
+                                arr.push(jy.ADKey.get(a, 0), jy.ADKey.get(a, 1), jy.ADKey.get(a, 2), jy.ADKey.get(a, 3), jy.ADKey.get(a, 4));
+                            }
+                        }
+                    }
+                }
+            }
+            if (flag) {
+                throw new Error("no pak split info");
+            }
+        };
+        ActionSInfo.prototype.getFileName = function (pakInfo) {
+            var dirs = pakInfo.a;
+            return 2 /* PAK_BY_ACTION */ + "-" + dirs.join("_");
+        };
+        ActionSInfo.prototype.getResKey = function (_, action) {
+            return this._resDict[action];
+        };
+        ActionSInfo.prototype.bindResource = function (resKey, resouce, textures) {
+            var adKeyArr = this.adDict[resKey];
+            adKeyArr.forEach(function (adKey) {
+                bindResource(adKey, resouce, textures);
+            });
+        };
+        return ActionSInfo;
+    }(SplitInfo));
+    __reflect(ActionSInfo.prototype, "ActionSInfo");
+    var AllSInfo = /** @class */ (function (_super) {
+        __extends(AllSInfo, _super);
+        function AllSInfo() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        AllSInfo.prototype.getResKey = function (_direction, _action) {
+            return "d";
+        };
+        AllSInfo.prototype.bindResource = function (_resKey, resouce, textures) {
+            for (var a in textures) {
+                var dTextures = textures[a];
+                if (dTextures) {
+                    for (var d in dTextures) {
+                        var textures_1 = dTextures[d];
+                        if (textures_1) {
+                            for (var i = 0; i < textures_1.length; i++) {
+                                resouce.bindTexture(textures_1[i]);
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        return AllSInfo;
+    }(SplitInfo));
+    __reflect(AllSInfo.prototype, "AllSInfo");
+    function bindResource(adKey, resouce, textures) {
+        var a = jy.ADKey.getAction(adKey);
+        var dTextures = textures[a];
+        if (dTextures) {
+            var d = jy.ADKey.getDirection(adKey);
+            var textures_2 = dTextures[d];
+            if (textures_2) {
+                for (var i = 0; i < textures_2.length; i++) {
+                    resouce.bindTexture(textures_2[i]);
+                }
+            }
+        }
+    }
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -8035,10 +8067,10 @@ var jy;
          * 获取资源
          */
         getResource: getResource,
-        // /**
-        //  * 注册资源
-        //  */
-        // regResource,
+        /**
+         * 注册资源
+         */
+        regResource: regResource,
         //按时间检测资源
         init: function () {
             var tobeDele = [];
@@ -8145,7 +8177,11 @@ var jy;
             this.lastUseTime = jy.Global.now;
         };
         TextureResource.prototype.load = function () {
-            jy.Res.load(this.uri, this.url, jy.CallbackInfo.get(this.loadComplete, this), this.qid);
+            jy.Res.loadRes({
+                uri: this.uri,
+                url: this.url,
+                type: 2 /* Image */
+            }, jy.CallbackInfo.get(this.loadComplete, this), this.qid);
         };
         /**
          * 资源加载完成
@@ -11434,10 +11470,10 @@ var jy;
             var dTextures = textures[a];
             if (dTextures) {
                 var d = jy.ADKey.getDirection(adKey);
-                var textures_1 = dTextures[d];
-                if (textures_1) {
-                    for (var i = 0; i < textures_1.length; i++) {
-                        this.bindTexture(textures_1[i]);
+                var textures_3 = dTextures[d];
+                if (textures_3) {
+                    for (var i = 0; i < textures_3.length; i++) {
+                        this.bindTexture(textures_3[i]);
                     }
                 }
             }
@@ -11640,14 +11676,14 @@ var jy;
             }
         };
         UnitResource.prototype.loadRes = function (direction, action) {
-            var r = this.pst.getResKey(direction, action);
-            var uri = this.getUri2(r);
-            return jy.ResManager.get(uri, this.noRes, this, uri, r);
+            var resKey = this.pst.getResKey(direction, action);
+            var uri = this.getUri2(resKey);
+            return jy.ResManager.get(uri, this.noRes, this, uri, resKey);
         };
-        UnitResource.prototype.noRes = function (uri, r) {
+        UnitResource.prototype.noRes = function (uri, resKey) {
             var tmp = new jy.SplitUnitResource(uri, this.getUrl(uri));
             tmp.qid = this.qid;
-            tmp.bindTextures(this._datas, this.pst.getADKey(r));
+            this.pst.bindResource(resKey, tmp, this._datas);
             tmp.load();
             return tmp;
         };
@@ -11670,13 +11706,10 @@ var jy;
          * @param { (uri: string, adKey: number): any } forEach 如果 forEach 方法返回 真 ，则停止遍历
          */
         UnitResource.prototype.checkRes = function (forEach) {
-            var dict = this.pst.splitInfo.adDict;
-            for (var resKey in dict) {
-                var uri = this.getUri2(resKey);
-                if (forEach(uri, dict[resKey])) {
-                    return;
-                }
-            }
+            var self = this;
+            self.pst.splitInfo.forEach(function (resKey, adKey) {
+                forEach(self.getUri2(resKey), adKey);
+            });
         };
         return UnitResource;
     }());
@@ -13876,7 +13909,14 @@ var jy;
             var m = this.modal;
             if (!m) {
                 this.modal = m = new egret.Bitmap();
-                m.texture = jy.ColorUtil.getTexture();
+                var alpha = this.modalAlpha;
+                if (alpha == undefined) {
+                    alpha = Panel.modalAlpha;
+                }
+                if (alpha == undefined) {
+                    alpha = 0.8 /* defaultModalAlpha */;
+                }
+                m.texture = jy.ColorUtil.getTexture(0, alpha);
                 m.touchEnabled = true;
             }
             return m;
@@ -13940,6 +13980,10 @@ var jy;
         Panel.prototype.show = function () {
             jy.toggle(this.moduleID, 1 /* SHOW */);
         };
+        /**
+         * 公共的模式窗口的alpha
+         */
+        Panel.modalAlpha = 0.8 /* defaultModalAlpha */;
         return Panel;
     }(egret.Sprite));
     jy.Panel = Panel;

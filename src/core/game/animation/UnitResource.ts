@@ -177,15 +177,15 @@ namespace jy {
         }
 
         loadRes(direction: number, action: number) {
-            let r = this.pst.getResKey(direction, action);
-            let uri = this.getUri2(r);
-            return ResManager.get(uri, this.noRes, this, uri, r);
+            let resKey = this.pst.getResKey(direction, action);
+            let uri = this.getUri2(resKey);
+            return ResManager.get(uri, this.noRes, this, uri, resKey);
         }
 
-        noRes(uri: string, r: string) {
+        noRes(uri: string, resKey: string) {
             let tmp = new SplitUnitResource(uri, this.getUrl(uri));
             tmp.qid = this.qid;
-            tmp.bindTextures(this._datas, this.pst.getADKey(r));
+            this.pst.bindResource(resKey, tmp, this._datas);
             tmp.load();
             return tmp;
         }
@@ -210,13 +210,10 @@ namespace jy {
          * @param { (uri: string, adKey: number): any } forEach 如果 forEach 方法返回 真 ，则停止遍历
          */
         checkRes(forEach: { (uri: string, adKey: number): any }) {
-            const dict = this.pst.splitInfo.adDict;
-            for (let resKey in dict) {
-                let uri = this.getUri2(resKey);
-                if (forEach(uri, dict[resKey])) {
-                    return
-                }
-            }
+            let self = this;
+            self.pst.splitInfo.forEach(function (resKey, adKey) {
+                forEach(self.getUri2(resKey), adKey);
+            });
         }
     }
 }

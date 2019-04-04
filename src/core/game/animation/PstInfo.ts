@@ -6,39 +6,46 @@
  */
 namespace jy {
 
-    // /**
-    //  * 打包类型
-    //  */
-    // const enum PakSaveType {
-    //     // /**全部打包 (弃用)*/
-    //     // PAK_ALL = 0,
-    //     // /**1 按方向打包 (弃用)*/
-    //     // PAK_BY_DIRECTION = 1,
-    //     // /**2 按动作打包 (弃用)*/
-    //     // PAK_BY_ACTION = 2,
-    //     // /**3 混合打包 (弃用)*/
-    //     // PAK_COMPLEX = 3,
-    //     /**
-    //      * 单方向单动作
-    //      */
-    //     PAK_ONE_A_D = 4
-    // }
+    /**
+     * 打包类型
+     */
+    export const enum PakSaveType {
+        /**
+         * 0 全部打包
+         */
+        PAK_ALL = 0,
+        /**
+         * 1 按方向打包 (弃用)
+         */
+        PAK_BY_DIRECTION = 1,
+        /**
+         * 2 按动作打包
+         */
+        PAK_BY_ACTION = 2,
+        /**
+         * 3 混合打包 (弃用)
+         */
+        PAK_COMPLEX = 3,
+        /**
+         * 单方向单动作
+         */
+        PAK_ONE_A_D = 4
+    }
 
-    // var parsers: { [index: number]: { new (key: string): SplitInfo } };
+    let parsers: { [index: number]: { new(key: string): SplitInfo } };
 
-    // /**
-    //  * 获取处理器
-    //  */
-    // function getParsers(t: number): { new (key: string): SplitInfo } {
-    //     if (!parsers) {
-    //         parsers = {};
-    //         // 后续H5项目只使用PAK_ONE_A_D一种打包方式
-    //         // 其他方式弃用
-    //         // parsers[PakSaveType.PAK_BY_ACTION] = ActionSInfo;
-    //         parsers[PakSaveType.PAK_ONE_A_D] = OneADSInfo;
-    //     }
-    //     return parsers[t];
-    // }
+    /**
+     * 获取处理器
+     */
+    function getParsers(t: number): { new(key: string): SplitInfo } {
+        if (!parsers) {
+            parsers = {};
+            parsers[PakSaveType.PAK_ALL] = AllSInfo;
+            parsers[PakSaveType.PAK_BY_ACTION] = ActionSInfo;
+            parsers[PakSaveType.PAK_ONE_A_D] = OneADSInfo;
+        }
+        return parsers[t];
+    }
 
     /**
      * 存储pst信息
@@ -54,28 +61,30 @@ namespace jy {
         /**
          * pst的唯一标识
          */
-        public key: string;
+        key: string;
+
+        type: number;
 
         /**
          * 动作信息，帧的播放信息的数组  
          * Key      {number}        动作标识
          * Value    {ActionInfo}    动作信息
          */
-        public frames: { [action: number]: ActionInfo };
+        frames: { [action: number]: ActionInfo };
 
         /**
          * 头顶显示的基准坐标Y，相对于角色的原点
          * 
          * @type {number}
          */
-        public headY: number;
+        headY: number;
 
         /**
          * 受创点的基准坐标Y，相对于角色的原点
          * 
          * @type {number}
          */
-        public hurtY: number;
+        hurtY: number;
 
         /**
          * 施法点
@@ -109,8 +118,8 @@ namespace jy {
             return this.splitInfo.getResKey(direction, action);
         }
 
-        getADKey(r) {
-            return this.splitInfo.adDict[r];
+        bindResource(resKey: string, resouce: SplitUnitResource, textures: { [index: number]: egret.Texture[][] }) {
+            return this.splitInfo.bindResource(resKey, resouce, textures);
         }
 
         public splitInfo: SplitInfo;
@@ -122,12 +131,13 @@ namespace jy {
         public init(key: string, data: any[]) {
             this.key = key;
             this._resources = {};
-            // let parserRef = getParsers(data[0]);
-            // if (!parserRef) {
-            //     return;
-            // }
-            // let parser = new parserRef(key);
-            let parser = new SplitInfo(key);
+            let type = +data[0];
+            this.type = type;
+            let parserRef = getParsers(type);
+            if (!parserRef) {
+                return;
+            }
+            let parser = new parserRef(key);
             //处理数据
             this.splitInfo = parser;
             parser.parseSplitInfo(data[1]);
@@ -181,7 +191,7 @@ namespace jy {
          * 获取单位资源
          */
         public getUnitResource(uri) {
-            var res = this.getResource(uri);
+            let res = this.getResource(uri);
             res.loadData();
             return res;
         }
@@ -191,7 +201,8 @@ namespace jy {
      * 资源打包分隔信息 
      * 只保留了最主流的单动作，单方向
      */
-    export class SplitInfo {
+    export abstract class SplitInfo {
+
 
         /**
          * 资源字典
@@ -203,35 +214,19 @@ namespace jy {
          */
         protected _subReses: string[];
 
-        /**
-         * key
-         */
-        protected _key: string;
-
-        /**
-         * 动作/方向的字典<br/>
-         * key      {string}  资源key<br/>
-         * value    {Array}   action<<8|direction
-         *                   
-         */
-        public adDict: { [resKey: string]: ADKey };
+        readonly key: string;
 
         constructor(key: string) {
-            this._key = key;
+            this.key = key;
         }
-
-        protected _n: string;
-        protected _a: any[];
-        protected _d: any[];
 
         parseFrameData(data: any) {
             this._resDict = {};
-            let adDict = this.adDict = {};
             let frames: { [index: number]: ActionInfo } = {};
             /**
              * 有效的动作数组，有些动作是自定义出来的，不是原始动作
              */
-            let alist = [];
+            let alist = [] as number[];
             for (let key in data) {
                 let a = +key;
                 let aInfo = getActionInfo(data[a], a);
@@ -243,31 +238,27 @@ namespace jy {
                 }
 
             }
-            //检查有效动作
-            for (let i = 0; i < alist.length; i++) {
-                const a = alist[i];
-                for (let d = 0; d < 5; d++) {
-                    let res = this.getResKey(d, a);
-                    adDict[res] = ADKey.get(a, d);
-                }
-            }
+
+            this.parseADDict(alist);
             return frames;
         }
 
-        parseSplitInfo(infos: any) {
-            this._n = infos.n || "{a}{d}";
-            this._a = infos.a || _pst$a;
-            this._d = infos.d;
+        protected parseADDict(_alist: number[]) { }
+
+
+        parseSplitInfo(_infos: any) { }
+
+        abstract getResKey(direction: number, action: number): string;
+
+        /**
+         * 遍历资源
+         * @param _forEach 
+         */
+        forEach(_forEach: { (resKey: string, adKey: number): any }) {
+
         }
 
-        getResKey(direction: number, action: number) {
-            let key = ADKey.get(action, direction);
-            let res = this._resDict[key];
-            if (!res) {
-                this._resDict[key] = res = this._n.substitute({ "f": this._key, "a": getRep(action, this._a), "d": getRep(direction, this._d) });
-            }
-            return res;
-        }
+        abstract bindResource(resKey: string, resouce: SplitUnitResource, textures: { [index: number]: egret.Texture[][] });
     }
 
     function getRep(data: number, repArr: any[]): string {
@@ -332,110 +323,189 @@ namespace jy {
             }
         }
     }();
-    // /**
-    //  * 单方向单动作分隔数据
-    //  * 后面只用这种打包方式
-    //  */
-    // export class OneADSInfo extends SplitInfo {
+    /**
+     * 单方向单动作分隔数据
+     * 后面只用这种打包方式
+     */
+    class OneADSInfo extends SplitInfo {
 
 
-    //     protected _n: string;
-    //     protected _a: any[];
-    //     protected _d: any[];
-
-    //     parseFrameData(data: any) {
-    //         this._resDict = {};
-    //         let adDict = this.adDict = {};
-    //         let frames: { [index: number]: ActionInfo } = {};
-    //         for (let key in data) {
-    //             let a = +key;
-    //             frames[a] = getActionInfo(data[a], a);
-    //             for (let d = 0; d < 5; d++) {
-    //                 let res = this.getResUri(d, a);
-    //                 adDict[res] = ADKey.get(a, d);
-    //             }
-    //         }
-    //         return frames;
-    //     }
-
-    //     parseSplitInfo(infos: any) {
-    //         this._n = infos.n || "{a}{d}";
-    //         this._a = infos.a || _pst$a;
-    //         this._d = infos.d;
-    //     }
-
-    //     getResUri(direction: number, action: number): string {
-    //         let key = ADKey.get(action, direction);
-    //         let res = this._resDict[key];
-    //         if (!res) {
-    //             this._resDict[key] = res = this._n.substitute({ "f": this._key, "a": getRep(action, this._a), "d": getRep(direction, this._d) });
-    //         }
-    //         return res;
-    //         function getRep(data: number, repArr: any[]): string {
-    //             var str = data + "";
-    //             if (repArr && (data in repArr)) {
-    //                 str = repArr[data];
-    //             }
-    //             return str;
-    //         }
-    //     }
-    // }
-
-    // /**
-    //  * 基于动作打包的分隔数据
-    //  * @deprecated 已弃用
-    //  */
-    // export class ActionSInfo extends SplitInfo {
-
-    //     parseSplitInfo(infos: any[]) {
-    //         var flag = true;
-    //         if (infos) {
-    //             this._resDict = {};
-    //             this._subReses = [];
-    //             var _adDict: { [index: string]: number[] } = {};
-    //             this.adDict = _adDict;
-    //             var _resDict = this._resDict;
-    //             var _subReses = this._subReses;
-    //             var len = infos.length;
-    //             for (let i = 0; i < len; i++) {
-    //                 let pak = infos[i][0];
-    //                 let acts = pak.a;
-    //                 if (acts) {
-    //                     let dlen = acts.length;
-    //                     if (dlen) {
-    //                         flag = false;
-    //                         let res = this.getFileName(pak);
-    //                         let arr = _adDict[res];
-    //                         if (!arr) {
-    //                             arr = [];
-    //                             _adDict[res] = arr;
-    //                         }
-    //                         if (res && _subReses.indexOf(res) == -1) {
-    //                             _subReses.push(res);
-    //                         }
-    //                         for (let j = 0; j < dlen; j++) {
-    //                             let a = acts[j];
-    //                             _resDict[a] = res;
-    //                             //push所有动作的数据
-    //                             arr.push(SplitInfo.getADKey(a, 0), SplitInfo.getADKey(a, 1), SplitInfo.getADKey(a, 2), SplitInfo.getADKey(a, 3), SplitInfo.getADKey(a, 4));
-    //                         }
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //         if (flag) {
-    //             throw new Error("no pak split info");
-    //         }
-    //     }
+        protected _n: string;
+        protected _a: any[];
+        protected _d: any[];
 
 
-    //     getFileName(pakInfo: any) {
-    //         var dirs = pakInfo.a;
-    //         return PakSaveType.PAK_BY_ACTION + "-" + dirs.join("_");
-    //     }
+        /**
+         * 动作/方向的字典<br/>
+         * key      {string}  资源key<br/>
+         * value    {Array}   action<<8|direction
+         *                   
+         */
+        public adDict: { [resKey: string]: ADKey };
 
-    //     getResource(direction: number, action: number): string {
-    //         return this._resDict[action];
-    //     }
-    // }
+        parseADDict(alist: number[]) {
+            let adDict = this.adDict = {};
+            //检查有效动作
+            for (let i = 0; i < alist.length; i++) {
+                const a = alist[i];
+                for (let d = 0; d < 5; d++) {
+                    let res = this.getResKey(d, a);
+                    adDict[res] = ADKey.get(a, d);
+                }
+            }
+        }
+
+        parseSplitInfo(infos: any) {
+            this._n = infos.n || "{a}{d}";
+            this._a = infos.a || _pst$a;
+            this._d = infos.d;
+        }
+
+        getResKey(direction: number, action: number) {
+            let key = ADKey.get(action, direction);
+            let res = this._resDict[key];
+            if (!res) {
+                this._resDict[key] = res = this._n.substitute({ "f": this.key, "a": getRep(action, this._a), "d": getRep(direction, this._d) });
+            }
+            return res;
+        }
+
+        /**
+         * 遍历资源
+         * @param _forEach 
+         */
+        forEach(_forEach: { (resKey: string, adKey: number): any }) {
+            const dict = this.adDict;
+            for (let resKey in dict) {
+                if (_forEach(resKey, dict[resKey])) {
+                    return
+                }
+            }
+        }
+
+        bindResource(resKey: string, resouce: SplitUnitResource, textures: { [index: number]: egret.Texture[][] }) {
+            let adKey = this.adDict[resKey];
+            bindResource(adKey, resouce, textures);
+        }
+    }
+
+    /**
+     * 基于动作打包的分隔数据
+     * @deprecated 已弃用
+     */
+    class ActionSInfo extends SplitInfo {
+
+
+        getADKey(resKey: string) {
+            return this.adDict[resKey];
+        }
+
+        /**
+         * 子资源列表
+         */
+        protected _subReses: string[];
+
+        protected adDict: { [resKey: string]: number[] };
+
+        parseSplitInfo(infos: any[]) {
+            let flag = true;
+            if (infos) {
+                this._resDict = {};
+                this._subReses = [];
+                let adDict = this.adDict = {};
+                let _resDict = this._resDict;
+                let _subReses = this._subReses;
+                let len = infos.length;
+                for (let i = 0; i < len; i++) {
+                    let pak = infos[i][0];
+                    let acts = pak.a;
+                    if (acts) {
+                        let dlen = acts.length;
+                        if (dlen) {
+                            flag = false;
+                            let res = this.getFileName(pak);
+                            let arr = adDict[res];
+                            if (!arr) {
+                                arr = [];
+                                adDict[res] = arr;
+                            }
+                            if (res) {
+                                _subReses.pushOnce(res);
+                            }
+                            for (let j = 0; j < dlen; j++) {
+                                let a = acts[j];
+                                _resDict[a] = res;
+                                //push所有动作的数据
+                                arr.push(
+                                    ADKey.get(a, 0),
+                                    ADKey.get(a, 1),
+                                    ADKey.get(a, 2),
+                                    ADKey.get(a, 3),
+                                    ADKey.get(a, 4)
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+            if (flag) {
+                throw new Error("no pak split info");
+            }
+        }
+
+
+        getFileName(pakInfo: any) {
+            let dirs = pakInfo.a;
+            return PakSaveType.PAK_BY_ACTION + "-" + dirs.join("_");
+        }
+
+        getResKey(_: number, action: number): string {
+            return this._resDict[action];
+        }
+
+        bindResource(resKey: string, resouce: SplitUnitResource, textures: { [index: number]: egret.Texture[][] }) {
+            let adKeyArr = this.adDict[resKey];
+            adKeyArr.forEach(adKey => {
+                bindResource(adKey, resouce, textures);
+            })
+        }
+
+    }
+
+    class AllSInfo extends SplitInfo {
+        getResKey(_direction: number, _action: number): string {
+            return "d"
+        }
+        bindResource(_resKey: string, resouce: SplitUnitResource, textures: { [index: number]: egret.Texture[][]; }) {
+            for (let a in textures) {
+                let dTextures = textures[a];
+                if (dTextures) {
+                    for (let d in dTextures) {
+                        let textures = dTextures[d];
+                        if (textures) {
+                            for (let i = 0; i < textures.length; i++) {
+                                resouce.bindTexture(textures[i]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
+    }
+
+    function bindResource(adKey: number, resouce: SplitUnitResource, textures: { [index: number]: egret.Texture[][] }) {
+        let a = ADKey.getAction(adKey);
+        let dTextures = textures[a];
+        if (dTextures) {
+            let d = ADKey.getDirection(adKey);
+            let textures = dTextures[d];
+            if (textures) {
+                for (let i = 0; i < textures.length; i++) {
+                    resouce.bindTexture(textures[i]);
+                }
+            }
+        }
+    }
 }
