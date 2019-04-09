@@ -1,5 +1,8 @@
 namespace jy {
 
+    export const enum ClassConst {
+        DebugIDPropertyKey = "_insid"
+    }
     /**
      * 创建器
      */
@@ -85,12 +88,19 @@ namespace jy {
                 ins = pool.pop();
             } else {
                 ins = new (this._creator as any)();
+                if (DEBUG) {
+                    Object.defineProperty(ins, ClassConst.DebugIDPropertyKey, {
+                        value: 0,
+                        enumerable: false,
+                        writable: true
+                    })
+                }
             }
             if (typeof ins.onSpawn === "function") {
                 ins.onSpawn();
             }
             if (DEBUG) {
-                ins._insid = _recid++;
+                ins[ClassConst.DebugIDPropertyKey] = _recid++;
             }
             return ins;
         }

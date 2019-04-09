@@ -3379,6 +3379,9 @@ declare namespace jy {
     }
 }
 declare namespace jy {
+    const enum ClassConst {
+        DebugIDPropertyKey = "_insid"
+    }
     /**
      * 创建器
      */

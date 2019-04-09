@@ -108,6 +108,9 @@ Object.defineProperties(Object.prototype, jy.makeDefDescriptors({
             }
             for (var i = 0; i < args.length; i++) {
                 var key = args[i];
+                if (true && key == "_insid" /* DebugIDPropertyKey */) {
+                    continue;
+                }
                 if (this[key] != checker[key]) {
                     return false;
                 }
@@ -5399,12 +5402,19 @@ var jy;
             }
             else {
                 ins = new this._creator();
+                if (true) {
+                    Object.defineProperty(ins, "_insid" /* DebugIDPropertyKey */, {
+                        value: 0,
+                        enumerable: false,
+                        writable: true
+                    });
+                }
             }
             if (typeof ins.onSpawn === "function") {
                 ins.onSpawn();
             }
             if (true) {
-                ins._insid = _recid++;
+                ins["_insid" /* DebugIDPropertyKey */] = _recid++;
             }
             return ins;
         };
@@ -8344,11 +8354,11 @@ var jy;
         }
     };
     function addToStates(value) {
+        var _a;
         var ids = [];
         for (var _i = 1; _i < arguments.length; _i++) {
             ids[_i - 1] = arguments[_i];
         }
-        var _a;
         (_a = jy.UILimiter.listener).addToStates.apply(_a, [value].concat(ids));
     }
     jy.addToStates = addToStates;
