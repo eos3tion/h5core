@@ -11264,6 +11264,7 @@ declare namespace jy {
          * 是否添加到游戏场景中
          */
         addToEngine: boolean;
+        modelRef: Creator<UModel>;
         getDepth(): number;
         /**
          * 深度的参数A

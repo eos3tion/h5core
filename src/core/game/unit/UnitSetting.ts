@@ -21,6 +21,8 @@ namespace jy {
 		 */
 		public addToEngine = true;
 
+		modelRef: Creator<UModel>;
+
 		//防止同一坐标的单位排序深度相同，出现闪烁的情况
 		public getDepth() {
 			return this.depthA + Math.random() * this.depthB;

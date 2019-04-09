@@ -8530,11 +8530,11 @@ var jy;
         }
     };
     function addToStates(value) {
+        var _a;
         var ids = [];
         for (var _i = 1; _i < arguments.length; _i++) {
             ids[_i - 1] = arguments[_i];
         }
-        var _a;
         (_a = jy.UILimiter.listener).addToStates.apply(_a, [value].concat(ids));
     }
     jy.addToStates = addToStates;
@@ -13546,7 +13546,9 @@ var jy;
             return this;
         };
         Unit.prototype.onSpawn = function () {
-            this.state = 0 /* Init */;
+            if (this.state != 1 /* Stage */) {
+                this.state = 0 /* Init */;
+            }
             this.dispatch(-1998 /* UnitCreate */);
         };
         /**
@@ -13563,7 +13565,8 @@ var jy;
          */
         Unit.prototype.initDisplayList = function (setting) {
             var render = new jy.UnitRender(this);
-            var model = new jy.UModel();
+            var ref = setting.modelRef || jy.UModel;
+            var model = new ref;
             var body = new jy.DSprite();
             this._render = render;
             render.model = model;

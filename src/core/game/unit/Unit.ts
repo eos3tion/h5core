@@ -139,7 +139,9 @@ namespace jy {
         }
 
         public onSpawn() {
-            this.state = UnitState.Init;
+            if (this.state != UnitState.Stage) {
+                this.state = UnitState.Init;
+            }
             this.dispatch(EventConst.UnitCreate);
         }
 
@@ -158,7 +160,8 @@ namespace jy {
          */
         protected initDisplayList(setting: UnitSetting) {
             let render = new UnitRender(this);
-            let model = new UModel();
+            let ref = setting.modelRef as any || UModel;
+            let model = new ref;
             let body = new DSprite();
             this._render = render;
             render.model = model;
