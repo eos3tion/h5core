@@ -126,6 +126,9 @@ Object.defineProperties(Object.prototype, jy.makeDefDescriptors({
             }
             for (let i = 0; i < args.length; i++) {
                 let key = args[i];
+                if (DEBUG && key == jy.ClassConst.DebugIDPropertyKey) {
+                    continue
+                }
                 if (this[key] != checker[key]) {
                     return false;
                 }
