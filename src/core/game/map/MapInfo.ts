@@ -10,13 +10,27 @@ namespace jy {
     }
     const webp = Global.webp ? Ext.WEBP : "";
 
+    /**
+     * 地图路径点寻路类型
+     */
+    export const enum MapPathType {
+        /**
+         * 格子路径
+         */
+        Grid = 0,
+        /**
+         * 导航网格
+         */
+        NavMesh = 1
+    }
+
 	/**
 	 * 地图基础信息<br/>
 	 * 由地图编辑器生成的地图信息
 	 * @author 3tion
 	 *
 	 */
-    export class MapInfo extends egret.HashObject {
+    export class MapInfo {
 
         /**
          * 图片扩展
@@ -44,14 +58,11 @@ namespace jy {
         public rows: number;
 
         /**
-         * 格子宽度
+         * 路径类型  
+         * 0 走格子的  
+         * 1 走导航网格寻路
          */
-        public gridWidth: number;
-
-        /**
-         * 格子高度
-         */
-        public gridHeight: number;
+        pathType: MapPathType;
 
         /**
          * 地图像素宽度
@@ -85,16 +96,15 @@ namespace jy {
          */
         public maxPicY: number;
 
+        /**
+         * 路径点是否可走  
+         * 0 不可走
+         * @param x 
+         * @param y 
+         */
         public getWalk?(x: number, y: number): number;
 
-        /**
-         * 路径点信息 低版本WebView不支持 ArrayBuffer
-         */
-        public pathdata?: Uint8Array;
 
-        public constructor() {
-            super();
-        }
         /**
         * 获取地图图块资源路径
         */
@@ -105,13 +115,13 @@ namespace jy {
         /**
          * 获取图片路径
          */
-        getImgUri(uri: string): string {
+        getImgUri(uri: string) {
             return `${MapInfo.prefix}${this.path}/${uri}`;
         }
 
         /**
          * 地图前缀路径
          */
-        static prefix: string = MapConst.MapPath;
+        static prefix = MapConst.MapPath;
     }
 }

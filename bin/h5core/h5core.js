@@ -728,407 +728,6 @@ var jy;
     jy.CallLater = CallLater;
     __reflect(CallLater.prototype, "jy.CallLater");
 })(jy || (jy = {}));
-var jy;
-(function (jy) {
-    /**
-     * Mediator和Proxy的基类
-     * @author 3tion
-     *
-     */
-    var FHost = /** @class */ (function () {
-        function FHost(name) {
-            this._name = name;
-            this.checkInject();
-            if (true) {
-                var classes = $gm.$;
-                if (!classes) {
-                    $gm.$ = classes = {};
-                }
-                classes[this["constructor"]["name"]] = this;
-            }
-        }
-        Object.defineProperty(FHost.prototype, "name", {
-            /**
-             * 唯一标识
-             */
-            get: function () {
-                return this._name;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        /**
-         * 检查依赖注入的数据
-         *
-         * @protected
-         *
-         * @memberOf FHost
-         */
-        FHost.prototype.checkInject = function () {
-            //此注入是对原型进行的注入，无法直接删除，也不要直接做清理
-            var idp = this._injectProxys;
-            if (idp) {
-                var proxyName = void 0;
-                //检查Proxy
-                for (var key in idp) {
-                    var ref = idp[key].ref;
-                    if (typeof ref === "function") {
-                        proxyName = jy.Facade.getNameOfInline(ref);
-                    }
-                    else {
-                        proxyName = ref;
-                    }
-                    var proxy = jy.proxyCall(proxyName);
-                    this[key] = proxy;
-                    proxy._$isDep = true;
-                    this.addDepend(proxy);
-                }
-            }
-        };
-        FHost.prototype.addReadyExecute = function (handle, thisObj) {
-            var args = [];
-            for (var _i = 2; _i < arguments.length; _i++) {
-                args[_i - 2] = arguments[_i];
-            }
-            var _asyncHelper = this._asyncHelper;
-            if (!_asyncHelper) {
-                this._asyncHelper = _asyncHelper = new jy.AsyncHelper();
-                _asyncHelper.isReady = this.isReady;
-            }
-            _asyncHelper.addReadyExecute.apply(_asyncHelper, [handle, thisObj].concat(args));
-        };
-        Object.defineProperty(FHost.prototype, "isReady", {
-            get: function () {
-                return false;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        FHost.prototype.startSync = function () {
-        };
-        /**
-         * 添加依赖项
-         */
-        FHost.prototype.addDepend = function (async) {
-            if (!this._dependerHelper) {
-                this._dependerHelper = new jy.DependerHelper(this, this.dependerReadyCheck);
-            }
-            this._dependerHelper.addDepend(async);
-        };
-        /**
-         * 依赖项，加载完成后的检查
-         */
-        FHost.prototype.dependerReadyCheck = function () {
-        };
-        /**
-         * 模块在Facade注册时执行
-         */
-        FHost.prototype.onRegister = function () {
-        };
-        /**
-         * 模块从Facade注销时
-         */
-        FHost.prototype.onRemove = function () {
-        };
-        /**
-         * 全部加载好以后要处理的事情<br/>
-         * 包括依赖项加载完毕
-         */
-        FHost.prototype.afterAllReady = function () {
-            // to be override
-        };
-        return FHost;
-    }());
-    jy.FHost = FHost;
-    __reflect(FHost.prototype, "jy.FHost", ["jy.IDepender", "jy.IAsync"]);
-    /**
-     *
-     * 附加依赖的Proxy
-     * @export
-     * @param {({ new (): IAsync } | string)} ref 如果注册的是Class，必须是Inline方式注册的Proxy
-     * @returns
-     */
-    function d_dependProxy(ref, isPri) {
-        var pKey = "_injectProxys";
-        return function (target, key) {
-            var _injectProxys;
-            if (target.hasOwnProperty(pKey)) {
-                _injectProxys = target[pKey];
-            }
-            else {
-                //未赋值前，先取值，可取到父级数据，避免使用  Object.getPrototypeOf(target)，ES5没此方法
-                var inherit = target[pKey];
-                target[pKey] = _injectProxys = {};
-                if (inherit) { //继承父级可继承的关注列表
-                    for (var k in inherit) {
-                        var bin = inherit[k];
-                        if (!bin.isPri) {
-                            _injectProxys[k] = bin;
-                        }
-                    }
-                }
-            }
-            _injectProxys[key] = { ref: ref, isPri: isPri };
-        };
-    }
-    jy.d_dependProxy = d_dependProxy;
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
-    /**
-     * 基础创建器
-     * @author 3tion
-     *
-     */
-    var BaseCreator = /** @class */ (function () {
-        function BaseCreator() {
-        }
-        Object.defineProperty(BaseCreator.prototype, "suiData", {
-            get: function () {
-                return this._suiData;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        BaseCreator.prototype.bindSuiData = function (suiData) {
-            this._suiData = suiData;
-        };
-        BaseCreator.prototype.parseData = function (data, suiData) {
-            if (!this._parsed) {
-                this._parsed = true;
-                this.bindSuiData(suiData);
-                if (data) {
-                    this.setBaseData(data[1]);
-                    this.parseSelfData(data[2]);
-                }
-            }
-        };
-        /**
-         * 处理尺寸
-         *
-         * @param {SizeData} data
-         *
-         * @memberOf BaseCreator
-         */
-        BaseCreator.prototype.parseSize = function (data) {
-            if (data) {
-                this.size = new egret.Rectangle(data[0], data[1], data[2], data[3]);
-            }
-        };
-        /**
-         * 处理元素数据
-         * 对应 https://github.com/eos3tion/ExportUIFromFlash  项目中
-         * Solution.ts -> getElementData的元素数据的解析
-         * @param {ComponentData} data 长度为4的数组
-         * 0 导出类型
-         * 1 基础数据 @see Solution.getEleBaseData
-         * 2 对象数据 不同类型，数据不同
-         * 3 引用的库 0 当前库  1 lib  字符串 库名字
-         * @memberOf BaseCreator
-         */
-        BaseCreator.prototype.createElement = function (data) {
-            return jy.singleton(jy.SuiResManager).getElement(this._suiData, data);
-        };
-        BaseCreator.prototype.setBaseData = function (data) {
-            this._baseData = data;
-        };
-        BaseCreator.prototype.parseSelfData = function (data) {
-        };
-        /**
-         * 获取实例
-         */
-        BaseCreator.prototype.get = function () {
-            var t = this._createT();
-            t.suiRawRect = this.size;
-            if (t instanceof jy.Component) {
-                t.init(this);
-            }
-            if (this._baseData) {
-                jy.SuiResManager.initBaseData(t, this._baseData);
-            }
-            return t;
-        };
-        return BaseCreator;
-    }());
-    jy.BaseCreator = BaseCreator;
-    __reflect(BaseCreator.prototype, "jy.BaseCreator");
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
-    function addEnable(ref) {
-        var pt = ref.prototype;
-        pt.$setEnabled = $setEnabled;
-        pt.useDisFilter = true;
-        Object.defineProperty(pt, "enabled", jy.getDescriptor({
-            set: function (value) {
-                if (this._enabled != value) {
-                    this.$setEnabled(value);
-                }
-            },
-            get: function () {
-                return this._enabled;
-            }
-        }));
-    }
-    jy.addEnable = addEnable;
-    function $setEnabled(value) {
-        this._enabled = value;
-        this.touchEnabled = value;
-        this.touchChildren = value;
-        if (this.useDisFilter) {
-            this.filters = value ? null : jy.FilterUtils.gray;
-        }
-    }
-    /**
-     * 用于处理接收flash软件制作的UI，导出的数据，仿照eui
-     * 不过简化eui的一些layout的支持
-     * 按目前情况看，不太会制作复杂排版的ui，父容器不做统一的测量和重新布局
-     * 都会基于固定大小(传奇世界H5，采用480×800，viewport设置为不可缩放，宽度基于设备的)
-     * @author 3tion
-     *
-     */
-    var Component = /** @class */ (function (_super) {
-        __extends(Component, _super);
-        function Component() {
-            var _this = _super.call(this) || this;
-            /**
-             * 是否使用disable滤镜
-             * 现在默认为 true
-             * @protected
-             * @type {boolean}
-             * @memberOf Component
-             */
-            _this.useDisFilter = true;
-            return _this;
-        }
-        Object.defineProperty(Component.prototype, "guid", {
-            /**
-             * 控件命名规则
-             * 如果是和模块关联@开头，则为mediator，通过getView取到面板
-             * 为!开头的数字guid，则此控件的上级是个列表，通过getItemViewAt(idx)可以取得控件
-             *
-             * 如引导:
-             * skill对应面板下
-             * 模块zhudongskill对应面板下
-             * 名字为skillpage的控件下
-             * 索引2的控件下
-             * 名字为btnButton的按钮
-             * 可以构造一个@skill/@zhudongskill/skillpage/!2/btnButton的字符串来主播引导
-             *
-             */
-            get: function () {
-                return this._guid;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Component.prototype.init = function (c) {
-            this._creator = c;
-            this.enabled = true;
-            this.stageEvent();
-            this.bindChildren();
-        };
-        Component.prototype.stageEvent = function (remove) {
-            var handler = remove ? this.off : this.on;
-            handler.call(this, "addedToStage" /* ADDED_TO_STAGE */, this.onAwake, this);
-            handler.call(this, "removedFromStage" /* REMOVED_FROM_STAGE */, this.onSleep, this);
-        };
-        Component.prototype.onAwake = function () {
-        };
-        Component.prototype.onSleep = function () {
-        };
-        Component.prototype.dispose = function () {
-            this.removeAllListeners();
-        };
-        Component.prototype.bindChildren = function () {
-        };
-        /**
-         * 绘制一个代理图形
-         */
-        Component.prototype.drawDele = function () {
-            if (this._creator) {
-                var g = this.graphics;
-                g.lineStyle(2, 0x00ff00);
-                g.beginFill(0xff, 0.3);
-                g.drawRectangle(this._creator.size);
-            }
-        };
-        /**
-        * @language zh_CN
-        * 设置元素的布局大小。这是元素在屏幕上进行绘制时所用的大小。<p/>
-        *
-        * 如果 width 和/或 height 参数尚未指定 (NaN))，则 EUI 会将该元素的布局大小设置为首选宽度和/或首选高度。<p/>
-        *
-        * 请注意，调用 setLayoutBoundSize() 方法会影响布局位置，因此请在调用 setLayoutBoundSize()
-        * 之后再调用 setLayoutBoundPosition()。
-        *
-        * @param layoutWidth 元素的布局宽度。
-        * @param layoutHeight 元素的布局高度。
-        *
-        * @version Egret 2.4
-        * @version eui 1.0
-        * @platform Web,Native
-        */
-        Component.prototype.setLayoutBoundsSize = function (layoutWidth, layoutHeight) {
-        };
-        /**
-         * @language zh_CN
-         * 获取组件的首选尺寸,常用于父级的<code>measure()</code>方法中。<p/>
-         * 按照：外部显式设置尺寸>测量尺寸 的优先级顺序返回尺寸。<p/>
-         * 注意此方法返回值已经包含scale和rotation。
-         *
-         * @param bounds 可以放置结果的<code>egret.Rectangle</code>实例。
-         *
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        Component.prototype.getPreferredBounds = function (bounds) {
-        };
-        /**
-         * @language zh_CN
-         * 设置元素在屏幕上进行绘制时所用的布局坐标。<p/>
-         *
-         * 请注意，调用 setLayoutBoundSize() 方法会影响布局位置，因此请在调用 setLayoutBoundSize()
-         * 之后再调用 setLayoutBoundPosition()。
-         *
-         * @param x 边框左上角的 X 坐标。
-         * @param y 边框左上角的 Y 坐标。
-         *
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        Component.prototype.setLayoutBoundsPosition = function (x, y) {
-        };
-        /**
-         * @language zh_CN
-         * 组件的布局尺寸,常用于父级的<code>updateDisplayList()</code>方法中。<p/>
-         * 按照：布局尺寸>外部显式设置尺寸>测量尺寸 的优先级顺序返回尺寸。<p/>
-         * 注意此方法返回值已经包含scale和rotation。
-         *
-         * @param bounds 可以放置结果的<code>egret.Rectangle</code>实例。
-         *
-         * @version Egret 2.4
-         * @version eui 1.0
-         * @platform Web,Native
-         */
-        Component.prototype.getLayoutBounds = function (bounds) {
-        };
-        Object.defineProperty(Component.prototype, "view", {
-            get: function () {
-                return this;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        return Component;
-    }(egret.Sprite));
-    jy.Component = Component;
-    __reflect(Component.prototype, "jy.Component");
-    ;
-    addEnable(Component);
-})(jy || (jy = {}));
 /**
  * 参考createjs和白鹭的tween
  * 调整tick的驱动方式
@@ -1532,134 +1131,6 @@ var jy;
             _intervals.remove(callback);
         },
     };
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
-    /**
-     * 扩展一个实例，如果A类型实例本身并没有B类型的方法，则直接对实例的属性进行赋值，否则将不会赋值
-     *
-     * @export
-     * @template A
-     * @template B
-     * @param {A} instance                  要扩展的实例
-     * @param {{ prototype: B }} clazzB     需要扩展的对象方法
-     * @param {boolean} override            是否强制覆盖原有方法
-     * @returns {(A & B)}
-     */
-    function expandInstance(instance, clazzB) {
-        var keys = [];
-        for (var _i = 2; _i < arguments.length; _i++) {
-            keys[_i - 2] = arguments[_i];
-        }
-        var bpt = clazzB.prototype;
-        for (var _a = 0, _b = Object.getOwnPropertyNames(bpt); _a < _b.length; _a++) {
-            var name_1 = _b[_a];
-            if (!keys || ~keys.indexOf(name_1)) {
-                var define = bpt.getPropertyDescriptor(name_1);
-                if (define) {
-                    Object.defineProperty(instance, name_1, define);
-                }
-                else {
-                    instance[name_1] = bpt[name_1];
-                }
-            }
-        }
-        return instance;
-    }
-    jy.expandInstance = expandInstance;
-    /**
-     * 将类型A扩展类型B的指定属性，并返回引用
-     *
-     * @export
-     * @template A
-     * @template B
-     * @template K
-     * @template B
-     * @param {{ prototype: A }} clazzA     要被扩展的类型
-     * @param {{ prototype: B }} clazzB     扩展的模板，已经模板的父类型也会作为模板
-     * @param {...K[]} keys      如果没有参数，则将B的全部属性复制给类型A
-     * @returns {(A & Record<K, B>)}
-     */
-    function expand(clazzA, clazzB) {
-        var keys = [];
-        for (var _i = 2; _i < arguments.length; _i++) {
-            keys[_i - 2] = arguments[_i];
-        }
-        _expand(clazzA.prototype, clazzB.prototype, keys);
-        return clazzA;
-    }
-    jy.expand = expand;
-    function _expand(pt, bpt, keys) {
-        for (var _i = 0, _a = Object.getOwnPropertyNames(bpt); _i < _a.length; _i++) {
-            var name_2 = _a[_i];
-            if (!keys || ~keys.indexOf(name_2)) {
-                if (!(name_2 in pt)) {
-                    pt[name_2] = bpt[name_2];
-                }
-            }
-        }
-        var sup = Object.getPrototypeOf(bpt);
-        if (sup) {
-            return _expand(pt, sup, keys);
-        }
-    }
-    /**
-     * 获取一个复合类型
-     *
-     * @export
-     * @template A
-     * @template B
-     * @param {{ prototype: A }} clazzA     类型A
-     * @param {{ prototype: B }} clazzB     类型B
-     * @returns
-     */
-    function getMixin(clazzA, clazzB) {
-        var merged = function () { };
-        if (Object.assign) { //高级版本的浏览器有Object.assign原生方法
-            Object.assign(merged.prototype, clazzA.prototype, clazzB.prototype);
-        }
-        else {
-            merged = expand(merged, clazzA);
-            merged = expand(merged, clazzB);
-        }
-        return merged;
-    }
-    jy.getMixin = getMixin;
-    /**
-     * 拷贝属性
-     *
-     * @export
-     * @template To
-     * @template From
-     * @param {To} to
-     * @param {From} from
-     * @param {keyof B} key
-     */
-    function copyProperty(to, from, key) {
-        Object.defineProperty(to, key, Object.getOwnPropertyDescriptor(from, key));
-    }
-    jy.copyProperty = copyProperty;
-    /**
-     * 批量拷贝属性
-     *
-     * @export
-     * @template To
-     * @template From
-     * @param {To} to
-     * @param {From} from
-     * @param {...(keyof From)[]} keys
-     */
-    function copyProperties(to, from) {
-        var keys = [];
-        for (var _i = 2; _i < arguments.length; _i++) {
-            keys[_i - 2] = arguments[_i];
-        }
-        for (var i = 0; i < keys.length; i++) {
-            var key = keys[i];
-            copyProperty(to, from, key);
-        }
-    }
-    jy.copyProperties = copyProperties;
 })(jy || (jy = {}));
 if (true) {
     var $gm = $gm || {};
@@ -2220,6 +1691,612 @@ var jy;
     }());
     jy.NetService = NetService;
     __reflect(NetService.prototype, "jy.NetService");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    /**
+     * GameLayer
+     * 用于后期扩展
+     */
+    var BaseLayer = /** @class */ (function (_super) {
+        __extends(BaseLayer, _super);
+        function BaseLayer(id) {
+            var _this = _super.call(this) || this;
+            _this.id = +id;
+            return _this;
+        }
+        return BaseLayer;
+    }(egret.Sprite));
+    jy.BaseLayer = BaseLayer;
+    __reflect(BaseLayer.prototype, "jy.BaseLayer");
+    /**
+     * UI使用的层级，宽度和高度设定为和stage一致
+     *
+     * @export
+     * @class UILayer
+     * @extends {GameLayer}
+     */
+    var UILayer = /** @class */ (function (_super) {
+        __extends(UILayer, _super);
+        function UILayer() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        Object.defineProperty(UILayer.prototype, "width", {
+            get: function () {
+                return egret.sys.$TempStage.stageWidth;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(UILayer.prototype, "height", {
+            get: function () {
+                return egret.sys.$TempStage.stageHeight;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return UILayer;
+    }(BaseLayer));
+    jy.UILayer = UILayer;
+    __reflect(UILayer.prototype, "jy.UILayer");
+    /**
+     * 需要对子对象排序的层
+     */
+    var SortedLayer = /** @class */ (function (_super) {
+        __extends(SortedLayer, _super);
+        function SortedLayer() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        SortedLayer.prototype.$doAddChild = function (child, index, notifyListeners) {
+            if (notifyListeners === void 0) { notifyListeners = true; }
+            if ("depth" in child) {
+                jy.GameEngine.invalidateSort();
+                return _super.prototype.$doAddChild.call(this, child, index, notifyListeners);
+            }
+            else {
+                throw new Error("Only IDepth can be added to this LayerID(" + this.id + ")");
+            }
+        };
+        /**
+         * 进行排序
+         */
+        SortedLayer.prototype.sort = function () {
+            //对子集排序
+            this.$children.doSort("depth");
+        };
+        return SortedLayer;
+    }(BaseLayer));
+    jy.SortedLayer = SortedLayer;
+    __reflect(SortedLayer.prototype, "jy.SortedLayer");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    /**
+     * Mediator和Proxy的基类
+     * @author 3tion
+     *
+     */
+    var FHost = /** @class */ (function () {
+        function FHost(name) {
+            this._name = name;
+            this.checkInject();
+            if (true) {
+                var classes = $gm.$;
+                if (!classes) {
+                    $gm.$ = classes = {};
+                }
+                classes[this["constructor"]["name"]] = this;
+            }
+        }
+        Object.defineProperty(FHost.prototype, "name", {
+            /**
+             * 唯一标识
+             */
+            get: function () {
+                return this._name;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         * 检查依赖注入的数据
+         *
+         * @protected
+         *
+         * @memberOf FHost
+         */
+        FHost.prototype.checkInject = function () {
+            //此注入是对原型进行的注入，无法直接删除，也不要直接做清理
+            var idp = this._injectProxys;
+            if (idp) {
+                var proxyName = void 0;
+                //检查Proxy
+                for (var key in idp) {
+                    var ref = idp[key].ref;
+                    if (typeof ref === "function") {
+                        proxyName = jy.Facade.getNameOfInline(ref);
+                    }
+                    else {
+                        proxyName = ref;
+                    }
+                    var proxy = jy.proxyCall(proxyName);
+                    this[key] = proxy;
+                    proxy._$isDep = true;
+                    this.addDepend(proxy);
+                }
+            }
+        };
+        FHost.prototype.addReadyExecute = function (handle, thisObj) {
+            var args = [];
+            for (var _i = 2; _i < arguments.length; _i++) {
+                args[_i - 2] = arguments[_i];
+            }
+            var _asyncHelper = this._asyncHelper;
+            if (!_asyncHelper) {
+                this._asyncHelper = _asyncHelper = new jy.AsyncHelper();
+                _asyncHelper.isReady = this.isReady;
+            }
+            _asyncHelper.addReadyExecute.apply(_asyncHelper, [handle, thisObj].concat(args));
+        };
+        Object.defineProperty(FHost.prototype, "isReady", {
+            get: function () {
+                return false;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        FHost.prototype.startSync = function () {
+        };
+        /**
+         * 添加依赖项
+         */
+        FHost.prototype.addDepend = function (async) {
+            if (!this._dependerHelper) {
+                this._dependerHelper = new jy.DependerHelper(this, this.dependerReadyCheck);
+            }
+            this._dependerHelper.addDepend(async);
+        };
+        /**
+         * 依赖项，加载完成后的检查
+         */
+        FHost.prototype.dependerReadyCheck = function () {
+        };
+        /**
+         * 模块在Facade注册时执行
+         */
+        FHost.prototype.onRegister = function () {
+        };
+        /**
+         * 模块从Facade注销时
+         */
+        FHost.prototype.onRemove = function () {
+        };
+        /**
+         * 全部加载好以后要处理的事情<br/>
+         * 包括依赖项加载完毕
+         */
+        FHost.prototype.afterAllReady = function () {
+            // to be override
+        };
+        return FHost;
+    }());
+    jy.FHost = FHost;
+    __reflect(FHost.prototype, "jy.FHost", ["jy.IDepender", "jy.IAsync"]);
+    /**
+     *
+     * 附加依赖的Proxy
+     * @export
+     * @param {({ new (): IAsync } | string)} ref 如果注册的是Class，必须是Inline方式注册的Proxy
+     * @returns
+     */
+    function d_dependProxy(ref, isPri) {
+        var pKey = "_injectProxys";
+        return function (target, key) {
+            var _injectProxys;
+            if (target.hasOwnProperty(pKey)) {
+                _injectProxys = target[pKey];
+            }
+            else {
+                //未赋值前，先取值，可取到父级数据，避免使用  Object.getPrototypeOf(target)，ES5没此方法
+                var inherit = target[pKey];
+                target[pKey] = _injectProxys = {};
+                if (inherit) { //继承父级可继承的关注列表
+                    for (var k in inherit) {
+                        var bin = inherit[k];
+                        if (!bin.isPri) {
+                            _injectProxys[k] = bin;
+                        }
+                    }
+                }
+            }
+            _injectProxys[key] = { ref: ref, isPri: isPri };
+        };
+    }
+    jy.d_dependProxy = d_dependProxy;
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    /**
+     * 基础创建器
+     * @author 3tion
+     *
+     */
+    var BaseCreator = /** @class */ (function () {
+        function BaseCreator() {
+        }
+        Object.defineProperty(BaseCreator.prototype, "suiData", {
+            get: function () {
+                return this._suiData;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        BaseCreator.prototype.bindSuiData = function (suiData) {
+            this._suiData = suiData;
+        };
+        BaseCreator.prototype.parseData = function (data, suiData) {
+            if (!this._parsed) {
+                this._parsed = true;
+                this.bindSuiData(suiData);
+                if (data) {
+                    this.setBaseData(data[1]);
+                    this.parseSelfData(data[2]);
+                }
+            }
+        };
+        /**
+         * 处理尺寸
+         *
+         * @param {SizeData} data
+         *
+         * @memberOf BaseCreator
+         */
+        BaseCreator.prototype.parseSize = function (data) {
+            if (data) {
+                this.size = new egret.Rectangle(data[0], data[1], data[2], data[3]);
+            }
+        };
+        /**
+         * 处理元素数据
+         * 对应 https://github.com/eos3tion/ExportUIFromFlash  项目中
+         * Solution.ts -> getElementData的元素数据的解析
+         * @param {ComponentData} data 长度为4的数组
+         * 0 导出类型
+         * 1 基础数据 @see Solution.getEleBaseData
+         * 2 对象数据 不同类型，数据不同
+         * 3 引用的库 0 当前库  1 lib  字符串 库名字
+         * @memberOf BaseCreator
+         */
+        BaseCreator.prototype.createElement = function (data) {
+            return jy.singleton(jy.SuiResManager).getElement(this._suiData, data);
+        };
+        BaseCreator.prototype.setBaseData = function (data) {
+            this._baseData = data;
+        };
+        BaseCreator.prototype.parseSelfData = function (data) {
+        };
+        /**
+         * 获取实例
+         */
+        BaseCreator.prototype.get = function () {
+            var t = this._createT();
+            t.suiRawRect = this.size;
+            if (t instanceof jy.Component) {
+                t.init(this);
+            }
+            if (this._baseData) {
+                jy.SuiResManager.initBaseData(t, this._baseData);
+            }
+            return t;
+        };
+        return BaseCreator;
+    }());
+    jy.BaseCreator = BaseCreator;
+    __reflect(BaseCreator.prototype, "jy.BaseCreator");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    function addEnable(ref) {
+        var pt = ref.prototype;
+        pt.$setEnabled = $setEnabled;
+        pt.useDisFilter = true;
+        Object.defineProperty(pt, "enabled", jy.getDescriptor({
+            set: function (value) {
+                if (this._enabled != value) {
+                    this.$setEnabled(value);
+                }
+            },
+            get: function () {
+                return this._enabled;
+            }
+        }));
+    }
+    jy.addEnable = addEnable;
+    function $setEnabled(value) {
+        this._enabled = value;
+        this.touchEnabled = value;
+        this.touchChildren = value;
+        if (this.useDisFilter) {
+            this.filters = value ? null : jy.FilterUtils.gray;
+        }
+    }
+    /**
+     * 用于处理接收flash软件制作的UI，导出的数据，仿照eui
+     * 不过简化eui的一些layout的支持
+     * 按目前情况看，不太会制作复杂排版的ui，父容器不做统一的测量和重新布局
+     * 都会基于固定大小(传奇世界H5，采用480×800，viewport设置为不可缩放，宽度基于设备的)
+     * @author 3tion
+     *
+     */
+    var Component = /** @class */ (function (_super) {
+        __extends(Component, _super);
+        function Component() {
+            var _this = _super.call(this) || this;
+            /**
+             * 是否使用disable滤镜
+             * 现在默认为 true
+             * @protected
+             * @type {boolean}
+             * @memberOf Component
+             */
+            _this.useDisFilter = true;
+            return _this;
+        }
+        Object.defineProperty(Component.prototype, "guid", {
+            /**
+             * 控件命名规则
+             * 如果是和模块关联@开头，则为mediator，通过getView取到面板
+             * 为!开头的数字guid，则此控件的上级是个列表，通过getItemViewAt(idx)可以取得控件
+             *
+             * 如引导:
+             * skill对应面板下
+             * 模块zhudongskill对应面板下
+             * 名字为skillpage的控件下
+             * 索引2的控件下
+             * 名字为btnButton的按钮
+             * 可以构造一个@skill/@zhudongskill/skillpage/!2/btnButton的字符串来主播引导
+             *
+             */
+            get: function () {
+                return this._guid;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Component.prototype.init = function (c) {
+            this._creator = c;
+            this.enabled = true;
+            this.stageEvent();
+            this.bindChildren();
+        };
+        Component.prototype.stageEvent = function (remove) {
+            var handler = remove ? this.off : this.on;
+            handler.call(this, "addedToStage" /* ADDED_TO_STAGE */, this.onAwake, this);
+            handler.call(this, "removedFromStage" /* REMOVED_FROM_STAGE */, this.onSleep, this);
+        };
+        Component.prototype.onAwake = function () {
+        };
+        Component.prototype.onSleep = function () {
+        };
+        Component.prototype.dispose = function () {
+            this.removeAllListeners();
+        };
+        Component.prototype.bindChildren = function () {
+        };
+        /**
+         * 绘制一个代理图形
+         */
+        Component.prototype.drawDele = function () {
+            if (this._creator) {
+                var g = this.graphics;
+                g.lineStyle(2, 0x00ff00);
+                g.beginFill(0xff, 0.3);
+                g.drawRectangle(this._creator.size);
+            }
+        };
+        /**
+        * @language zh_CN
+        * 设置元素的布局大小。这是元素在屏幕上进行绘制时所用的大小。<p/>
+        *
+        * 如果 width 和/或 height 参数尚未指定 (NaN))，则 EUI 会将该元素的布局大小设置为首选宽度和/或首选高度。<p/>
+        *
+        * 请注意，调用 setLayoutBoundSize() 方法会影响布局位置，因此请在调用 setLayoutBoundSize()
+        * 之后再调用 setLayoutBoundPosition()。
+        *
+        * @param layoutWidth 元素的布局宽度。
+        * @param layoutHeight 元素的布局高度。
+        *
+        * @version Egret 2.4
+        * @version eui 1.0
+        * @platform Web,Native
+        */
+        Component.prototype.setLayoutBoundsSize = function (layoutWidth, layoutHeight) {
+        };
+        /**
+         * @language zh_CN
+         * 获取组件的首选尺寸,常用于父级的<code>measure()</code>方法中。<p/>
+         * 按照：外部显式设置尺寸>测量尺寸 的优先级顺序返回尺寸。<p/>
+         * 注意此方法返回值已经包含scale和rotation。
+         *
+         * @param bounds 可以放置结果的<code>egret.Rectangle</code>实例。
+         *
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        Component.prototype.getPreferredBounds = function (bounds) {
+        };
+        /**
+         * @language zh_CN
+         * 设置元素在屏幕上进行绘制时所用的布局坐标。<p/>
+         *
+         * 请注意，调用 setLayoutBoundSize() 方法会影响布局位置，因此请在调用 setLayoutBoundSize()
+         * 之后再调用 setLayoutBoundPosition()。
+         *
+         * @param x 边框左上角的 X 坐标。
+         * @param y 边框左上角的 Y 坐标。
+         *
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        Component.prototype.setLayoutBoundsPosition = function (x, y) {
+        };
+        /**
+         * @language zh_CN
+         * 组件的布局尺寸,常用于父级的<code>updateDisplayList()</code>方法中。<p/>
+         * 按照：布局尺寸>外部显式设置尺寸>测量尺寸 的优先级顺序返回尺寸。<p/>
+         * 注意此方法返回值已经包含scale和rotation。
+         *
+         * @param bounds 可以放置结果的<code>egret.Rectangle</code>实例。
+         *
+         * @version Egret 2.4
+         * @version eui 1.0
+         * @platform Web,Native
+         */
+        Component.prototype.getLayoutBounds = function (bounds) {
+        };
+        Object.defineProperty(Component.prototype, "view", {
+            get: function () {
+                return this;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return Component;
+    }(egret.Sprite));
+    jy.Component = Component;
+    __reflect(Component.prototype, "jy.Component");
+    ;
+    addEnable(Component);
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    /**
+     * 扩展一个实例，如果A类型实例本身并没有B类型的方法，则直接对实例的属性进行赋值，否则将不会赋值
+     *
+     * @export
+     * @template A
+     * @template B
+     * @param {A} instance                  要扩展的实例
+     * @param {{ prototype: B }} clazzB     需要扩展的对象方法
+     * @param {boolean} override            是否强制覆盖原有方法
+     * @returns {(A & B)}
+     */
+    function expandInstance(instance, clazzB) {
+        var keys = [];
+        for (var _i = 2; _i < arguments.length; _i++) {
+            keys[_i - 2] = arguments[_i];
+        }
+        var bpt = clazzB.prototype;
+        for (var _a = 0, _b = Object.getOwnPropertyNames(bpt); _a < _b.length; _a++) {
+            var name_1 = _b[_a];
+            if (!keys || ~keys.indexOf(name_1)) {
+                var define = bpt.getPropertyDescriptor(name_1);
+                if (define) {
+                    Object.defineProperty(instance, name_1, define);
+                }
+                else {
+                    instance[name_1] = bpt[name_1];
+                }
+            }
+        }
+        return instance;
+    }
+    jy.expandInstance = expandInstance;
+    /**
+     * 将类型A扩展类型B的指定属性，并返回引用
+     *
+     * @export
+     * @template A
+     * @template B
+     * @template K
+     * @template B
+     * @param {{ prototype: A }} clazzA     要被扩展的类型
+     * @param {{ prototype: B }} clazzB     扩展的模板，已经模板的父类型也会作为模板
+     * @param {...K[]} keys      如果没有参数，则将B的全部属性复制给类型A
+     * @returns {(A & Record<K, B>)}
+     */
+    function expand(clazzA, clazzB) {
+        var keys = [];
+        for (var _i = 2; _i < arguments.length; _i++) {
+            keys[_i - 2] = arguments[_i];
+        }
+        _expand(clazzA.prototype, clazzB.prototype, keys);
+        return clazzA;
+    }
+    jy.expand = expand;
+    function _expand(pt, bpt, keys) {
+        for (var _i = 0, _a = Object.getOwnPropertyNames(bpt); _i < _a.length; _i++) {
+            var name_2 = _a[_i];
+            if (!keys || ~keys.indexOf(name_2)) {
+                if (!(name_2 in pt)) {
+                    pt[name_2] = bpt[name_2];
+                }
+            }
+        }
+        var sup = Object.getPrototypeOf(bpt);
+        if (sup) {
+            return _expand(pt, sup, keys);
+        }
+    }
+    /**
+     * 获取一个复合类型
+     *
+     * @export
+     * @template A
+     * @template B
+     * @param {{ prototype: A }} clazzA     类型A
+     * @param {{ prototype: B }} clazzB     类型B
+     * @returns
+     */
+    function getMixin(clazzA, clazzB) {
+        var merged = function () { };
+        if (Object.assign) { //高级版本的浏览器有Object.assign原生方法
+            Object.assign(merged.prototype, clazzA.prototype, clazzB.prototype);
+        }
+        else {
+            merged = expand(merged, clazzA);
+            merged = expand(merged, clazzB);
+        }
+        return merged;
+    }
+    jy.getMixin = getMixin;
+    /**
+     * 拷贝属性
+     *
+     * @export
+     * @template To
+     * @template From
+     * @param {To} to
+     * @param {From} from
+     * @param {keyof B} key
+     */
+    function copyProperty(to, from, key) {
+        Object.defineProperty(to, key, Object.getOwnPropertyDescriptor(from, key));
+    }
+    jy.copyProperty = copyProperty;
+    /**
+     * 批量拷贝属性
+     *
+     * @export
+     * @template To
+     * @template From
+     * @param {To} to
+     * @param {From} from
+     * @param {...(keyof From)[]} keys
+     */
+    function copyProperties(to, from) {
+        var keys = [];
+        for (var _i = 2; _i < arguments.length; _i++) {
+            keys[_i - 2] = arguments[_i];
+        }
+        for (var i = 0; i < keys.length; i++) {
+            var key = keys[i];
+            copyProperty(to, from, key);
+        }
+    }
+    jy.copyProperties = copyProperties;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -2907,83 +2984,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * GameLayer
-     * 用于后期扩展
-     */
-    var BaseLayer = /** @class */ (function (_super) {
-        __extends(BaseLayer, _super);
-        function BaseLayer(id) {
-            var _this = _super.call(this) || this;
-            _this.id = +id;
-            return _this;
-        }
-        return BaseLayer;
-    }(egret.Sprite));
-    jy.BaseLayer = BaseLayer;
-    __reflect(BaseLayer.prototype, "jy.BaseLayer");
-    /**
-     * UI使用的层级，宽度和高度设定为和stage一致
-     *
-     * @export
-     * @class UILayer
-     * @extends {GameLayer}
-     */
-    var UILayer = /** @class */ (function (_super) {
-        __extends(UILayer, _super);
-        function UILayer() {
-            return _super !== null && _super.apply(this, arguments) || this;
-        }
-        Object.defineProperty(UILayer.prototype, "width", {
-            get: function () {
-                return egret.sys.$TempStage.stageWidth;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(UILayer.prototype, "height", {
-            get: function () {
-                return egret.sys.$TempStage.stageHeight;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        return UILayer;
-    }(BaseLayer));
-    jy.UILayer = UILayer;
-    __reflect(UILayer.prototype, "jy.UILayer");
-    /**
-     * 需要对子对象排序的层
-     */
-    var SortedLayer = /** @class */ (function (_super) {
-        __extends(SortedLayer, _super);
-        function SortedLayer() {
-            return _super !== null && _super.apply(this, arguments) || this;
-        }
-        SortedLayer.prototype.$doAddChild = function (child, index, notifyListeners) {
-            if (notifyListeners === void 0) { notifyListeners = true; }
-            if ("depth" in child) {
-                jy.GameEngine.invalidateSort();
-                return _super.prototype.$doAddChild.call(this, child, index, notifyListeners);
-            }
-            else {
-                throw new Error("Only IDepth can be added to this LayerID(" + this.id + ")");
-            }
-        };
-        /**
-         * 进行排序
-         */
-        SortedLayer.prototype.sort = function () {
-            //对子集排序
-            this.$children.doSort("depth");
-        };
-        return SortedLayer;
-    }(BaseLayer));
-    jy.SortedLayer = SortedLayer;
-    __reflect(SortedLayer.prototype, "jy.SortedLayer");
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
     var slowDispatching;
     function onSlowRender() {
         jy.dispatch(-1996 /* SlowRender */);
@@ -3551,6 +3551,321 @@ var jy;
             }
         }
     }
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    var webp = jy.Global.webp ? ".webp" /* WEBP */ : "";
+    /**
+     * 地图基础信息<br/>
+     * 由地图编辑器生成的地图信息
+     * @author 3tion
+     *
+     */
+    var MapInfo = /** @class */ (function () {
+        function MapInfo() {
+            /**
+             * 图片扩展
+             */
+            this.ext = ".jpg" /* JPG */;
+            /**
+             * 单张底图的宽度
+             */
+            this.pWidth = 256 /* DefaultSize */;
+            /**
+             * 单张底图的高度
+             */
+            this.pHeight = 256 /* DefaultSize */;
+        }
+        /**
+        * 获取地图图块资源路径
+        */
+        MapInfo.prototype.getMapUri = function (col, row) {
+            return "" + MapInfo.prefix + this.path + "/" + row + "_" + col + this.ext + webp;
+        };
+        /**
+         * 获取图片路径
+         */
+        MapInfo.prototype.getImgUri = function (uri) {
+            return "" + MapInfo.prefix + this.path + "/" + uri;
+        };
+        /**
+         * 地图前缀路径
+         */
+        MapInfo.prefix = "m/" /* MapPath */;
+        return MapInfo;
+    }());
+    jy.MapInfo = MapInfo;
+    __reflect(MapInfo.prototype, "jy.MapInfo");
+})(jy || (jy = {}));
+if (true) {
+    var $gm = $gm || {};
+    $gm.toggleMapGrid = function () {
+        this.$showMapGrid = !this.$showMapGrid;
+    };
+}
+var jy;
+(function (jy) {
+    function checkRect(map, rect, preload, forEach, checker, caller, ox, oy) {
+        if (ox === void 0) { ox = 0; }
+        if (oy === void 0) { oy = 0; }
+        //检查地图，进行加载区块
+        var x = rect.x + ox;
+        var y = rect.y + oy;
+        var w = rect.width;
+        var h = rect.height;
+        var pW = map.pWidth;
+        var pH = map.pHeight;
+        var sc = x / pW | 0;
+        var sr = y / pH | 0;
+        var ec = (x + w) / pW | 0;
+        var er = (y + h) / pH | 0;
+        sc = Math.max(sc - preload, 0);
+        sr = Math.max(sr - preload, 0);
+        ec = Math.min(ec + preload, map.maxPicX);
+        er = Math.min(er + preload, map.maxPicY);
+        if (checker && !checker.call(caller, sc, sr, ec, er)) {
+            return;
+        }
+        for (var r = sr; r <= er; r++) {
+            for (var c = sc; c <= ec; c++) {
+                var uri = map.getMapUri(c, r);
+                forEach.call(caller, uri, c, r, pW, pH);
+            }
+        }
+        return true;
+    }
+    /**
+     * 刷新当前地图
+     */
+    function checkEmpty() {
+        //@ts-ignore
+        var showing = this._showing;
+        var j = 0;
+        for (var i = 0; i < showing.length; i++) {
+            var show = showing[i];
+            if (show.empty) {
+                jy.removeDisplay(show);
+            }
+            else {
+                showing[j++] = show;
+            }
+        }
+        showing.length = j;
+    }
+    var pathSolution = {};
+    function regPathSol(type, handler) {
+        pathSolution[type] = handler;
+    }
+    jy.regPathSol = regPathSol;
+    /**
+    * MapRender
+    * 用于处理地图平铺的渲染
+    */
+    var TileMapLayer = /** @class */ (function (_super) {
+        __extends(TileMapLayer, _super);
+        function TileMapLayer() {
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            /**
+             * 扩展预加载的图块数量
+             *
+             */
+            _this.preload = 0;
+            /**
+             *
+             * 显示中的地图
+             * @type {TileMap[]}
+             */
+            _this._showing = [];
+            return _this;
+        }
+        Object.defineProperty(TileMapLayer.prototype, "currentMap", {
+            get: function () {
+                return this._currentMap;
+            },
+            /**
+             * 显示/关闭地图格子显示
+             *
+             *
+             * @memberOf $gmType
+             */
+            set: function (value) {
+                if (value != this._currentMap) {
+                    this._currentMap = value;
+                    if (true) {
+                        this.drawGrid = pathSolution[~~value.pathType];
+                    }
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        TileMapLayer.prototype.addMap = function (uri, c, r, pW, pH) {
+            var tm = jy.ResManager.get(uri, this.noRes, this, uri, c, r, pW, pH);
+            if (!tm.empty) {
+                // 舞台上的标记为静态
+                tm.isStatic = true;
+                var idx = this._idx;
+                this.$doAddChild(tm, idx, false);
+                this._showing[idx++] = tm;
+                this._idx = idx;
+            }
+        };
+        TileMapLayer.prototype.reset = function () {
+            this.lsc = this.lsr = this.lec = this.ler = undefined;
+        };
+        TileMapLayer.prototype.check = function (sc, sr, ec, er) {
+            if (sc == this.lsc && sr == this.lsr && ec == this.lec && er == this.ler) { //要加载的块没有发生任何变更
+                return;
+            }
+            this.lsc = sc;
+            this.lsr = sr;
+            this.lec = ec;
+            this.ler = er;
+            // 先将正在显示的全部标记为未使用
+            // 换地图也使用此方法处理
+            var now = jy.Global.now;
+            var showing = this._showing;
+            var left = showing.length;
+            while (left > 0) {
+                var m = showing[--left];
+                m.isStatic = false;
+                m.lastUseTime = now;
+                this.$doRemoveChild(left, false);
+            }
+            return true;
+        };
+        TileMapLayer.prototype.setRect = function (rect, ox, oy) {
+            if (ox === void 0) { ox = 0; }
+            if (oy === void 0) { oy = 0; }
+            var cM = this._currentMap;
+            if (!cM) {
+                return;
+            }
+            if (true) {
+                if (this.drawGrid) {
+                    this.drawGrid(rect.x + ox, rect.y + oy, rect.width, rect.height, cM);
+                }
+            }
+            this._idx = 0;
+            if (checkRect(cM, rect, this.preload, this.addMap, this.check, this, ox, oy)) {
+                this._showing.length = this._idx;
+            }
+        };
+        TileMapLayer.prototype.noRes = function (uri, c, r, pW, pH) {
+            var tmp = new TileMap();
+            //检查是否有小地图，如果有，先设置一份texture
+            var _a = this, mini = _a.mini, miniTexDict = _a.miniTexDict;
+            var x = c * pW;
+            var y = r * pH;
+            if (mini) {
+                var texKey = jy.getPosHash2(c, r);
+                var tex = miniTexDict[texKey];
+                if (!tex) {
+                    var textureWidth = mini.textureWidth, textureHeight = mini.textureHeight;
+                    var _b = this._currentMap, width = _b.width, height = _b.height;
+                    miniTexDict[texKey] = tex = new egret.Texture();
+                    var dw = textureWidth / width;
+                    var dh = textureHeight / height;
+                    var sw = pW * dw;
+                    var sh = pH * dh;
+                    tex.$initData(x * dw, y * dh, sw, sh, 0, 0, sw, sh, sw, sh);
+                    tex.$bitmapData = mini.bitmapData;
+                }
+                tmp.texture = tex;
+                tmp.width = pW;
+                tmp.height = pH;
+            }
+            tmp.reset(c, r, uri);
+            tmp.x = x;
+            tmp.y = y;
+            tmp.load();
+            return tmp;
+        };
+        /**
+         * 设置小地图
+         * @param uri
+         */
+        TileMapLayer.prototype.setMini = function (uri) {
+            var miniUri = this._currentMap.getImgUri(uri);
+            var old = this.miniUri;
+            if (old != miniUri) {
+                if (old) {
+                    jy.Res.cancel(old);
+                }
+                this.miniUri = miniUri;
+                this.mini = undefined;
+                this.miniTexDict = {};
+                jy.Res.load(miniUri, jy.ConfigUtils.getResUrl(miniUri), jy.CallbackInfo.get(this.miniLoad, this), 2 /* Highway */);
+            }
+        };
+        TileMapLayer.prototype.miniLoad = function (item) {
+            var data = item.data, uri = item.uri;
+            if (uri == this.miniUri) {
+                this.mini = data;
+            }
+        };
+        TileMapLayer.prototype.removeChildren = function () {
+            //重置显示的地图序列
+            this._showing.length = 0;
+            _super.prototype.removeChildren.call(this);
+        };
+        return TileMapLayer;
+    }(jy.BaseLayer));
+    jy.TileMapLayer = TileMapLayer;
+    __reflect(TileMapLayer.prototype, "jy.TileMapLayer");
+    TileMapLayer.checkRect = checkRect;
+    /**
+    * TileMap
+    */
+    var TileMap = /** @class */ (function (_super) {
+        __extends(TileMap, _super);
+        function TileMap() {
+            return _super.call(this) || this;
+        }
+        TileMap.prototype.reset = function (col, row, uri) {
+            this.col = col;
+            this.row = row;
+            this.uri = uri;
+            this.url = jy.ConfigUtils.getResUrl(uri);
+        };
+        TileMap.prototype.load = function () {
+            jy.Res.load(this.uri, this.url, jy.CallbackInfo.get(this.loadComplete, this));
+        };
+        /**
+         * 资源加载完成
+         */
+        TileMap.prototype.loadComplete = function (item) {
+            var _a = item, data = _a.data, uri = _a.uri;
+            if (!data) { //没有data说明加载资源失败
+                return;
+            }
+            if (uri == this.uri) {
+                if (data.textureWidth == 1 && data.textureHeight == 1) { //检查纹理大小，如果是 1×1 则为特殊图片，不被加到舞台上
+                    this.empty = true; //只标记，不在此帧从舞台移除
+                    this.isStatic = true; //将这类资源标记为静态，永远不销毁，因为本身基本不占用内存
+                    data.dispose();
+                    this.texture = undefined;
+                    var parent_1 = this.parent;
+                    if (parent_1 instanceof TileMapLayer) {
+                        jy.Global.callLater(checkEmpty, 500 /* 设置为500是因为可能有多张1*1的空图片加载，减少刷新次数 */, parent_1);
+                    }
+                }
+                else {
+                    this.texture = data;
+                }
+            }
+        };
+        TileMap.prototype.dispose = function () {
+            var texture = this.texture;
+            if (texture) {
+                this.texture = undefined;
+                texture.dispose();
+            }
+        };
+        return TileMap;
+    }(egret.Bitmap));
+    jy.TileMap = TileMap;
+    __reflect(TileMap.prototype, "jy.TileMap", ["jy.IResource"]);
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -6043,9 +6358,9 @@ var jy;
             function getPath(p, paths) {
                 var parentKey = p.parent;
                 if (parentKey) {
-                    var parent_1 = paths[parentKey];
-                    if (parent_1) {
-                        return getPath(parent_1, paths) + p.path;
+                    var parent_2 = paths[parentKey];
+                    if (parent_2) {
+                        return getPath(parent_2, paths) + p.path;
                     }
                     else if (true) {
                         jy.ThrowError("\u8DEF\u5F84[" + p.path + "]\u914D\u7F6E\u4E86\u7236\u7EA7(parent)\uFF0C\u4F46\u662F\u627E\u4E0D\u5230\u5BF9\u5E94\u7684\u7236\u7EA7");
@@ -10855,9 +11170,9 @@ var jy;
         };
         GameEngine.prototype.addLayer = function (layer, cfg) {
             if (cfg && cfg.parentid) {
-                var parent_2 = this.getLayer(cfg.parentid);
-                if (parent_2 instanceof egret.DisplayObjectContainer) {
-                    this.addLayerToContainer(layer, parent_2);
+                var parent_3 = this.getLayer(cfg.parentid);
+                if (parent_3 instanceof egret.DisplayObjectContainer) {
+                    this.addLayerToContainer(layer, parent_3);
                 }
             }
             else {
@@ -11352,14 +11667,14 @@ var jy;
                     display.scaleX = display.scaleY = scale;
                 }
                 stop = option.stop;
-                var parent_3 = option.parent;
-                if (parent_3) {
+                var parent_4 = option.parent;
+                if (parent_4) {
                     var idx = option.childIdx;
                     if (idx == undefined) {
-                        parent_3.addChild(display);
+                        parent_4.addChild(display);
                     }
                     else {
-                        parent_3.addChildAt(display, idx);
+                        parent_4.addChildAt(display, idx);
                     }
                 }
                 var loop = option.loop;
@@ -12495,347 +12810,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    var webp = jy.Global.webp ? ".webp" /* WEBP */ : "";
-    /**
-     * 地图基础信息<br/>
-     * 由地图编辑器生成的地图信息
-     * @author 3tion
-     *
-     */
-    var MapInfo = /** @class */ (function (_super) {
-        __extends(MapInfo, _super);
-        function MapInfo() {
-            var _this = _super.call(this) || this;
-            /**
-             * 图片扩展
-             */
-            _this.ext = ".jpg" /* JPG */;
-            /**
-             * 单张底图的宽度
-             */
-            _this.pWidth = 256 /* DefaultSize */;
-            /**
-             * 单张底图的高度
-             */
-            _this.pHeight = 256 /* DefaultSize */;
-            return _this;
-        }
-        /**
-        * 获取地图图块资源路径
-        */
-        MapInfo.prototype.getMapUri = function (col, row) {
-            return "" + MapInfo.prefix + this.path + "/" + row + "_" + col + this.ext + webp;
-        };
-        /**
-         * 获取图片路径
-         */
-        MapInfo.prototype.getImgUri = function (uri) {
-            return "" + MapInfo.prefix + this.path + "/" + uri;
-        };
-        /**
-         * 地图前缀路径
-         */
-        MapInfo.prefix = "m/" /* MapPath */;
-        return MapInfo;
-    }(egret.HashObject));
-    jy.MapInfo = MapInfo;
-    __reflect(MapInfo.prototype, "jy.MapInfo");
-})(jy || (jy = {}));
-if (true) {
-    var $gm = $gm || {};
-    $gm.toggleMapGrid = function () {
-        this.$showMapGrid = !this.$showMapGrid;
-    };
-}
-var jy;
-(function (jy) {
-    function checkRect(map, rect, preload, forEach, checker, caller, ox, oy) {
-        if (ox === void 0) { ox = 0; }
-        if (oy === void 0) { oy = 0; }
-        //检查地图，进行加载区块
-        var x = rect.x + ox;
-        var y = rect.y + oy;
-        var w = rect.width;
-        var h = rect.height;
-        var pW = map.pWidth;
-        var pH = map.pHeight;
-        var sc = x / pW | 0;
-        var sr = y / pH | 0;
-        var ec = (x + w) / pW | 0;
-        var er = (y + h) / pH | 0;
-        sc = Math.max(sc - preload, 0);
-        sr = Math.max(sr - preload, 0);
-        ec = Math.min(ec + preload, map.maxPicX);
-        er = Math.min(er + preload, map.maxPicY);
-        if (checker && !checker.call(caller, sc, sr, ec, er)) {
-            return;
-        }
-        var get = jy.ResManager.get;
-        for (var r = sr; r <= er; r++) {
-            for (var c = sc; c <= ec; c++) {
-                var uri = map.getMapUri(c, r);
-                forEach.call(caller, uri, c, r, pW, pH);
-            }
-        }
-        return true;
-    }
-    /**
-     * 刷新当前地图
-     */
-    function checkEmpty() {
-        //@ts-ignore
-        var showing = this._showing;
-        var j = 0;
-        for (var i = 0; i < showing.length; i++) {
-            var show = showing[i];
-            if (show.empty) {
-                jy.removeDisplay(show);
-            }
-            else {
-                showing[j++] = show;
-            }
-        }
-        showing.length = j;
-    }
-    /**
-    * MapRender
-    * 用于处理地图平铺的渲染
-    */
-    var TileMapLayer = /** @class */ (function (_super) {
-        __extends(TileMapLayer, _super);
-        function TileMapLayer(id) {
-            var _this = _super.call(this, id) || this;
-            /**
-             * 扩展预加载的图块数量
-             *
-             */
-            _this.preload = 0;
-            /**
-             *
-             * 显示中的地图
-             * @type {TileMap[]}
-             */
-            _this._showing = [];
-            if (true) {
-                _this.drawGrid = function (x, y, w, h, map) {
-                    var gp = _this.debugGridPanes;
-                    if (!gp) {
-                        _this.debugGridPanes = gp = [];
-                    }
-                    var k = 0;
-                    if ($gm.$showMapGrid) {
-                        var tex = _this.debugGridTexture;
-                        var gridWidth = map.gridWidth, gridHeight = map.gridHeight;
-                        var hw = gridWidth >> 1;
-                        var hh = gridHeight >> 1;
-                        if (!tex) {
-                            var s = new egret.Shape;
-                            var g = s.graphics;
-                            g.lineStyle(1, 0xcccc);
-                            g.beginFill(0xcccc, 0.5);
-                            g.drawRect(0, 0, gridWidth, gridHeight);
-                            g.endFill();
-                            var tex_1 = new egret.RenderTexture();
-                            tex_1.drawToTexture(s);
-                            _this.debugGridTexture = tex_1;
-                        }
-                        for (var i = x / gridWidth >> 0, len = i + w / gridWidth + 1, jstart = y / gridHeight >> 0, jlen = jstart + h / gridHeight + 1; i < len; i++) {
-                            for (var j = jstart; j < jlen; j++) {
-                                if (!map.getWalk(i, j)) {
-                                    var s = gp[k];
-                                    if (!s) {
-                                        gp[k] = s = new egret.Bitmap();
-                                    }
-                                    s.texture = tex;
-                                    _this.addChild(s);
-                                    k++;
-                                    s.x = i * gridWidth - hw;
-                                    s.y = j * gridHeight - hh;
-                                }
-                            }
-                        }
-                    }
-                    for (var i = k; i < gp.length; i++) {
-                        var bmp = gp[i];
-                        bmp.texture = null;
-                        jy.removeDisplay(bmp);
-                    }
-                    gp.length = k;
-                };
-            }
-            return _this;
-        }
-        TileMapLayer.prototype.addMap = function (uri, c, r, pW, pH) {
-            var map = this.currentMap;
-            var tm = jy.ResManager.get(uri, this.noRes, this, uri, c, r, pW, pH);
-            if (!tm.empty) {
-                // 舞台上的标记为静态
-                tm.isStatic = true;
-                var idx = this._idx;
-                this.$doAddChild(tm, idx, false);
-                this._showing[idx++] = tm;
-                this._idx = idx;
-            }
-        };
-        TileMapLayer.prototype.reset = function () {
-            this.lsc = this.lsr = this.lec = this.ler = undefined;
-        };
-        TileMapLayer.prototype.check = function (sc, sr, ec, er) {
-            if (sc == this.lsc && sr == this.lsr && ec == this.lec && er == this.ler) { //要加载的块没有发生任何变更
-                return;
-            }
-            this.lsc = sc;
-            this.lsr = sr;
-            this.lec = ec;
-            this.ler = er;
-            // 先将正在显示的全部标记为未使用
-            // 换地图也使用此方法处理
-            var now = jy.Global.now;
-            var showing = this._showing;
-            var left = showing.length;
-            while (left > 0) {
-                var m = showing[--left];
-                m.isStatic = false;
-                m.lastUseTime = now;
-                this.$doRemoveChild(left, false);
-            }
-            return true;
-        };
-        TileMapLayer.prototype.setRect = function (rect, ox, oy) {
-            if (ox === void 0) { ox = 0; }
-            if (oy === void 0) { oy = 0; }
-            var cM = this.currentMap;
-            if (!cM) {
-                return;
-            }
-            if (true) {
-                if (this.drawGrid) {
-                    this.drawGrid(rect.x + ox, rect.y + oy, rect.width, rect.height, cM);
-                }
-            }
-            this._idx = 0;
-            if (checkRect(cM, rect, this.preload, this.addMap, this.check, this, ox, oy)) {
-                this._showing.length = this._idx;
-            }
-        };
-        TileMapLayer.prototype.noRes = function (uri, c, r, pW, pH) {
-            var tmp = new TileMap();
-            //检查是否有小地图，如果有，先设置一份texture
-            var _a = this, mini = _a.mini, miniTexDict = _a.miniTexDict;
-            var x = c * pW;
-            var y = r * pH;
-            if (mini) {
-                var texKey = jy.getPosHash2(c, r);
-                var tex = miniTexDict[texKey];
-                if (!tex) {
-                    var textureWidth = mini.textureWidth, textureHeight = mini.textureHeight;
-                    var _b = this.currentMap, width = _b.width, height = _b.height;
-                    miniTexDict[texKey] = tex = new egret.Texture();
-                    var dw = textureWidth / width;
-                    var dh = textureHeight / height;
-                    var sw = pW * dw;
-                    var sh = pH * dh;
-                    tex.$initData(x * dw, y * dh, sw, sh, 0, 0, sw, sh, sw, sh);
-                    tex.$bitmapData = mini.bitmapData;
-                }
-                tmp.texture = tex;
-                tmp.width = pW;
-                tmp.height = pH;
-            }
-            tmp.reset(c, r, uri);
-            tmp.x = x;
-            tmp.y = y;
-            tmp.load();
-            return tmp;
-        };
-        /**
-         * 设置小地图
-         * @param uri
-         */
-        TileMapLayer.prototype.setMini = function (uri) {
-            var miniUri = this.currentMap.getImgUri(uri);
-            var old = this.miniUri;
-            if (old != miniUri) {
-                if (old) {
-                    jy.Res.cancel(old);
-                }
-                this.miniUri = miniUri;
-                this.mini = undefined;
-                this.miniTexDict = {};
-                jy.Res.load(miniUri, jy.ConfigUtils.getResUrl(miniUri), jy.CallbackInfo.get(this.miniLoad, this), 2 /* Highway */);
-            }
-        };
-        TileMapLayer.prototype.miniLoad = function (item) {
-            var data = item.data, uri = item.uri;
-            if (uri == this.miniUri) {
-                this.mini = data;
-            }
-        };
-        TileMapLayer.prototype.removeChildren = function () {
-            //重置显示的地图序列
-            this._showing.length = 0;
-            _super.prototype.removeChildren.call(this);
-        };
-        return TileMapLayer;
-    }(jy.BaseLayer));
-    jy.TileMapLayer = TileMapLayer;
-    __reflect(TileMapLayer.prototype, "jy.TileMapLayer");
-    TileMapLayer.checkRect = checkRect;
-    /**
-    * TileMap
-    */
-    var TileMap = /** @class */ (function (_super) {
-        __extends(TileMap, _super);
-        function TileMap() {
-            return _super.call(this) || this;
-        }
-        TileMap.prototype.reset = function (col, row, uri) {
-            this.col = col;
-            this.row = row;
-            this.uri = uri;
-            this.url = jy.ConfigUtils.getResUrl(uri);
-        };
-        TileMap.prototype.load = function () {
-            jy.Res.load(this.uri, this.url, jy.CallbackInfo.get(this.loadComplete, this));
-        };
-        /**
-         * 资源加载完成
-         */
-        TileMap.prototype.loadComplete = function (item) {
-            var _a = item, data = _a.data, uri = _a.uri;
-            if (!data) { //没有data说明加载资源失败
-                return;
-            }
-            if (uri == this.uri) {
-                if (data.textureWidth == 1 && data.textureHeight == 1) { //检查纹理大小，如果是 1×1 则为特殊图片，不被加到舞台上
-                    this.empty = true; //只标记，不在此帧从舞台移除
-                    this.isStatic = true; //将这类资源标记为静态，永远不销毁，因为本身基本不占用内存
-                    data.dispose();
-                    this.texture = undefined;
-                    var parent_4 = this.parent;
-                    if (parent_4 instanceof TileMapLayer) {
-                        jy.Global.callLater(checkEmpty, 500 /* 设置为500是因为可能有多张1*1的空图片加载，减少刷新次数 */, parent_4);
-                    }
-                }
-                else {
-                    this.texture = data;
-                }
-            }
-        };
-        TileMap.prototype.dispose = function () {
-            var texture = this.texture;
-            if (texture) {
-                this.texture = undefined;
-                texture.dispose();
-            }
-        };
-        return TileMap;
-    }(egret.Bitmap));
-    jy.TileMap = TileMap;
-    __reflect(TileMap.prototype, "jy.TileMap", ["jy.IResource"]);
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
     /**
      * 坐标偏移数据
      */
@@ -13054,6 +13028,360 @@ var jy;
     }());
     jy.Astar = Astar;
     __reflect(Astar.prototype, "jy.Astar", ["jy.PathFinder"]);
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    if (true) {
+        jy.regPathSol(0 /* Grid */, function (x, y, w, h, map) {
+            var gp = this.debugGridPanes;
+            if (!gp) {
+                this.debugGridPanes = gp = [];
+            }
+            var k = 0;
+            if ($gm.$showMapGrid) {
+                var tex = this.debugGridTexture;
+                var gridWidth = map.gridWidth, gridHeight = map.gridHeight;
+                var hw = gridWidth >> 1;
+                var hh = gridHeight >> 1;
+                if (!tex) {
+                    var s = new egret.Shape;
+                    var g = s.graphics;
+                    g.lineStyle(1, 0xcccc);
+                    g.beginFill(0xcccc, 0.5);
+                    g.drawRect(0, 0, gridWidth, gridHeight);
+                    g.endFill();
+                    var tex_1 = new egret.RenderTexture();
+                    tex_1.drawToTexture(s);
+                    this.debugGridTexture = tex_1;
+                }
+                for (var i = x / gridWidth >> 0, len = i + w / gridWidth + 1, jstart = y / gridHeight >> 0, jlen = jstart + h / gridHeight + 1; i < len; i++) {
+                    for (var j = jstart; j < jlen; j++) {
+                        if (!map.getWalk(i, j)) {
+                            var s = gp[k];
+                            if (!s) {
+                                gp[k] = s = new egret.Bitmap();
+                            }
+                            s.texture = tex;
+                            this.addChild(s);
+                            k++;
+                            s.x = i * gridWidth - hw;
+                            s.y = j * gridHeight - hh;
+                        }
+                    }
+                }
+            }
+            for (var i = k; i < gp.length; i++) {
+                var bmp = gp[i];
+                bmp.texture = null;
+                jy.removeDisplay(bmp);
+            }
+            gp.length = k;
+        });
+    }
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    var Point = egret.Point;
+    var Triangle = /** @class */ (function () {
+        function Triangle() {
+            this.pA = new Point;
+            this.pB = new Point;
+            this.pC = new Point;
+            this.sides = [new jy.Line, new jy.Line, new jy.Line];
+            this.center = new Point;
+        }
+        Triangle.prototype.setPoints = function (p1, p2, p3) {
+            var _a = this, pA = _a.pA, pB = _a.pB, pC = _a.pC;
+            pA.copyFrom(p1);
+            pB.copyFrom(p2);
+            pC.copyFrom(p3);
+            this._calced = false;
+            return this;
+        };
+        Triangle.prototype.calculateData = function () {
+            if (!this._calced) {
+                var _a = this, pA = _a.pA, pB = _a.pB, pC = _a.pC, center = _a.center;
+                center.setTo((pA.x + pB.x + pC.x) / 3, (pA.y + pB.y + pC.y) / 3);
+                var sides = this.sides;
+                sides[0 /* SideAB */].setPoints(pA, pB); // line AB
+                sides[1 /* SideBC */].setPoints(pB, pC); // line BC
+                sides[2 /* SideCA */].setPoints(pC, pA); // line CA
+                this._calced = true;
+            }
+        };
+        /**
+         * 检查点是否在三角形中间
+         * @param testPoint
+         */
+        Triangle.prototype.isPointIn = function (testPoint) {
+            this.calculateData();
+            // 点在所有边的右面或者线上
+            return this.sides.every(function (side) {
+                return side.classifyPoint(testPoint, 0.000001 /* Epsilon */) != 1 /* LeftSide */;
+            });
+        };
+        return Triangle;
+    }());
+    jy.Triangle = Triangle;
+    __reflect(Triangle.prototype, "jy.Triangle");
+    var distance = Point.distance;
+    function getMidPoint(midPoint, pA, pB) {
+        midPoint.setTo((pA.x + pB.x) / 2, (pA.y + pB.y) / 2);
+        return midPoint;
+    }
+    /**
+      * 获得两个点的相邻的三角形
+      * @param pA
+      * @param pB
+      * @param caller true 如果提供的两个点是caller的一个边
+      */
+    function requestLink(pA, pB, caller, target) {
+        var pointA = target.pA, pointB = target.pB, pointC = target.pC;
+        var links = target.links;
+        var index = caller.index;
+        if (pointA.equals(pA)) {
+            if (pointB.equals(pB)) {
+                links[0 /* SideAB */] = index;
+                return true;
+            }
+            else if (pointC.equals(pB)) {
+                links[2 /* SideCA */] = index;
+                return true;
+            }
+        }
+        else if (pointB.equals(pA)) {
+            if (pointA.equals(pB)) {
+                links[0 /* SideAB */] = index;
+                return true;
+            }
+            else if (pointC.equals(pB)) {
+                links[1 /* SideBC */] = index;
+                return true;
+            }
+        }
+        else if (pointC.equals(pA)) {
+            if (pointA.equals(pB)) {
+                links[2 /* SideCA */] = index;
+                return true;
+            }
+            else if (pointB.equals(pB)) {
+                links[1 /* SideBC */] = index;
+                return true;
+            }
+        }
+    }
+    var Cell = /** @class */ (function (_super) {
+        __extends(Cell, _super);
+        function Cell() {
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this.links = [-1, -1, -1];
+            /**
+             * 每边的中点
+             */
+            _this.m_WallMidpoint = [new Point, new Point, new Point];
+            _this.m_WallDistance = [0, 0, 0];
+            _this.m_ArrivalWall = -1;
+            return _this;
+        }
+        Cell.prototype.init = function () {
+            this.calculateData();
+            var _a = this, m_WallMidpoint = _a.m_WallMidpoint, m_WallDistance = _a.m_WallDistance, pA = _a.pA, pB = _a.pB, pC = _a.pC;
+            var mAB = getMidPoint(m_WallMidpoint[0 /* SideAB */], pA, pB);
+            var mBC = getMidPoint(m_WallMidpoint[1 /* SideBC */], pB, pC);
+            var mCA = getMidPoint(m_WallMidpoint[2 /* SideCA */], pC, pA);
+            m_WallDistance[0] = distance(mAB, mBC);
+            m_WallDistance[1] = distance(mCA, mBC);
+            m_WallDistance[2] = distance(mAB, mCA);
+        };
+        /**
+         * 检查并设置当前三角型与`cellB`的连接关系（方法会同时设置`cellB`与该三角型的连接）
+         * @param cellB
+         */
+        Cell.prototype.checkAndLink = function (cellB) {
+            var _a = this, pA = _a.pA, pB = _a.pB, pC = _a.pC, links = _a.links;
+            var idx = cellB.index;
+            if (links[0 /* SideAB */] == -1 && requestLink(pA, pB, this, cellB)) {
+                links[0 /* SideAB */] = idx;
+            }
+            else if (links[1 /* SideBC */] == -1 && requestLink(pB, pC, this, cellB)) {
+                links[1 /* SideBC */] = idx;
+            }
+            else if (links[2 /* SideCA */] == -1 && requestLink(pC, pA, this, cellB)) {
+                links[1 /* SideBC */] = idx;
+            }
+        };
+        /**
+         * 记录路径从上一个节点进入该节点的边（如果从终点开始寻路即为穿出边）
+         * @param index	路径上一个节点的索引
+         */
+        Cell.prototype.setAndGetArrivalWall = function (index) {
+            var m_ArrivalWall = -1;
+            var links = this.links;
+            if (index == links[0]) {
+                m_ArrivalWall = 0;
+            }
+            else if (index == links[1]) {
+                m_ArrivalWall = 1;
+            }
+            else if (index == links[2]) {
+                m_ArrivalWall = 2;
+            }
+            if (m_ArrivalWall != -1) {
+                this.m_ArrivalWall = m_ArrivalWall;
+            }
+            return m_ArrivalWall;
+        };
+        Cell.prototype.calcH = function (goal) {
+            var _a = this.center, x = _a.x, y = _a.y;
+            var dx = Math.abs(goal.x - x);
+            var dy = Math.abs(goal.y - y);
+            this.h = dx + dy;
+        };
+        return Cell;
+    }(Triangle));
+    jy.Cell = Cell;
+    __reflect(Cell.prototype, "jy.Cell");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    var Point = egret.Point;
+    function getDirection(pA, pB) {
+        var pt = pB.subtract(pA);
+        var direction = new Point(pt.x, pt.y);
+        direction.normalize(1);
+        return direction;
+    }
+    function dot(pA, pB) {
+        return pA.x * pB.x + pA.y * pB.y;
+    }
+    var Line = /** @class */ (function () {
+        function Line() {
+            this.pA = new Point;
+            this.pB = new Point;
+        }
+        Line.prototype.setPoints = function (pA, pB) {
+            this.pA.copyFrom(pA);
+            this.pB.copyFrom(pB);
+            this.calcedNormal = false;
+            return this;
+        };
+        Line.prototype.computeNormal = function () {
+            if (!this.calcedNormal) {
+                // Get Normailized direction from A to B
+                var m_Normal = getDirection(this.pA, this.pB);
+                // Rotate by -90 degrees to get normal of line
+                // Rotate by +90 degrees to get normal of line
+                var oldYValue = m_Normal.y;
+                m_Normal.y = m_Normal.x;
+                m_Normal.x = -oldYValue;
+                this.m_Normal = m_Normal;
+                this.calcedNormal = true;
+            }
+        };
+        Line.prototype.signedDistance = function (point) {
+            this.computeNormal();
+            var v2f = point.subtract(this.pA);
+            return dot(this.m_Normal, v2f);
+        };
+        /**
+         * 检查点的位置
+         * @param point 要检查的点
+         * @param epsilon 精度
+         */
+        Line.prototype.classifyPoint = function (point, epsilon) {
+            if (epsilon === void 0) { epsilon = 0.000001; }
+            var result = 0 /* OnLine */;
+            var distance = this.signedDistance(point);
+            if (distance > epsilon) {
+                result = 2 /* RightSide */;
+            }
+            else if (distance < -epsilon) {
+                result = 1 /* LeftSide */;
+            }
+            return result;
+        };
+        Line.prototype.intersection = function (other, intersectPoint) {
+            var _a = other.pA, opAX = _a.x, opAY = _a.y, _b = other.pB, opBX = _b.x, opBY = _b.y;
+            var _c = this, _d = _c.pA, pAX = _d.x, pAY = _d.y, _e = _c.pB, pBX = _e.x, pBY = _e.y;
+            var denom = (opBY - opAY) * (pBX - pAX) -
+                (opBX - opAX) * (pBY - pAY);
+            var u0 = (opBX - opAX) * (pAY - opAY) -
+                (opBY - opAY) * (pAX - opAX);
+            var u1 = (opAX - pAX) * (pBY - pAY) -
+                (opAY - pAY) * (pBX - pAX);
+            if (denom == 0) {
+                if (u0 == 0 && u1 == 0) {
+                    return 0 /* Collinear */;
+                }
+                else {
+                    return 5 /* Paralell */;
+                }
+            }
+            else {
+                u0 = u0 / denom;
+                u1 = u1 / denom;
+                var x = pAX + u0 * (pBX - pAX);
+                var y = pAY + u0 * (pBY - pAY);
+                if (intersectPoint) {
+                    intersectPoint.setTo(x, y);
+                }
+                if ((u0 >= 0.0) && (u0 <= 1.0) && (u1 >= 0.0) && (u1 <= 1.0)) {
+                    return 2 /* SegmentsIntersect */;
+                }
+                else if ((u1 >= 0.0) && (u1 <= 1.0)) {
+                    return (3 /* ABisectB */);
+                }
+                else if ((u0 >= 0.0) && (u0 <= 1.0)) {
+                    return (4 /* BBisectA */);
+                }
+                return 1 /* LinesIntersect */;
+            }
+        };
+        Line.prototype.equals = function (line) {
+            var _a = this, pA = _a.pA, pB = _a.pB;
+            var lpA = line.pA, lpB = line.pB;
+            return pA.equals(lpA) && pB.equals(lpB) || pA.equals(lpB) && pB.equals(lpA);
+        };
+        return Line;
+    }());
+    jy.Line = Line;
+    __reflect(Line.prototype, "jy.Line");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    var rect = new egret.Rectangle;
+    if (true) {
+        jy.regPathSol(1 /* NavMesh */, function (x, y, w, h, map) {
+            var gp = this.debugPane;
+            if (!gp) {
+                this.debugPane = gp = new egret.Shape;
+            }
+            if ($gm.$showMapGrid) {
+                var trangles = map.cells;
+                var g = gp.graphics;
+                g.clear();
+                if (trangles) {
+                    rect.setTo(x, y, w, h);
+                    g.lineStyle(2, 0xff00);
+                    for (var i = 0; i < trangles.length; i++) {
+                        var _a = trangles[i], pA = _a.pA, pB = _a.pB, pC = _a.pC;
+                        if (rect.containsPoint(pA) || rect.containsPoint(pB) || rect.containsPoint(pC)) {
+                            g.beginFill(0xff00, 0.1);
+                            g.moveTo(pA.x, pA.y);
+                            g.lineTo(pB.x, pB.y);
+                            g.lineTo(pC.x, pC.y);
+                            g.lineTo(pA.x, pA.y);
+                            g.endFill();
+                        }
+                    }
+                    this.addChild(gp);
+                }
+            }
+            else {
+                jy.removeDisplay(gp);
+            }
+        });
+    }
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
