@@ -3,19 +3,30 @@ namespace jy {
 
     export class Triangle {
 
-        readonly pA = new Point;
-        readonly pB = new Point;
-        readonly pC = new Point;
+        readonly pA: Point;
+        readonly pB: Point;
+        readonly pC: Point;
 
 
-        protected sides = [new Line, new Line, new Line];
-
-        center = new Point as Readonly<Point>;
+        sides = [new Line, new Line, new Line];
+        /**
+         * 三角的中心x
+         */
+        readonly x = 0;
+        /**
+         * 三角的中心y
+         */
+        readonly y = 0;
         /**
          * 数据是否计算过
          */
-        protected _calced: boolean;
+        protected _calced = false;
 
+        constructor(p1?: Point, p2?: Point, p3?: Point) {
+            this.pA = p1 || new Point;
+            this.pB = p2 || new Point;
+            this.pC = p3 || new Point;
+        }
 
         setPoints(p1: Point, p2: Point, p3: Point) {
             const { pA, pB, pC } = this;
@@ -28,11 +39,11 @@ namespace jy {
 
         calculateData() {
             if (!this._calced) {
-                const { pA, pB, pC, center } = this;
-                center.setTo(
-                    (pA.x + pB.x + pC.x) / 3,
-                    (pA.y + pB.y + pC.y) / 3
-                )
+                const { pA, pB, pC } = this;
+                //@ts-ignore
+                this.x = (pA.x + pB.x + pC.x) / 3;
+                //@ts-ignore
+                this.y = (pA.y + pB.y + pC.y) / 3;
                 const sides = this.sides;
                 sides[TrangleSideIndex.SideAB].setPoints(pA, pB); // line AB
                 sides[TrangleSideIndex.SideBC].setPoints(pB, pC); // line BC
@@ -68,31 +79,29 @@ namespace jy {
       * @param pB 
       * @param caller true 如果提供的两个点是caller的一个边
       */
-    function requestLink(pA: Point, pB: Point, caller: Cell, target: Cell) {
-        const { pA: pointA, pB: pointB, pC: pointC } = target;
-        const links = target.links;
-        let index = caller.index;
-        if (pointA.equals(pA)) {
-            if (pointB.equals(pB)) {
+    function requestLink(pA: Point, pB: Point, index: number, target: Cell) {
+        const { pA: pointA, pB: pointB, pC: pointC, links } = target;
+        if (pointA == pA) {
+            if (pointB == pB) {
                 links[TrangleSideIndex.SideAB] = index;
                 return true;
-            } else if (pointC.equals(pB)) {
+            } else if (pointC == pB) {
                 links[TrangleSideIndex.SideCA] = index;
                 return true;
             }
-        } else if (pointB.equals(pA)) {
-            if (pointA.equals(pB)) {
+        } else if (pointB == pA) {
+            if (pointA == pB) {
                 links[TrangleSideIndex.SideAB] = index;
                 return true;
-            } else if (pointC.equals(pB)) {
+            } else if (pointC == pB) {
                 links[TrangleSideIndex.SideBC] = index;
                 return true;
             }
-        } else if (pointC.equals(pA)) {
-            if (pointA.equals(pB)) {
+        } else if (pointC == pA) {
+            if (pointA == pB) {
                 links[TrangleSideIndex.SideCA] = index;
                 return true;
-            } else if (pointB.equals(pB)) {
+            } else if (pointB == pB) {
                 links[TrangleSideIndex.SideBC] = index;
                 return true;
             }
@@ -110,7 +119,7 @@ namespace jy {
 
         sessionId = 0;
 
-        index: number;
+        idx: number;
 
         links = [-1, -1, -1] as { [idx in TrangleSideIndex]: number };
 
@@ -141,13 +150,13 @@ namespace jy {
          * @param cellB 
          */
         checkAndLink(cellB: Cell): void {
-            const { pA, pB, pC, links } = this;
-            let idx = cellB.index;
-            if (links[TrangleSideIndex.SideAB] == -1 && requestLink(pA, pB, this, cellB)) {
+            const { pA, pB, pC, links, idx: index } = this;
+            let idx = cellB.idx;
+            if (links[TrangleSideIndex.SideAB] == -1 && requestLink(pA, pB, index, cellB)) {
                 links[TrangleSideIndex.SideAB] = idx;
-            } else if (links[TrangleSideIndex.SideBC] == -1 && requestLink(pB, pC, this, cellB)) {
+            } else if (links[TrangleSideIndex.SideBC] == -1 && requestLink(pB, pC, index, cellB)) {
                 links[TrangleSideIndex.SideBC] = idx;
-            } else if (links[TrangleSideIndex.SideCA] == -1 && requestLink(pC, pA, this, cellB)) {
+            } else if (links[TrangleSideIndex.SideCA] == -1 && requestLink(pC, pA, index, cellB)) {
                 links[TrangleSideIndex.SideBC] = idx;
             }
         }
@@ -155,7 +164,7 @@ namespace jy {
          * 记录路径从上一个节点进入该节点的边（如果从终点开始寻路即为穿出边）
          * @param index	路径上一个节点的索引
          */
-        setAndGetArrivalWall(index: number) {
+        setWall(index: number) {
             let m_ArrivalWall = -1;
             const links = this.links;
             if (index == links[0]) {
@@ -169,13 +178,6 @@ namespace jy {
                 this.m_ArrivalWall = m_ArrivalWall;
             }
             return m_ArrivalWall;
-        }
-
-        calcH(goal: Point) {
-            let { x, y } = this.center;
-            let dx = Math.abs(goal.x - x);
-            let dy = Math.abs(goal.y - y);
-            this.h = dx + dy;
         }
 
     }

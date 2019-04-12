@@ -11,6 +11,16 @@ namespace jy {
          * 格子高度
          */
         gridHeight: number;
+        
+        /**
+         * 地图格子列数
+         */
+        columns: number;
+
+        /**
+         * 地图格子行数
+         */
+        rows: number;
     }
 
     interface GridPathDraw {

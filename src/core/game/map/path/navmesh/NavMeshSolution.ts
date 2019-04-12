@@ -1,5 +1,9 @@
 namespace jy {
     export interface NavMeshMapInfo extends MapInfo {
+        /**
+         * 网格是否链接过
+         */
+        linked: boolean;
         cells: Cell[];
     }
 

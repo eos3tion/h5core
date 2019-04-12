@@ -26,6 +26,18 @@ namespace jy {
          */
         m_Normal: Point;
 
+        setPA(pt: Point) {
+            this.pA.copyFrom(pt);
+            this.calcedNormal = false;
+            return this;
+        }
+
+        setPB(pt: Point) {
+            this.pB.copyFrom(pt);
+            this.calcedNormal = false;
+            return this;
+        }
+
         setPoints(pA: Point, pB: Point) {
             this.pA.copyFrom(pA);
             this.pB.copyFrom(pB);
@@ -58,7 +70,7 @@ namespace jy {
          * @param point 要检查的点
          * @param epsilon 精度
          */
-        classifyPoint(point: Point, epsilon = 0.000001) {
+        classifyPoint(point: Point, epsilon = NavMeshConst.Epsilon) {
             let result = PointClassification.OnLine;
             let distance = this.signedDistance(point);
             if (distance > epsilon) {

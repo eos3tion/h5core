@@ -3602,6 +3602,10 @@ if (true) {
     $gm.toggleMapGrid = function () {
         this.$showMapGrid = !this.$showMapGrid;
     };
+    $gm.pathSolution = {};
+    $gm.regPathDraw = function (type, handler) {
+        $gm.pathSolution[type] = handler;
+    };
 }
 var jy;
 (function (jy) {
@@ -3652,11 +3656,6 @@ var jy;
         }
         showing.length = j;
     }
-    var pathSolution = {};
-    function regPathSol(type, handler) {
-        pathSolution[type] = handler;
-    }
-    jy.regPathSol = regPathSol;
     /**
     * MapRender
     * 用于处理地图平铺的渲染
@@ -3692,7 +3691,7 @@ var jy;
                 if (value != this._currentMap) {
                     this._currentMap = value;
                     if (true) {
-                        this.drawGrid = pathSolution[~~value.pathType];
+                        this.drawGrid = $gm.pathSolution[~~value.pathType];
                     }
                 }
             },
@@ -9343,6 +9342,121 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
+    function defaultCompare(a, b) {
+        return a - b;
+    }
+    /**
+     * 固定大小的堆栈数据
+     */
+    var Heap = /** @class */ (function () {
+        function Heap(size, compare) {
+            if (compare === void 0) { compare = defaultCompare; }
+            var maxSize = size + 1;
+            this.heap = new Array(maxSize);
+            this.maxSize = maxSize;
+            this.compare = compare;
+            this._count = 0;
+        }
+        /**
+         * 获取堆中，第一个元素
+         */
+        Heap.prototype.peek = function () {
+            return this.heap[1];
+        };
+        Heap.prototype.put = function (obj) {
+            var _a = this, _count = _a._count, maxSize = _a.maxSize, heap = _a.heap, compare = _a.compare;
+            _count++;
+            if (_count < maxSize) {
+                heap[_count] = obj;
+                var i = _count;
+                var parent_3 = i >> 1;
+                var tmp = heap[i];
+                while (parent_3 > 0) {
+                    var v = heap[parent_3];
+                    if (compare(tmp, v) > 0) {
+                        heap[i] = v;
+                        i = parent_3;
+                        parent_3 >>= 1;
+                    }
+                    else
+                        break;
+                }
+                heap[i] = tmp;
+                this._count = _count;
+                return true;
+            }
+        };
+        Heap.prototype.pop = function () {
+            var _a = this, _count = _a._count, heap = _a.heap, compare = _a.compare;
+            if (_count >= 1) {
+                var o = heap[1];
+                heap[1] = heap[_count];
+                heap[_count] = undefined;
+                var i = 1;
+                var child = 2;
+                var tmp = heap[i];
+                var _count_1 = _count - 1;
+                while (child < _count) {
+                    if (child < _count_1 && compare(heap[child], heap[child + 1]) < 0) {
+                        child++;
+                    }
+                    var v = heap[child];
+                    if (compare(tmp, v) < 0) {
+                        heap[i] = v;
+                        i = child;
+                        child <<= 1;
+                    }
+                    else
+                        break;
+                }
+                this._count = _count - 1;
+                return o;
+            }
+        };
+        Heap.prototype.clear = function (newSize) {
+            var heap = this.heap;
+            heap.length = 0;
+            var maxSize = this.maxSize;
+            if (newSize > 0) {
+                maxSize = newSize + 1;
+                //@ts-ignore
+                this.maxSize = maxSize;
+            }
+            heap.length = maxSize;
+            this._count = 0;
+        };
+        Object.defineProperty(Heap.prototype, "size", {
+            get: function () {
+                return this._count;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Heap.prototype.toArray = function () {
+            return this.heap.slice(1, this._count + 1);
+        };
+        /**
+         * 遍历堆中元素
+         * @param callbackfn 回调函数，如果返回true，停止遍历
+         * @param thisArg 回调函数的 this 指针
+         */
+        Heap.prototype.forEach = function (callbackfn, thisArg) {
+            var _a = this, heap = _a.heap, _count = _a._count;
+            _count++;
+            for (var i = 1; i < _count; i++) {
+                var v = heap[i];
+                if (v != undefined && callbackfn.call(thisArg, v, i, this)) {
+                    break;
+                }
+            }
+        };
+        return Heap;
+    }());
+    jy.Heap = Heap;
+    __reflect(Heap.prototype, "jy.Heap");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 项目中不使用long类型，此值暂时只用于存储Protobuff中的int64 sint64
      * @author
@@ -11170,9 +11284,9 @@ var jy;
         };
         GameEngine.prototype.addLayer = function (layer, cfg) {
             if (cfg && cfg.parentid) {
-                var parent_3 = this.getLayer(cfg.parentid);
-                if (parent_3 instanceof egret.DisplayObjectContainer) {
-                    this.addLayerToContainer(layer, parent_3);
+                var parent_4 = this.getLayer(cfg.parentid);
+                if (parent_4 instanceof egret.DisplayObjectContainer) {
+                    this.addLayerToContainer(layer, parent_4);
                 }
             }
             else {
@@ -11667,14 +11781,14 @@ var jy;
                     display.scaleX = display.scaleY = scale;
                 }
                 stop = option.stop;
-                var parent_4 = option.parent;
-                if (parent_4) {
+                var parent_5 = option.parent;
+                if (parent_5) {
                     var idx = option.childIdx;
                     if (idx == undefined) {
-                        parent_4.addChild(display);
+                        parent_5.addChild(display);
                     }
                     else {
-                        parent_4.addChildAt(display, idx);
+                        parent_5.addChildAt(display, idx);
                     }
                 }
                 var loop = option.loop;
@@ -13032,7 +13146,7 @@ var jy;
 var jy;
 (function (jy) {
     if (true) {
-        jy.regPathSol(0 /* Grid */, function (x, y, w, h, map) {
+        $gm.regPathDraw(0 /* Grid */, function (x, y, w, h, map) {
             var gp = this.debugGridPanes;
             if (!gp) {
                 this.debugGridPanes = gp = [];
@@ -13083,12 +13197,23 @@ var jy;
 (function (jy) {
     var Point = egret.Point;
     var Triangle = /** @class */ (function () {
-        function Triangle() {
-            this.pA = new Point;
-            this.pB = new Point;
-            this.pC = new Point;
+        function Triangle(p1, p2, p3) {
             this.sides = [new jy.Line, new jy.Line, new jy.Line];
-            this.center = new Point;
+            /**
+             * 三角的中心x
+             */
+            this.x = 0;
+            /**
+             * 三角的中心y
+             */
+            this.y = 0;
+            /**
+             * 数据是否计算过
+             */
+            this._calced = false;
+            this.pA = p1 || new Point;
+            this.pB = p2 || new Point;
+            this.pC = p3 || new Point;
         }
         Triangle.prototype.setPoints = function (p1, p2, p3) {
             var _a = this, pA = _a.pA, pB = _a.pB, pC = _a.pC;
@@ -13100,8 +13225,11 @@ var jy;
         };
         Triangle.prototype.calculateData = function () {
             if (!this._calced) {
-                var _a = this, pA = _a.pA, pB = _a.pB, pC = _a.pC, center = _a.center;
-                center.setTo((pA.x + pB.x + pC.x) / 3, (pA.y + pB.y + pC.y) / 3);
+                var _a = this, pA = _a.pA, pB = _a.pB, pC = _a.pC;
+                //@ts-ignore
+                this.x = (pA.x + pB.x + pC.x) / 3;
+                //@ts-ignore
+                this.y = (pA.y + pB.y + pC.y) / 3;
                 var sides = this.sides;
                 sides[0 /* SideAB */].setPoints(pA, pB); // line AB
                 sides[1 /* SideBC */].setPoints(pB, pC); // line BC
@@ -13138,7 +13266,7 @@ var jy;
     function requestLink(pA, pB, caller, target) {
         var pointA = target.pA, pointB = target.pB, pointC = target.pC;
         var links = target.links;
-        var index = caller.index;
+        var index = caller.idx;
         if (pointA.equals(pA)) {
             if (pointB.equals(pB)) {
                 links[0 /* SideAB */] = index;
@@ -13174,6 +13302,11 @@ var jy;
         __extends(Cell, _super);
         function Cell() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this.f = 0;
+            _this.h = 0;
+            _this.isOpen = false;
+            _this.parent = null;
+            _this.sessionId = 0;
             _this.links = [-1, -1, -1];
             /**
              * 每边的中点
@@ -13199,7 +13332,7 @@ var jy;
          */
         Cell.prototype.checkAndLink = function (cellB) {
             var _a = this, pA = _a.pA, pB = _a.pB, pC = _a.pC, links = _a.links;
-            var idx = cellB.index;
+            var idx = cellB.idx;
             if (links[0 /* SideAB */] == -1 && requestLink(pA, pB, this, cellB)) {
                 links[0 /* SideAB */] = idx;
             }
@@ -13214,7 +13347,7 @@ var jy;
          * 记录路径从上一个节点进入该节点的边（如果从终点开始寻路即为穿出边）
          * @param index	路径上一个节点的索引
          */
-        Cell.prototype.setAndGetArrivalWall = function (index) {
+        Cell.prototype.setWall = function (index) {
             var m_ArrivalWall = -1;
             var links = this.links;
             if (index == links[0]) {
@@ -13230,12 +13363,6 @@ var jy;
                 this.m_ArrivalWall = m_ArrivalWall;
             }
             return m_ArrivalWall;
-        };
-        Cell.prototype.calcH = function (goal) {
-            var _a = this.center, x = _a.x, y = _a.y;
-            var dx = Math.abs(goal.x - x);
-            var dy = Math.abs(goal.y - y);
-            this.h = dx + dy;
         };
         return Cell;
     }(Triangle));
@@ -13259,6 +13386,16 @@ var jy;
             this.pA = new Point;
             this.pB = new Point;
         }
+        Line.prototype.setPA = function (pt) {
+            this.pA.copyFrom(pt);
+            this.calcedNormal = false;
+            return this;
+        };
+        Line.prototype.setPB = function (pt) {
+            this.pB.copyFrom(pt);
+            this.calcedNormal = false;
+            return this;
+        };
         Line.prototype.setPoints = function (pA, pB) {
             this.pA.copyFrom(pA);
             this.pB.copyFrom(pB);
@@ -13289,7 +13426,7 @@ var jy;
          * @param epsilon 精度
          */
         Line.prototype.classifyPoint = function (point, epsilon) {
-            if (epsilon === void 0) { epsilon = 0.000001; }
+            if (epsilon === void 0) { epsilon = 0.000001 /* Epsilon */; }
             var result = 0 /* OnLine */;
             var distance = this.signedDistance(point);
             if (distance > epsilon) {
@@ -13347,11 +13484,241 @@ var jy;
     jy.Line = Line;
     __reflect(Line.prototype, "jy.Line");
 })(jy || (jy = {}));
+//参考项目 https://github.com/blianchen/navMeshTest
+var jy;
+(function (jy) {
+    var Point = egret.Point;
+    var tmpPoint = new Point;
+    /**
+     * 获取格子
+     * @param pt
+     * @param cells
+     */
+    function findClosestCell(x, y, cells) {
+        tmpPoint.setTo(x, y);
+        for (var i = 0; i < cells.length; i++) {
+            var cell = cells[i];
+            if (cell.isPointIn(tmpPoint)) {
+                return cell;
+            }
+        }
+    }
+    var WayPoint = /** @class */ (function () {
+        function WayPoint() {
+        }
+        return WayPoint;
+    }());
+    __reflect(WayPoint.prototype, "WayPoint");
+    function calcH(tx, ty, x, y) {
+        var tmp2 = tx - x;
+        tmp2 = tmp2 < 0 ? -tmp2 : tmp2;
+        var tmp3 = ty - y;
+        tmp3 = tmp3 < 0 ? -tmp3 : tmp3;
+        return tmp2 + tmp3;
+    }
+    function getWayPoint(cell, postion) {
+        var wp = jy.recyclable(WayPoint);
+        wp.cell = cell;
+        wp.postion = postion;
+        return wp;
+    }
+    /**
+     * 将格子进行链接，方便寻路
+     * @param pv
+     */
+    function linkCells(pv) {
+        var len = pv.length;
+        for (var i = 0; i < len; i++) {
+            var cellA = pv[i];
+            for (var j = 0; j < len; j++) {
+                var cellB = pv[j];
+                if (cellA != cellB) {
+                    cellA.checkAndLink(cellB);
+                }
+            }
+        }
+    }
+    var empty = jy.Temp.EmptyObject;
+    var pathSessionId = 0;
+    function compare(a, b) {
+        return b.f - a.f;
+    }
+    var NavMeshFinder = /** @class */ (function () {
+        function NavMeshFinder() {
+            this.openList = new jy.Heap(0, compare);
+        }
+        NavMeshFinder.prototype.bindMap = function (map) {
+            this.map = map;
+            if (!map.linked) {
+                linkCells(map.cells);
+                map.linked = true;
+            }
+            this.openList.clear(map.cells.length);
+        };
+        NavMeshFinder.prototype.getPath = function (fx, fy, tx, ty, callback, opt) {
+            var map = this.map;
+            var startPos = new Point(fx, fy);
+            var endPos = new Point(tx, ty);
+            if (!map) {
+                callback.callAndRecycle(null, true);
+                return;
+            }
+            if (fx == tx && fy == ty) {
+                callback.callAndRecycle(null, true);
+                return;
+            }
+            var cells = map.cells;
+            if (!cells) {
+                callback.callAndRecycle([endPos], true);
+                return;
+            }
+            var startCell = findClosestCell(fx, fy, cells);
+            if (!startCell) {
+                callback.callAndRecycle(null, true);
+                return;
+            }
+            var endCell = findClosestCell(tx, ty, cells);
+            if (!endCell) {
+                callback.callAndRecycle(null, true);
+                return;
+            }
+            //其实和结束的格位相同
+            if (startCell == endCell) {
+                callback.callAndRecycle([endPos], true);
+                return;
+            }
+            pathSessionId++;
+            endCell.f = 0;
+            endCell.h = 0;
+            endCell.isOpen = false;
+            endCell.parent = null;
+            endCell.sessionId = pathSessionId;
+            var openList = this.openList;
+            openList.clear();
+            openList.put(endCell);
+            var node;
+            while (openList.size > 0) {
+                var currNode = openList.pop();
+                //路径是在同一个三角形内
+                if (currNode == startCell) {
+                    node = currNode;
+                    break;
+                }
+                // 2. 对当前节点相邻的每一个节点依次执行以下步骤:
+                //所有邻接三角型
+                var links = currNode.links;
+                for (var i = 0; i < 3; i++) {
+                    var adjacentId = links[i];
+                    // 3. 如果该相邻节点不可通行或者该相邻节点已经在封闭列表中,
+                    //    则什么操作也不执行,继续检验下一个节点;
+                    if (adjacentId < 0) { //不能通过
+                        continue;
+                    }
+                    var adjacentTmp = cells[adjacentId];
+                    if (adjacentTmp) {
+                        var f = adjacentTmp.m_WallDistance[Math.abs(i - currNode.m_ArrivalWall)] || 0;
+                        if (adjacentTmp.sessionId != pathSessionId) {
+                            // 4. 如果该相邻节点不在开放列表中,则将该节点添加到开放列表中, 
+                            //    并将该相邻节点的父节点设为当前节点,同时保存该相邻节点的G和F值;
+                            adjacentTmp.sessionId = pathSessionId;
+                            adjacentTmp.parent = currNode;
+                            adjacentTmp.isOpen = true;
+                            //H和F值
+                            adjacentTmp.h = calcH(fx, fy, adjacentTmp.x, adjacentTmp.y);
+                            adjacentTmp.f = currNode.f + f;
+                            //放入开放列表并排序
+                            openList.put(adjacentTmp);
+                            adjacentTmp.setWall(currNode.idx);
+                        }
+                        else {
+                            // 5. 如果该相邻节点在开放列表中, 
+                            //    则判断若经由当前节点到达该相邻节点的G值是否小于原来保存的G值,
+                            //    若小于,则将该相邻节点的父节点设为当前节点,并重新设置该相邻节点的G和F值
+                            if (adjacentTmp.isOpen) { //已经在openList中
+                                if (currNode.f + f < adjacentTmp.f) {
+                                    adjacentTmp.f = currNode.f;
+                                    adjacentTmp.parent = currNode;
+                                    adjacentTmp.setWall(currNode.idx);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            var path;
+            if (node) {
+                path = [];
+                var cur = node;
+                while (cur) {
+                    var outSide = cur.sides[cur.m_ArrivalWall]; //路径线在网格中的穿出边
+                    var lastPtA = outSide.pA;
+                    var lastPtB = outSide.pB;
+                    var lastLineA = new jy.Line().setPoints(startPos, lastPtA);
+                    var lastLineB = new jy.Line().setPoints(startPos, lastPtB);
+                    var cell = cur.parent;
+                    cur = cell;
+                    var next = void 0;
+                    var lastPos = endPos;
+                    do {
+                        var testA = void 0, testB = void 0;
+                        next = cell.parent;
+                        if (next) {
+                            var outSide_1 = cell.sides[cell.m_ArrivalWall];
+                            testA = outSide_1.pA;
+                            testB = outSide_1.pB;
+                        }
+                        else {
+                            testA = endPos;
+                            testB = endPos;
+                        }
+                        if (!lastPtA.equals(testA)) {
+                            if (lastLineB.classifyPoint(testA) == 2 /* RightSide */) {
+                                lastPos = lastPtB;
+                                break;
+                            }
+                            else if (lastLineA.classifyPoint(testA) != 1 /* LeftSide */) {
+                                lastPtA = testA;
+                                cur = cell;
+                                lastLineA.setPB(lastPtA);
+                            }
+                        }
+                        if (!lastPtB.equals(testB)) {
+                            if (lastLineA.classifyPoint(testB) == 1 /* LeftSide */) {
+                                lastPos = lastPtA;
+                                break;
+                            }
+                            else if (lastLineB.classifyPoint(testB) != 2 /* RightSide */) {
+                                lastPtB = testB;
+                                cur = cell;
+                                lastLineB.setPB(lastPtA);
+                            }
+                        }
+                        cell = next;
+                    } while (cell);
+                    path.push(lastPos);
+                }
+            }
+            if (path) {
+                var list = [];
+                var j = 0;
+                for (var i = path.length; i > 0; i--) {
+                    list[j++] = path[i];
+                }
+                path = list;
+            }
+            callback.callAndRecycle(path, true);
+            return;
+        };
+        return NavMeshFinder;
+    }());
+    jy.NavMeshFinder = NavMeshFinder;
+    __reflect(NavMeshFinder.prototype, "jy.NavMeshFinder", ["jy.PathFinder"]);
+})(jy || (jy = {}));
 var jy;
 (function (jy) {
     var rect = new egret.Rectangle;
     if (true) {
-        jy.regPathSol(1 /* NavMesh */, function (x, y, w, h, map) {
+        $gm.regPathDraw(1 /* NavMesh */, function (x, y, w, h, map) {
             var gp = this.debugPane;
             if (!gp) {
                 this.debugPane = gp = new egret.Shape;

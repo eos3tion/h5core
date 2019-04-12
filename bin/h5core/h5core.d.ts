@@ -2629,14 +2629,6 @@ declare namespace jy {
          */
         path: string;
         /**
-         * 地图格子列数
-         */
-        columns: number;
-        /**
-         * 地图格子行数
-         */
-        rows: number;
-        /**
          * 路径类型
          * 0 走格子的
          * 1 走导航网格寻路
@@ -2698,9 +2690,12 @@ interface $gmType {
      */
     toggleMapGrid(): any;
     $showMapGrid: boolean;
+    regPathDraw(type: jy.MapPathType, handler: jy.drawPath): any;
+    pathSolution: {
+        [type in jy.MapPathType]: jy.drawPath;
+    };
 }
 declare namespace jy {
-    function regPathSol(type: MapPathType, handler: drawPath): void;
     /**
     * MapRender
     * 用于处理地图平铺的渲染
@@ -8079,6 +8074,38 @@ declare namespace jy {
 }
 declare namespace jy {
     /**
+     * 固定大小的堆栈数据
+     */
+    class Heap<T> {
+        /**
+         * 原始数据
+         */
+        readonly heap: T[];
+        readonly maxSize: number;
+        private _count;
+        readonly compare: (a: T, b: T) => number;
+        constructor(size: number, compare?: {
+            (a: T, b: T): number;
+        });
+        /**
+         * 获取堆中，第一个元素
+         */
+        peek(): T;
+        put(obj: T): boolean;
+        pop(): T;
+        clear(newSize?: number): void;
+        readonly size: number;
+        toArray(): T[];
+        /**
+         * 遍历堆中元素
+         * @param callbackfn 回调函数，如果返回true，停止遍历
+         * @param thisArg 回调函数的 this 指针
+         */
+        forEach(callbackfn: (value: T, cursor: number, heap: Heap<T>) => boolean, thisArg?: any): void;
+    }
+}
+declare namespace jy {
+    /**
      * 项目中不使用long类型，此值暂时只用于存储Protobuff中的int64 sint64
      * @author
      *
@@ -10514,6 +10541,14 @@ declare namespace jy {
          * 格子高度
          */
         gridHeight: number;
+        /**
+         * 地图格子列数
+         */
+        columns: number;
+        /**
+         * 地图格子行数
+         */
+        rows: number;
     }
 }
 declare namespace jy {
@@ -10522,12 +10557,20 @@ declare namespace jy {
         readonly pA: Point;
         readonly pB: Point;
         readonly pC: Point;
-        protected sides: Line[];
-        center: Readonly<Point>;
+        sides: Line[];
+        /**
+         * 三角的中心x
+         */
+        readonly x = 0;
+        /**
+         * 三角的中心y
+         */
+        readonly y = 0;
         /**
          * 数据是否计算过
          */
         protected _calced: boolean;
+        constructor(p1?: Point, p2?: Point, p3?: Point);
         setPoints(p1: Point, p2: Point, p3: Point): this;
         calculateData(): void;
         /**
@@ -10537,7 +10580,12 @@ declare namespace jy {
         isPointIn(testPoint: Point): boolean;
     }
     class Cell extends Triangle {
-        index: number;
+        f: number;
+        h: number;
+        isOpen: boolean;
+        parent: Cell;
+        sessionId: number;
+        idx: number;
         links: {
             0: number;
             1: number;
@@ -10553,7 +10601,6 @@ declare namespace jy {
         };
         m_WallDistance: number[];
         m_ArrivalWall: number;
-        h: number;
         init(): void;
         /**
          * 检查并设置当前三角型与`cellB`的连接关系（方法会同时设置`cellB`与该三角型的连接）
@@ -10564,8 +10611,7 @@ declare namespace jy {
          * 记录路径从上一个节点进入该节点的边（如果从终点开始寻路即为穿出边）
          * @param index	路径上一个节点的索引
          */
-        setAndGetArrivalWall(index: number): number;
-        calcH(goal: Point): void;
+        setWall(index: number): number;
     }
 }
 declare namespace jy {
@@ -10631,6 +10677,8 @@ declare namespace jy {
          * 法线
          */
         m_Normal: Point;
+        setPA(pt: Point): this;
+        setPB(pt: Point): this;
         setPoints(pA: Point, pB: Point): this;
         computeNormal(): void;
         signedDistance(point: Point): number;
@@ -10639,13 +10687,25 @@ declare namespace jy {
          * @param point 要检查的点
          * @param epsilon 精度
          */
-        classifyPoint(point: Point, epsilon?: number): PointClassification;
+        classifyPoint(point: Point, epsilon?: NavMeshConst): PointClassification;
         intersection(other: Line, intersectPoint?: Point): LineClassification;
         equals(line: Line): boolean;
     }
 }
 declare namespace jy {
+    class NavMeshFinder implements PathFinder {
+        map: NavMeshMapInfo;
+        openList: Heap<Cell>;
+        bindMap(map: NavMeshMapInfo): void;
+        getPath(fx: number, fy: number, tx: number, ty: number, callback: CallbackInfo<PathFinderCallback>, opt?: PathFinderOption): void;
+    }
+}
+declare namespace jy {
     interface NavMeshMapInfo extends MapInfo {
+        /**
+         * 网格是否链接过
+         */
+        linked: boolean;
         cells: Cell[];
     }
 }

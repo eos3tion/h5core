@@ -48,16 +48,6 @@ namespace jy {
         public path: string;
 
         /**
-         * 地图格子列数
-         */
-        public columns: number;
-
-        /**
-         * 地图格子行数
-         */
-        public rows: number;
-
-        /**
          * 路径类型  
          * 0 走格子的  
          * 1 走导航网格寻路

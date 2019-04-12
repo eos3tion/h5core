@@ -90,7 +90,7 @@ namespace jy {
          * @type {number}
          * @memberOf Astar
          */
-        public minCacTime: number = 5;
+        minCacTime = 5;
 
         public bindMap(map: GridMapInfo) {
             this._map = map;
