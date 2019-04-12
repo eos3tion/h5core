@@ -62,17 +62,6 @@ interface Object {
      */
     getSpecObject<T>(this: T, ...proNames: (keyof T)[]): object;
 }
-interface Function {
-    /**
-     * 检查当前类型是否是测试的类型的子类
-     *
-     * @param {Function} testBase
-     * @returns {boolean}
-     *
-     * @memberOf Object
-     */
-    isSubClass(testBase: Function): boolean;
-}
 /****************************************扩展Math****************************************/
 interface Math {
     /**

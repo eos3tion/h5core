@@ -151,25 +151,6 @@ Object.defineProperties(Object.prototype, jy.makeDefDescriptors({
         }
     }
 }));
-Object.defineProperties(Function.prototype, jy.makeDefDescriptors({
-    isSubClass: {
-        value: function (testBase) {
-            if (typeof testBase !== "function") {
-                return false;
-            }
-            var base = this.prototype;
-            var flag = false;
-            while (base !== null && base !== Object) {
-                if (base === testBase) {
-                    flag = true;
-                    break;
-                }
-                base = base.prototype;
-            }
-            return true;
-        }
-    }
-}));
 Math.DEG_TO_RAD = Math.PI / 180;
 Math.RAD_TO_DEG = 180 / Math.PI;
 Math.PI2 = 2 * Math.PI;

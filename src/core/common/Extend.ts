@@ -159,37 +159,6 @@ Object.defineProperties(Object.prototype, jy.makeDefDescriptors({
         }
     }
 }));
-interface Function {
-
-    /**
-     * 检查当前类型是否是测试的类型的子类
-     * 
-     * @param {Function} testBase
-     * @returns {boolean}
-     * 
-     * @memberOf Object
-     */
-    isSubClass(testBase: Function): boolean;
-}
-Object.defineProperties(Function.prototype, jy.makeDefDescriptors({
-    isSubClass: {
-        value: function (testBase: Function) {
-            if (typeof testBase !== "function") {
-                return false;
-            }
-            let base = this.prototype;
-            let flag = false;
-            while (base !== null && base !== Object) {
-                if (base === testBase) {
-                    flag = true;
-                    break;
-                }
-                base = base.prototype;
-            }
-            return true;
-        }
-    }
-}));
 
 /****************************************扩展Math****************************************/
 interface Math {
