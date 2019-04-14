@@ -81,27 +81,27 @@ namespace jy {
       */
     function requestLink(pA: Point, pB: Point, index: number, target: Cell) {
         const { pA: pointA, pB: pointB, pC: pointC, links } = target;
-        if (pointA == pA) {
-            if (pointB == pB) {
+        if (pointA.equals(pA)) {
+            if (pointB.equals(pB)) {
                 links[TrangleSideIndex.SideAB] = index;
                 return true;
-            } else if (pointC == pB) {
+            } else if (pointC.equals(pB)) {
                 links[TrangleSideIndex.SideCA] = index;
                 return true;
             }
-        } else if (pointB == pA) {
-            if (pointA == pB) {
+        } else if (pointB.equals(pA)) {
+            if (pointA.equals(pB)) {
                 links[TrangleSideIndex.SideAB] = index;
                 return true;
-            } else if (pointC == pB) {
+            } else if (pointC.equals(pB)) {
                 links[TrangleSideIndex.SideBC] = index;
                 return true;
             }
-        } else if (pointC == pA) {
-            if (pointA == pB) {
+        } else if (pointC.equals(pA)) {
+            if (pointA.equals(pB)) {
                 links[TrangleSideIndex.SideCA] = index;
                 return true;
-            } else if (pointB == pB) {
+            } else if (pointB.equals(pB)) {
                 links[TrangleSideIndex.SideBC] = index;
                 return true;
             }
@@ -126,16 +126,21 @@ namespace jy {
         /**
          * 每边的中点
          */
-        m_WallMidpoint = [new Point, new Point, new Point] as { [idx in TrangleSideIndex]: Point };
+        wallMidPt = [new Point, new Point, new Point] as { [idx in TrangleSideIndex]: Point };
+        /**
+         * 没边中点距离
+         */
+        wallDist = [0, 0, 0];
 
-        m_WallDistance = [0, 0, 0];
-
-        m_ArrivalWall = -1;
+        /**
+         * 通过墙的索引
+         */
+        wall = -1;
 
 
         init() {
             this.calculateData();
-            const { m_WallMidpoint, m_WallDistance, pA, pB, pC } = this;
+            const { wallMidPt: m_WallMidpoint, wallDist: m_WallDistance, pA, pB, pC } = this;
             let mAB = getMidPoint(m_WallMidpoint[TrangleSideIndex.SideAB], pA, pB);
             let mBC = getMidPoint(m_WallMidpoint[TrangleSideIndex.SideBC], pB, pC);
             let mCA = getMidPoint(m_WallMidpoint[TrangleSideIndex.SideCA], pC, pA);
@@ -157,7 +162,7 @@ namespace jy {
             } else if (links[TrangleSideIndex.SideBC] == -1 && requestLink(pB, pC, index, cellB)) {
                 links[TrangleSideIndex.SideBC] = idx;
             } else if (links[TrangleSideIndex.SideCA] == -1 && requestLink(pC, pA, index, cellB)) {
-                links[TrangleSideIndex.SideBC] = idx;
+                links[TrangleSideIndex.SideCA] = idx;
             }
         }
         /**
@@ -175,7 +180,7 @@ namespace jy {
                 m_ArrivalWall = 2;
             }
             if (m_ArrivalWall != -1) {
-                this.m_ArrivalWall = m_ArrivalWall;
+                this.wall = m_ArrivalWall;
             }
             return m_ArrivalWall;
         }

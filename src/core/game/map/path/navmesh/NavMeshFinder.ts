@@ -83,12 +83,6 @@ namespace jy {
         return tmp2 + tmp3;
     }
 
-    function getWayPoint(cell: Cell, postion: Point) {
-        let wp = recyclable(WayPoint);
-        wp.cell = cell;
-        wp.postion = postion;
-        return wp;
-    }
 
     /**
      * 将格子进行链接，方便寻路
@@ -98,20 +92,19 @@ namespace jy {
         const len = pv.length;
         for (let i = 0; i < len; i++) {
             const cellA = pv[i];
-            for (let j = 0; j < len; j++) {
+            for (let j = i + 1; j < len; j++) {
                 const cellB = pv[j];
-                if (cellA != cellB) {
-                    cellA.checkAndLink(cellB);
-                }
+                cellA.checkAndLink(cellB);
+                cellB.checkAndLink(cellA);
             }
         }
     }
 
-    const empty = Temp.EmptyObject as PathFinderOption;
     let pathSessionId = 0;
     function compare(a: Cell, b: Cell) {
         return b.f - a.f;
     }
+
     export class NavMeshFinder implements PathFinder {
         map: NavMeshMapInfo;
         openList = new Heap<Cell>(0, compare);
@@ -189,7 +182,7 @@ namespace jy {
                     }
                     let adjacentTmp = cells[adjacentId];
                     if (adjacentTmp) {
-                        let f = adjacentTmp.m_WallDistance[Math.abs(i - currNode.m_ArrivalWall)] || 0;
+                        let f = currNode.f + adjacentTmp.wallDist[Math.abs(i - currNode.wall)] || 0;
                         if (adjacentTmp.sessionId != pathSessionId) {
                             // 4. 如果该相邻节点不在开放列表中,则将该节点添加到开放列表中, 
                             //    并将该相邻节点的父节点设为当前节点,同时保存该相邻节点的G和F值;
@@ -199,7 +192,7 @@ namespace jy {
 
                             //H和F值
                             adjacentTmp.h = calcH(fx, fy, adjacentTmp.x, adjacentTmp.y);
-                            adjacentTmp.f = currNode.f + f;
+                            adjacentTmp.f = f;
                             //放入开放列表并排序
                             openList.put(adjacentTmp);
                             adjacentTmp.setWall(currNode.idx);
@@ -208,7 +201,7 @@ namespace jy {
                             //    则判断若经由当前节点到达该相邻节点的G值是否小于原来保存的G值,
                             //    若小于,则将该相邻节点的父节点设为当前节点,并重新设置该相邻节点的G和F值
                             if (adjacentTmp.isOpen) {//已经在openList中
-                                if (currNode.f + f < adjacentTmp.f) {
+                                if (f < adjacentTmp.f) {
                                     adjacentTmp.f = currNode.f;
                                     adjacentTmp.parent = currNode;
                                     adjacentTmp.setWall(currNode.idx);
@@ -216,71 +209,78 @@ namespace jy {
                             }
                         }
                     }
-
                 }
             }
             let path: Point[];
             if (node) {
                 path = [];
-                let cur = node;
-                while (cur) {
-                    let outSide = cur.sides[cur.m_ArrivalWall];	//路径线在网格中的穿出边
-                    let lastPtA = outSide.pA;
-                    let lastPtB = outSide.pB;
-                    let lastLineA = new Line().setPoints(startPos, lastPtA);
-                    let lastLineB = new Line().setPoints(startPos, lastPtB);
-
-                    let cell = cur.parent;
-                    cur = cell;
-                    let next: Cell;
-                    let lastPos = endPos;
-                    do {
-                        let testA: Point, testB: Point;
-                        next = cell.parent;
-                        if (next) {
-                            let outSide = cell.sides[cell.m_ArrivalWall];
-                            testA = outSide.pA;
-                            testB = outSide.pB;
-                        } else {
-                            testA = endPos;
-                            testB = endPos;
-                        }
-                        if (!lastPtA.equals(testA)) {
-                            if (lastLineB.classifyPoint(testA) == PointClassification.RightSide) {
-                                lastPos = lastPtB;
-                                break;
-                            } else if (lastLineA.classifyPoint(testA) != PointClassification.LeftSide) {
-                                lastPtA = testA;
-                                cur = cell;
-                                lastLineA.setPB(lastPtA);
-                            }
-                        }
-                        if (!lastPtB.equals(testB)) {
-                            if (lastLineA.classifyPoint(testB) == PointClassification.LeftSide) {
-                                lastPos = lastPtA;
-                                break;
-                            } else if (lastLineB.classifyPoint(testB) != PointClassification.RightSide) {
-                                lastPtB = testB;
-                                cur = cell;
-                                lastLineB.setPB(lastPtA);
-                            }
-                        }
-                        cell = next;
-                    } while (cell)
-                    path.push(lastPos);
+                _tmp.cell = node;
+                _tmp.pos = startPos;
+                while (getWayPoint(_tmp, endPos)) {
+                    path.push(_tmp.pos);
                 }
+                path.push(endPos);
             }
-            if (path) {
-                let list = [];
-                let j = 0;
-                for (let i = path.length; i > 0; i--) {
-                    list[j++] = path[i];
-                }
-                path = list;
-            }
-
             callback.callAndRecycle(path, true);
             return
         }
+    }
+
+    const _tmp = {
+        cell: null as Cell,
+        pos: null as Point
+    }
+
+    const _lastLineA = new Line();
+    const _lastLineB = new Line()
+
+    function getWayPoint(tmp: { cell: Cell, pos: Point }, endPos: Point) {
+        let cell = tmp.cell;
+        let startPt = tmp.pos;
+        let lastCell = cell;
+        let outSide = cell.sides[cell.wall];	//路径线在网格中的穿出边
+        let lastPtA = outSide.pA;
+        let lastPtB = outSide.pB;
+        let lastLineA = _lastLineA;
+        let lastLineB = _lastLineB;
+        lastLineA.setPoints(startPt, lastPtA);
+        lastLineB.setPoints(startPt, lastPtB);
+        lastCell = cell;
+        cell = cell.parent;
+        do {
+            let testA: Point, testB: Point;
+            let next = cell.parent;
+            if (next) {
+                let outSide = cell.sides[cell.wall];
+                testA = outSide.pA;
+                testB = outSide.pB;
+            } else {
+                testA = endPos;
+                testB = endPos;
+            }
+            if (!lastPtA.equals(testA)) {
+                if (lastLineB.classifyPoint(testA) == PointClassification.RightSide) {
+                    tmp.cell = lastCell;
+                    tmp.pos = lastPtB;
+                    return true
+                } else if (lastLineA.classifyPoint(testA) != PointClassification.LeftSide) {
+                    lastPtA = testA;
+                    lastCell = cell;
+                    lastLineA.setPB(lastPtA);
+                }
+            }
+            if (!lastPtB.equals(testB)) {
+                if (lastLineA.classifyPoint(testB) == PointClassification.LeftSide) {
+                    tmp.cell = lastCell;
+                    tmp.pos = lastPtA;
+                    return true
+                } else if (lastLineB.classifyPoint(testB) != PointClassification.RightSide) {
+                    lastPtB = testB;
+                    lastCell = cell;
+                    lastLineB.setPB(lastPtA);
+                }
+            }
+            cell = next;
+        } while (cell)
     }
 }

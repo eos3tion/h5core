@@ -1,15 +1,132 @@
+/**
+ * 参考createjs和白鹭的tween
+ * 调整tick的驱动方式
+ * https://github.com/CreateJS/TweenJS
+ * @author 3tion
+ */
 declare namespace jy {
-    /**
-     * 扩展名常量
-     * @author 3tion
-     */
-    const enum Ext {
-        JPG = ".jpg",
-        PNG = ".png",
-        WEBP = ".webp",
-        BIN = ".bin",
-        JSON = ".json",
-        MP3 = ".mp3"
+    class TweenManager {
+        protected _tweens: Tween[];
+        /**
+         * 注册过的插件列表
+         * Key      {string}            属性
+         * Value    {ITweenPlugin[]}    插件列表
+         *
+         * @type {{ [index: string]: ITweenPlugin[] }}
+         */
+        _plugins: {
+            [index: string]: ITweenPlugin[];
+        };
+        /**
+         * Returns a new tween instance. This is functionally identical to using "new Tween(...)", but looks cleaner
+         * with the chained syntax of TweenJS.
+         * <h4>Example</h4>
+         *
+         *		var tween = createjs. this.get(target);
+        *
+        * @method get
+        * @param {Object} target The target object that will have its properties tweened.
+        * @param {TweenOption} [props] The configuration properties to apply to this tween instance (ex. `{loop:true, paused:true}`).
+        * All properties default to `false`. Supported props are:
+        * <UL>
+        *    <LI> loop: sets the loop property on this tween.</LI>
+        *    <LI> useTicks: uses ticks for all durations instead of milliseconds.</LI>
+        *    <LI> ignoreGlobalPause: sets the {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}} property on
+        *    this tween.</LI>
+        *    <LI> override: if true, `createjs. this.removeTweens(target)` will be called to remove any other tweens with
+        *    the same target.
+        *    <LI> paused: indicates whether to start the tween paused.</LI>
+        *    <LI> position: indicates the initial position for this tween.</LI>
+        *    <LI> onChange: specifies a listener for the {{#crossLink "Tween/change:event"}}{{/crossLink}} event.</LI>
+        * </UL>
+        * @param {Object} [pluginData] An object containing data for use by installed plugins. See individual plugins'
+        * documentation for details.
+        * @param {Boolean} [override=false] If true, any previous tweens on the same target will be removed. This is the
+        * same as calling ` this.removeTweens(target)`.
+        * @return {Tween} A reference to the created tween. Additional chained tweens, method calls, or callbacks can be
+        * applied to the returned tween instance.
+        * @static
+        */
+        get(target: any, props?: TweenOption, pluginData?: any, override?: boolean): Tween;
+        /**
+         * 移除指定对象的所有tween
+         * Removes all existing tweens for a target. This is called automatically by new tweens if the `override`
+         * property is `true`.
+         * @method removeTweens
+         * @param {Object} target The target object to remove existing tweens from.
+         * @static
+         */
+        removeTweens(target: any): void;
+        /**
+         * 移除单个tween
+         *
+         * @param {Tween} twn
+         * @returns
+         *
+         * @memberOf TweenManager
+         */
+        removeTween(twn: Tween): void;
+        /**
+         * 暂停某个对象的全部Tween
+         *
+         * @static
+         * @param {*} target 指定对象
+         */
+        pauseTweens(target: any): void;
+        /**
+         * 恢复某个对象的全部Tween
+         *
+         * @static
+         * @param {*} target 指定对象
+         */
+        resumeTweens(target: any): void;
+        /**
+         * 由外部进行调用，进行心跳
+         * Advances all tweens. This typically uses the {{#crossLink "Ticker"}}{{/crossLink}} class, but you can call it
+         * manually if you prefer to use your own "heartbeat" implementation.
+         * @method tick
+         * @param {Number} delta The change in time in milliseconds since the last tick. Required unless all tweens have
+         * `useTicks` set to true.
+         * @param {Boolean} paused Indicates whether a global pause is in effect. Tweens with {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}}
+         * will ignore this, but all others will pause if this is `true`.
+         * @static
+         */
+        tick(delta: number, paused?: boolean): void;
+        /**
+         * 将tween注册/注销到管理器中，
+         *
+         * @param {Tween} tween
+         * @param {boolean} [value] (description)
+         * @returns {void}
+         * @private 此方法只允许tween调用
+         */
+        _register(tween: Tween, value?: boolean): void;
+        /**
+         * Stop and remove all existing tweens.
+         * 终止并移除所有的tween
+         * @method removeAllTweens
+         * @static
+         * @since 0.4.1
+         */
+        removeAllTweens(): void;
+        /**
+         * Indicates whether there are any active tweens (and how many) on the target object (if specified) or in general.
+         * @method hasActiveTweens
+         * @param {Object} [target] The target to check for active tweens. If not specified, the return value will indicate
+         * if there are any active tweens on any target.
+         * @return {Boolean} If there are active tweens.
+         * @static
+         */
+        hasActiveTweens(target: any): boolean;
+        /**
+         * Installs a plugin, which can modify how certain properties are handled when tweened. See the {{#crossLink "CSSPlugin"}}{{/crossLink}}
+         * for an example of how to write TweenJS plugins.
+         * @method installPlugin
+         * @static
+         * @param {Object} plugin The plugin class to install
+         * @param {Array} properties An array of properties that the plugin will handle.
+         */
+        installPlugin(plugin: ITweenPlugin, properties: string[]): void;
     }
 }
 declare function parseInt(s: number, radix?: number): number;
@@ -498,238 +615,19 @@ declare namespace jy {
         clearCallLater2(callback: $CallbackInfo): any;
     }
 }
-/**
- * 参考createjs和白鹭的tween
- * 调整tick的驱动方式
- * https://github.com/CreateJS/TweenJS
- * @author 3tion
- */
 declare namespace jy {
-    class TweenManager {
-        protected _tweens: Tween[];
-        /**
-         * 注册过的插件列表
-         * Key      {string}            属性
-         * Value    {ITweenPlugin[]}    插件列表
-         *
-         * @type {{ [index: string]: ITweenPlugin[] }}
-         */
-        _plugins: {
-            [index: string]: ITweenPlugin[];
-        };
-        /**
-         * Returns a new tween instance. This is functionally identical to using "new Tween(...)", but looks cleaner
-         * with the chained syntax of TweenJS.
-         * <h4>Example</h4>
-         *
-         *		var tween = createjs. this.get(target);
-        *
-        * @method get
-        * @param {Object} target The target object that will have its properties tweened.
-        * @param {TweenOption} [props] The configuration properties to apply to this tween instance (ex. `{loop:true, paused:true}`).
-        * All properties default to `false`. Supported props are:
-        * <UL>
-        *    <LI> loop: sets the loop property on this tween.</LI>
-        *    <LI> useTicks: uses ticks for all durations instead of milliseconds.</LI>
-        *    <LI> ignoreGlobalPause: sets the {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}} property on
-        *    this tween.</LI>
-        *    <LI> override: if true, `createjs. this.removeTweens(target)` will be called to remove any other tweens with
-        *    the same target.
-        *    <LI> paused: indicates whether to start the tween paused.</LI>
-        *    <LI> position: indicates the initial position for this tween.</LI>
-        *    <LI> onChange: specifies a listener for the {{#crossLink "Tween/change:event"}}{{/crossLink}} event.</LI>
-        * </UL>
-        * @param {Object} [pluginData] An object containing data for use by installed plugins. See individual plugins'
-        * documentation for details.
-        * @param {Boolean} [override=false] If true, any previous tweens on the same target will be removed. This is the
-        * same as calling ` this.removeTweens(target)`.
-        * @return {Tween} A reference to the created tween. Additional chained tweens, method calls, or callbacks can be
-        * applied to the returned tween instance.
-        * @static
-        */
-        get(target: any, props?: TweenOption, pluginData?: any, override?: boolean): Tween;
-        /**
-         * 移除指定对象的所有tween
-         * Removes all existing tweens for a target. This is called automatically by new tweens if the `override`
-         * property is `true`.
-         * @method removeTweens
-         * @param {Object} target The target object to remove existing tweens from.
-         * @static
-         */
-        removeTweens(target: any): void;
-        /**
-         * 移除单个tween
-         *
-         * @param {Tween} twn
-         * @returns
-         *
-         * @memberOf TweenManager
-         */
-        removeTween(twn: Tween): void;
-        /**
-         * 暂停某个对象的全部Tween
-         *
-         * @static
-         * @param {*} target 指定对象
-         */
-        pauseTweens(target: any): void;
-        /**
-         * 恢复某个对象的全部Tween
-         *
-         * @static
-         * @param {*} target 指定对象
-         */
-        resumeTweens(target: any): void;
-        /**
-         * 由外部进行调用，进行心跳
-         * Advances all tweens. This typically uses the {{#crossLink "Ticker"}}{{/crossLink}} class, but you can call it
-         * manually if you prefer to use your own "heartbeat" implementation.
-         * @method tick
-         * @param {Number} delta The change in time in milliseconds since the last tick. Required unless all tweens have
-         * `useTicks` set to true.
-         * @param {Boolean} paused Indicates whether a global pause is in effect. Tweens with {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}}
-         * will ignore this, but all others will pause if this is `true`.
-         * @static
-         */
-        tick(delta: number, paused?: boolean): void;
-        /**
-         * 将tween注册/注销到管理器中，
-         *
-         * @param {Tween} tween
-         * @param {boolean} [value] (description)
-         * @returns {void}
-         * @private 此方法只允许tween调用
-         */
-        _register(tween: Tween, value?: boolean): void;
-        /**
-         * Stop and remove all existing tweens.
-         * 终止并移除所有的tween
-         * @method removeAllTweens
-         * @static
-         * @since 0.4.1
-         */
-        removeAllTweens(): void;
-        /**
-         * Indicates whether there are any active tweens (and how many) on the target object (if specified) or in general.
-         * @method hasActiveTweens
-         * @param {Object} [target] The target to check for active tweens. If not specified, the return value will indicate
-         * if there are any active tweens on any target.
-         * @return {Boolean} If there are active tweens.
-         * @static
-         */
-        hasActiveTweens(target: any): boolean;
-        /**
-         * Installs a plugin, which can modify how certain properties are handled when tweened. See the {{#crossLink "CSSPlugin"}}{{/crossLink}}
-         * for an example of how to write TweenJS plugins.
-         * @method installPlugin
-         * @static
-         * @param {Object} plugin The plugin class to install
-         * @param {Array} properties An array of properties that the plugin will handle.
-         */
-        installPlugin(plugin: ITweenPlugin, properties: string[]): void;
-    }
-}
-declare namespace jy {
-    interface GlobalInstance {
-        initTick: () => void;
-        nextTick: (callback: Function, thisObj?: any, ...args: any[]) => void;
-        nextTick2: (callback: CallbackInfo<Function>) => void;
-        /**
-         * 延迟执行
-         * @param {Function} callback 回调函数
-         * @param {number} [time=0] 延迟执行的时间
-         * @param {*} [thisObj] 回调的`this`指针
-         * @param args 回调参数列表
-         */
-        callLater(callback: Function, time?: number, thisObj?: any, ...args: any[]): any;
-        /**
-         * 延迟执行
-         * @param {$CallbackInfo} callback 回调函数
-         * @param {number} [time=0] 延迟执行的时间
-         */
-        callLater2(callback: $CallbackInfo, time?: number): any;
-        /**
-         * 清理延迟
-         * @param {Function} callback 回调函数
-         * @param {*} [thisObj]  回调的`this`指针
-         */
-        clearCallLater(callback: Function, thisObj?: any): any;
-        /**
-         * 清理延迟
-         * @param {$CallbackInfo} callback 要清理的回调
-         */
-        clearCallLater2(callback: $CallbackInfo): any;
-        /**
-         * 获取Tween
-         *
-         * @static
-         * @param {*} target 要对那个对象做Tween处理
-         * @param {TweenOption} props Tween的附加属性 (如： `{loop:true, paused:true}`).
-         * All properties default to `false`. Supported props are:
-         * <UL>
-         *    <LI> loop: sets the loop property on this tween.</LI>
-         *    <LI> useTicks: uses ticks for all durations instead of milliseconds.</LI>
-         *    <LI> ignoreGlobalPause: sets the {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}} property on
-         *    this tween.</LI>
-         *    <LI> override: if true, `createjs. this.removeTweens(target)` will be called to remove any other tweens with
-         *    the same target.
-         *    <LI> paused: indicates whether to start the tween paused.</LI>
-         *    <LI> position: indicates the initial position for this tween.</LI>
-         *    <LI> onChange: specifies a listener for the {{#crossLink "Tween/change:event"}}{{/crossLink}} event.</LI>
-         * </UL>
-         * @param {*} pluginData 插件数据
-         * @param {boolean} override 是否覆盖
-         * @returns {Tween} tween的实例
-         */
-        getTween(target: any, props?: TweenOption, pluginData?: any, override?: boolean): Tween;
-        /**
-         * 移除指定的Tween
-         *
-         * @param {Tween} tween
-         * @returns
-         */
-        removeTween(tween: Tween): any;
-        /**
-         * 移除指定目标的所有Tween
-         *
-         * @param {any} target
-         * @returns
-         */
-        removeTweens(target: any): any;
-        /**
-         * 判断是否为Native的版本
-         */
-        readonly isNative: boolean;
-        tweenManager: TweenManager;
-        /**
-         *  当前这一帧的时间
-         */
-        readonly now: number;
-        /**
-         * 按照帧，应该走的时间
-         * 每帧根据帧率加固定时间
-         * 用于处理逐帧同步用
-         */
-        readonly frameNow: number;
-        /**
-         * 是否支持webp
-         */
-        readonly webp: "" | Ext.WEBP;
-        /**
-         * 添加每帧执行回调
-         */
-        addInterval(callback: CallbackInfo<Function>): void;
-        /**
-         * 移除每帧执行回调
-         */
-        removeInterval(callback: CallbackInfo<Function>): void;
-    }
     /**
-     * 动画的全局对象
+     * 扩展名常量
      * @author 3tion
-     *
      */
-    const Global: GlobalInstance;
+    const enum Ext {
+        JPG = ".jpg",
+        PNG = ".png",
+        WEBP = ".webp",
+        BIN = ".bin",
+        JSON = ".json",
+        MP3 = ".mp3"
+    }
 }
 interface $NSFilter {
     /**
@@ -1175,40 +1073,46 @@ declare namespace jy {
     }
 }
 declare namespace jy {
-    interface GameLayer extends egret.DisplayObject {
-        id: number;
-    }
     /**
-     * GameLayer
-     * 用于后期扩展
-     */
-    class BaseLayer extends egret.Sprite {
-        /**
-         * 层id
-         */
-        id: number;
-        constructor(id: number);
-    }
-    /**
-     * UI使用的层级，宽度和高度设定为和stage一致
+     * 基础创建器
+     * @author 3tion
      *
-     * @export
-     * @class UILayer
-     * @extends {GameLayer}
      */
-    class UILayer extends BaseLayer {
-        readonly width: number;
-        readonly height: number;
-    }
-    /**
-     * 需要对子对象排序的层
-     */
-    class SortedLayer extends BaseLayer {
-        $doAddChild(child: egret.DisplayObject, index: number, notifyListeners?: boolean): egret.DisplayObject;
+    class BaseCreator<T extends egret.DisplayObject> {
+        protected _suiData: SuiData;
+        readonly suiData: SuiData;
+        protected _baseData: BaseData;
+        protected _createT: () => T;
+        protected _parsed: boolean;
+        size: Readonly<egret.Rectangle>;
+        bindSuiData(suiData: SuiData): void;
+        parseData(data: ComponentData, suiData: SuiData): void;
         /**
-         * 进行排序
+         * 处理尺寸
+         *
+         * @param {SizeData} data
+         *
+         * @memberOf BaseCreator
          */
-        sort(): void;
+        parseSize(data: SizeData): void;
+        /**
+         * 处理元素数据
+         * 对应 https://github.com/eos3tion/ExportUIFromFlash  项目中
+         * Solution.ts -> getElementData的元素数据的解析
+         * @param {ComponentData} data 长度为4的数组
+         * 0 导出类型
+         * 1 基础数据 @see Solution.getEleBaseData
+         * 2 对象数据 不同类型，数据不同
+         * 3 引用的库 0 当前库  1 lib  字符串 库名字
+         * @memberOf BaseCreator
+         */
+        createElement(data: ComponentData): egret.DisplayObject;
+        setBaseData(data: BaseData): void;
+        parseSelfData(data: any): void;
+        /**
+         * 获取实例
+         */
+        get(): T;
     }
 }
 interface $gmType {
@@ -1307,47 +1211,106 @@ declare namespace jy {
     function d_dependProxy(ref: InjectProxy, isPri?: boolean): (target: any, key: string) => void;
 }
 declare namespace jy {
+    interface GlobalInstance {
+        initTick: () => void;
+        nextTick: (callback: Function, thisObj?: any, ...args: any[]) => void;
+        nextTick2: (callback: CallbackInfo<Function>) => void;
+        /**
+         * 延迟执行
+         * @param {Function} callback 回调函数
+         * @param {number} [time=0] 延迟执行的时间
+         * @param {*} [thisObj] 回调的`this`指针
+         * @param args 回调参数列表
+         */
+        callLater(callback: Function, time?: number, thisObj?: any, ...args: any[]): any;
+        /**
+         * 延迟执行
+         * @param {$CallbackInfo} callback 回调函数
+         * @param {number} [time=0] 延迟执行的时间
+         */
+        callLater2(callback: $CallbackInfo, time?: number): any;
+        /**
+         * 清理延迟
+         * @param {Function} callback 回调函数
+         * @param {*} [thisObj]  回调的`this`指针
+         */
+        clearCallLater(callback: Function, thisObj?: any): any;
+        /**
+         * 清理延迟
+         * @param {$CallbackInfo} callback 要清理的回调
+         */
+        clearCallLater2(callback: $CallbackInfo): any;
+        /**
+         * 获取Tween
+         *
+         * @static
+         * @param {*} target 要对那个对象做Tween处理
+         * @param {TweenOption} props Tween的附加属性 (如： `{loop:true, paused:true}`).
+         * All properties default to `false`. Supported props are:
+         * <UL>
+         *    <LI> loop: sets the loop property on this tween.</LI>
+         *    <LI> useTicks: uses ticks for all durations instead of milliseconds.</LI>
+         *    <LI> ignoreGlobalPause: sets the {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}} property on
+         *    this tween.</LI>
+         *    <LI> override: if true, `createjs. this.removeTweens(target)` will be called to remove any other tweens with
+         *    the same target.
+         *    <LI> paused: indicates whether to start the tween paused.</LI>
+         *    <LI> position: indicates the initial position for this tween.</LI>
+         *    <LI> onChange: specifies a listener for the {{#crossLink "Tween/change:event"}}{{/crossLink}} event.</LI>
+         * </UL>
+         * @param {*} pluginData 插件数据
+         * @param {boolean} override 是否覆盖
+         * @returns {Tween} tween的实例
+         */
+        getTween(target: any, props?: TweenOption, pluginData?: any, override?: boolean): Tween;
+        /**
+         * 移除指定的Tween
+         *
+         * @param {Tween} tween
+         * @returns
+         */
+        removeTween(tween: Tween): any;
+        /**
+         * 移除指定目标的所有Tween
+         *
+         * @param {any} target
+         * @returns
+         */
+        removeTweens(target: any): any;
+        /**
+         * 判断是否为Native的版本
+         */
+        readonly isNative: boolean;
+        tweenManager: TweenManager;
+        /**
+         *  当前这一帧的时间
+         */
+        readonly now: number;
+        /**
+         * 按照帧，应该走的时间
+         * 每帧根据帧率加固定时间
+         * 用于处理逐帧同步用
+         */
+        readonly frameNow: number;
+        /**
+         * 是否支持webp
+         */
+        readonly webp: "" | Ext.WEBP;
+        /**
+         * 添加每帧执行回调
+         */
+        addInterval(callback: CallbackInfo<Function>): void;
+        /**
+         * 移除每帧执行回调
+         */
+        removeInterval(callback: CallbackInfo<Function>): void;
+    }
     /**
-     * 基础创建器
+     * 动画的全局对象
      * @author 3tion
      *
      */
-    class BaseCreator<T extends egret.DisplayObject> {
-        protected _suiData: SuiData;
-        readonly suiData: SuiData;
-        protected _baseData: BaseData;
-        protected _createT: () => T;
-        protected _parsed: boolean;
-        size: Readonly<egret.Rectangle>;
-        bindSuiData(suiData: SuiData): void;
-        parseData(data: ComponentData, suiData: SuiData): void;
-        /**
-         * 处理尺寸
-         *
-         * @param {SizeData} data
-         *
-         * @memberOf BaseCreator
-         */
-        parseSize(data: SizeData): void;
-        /**
-         * 处理元素数据
-         * 对应 https://github.com/eos3tion/ExportUIFromFlash  项目中
-         * Solution.ts -> getElementData的元素数据的解析
-         * @param {ComponentData} data 长度为4的数组
-         * 0 导出类型
-         * 1 基础数据 @see Solution.getEleBaseData
-         * 2 对象数据 不同类型，数据不同
-         * 3 引用的库 0 当前库  1 lib  字符串 库名字
-         * @memberOf BaseCreator
-         */
-        createElement(data: ComponentData): egret.DisplayObject;
-        setBaseData(data: BaseData): void;
-        parseSelfData(data: any): void;
-        /**
-         * 获取实例
-         */
-        get(): T;
-    }
+    const Global: GlobalInstance;
 }
 declare namespace jy {
     interface ComponentWithEnable {
@@ -1482,6 +1445,563 @@ declare namespace jy {
     }
     interface Component extends ComponentWithEnable {
     }
+}
+declare namespace jy {
+    interface GameLayer extends egret.DisplayObject {
+        id: number;
+    }
+    /**
+     * GameLayer
+     * 用于后期扩展
+     */
+    class BaseLayer extends egret.Sprite {
+        /**
+         * 层id
+         */
+        id: number;
+        constructor(id: number);
+    }
+    /**
+     * UI使用的层级，宽度和高度设定为和stage一致
+     *
+     * @export
+     * @class UILayer
+     * @extends {GameLayer}
+     */
+    class UILayer extends BaseLayer {
+        readonly width: number;
+        readonly height: number;
+    }
+    /**
+     * 需要对子对象排序的层
+     */
+    class SortedLayer extends BaseLayer {
+        $doAddChild(child: egret.DisplayObject, index: number, notifyListeners?: boolean): egret.DisplayObject;
+        /**
+         * 进行排序
+         */
+        sort(): void;
+    }
+}
+declare namespace jy {
+    interface ViewController {
+        /**
+         * 面板加入到舞台时执行
+         */
+        onAwake?(): any;
+        /**
+         * 面板从舞台移除时执行
+         */
+        onSleep?(): any;
+    }
+    /**
+     * 可以调用 @d_interest 的视图
+     * 可以进行关注facade中的事件
+     *
+     * @export
+     * @class ViewController
+     * @extends {FHost}
+     */
+    class ViewController extends FHost {
+        /**
+         * 加载状态
+         */
+        protected _ready: boolean;
+        /**
+         * 关注列表
+         */
+        protected _interests: {
+            [index: string]: Interest;
+        };
+        interestChecked: boolean;
+        _awakeCallers: {
+            (e?: egret.Event): void;
+        }[];
+        /**
+         * 定时回调的列表
+         */
+        _tList: $CallbackInfo[];
+        /**
+         * 用于内部增加关注
+         *
+         * @param {Key} eventType
+         * @param {{ (e?: egret.Event): void }} handler
+         * @param {boolean} [triggerOnStage]
+         * @param {number} [priority]
+         */
+        interest(eventType: Key, handler: {
+            (e?: egret.Event): void;
+        }, triggerOnStage?: boolean, priority?: number): void;
+        removeSkinListener(skin: egret.DisplayObject): void;
+        addSkinListener(skin: egret.DisplayObject): void;
+        /**
+         * 绑定定时处理的回调函数
+         *
+         * @param {Function} callback 执行回调函数
+         * @param {boolean} [trigger=true] 是否理解执行
+         * @param {number} [time=Time.ONE_SECOND]
+         * @param {any} [thisObj=this]
+         * @param {any} args
+         * @memberof ViewController
+         */
+        bindTimer(callback: Function, trigger?: boolean, time?: Time, thisObj?: this, ...args: any[]): void;
+        /**
+         * 解除定时回调函数的绑定
+         * @param callback
+         * @param time
+         * @param thisObj
+         */
+        looseTimer(callback: Function, time?: Time, thisObj?: this): void;
+        /**
+         * 添加到舞台时，自动添加定时回调
+         */
+        awakeTimer(): void;
+        /**
+         * 从舞台移除时候，自动移除定时回调
+         */
+        sleepTimer(): void;
+        readonly isReady: boolean;
+        onStage(e: egret.Event): void;
+        stageChange(onStage: boolean): void;
+        checkInterest(): void;
+    }
+    interface Interest {
+        /**
+         * 回调函数
+         */
+        handler: (e?: egret.Event) => void;
+        /**
+         *
+         * 优先级
+         * @type {number}
+         */
+        priority: number;
+        /**
+         *
+         * 添加到舞台的时候，立即执行一次回调函数
+         * @type {boolean}
+         */
+        trigger: boolean;
+        /**
+         * 是否为私有监听，此值设置为true则子类不会继承事件监听
+         * 否则子类将继承事件监听
+         */
+        isPri?: boolean;
+    }
+    /**
+     * 使用@d_interest 注入 添加关注
+     * 关注为事件处理回调，只会在awake时，添加到事件监听列表
+     * 在sleep时，从事件监听列表中移除
+     * @param {Key} type                         关注的事件
+     * @param {(e?: Event) => void} handler          回调函数
+     * @param {boolean} [triggerOnStage=false]      添加到舞台的时候，会立即执行一次，`<font color="#f00">`注意，处理回调必须能支持不传event的情况`
+     * @param {boolean} [isPrivate=false]           是否为私有方法，如果标记为私有方法，则不会被子类的关注继承
+     * @param {number} [priority=0]                 优先级，默认为0
+     */
+    function d_interest(eventType: Key, triggerOnStage?: boolean, isPrivate?: boolean, priority?: number): (target: any, _: string, value: any) => void;
+}
+declare namespace jy {
+    /**
+     * 基础渲染器
+     * @author 3tion
+     *
+     */
+    class BaseRender implements IDrawInfo {
+        /**
+         * 当render执行时间需要处理2秒+的数据时，是否派发Slow Render事件
+         *
+         * @static
+         * @type {boolean}
+         */
+        static dispatchSlowRender: boolean;
+        /**
+         * 全局单位播放速度
+         */
+        static globalPlaySpeed: number;
+        /**
+         * 是否有当前帧
+         */
+        willRenderFrame: FrameInfo;
+        /**原始动作索引 */
+        a: number;
+        /**原始方向索引 */
+        d: number;
+        /**原始帧数索引 */
+        f: number;
+        /**
+         * 数组的索引
+         */
+        idx: number;
+        /**
+         * 下一次需要重新计算渲染的时间
+         */
+        protected nextRenderTime: number;
+        /**
+         * 当前渲染时间
+         */
+        protected renderedTime: number;
+        /**
+         * 播放速度，默认为1倍速度<br/>
+         * 值越高，速度越快
+         */
+        protected _playSpeed: number;
+        /**
+         * 播放速度，默认为1倍速度<br/>
+         * 值越高，速度越快
+         */
+        /**
+        * 设置播放速度
+        */
+        playSpeed: number;
+        /**
+         *  处理数据帧
+         */
+        onData(actionInfo: ActionInfo, now: number): void;
+        isComplete(info: ActionInfo): boolean;
+        /**
+         * 渲染帧时调用
+         *
+         * @param {number} now (description)
+         */
+        doRender(now: number): void;
+        /**
+         * 渲染指定帧
+         * @param frame
+         * @param now
+         */
+        protected renderFrame(frame: FrameInfo, now: number): void;
+        /**
+         * 清理当前帧
+         */
+        protected clearRes(): void;
+        /**
+         * 派发事件
+         * @param event     事件名
+         * @param now       当前时间
+         */
+        protected dispatchEvent(event: string, now: number): void;
+        /**
+         * 渲染结束
+         * @param now       当前时间
+         */
+        protected doComplete(now: number): void;
+        constructor();
+    }
+}
+declare namespace jy {
+    /**
+     * 默认地图宽/高
+     */
+    const enum MapConst {
+        DefaultSize = 256,
+        MapPath = "m/"
+    }
+    /**
+     * 地图路径点寻路类型
+     */
+    const enum MapPathType {
+        /**
+         * 格子路径
+         */
+        Grid = 0,
+        /**
+         * 导航网格
+         */
+        NavMesh = 1
+    }
+    /**
+     * 地图基础信息<br/>
+     * 由地图编辑器生成的地图信息
+     * @author 3tion
+     *
+     */
+    class MapInfo {
+        /**
+         * 图片扩展
+         */
+        ext: Ext;
+        /**
+         * 地图唯一标识
+         */
+        id: Key;
+        /**
+         * 地图路径
+         */
+        path: string;
+        /**
+         * 路径类型
+         * 0 走格子的
+         * 1 走导航网格寻路
+         */
+        pathType: MapPathType;
+        /**
+         * 地图像素宽度
+         */
+        width: number;
+        /**
+         * 地图像素高度
+         */
+        height: number;
+        /**
+         * 单张底图的宽度
+         */
+        pWidth: number;
+        /**
+         * 单张底图的高度
+         */
+        pHeight: number;
+        /**
+         * X轴最大图片坐标
+         * 000开始
+         */
+        maxPicX: number;
+        /**
+         * Y轴最大图片数量
+         * 000开始
+         */
+        maxPicY: number;
+        /**
+         * 路径点是否可走
+         * 0 不可走
+         * @param x
+         * @param y
+         */
+        getWalk?(x: number, y: number): number;
+        /**
+        * 获取地图图块资源路径
+        */
+        getMapUri(col: number, row: number): string;
+        /**
+         * 获取图片路径
+         */
+        getImgUri(uri: string): string;
+        /**
+         * 地图前缀路径
+         */
+        static prefix: MapConst;
+    }
+}
+interface $gmType {
+    /**
+     * 显示/关闭地图格子显示
+     *
+     *
+     * @memberOf $gmType
+     */
+    toggleMapGrid(): any;
+    $showMapGrid: boolean;
+    regPathDraw(type: jy.MapPathType, handler: jy.drawPath): any;
+    pathSolution: {
+        [type in jy.MapPathType]: jy.drawPath;
+    };
+}
+declare namespace jy {
+    /**
+    * MapRender
+    * 用于处理地图平铺的渲染
+    */
+    class TileMapLayer extends BaseLayer {
+        miniUri: string;
+        /**
+         * 扩展预加载的图块数量
+         *
+         */
+        preload: number;
+        static checkRect?(map: MapInfo, rect: egret.Rectangle, preload: number, forEach: {
+            (uri: string, col: number, row: number): any;
+        }, checker?: {
+            (sc: number, sr: number, ec: number, er: number): boolean;
+        }): any;
+        /**
+         * @private
+         */
+        private _currentMap;
+        /**
+        * 显示/关闭地图格子显示
+        *
+        *
+        * @memberOf $gmType
+        */
+        currentMap: MapInfo;
+        /**
+         * mini的纹理
+         */
+        mini: egret.Texture;
+        miniTexDict: {
+            [key: number]: egret.Texture;
+        };
+        /**
+         *
+         * 显示中的地图
+         * @type {TileMap[]}
+         */
+        protected _showing: TileMap[];
+        protected drawGrid?: {
+            (x: number, y: number, w: number, h: number, cM: MapInfo): void;
+        };
+        /**
+         * 上次渲染的起始 column
+         *
+         * @protected
+         * @type {number}
+         */
+        protected lsc: number;
+        /**
+         * 上次渲染的起始 row
+         *
+         * @protected
+         * @type {number}
+         */
+        protected lsr: number;
+        /**
+         * 上次渲染的结束 column
+         *
+         * @protected
+         * @type {number}
+         */
+        protected lec: number;
+        /**
+         * 上次渲染的结束 row
+         *
+         * @protected
+         * @type {number}
+         */
+        protected ler: number;
+        protected _idx: number;
+        protected addMap(uri: string, c: number, r: number, pW: number, pH: number): void;
+        reset(): void;
+        protected check(sc: number, sr: number, ec: number, er: number): boolean;
+        setRect(rect: egret.Rectangle, ox?: number, oy?: number): void;
+        protected noRes(uri: string, c: number, r: number, pW: number, pH: number): TileMap;
+        /**
+         * 设置小地图
+         * @param uri
+         */
+        setMini(uri: string): void;
+        miniLoad(item: Res.ResItem): void;
+        removeChildren(): void;
+    }
+    /**
+    * TileMap
+    */
+    class TileMap extends egret.Bitmap implements IResource {
+        /**
+         * 表示此底图为空地图，最终不放置在舞台上
+         */
+        empty: boolean;
+        /**
+         * 地图块的列
+         */
+        col: number;
+        /**
+         * 地图块的行
+         */
+        row: number;
+        /**
+         * 资源唯一标识
+         */
+        uri: string;
+        /**
+         *
+         * 是否为静态资源
+         * @type {boolean}
+         */
+        isStatic: boolean;
+        lastUseTime: number;
+        /**
+         *
+         * 资源路径
+         * @type {string}
+         */
+        url: string;
+        constructor();
+        reset(col: number, row: number, uri: string): void;
+        load(): void;
+        /**
+         * 资源加载完成
+         */
+        loadComplete(item: Res.ResItem): void;
+        dispose(): void;
+    }
+}
+declare namespace jy {
+    import Point = egret.Point;
+    class Line {
+        pA: Readonly<Point>;
+        pB: Readonly<Point>;
+        /**
+         * 是否计算过法线
+         */
+        private calcedNormal;
+        /**
+         * 法线
+         */
+        m_Normal: Point;
+        setPA(pt: Point): this;
+        setPB(pt: Point): this;
+        setPoints(pA: Point, pB: Point): this;
+        computeNormal(): void;
+        signedDistance(point: Point): number;
+        /**
+         * 检查点的位置
+         * @param point 要检查的点
+         * @param epsilon 精度
+         */
+        classifyPoint(point: Point, epsilon?: NavMeshConst): PointClassification;
+        intersection(other: Line, intersectPoint?: Point): LineClassification;
+        equals(line: Line): boolean;
+    }
+}
+declare namespace jy {
+    /**
+     * 常用的颜色常量
+     *
+     * @export
+     * @enum {number}
+     */
+    const enum Color {
+        Red = 16711680,
+        Green = 65280,
+        Yellow = 16776960,
+        White = 16777215,
+        Gray = 13421772
+    }
+    /**
+     * 常用的颜色字符串常量
+     *
+     * @export
+     * @enum {string}
+     */
+    const enum ColorString {
+        Red = "#ff0000",
+        Green = "#00ff00",
+        Yellow = "#ffff00",
+        White = "#ffffff",
+        Gray = "#cccccc"
+    }
+    function getColorString(c: number): string;
+    /**
+     * 颜色工具
+     * @author 3tion
+     *
+     */
+    const ColorUtil: {
+        /**
+         * 获取颜色字符串 #a1b2c3
+         * @param c
+         * @return 获取颜色字符串 #a1b2c3
+         *
+         */
+        getColorString: typeof getColorString;
+        /**
+         * 将#a1b2c3这样#开头的颜色字符串，转换成颜色数值
+         */
+        getColorValue(c: string): number;
+        /**
+         * 获取一个纯色的纹理
+         */
+        getTexture(color?: number, alpha?: number): egret.Texture;
+    };
 }
 declare const enum EgretEvent {
     /**************************************** egret.Event ****************************************/
@@ -1917,191 +2437,103 @@ declare const enum EgretEvent {
 }
 declare namespace jy {
     /**
-     * mixin的基类选项
-     *
-     * @export
-     * @interface MixinOption
-     * @template T
+     * 骑乘状态
      */
-    interface MixinOption<T> {
+    const enum MountType {
         /**
-         *
-         * mixin的基类
-         * @type {{ new (): T }}
-         * @memberOf MixinOption
+         * 在地面上
          */
-        clazz: {
-            new (): T;
-        };
+        ground = 0,
         /**
-         *
-         *
-         * @type {(keyof T)[]}
-         * @memberOf MixinOption
+         * 在坐骑上
          */
-        keys: (keyof T)[];
+        ride = 1
     }
     /**
-     * 扩展一个实例，如果A类型实例本身并没有B类型的方法，则直接对实例的属性进行赋值，否则将不会赋值
-     *
-     * @export
-     * @template A
-     * @template B
-     * @param {A} instance                  要扩展的实例
-     * @param {{ prototype: B }} clazzB     需要扩展的对象方法
-     * @param {boolean} override            是否强制覆盖原有方法
-     * @returns {(A & B)}
+     * 动作类型
      */
-    function expandInstance<A, B, K extends keyof B>(instance: A, clazzB: {
-        prototype: B;
-    }, ...keys: K[]): A & B;
+    const enum ActionType {
+        /**
+         * 待机
+         */
+        standBy = 0,
+        /**
+         * 移动
+         */
+        move = 1,
+        /**
+         * 攻击
+         */
+        attack = 2,
+        /**
+         * 跳
+         */
+        jump = 3
+    }
     /**
-     * 将类型A扩展类型B的指定属性，并返回引用
-     *
-     * @export
-     * @template A
-     * @template B
-     * @template K
-     * @template B
-     * @param {{ prototype: A }} clazzA     要被扩展的类型
-     * @param {{ prototype: B }} clazzB     扩展的模板，已经模板的父类型也会作为模板
-     * @param {...K[]} keys      如果没有参数，则将B的全部属性复制给类型A
-     * @returns {(A & Record<K, B>)}
-     */
-    function expand<A, B, K extends keyof B>(clazzA: {
-        prototype: A;
-    }, clazzB: {
-        prototype: B;
-    }, ...keys: K[]): A & Record<K, B>;
-    type Constructor<T> = new (...args: any[]) => T;
-    type MixinCtor<A, B> = new () => A & B & {
-        constructor: MixinCtor<A, B>;
-    };
-    /**
-     * 获取一个复合类型
-     *
-     * @export
-     * @template A
-     * @template B
-     * @param {{ prototype: A }} clazzA     类型A
-     * @param {{ prototype: B }} clazzB     类型B
-     * @returns
-     */
-    function getMixin<A, B>(clazzA: {
-        prototype: A;
-    }, clazzB: {
-        prototype: B;
-    }): MixinCtor<A, B>;
-    /**
-     * 拷贝属性
-     *
-     * @export
-     * @template To
-     * @template From
-     * @param {To} to
-     * @param {From} from
-     * @param {keyof B} key
-     */
-    function copyProperty<To, From>(to: To, from: From, key: keyof From): void;
-    /**
-     * 批量拷贝属性
-     *
-     * @export
-     * @template To
-     * @template From
-     * @param {To} to
-     * @param {From} from
-     * @param {...(keyof From)[]} keys
-     */
-    function copyProperties<To, From>(to: To, from: From, ...keys: (keyof From)[]): void;
-}
-declare namespace jy {
-    /**
-     * 状态机
+     * 单位动作
      * @author 3tion
+     *
      */
-    class StateMachine implements IStateListener {
-        /**
-         * 当前状态
-         *
-         * @protected
-         * @type {Key}
-         */
-        protected current: Key;
-        protected swis: {
-            [index: string]: IStateSwitcher[];
+    class UnitAction {
+        static defaultAction: {
+            mountType: MountType;
+            action: number;
         };
-        protected liss: IStateListener[];
         /**
-         * 状态列表
+         * 根据坐骑状态，获取人物动作序列的配置
          *
-         * @protected
-         * @type {Key[]}
+         * @param {MountType} mountType 坐骑状态
+         * @returns {IUnitActionInfo} 动作结果
          */
-        protected _stas: Key[];
+        getAction(mountType: MountType): IUnitActionInfo;
         /**
-         * 是否做上一个进入睡眠状态前的检查
-         *
-         * @type {boolean}
-         * @memberof StateMachine
+         * 单位播放动作
+         * 如果子类要制作动态的自定义动作，重写此方法
+         * @param {Unit} unit               单位
+         * @param {MountType} mountType     骑乘状态
+         * @param {number} now              时间戳
          */
-        checkBeforeSleep?: boolean;
-        constructor();
+        playAction(unit: Unit, mountType: MountType, now: number): void;
         /**
-         * 获取当前已有的状态列表
-         *
-         * @readonly
+         * 播放动作
          */
-        readonly states: (string | number)[];
-        add(value: IStateListener): void;
-        remove(value: IStateListener): void;
+        start(unit: Unit, now: number): boolean;
         /**
-         *  一个侦听加入到多个状态;
-         * @param type
-         * @param args
-         *
+         * 动作执行数据计算<br/>
+         * 如更新单位坐标等
          */
-        addToStates(value: IStateSwitcher, ...args: Key[]): any;
+        doData(unit: Unit, now: number): void;
         /**
-         * 从所有状态中删除侦听;
-         * @param value
-         *
+         * 检查当前动作是否可以结束<br/>
+         * @return true 可以结束<br/>
+         *         false 不可结束
          */
-        removeAllState(value: IStateSwitcher): void;
+        readonly canStop: Boolean;
         /**
-         * 从单个状态中,删了一个具体侦听;
-         * @param type
-         * @param value
-         * @return
-         *
+         * 强制结束
          */
-        removeFromState(state: Key, value: IStateSwitcher): boolean;
+        terminate(): void;
         /**
-         * 单个状态中加入一个侦听;
-         * @param value
-         * @param list
-         *
+         * 动画播放结束的回调
          */
-        addToState(state: Key, value: IStateSwitcher): void;
+        playComplete(unit: Unit, now: number): void;
+        protected _isEnd: Boolean;
         /**
-         *  清理状态机;
-         *
+         * 动作是否已经结束
+         * @return true，动作已经结束，可以做下一个动作<br/>
+         *         false, 动作未结束，
          */
-        clear(): void;
+        readonly isEnd: Boolean;
         /**
-         * 设置当前的状态
-         * @param value
-         *
+         * 执行事件
          */
-        setState(value: Key): void;
+        dispatchEvent(unit: Unit, eventType: string, now: number): void;
         /**
-         * 检查状态实现(switcher)是否添加到某个状态中
-         *
-         * @param {IStateSwitcher} switcher    某个状态实现
-         * @param {Key} [type] 状态
-         * @returns {boolean}
+         * 渲染时执行
          */
-        isInState(switcher: IStateSwitcher, type?: Key): boolean;
+        doRender(unit: Unit, now: number): void;
+        recycle(): void;
     }
 }
 declare namespace jy {
@@ -2277,141 +2709,57 @@ declare namespace jy {
 }
 declare namespace jy {
     /**
-     * 常用的颜色常量
-     *
-     * @export
-     * @enum {number}
-     */
-    const enum Color {
-        Red = 16711680,
-        Green = 65280,
-        Yellow = 16776960,
-        White = 16777215,
-        Gray = 13421772
-    }
-    /**
-     * 常用的颜色字符串常量
-     *
-     * @export
-     * @enum {string}
-     */
-    const enum ColorString {
-        Red = "#ff0000",
-        Green = "#00ff00",
-        Yellow = "#ffff00",
-        White = "#ffffff",
-        Gray = "#cccccc"
-    }
-    function getColorString(c: number): string;
-    /**
-     * 颜色工具
+     * 用于君游项目数据同步，后台运行<br/>
+     * 只有注册和注销，没有awake和sleep
      * @author 3tion
      *
      */
-    const ColorUtil: {
+    abstract class Proxy extends FHost {
         /**
-         * 获取颜色字符串 #a1b2c3
-         * @param c
-         * @return 获取颜色字符串 #a1b2c3
+         * 是否被其他模块依赖
          *
-         */
-        getColorString: typeof getColorString;
-        /**
-         * 将#a1b2c3这样#开头的颜色字符串，转换成颜色数值
-         */
-        getColorValue(c: string): number;
-        /**
-         * 获取一个纯色的纹理
-         */
-        getTexture(color?: number, alpha?: number): egret.Texture;
-    };
-}
-declare namespace jy {
-    /**
-     * 基础渲染器
-     * @author 3tion
-     *
-     */
-    class BaseRender implements IDrawInfo {
-        /**
-         * 当render执行时间需要处理2秒+的数据时，是否派发Slow Render事件
-         *
-         * @static
          * @type {boolean}
          */
-        static dispatchSlowRender: boolean;
+        _$isDep: boolean;
         /**
-         * 全局单位播放速度
+         * 默认当作同步数据，认为是已经处理好的
          */
-        static globalPlaySpeed: number;
+        protected _selfReady: boolean;
         /**
-         * 是否有当前帧
+         * 数据是否加载完毕
          */
-        willRenderFrame: FrameInfo;
-        /**原始动作索引 */
-        a: number;
-        /**原始方向索引 */
-        d: number;
-        /**原始帧数索引 */
-        f: number;
+        protected _readyState: RequestState;
+        constructor(name: string | number);
+        readonly isReady: boolean;
+        startSync(): boolean;
         /**
-         * 数组的索引
-         */
-        idx: number;
-        /**
-         * 下一次需要重新计算渲染的时间
-         */
-        protected nextRenderTime: number;
-        /**
-         * 当前渲染时间
-         */
-        protected renderedTime: number;
-        /**
-         * 播放速度，默认为1倍速度<br/>
-         * 值越高，速度越快
-         */
-        protected _playSpeed: number;
-        /**
-         * 播放速度，默认为1倍速度<br/>
-         * 值越高，速度越快
-         */
-        /**
-        * 设置播放速度
-        */
-        playSpeed: number;
-        /**
-         *  处理数据帧
-         */
-        onData(actionInfo: ActionInfo, now: number): void;
-        isComplete(info: ActionInfo): boolean;
-        /**
-         * 渲染帧时调用
+         * 用于重写，主要用于向服务端发送一些指令/或者是开始进行http请求进行拉配置
          *
-         * @param {number} now (description)
          */
-        doRender(now: number): void;
+        protected _startSync(): void;
         /**
-         * 渲染指定帧
-         * @param frame
-         * @param now
+         * 自己加载好<br/>
+         * 不包括依赖项
+         *
          */
-        protected renderFrame(frame: FrameInfo, now: number): void;
+        protected selfReady(): void;
         /**
-         * 清理当前帧
+         * 用于子类重写<br/>
+         * 处理自己的数据<br/>
+         * 如果有依赖，请使用afterAllReady<br/>
+         *
          */
-        protected clearRes(): void;
+        protected parseSelfData(): void;
         /**
-         * 派发事件
-         * @param event     事件名
-         * @param now       当前时间
+         * 依赖项加载完毕
+         *
          */
-        protected dispatchEvent(event: string, now: number): void;
+        protected dependerReadyCheck(): void;
         /**
-         * 渲染结束
-         * @param now       当前时间
+         * 全部ok<br/>
+         * 此函数不给子类继承
          */
-        protected doComplete(now: number): void;
-        constructor();
+        private allReadyHandler;
     }
 }
 /**
@@ -2587,579 +2935,6 @@ declare namespace jy {
          */
         getDirection(adKey: number): number;
     };
-}
-declare namespace jy {
-    /**
-     * 默认地图宽/高
-     */
-    const enum MapConst {
-        DefaultSize = 256,
-        MapPath = "m/"
-    }
-    /**
-     * 地图路径点寻路类型
-     */
-    const enum MapPathType {
-        /**
-         * 格子路径
-         */
-        Grid = 0,
-        /**
-         * 导航网格
-         */
-        NavMesh = 1
-    }
-    /**
-     * 地图基础信息<br/>
-     * 由地图编辑器生成的地图信息
-     * @author 3tion
-     *
-     */
-    class MapInfo {
-        /**
-         * 图片扩展
-         */
-        ext: Ext;
-        /**
-         * 地图唯一标识
-         */
-        id: Key;
-        /**
-         * 地图路径
-         */
-        path: string;
-        /**
-         * 路径类型
-         * 0 走格子的
-         * 1 走导航网格寻路
-         */
-        pathType: MapPathType;
-        /**
-         * 地图像素宽度
-         */
-        width: number;
-        /**
-         * 地图像素高度
-         */
-        height: number;
-        /**
-         * 单张底图的宽度
-         */
-        pWidth: number;
-        /**
-         * 单张底图的高度
-         */
-        pHeight: number;
-        /**
-         * X轴最大图片坐标
-         * 000开始
-         */
-        maxPicX: number;
-        /**
-         * Y轴最大图片数量
-         * 000开始
-         */
-        maxPicY: number;
-        /**
-         * 路径点是否可走
-         * 0 不可走
-         * @param x
-         * @param y
-         */
-        getWalk?(x: number, y: number): number;
-        /**
-        * 获取地图图块资源路径
-        */
-        getMapUri(col: number, row: number): string;
-        /**
-         * 获取图片路径
-         */
-        getImgUri(uri: string): string;
-        /**
-         * 地图前缀路径
-         */
-        static prefix: MapConst;
-    }
-}
-interface $gmType {
-    /**
-     * 显示/关闭地图格子显示
-     *
-     *
-     * @memberOf $gmType
-     */
-    toggleMapGrid(): any;
-    $showMapGrid: boolean;
-    regPathDraw(type: jy.MapPathType, handler: jy.drawPath): any;
-    pathSolution: {
-        [type in jy.MapPathType]: jy.drawPath;
-    };
-}
-declare namespace jy {
-    /**
-    * MapRender
-    * 用于处理地图平铺的渲染
-    */
-    class TileMapLayer extends BaseLayer {
-        miniUri: string;
-        /**
-         * 扩展预加载的图块数量
-         *
-         */
-        preload: number;
-        static checkRect?(map: MapInfo, rect: egret.Rectangle, preload: number, forEach: {
-            (uri: string, col: number, row: number): any;
-        }, checker?: {
-            (sc: number, sr: number, ec: number, er: number): boolean;
-        }): any;
-        /**
-         * @private
-         */
-        private _currentMap;
-        /**
-        * 显示/关闭地图格子显示
-        *
-        *
-        * @memberOf $gmType
-        */
-        currentMap: MapInfo;
-        /**
-         * mini的纹理
-         */
-        mini: egret.Texture;
-        miniTexDict: {
-            [key: number]: egret.Texture;
-        };
-        /**
-         *
-         * 显示中的地图
-         * @type {TileMap[]}
-         */
-        protected _showing: TileMap[];
-        protected drawGrid?: {
-            (x: number, y: number, w: number, h: number, cM: MapInfo): void;
-        };
-        /**
-         * 上次渲染的起始 column
-         *
-         * @protected
-         * @type {number}
-         */
-        protected lsc: number;
-        /**
-         * 上次渲染的起始 row
-         *
-         * @protected
-         * @type {number}
-         */
-        protected lsr: number;
-        /**
-         * 上次渲染的结束 column
-         *
-         * @protected
-         * @type {number}
-         */
-        protected lec: number;
-        /**
-         * 上次渲染的结束 row
-         *
-         * @protected
-         * @type {number}
-         */
-        protected ler: number;
-        protected _idx: number;
-        protected addMap(uri: string, c: number, r: number, pW: number, pH: number): void;
-        reset(): void;
-        protected check(sc: number, sr: number, ec: number, er: number): boolean;
-        setRect(rect: egret.Rectangle, ox?: number, oy?: number): void;
-        protected noRes(uri: string, c: number, r: number, pW: number, pH: number): TileMap;
-        /**
-         * 设置小地图
-         * @param uri
-         */
-        setMini(uri: string): void;
-        miniLoad(item: Res.ResItem): void;
-        removeChildren(): void;
-    }
-    /**
-    * TileMap
-    */
-    class TileMap extends egret.Bitmap implements IResource {
-        /**
-         * 表示此底图为空地图，最终不放置在舞台上
-         */
-        empty: boolean;
-        /**
-         * 地图块的列
-         */
-        col: number;
-        /**
-         * 地图块的行
-         */
-        row: number;
-        /**
-         * 资源唯一标识
-         */
-        uri: string;
-        /**
-         *
-         * 是否为静态资源
-         * @type {boolean}
-         */
-        isStatic: boolean;
-        lastUseTime: number;
-        /**
-         *
-         * 资源路径
-         * @type {string}
-         */
-        url: string;
-        constructor();
-        reset(col: number, row: number, uri: string): void;
-        load(): void;
-        /**
-         * 资源加载完成
-         */
-        loadComplete(item: Res.ResItem): void;
-        dispose(): void;
-    }
-}
-declare namespace jy {
-    /**
-     *
-     * 震动的基本实现
-     * @export
-     * @class BaseShake
-     * @implements {Shake}
-     * @author 3tion
-     */
-    abstract class BaseShake implements Shake {
-        /**
-         * 释放正在震动
-         *
-         * @protected
-         * @type {boolean}
-         */
-        protected _shaking: boolean;
-        /**
-         * 震动目标
-         *
-         * @protected
-         * @type {ShakeTarget}
-         */
-        protected _target: ShakeTarget;
-        readonly target: ShakeTarget;
-        /**
-         * 单位X方向基准值      一般为单位初始值
-         *
-         * @protected
-         * @type {number}
-         */
-        protected _cx: number;
-        /**
-         * 单位Y方向基准值      一般为单位初始值
-         *
-         * @protected
-         * @type {number}
-         */
-        protected _cy: number;
-        protected _total: number;
-        /**
-         * 总执行时间
-         */
-        readonly total: number;
-        setShakeTarget(target: ShakeTarget): Shake;
-        /**
-         * 设置单位基准值
-         *
-         * @param {number} [cx]
-         * @param {number} [cy]
-         */
-        setTargetPos(cx?: number, cy?: number): this;
-        start(): void;
-        abstract tick(duration: number, outPt: {
-            x: number;
-            y: number;
-        }): any;
-        end(): void;
-        /**
-         * 销毁的处理
-         */
-        dispose(): void;
-    }
-}
-declare namespace jy {
-    /**
-     * 骑乘状态
-     */
-    const enum MountType {
-        /**
-         * 在地面上
-         */
-        ground = 0,
-        /**
-         * 在坐骑上
-         */
-        ride = 1
-    }
-    /**
-     * 动作类型
-     */
-    const enum ActionType {
-        /**
-         * 待机
-         */
-        standBy = 0,
-        /**
-         * 移动
-         */
-        move = 1,
-        /**
-         * 攻击
-         */
-        attack = 2,
-        /**
-         * 跳
-         */
-        jump = 3
-    }
-    /**
-     * 单位动作
-     * @author 3tion
-     *
-     */
-    class UnitAction {
-        static defaultAction: {
-            mountType: MountType;
-            action: number;
-        };
-        /**
-         * 根据坐骑状态，获取人物动作序列的配置
-         *
-         * @param {MountType} mountType 坐骑状态
-         * @returns {IUnitActionInfo} 动作结果
-         */
-        getAction(mountType: MountType): IUnitActionInfo;
-        /**
-         * 单位播放动作
-         * 如果子类要制作动态的自定义动作，重写此方法
-         * @param {Unit} unit               单位
-         * @param {MountType} mountType     骑乘状态
-         * @param {number} now              时间戳
-         */
-        playAction(unit: Unit, mountType: MountType, now: number): void;
-        /**
-         * 播放动作
-         */
-        start(unit: Unit, now: number): boolean;
-        /**
-         * 动作执行数据计算<br/>
-         * 如更新单位坐标等
-         */
-        doData(unit: Unit, now: number): void;
-        /**
-         * 检查当前动作是否可以结束<br/>
-         * @return true 可以结束<br/>
-         *         false 不可结束
-         */
-        readonly canStop: Boolean;
-        /**
-         * 强制结束
-         */
-        terminate(): void;
-        /**
-         * 动画播放结束的回调
-         */
-        playComplete(unit: Unit, now: number): void;
-        protected _isEnd: Boolean;
-        /**
-         * 动作是否已经结束
-         * @return true，动作已经结束，可以做下一个动作<br/>
-         *         false, 动作未结束，
-         */
-        readonly isEnd: Boolean;
-        /**
-         * 执行事件
-         */
-        dispatchEvent(unit: Unit, eventType: string, now: number): void;
-        /**
-         * 渲染时执行
-         */
-        doRender(unit: Unit, now: number): void;
-        recycle(): void;
-    }
-}
-declare namespace jy {
-    /**
-     * 用于君游项目数据同步，后台运行<br/>
-     * 只有注册和注销，没有awake和sleep
-     * @author 3tion
-     *
-     */
-    abstract class Proxy extends FHost {
-        /**
-         * 是否被其他模块依赖
-         *
-         * @type {boolean}
-         */
-        _$isDep: boolean;
-        /**
-         * 默认当作同步数据，认为是已经处理好的
-         */
-        protected _selfReady: boolean;
-        /**
-         * 数据是否加载完毕
-         */
-        protected _readyState: RequestState;
-        constructor(name: string | number);
-        readonly isReady: boolean;
-        startSync(): boolean;
-        /**
-         * 用于重写，主要用于向服务端发送一些指令/或者是开始进行http请求进行拉配置
-         *
-         */
-        protected _startSync(): void;
-        /**
-         * 自己加载好<br/>
-         * 不包括依赖项
-         *
-         */
-        protected selfReady(): void;
-        /**
-         * 用于子类重写<br/>
-         * 处理自己的数据<br/>
-         * 如果有依赖，请使用afterAllReady<br/>
-         *
-         */
-        protected parseSelfData(): void;
-        /**
-         * 依赖项加载完毕
-         *
-         */
-        protected dependerReadyCheck(): void;
-        /**
-         * 全部ok<br/>
-         * 此函数不给子类继承
-         */
-        private allReadyHandler;
-    }
-}
-declare namespace jy {
-    interface ViewController {
-        /**
-         * 面板加入到舞台时执行
-         */
-        onAwake?(): any;
-        /**
-         * 面板从舞台移除时执行
-         */
-        onSleep?(): any;
-    }
-    /**
-     * 可以调用 @d_interest 的视图
-     * 可以进行关注facade中的事件
-     *
-     * @export
-     * @class ViewController
-     * @extends {FHost}
-     */
-    class ViewController extends FHost {
-        /**
-         * 加载状态
-         */
-        protected _ready: boolean;
-        /**
-         * 关注列表
-         */
-        protected _interests: {
-            [index: string]: Interest;
-        };
-        interestChecked: boolean;
-        _awakeCallers: {
-            (e?: egret.Event): void;
-        }[];
-        /**
-         * 定时回调的列表
-         */
-        _tList: $CallbackInfo[];
-        /**
-         * 用于内部增加关注
-         *
-         * @param {Key} eventType
-         * @param {{ (e?: egret.Event): void }} handler
-         * @param {boolean} [triggerOnStage]
-         * @param {number} [priority]
-         */
-        interest(eventType: Key, handler: {
-            (e?: egret.Event): void;
-        }, triggerOnStage?: boolean, priority?: number): void;
-        removeSkinListener(skin: egret.DisplayObject): void;
-        addSkinListener(skin: egret.DisplayObject): void;
-        /**
-         * 绑定定时处理的回调函数
-         *
-         * @param {Function} callback 执行回调函数
-         * @param {boolean} [trigger=true] 是否理解执行
-         * @param {number} [time=Time.ONE_SECOND]
-         * @param {any} [thisObj=this]
-         * @param {any} args
-         * @memberof ViewController
-         */
-        bindTimer(callback: Function, trigger?: boolean, time?: Time, thisObj?: this, ...args: any[]): void;
-        /**
-         * 解除定时回调函数的绑定
-         * @param callback
-         * @param time
-         * @param thisObj
-         */
-        looseTimer(callback: Function, time?: Time, thisObj?: this): void;
-        /**
-         * 添加到舞台时，自动添加定时回调
-         */
-        awakeTimer(): void;
-        /**
-         * 从舞台移除时候，自动移除定时回调
-         */
-        sleepTimer(): void;
-        readonly isReady: boolean;
-        onStage(e: egret.Event): void;
-        stageChange(onStage: boolean): void;
-        checkInterest(): void;
-    }
-    interface Interest {
-        /**
-         * 回调函数
-         */
-        handler: (e?: egret.Event) => void;
-        /**
-         *
-         * 优先级
-         * @type {number}
-         */
-        priority: number;
-        /**
-         *
-         * 添加到舞台的时候，立即执行一次回调函数
-         * @type {boolean}
-         */
-        trigger: boolean;
-        /**
-         * 是否为私有监听，此值设置为true则子类不会继承事件监听
-         * 否则子类将继承事件监听
-         */
-        isPri?: boolean;
-    }
-    /**
-     * 使用@d_interest 注入 添加关注
-     * 关注为事件处理回调，只会在awake时，添加到事件监听列表
-     * 在sleep时，从事件监听列表中移除
-     * @param {Key} type                         关注的事件
-     * @param {(e?: Event) => void} handler          回调函数
-     * @param {boolean} [triggerOnStage=false]      添加到舞台的时候，会立即执行一次，`<font color="#f00">`注意，处理回调必须能支持不传event的情况`
-     * @param {boolean} [isPrivate=false]           是否为私有方法，如果标记为私有方法，则不会被子类的关注继承
-     * @param {number} [priority=0]                 优先级，默认为0
-     */
-    function d_interest(eventType: Key, triggerOnStage?: boolean, isPrivate?: boolean, priority?: number): (target: any, _: string, value: any) => void;
 }
 declare namespace jy {
     class Scroller extends egret.EventDispatcher {
@@ -3370,6 +3145,195 @@ declare namespace jy {
          */
         protected onChange(): void;
     }
+}
+declare namespace jy {
+    /**
+     * 状态机
+     * @author 3tion
+     */
+    class StateMachine implements IStateListener {
+        /**
+         * 当前状态
+         *
+         * @protected
+         * @type {Key}
+         */
+        protected current: Key;
+        protected swis: {
+            [index: string]: IStateSwitcher[];
+        };
+        protected liss: IStateListener[];
+        /**
+         * 状态列表
+         *
+         * @protected
+         * @type {Key[]}
+         */
+        protected _stas: Key[];
+        /**
+         * 是否做上一个进入睡眠状态前的检查
+         *
+         * @type {boolean}
+         * @memberof StateMachine
+         */
+        checkBeforeSleep?: boolean;
+        constructor();
+        /**
+         * 获取当前已有的状态列表
+         *
+         * @readonly
+         */
+        readonly states: (string | number)[];
+        add(value: IStateListener): void;
+        remove(value: IStateListener): void;
+        /**
+         *  一个侦听加入到多个状态;
+         * @param type
+         * @param args
+         *
+         */
+        addToStates(value: IStateSwitcher, ...args: Key[]): any;
+        /**
+         * 从所有状态中删除侦听;
+         * @param value
+         *
+         */
+        removeAllState(value: IStateSwitcher): void;
+        /**
+         * 从单个状态中,删了一个具体侦听;
+         * @param type
+         * @param value
+         * @return
+         *
+         */
+        removeFromState(state: Key, value: IStateSwitcher): boolean;
+        /**
+         * 单个状态中加入一个侦听;
+         * @param value
+         * @param list
+         *
+         */
+        addToState(state: Key, value: IStateSwitcher): void;
+        /**
+         *  清理状态机;
+         *
+         */
+        clear(): void;
+        /**
+         * 设置当前的状态
+         * @param value
+         *
+         */
+        setState(value: Key): void;
+        /**
+         * 检查状态实现(switcher)是否添加到某个状态中
+         *
+         * @param {IStateSwitcher} switcher    某个状态实现
+         * @param {Key} [type] 状态
+         * @returns {boolean}
+         */
+        isInState(switcher: IStateSwitcher, type?: Key): boolean;
+    }
+}
+declare namespace jy {
+    /**
+     * mixin的基类选项
+     *
+     * @export
+     * @interface MixinOption
+     * @template T
+     */
+    interface MixinOption<T> {
+        /**
+         *
+         * mixin的基类
+         * @type {{ new (): T }}
+         * @memberOf MixinOption
+         */
+        clazz: {
+            new (): T;
+        };
+        /**
+         *
+         *
+         * @type {(keyof T)[]}
+         * @memberOf MixinOption
+         */
+        keys: (keyof T)[];
+    }
+    /**
+     * 扩展一个实例，如果A类型实例本身并没有B类型的方法，则直接对实例的属性进行赋值，否则将不会赋值
+     *
+     * @export
+     * @template A
+     * @template B
+     * @param {A} instance                  要扩展的实例
+     * @param {{ prototype: B }} clazzB     需要扩展的对象方法
+     * @param {boolean} override            是否强制覆盖原有方法
+     * @returns {(A & B)}
+     */
+    function expandInstance<A, B, K extends keyof B>(instance: A, clazzB: {
+        prototype: B;
+    }, ...keys: K[]): A & B;
+    /**
+     * 将类型A扩展类型B的指定属性，并返回引用
+     *
+     * @export
+     * @template A
+     * @template B
+     * @template K
+     * @template B
+     * @param {{ prototype: A }} clazzA     要被扩展的类型
+     * @param {{ prototype: B }} clazzB     扩展的模板，已经模板的父类型也会作为模板
+     * @param {...K[]} keys      如果没有参数，则将B的全部属性复制给类型A
+     * @returns {(A & Record<K, B>)}
+     */
+    function expand<A, B, K extends keyof B>(clazzA: {
+        prototype: A;
+    }, clazzB: {
+        prototype: B;
+    }, ...keys: K[]): A & Record<K, B>;
+    type Constructor<T> = new (...args: any[]) => T;
+    type MixinCtor<A, B> = new () => A & B & {
+        constructor: MixinCtor<A, B>;
+    };
+    /**
+     * 获取一个复合类型
+     *
+     * @export
+     * @template A
+     * @template B
+     * @param {{ prototype: A }} clazzA     类型A
+     * @param {{ prototype: B }} clazzB     类型B
+     * @returns
+     */
+    function getMixin<A, B>(clazzA: {
+        prototype: A;
+    }, clazzB: {
+        prototype: B;
+    }): MixinCtor<A, B>;
+    /**
+     * 拷贝属性
+     *
+     * @export
+     * @template To
+     * @template From
+     * @param {To} to
+     * @param {From} from
+     * @param {keyof B} key
+     */
+    function copyProperty<To, From>(to: To, from: From, key: keyof From): void;
+    /**
+     * 批量拷贝属性
+     *
+     * @export
+     * @template To
+     * @template From
+     * @param {To} to
+     * @param {From} from
+     * @param {...(keyof From)[]} keys
+     */
+    function copyProperties<To, From>(to: To, from: From, ...keys: (keyof From)[]): void;
 }
 declare namespace jy {
     /**
@@ -3681,6 +3645,765 @@ declare namespace jy {
     }
 }
 declare namespace jy {
+    /**
+     *
+     * 震动的基本实现
+     * @export
+     * @class BaseShake
+     * @implements {Shake}
+     * @author 3tion
+     */
+    abstract class BaseShake implements Shake {
+        /**
+         * 释放正在震动
+         *
+         * @protected
+         * @type {boolean}
+         */
+        protected _shaking: boolean;
+        /**
+         * 震动目标
+         *
+         * @protected
+         * @type {ShakeTarget}
+         */
+        protected _target: ShakeTarget;
+        readonly target: ShakeTarget;
+        /**
+         * 单位X方向基准值      一般为单位初始值
+         *
+         * @protected
+         * @type {number}
+         */
+        protected _cx: number;
+        /**
+         * 单位Y方向基准值      一般为单位初始值
+         *
+         * @protected
+         * @type {number}
+         */
+        protected _cy: number;
+        protected _total: number;
+        /**
+         * 总执行时间
+         */
+        readonly total: number;
+        setShakeTarget(target: ShakeTarget): Shake;
+        /**
+         * 设置单位基准值
+         *
+         * @param {number} [cx]
+         * @param {number} [cy]
+         */
+        setTargetPos(cx?: number, cy?: number): this;
+        start(): void;
+        abstract tick(duration: number, outPt: {
+            x: number;
+            y: number;
+        }): any;
+        end(): void;
+        /**
+         * 销毁的处理
+         */
+        dispose(): void;
+    }
+}
+declare namespace jy {
+    const enum ByteArraySize {
+        SIZE_OF_UINT32 = 4,
+        SIZE_OF_FIX64 = 8,
+        SIZE_OF_INT64 = 8,
+        SIZE_OF_DOUBLE = 8,
+        SIZE_OF_FLOAT = 4,
+        SIZE_OF_FIX32 = 4,
+        SIZE_OF_SFIX32 = 4,
+        SIZE_OF_UINT16 = 2,
+        SIZE_OF_INT16 = 2
+    }
+    /**
+     * 方便后续调整
+     * 加入ProtoBuf的varint支持
+     * @author 3tion
+     *
+     */
+    class ByteArray extends egret.ByteArray {
+        $endian: egret.EndianConst;
+        constructor(buffer?: ArrayBuffer, ext?: number);
+        /**
+         * 替换缓冲区
+         *
+         * @param {ArrayBuffer} value
+         */
+        replaceBuffer(value: ArrayBuffer): void;
+        /**
+         *
+         * 读取指定长度的Buffer
+         * @param {number} length       指定的长度
+         * @returns {Buffer}
+         */
+        readBuffer(length: number): ArrayBuffer;
+        readInt64(): number;
+        writeInt64(value: number): void;
+        /**
+         * 读取ProtoBuf的`Double`
+         * protobuf封装是使用littleEndian的，不受Endian影响
+         */
+        readPBDouble(): number;
+        /**
+         * 写入ProtoBuf的`Double`
+         * protobuf封装是使用littleEndian的，不受Endian影响
+         * @param value
+         */
+        writePBDouble(value: number): void;
+        /**
+         * 读取ProtoBuf的`Float`
+         * protobuf封装是使用littleEndian的，不受Endian影响
+         */
+        readPBFloat(): number;
+        /**
+          * 写入ProtoBuf的`Float`
+          * protobuf封装是使用littleEndian的，不受Endian影响
+          * @param value
+          */
+        writePBFloat(value: number): void;
+        readFix32(): number;
+        writeFix32(value: number): void;
+        readSFix32(): number;
+        writeSFix32(value: number): void;
+        readFix64(): number;
+        writeFix64(value: number): void;
+        /**
+         *
+         * 读取指定长度的ByteArray
+         * @param {number} length       指定的长度
+         * @param {number} [ext=0]      ByteArray扩展长度参数
+         * @returns {ByteArray}
+         */
+        readByteArray(length: number, ext?: number): ByteArray;
+        /**
+         * 向字节流中写入64位的可变长度的整数(Protobuf)
+         */
+        writeVarint64(value: number): void;
+        /**
+         * 向字节流中写入32位的可变长度的整数(Protobuf)
+         */
+        writeVarint(value: number): void;
+        /**
+         * 读取字节流中的32位变长整数(Protobuf)
+         */
+        readVarint(): number;
+        /**
+          * 读取字节流中的32位变长整数(Protobuf)
+          */
+        readVarint64(): number;
+        /**
+         * 获取写入的字节
+         * 此方法不会新建 ArrayBuffer
+         * @readonly
+         * @memberof ByteArray
+         */
+        readonly outBytes: Uint8Array;
+        /**
+         * 重置索引
+         *
+         * @memberof ByteArray
+         */
+        reset(): void;
+    }
+}
+declare namespace jy {
+    const enum PosKey {
+        X = "x",
+        Y = "y"
+    }
+    const enum SizeKey {
+        Width = "width",
+        Height = "height"
+    }
+    const enum EgretMeasureSizeKey {
+        Height = "measuredHeight",
+        Width = "measuredWidth"
+    }
+    /**
+     * 有`width` `height` 2个属性
+     *
+     * @export
+     * @interface Size
+     */
+    interface Size {
+        width: number;
+        height: number;
+    }
+    /**
+     * 有 `x` `y` 两个属性
+     *
+     * @export
+     * @interface Point
+     */
+    interface Point {
+        x: number;
+        y: number;
+    }
+    /**
+     * 有 `x` `y` `z` 3个属性
+     *
+     * @export
+     * @interface Point3D
+     * @extends {Point}
+     */
+    interface Point3D extends Point {
+        z: number;
+    }
+    /**
+     * 矩形
+     * 有`x`,`y`,`width`,`height` 4个属性
+     *
+     * @export
+     * @interface Rect
+     * @extends {Point}
+     * @extends {Size}
+     */
+    interface Rect extends Point, Size {
+    }
+}
+declare namespace jy {
+    /**
+     * 固定大小的堆栈数据
+     */
+    class Heap<T> {
+        /**
+         * 原始数据
+         */
+        readonly heap: T[];
+        readonly maxSize: number;
+        private _count;
+        readonly compare: (a: T, b: T) => number;
+        constructor(size: number, compare?: {
+            (a: T, b: T): number;
+        });
+        /**
+         * 获取堆中，第一个元素
+         */
+        peek(): T;
+        put(obj: T): boolean;
+        pop(): T;
+        clear(newSize?: number): void;
+        readonly size: number;
+        toArray(): T[];
+        /**
+         * 遍历堆中元素
+         * @param callbackfn 回调函数，如果返回true，停止遍历
+         * @param thisArg 回调函数的 this 指针
+         */
+        forEach(callbackfn: (value: T, cursor: number, heap: Heap<T>) => boolean, thisArg?: any): void;
+    }
+}
+declare namespace jy {
+    /**
+     * 项目中不使用long类型，此值暂时只用于存储Protobuff中的int64 sint64
+     * @author
+     *
+     */
+    class Int64 {
+        /**
+         * 高位
+         */
+        high: number;
+        /**
+         * 低位
+         */
+        low: number;
+        constructor(low?: number, high?: number);
+        toNumber(): number;
+        static toNumber(low?: number, high?: number): number;
+        static fromNumber(value: number): any;
+        add(addend: Int64): Int64;
+    }
+}
+declare namespace jy {
+    /**
+     * 经纬度 定位信息
+     *
+     * @export
+     * @interface Location
+     */
+    interface Location {
+        /**维度*/
+        latitude: number;
+        /**精度*/
+        longitude: number;
+    }
+    interface LocationConstructor {
+        /**
+         * 根据两个经纬度获取距离(单位：米)
+         *
+         * @param {Location} l1
+         * @param {Location} l2
+         * @returns 距离(单位：米)
+         */
+        getDist(l1: Location, l2: Location): number;
+    }
+    var Location: LocationConstructor;
+}
+declare namespace jy {
+    interface MotionGuidePluginTween extends Tween {
+        /**
+         * 是否需要旋转
+         *
+         * @type {boolean}
+         * @memberOf Tween
+         */
+        __needsRot: boolean;
+        __rotGlobalS: number;
+        __rotGlobalE: number;
+        __rotPathE: number;
+        __rotPathS: number;
+        __guideData: any;
+    }
+    interface MotionGuidePluginTarget {
+        x?: number;
+        y?: number;
+        rotation?: number;
+    }
+    const MotionGuidePlugin: {
+        priority: number;
+        install(manager: TweenManager): void;
+        init(tween: MotionGuidePluginTween, prop: string, value: any): any;
+        step(tween: MotionGuidePluginTween, prop: string, startValue: any, endValue: any, injectProps: any): any;
+        tween(tween: MotionGuidePluginTween, prop: string, value: any, startValues: any, endValues: any, ratio: number, wait: boolean, end: boolean): any;
+    };
+}
+declare const enum Time {
+    /**
+     * 一秒
+     */
+    ONE_SECOND = 1000,
+    /**
+     * 五秒
+     */
+    FIVE_SECOND = 5000,
+    /**
+     * 一分种
+     */
+    ONE_MINUTE = 60000,
+    /**
+     * 五分种
+     */
+    FIVE_MINUTE = 300000,
+    /**
+     * 半小时
+     */
+    HALF_HOUR = 1800000,
+    /**
+     * 一小时
+     */
+    ONE_HOUR = 3600000,
+    /**
+     * 一天
+     */
+    ONE_DAY = 86400000
+}
+declare const enum CountDownFormat {
+    /**
+     * { d: LangUtil.getMsg("$_ndays"), h: LangUtil.getMsg("$_nhours"), m: LangUtil.getMsg("$_nminutes"), s: LangUtil.getMsg("$_nsecends") }
+     */
+    D_H_M_S = 0,
+    /**
+     * { h: LangUtil.getMsg("$_nhours"), m: LangUtil.getMsg("$_nminutes"), s: LangUtil.getMsg("$_nsecends") }
+     */
+    H_M_S = 1,
+    /**
+     *  { h: LangUtil.getMsg("$_nhours"), m: LangUtil.getMsg("$_nminutes") }
+     */
+    H_M = 2,
+    /**
+     * { m: LangUtil.getMsg("$_nminutes"), s: LangUtil.getMsg("$_nsecends") }
+     */
+    M_S = 3,
+    /**
+     * { s: LangUtil.getMsg("$_nsecends") }
+     */
+    S = 4
+}
+declare namespace jy {
+    /**
+     * 倒计时的格式选项
+     *
+     * @export
+     * @interface CountDownFormatOption
+     */
+    interface CountDownFormatOption {
+        /**
+         *
+         * 剩余天数的修饰字符串
+         * 如： `{0}天`
+         * @type {string}@memberof CountDownFormatOption
+         */
+        d?: string;
+        /**
+         * 剩余小时的修饰字符串
+         * 如：`{0}小时`
+         *
+         * @type {string}@memberof CountDownFormatOption
+         */
+        h?: string;
+        /**
+         * 剩余分钟的修饰字符串
+         * 如：`{0}分钟`
+         *
+         * @type {string}@memberof CountDownFormatOption
+         */
+        m?: string;
+        /**
+         * 剩余秒数的修饰字符串
+         * 如：`{0}秒`
+         *
+         * @type {string}@memberof CountDownFormatOption
+         */
+        s?: string;
+        /**
+         * 小时补0
+         */
+        hh?: boolean;
+        /**
+         * 分钟补0
+         */
+        mm?: boolean;
+        /**
+         * 秒补0
+         */
+        ss?: boolean;
+    }
+    interface DateUtilsInterface {
+        /**
+         * CountDownFormat
+         *
+         * @static
+         * @param {number} format
+         * @returns {*}
+         *
+         * @memberOf DateUtils
+         */
+        getDefaultCDFOption(format: number): CountDownFormatOption;
+        /**
+         * 注册默认的CD格式，方便后续调用
+         *
+         * @param {CountDownFormat} format
+         * @param {CountDownFormatOption} opt
+         */
+        regCDFormat(format: CountDownFormat, opt: CountDownFormatOption): any;
+        /**
+         * 初始化服务器时间
+         *
+         * @static
+         * @param {number} time 服务器时间戳
+         * @param {number} timezoneOffset 服务器基于UTC的时区偏移
+         */
+        initServerTime(time: number, timezoneOffset: number): void;
+        /**
+         * 设置服务器时间
+         * 用于同步服务器时间
+         * @static
+         * @param {number} time
+         */
+        setServerTime(time: number): void;
+        /**
+         * 通过UTC偏移过的当前时间戳
+         *
+         * @static
+         */
+        readonly utcServerTime: number;
+        /**
+         * 通过UTC偏移过的Date
+         */
+        readonly utcServerDate: Date;
+        /**
+         * 获取当前时间戳，用于和服务端的时间戳进行比较
+         *
+         * @readonly
+         * @static
+         */
+        readonly serverTime: number;
+        /**
+         * 通过UTC偏移过的当前时间戳的Date对象
+         */
+        readonly serverDate: Date;
+        /**
+         * 共享时间
+         *
+         * @type {Date}
+         * @memberof DateUtilsInterface
+         */
+        readonly sharedDate: Date;
+        /**
+         * 项目中，所有时间都需要基于UTC偏移处理
+         *
+         * @static
+         * @param {number} time			要格式化的时间，默认为UTC时间
+         * @param {string} format 		  格式字符串 yyyy-MM-dd HH:mm:ss
+         * @param {boolean} [isRaw=true] 	是否为原始未使用utc偏移处理的时间，默认 true
+         * @returns
+         */
+        getFormatTime(time: number, format: string, isRaw?: boolean): string;
+        /**
+         * 获取指定时间的当天结束(23:59:59'999)时间戳
+         *
+         * @static
+         * @param {number} [time] 指定的utc偏移后的时间，不设置时间，则取当前服务器时间
+         * @returns {number} 指定时间的当天结束(23:59:59'999)时间戳
+         */
+        getDayEnd(time?: number): number;
+        /**
+         * 获取指定时间的当天结束(23:59:59'999)UTC强制偏移时间戳
+         *
+         * @static
+         * @param {number} [utcTime] 指定的utc偏移后的时间，不设置时间，则取当前服务器时间
+         * @returns {number} 指定时间的当天结束(23:59:59'999)UTC强制偏移时间戳
+         */
+        getUTCDayEnd(utcTime?: number): number;
+        /**
+         * 获取指定时间的当天开始的(0:0:0'0)时间戳
+         *
+         * @static
+         * @param {number} [time] 指定的时间，不设置时间，则取当前服务器时间
+         * @returns {Date} 指定时间的当天开始的(0:0:0'0)时间戳
+         */
+        getDayStart(time?: number): number;
+        /**
+         * 获取指定时间的当天开始的UTC(0:0:0'0)强制偏移时间戳
+         *
+         * @static
+         * @param {number} [utcTime] 指定的utc偏移后的时间，不设置时间，则取当前服务器时间
+         * @returns {Date} 指定时间的当天开始的UTC(0:0:0'0)强制偏移时间戳
+         */
+        getUTCDayStart(utcTime?: number): number;
+        /**
+         * 将服务器有偏移量的时间戳，转换成显示时间相同的UTC时间戳，用于做显示
+         *
+         * @static
+         * @param {number} time 正常的时间戳
+         * @returns {number} UTC偏移后的时间戳
+         */
+        getUTCTime(time: number): number;
+        /**
+         * 显示倒计时
+         *
+         * @static
+         * @param {number} leftTime 剩余时间
+         * @param {{ d?: string, h?: string, m?: string, s?: string }} format 倒计时修饰符，
+         * format 示例：{d:"{0}天",h:"{0}小时",m:"{0}分",s:"{0}秒"}
+         */
+        getCountdown(leftTime: number, format: CountDownFormatOption | CountDownFormat): string;
+        /**
+         * 获取天数
+         * 如要获取开服天数
+         * 1月1日 `23点50分`开服
+         * 1月2日 `6点0分`，则算开服`第二天`
+         * @param {number} startTime 起点时间戳
+         * @param {number} [endTime] 结束时间戳
+         */
+        getDayCount(startTime: number, endTime?: number): number;
+        /**
+         * 获取天数，基于UTC时间计算
+         * 如要获取开服天数
+         * 1月1日 `23点50分`开服
+         * 1月2日 `6点0分`，则算开服`第二天`
+         * @param {number} startTime 起点时间戳
+         * @param {number} [endTime] 结束时间戳
+         */
+        getUTCDayCount(startTime: number, endTime?: number): number;
+    }
+    const DateUtils: DateUtilsInterface;
+}
+declare namespace jy {
+    /**
+     * TimveVO
+     */
+    class TimeVO {
+        /**
+         * 配置的小时
+         *
+         * @type {number}
+         */
+        hour: number;
+        /**
+         * 配置的分钟
+         *
+         * @type {number}
+         */
+        minute: number;
+        /**
+         * 小时和分钟的时间偏移
+         *
+         * @type {number}
+         */
+        time: number;
+        /**
+         * 日期原始字符串
+         */
+        strTime: string;
+        constructor(timeStr?: string);
+        /**
+         * 从分钟进行解析
+         *
+         * @param {number} minutes 分钟数
+         */
+        decodeMinutes(minutes: number): TimeVO;
+        /**
+         * 从一个数值进行序列化
+         * decodeMinutes和decodeBit，如果使用protobuf writeVarint32 存储，时间只要超过 02:08，不管如何使用何种方式，一定会超过2字节，而 23:59，不管怎么存储，都不会超过2字节
+         * decodeBit解析比 decodeMinutes更加快捷
+         * 而 hour<<6|minute  解析会更简单，快速
+         * @param {number} value
+         */
+        decodeBit(value: number): TimeVO;
+        /**
+         * 从字符串中解析
+         *
+         * @param {number} strTime 通过解析器解析的数据
+         */
+        decode(strTime: string): TimeVO;
+        /**
+        * 获取今日的服务器时间
+        *
+        * @readonly
+        * @memberOf TimeVO
+        */
+        readonly todayTime: number;
+        /**
+         * 获取指定时间戳那天的时间
+         *
+         * @param {number} [day]
+         * @param {boolean} [isUTC]
+         * @returns
+         * @memberof TimeVO
+         */
+        getDayTime(day?: number, isUTC?: boolean): number;
+    }
+}
+declare namespace jy {
+    /**
+     * 可用于做Key的类型
+     */
+    type Key = number | string;
+}
+declare namespace jy {
+    /**
+     * 圆圈倒计时
+     *
+     * @export
+     * @class CircleCountdown
+     */
+    class CircleCountdown {
+        static defaultColor: number;
+        protected _g: egret.Graphics;
+        protected _cX: number;
+        protected _cY: number;
+        /**
+         * 绘制的线的宽度
+         *
+         * @protected
+         *
+         * @memberOf CircleCountdown
+         */
+        protected _sw: number;
+        protected _total: number;
+        protected _p: number;
+        protected _cfgs: CircleCountdownCfg[];
+        protected _cfg: CircleCountdownCfg;
+        protected _eRad: number;
+        protected _sRad: number;
+        protected _dRad: number;
+        protected _radius: number;
+        private isEnd;
+        setGraphis(graphics: egret.Graphics): this;
+        setCenter(centerX: number, centerY: number): this;
+        setRadius(radius: number): this;
+        /**
+         * 设置起始角度和结束角度
+         *
+         * @param {number} [rad=0]
+         *
+         * @memberOf CircleCountdown
+         */
+        setRad(startRad?: number, endRad?: number): this;
+        /**
+         * 设置线的宽度
+         *
+         * @param {number} [strokeWidth=1]
+         * @returns
+         *
+         * @memberOf CircleCountdown
+         */
+        setStrokeWidth(strokeWidth?: number): this;
+        setCfgs(color?: number | CircleCountdownCfg, ...cfgs: CircleCountdownCfg[]): this;
+        addCfg(color: CircleCountdownCfg): this;
+        reset(): this;
+        progress(value: number, maxValue: number): void;
+        reuse(): void;
+        clear(): void;
+        protected render(): void;
+    }
+    /**
+     * 圆圈倒计时配置
+     *
+     * @export
+     * @interface CircleCountdownCfg
+     * @extends {Object}
+     */
+    interface CircleCountdownCfg extends Object {
+        /**
+         *
+         * 使用的起始颜色
+         * @type {number}
+         * @memberOf CircleCountdownCfg
+         */
+        color: number;
+        /**
+         * 颜色权值
+         *
+         * @type {number}
+         * @memberOf CircleCountdownCfg
+         */
+        weight: number;
+        /**
+         * 是否不做渐变，默认基于下一个点做渐变
+         *
+         * @type {boolean}
+         * @memberOf CircleCountdownCfg
+         */
+        noGradient?: boolean;
+        /**
+         * 是否闪烁
+         *
+         * @type {boolean}
+         * @memberOf CircleCountdownCfg
+         */
+        shine?: boolean;
+        /**
+         * 起始点
+         *
+         * @type {number}
+         * @memberOf CircleCountdownCfg
+         */
+        start?: number;
+        /**
+         * 结束点
+         *
+         * @type {number}
+         * @memberOf CircleCountdownCfg
+         */
+        end?: number;
+        /**
+         * 结束颜色
+         *
+         * @type {number}
+         * @memberOf CircleCountdownCfg
+         */
+        endColor?: number;
+    }
+}
+declare namespace jy {
     type $CallbackInfo = CallbackInfo<Function>;
     /**
      * 回调信息，用于存储回调数据
@@ -3753,137 +4476,828 @@ declare namespace jy {
     }
 }
 declare namespace jy {
-    const enum ClassConst {
-        DebugIDPropertyKey = "_insid"
-    }
     /**
-     * 创建器
-     */
-    type Creator<T> = {
-        new (): T;
-    } | {
-        (): T;
-    };
-    /**
+     * 拷贝到剪贴板中
      *
-     * 调整ClassFactory
+     * @author gushuai
      * @export
-     * @class ClassFactory
-     * @template T
+     * @param {string} str
+     * @returns
      */
-    class ClassFactory<T> {
-        private _creator;
-        private _props;
+    function doCopy(str: string): boolean;
+}
+declare namespace jy {
+    const DataUrlUtils: {
         /**
-         * @param {Creator<T>} creator
-         * @param {Partial<T>} [props] 属性模板
-         * @memberof ClassFactory
-         */
-        constructor(creator: Creator<T>, props?: Partial<T>);
-        /**
-         * 获取实例
+         * 根据dataUrl获取 base64字符串
          *
+         * @param {string} dataUrl
          * @returns
          */
-        get(): any;
+        getBase64: typeof getBase64;
+        /**
+         * 根据dataUrl获取Uint8Array
+         *
+         * @param {string} dataUrl
+         * @returns
+         */
+        getBytes: typeof getBytes;
+        /**
+         * 获取白鹭可视对象的dataUrl
+         *
+         * @param {egret.DisplayObject} dis
+         * @param {string} type
+         * @param {egret.Rectangle} [rect]
+         * @param {any} [encodeOptions]
+         * @returns
+         */
+        getDisplayDataURL: typeof getDisplayDataURL;
+        /**
+         * 获取可视对象的Base64字符串
+         *
+         * @param {egret.DisplayObject} dis
+         * @param {string} type
+         * @param {egret.Rectangle} [rect]
+         * @param {any} [encodeOptions]
+         * @returns
+         */
+        getDisplayBase64(dis: egret.DisplayObject, type: string, rect?: egret.Rectangle, encodeOptions?: any, scale?: number): string;
+        /**
+         * 获取可视对象的Uint8字节流
+         *
+         * @param {egret.DisplayObject} dis
+         * @param {string} type
+         * @param {egret.Rectangle} [rect]
+         * @param {any} [encodeOptions]
+         * @returns
+         */
+        getDisplayBytes(dis: egret.DisplayObject, type: string, rect?: egret.Rectangle, encodeOptions?: any, scale?: number): Uint8Array;
+    };
+    function getDisplayDataURL(dis: egret.DisplayObject, type: string, rect?: egret.Rectangle, encodeOptions?: any, scale?: number): string;
+    function getBase64(dataUrl: string): string;
+    function getBytes(dataUrl: string): Uint8Array;
+}
+declare namespace jy {
+    interface FilterUtilsType {
+        /**
+         * 共享灰度滤镜列表
+         */
+        gray: egret.Filter[];
+        /**共享暗淡滤镜 */
+        dark: egret.Filter[];
+        /**共享模糊滤镜 */
+        blur: egret.Filter[];
+        /**
+         * 根据 adjustColor 值，获取 ColorMatrixFilter 滤镜
+         *
+         * @param {number} [brightness=0]   亮度：取值范围 -100 - 100
+         * @param {number} [contrast=0]     对比度：取值范围 -100 - 100
+         * @param {number} [saturation=0]   饱和度：取值范围 -100 - 100
+         * @param {number} [hue]            色调： 取值范围 -180 - 180
+         * @returns {egret.ColorMatrixFilter}
+         * @memberof FilterUtilsType
+         */
+        adjustColorFilter(brightness?: number, contrast?: number, saturation?: number, hue?: number): egret.ColorMatrixFilter;
     }
     /**
-     * 可回收的对象
+     * 滤镜辅助
      *
      * @export
-     * @interface IRecyclable
+     * @class FilterUtils
      */
-    interface IRecyclable {
+    const FilterUtils: FilterUtilsType;
+}
+declare namespace jy {
+    /**
+     * 获取多个点的几何中心点
+     *
+     * @export
+     * @param {Point[]} points 点集
+     * @param {Point} result 结果
+     * @returns {Point} 点集的几何中心点
+     * @author gushuai
+     */
+    function getCenter(points: Point[], result?: Point): Point;
+    /**
+     * 检查类矩形 a 和 b 是否相交
+     * @export
+     * @param {Rect} a   类矩形a
+     * @param {Rect} b   类矩形b
+     * @returns {boolean} true     表示两个类似矩形的物体相交
+     *         false    表示两个类似矩形的物体不相交
+     */
+    function intersects(a: Rect, b: Rect): boolean;
+    /**
+     * 获取点集围成的区域的面积
+     * S=（（X2-X1）*  (Y2+Y1)+（X2-X2）*  (Y3+Y2)+（X4-X3）*  (Y4+Y3)+……+（Xn-Xn-1）*  (Yn+Yn-1)+（X1-Xn）*  (Y1+Yn)）/2
+     * @export
+     * @param {Point[]} points 点集
+     * @returns {number}
+     */
+    function getArea(points: Point[]): number;
+}
+declare namespace jy {
+    const HTMLUtil: {
         /**
-         * 回收时触发
+         * 字符着色
+         *
+         * @param {string | number} value       内容
+         * @param {(string | number)} color     颜色
+         * @returns
          */
-        onRecycle?: {
-            (): any;
-        };
+        createColorHtml(value: string | number, color: string | number): string;
         /**
-         * 启用时触发
+         * 清理html;
+         * @value value
+         * @return
+         *
          */
-        onSpawn?: {
-            (): any;
-        };
+        clearHtml(value: string): string;
         /**
-         * 回收对象的唯一自增标识
-         * 从回收池取出后，会变化
-         * 此属性只有在`DEBUG`时有效
+         * 将特殊字符串处理为HTML转义字符
+         *
+         * @param {string} content
          */
-        _insid?: number;
+        escHTML(content: string): string;
+        /**
+         * 将HTML特殊符号，恢复成正常字符串
+         *
+         * @param {string} content
+         * @returns
+         */
+        unescHTML(content: string): string;
+    };
+}
+declare namespace jy {
+    interface LangUtilInterface {
+        /**
+         * 获取显示的信息
+         *
+         * @static
+         * @param {(number | string)} code code码
+         * @param {any} args 其他参数  替换字符串中{0}{1}{2}{a} {b}这样的数据，用obj对应key替换，或者是数组中对应key的数据替换
+         * @returns 显示信息
+         */
+        getMsg(code: number | string, ...args: any[]): string;
+        getMsg(code: number | string, args: any): string;
+        /**
+         *
+         * 注册语言字典
+         * @param {{ [index: string]: string }} data
+         * @memberof LangUtilInterface
+         */
+        regMsgDict(data: {
+            [index: string]: string;
+        }): void;
+        /**
+         * 检查语言包中，是否有对应的code码
+         *
+         * @param {Key} code
+         * @returns {boolean}
+         * @memberof LangUtilInterface
+         */
+        has(code: Key): boolean;
     }
     /**
-     * 回收池
+     * 用于处理语言/文字显示
+     */
+    const LangUtil: LangUtilInterface;
+}
+declare namespace jy {
+    const enum Sex {
+        /**
+         * 男
+         */
+        Male = 1,
+        /**
+         * 女
+         */
+        Female = 2,
+        Nan = 1,
+        Nv = 2
+    }
+    function setLib(data: {
+        a?: string;
+        b?: string;
+        c1?: string;
+        c2?: string;
+    }): void;
+    class NameUtils {
+        private _random;
+        /**
+         *
+         * @param randomFunc	随机算法
+         *
+         */
+        constructor(randomFunc?: Function);
+        /**
+         * 设置名字库的数据
+         *
+         * @static
+         * @memberof NameUtils
+         */
+        static setLib: typeof setLib;
+        /**
+         * 加载名字库
+         * @param url
+         * @param callback
+         */
+        static loadNameLib(url: string, callback?: $CallbackInfo): any;
+        /**
+         * 设置随机算法
+         * @param randomFunc
+         *
+         */
+        setRandom(randomFunc: Function): void;
+        /**
+         * 获取名字
+         * @param sex 1 男  2 女
+         * @return
+         *
+         */
+        getName(sex?: Sex): string;
+        dispose(): void;
+    }
+}
+declare namespace jy {
+    interface RPCCallback {
+        /**
+         * 成功的回调函数
+         *
+         * @type {Recyclable<CallbackInfo<(data?: any, ...args)>>}
+         * @memberof RPCCallback
+         */
+        success: Recyclable<CallbackInfo<{
+            (data?: any, ...args: any[]): any;
+        }>>;
+        /**
+         * 失败的回调函数
+         *
+         * @type {Recyclable<CallbackInfo<{ (error?: Error, ...args) }>>}
+         * @memberof RPCCallback
+         */
+        error: Recyclable<CallbackInfo<{
+            (error?: Error, ...args: any[]): any;
+        }>>;
+        /**
+         * RPC的超时时间
+         *
+         * @type {number}
+         * @memberof RPCCallback
+         */
+        expired: number;
+        id: number;
+    }
+    const enum RPCConst {
+        /**
+         * 默认超时时间
+         */
+        DefaultTimeout = 2000
+    }
+    interface RPCInterface {
+        /**
+         * 超时的错误常量 `RPCTimeout`
+         *
+         * @type {string}
+         * @memberof RPCInterface
+         */
+        readonly Timeout: string;
+        /**
+         * 执行回调
+         *
+         * @param {number} id 执行回调的id
+         * @param {*} [data] 成功返回的数据
+         * @param {(Error | string)} [err] 错误
+         */
+        callback(id: number, data?: any, err?: Error | string): any;
+        /**
+         * 注册回调函数
+         *
+         * @param {Recyclable<CallbackInfo<{ (data?: any, ...args) }>>} success     成功的函数回调
+         * @param {Recyclable<CallbackInfo<{ (error?: Error, ...args) }>>} [error]    发生错误的函数回调
+         * @param {number} [timeout=2000] 超时时间，默认2000，实际超时时间会大于此时间，超时后，如果有错误回调，会执行错误回调，`Error(RPC.Timeout)`
+         * @returns 回调函数的id
+         */
+        registerCallback(success: Recyclable<CallbackInfo<{
+            (data?: any, ...args: any[]): any;
+        }>>, error?: Recyclable<CallbackInfo<{
+            (error?: Error, ...args: any[]): any;
+        }>>, timeout?: number): number;
+        /**
+         * 注册回调函数
+         * 成功则data为返回的数据
+         * 失败时
+         * `withError`为`true` data为Error
+         * `withError`不填或者`false` data为undefined
+         * @param {{ (data?: any, ...args) }} callback 回调函数，成功或者失败均会使用此回调
+         * @param {boolean} [withError] 返回回调失败时，是否使用Error，默认失败，data为`undefined`
+         * @param {number} [timeout=2000] 回调函数的超时时间，默认为2000
+         * @param {*} [thisObj]
+         * @param {any} any
+         * @returns {number}
+         * @memberof RPCInterface
+         */
+        registerCallbackFunc(callback: {
+            (data?: any, ...args: any[]): any;
+        }, withError?: boolean, timeout?: number, thisObj?: any, ...any: any[]): number;
+        /**
+         * 根据id移除回调函数
+         *
+         * @param {number} id
+         */
+        removeCallback(id: number): any;
+    }
+    const RPC: RPCInterface;
+}
+declare namespace jy {
+    interface RequestLimitType {
+        /**
+         *
+         *
+         * @param {(string | number)} o     锁定的对像(可以是任何类型,它会被当做一个key)
+         * @param {number} [time=500]       锁定对像 毫秒数，默认500毫秒
+         * @returns {boolean}   是否已解锁 true为没有被限制,false 被限制了
+         *
+         * @memberOf RequestLimit
+         */
+        check(o: string | number, time?: number): boolean;
+        /**
+         * 移除锁定
+         *
+         * @param {(string | number)} o
+         *
+         * @memberOf RequestLimit
+         */
+        remove(o: string | number): void;
+    }
+    /**
+     * 请求限制
      * @author 3tion
      *
      */
-    class RecyclablePool<T> {
-        private _pool;
-        private _max;
-        private _creator;
-        get(): T;
-        /**
-         * 回收
-         */
-        recycle(t: T): void;
-        constructor(TCreator: Creator<T>, max?: number);
-    }
-    type Recyclable<T> = T & {
-        recycle(): void;
-    };
-    /**
-     * 获取一个recyclable的对象
-     *
-     * @export
-     * @template T
-     * @param {(Creator<T> & { _pool?: RecyclablePool<T> })} clazz 对象定义
-     * @param {boolean} [addInstanceRecycle] 是否将回收方法附加在实例上，默认将回收方法放在实例
-     * @returns {Recyclable<T>}
-     */
-    function recyclable<T>(clazz: Creator<T> & {
-        _pool?: RecyclablePool<T>;
-    }, addInstanceRecycle?: boolean): Recyclable<T>;
-    namespace recyclable {
-        var recycleList: <T>(list: Recyclable<T>[], len: number) => void;
-    }
-    /**
-     * 单例工具
-     * @param clazz 要做单例的类型
-     */
-    function singleton<T>(clazz: {
-        new (): T;
-        _instance?: T;
-    }): T;
+    const RequestLimit: RequestLimitType;
 }
 declare namespace jy {
     /**
-     * 绑定属性名，当属性值发生改变时，可自动对外抛eventType事件
+     * 临时对象
+     * @author 3tion
      *
+     */
+    const Temp: {
+        /**
+         * 共享数组1
+         */
+        SharedArray1: any[];
+        /**
+         * 共享数组2
+         */
+        SharedArray2: any[];
+        /**
+         * 共享数组3
+         */
+        SharedArray3: any[];
+        SharedRect1: {
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+        };
+        SharedRect2: {
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+        };
+        /**
+         * 白鹭的点
+         */
+        EgretPoint: egret.Point;
+        /**
+         * 白鹭的矩形
+         */
+        EgretRectangle: egret.Rectangle;
+        /**
+         * 共享点1
+         */
+        SharedPoint1: {
+            x: number;
+            y: number;
+            z: number;
+        };
+        /**
+         * 共享点2
+         */
+        SharedPoint2: {
+            x: number;
+            y: number;
+            z: number;
+        };
+        /**
+         * 不做任何事情的空方法，接收任意长度的数据，返回空
+         */
+        voidFunction: () => any;
+        /**
+         * 用于替换的方法,接收任意长度的数据，返回null
+         */
+        willReplacedFunction: () => any;
+        /**
+         * 返回 true 的函数
+         */
+        retTrueFunc: () => boolean;
+        /**
+         * 返回 false 的函数
+         */
+        retFalseFunc: () => boolean;
+        /**
+         * 空对象
+         */
+        EmptyObject: Readonly<{}>;
+        /**
+         * 空数组
+         */
+        EmptyArray: any[];
+        /**
+         * 管线方法，用于符合函数的结构，并将数值传递下去
+         */
+        pipeFunction: <T>(arg: T) => T;
+    };
+}
+declare namespace jy {
+    function tick(now: number): void;
+    /**
+     *
+     * 注册回调  会对在同一个时间区间的 `callback`和`thisObj`相同的回调函数进行去重
+     * @static
+     * @param {number} time 回调的间隔时间，间隔时间会处理成30的倍数，向上取整，如 设置1ms，实际间隔为30ms，32ms，实际间隔会使用60ms
+     * @param {Function} callback 回调函数，没有加this指针是因为做移除回调的操作会比较繁琐，如果函数中需要使用this，请通过箭头表达式()=>{}，或者将this放arg中传入
+     * @param {any} [thisObj] 回调函数的`this`对象，不传值则使用全局上下文即window
+     * @param {any} args 回调函数的参数
+     */
+    function addCallback(time: number, callback: Function, thisObj?: any, ...args: any[]): void;
+    /**
+     * 注册回调 会对在同一个时间区间的 `callback`相同的情况下，才会去重
+     * @param time
+     * @param callback
+     */
+    function add(time: number, callback: $CallbackInfo): void;
+    /**
+     * 移除回调
+     * 不回收`CallbackInfo`
+     * @param {number} time
+     * @param {$CallbackInfo} callback
+     */
+    function remove(time: number, callback: $CallbackInfo): void;
+    /**
+     * 移除回调
+     * @static
+     * @param {number} time         回调的间隔时间，间隔时间会处理成30的倍数，向上取整，如 设置1ms，实际间隔为30ms，32ms，实际间隔会使用60ms
+     * @param {Function} callback   回调函数，没有加this指针是因为做移除回调的操作会比较繁琐，如果函数中需要使用this，请通过箭头表达式()=>{}，或者将this放arg中传入
+     * @param {*} [thisObj]         回调函数的`this`对象
+     */
+    function removeCallback(time: number, callback: Function, thisObj?: any): void;
+    const TimerUtil: {
+        addCallback: typeof addCallback;
+        removeCallback: typeof removeCallback;
+        tick: typeof tick;
+        add: typeof add;
+        remove: typeof remove;
+    };
+}
+declare namespace jy {
+    /**
+     * 处理链接地址
+     * 如果是http:// 或者  https:// 获取//开头的地址，直接返回
+     * 否则拼接当前地址的 href
      * @export
-     * @param {Key} eventType     事件类型
-     * @param {boolean} [selfDispatch]          默认false，使用Facade抛事件，event.data为实例本身
-     *                                          如果为true，需要为EventDispatcher的实现，会使用自身抛事件
+     * @param {string} link
+     * @param {string} [origin]
      * @returns
      */
-    function d_fire(eventType: Key, selfDispatch?: boolean): (host: any, property: string) => void;
-    /**
-     * 使用微软vs code中使用的代码
-     * 用于一些 lazy 的调用
-     * https://github.com/Microsoft/vscode/blob/master/src/vs/base/common/decorators.ts
-     *
-     * @export
-     * @param {*} target
-     * @param {string} key
-     * @param {*} descriptor
-     */
-    function d_memoize(target: any, key: string, descriptor: any): void;
+    function solveLink(link: string, origin?: string): string;
 }
 declare namespace jy {
     /**
-     * 可用于做Key的类型
+     * 初始化屏蔽字
+     * @param str   使用特定符号分隔的脏字列表
+     * @param split 分隔符
+     *
      */
-    type Key = number | string;
+    function initFilterstring(str: string, split: string): void;
+    function wordCensor1(msg: string): string;
+    function checkWord1(msg: string): boolean;
+    /**
+     * 文字过滤
+     * @author 3tion
+     */
+    const WordFilter: {
+        /**
+         * 由于脏字文件使用ajax读取，可能存在跨域问题，所以在H5中使用javascript方式加载
+         */
+        loadDirtyWord(url: string, split?: string): void;
+        /**
+         * 初始化屏蔽字
+         * @param str   使用特定符号分隔的脏字列表
+         * @param split 分隔符
+         *
+         */
+        initFilterstring: typeof initFilterstring;
+        /**
+         * 将敏感词替换为**
+         * @param msg	要检测的文字
+         * @return
+         *
+         */
+        wordCensor: typeof wordCensor1;
+        /**
+         * 设置 将字符替换成* 的函数
+         * @param substring 子字符串
+         * @return
+         *
+         */
+        setDirtyHandler(handler: (substring: string) => string): void;
+        /**
+         * 是否有敏感词
+         * @param msg	要检测的文字
+         * @return 		true为有敏感词，false为没有敏感词
+         *
+         */
+        checkWord: typeof checkWord1;
+    };
+}
+/**
+ * 是否不做客户端检查
+ * 客户端检查的部分，后续统一按下面例子处理
+ * @example
+ *  if (!noClientCheck) {
+ *       if (!$hero.clan) {
+ *          return CoreFunction.showClientTips(MsgCodeConst.Code_883);
+ *      }
+ *  }
+ */
+declare var noClientCheck: boolean;
+interface $gmType {
+    /**
+     * 切换客户端检查的`开/关`状态
+     *
+     */
+    toggleClientCheck(): any;
+}
+declare namespace jy {
+    /**
+     * 错误前缀
+     */
+    var errorPrefix: string;
+    interface ThrowError {
+        (msg: string, err?: Error, alert?: boolean): void;
+        MaxCount?: number;
+        errorMsg?: string[];
+    }
+    var Log: {
+        (...msg: any[]): void;
+    };
+    /**
+     * 抛错
+     * @param {string | Error}  msg 描述
+     **/
+    const ThrowError: ThrowError;
+}
+declare namespace jy {
+    /**
+     * 游戏使用区段
+     * -1000~-1999
+     *
+     * @export
+     * @enum {number}
+     */
+    const enum EventConst {
+        /**
+         * Unit被回收时触发
+         */
+        UnitRecycle = -1999,
+        /**
+         * Unit被创建时触发
+         */
+        UnitCreate = -1998,
+        /**
+         * Unit添加到舞台时触发
+         */
+        UnitAddToStage = -1997,
+        /**
+         * 当render执行时间需要处理2秒+的数据派完
+         */
+        SlowRender = -1996,
+        /**
+         * 窗口激活
+         */
+        ACTIVATE = -1995,
+        /**
+         * 窗口失去激活
+         */
+        DEACTIVATE = -1994,
+        /**
+         * ani 一次播放完成
+         */
+        AniComplete = -1993,
+        /**
+         * ani 回收前触发
+         */
+        AniBeforeRecycle = -1992,
+        /**
+         * 检查下一个
+         */
+        MsgRenderCheckNext = -1991,
+        /**
+         * 检查最末尾
+         */
+        MsgRenderCheckEnd = -1990,
+        /**
+         * 震动结束
+         * data {Point} 开始震动时的原始坐标
+         */
+        ShakeEnd = -1989
+    }
+}
+declare namespace jy {
+    interface CfgData {
+        /**
+         * 特效数据
+         *
+         * @type {{ [index: string]: AniInfo }}
+         * @memberOf CfgData
+         */
+        ani: {
+            [index: string]: AniInfo;
+        };
+    }
+}
+/**
+ * 游戏的常量的接口定义
+ * 子项目自身实现接口
+ * @author 3tion
+ */
+declare namespace jy {
+    const enum ResPrefix {
+        /**
+         * 特效文件夹
+         */
+        Ani = "a/"
+    }
+}
+declare namespace jy {
+    /**
+     * 2d游戏的引擎管理游戏层级关系<br/>
+     * @author 3tion
+     *
+     */
+    class GameEngine extends egret.EventDispatcher {
+        protected static layerConfigs: {
+            [index: number]: LayerConfig;
+        };
+        static instance: GameEngine;
+        static init(stage: egret.Stage, ref?: {
+            new (stage: egret.Stage): GameEngine;
+        }): void;
+        static addLayerConfig(id: number, parentid?: number, ref?: new (id: number) => GameLayer): void;
+        /**
+          * 单位坐标发生变化时调用
+          */
+        static invalidateSort(): void;
+        /**
+         * 摄像机，用于处理镜头坐标相关
+         */
+        camera: Camera;
+        protected _viewRect: egret.Rectangle;
+        /**
+         * 单位的排序是否发生改变
+         */
+        protected _sortDirty: Boolean;
+        /**
+         * 单位坐标发生变化时调用
+         */
+        invalidateSort(): void;
+        readonly viewRect: egret.Rectangle;
+        protected _stage: egret.Stage;
+        protected _layers: GameLayer[];
+        /**
+         * 排序层
+         */
+        protected _sortedLayers: SortedLayer[];
+        /**
+         * 获取或创建容器
+         */
+        getLayer(id: GameLayerID): GameLayer;
+        /**
+         *
+         * @param {GameLayer} layer 要调整的层级
+         * @param {number} newid 新的层级id
+         * @param {boolean} [awake=true] 是否执行一次awake
+         */
+        changeId(layer: GameLayer, newid: number, awake?: boolean): void;
+        /**
+         * 将指定
+         *
+         * @param {GameLayerID} layerID
+         *
+         * @memberOf GameEngine
+         */
+        sleepLayer(layerID: GameLayerID): void;
+        awakeLayer(layerID: GameLayerID): void;
+        protected addLayer(layer: GameLayer, cfg?: LayerConfig): void;
+        protected addLayerToContainer(layer: GameLayer, container: egret.DisplayObjectContainer): void;
+        constructor(stage: egret.Stage);
+        protected init(): void;
+    }
+    /**
+     * 游戏中层级标识
+     */
+    const enum GameLayerID {
+        /**
+         * Tip层
+         * 用于放alert等最高层级
+         * 不进行滚轴
+         */
+        Tip = 9000,
+        /**
+         * UI层
+         * 用于放各种UI
+         * 不进行滚轴
+         * 在菜单和头像下面，属最底层
+         */
+        UI = 8000,
+        /**
+         * 游戏层
+         * 人物死亡如果进行颜色变灰，则基于此容器变灰
+         */
+        Game = 1000,
+        /**
+         * 游戏蒙版层
+         * 用于放流血效果，迷雾效果之类的容器
+         * 无鼠标事件
+         * 不进行滚轴
+         **/
+        Mask = 1900,
+        /**
+         * 相机特效层
+         * 用于处理飘雪，飘雨类似效果
+         * 无鼠标事件
+         * 不进行滚轴
+         **/
+        TopEffect = 1800,
+        /**
+         * 游戏滚轴层
+         * 下级容器参与滚轴
+         */
+        GameScene = 1700,
+        /**
+         * 顶部场景特效
+         * 用于放云朵等特效
+         * 无鼠标事件
+         * 不排序
+         */
+        CeilEffect = 1790,
+        /**
+         * 用于放置跟随单位一起的UI，角色血条，角色名字，头衔等
+         */
+        SortedUI = 1780,
+        /**
+         * 游戏特效层，
+         * 一般盖在人身上的特效放于此层
+         * 无鼠标事件
+         * 不排序
+         */
+        GameEffect = 1770,
+        /**
+         * 参与排序的单位的容器
+         * 放人，怪物，会进行排序
+         */
+        Sorted = 1760,
+        /**
+         * 底层
+         * 放置尸体，光环
+         * 会排序
+         */
+        Bottom = 1750,
+        /**
+         * 底部场景特效层
+         */
+        BottomEffect = 1740,
+        /**
+         * 地图渲染层
+         */
+        Background = 1730,
+        /**
+         * 地图预览图
+         */
+        Mini = 1710
+    }
+    /**
+     * 层级配置
+     */
+    interface LayerConfig {
+        id: number;
+        parentid: number;
+        ref: new (id: number) => GameLayer;
+    }
 }
 declare namespace jy {
     /**
@@ -4017,6 +5431,456 @@ declare namespace jy {
         D3D11 = 2
     }
     function getWebGLCaps(g?: WebGLRenderingContext): WebGLCapabilities;
+}
+declare namespace jy {
+    /**
+     * 用于SortedLayer排序
+     */
+    interface IDepth {
+        depth: number;
+    }
+    class DSprite extends egret.Sprite implements IDepth {
+        depth: number;
+    }
+}
+declare namespace jy {
+    /**
+     * 用于处理无方向的动画信息
+     * @author 3tion
+     *
+     */
+    class AniInfo extends PstInfo {
+        /**
+         * 加载状态
+         */
+        state: RequestState;
+        protected _refList: AniRender[];
+        url: string;
+        uri: string;
+        /**
+         * 资源加载列队，用于控制加载优先级
+         */
+        qid?: Res.ResQueueID;
+        constructor();
+        /**
+         * 绑定渲染器
+         * @param render
+         */
+        bind(render: AniRender): void;
+        /**
+         * 资源加载完成
+         */
+        dataLoadComplete(item: Res.ResItem): void;
+        /**
+         * 和渲染器解除绑定
+         * @param render
+         */
+        loose(render: AniRender): void;
+        init(key: string, data: any[]): void;
+        getResource(uri?: string): UnitResource;
+        readonly actionInfo: ActionInfo;
+    }
+}
+interface $gmType {
+    /**
+     * 记录Ani数据
+     *
+     *
+     * @memberOf $gmType
+     */
+    recordAni(): void;
+    /**
+     * 是否记录Ani数据
+     *
+     * @type {boolean}
+     * @memberOf $gmType
+     */
+    _recordAni: boolean;
+    /**
+     * ani记录
+     *
+     * @type {{ [index: number]: $gmAniInfo }}
+     * @memberOf $gmType
+     */
+    _aniRecords: {
+        [index: number]: $gmAniInfo;
+    };
+    /**
+     * 显示aniRender的记录信息
+     *
+     * @param {number} time 超过多少时间的进行显示，默认值为0
+     *
+     * @memberOf $gmType
+     */
+    showAniRecords(time?: number): void;
+    /**
+     * 显示残留的aniRender的堆栈信息
+     *
+     * @param {number} [time]
+     *
+     * @memberOf $gmType
+     */
+    showAniStacks(time?: number): void;
+}
+interface $gmAniInfo {
+    /**
+     * ani标识
+     *
+     * @type {number}
+     * @memberOf $gmAniInfo
+     */
+    guid: number;
+    /**
+     * 堆栈信息
+     *
+     * @type {string}
+     * @memberOf $gmAniInfo
+     */
+    stack: string;
+    /**
+     * 启动时间
+     *
+     * @type {number}
+     * @memberOf $gmAniInfo
+     */
+    time: number;
+}
+declare namespace jy {
+    /**
+     * 由于目前特效和渲染器是完全一一对应关系，所以直接做成AniBitmap
+     * @author 3tion
+     *
+     */
+    class AniRender extends BaseRender implements IRecyclable {
+        /**
+         * 当前调用的render
+         */
+        protected _render: {
+            (): any;
+        };
+        /**
+         * 0 初始化，未运行
+         * 1 正在运行
+         * 2 已回收
+         */
+        state: AniPlayState;
+        /**
+         * 非循环动画，播放完毕后的回收策略
+         * 默认为全部回收
+         */
+        recyclePolicy: AniRecyclePolicy;
+        /**
+         * 循环播放次数
+         *
+         * @type {number}
+         */
+        loop?: number;
+        /**
+         * 事件处理的回调函数
+         *
+         * @type {{ (event: Key, render: AniRender, now?: number, ...args) }}
+         * @memberof AniOption
+         */
+        handler?: CallbackInfo<{
+            (event: Key, render: AniRender, now?: number, ...args: any[]): any;
+        }>;
+        /**
+         * 是否等待纹理数据加载完成，才播放
+         *
+         * @type {boolean}
+         * @memberof AniRender
+         */
+        waitTexture: boolean;
+        /**
+         * 资源是否加载完成
+         *
+         * @type {boolean}
+         */
+        resOK: boolean;
+        /**
+         * 播放起始时间
+         *
+         * @type {number}
+         */
+        plTime: number;
+        protected _guid: number;
+        /**
+         * 特效标识
+         */
+        readonly guid: number;
+        /**
+         * 显示对象
+         */
+        readonly display: Recyclable<ResourceBitmap>;
+        protected _aniInfo: AniInfo;
+        constructor();
+        /**
+         * render方法基于
+         */
+        protected render(): void;
+        /**
+         * 处理数据
+         *
+         * @param {number} now 时间戳
+         */
+        doData(now: number): void;
+        renderFrame(frame: FrameInfo, now: number): void;
+        /**
+         * 派发事件
+         * @param event     事件名
+         * @param now       当前时间
+         */
+        protected dispatchEvent(event: string, now: number): void;
+        doComplete(now: number): void;
+        isComplete(info: ActionInfo): boolean;
+        callback(): void;
+        /**
+         * 播放
+         */
+        play(now?: number): void;
+        private checkPlay;
+        onRecycle(): void;
+        onSpawn(): void;
+        protected onStage(e: egret.Event): void;
+        init(aniInfo: AniInfo, display: Recyclable<ResourceBitmap>, guid: number): void;
+        /***********************************静态方法****************************************/
+        private static _renderByGuid;
+        private static guid;
+        /**
+         * 获取ANI动画
+         *
+         * @static
+         * @param {string} uri    动画地址
+         * @param {AniOption} [option] 动画的参数
+         * @returns (description)
+         */
+        static getAni(uri: string, option?: AniOption, qid?: Res.ResQueueID): Recyclable<AniRender>;
+        /**
+         * 获取正在运行的AniRender
+         * @param guid  唯一标识
+         */
+        static getRunningAni(guid: number): Recyclable<AniRender>;
+        /**
+         * 回收某个特效
+         * @param {number} guid AniRender的唯一标识
+         */
+        static recycle(guid: number): void;
+    }
+    interface AniOption {
+        guid?: number;
+        /**
+         * 坐标集合
+         * 如果同时配置此值和x，优先取此值作为坐标X
+         * 如果同时配置此值和y，优先取此值作为坐标Y
+         * @type {Point}
+         * @memberof AniOption
+         */
+        pos?: Point;
+        /**
+         * 坐标X
+         *
+         * @type {number}
+         * @memberof AniOption
+         */
+        x?: number;
+        /**
+         * 坐标Y
+         *
+         * @type {number}
+         * @memberof AniOption
+         */
+        y?: number;
+        /**
+         * 容器，如果配置此值，则自动将视图加入到容器中
+         *
+         * @type {egret.DisplayObjectContainer}
+         * @memberof AniOption
+         */
+        parent?: egret.DisplayObjectContainer;
+        /**
+         * 有parent此值才有意义
+         * 当有此值时，使用 addChildAt添加
+         * @type {number}
+         * @memberof AniOption
+         */
+        childIdx?: number;
+        /**
+         * 是否初始停止播放
+         *
+         * @type {boolean}
+         * @memberof AniOption
+         */
+        stop?: boolean;
+        /**
+         * 循环播放次数
+         * 如果设置此值，不按原始数据的 isCircle进行播放
+         *
+         * @type {number}
+         * @memberof AniOption
+         */
+        loop?: number;
+        /**
+         *  事件处理的回调函数
+         *
+         * @type {CallbackInfo<{ (event: Key, render: AniRender, now?: number, ...args) }>}
+         * @memberof AniOption
+         */
+        handler?: CallbackInfo<{
+            (event: Key, render: AniRender, now?: number, ...args: any[]): any;
+        }>;
+        /**
+         * ani回收策略
+         *
+         * @type {AniRecyclePolicy}
+         * @memberof AniOption
+         */
+        recyclePolicy?: AniRecyclePolicy;
+        /**
+         *
+         * 是否等待纹理加载完，才播放
+         * @type {boolean}
+         * @memberof AniOption
+         */
+        waitTexture?: boolean;
+        /**
+         * 起始帧
+         * 如果是`循环` loop为true，如果起始帧大于总帧数，则对总帧数取模
+         * 否则不播放
+         *
+         * @type {number}
+         * @memberof AniOption
+         */
+        start?: number;
+        /**
+         * 缩放，默认为 1
+         */
+        scale?: number;
+    }
+}
+declare namespace jy {
+    /**
+     * 绘图数据
+     *
+     * @interface IDrawInfo
+     */
+    interface IDrawInfo {
+        /**原始动作索引 */
+        a: number;
+        /**原始方向索引 */
+        d: number;
+        /**原始帧数索引 */
+        f: number;
+    }
+    /**
+     * 帧数据
+     *
+     * @interface FrameInfo
+     * @extends {IDrawInfo}
+     */
+    interface FrameInfo extends IDrawInfo {
+        /**和下一帧间隔索引 */
+        t: number;
+        /**事件 */
+        e?: string;
+    }
+    /**
+     * 动作数据
+     *
+     * @interface ActionInfo
+     */
+    interface ActionInfo {
+        /**
+         * 动作标识
+         */
+        key: number;
+        /**
+         * 帧列表信息
+         *
+         * @type {FrameInfo[]}
+         */
+        frames: FrameInfo[];
+        /**
+         * 是否为循环动作
+         */
+        isCircle?: boolean;
+        /**
+         * 动画默认的总时间
+         */
+        totalTime: number;
+    }
+    /**
+     * Ani播放状态
+     *
+     * @enum {number}
+     * @author 3tion
+     */
+    const enum AniPlayState {
+        /**
+         * 待机
+         */
+        Standby = 0,
+        /**
+         * 播放中
+         */
+        Playing = 1,
+        /**
+         * 播放完毕
+         */
+        Completed = 2,
+        /**
+         * 已回收
+         */
+        Recycled = 3
+    }
+    /**
+     * AniRender的回收策略
+     *
+     * @export
+     * @enum {number}
+     */
+    const enum AniRecyclePolicy {
+        /**
+         * 都不回收
+         */
+        None = 0,
+        /**
+         * 回收显示对象
+         */
+        RecycleDisplay = 1,
+        /**
+         * 回收Render
+         */
+        RecycleRender = 2,
+        /**
+         * 全部回收
+         */
+        RecycleAll = 3
+    }
+    /**
+     * 获取帧数据
+     * 为数组的顺序："a", "f", "t", "e", "d"
+     * @param {*} data 如果无法获取对应属性的数据，会使用默认值代替  a: 0, d: -1, f: 0, t: 100
+     * @returns
+     */
+    function getFrameInfo(data: any): FrameInfo;
+    /**
+     * 获取动作数据
+     *
+     * @param {any} data
+     * @param {number} key
+     * @returns
+     */
+    function getActionInfo(data: any, key: number): ActionInfo;
+    /**
+     * 获取自定义动作
+     * 如果无法获取对应属性的数据，会使用默认值代替
+     * a: 0, d: -1, f: 0, t: 100
+     * @static
+     * @param {any[]} actions 动作序列  如果无法获取对应属性的数据，会使用默认值代替  a: 0, d: -1, f: 0, t: 100
+     * @param {number} [key] 动作标识，需要使用整数
+     * @return {CustomAction}   自定义动作
+     */
+    function getCustomAction(actions: any[], key?: number): ActionInfo;
 }
 declare namespace jy {
     /**
@@ -6654,3201 +8518,6 @@ declare namespace jy {
         getUrl(uri: string, pathKey: string): string;
     };
 }
-/**
- * DataLocator的主数据
- * 原 junyou.DataLocator.data  的全局别名简写
- */
-declare const $DD: jy.CfgData;
-/**
- * DataLocator的附加数据
- * 原 junyou.DataLocator.extra 的全局别名简写
- */
-declare const $DE: jy.ExtraData;
-declare namespace jy {
-    /**
-     * 表单最终被解析成的类型
-     *
-     * @export
-     * @enum {number}
-     */
-    const enum CfgDataType {
-        /**
-         * 自动解析
-         */
-        Auto = 0,
-        /**
-         * 按ArraySet解析
-         */
-        ArraySet = 1,
-        /**
-         * 按数组解析
-         */
-        Array = 2,
-        /**
-         * 按字典解析
-         */
-        Dictionary = 3
-    }
-    /**
-     * 配置加载器<br/>
-     * 用于预加载数据的解析
-     * @author 3tion
-     *
-     */
-    let DataLocator: {
-        regParser: typeof regParser;
-        /**
-         * 解析打包的配置
-         */
-        parsePakedDatas(type?: number): void;
-        /**
-         *
-         * 注册通过H5ExcelTool导出的数据并且有唯一标识的使用此方法注册
-         * @param {keyof CfgData} key 数据的标识
-         * @param {(Creator<any> | 0)} CfgCreator 配置的类名
-         * @param {(string | 0)} [idkey="id"] 唯一标识 0用于标识数组
-         * @param {CfgDataType} [type]
-         */
-        regCommonParser: typeof regCommonParser;
-        regBytesParser: typeof regBytesParser;
-    };
-    /**
-     *
-     * 注册通过H5ExcelTool导出的数据并且有唯一标识的使用此方法注册
-     * @param {keyof CfgData} key 数据的标识
-     * @param {(Creator<any> | 0)} CfgCreator 配置的类名
-     * @param {(string | 0)} [idkey="id"] 唯一标识 0用于标识数组
-     * @param {CfgDataType} [type]
-     */
-    function regCommonParser(key: keyof CfgData, CfgCreator: Creator<any> | 0, idkey?: string | 0, type?: CfgDataType): void;
-    /**
-     * 注册配置解析
-     * @param key       配置的标识
-     * @param parser    解析器
-     */
-    function regParser(key: keyof CfgData, parser: ConfigDataParser): void;
-    /**
-     * 配置数据解析函数
-     */
-    interface ConfigDataParser {
-        (data: any): any;
-    }
-    /**
-     * 附加数据
-     *
-     * @interface ExtraData
-     */
-    interface ExtraData {
-    }
-    /**
-     * 配置数据
-     *
-     * @export
-     * @interface CfgData
-     */
-    interface CfgData {
-    }
-    /**
-     * 通用的Bytes版本的配置解析器
-     * @param buffer
-     */
-    function regBytesParser(key: keyof CfgData, CfgCreator: Creator<any> | 0, idkey?: string | 0, type?: CfgDataType): void;
-}
-declare namespace jy {
-    interface DataUtilsType {
-        /**
-         * 将配置from中 type		data1	data2	data3	data4...这些配置，解析存储到
-         * 配置VO为：
-         * ```typescript
-         * class Cfg {
-         * 		type:int;
-         * 		datas:any[];
-         * }
-         * ```
-         * 上面示例中
-         * typeKey 为 `type`
-         * dataKey 为 `data`
-         * checkStart 为 `1`
-         * checkEnd 为 `4`
-         * toDatasKey 为 `data`
-         * to的type  `datas数组中`
-         * @param {object} to 要写入的配置
-         * @param {object} from 配置的数据源
-         * @param {number} checkStart 数据源起始值	data **`1`**
-         * @param {number} checkEnd 数据源结束值	data **`4`**
-         * @param {string} dataKey 数据源数值的前缀	**`data`**
-          * @param {string} toDatasKey  配置的数值存储的数据的数组属性名，上例为 **`datas`**
-         * @memberof DataUtilsType
-         */
-        parseDatas(to: object, from: object, checkStart: number, checkEnd: number, dataKey: string, toDatasKey: string): void;
-        /**
-         * 将配置from中 type		data1	data2	data3	data4...这些配置，解析存储到
-         * 配置VO为：
-         * ```typescript
-         * class Cfg {
-         * 		type:int;
-         * 		datas:any[];
-         * }
-         * ```
-         * 上面示例中
-         * typeKey 为 `type`
-         * dataKey 为 `data`
-         * checkStart 为 `1`
-         * checkEnd 为 `4`
-         * toDatasKey 为 `data`
-         * to的type  `datas数组中`
-         * @param {*} to                要写入的配置
-         * @param {any[]} valueList     配置的数据源的值列表
-         * @param {string[]} keyList    配置数据的属性key列表
-         * @param {number} checkStart 数据源起始值	data **`1`**
-         * @param {number} checkEnd 数据源结束值	data **`4`**
-         * @param {string} dataKey 数据源数值的前缀	**`data`**
-         * @param {string} toDatasKey  配置的数值存储的数据的数组属性名，上例为 **`datas`**
-         * @memberof DataUtilsType
-         */
-        parseDatas2(to: any, valueList: any[], keyList: string[], checkStart: number, checkEnd: number, dataKey: string, toDatasKey: string): any;
-        /**
-         * 从数据集中获取key-value的数据
-         *
-         * @param {any[]} valueList 数据集合
-         * @param {string[]} keyList 属性列表
-         * @param {Object} [o]
-         * @returns {*}
-         * @memberof DataUtilsType
-         */
-        getData(valueList: any[], keyList: string[], o?: Object): any;
-        /**
-         * 从数据集中获取key-value的数据 的数组
-         *
-         * @param {any[][]} dataList 数据集合
-         * @param {string[]} keyList 属性列表
-         * @returns {any[]}
-         * @memberof DataUtilsType
-         */
-        getDataList(dataList: any[][], keyList: string[]): any[];
-        /**
-         * 处理数据
-         *
-         * @param {any[][]} dataList 数据集合
-         * @param {string[]} keyList 属性列表
-         * @param {(t: Object, args: any[], idx?: number) => any} forEach 处理器
-         * @param {*} thisObj
-         * @param {...any[]} args 附加参数
-         * @memberof DataUtilsType
-         */
-        parseDataList(dataList: any[][], keyList: string[], forEach: (t: Object, args: any[], idx?: number) => any, thisObj: any, ...args: any[]): any;
-        /**
-         * 将`valueList` 按 `keyList`向 `to` 拷贝数据
-         *
-         * @template T
-         * @param {T} to 目标对象
-         * @param {any[]} valueList 数据集
-         * @param {(keyof T)[]} keyList 属性列表
-         * @memberof DataUtilsType
-         */
-        copyData<T>(to: T, valueList: any[], keyList: (keyof T)[]): any;
-        /**
-         * 拷贝一组数据
-         *
-         * @template T
-         * @param {Creator<T>} creator
-         * @param {any[][]} dataList
-         * @param {(keyof T)[]} keyList
-         * @param {(t: T, args: any[], idx?: number) => any} forEach
-         * @param {*} thisObj
-         * @param {...any[]} args
-         * @memberof DataUtilsType
-         */
-        copyDataList<T>(creator: Creator<T>, dataList: any[][], keyList: (keyof T)[], forEach: (t: T, args: any[], idx?: number) => any, thisObj: any, ...args: any[]): any;
-        /**
-         * 获取一组坐标
-         *
-         * @param {any[][]} data
-         * @param {Point[]} out
-         * @memberof DataUtilsType
-         */
-        getZuobiaos(data: any[][], out: Point[]): any;
-        /**
-         * 根据 [x,y] 这样的数组，获取点Point
-         *
-         * @param {number[]} data
-         * @memberof DataUtilsType
-         */
-        getZuobiao(data: number[]): Point;
-        /**
-         *
-         * 解析配置为"x1""x2"....."x100"这样的属性  横向配置
-         * @static
-         * @param {object} from 被解析的配置数据
-         * @param {object} xattr 最终会变成  xattr.x1=100  xattr.x2=123这样的数据
-         * @param {boolean} [delOriginKey=true]  是否删除原始数据中的key
-         * @param {RegExp} [xReg=/^x\d+$/] 测试用字段，必须经过 test成功，才会进行处理
-         * @returns {number} 成功解析到的key的数量
-         */
-        parseXAttr(from: object, xattr: object, delOriginKey?: boolean, xReg?: RegExp): number;
-        /**
-         *
-         * 解析配置为 pro1  provalue1   pro2  provalue2 ..... pro100 provalue100  这样的纵向配置属性的配置
-         * @static
-         * @param {Object} from 被解析的配置数据
-         * @param {Object} xattr 最终会变成  xattr.x1=100  xattr.x2=123这样的数据
-         * @param {string} errPrefix
-         * @param {string} [keyPrefix="pro"]
-         * @param {string} [valuePrefix="provalue"]
-         * @param {boolean} [delOriginKey=true] 是否删除原始数据中的key
-         * @returns {number} 成功解析到的key的数量
-         */
-        parseXAttr2(from: object, xattr: object, keyPrefix?: string, valuePrefix?: string, delOriginKey?: boolean): number;
-        /**
-         * 按君游的数据格式，处理用`|`,`:`分隔的字符串
-         * `|`为`1级`分隔符
-         * `:`为`2级`分隔符
-         * @param value
-         */
-        getArray2D(value: any): any[][];
-        /**
-         * 按君游的数据格式，处理用`|`,`:`分隔的字符串
-         * @param value
-         */
-        getArray(value: any): any[];
-        /**
-         * 尝试将数据转成number类型，如果无法转换，用原始类型
-         *
-         * @param {*} value 数据
-         * @returns
-         */
-        tryParseNumber(value: any): any;
-    }
-    /**
-     *
-     * @author 君游项目解析工具
-     *
-     */
-    const DataUtils: DataUtilsType;
-}
-declare namespace jy {
-    /**
-     * 网络事件的常量集
-     * @author
-     * -100~ -199
-     */
-    const enum EventConst {
-        /**
-         * 登录成功
-         */
-        LOGIN_COMPLETE = -199,
-        /**
-         * 登录失败
-         */
-        LOGIN_FAILED = -198,
-        /**
-         * 连接服务器成功
-         */
-        Connected = -197,
-        /**
-         * 连接服务器失败
-         */
-        ConnectFailed = -196,
-        /**
-         * 服务器断开连接
-         */
-        Disconnect = -195,
-        ShowReconnect = -194,
-        /**
-         * 纹理加载完成
-         */
-        Texture_Complete = -193,
-        /**
-         * 网络上线
-         */
-        Online = -192,
-        /**
-         * 网络断线
-         */
-        Offline = -191,
-        /**
-         * 手机从休眠状态中被唤醒
-         */
-        Awake = -190,
-        /**
-         * 频繁发送协议提示
-         */
-        NetServiceSendLimit = -189,
-        /**
-         * 解析资源版本hash的时候派发
-         */
-        ParseResHash = -188,
-        /**
-         * 资源加载失败
-         * data {ResItem}
-         */
-        ResLoadFailed = -187,
-        /**
-         * 资源加载完成
-         */
-        ResLoadSuccess = -186,
-        /**
-         * 单个配置加载成功
-         * data {string} 配置的Key
-         */
-        OneCfgComplete = -185
-    }
-}
-declare namespace jy {
-    /**
-     *
-     * @author 3tion
-     *
-     */
-    const enum RequestState {
-        /**
-         * 未请求/未加载 0
-         */
-        UNREQUEST = 0,
-        /**
-         * 请求中/加载中，未获得值 1
-         */
-        REQUESTING = 1,
-        /**
-         * 已加载/已获取到值 2
-         */
-        COMPLETE = 2,
-        /**
-         * 加载失败 -1
-         */
-        FAILED = -1
-    }
-}
-declare namespace jy {
-    /**
-     * 使用http进行通信的网络服务
-     * @author 3tion
-     *
-     */
-    class HttpNetService extends NetService {
-        protected _loader: XMLHttpRequest;
-        protected _state: RequestState;
-        /**
-         * 未发送的请求
-         */
-        protected _unsendRequest: Recyclable<NetSendData>[];
-        /**
-         * 正在发送的数据
-         */
-        protected _sendingList: Recyclable<NetSendData>[];
-        /**
-         * 请求发送成功的次数
-         */
-        protected _success: number;
-        /**
-         * 请求连续发送失败的次数
-         */
-        protected _cerror: number;
-        /**
-         * 请求失败次数
-         */
-        protected _error: number;
-        constructor();
-        /**
-         * 重置
-         * @param actionUrl             请求地址
-         * @param autoTimeDelay         自动发送的最短延迟时间
-         */
-        setUrl(actionUrl: string, autoTimeDelay?: number): void;
-        /**
-        * @protected
-        */
-        protected onReadyStateChange(): void;
-        /**
-         * 发生错误
-         */
-        protected errorHandler(): void;
-        protected complete(): void;
-        /**
-         * 检查在发送过程中的请求
-         */
-        protected checkUnsend(): void;
-        protected _send(cmd: number, data: any, msgType: Key): void;
-        /**
-         * 发送消息之前，用于预处理一些http头信息等
-         *
-         * @protected
-         */
-        protected onBeforeSend(): void;
-        /**
-         * 接收到服务端Response，用于预处理一些信息
-         *
-         * @protected
-         */
-        protected onBeforeSolveData(): void;
-        /**
-         * 尝试发送
-         */
-        protected trySend(): void;
-    }
-}
-declare namespace jy {
-    /**
-     * 用于发送的网络数据<br/>
-     * @author 3tion
-     */
-    class NetSendData implements IRecyclable {
-        /**
-         * 协议号
-         */
-        cmd: number;
-        /**
-         * 数据
-         */
-        data: any;
-        /**
-         *
-         * protobuf message的类型
-         * @type {string | number}
-         */
-        msgType: string | number;
-        onRecycle(): void;
-    }
-    /**
-     * 网络数据，类似AS3项目中Stream<br/>
-     * @author 3tion
-     *
-     */
-    class NetData extends NetSendData {
-        /**
-         *  是否停止传播
-         */
-        stopPropagation: Boolean;
-    }
-}
-declare namespace jy {
-    /**
-     *
-     * @author 3tion
-     *
-     */
-    class NetRouter {
-        /**
-         * key      协议号<br/>
-         * value    NetBin的数组
-         */
-        private _listenerMaps;
-        constructor();
-        /**
-         * 注册一cmd侦听;
-         * @param cmd      协议号
-         * @param handler   处理器
-         * @param priority  越大越优先
-         * @param once      是否只执行一次
-         * @return boolean true 做为新的兼听添加进去，false 原来就有处理器
-         *
-         */
-        register(cmd: number, handler: INetHandler, priority?: number, once?: boolean): boolean;
-        /**
-         * 删除兼听处理器
-         * @param cmd      协议号
-         * @param handler   处理器
-         * @return boolean true 删除成功  <br/>
-         *                 false 没有这个兼听
-         */
-        remove(cmd: number, handler: INetHandler): boolean;
-        private dispatchList;
-        /**
-        * 调用列表
-        */
-        dispatch(data: Recyclable<NetData>): void;
-        private _dispatch;
-    }
-    /**
-     * 协议处理函数
-     */
-    interface INetHandler {
-        (data: NetData): void;
-    }
-}
-declare namespace jy {
-    /**
-     * WSNetService的数据模式
-     */
-    const enum WSNetServiceDataMode {
-        /**
-         * 接收单数据帧单消息
-         */
-        ReceiveOneDataPerFrame = 0,
-        /**
-         * 接收单数据帧多消息
-         */
-        ReceiveMultiDataPerFrame = 1,
-        /**
-         * 接收掩码
-         */
-        ReceiveMask = 1,
-        /**
-         * 发送单数据帧多消息
-         */
-        SendMultiDataPerFrame = 0,
-        /**
-         * 发送单数据帧单消息
-         */
-        SendOneDataPerFrame = 2,
-        /**
-         * 发送掩码
-         */
-        SendMask = 2
-    }
-    /**
-     * WebSocket版本的NetService
-     * @author 3tion
-     */
-    class WSNetService extends NetService {
-        protected _ws: WebSocket;
-        readonly dataMode: WSNetServiceDataMode;
-        $send: (this: WSNetService, cmd: number, data: any, msgType: Key) => void;
-        /**
-         * 设置数据模式
-         *
-         * @param {WSNetServiceDataMode} mode
-         * @memberof WSNetService
-         */
-        setDataMode(mode: WSNetServiceDataMode): void;
-        /**
-         * 检查数据模式
-         *
-         * @memberof WSNetService
-         */
-        checkDataMode(): void;
-        constructor();
-        readonly connected: boolean;
-        /**
-         *
-         * 设置websocket地址
-         * @param {string} actionUrl
-         */
-        setUrl(actionUrl: string): void;
-        /**
-         * 打开新的连接
-         */
-        connect(): void;
-        protected onOpen: () => void;
-        protected _send(cmd: number, data: any, msgType: Key): void;
-        /**
-         *
-         * 发生错误
-         * @protected
-         */
-        protected onError: (ev: ErrorEvent) => void;
-        /**
-         *
-         * 断开连接
-         * @protected
-         */
-        protected onClose: (ev: CloseEvent) => void;
-        /**
-         * 主动断开连接
-         *
-         * @returns
-         * @memberof WSNetService
-         */
-        disconnect(): void;
-    }
-}
-declare namespace jy {
-    /**
-      * 基于时间回收的资源
-      */
-    interface IResource {
-        /**
-         * 是否为静态不销毁资源
-         */
-        isStatic?: boolean;
-        /**
-         * 最后使用的时间戳
-         */
-        lastUseTime: number;
-        /**
-         * 资源id
-         */
-        uri: string;
-        /**
-         * 资源路径
-         */
-        url: string;
-        /**
-         * 销毁资源
-         */
-        dispose(): any;
-    }
-}
-declare namespace jy.Res {
-    /**
-     * 设置失败的过期时间
-     * 失败次数超过`maxRetry`
-     * @export
-     * @param {number} second
-     */
-    function setFailedExpired(second: number): void;
-    /**
-     * 设置单个资源，不做延迟重试的最大重试次数，默认为3
-     * @param val
-     */
-    function setMaxRetry(val: number): void;
-    /**
-     * 设置最大加载线程  默认为 6
-     * @param val
-     */
-    function setMaxThread(val: number): void;
-    /**
-     * 资源类型
-     */
-    const enum ResItemType {
-        Binary = 0,
-        Text = 1,
-        Image = 2,
-        Json = 3,
-        /**
-         * 音频资源
-         */
-        Sound = 4,
-        /**
-         * 视频资源
-         */
-        Video = 5
-    }
-    /**
-     * 资源加载的回调
-     */
-    type ResCallback = CallbackInfo<{
-        (resItem: ResItem, ...args: any[]): any;
-    }>;
-    interface ResBase {
-        /**
-         * 资源标识
-         */
-        uri: string;
-        /**
-         * 资源路径
-         */
-        url: string;
-        /**
-         * 数据
-         */
-        data?: any;
-        version?: number;
-    }
-    interface ResItem extends ResBase {
-        /**
-         * 资源类型
-         */
-        type?: ResItemType;
-        /**
-         * 是否已存储本地缓存
-         */
-        local?: boolean;
-        /**
-         * 不使用本地缓存
-         */
-        noLocal?: boolean;
-        /**
-         * 资源正在加载时所在的组
-         * 加载完成后清理此值
-         */
-        qid?: ResQueueID;
-        /**
-         * 失败重试次数
-         */
-        retry?: number;
-        /**
-         * 资源加载状态
-         * 默认为 UnRequest
-         */
-        state?: RequestState;
-        /**
-         * 上次失败的过期时间
-         * 网络有时候不稳定，这次连续加载不到，但是后面可能能加载到
-         *
-         * @type {number}
-         * @memberof ResItem
-         */
-        ft?: number;
-        /**
-         * 是否被移除
-         */
-        removed?: boolean;
-        /**
-         * 分组标识
-         * 用于对资源进行区分
-         */
-        group?: Key;
-        /**
-         * 资源回调列队
-         */
-        callbacks?: ResCallback[];
-    }
-    const enum QueueLoadType {
-        /**
-         * 先入后出
-         */
-        FILO = 0,
-        /**
-         * 先入先出
-         */
-        FIFO = 1
-    }
-    /**
-     * 资源分组
-     */
-    interface ResQueue {
-        /**
-         * 分组名称
-         */
-        id: Key;
-        /**
-         * 分组优先级
-         */
-        priority?: number;
-        /**
-         * 分组中的列表
-         */
-        list: ResItem[];
-        /**
-         * 加载类型
-         */
-        type: QueueLoadType;
-    }
-    /**
-     * 内置的资源分组
-     */
-    const enum ResQueueID {
-        /**
-         * 常规资源，使用 FIFO
-         * 适合当前地图块，普通怪物资源，特效资源等
-         */
-        Normal = 0,
-        /**
-         * 后台加载资源，使用 FILO
-         * 用于后台加载，最低优先级
-         */
-        Backgroud = 1,
-        /**
-         * 高优先级资源
-         * FIFO
-         */
-        Highway = 2
-    }
-    /**
-     * 资源加载完成的回调
-     */
-    type ResLoadCallback = CallbackInfo<{
-        (item: ResItem, ...args: any[]): any;
-    }>;
-    interface ResLoader {
-        /**
-         * 加载完成的回调
-         */
-        loadFile(resItem: ResItem, callback: ResLoadCallback): any;
-    }
-    interface ResRequest extends egret.EventDispatcher {
-        item?: ResItem;
-        resCB?: ResLoadCallback;
-    }
-    type ResHttpRequest = Recyclable<egret.HttpRequest & ResRequest>;
-    class BinLoader implements ResLoader {
-        type: XMLHttpRequestResponseType;
-        constructor(type?: XMLHttpRequestResponseType);
-        loadFile(resItem: ResItem, callback: ResLoadCallback): void;
-        onLoadFinish(event: egret.Event): void;
-    }
-    type ResImgRequest = Recyclable<egret.ImageLoader & ResRequest>;
-    class ImageLoader implements ResLoader {
-        loadFile(resItem: ResItem, callback: ResLoadCallback): void;
-        onLoadFinish(event: egret.Event): void;
-    }
-    /**
-    * 获取资源的扩展名
-    * @param url
-    */
-    function getExt(url: string): string;
-    /**
-     * 内联绑定
-     * @param ext 扩展名
-     * @param type 类型
-     */
-    function bindExtType(ext: string, type: ResItemType): void;
-    /**
-     * 注册资源分析器
-     * @param type 分析器类型
-     * @param analyzer 分析器
-     */
-    function regAnalyzer(type: ResItemType, analyzer: ResLoader): void;
-    /**
-     * 添加资源的结果
-     * 0 号为返回值
-     *
-     * @export
-     * @interface AddResResult
-     * @extends {Array<any>}
-     */
-    interface AddResResult extends Array<any> {
-        readonly 0: ResItem;
-        readonly 1: boolean;
-        length: 2;
-    }
-    /**
-     * 添加资源
-     * @param {ResItem} resItem
-     * @param {ResQueueID} [queueID=ResQueueID.Normal]
-     * @returns {ResItem}
-     */
-    function addRes(resItem: ResItem, queueID?: ResQueueID): AddResResult;
-    /**
-     * 加载资源
-     * @param {string} uri 资源标识
-     * @param {ResCallback} callback 加载完成的回调
-     * @param {string} [url] 资源路径
-     * @param {ResQueueID} [queueID=ResQueueID.Normal]
-     */
-    function load(uri: string, url?: string, callback?: ResCallback, queueID?: ResQueueID): void;
-    interface LoadResListOption {
-        callback: CallbackInfo<{
-            (flag: boolean, ...args: any[]): any;
-        }>;
-        group: Key;
-        onProgress?: CallbackInfo<{
-            (item: Res.ResItem): any;
-        }>;
-    }
-    function loadList(list: ResItem[], opt: LoadResListOption, queueID?: ResQueueID): void;
-    /**
-     * 同步获取某个资源，如果资源未加载完成，则返回空
-     * @param uri 资源标识
-     */
-    function get(uri: string): any;
-    function set(uri: string, item: ResItem): boolean;
-    /**
-     * 移除某个资源
-     * @param uri
-     */
-    function remove(uri: string): void;
-    /**
-     * 阻止尝试某个资源加载，目前是还未加载的资源，从列队中做移除，其他状态不处理
-     * @param uri
-     */
-    function cancel(uri: string): void;
-    /**
-     * 加载资源
-     * @param {ResItem} resItem
-     * @param {ResQueueID} [queueID=ResQueueID.Normal]
-     */
-    function loadRes(resItem: ResItem, callback?: ResCallback, queueID?: ResQueueID): void;
-    function getLocalDB(version: number, keyPath: string, storeName: string): {
-        /**
-         * 存储资源
-         *
-         * @param {ResItem} data
-         * @param {(this: IDBRequest, ev: Event) => any} callback 存储资源执行完成后的回调
-         */
-        save(data: ResItem, callback?: (ev: Error | Event) => any): void;
-        /**
-         * 获取资源
-         *
-         * @param {string} url
-         * @param {{ (data: ResItem) }} callback
-         */
-        get(url: string, callback: (data: ResItem, url?: string) => any): void;
-        /**
-         * 删除指定资源
-         *
-         * @param {string} url
-         * @param {{ (this: IDBRequest, ev: Event) }} callback 删除指定资源执行完成后的回调
-         */
-        delete(url: string, callback?: (url: string, ev: Error | Event) => any): void;
-        /**
-         * 删除全部资源
-         *
-         * @param {{ (this: IDBRequest, ev: Event) }} callback 删除全部资源执行完成后的回调
-         */
-        clear(callback?: (ev: Error | Event) => any): void;
-    };
-    /**
-     *  尝试启用本地资源缓存
-     * @author 3tion(https://github.com/eos3tion/)
-     * @export
-     * @param {number} [version=1]
-     * @returns
-     */
-    function tryLocal(version?: number, keyPath?: string, storeName?: string): {
-        /**
-         * 存储资源
-         *
-         * @param {ResItem} data
-         * @param {(this: IDBRequest, ev: Event) => any} callback 存储资源执行完成后的回调
-         */
-        save(data: ResItem, callback?: (ev: Error | Event) => any): void;
-        /**
-         * 获取资源
-         *
-         * @param {string} url
-         * @param {{ (data: ResItem) }} callback
-         */
-        get(url: string, callback: (data: ResItem, url?: string) => any): void;
-        /**
-         * 删除指定资源
-         *
-         * @param {string} url
-         * @param {{ (this: IDBRequest, ev: Event) }} callback 删除指定资源执行完成后的回调
-         */
-        delete(url: string, callback?: (url: string, ev: Error | Event) => any): void;
-        /**
-         * 删除全部资源
-         *
-         * @param {{ (this: IDBRequest, ev: Event) }} callback 删除全部资源执行完成后的回调
-         */
-        clear(callback?: (ev: Error | Event) => any): void;
-    };
-}
-declare namespace jy {
-    function get<T extends IResource>(resid: string, noResHandler: {
-        (...args: any[]): T;
-    }, thisObj?: any, ...args: any[]): T;
-    const ResManager: {
-        get: typeof get;
-        /**
-         * 获取纹理资源
-         *
-         * @param {string} resID 资源id
-         * @param {boolean} [noWebp] 是否不加webp后缀
-         * @returns {TextureResource}
-         */
-        getTextureRes(resID: string, noWebp?: boolean): TextureResource;
-        /**
-         * 获取资源
-         */
-        getResource: typeof getResource;
-        /**
-         * 注册资源
-         */
-        regResource: typeof regResource;
-        init(): void;
-    };
-    /**
-     * 获取资源
-     */
-    function getResource(resID: string): IResource;
-    /**
-     * 注册资源
-     */
-    function regResource(resID: string, res: IResource): boolean;
-}
-declare namespace jy {
-    import Bitmap = egret.Bitmap;
-    /**
-     *
-     * 纹理资源
-     * @export
-     * @class TextureResource
-     * @implements {IResource}
-     */
-    class TextureResource implements IResource {
-        /**
-         * 最后使用的时间戳
-         */
-        lastUseTime: number;
-        /**
-         * 资源id
-         */
-        readonly uri: string;
-        /**
-         * 资源最终路径
-         */
-        readonly url: string;
-        /**
-         * 加载列队
-         */
-        qid?: Res.ResQueueID;
-        constructor(uri: string, noWebp?: boolean);
-        /**
-         *
-         * 是否为静态不销毁的资源
-         * @type {boolean}
-         */
-        readonly isStatic: boolean;
-        private _tex;
-        /**
-         *
-         * 绑定的对象列表
-         * @private
-         * @type {Bitmap[]}
-         */
-        private _list;
-        /**
-         *
-         * 绑定一个目标
-         * @param {Bitmap} target
-         */
-        bind(bmp: Bitmap): void;
-        /**
-         *
-         * 解除目标的绑定
-         * @param {Bitmap} target
-         */
-        loose(bmp: Bitmap): void;
-        load(): void;
-        /**
-         * 资源加载完成
-         */
-        loadComplete(item: Res.ResItem): void;
-        /**
-         * 销毁资源
-         */
-        dispose(): void;
-    }
-}
-declare namespace jy {
-    /**
-     * 状态限制器
-     * @author 3tion
-     */
-    interface ILimit {
-        /**
-         * 设置状态
-         *
-         * @param {Key} type
-         * @memberof ILimit
-         */
-        setState(type: Key): any;
-        /**
-         * 检查内容是否被禁止了;
-         * @param type
-         * @return
-         *
-         */
-        check(value: Key): boolean;
-    }
-}
-declare namespace jy {
-    /**
-     * 状态机监听器
-     * @author 3tion
-     */
-    interface IStateListener {
-        setState(type: Key): any;
-    }
-}
-declare namespace jy {
-    /**
-     * 状态机的状态实现
-     * @author 3tion
-     */
-    interface IStateSwitcher {
-        /**
-         *
-         * 在上一个状态sleep之前调用
-         * @param {Key} [type]
-         * @memberof IStateSwitcher
-         */
-        beforeLastSleep?(type?: Key): any;
-        /**
-         * 被一个状态禁止了
-         *
-         * @param {Key} [type]
-         *
-         * @memberof IStateSwitcher
-         */
-        sleepBy?(type?: Key): any;
-        /**
-         * 被一个状态开启了
-         *
-         * @param {Key} [type]
-         *
-         * @memberof IStateSwitcher
-         */
-        awakeBy?(type?: Key): any;
-    }
-}
-declare namespace jy {
-    const enum LimitScene {
-        /**
-         * 默认场景
-         */
-        Default = 0
-    }
-    /**
-    * 限制列队
-    * @author 3tion
-    */
-    class LimitQueue implements ILimit {
-        protected _queue: ILimit[];
-        protected _current: Key;
-        listener: IStateListener;
-        constructor();
-        addLimiter(item: ILimit): boolean;
-        /**
-         * 设置状态
-         * @param value
-         *
-         */
-        setState(value: Key): void;
-        removeLimiter(item: ILimit): boolean;
-        clear(): void;
-        /**
-         * 是否被限制了
-         * @param type
-         * @return
-         *
-         */
-        check(type: Key): boolean;
-    }
-    interface UILimiterType {
-        impl: LimitQueue;
-        /**
-         * 最大历史数
-         *
-         * @type {number}
-         * @memberof UILimiterType
-         */
-        MaxHistory: number;
-        readonly current: Key;
-        /**
-         * 取得状态侦听管理器(以便注册关注的状态)
-         *
-         * @type {StateMachine}
-         * @memberof UILimiterType
-         */
-        readonly listener: StateMachine;
-        enter(scene: Key): void;
-        exit(scene?: Key): void;
-        check(scene: Key): boolean;
-    }
-    const UILimiter: UILimiterType;
-    function addToStates(value: IStateSwitcher, ...ids: Key[]): void;
-    function addToState(id: Key, value: IStateSwitcher): void;
-}
-declare namespace jy {
-    /**
-     * 使用数值或者字符串类型作为Key
-     * V 作为Value的字典
-     * 原生的map(ECMAScript5无Map)无法自定义列表顺序，而是完全按照加载顺序的，所以才需要有此类型
-     * 列表存储Value
-     * @author 3tion
-     * @class ArraySet
-     * @template V
-     */
-    class ArraySet<V> {
-        private _list;
-        private _dict;
-        constructor();
-        /**
-         * 获取原始列表，用于重新排序
-         * 请不要直接进行 + - 值，使用set delete 方法进行处理
-         * @readonly
-         *
-         */
-        readonly rawList: V[];
-        /**
-         * 获取原始的字典
-         * 请不要直接行 + - 值，使用set delete 方法进行处理
-         * @readonly
-         *
-         */
-        readonly rawDict: {
-            readonly [index: string]: V;
-        };
-        /**
-         * 设置原始字典
-         *
-         * @param { [index: string]: V } dict
-         *
-         */
-        setRawDict(dict: {
-            [index: string]: V;
-        }): this;
-        /**
-         *
-         * @param {V[]} list        要放入的数据
-         * @param {keyof V} keyPro   索引的属性名称
-         *
-         * 下例是一个形式为：{id:number,name:string}[]的数组，进行设值的例子
-         * @example
-         * let rawList:{id:number,name:string}[] = [{id:1,name:"test1"},{id:2,name:"test2"},{id:3,name:"test3"}];
-         * let set = new ArraySet<{id:number,name:string}>();
-         * set.setRawList(rawList,"id"); //设值操作
-         *
-         */
-        setRawList(list: V[], keyPro: keyof V): this;
-        /**
-         *
-         * 设置数据
-         *
-         * @param {Key} key
-         * @param {V} value
-         * @return {number} 返回值加入到数据中的索引
-         */
-        set(key: Key, value: V): number;
-        /**
-         * 获取数据
-         *
-         * @param {Key} key
-         * @returns
-         *
-         */
-        get(key: Key): V;
-        /**
-         * 根据key移除数据
-         *
-         * @param {Key} key
-         *
-         */
-        delete(key: Key): V;
-        /**
-         * 清理数据
-         *
-         *
-         */
-        clear(): void;
-        /**
-         * 获取总长度
-         *
-         * @readonly
-         *
-         */
-        readonly size: number;
-    }
-}
-declare namespace jy {
-    const enum ByteArraySize {
-        SIZE_OF_UINT32 = 4,
-        SIZE_OF_FIX64 = 8,
-        SIZE_OF_INT64 = 8,
-        SIZE_OF_DOUBLE = 8,
-        SIZE_OF_FLOAT = 4,
-        SIZE_OF_FIX32 = 4,
-        SIZE_OF_SFIX32 = 4,
-        SIZE_OF_UINT16 = 2,
-        SIZE_OF_INT16 = 2
-    }
-    /**
-     * 方便后续调整
-     * 加入ProtoBuf的varint支持
-     * @author 3tion
-     *
-     */
-    class ByteArray extends egret.ByteArray {
-        $endian: egret.EndianConst;
-        constructor(buffer?: ArrayBuffer, ext?: number);
-        /**
-         * 替换缓冲区
-         *
-         * @param {ArrayBuffer} value
-         */
-        replaceBuffer(value: ArrayBuffer): void;
-        /**
-         *
-         * 读取指定长度的Buffer
-         * @param {number} length       指定的长度
-         * @returns {Buffer}
-         */
-        readBuffer(length: number): ArrayBuffer;
-        readInt64(): number;
-        writeInt64(value: number): void;
-        /**
-         * 读取ProtoBuf的`Double`
-         * protobuf封装是使用littleEndian的，不受Endian影响
-         */
-        readPBDouble(): number;
-        /**
-         * 写入ProtoBuf的`Double`
-         * protobuf封装是使用littleEndian的，不受Endian影响
-         * @param value
-         */
-        writePBDouble(value: number): void;
-        /**
-         * 读取ProtoBuf的`Float`
-         * protobuf封装是使用littleEndian的，不受Endian影响
-         */
-        readPBFloat(): number;
-        /**
-          * 写入ProtoBuf的`Float`
-          * protobuf封装是使用littleEndian的，不受Endian影响
-          * @param value
-          */
-        writePBFloat(value: number): void;
-        readFix32(): number;
-        writeFix32(value: number): void;
-        readSFix32(): number;
-        writeSFix32(value: number): void;
-        readFix64(): number;
-        writeFix64(value: number): void;
-        /**
-         *
-         * 读取指定长度的ByteArray
-         * @param {number} length       指定的长度
-         * @param {number} [ext=0]      ByteArray扩展长度参数
-         * @returns {ByteArray}
-         */
-        readByteArray(length: number, ext?: number): ByteArray;
-        /**
-         * 向字节流中写入64位的可变长度的整数(Protobuf)
-         */
-        writeVarint64(value: number): void;
-        /**
-         * 向字节流中写入32位的可变长度的整数(Protobuf)
-         */
-        writeVarint(value: number): void;
-        /**
-         * 读取字节流中的32位变长整数(Protobuf)
-         */
-        readVarint(): number;
-        /**
-          * 读取字节流中的32位变长整数(Protobuf)
-          */
-        readVarint64(): number;
-        /**
-         * 获取写入的字节
-         * 此方法不会新建 ArrayBuffer
-         * @readonly
-         * @memberof ByteArray
-         */
-        readonly outBytes: Uint8Array;
-        /**
-         * 重置索引
-         *
-         * @memberof ByteArray
-         */
-        reset(): void;
-    }
-}
-declare namespace jy {
-    const enum PosKey {
-        X = "x",
-        Y = "y"
-    }
-    const enum SizeKey {
-        Width = "width",
-        Height = "height"
-    }
-    const enum EgretMeasureSizeKey {
-        Height = "measuredHeight",
-        Width = "measuredWidth"
-    }
-    /**
-     * 有`width` `height` 2个属性
-     *
-     * @export
-     * @interface Size
-     */
-    interface Size {
-        width: number;
-        height: number;
-    }
-    /**
-     * 有 `x` `y` 两个属性
-     *
-     * @export
-     * @interface Point
-     */
-    interface Point {
-        x: number;
-        y: number;
-    }
-    /**
-     * 有 `x` `y` `z` 3个属性
-     *
-     * @export
-     * @interface Point3D
-     * @extends {Point}
-     */
-    interface Point3D extends Point {
-        z: number;
-    }
-    /**
-     * 矩形
-     * 有`x`,`y`,`width`,`height` 4个属性
-     *
-     * @export
-     * @interface Rect
-     * @extends {Point}
-     * @extends {Size}
-     */
-    interface Rect extends Point, Size {
-    }
-}
-declare namespace jy {
-    /**
-     * 固定大小的堆栈数据
-     */
-    class Heap<T> {
-        /**
-         * 原始数据
-         */
-        readonly heap: T[];
-        readonly maxSize: number;
-        private _count;
-        readonly compare: (a: T, b: T) => number;
-        constructor(size: number, compare?: {
-            (a: T, b: T): number;
-        });
-        /**
-         * 获取堆中，第一个元素
-         */
-        peek(): T;
-        put(obj: T): boolean;
-        pop(): T;
-        clear(newSize?: number): void;
-        readonly size: number;
-        toArray(): T[];
-        /**
-         * 遍历堆中元素
-         * @param callbackfn 回调函数，如果返回true，停止遍历
-         * @param thisArg 回调函数的 this 指针
-         */
-        forEach(callbackfn: (value: T, cursor: number, heap: Heap<T>) => boolean, thisArg?: any): void;
-    }
-}
-declare namespace jy {
-    /**
-     * 项目中不使用long类型，此值暂时只用于存储Protobuff中的int64 sint64
-     * @author
-     *
-     */
-    class Int64 {
-        /**
-         * 高位
-         */
-        high: number;
-        /**
-         * 低位
-         */
-        low: number;
-        constructor(low?: number, high?: number);
-        toNumber(): number;
-        static toNumber(low?: number, high?: number): number;
-        static fromNumber(value: number): any;
-        add(addend: Int64): Int64;
-    }
-}
-declare namespace jy {
-    /**
-     * 经纬度 定位信息
-     *
-     * @export
-     * @interface Location
-     */
-    interface Location {
-        /**维度*/
-        latitude: number;
-        /**精度*/
-        longitude: number;
-    }
-    interface LocationConstructor {
-        /**
-         * 根据两个经纬度获取距离(单位：米)
-         *
-         * @param {Location} l1
-         * @param {Location} l2
-         * @returns 距离(单位：米)
-         */
-        getDist(l1: Location, l2: Location): number;
-    }
-    var Location: LocationConstructor;
-}
-declare const enum Time {
-    /**
-     * 一秒
-     */
-    ONE_SECOND = 1000,
-    /**
-     * 五秒
-     */
-    FIVE_SECOND = 5000,
-    /**
-     * 一分种
-     */
-    ONE_MINUTE = 60000,
-    /**
-     * 五分种
-     */
-    FIVE_MINUTE = 300000,
-    /**
-     * 半小时
-     */
-    HALF_HOUR = 1800000,
-    /**
-     * 一小时
-     */
-    ONE_HOUR = 3600000,
-    /**
-     * 一天
-     */
-    ONE_DAY = 86400000
-}
-declare const enum CountDownFormat {
-    /**
-     * { d: LangUtil.getMsg("$_ndays"), h: LangUtil.getMsg("$_nhours"), m: LangUtil.getMsg("$_nminutes"), s: LangUtil.getMsg("$_nsecends") }
-     */
-    D_H_M_S = 0,
-    /**
-     * { h: LangUtil.getMsg("$_nhours"), m: LangUtil.getMsg("$_nminutes"), s: LangUtil.getMsg("$_nsecends") }
-     */
-    H_M_S = 1,
-    /**
-     *  { h: LangUtil.getMsg("$_nhours"), m: LangUtil.getMsg("$_nminutes") }
-     */
-    H_M = 2,
-    /**
-     * { m: LangUtil.getMsg("$_nminutes"), s: LangUtil.getMsg("$_nsecends") }
-     */
-    M_S = 3,
-    /**
-     * { s: LangUtil.getMsg("$_nsecends") }
-     */
-    S = 4
-}
-declare namespace jy {
-    /**
-     * 倒计时的格式选项
-     *
-     * @export
-     * @interface CountDownFormatOption
-     */
-    interface CountDownFormatOption {
-        /**
-         *
-         * 剩余天数的修饰字符串
-         * 如： `{0}天`
-         * @type {string}@memberof CountDownFormatOption
-         */
-        d?: string;
-        /**
-         * 剩余小时的修饰字符串
-         * 如：`{0}小时`
-         *
-         * @type {string}@memberof CountDownFormatOption
-         */
-        h?: string;
-        /**
-         * 剩余分钟的修饰字符串
-         * 如：`{0}分钟`
-         *
-         * @type {string}@memberof CountDownFormatOption
-         */
-        m?: string;
-        /**
-         * 剩余秒数的修饰字符串
-         * 如：`{0}秒`
-         *
-         * @type {string}@memberof CountDownFormatOption
-         */
-        s?: string;
-        /**
-         * 小时补0
-         */
-        hh?: boolean;
-        /**
-         * 分钟补0
-         */
-        mm?: boolean;
-        /**
-         * 秒补0
-         */
-        ss?: boolean;
-    }
-    interface DateUtilsInterface {
-        /**
-         * CountDownFormat
-         *
-         * @static
-         * @param {number} format
-         * @returns {*}
-         *
-         * @memberOf DateUtils
-         */
-        getDefaultCDFOption(format: number): CountDownFormatOption;
-        /**
-         * 注册默认的CD格式，方便后续调用
-         *
-         * @param {CountDownFormat} format
-         * @param {CountDownFormatOption} opt
-         */
-        regCDFormat(format: CountDownFormat, opt: CountDownFormatOption): any;
-        /**
-         * 初始化服务器时间
-         *
-         * @static
-         * @param {number} time 服务器时间戳
-         * @param {number} timezoneOffset 服务器基于UTC的时区偏移
-         */
-        initServerTime(time: number, timezoneOffset: number): void;
-        /**
-         * 设置服务器时间
-         * 用于同步服务器时间
-         * @static
-         * @param {number} time
-         */
-        setServerTime(time: number): void;
-        /**
-         * 通过UTC偏移过的当前时间戳
-         *
-         * @static
-         */
-        readonly utcServerTime: number;
-        /**
-         * 通过UTC偏移过的Date
-         */
-        readonly utcServerDate: Date;
-        /**
-         * 获取当前时间戳，用于和服务端的时间戳进行比较
-         *
-         * @readonly
-         * @static
-         */
-        readonly serverTime: number;
-        /**
-         * 通过UTC偏移过的当前时间戳的Date对象
-         */
-        readonly serverDate: Date;
-        /**
-         * 共享时间
-         *
-         * @type {Date}
-         * @memberof DateUtilsInterface
-         */
-        readonly sharedDate: Date;
-        /**
-         * 项目中，所有时间都需要基于UTC偏移处理
-         *
-         * @static
-         * @param {number} time			要格式化的时间，默认为UTC时间
-         * @param {string} format 		  格式字符串 yyyy-MM-dd HH:mm:ss
-         * @param {boolean} [isRaw=true] 	是否为原始未使用utc偏移处理的时间，默认 true
-         * @returns
-         */
-        getFormatTime(time: number, format: string, isRaw?: boolean): string;
-        /**
-         * 获取指定时间的当天结束(23:59:59'999)时间戳
-         *
-         * @static
-         * @param {number} [time] 指定的utc偏移后的时间，不设置时间，则取当前服务器时间
-         * @returns {number} 指定时间的当天结束(23:59:59'999)时间戳
-         */
-        getDayEnd(time?: number): number;
-        /**
-         * 获取指定时间的当天结束(23:59:59'999)UTC强制偏移时间戳
-         *
-         * @static
-         * @param {number} [utcTime] 指定的utc偏移后的时间，不设置时间，则取当前服务器时间
-         * @returns {number} 指定时间的当天结束(23:59:59'999)UTC强制偏移时间戳
-         */
-        getUTCDayEnd(utcTime?: number): number;
-        /**
-         * 获取指定时间的当天开始的(0:0:0'0)时间戳
-         *
-         * @static
-         * @param {number} [time] 指定的时间，不设置时间，则取当前服务器时间
-         * @returns {Date} 指定时间的当天开始的(0:0:0'0)时间戳
-         */
-        getDayStart(time?: number): number;
-        /**
-         * 获取指定时间的当天开始的UTC(0:0:0'0)强制偏移时间戳
-         *
-         * @static
-         * @param {number} [utcTime] 指定的utc偏移后的时间，不设置时间，则取当前服务器时间
-         * @returns {Date} 指定时间的当天开始的UTC(0:0:0'0)强制偏移时间戳
-         */
-        getUTCDayStart(utcTime?: number): number;
-        /**
-         * 将服务器有偏移量的时间戳，转换成显示时间相同的UTC时间戳，用于做显示
-         *
-         * @static
-         * @param {number} time 正常的时间戳
-         * @returns {number} UTC偏移后的时间戳
-         */
-        getUTCTime(time: number): number;
-        /**
-         * 显示倒计时
-         *
-         * @static
-         * @param {number} leftTime 剩余时间
-         * @param {{ d?: string, h?: string, m?: string, s?: string }} format 倒计时修饰符，
-         * format 示例：{d:"{0}天",h:"{0}小时",m:"{0}分",s:"{0}秒"}
-         */
-        getCountdown(leftTime: number, format: CountDownFormatOption | CountDownFormat): string;
-        /**
-         * 获取天数
-         * 如要获取开服天数
-         * 1月1日 `23点50分`开服
-         * 1月2日 `6点0分`，则算开服`第二天`
-         * @param {number} startTime 起点时间戳
-         * @param {number} [endTime] 结束时间戳
-         */
-        getDayCount(startTime: number, endTime?: number): number;
-        /**
-         * 获取天数，基于UTC时间计算
-         * 如要获取开服天数
-         * 1月1日 `23点50分`开服
-         * 1月2日 `6点0分`，则算开服`第二天`
-         * @param {number} startTime 起点时间戳
-         * @param {number} [endTime] 结束时间戳
-         */
-        getUTCDayCount(startTime: number, endTime?: number): number;
-    }
-    const DateUtils: DateUtilsInterface;
-}
-declare namespace jy {
-    /**
-     * TimveVO
-     */
-    class TimeVO {
-        /**
-         * 配置的小时
-         *
-         * @type {number}
-         */
-        hour: number;
-        /**
-         * 配置的分钟
-         *
-         * @type {number}
-         */
-        minute: number;
-        /**
-         * 小时和分钟的时间偏移
-         *
-         * @type {number}
-         */
-        time: number;
-        /**
-         * 日期原始字符串
-         */
-        strTime: string;
-        constructor(timeStr?: string);
-        /**
-         * 从分钟进行解析
-         *
-         * @param {number} minutes 分钟数
-         */
-        decodeMinutes(minutes: number): TimeVO;
-        /**
-         * 从一个数值进行序列化
-         * decodeMinutes和decodeBit，如果使用protobuf writeVarint32 存储，时间只要超过 02:08，不管如何使用何种方式，一定会超过2字节，而 23:59，不管怎么存储，都不会超过2字节
-         * decodeBit解析比 decodeMinutes更加快捷
-         * 而 hour<<6|minute  解析会更简单，快速
-         * @param {number} value
-         */
-        decodeBit(value: number): TimeVO;
-        /**
-         * 从字符串中解析
-         *
-         * @param {number} strTime 通过解析器解析的数据
-         */
-        decode(strTime: string): TimeVO;
-        /**
-        * 获取今日的服务器时间
-        *
-        * @readonly
-        * @memberOf TimeVO
-        */
-        readonly todayTime: number;
-        /**
-         * 获取指定时间戳那天的时间
-         *
-         * @param {number} [day]
-         * @param {boolean} [isUTC]
-         * @returns
-         * @memberof TimeVO
-         */
-        getDayTime(day?: number, isUTC?: boolean): number;
-    }
-}
-declare namespace jy {
-    /**
-     * 圆圈倒计时
-     *
-     * @export
-     * @class CircleCountdown
-     */
-    class CircleCountdown {
-        static defaultColor: number;
-        protected _g: egret.Graphics;
-        protected _cX: number;
-        protected _cY: number;
-        /**
-         * 绘制的线的宽度
-         *
-         * @protected
-         *
-         * @memberOf CircleCountdown
-         */
-        protected _sw: number;
-        protected _total: number;
-        protected _p: number;
-        protected _cfgs: CircleCountdownCfg[];
-        protected _cfg: CircleCountdownCfg;
-        protected _eRad: number;
-        protected _sRad: number;
-        protected _dRad: number;
-        protected _radius: number;
-        private isEnd;
-        setGraphis(graphics: egret.Graphics): this;
-        setCenter(centerX: number, centerY: number): this;
-        setRadius(radius: number): this;
-        /**
-         * 设置起始角度和结束角度
-         *
-         * @param {number} [rad=0]
-         *
-         * @memberOf CircleCountdown
-         */
-        setRad(startRad?: number, endRad?: number): this;
-        /**
-         * 设置线的宽度
-         *
-         * @param {number} [strokeWidth=1]
-         * @returns
-         *
-         * @memberOf CircleCountdown
-         */
-        setStrokeWidth(strokeWidth?: number): this;
-        setCfgs(color?: number | CircleCountdownCfg, ...cfgs: CircleCountdownCfg[]): this;
-        addCfg(color: CircleCountdownCfg): this;
-        reset(): this;
-        progress(value: number, maxValue: number): void;
-        reuse(): void;
-        clear(): void;
-        protected render(): void;
-    }
-    /**
-     * 圆圈倒计时配置
-     *
-     * @export
-     * @interface CircleCountdownCfg
-     * @extends {Object}
-     */
-    interface CircleCountdownCfg extends Object {
-        /**
-         *
-         * 使用的起始颜色
-         * @type {number}
-         * @memberOf CircleCountdownCfg
-         */
-        color: number;
-        /**
-         * 颜色权值
-         *
-         * @type {number}
-         * @memberOf CircleCountdownCfg
-         */
-        weight: number;
-        /**
-         * 是否不做渐变，默认基于下一个点做渐变
-         *
-         * @type {boolean}
-         * @memberOf CircleCountdownCfg
-         */
-        noGradient?: boolean;
-        /**
-         * 是否闪烁
-         *
-         * @type {boolean}
-         * @memberOf CircleCountdownCfg
-         */
-        shine?: boolean;
-        /**
-         * 起始点
-         *
-         * @type {number}
-         * @memberOf CircleCountdownCfg
-         */
-        start?: number;
-        /**
-         * 结束点
-         *
-         * @type {number}
-         * @memberOf CircleCountdownCfg
-         */
-        end?: number;
-        /**
-         * 结束颜色
-         *
-         * @type {number}
-         * @memberOf CircleCountdownCfg
-         */
-        endColor?: number;
-    }
-}
-declare namespace jy {
-    /**
-     * 拷贝到剪贴板中
-     *
-     * @author gushuai
-     * @export
-     * @param {string} str
-     * @returns
-     */
-    function doCopy(str: string): boolean;
-}
-declare namespace jy {
-    const DataUrlUtils: {
-        /**
-         * 根据dataUrl获取 base64字符串
-         *
-         * @param {string} dataUrl
-         * @returns
-         */
-        getBase64: typeof getBase64;
-        /**
-         * 根据dataUrl获取Uint8Array
-         *
-         * @param {string} dataUrl
-         * @returns
-         */
-        getBytes: typeof getBytes;
-        /**
-         * 获取白鹭可视对象的dataUrl
-         *
-         * @param {egret.DisplayObject} dis
-         * @param {string} type
-         * @param {egret.Rectangle} [rect]
-         * @param {any} [encodeOptions]
-         * @returns
-         */
-        getDisplayDataURL: typeof getDisplayDataURL;
-        /**
-         * 获取可视对象的Base64字符串
-         *
-         * @param {egret.DisplayObject} dis
-         * @param {string} type
-         * @param {egret.Rectangle} [rect]
-         * @param {any} [encodeOptions]
-         * @returns
-         */
-        getDisplayBase64(dis: egret.DisplayObject, type: string, rect?: egret.Rectangle, encodeOptions?: any, scale?: number): string;
-        /**
-         * 获取可视对象的Uint8字节流
-         *
-         * @param {egret.DisplayObject} dis
-         * @param {string} type
-         * @param {egret.Rectangle} [rect]
-         * @param {any} [encodeOptions]
-         * @returns
-         */
-        getDisplayBytes(dis: egret.DisplayObject, type: string, rect?: egret.Rectangle, encodeOptions?: any, scale?: number): Uint8Array;
-    };
-    function getDisplayDataURL(dis: egret.DisplayObject, type: string, rect?: egret.Rectangle, encodeOptions?: any, scale?: number): string;
-    function getBase64(dataUrl: string): string;
-    function getBytes(dataUrl: string): Uint8Array;
-}
-declare namespace jy {
-    interface FilterUtilsType {
-        /**
-         * 共享灰度滤镜列表
-         */
-        gray: egret.Filter[];
-        /**共享暗淡滤镜 */
-        dark: egret.Filter[];
-        /**共享模糊滤镜 */
-        blur: egret.Filter[];
-        /**
-         * 根据 adjustColor 值，获取 ColorMatrixFilter 滤镜
-         *
-         * @param {number} [brightness=0]   亮度：取值范围 -100 - 100
-         * @param {number} [contrast=0]     对比度：取值范围 -100 - 100
-         * @param {number} [saturation=0]   饱和度：取值范围 -100 - 100
-         * @param {number} [hue]            色调： 取值范围 -180 - 180
-         * @returns {egret.ColorMatrixFilter}
-         * @memberof FilterUtilsType
-         */
-        adjustColorFilter(brightness?: number, contrast?: number, saturation?: number, hue?: number): egret.ColorMatrixFilter;
-    }
-    /**
-     * 滤镜辅助
-     *
-     * @export
-     * @class FilterUtils
-     */
-    const FilterUtils: FilterUtilsType;
-}
-declare namespace jy {
-    /**
-     * 获取多个点的几何中心点
-     *
-     * @export
-     * @param {Point[]} points 点集
-     * @param {Point} result 结果
-     * @returns {Point} 点集的几何中心点
-     * @author gushuai
-     */
-    function getCenter(points: Point[], result?: Point): Point;
-    /**
-     * 检查类矩形 a 和 b 是否相交
-     * @export
-     * @param {Rect} a   类矩形a
-     * @param {Rect} b   类矩形b
-     * @returns {boolean} true     表示两个类似矩形的物体相交
-     *         false    表示两个类似矩形的物体不相交
-     */
-    function intersects(a: Rect, b: Rect): boolean;
-    /**
-     * 获取点集围成的区域的面积
-     * S=（（X2-X1）*  (Y2+Y1)+（X2-X2）*  (Y3+Y2)+（X4-X3）*  (Y4+Y3)+……+（Xn-Xn-1）*  (Yn+Yn-1)+（X1-Xn）*  (Y1+Yn)）/2
-     * @export
-     * @param {Point[]} points 点集
-     * @returns {number}
-     */
-    function getArea(points: Point[]): number;
-}
-declare namespace jy {
-    const HTMLUtil: {
-        /**
-         * 字符着色
-         *
-         * @param {string | number} value       内容
-         * @param {(string | number)} color     颜色
-         * @returns
-         */
-        createColorHtml(value: string | number, color: string | number): string;
-        /**
-         * 清理html;
-         * @value value
-         * @return
-         *
-         */
-        clearHtml(value: string): string;
-        /**
-         * 将特殊字符串处理为HTML转义字符
-         *
-         * @param {string} content
-         */
-        escHTML(content: string): string;
-        /**
-         * 将HTML特殊符号，恢复成正常字符串
-         *
-         * @param {string} content
-         * @returns
-         */
-        unescHTML(content: string): string;
-    };
-}
-declare namespace jy {
-    interface LangUtilInterface {
-        /**
-         * 获取显示的信息
-         *
-         * @static
-         * @param {(number | string)} code code码
-         * @param {any} args 其他参数  替换字符串中{0}{1}{2}{a} {b}这样的数据，用obj对应key替换，或者是数组中对应key的数据替换
-         * @returns 显示信息
-         */
-        getMsg(code: number | string, ...args: any[]): string;
-        getMsg(code: number | string, args: any): string;
-        /**
-         *
-         * 注册语言字典
-         * @param {{ [index: string]: string }} data
-         * @memberof LangUtilInterface
-         */
-        regMsgDict(data: {
-            [index: string]: string;
-        }): void;
-        /**
-         * 检查语言包中，是否有对应的code码
-         *
-         * @param {Key} code
-         * @returns {boolean}
-         * @memberof LangUtilInterface
-         */
-        has(code: Key): boolean;
-    }
-    /**
-     * 用于处理语言/文字显示
-     */
-    const LangUtil: LangUtilInterface;
-}
-declare namespace jy {
-    const enum Sex {
-        /**
-         * 男
-         */
-        Male = 1,
-        /**
-         * 女
-         */
-        Female = 2,
-        Nan = 1,
-        Nv = 2
-    }
-    function setLib(data: {
-        a?: string;
-        b?: string;
-        c1?: string;
-        c2?: string;
-    }): void;
-    class NameUtils {
-        private _random;
-        /**
-         *
-         * @param randomFunc	随机算法
-         *
-         */
-        constructor(randomFunc?: Function);
-        /**
-         * 设置名字库的数据
-         *
-         * @static
-         * @memberof NameUtils
-         */
-        static setLib: typeof setLib;
-        /**
-         * 加载名字库
-         * @param url
-         * @param callback
-         */
-        static loadNameLib(url: string, callback?: $CallbackInfo): any;
-        /**
-         * 设置随机算法
-         * @param randomFunc
-         *
-         */
-        setRandom(randomFunc: Function): void;
-        /**
-         * 获取名字
-         * @param sex 1 男  2 女
-         * @return
-         *
-         */
-        getName(sex?: Sex): string;
-        dispose(): void;
-    }
-}
-declare namespace jy {
-    interface RPCCallback {
-        /**
-         * 成功的回调函数
-         *
-         * @type {Recyclable<CallbackInfo<(data?: any, ...args)>>}
-         * @memberof RPCCallback
-         */
-        success: Recyclable<CallbackInfo<{
-            (data?: any, ...args: any[]): any;
-        }>>;
-        /**
-         * 失败的回调函数
-         *
-         * @type {Recyclable<CallbackInfo<{ (error?: Error, ...args) }>>}
-         * @memberof RPCCallback
-         */
-        error: Recyclable<CallbackInfo<{
-            (error?: Error, ...args: any[]): any;
-        }>>;
-        /**
-         * RPC的超时时间
-         *
-         * @type {number}
-         * @memberof RPCCallback
-         */
-        expired: number;
-        id: number;
-    }
-    const enum RPCConst {
-        /**
-         * 默认超时时间
-         */
-        DefaultTimeout = 2000
-    }
-    interface RPCInterface {
-        /**
-         * 超时的错误常量 `RPCTimeout`
-         *
-         * @type {string}
-         * @memberof RPCInterface
-         */
-        readonly Timeout: string;
-        /**
-         * 执行回调
-         *
-         * @param {number} id 执行回调的id
-         * @param {*} [data] 成功返回的数据
-         * @param {(Error | string)} [err] 错误
-         */
-        callback(id: number, data?: any, err?: Error | string): any;
-        /**
-         * 注册回调函数
-         *
-         * @param {Recyclable<CallbackInfo<{ (data?: any, ...args) }>>} success     成功的函数回调
-         * @param {Recyclable<CallbackInfo<{ (error?: Error, ...args) }>>} [error]    发生错误的函数回调
-         * @param {number} [timeout=2000] 超时时间，默认2000，实际超时时间会大于此时间，超时后，如果有错误回调，会执行错误回调，`Error(RPC.Timeout)`
-         * @returns 回调函数的id
-         */
-        registerCallback(success: Recyclable<CallbackInfo<{
-            (data?: any, ...args: any[]): any;
-        }>>, error?: Recyclable<CallbackInfo<{
-            (error?: Error, ...args: any[]): any;
-        }>>, timeout?: number): number;
-        /**
-         * 注册回调函数
-         * 成功则data为返回的数据
-         * 失败时
-         * `withError`为`true` data为Error
-         * `withError`不填或者`false` data为undefined
-         * @param {{ (data?: any, ...args) }} callback 回调函数，成功或者失败均会使用此回调
-         * @param {boolean} [withError] 返回回调失败时，是否使用Error，默认失败，data为`undefined`
-         * @param {number} [timeout=2000] 回调函数的超时时间，默认为2000
-         * @param {*} [thisObj]
-         * @param {any} any
-         * @returns {number}
-         * @memberof RPCInterface
-         */
-        registerCallbackFunc(callback: {
-            (data?: any, ...args: any[]): any;
-        }, withError?: boolean, timeout?: number, thisObj?: any, ...any: any[]): number;
-        /**
-         * 根据id移除回调函数
-         *
-         * @param {number} id
-         */
-        removeCallback(id: number): any;
-    }
-    const RPC: RPCInterface;
-}
-declare namespace jy {
-    interface RequestLimitType {
-        /**
-         *
-         *
-         * @param {(string | number)} o     锁定的对像(可以是任何类型,它会被当做一个key)
-         * @param {number} [time=500]       锁定对像 毫秒数，默认500毫秒
-         * @returns {boolean}   是否已解锁 true为没有被限制,false 被限制了
-         *
-         * @memberOf RequestLimit
-         */
-        check(o: string | number, time?: number): boolean;
-        /**
-         * 移除锁定
-         *
-         * @param {(string | number)} o
-         *
-         * @memberOf RequestLimit
-         */
-        remove(o: string | number): void;
-    }
-    /**
-     * 请求限制
-     * @author 3tion
-     *
-     */
-    const RequestLimit: RequestLimitType;
-}
-declare namespace jy {
-    /**
-     * 临时对象
-     * @author 3tion
-     *
-     */
-    const Temp: {
-        /**
-         * 共享数组1
-         */
-        SharedArray1: any[];
-        /**
-         * 共享数组2
-         */
-        SharedArray2: any[];
-        /**
-         * 共享数组3
-         */
-        SharedArray3: any[];
-        SharedRect1: {
-            x: number;
-            y: number;
-            width: number;
-            height: number;
-        };
-        SharedRect2: {
-            x: number;
-            y: number;
-            width: number;
-            height: number;
-        };
-        /**
-         * 白鹭的点
-         */
-        EgretPoint: egret.Point;
-        /**
-         * 白鹭的矩形
-         */
-        EgretRectangle: egret.Rectangle;
-        /**
-         * 共享点1
-         */
-        SharedPoint1: {
-            x: number;
-            y: number;
-            z: number;
-        };
-        /**
-         * 共享点2
-         */
-        SharedPoint2: {
-            x: number;
-            y: number;
-            z: number;
-        };
-        /**
-         * 不做任何事情的空方法，接收任意长度的数据，返回空
-         */
-        voidFunction: () => any;
-        /**
-         * 用于替换的方法,接收任意长度的数据，返回null
-         */
-        willReplacedFunction: () => any;
-        /**
-         * 返回 true 的函数
-         */
-        retTrueFunc: () => boolean;
-        /**
-         * 返回 false 的函数
-         */
-        retFalseFunc: () => boolean;
-        /**
-         * 空对象
-         */
-        EmptyObject: Readonly<{}>;
-        /**
-         * 空数组
-         */
-        EmptyArray: any[];
-        /**
-         * 管线方法，用于符合函数的结构，并将数值传递下去
-         */
-        pipeFunction: <T>(arg: T) => T;
-    };
-}
-declare namespace jy {
-    function tick(now: number): void;
-    /**
-     *
-     * 注册回调  会对在同一个时间区间的 `callback`和`thisObj`相同的回调函数进行去重
-     * @static
-     * @param {number} time 回调的间隔时间，间隔时间会处理成30的倍数，向上取整，如 设置1ms，实际间隔为30ms，32ms，实际间隔会使用60ms
-     * @param {Function} callback 回调函数，没有加this指针是因为做移除回调的操作会比较繁琐，如果函数中需要使用this，请通过箭头表达式()=>{}，或者将this放arg中传入
-     * @param {any} [thisObj] 回调函数的`this`对象，不传值则使用全局上下文即window
-     * @param {any} args 回调函数的参数
-     */
-    function addCallback(time: number, callback: Function, thisObj?: any, ...args: any[]): void;
-    /**
-     * 注册回调 会对在同一个时间区间的 `callback`相同的情况下，才会去重
-     * @param time
-     * @param callback
-     */
-    function add(time: number, callback: $CallbackInfo): void;
-    /**
-     * 移除回调
-     * 不回收`CallbackInfo`
-     * @param {number} time
-     * @param {$CallbackInfo} callback
-     */
-    function remove(time: number, callback: $CallbackInfo): void;
-    /**
-     * 移除回调
-     * @static
-     * @param {number} time         回调的间隔时间，间隔时间会处理成30的倍数，向上取整，如 设置1ms，实际间隔为30ms，32ms，实际间隔会使用60ms
-     * @param {Function} callback   回调函数，没有加this指针是因为做移除回调的操作会比较繁琐，如果函数中需要使用this，请通过箭头表达式()=>{}，或者将this放arg中传入
-     * @param {*} [thisObj]         回调函数的`this`对象
-     */
-    function removeCallback(time: number, callback: Function, thisObj?: any): void;
-    const TimerUtil: {
-        addCallback: typeof addCallback;
-        removeCallback: typeof removeCallback;
-        tick: typeof tick;
-        add: typeof add;
-        remove: typeof remove;
-    };
-}
-declare namespace jy {
-    /**
-     * 处理链接地址
-     * 如果是http:// 或者  https:// 获取//开头的地址，直接返回
-     * 否则拼接当前地址的 href
-     * @export
-     * @param {string} link
-     * @param {string} [origin]
-     * @returns
-     */
-    function solveLink(link: string, origin?: string): string;
-}
-declare namespace jy {
-    /**
-     * 初始化屏蔽字
-     * @param str   使用特定符号分隔的脏字列表
-     * @param split 分隔符
-     *
-     */
-    function initFilterstring(str: string, split: string): void;
-    function wordCensor1(msg: string): string;
-    function checkWord1(msg: string): boolean;
-    /**
-     * 文字过滤
-     * @author 3tion
-     */
-    const WordFilter: {
-        /**
-         * 由于脏字文件使用ajax读取，可能存在跨域问题，所以在H5中使用javascript方式加载
-         */
-        loadDirtyWord(url: string, split?: string): void;
-        /**
-         * 初始化屏蔽字
-         * @param str   使用特定符号分隔的脏字列表
-         * @param split 分隔符
-         *
-         */
-        initFilterstring: typeof initFilterstring;
-        /**
-         * 将敏感词替换为**
-         * @param msg	要检测的文字
-         * @return
-         *
-         */
-        wordCensor: typeof wordCensor1;
-        /**
-         * 设置 将字符替换成* 的函数
-         * @param substring 子字符串
-         * @return
-         *
-         */
-        setDirtyHandler(handler: (substring: string) => string): void;
-        /**
-         * 是否有敏感词
-         * @param msg	要检测的文字
-         * @return 		true为有敏感词，false为没有敏感词
-         *
-         */
-        checkWord: typeof checkWord1;
-    };
-}
-/**
- * 是否不做客户端检查
- * 客户端检查的部分，后续统一按下面例子处理
- * @example
- *  if (!noClientCheck) {
- *       if (!$hero.clan) {
- *          return CoreFunction.showClientTips(MsgCodeConst.Code_883);
- *      }
- *  }
- */
-declare var noClientCheck: boolean;
-interface $gmType {
-    /**
-     * 切换客户端检查的`开/关`状态
-     *
-     */
-    toggleClientCheck(): any;
-}
-declare namespace jy {
-    /**
-     * 错误前缀
-     */
-    var errorPrefix: string;
-    interface ThrowError {
-        (msg: string, err?: Error, alert?: boolean): void;
-        MaxCount?: number;
-        errorMsg?: string[];
-    }
-    var Log: {
-        (...msg: any[]): void;
-    };
-    /**
-     * 抛错
-     * @param {string | Error}  msg 描述
-     **/
-    const ThrowError: ThrowError;
-}
-declare namespace jy {
-    /**
-     * 游戏使用区段
-     * -1000~-1999
-     *
-     * @export
-     * @enum {number}
-     */
-    const enum EventConst {
-        /**
-         * Unit被回收时触发
-         */
-        UnitRecycle = -1999,
-        /**
-         * Unit被创建时触发
-         */
-        UnitCreate = -1998,
-        /**
-         * Unit添加到舞台时触发
-         */
-        UnitAddToStage = -1997,
-        /**
-         * 当render执行时间需要处理2秒+的数据派完
-         */
-        SlowRender = -1996,
-        /**
-         * 窗口激活
-         */
-        ACTIVATE = -1995,
-        /**
-         * 窗口失去激活
-         */
-        DEACTIVATE = -1994,
-        /**
-         * ani 一次播放完成
-         */
-        AniComplete = -1993,
-        /**
-         * ani 回收前触发
-         */
-        AniBeforeRecycle = -1992,
-        /**
-         * 检查下一个
-         */
-        MsgRenderCheckNext = -1991,
-        /**
-         * 检查最末尾
-         */
-        MsgRenderCheckEnd = -1990,
-        /**
-         * 震动结束
-         * data {Point} 开始震动时的原始坐标
-         */
-        ShakeEnd = -1989
-    }
-}
-declare namespace jy {
-    interface CfgData {
-        /**
-         * 特效数据
-         *
-         * @type {{ [index: string]: AniInfo }}
-         * @memberOf CfgData
-         */
-        ani: {
-            [index: string]: AniInfo;
-        };
-    }
-}
-/**
- * 游戏的常量的接口定义
- * 子项目自身实现接口
- * @author 3tion
- */
-declare namespace jy {
-    const enum ResPrefix {
-        /**
-         * 特效文件夹
-         */
-        Ani = "a/"
-    }
-}
-declare namespace jy {
-    /**
-     * 2d游戏的引擎管理游戏层级关系<br/>
-     * @author 3tion
-     *
-     */
-    class GameEngine extends egret.EventDispatcher {
-        protected static layerConfigs: {
-            [index: number]: LayerConfig;
-        };
-        static instance: GameEngine;
-        static init(stage: egret.Stage, ref?: {
-            new (stage: egret.Stage): GameEngine;
-        }): void;
-        static addLayerConfig(id: number, parentid?: number, ref?: new (id: number) => GameLayer): void;
-        /**
-          * 单位坐标发生变化时调用
-          */
-        static invalidateSort(): void;
-        /**
-         * 摄像机，用于处理镜头坐标相关
-         */
-        camera: Camera;
-        protected _viewRect: egret.Rectangle;
-        /**
-         * 单位的排序是否发生改变
-         */
-        protected _sortDirty: Boolean;
-        /**
-         * 单位坐标发生变化时调用
-         */
-        invalidateSort(): void;
-        readonly viewRect: egret.Rectangle;
-        protected _stage: egret.Stage;
-        protected _layers: GameLayer[];
-        /**
-         * 排序层
-         */
-        protected _sortedLayers: SortedLayer[];
-        /**
-         * 获取或创建容器
-         */
-        getLayer(id: GameLayerID): GameLayer;
-        /**
-         *
-         * @param {GameLayer} layer 要调整的层级
-         * @param {number} newid 新的层级id
-         * @param {boolean} [awake=true] 是否执行一次awake
-         */
-        changeId(layer: GameLayer, newid: number, awake?: boolean): void;
-        /**
-         * 将指定
-         *
-         * @param {GameLayerID} layerID
-         *
-         * @memberOf GameEngine
-         */
-        sleepLayer(layerID: GameLayerID): void;
-        awakeLayer(layerID: GameLayerID): void;
-        protected addLayer(layer: GameLayer, cfg?: LayerConfig): void;
-        protected addLayerToContainer(layer: GameLayer, container: egret.DisplayObjectContainer): void;
-        constructor(stage: egret.Stage);
-        protected init(): void;
-    }
-    /**
-     * 游戏中层级标识
-     */
-    const enum GameLayerID {
-        /**
-         * Tip层
-         * 用于放alert等最高层级
-         * 不进行滚轴
-         */
-        Tip = 9000,
-        /**
-         * UI层
-         * 用于放各种UI
-         * 不进行滚轴
-         * 在菜单和头像下面，属最底层
-         */
-        UI = 8000,
-        /**
-         * 游戏层
-         * 人物死亡如果进行颜色变灰，则基于此容器变灰
-         */
-        Game = 1000,
-        /**
-         * 游戏蒙版层
-         * 用于放流血效果，迷雾效果之类的容器
-         * 无鼠标事件
-         * 不进行滚轴
-         **/
-        Mask = 1900,
-        /**
-         * 相机特效层
-         * 用于处理飘雪，飘雨类似效果
-         * 无鼠标事件
-         * 不进行滚轴
-         **/
-        TopEffect = 1800,
-        /**
-         * 游戏滚轴层
-         * 下级容器参与滚轴
-         */
-        GameScene = 1700,
-        /**
-         * 顶部场景特效
-         * 用于放云朵等特效
-         * 无鼠标事件
-         * 不排序
-         */
-        CeilEffect = 1790,
-        /**
-         * 用于放置跟随单位一起的UI，角色血条，角色名字，头衔等
-         */
-        SortedUI = 1780,
-        /**
-         * 游戏特效层，
-         * 一般盖在人身上的特效放于此层
-         * 无鼠标事件
-         * 不排序
-         */
-        GameEffect = 1770,
-        /**
-         * 参与排序的单位的容器
-         * 放人，怪物，会进行排序
-         */
-        Sorted = 1760,
-        /**
-         * 底层
-         * 放置尸体，光环
-         * 会排序
-         */
-        Bottom = 1750,
-        /**
-         * 底部场景特效层
-         */
-        BottomEffect = 1740,
-        /**
-         * 地图渲染层
-         */
-        Background = 1730,
-        /**
-         * 地图预览图
-         */
-        Mini = 1710
-    }
-    /**
-     * 层级配置
-     */
-    interface LayerConfig {
-        id: number;
-        parentid: number;
-        ref: new (id: number) => GameLayer;
-    }
-}
-declare namespace jy {
-    /**
-     * 用于SortedLayer排序
-     */
-    interface IDepth {
-        depth: number;
-    }
-    class DSprite extends egret.Sprite implements IDepth {
-        depth: number;
-    }
-}
-declare namespace jy {
-    /**
-     * 用于处理无方向的动画信息
-     * @author 3tion
-     *
-     */
-    class AniInfo extends PstInfo {
-        /**
-         * 加载状态
-         */
-        state: RequestState;
-        protected _refList: AniRender[];
-        url: string;
-        uri: string;
-        /**
-         * 资源加载列队，用于控制加载优先级
-         */
-        qid?: Res.ResQueueID;
-        constructor();
-        /**
-         * 绑定渲染器
-         * @param render
-         */
-        bind(render: AniRender): void;
-        /**
-         * 资源加载完成
-         */
-        dataLoadComplete(item: Res.ResItem): void;
-        /**
-         * 和渲染器解除绑定
-         * @param render
-         */
-        loose(render: AniRender): void;
-        init(key: string, data: any[]): void;
-        getResource(uri?: string): UnitResource;
-        readonly actionInfo: ActionInfo;
-    }
-}
-interface $gmType {
-    /**
-     * 记录Ani数据
-     *
-     *
-     * @memberOf $gmType
-     */
-    recordAni(): void;
-    /**
-     * 是否记录Ani数据
-     *
-     * @type {boolean}
-     * @memberOf $gmType
-     */
-    _recordAni: boolean;
-    /**
-     * ani记录
-     *
-     * @type {{ [index: number]: $gmAniInfo }}
-     * @memberOf $gmType
-     */
-    _aniRecords: {
-        [index: number]: $gmAniInfo;
-    };
-    /**
-     * 显示aniRender的记录信息
-     *
-     * @param {number} time 超过多少时间的进行显示，默认值为0
-     *
-     * @memberOf $gmType
-     */
-    showAniRecords(time?: number): void;
-    /**
-     * 显示残留的aniRender的堆栈信息
-     *
-     * @param {number} [time]
-     *
-     * @memberOf $gmType
-     */
-    showAniStacks(time?: number): void;
-}
-interface $gmAniInfo {
-    /**
-     * ani标识
-     *
-     * @type {number}
-     * @memberOf $gmAniInfo
-     */
-    guid: number;
-    /**
-     * 堆栈信息
-     *
-     * @type {string}
-     * @memberOf $gmAniInfo
-     */
-    stack: string;
-    /**
-     * 启动时间
-     *
-     * @type {number}
-     * @memberOf $gmAniInfo
-     */
-    time: number;
-}
-declare namespace jy {
-    /**
-     * 由于目前特效和渲染器是完全一一对应关系，所以直接做成AniBitmap
-     * @author 3tion
-     *
-     */
-    class AniRender extends BaseRender implements IRecyclable {
-        /**
-         * 当前调用的render
-         */
-        protected _render: {
-            (): any;
-        };
-        /**
-         * 0 初始化，未运行
-         * 1 正在运行
-         * 2 已回收
-         */
-        state: AniPlayState;
-        /**
-         * 非循环动画，播放完毕后的回收策略
-         * 默认为全部回收
-         */
-        recyclePolicy: AniRecyclePolicy;
-        /**
-         * 循环播放次数
-         *
-         * @type {number}
-         */
-        loop?: number;
-        /**
-         * 事件处理的回调函数
-         *
-         * @type {{ (event: Key, render: AniRender, now?: number, ...args) }}
-         * @memberof AniOption
-         */
-        handler?: CallbackInfo<{
-            (event: Key, render: AniRender, now?: number, ...args: any[]): any;
-        }>;
-        /**
-         * 是否等待纹理数据加载完成，才播放
-         *
-         * @type {boolean}
-         * @memberof AniRender
-         */
-        waitTexture: boolean;
-        /**
-         * 资源是否加载完成
-         *
-         * @type {boolean}
-         */
-        resOK: boolean;
-        /**
-         * 播放起始时间
-         *
-         * @type {number}
-         */
-        plTime: number;
-        protected _guid: number;
-        /**
-         * 特效标识
-         */
-        readonly guid: number;
-        /**
-         * 显示对象
-         */
-        readonly display: Recyclable<ResourceBitmap>;
-        protected _aniInfo: AniInfo;
-        constructor();
-        /**
-         * render方法基于
-         */
-        protected render(): void;
-        /**
-         * 处理数据
-         *
-         * @param {number} now 时间戳
-         */
-        doData(now: number): void;
-        renderFrame(frame: FrameInfo, now: number): void;
-        /**
-         * 派发事件
-         * @param event     事件名
-         * @param now       当前时间
-         */
-        protected dispatchEvent(event: string, now: number): void;
-        doComplete(now: number): void;
-        isComplete(info: ActionInfo): boolean;
-        callback(): void;
-        /**
-         * 播放
-         */
-        play(now?: number): void;
-        private checkPlay;
-        onRecycle(): void;
-        onSpawn(): void;
-        protected onStage(e: egret.Event): void;
-        init(aniInfo: AniInfo, display: Recyclable<ResourceBitmap>, guid: number): void;
-        /***********************************静态方法****************************************/
-        private static _renderByGuid;
-        private static guid;
-        /**
-         * 获取ANI动画
-         *
-         * @static
-         * @param {string} uri    动画地址
-         * @param {AniOption} [option] 动画的参数
-         * @returns (description)
-         */
-        static getAni(uri: string, option?: AniOption, qid?: Res.ResQueueID): Recyclable<AniRender>;
-        /**
-         * 获取正在运行的AniRender
-         * @param guid  唯一标识
-         */
-        static getRunningAni(guid: number): Recyclable<AniRender>;
-        /**
-         * 回收某个特效
-         * @param {number} guid AniRender的唯一标识
-         */
-        static recycle(guid: number): void;
-    }
-    interface AniOption {
-        guid?: number;
-        /**
-         * 坐标集合
-         * 如果同时配置此值和x，优先取此值作为坐标X
-         * 如果同时配置此值和y，优先取此值作为坐标Y
-         * @type {Point}
-         * @memberof AniOption
-         */
-        pos?: Point;
-        /**
-         * 坐标X
-         *
-         * @type {number}
-         * @memberof AniOption
-         */
-        x?: number;
-        /**
-         * 坐标Y
-         *
-         * @type {number}
-         * @memberof AniOption
-         */
-        y?: number;
-        /**
-         * 容器，如果配置此值，则自动将视图加入到容器中
-         *
-         * @type {egret.DisplayObjectContainer}
-         * @memberof AniOption
-         */
-        parent?: egret.DisplayObjectContainer;
-        /**
-         * 有parent此值才有意义
-         * 当有此值时，使用 addChildAt添加
-         * @type {number}
-         * @memberof AniOption
-         */
-        childIdx?: number;
-        /**
-         * 是否初始停止播放
-         *
-         * @type {boolean}
-         * @memberof AniOption
-         */
-        stop?: boolean;
-        /**
-         * 循环播放次数
-         * 如果设置此值，不按原始数据的 isCircle进行播放
-         *
-         * @type {number}
-         * @memberof AniOption
-         */
-        loop?: number;
-        /**
-         *  事件处理的回调函数
-         *
-         * @type {CallbackInfo<{ (event: Key, render: AniRender, now?: number, ...args) }>}
-         * @memberof AniOption
-         */
-        handler?: CallbackInfo<{
-            (event: Key, render: AniRender, now?: number, ...args: any[]): any;
-        }>;
-        /**
-         * ani回收策略
-         *
-         * @type {AniRecyclePolicy}
-         * @memberof AniOption
-         */
-        recyclePolicy?: AniRecyclePolicy;
-        /**
-         *
-         * 是否等待纹理加载完，才播放
-         * @type {boolean}
-         * @memberof AniOption
-         */
-        waitTexture?: boolean;
-        /**
-         * 起始帧
-         * 如果是`循环` loop为true，如果起始帧大于总帧数，则对总帧数取模
-         * 否则不播放
-         *
-         * @type {number}
-         * @memberof AniOption
-         */
-        start?: number;
-        /**
-         * 缩放，默认为 1
-         */
-        scale?: number;
-    }
-}
-declare namespace jy {
-    /**
-     * 绘图数据
-     *
-     * @interface IDrawInfo
-     */
-    interface IDrawInfo {
-        /**原始动作索引 */
-        a: number;
-        /**原始方向索引 */
-        d: number;
-        /**原始帧数索引 */
-        f: number;
-    }
-    /**
-     * 帧数据
-     *
-     * @interface FrameInfo
-     * @extends {IDrawInfo}
-     */
-    interface FrameInfo extends IDrawInfo {
-        /**和下一帧间隔索引 */
-        t: number;
-        /**事件 */
-        e?: string;
-    }
-    /**
-     * 动作数据
-     *
-     * @interface ActionInfo
-     */
-    interface ActionInfo {
-        /**
-         * 动作标识
-         */
-        key: number;
-        /**
-         * 帧列表信息
-         *
-         * @type {FrameInfo[]}
-         */
-        frames: FrameInfo[];
-        /**
-         * 是否为循环动作
-         */
-        isCircle?: boolean;
-        /**
-         * 动画默认的总时间
-         */
-        totalTime: number;
-    }
-    /**
-     * Ani播放状态
-     *
-     * @enum {number}
-     * @author 3tion
-     */
-    const enum AniPlayState {
-        /**
-         * 待机
-         */
-        Standby = 0,
-        /**
-         * 播放中
-         */
-        Playing = 1,
-        /**
-         * 播放完毕
-         */
-        Completed = 2,
-        /**
-         * 已回收
-         */
-        Recycled = 3
-    }
-    /**
-     * AniRender的回收策略
-     *
-     * @export
-     * @enum {number}
-     */
-    const enum AniRecyclePolicy {
-        /**
-         * 都不回收
-         */
-        None = 0,
-        /**
-         * 回收显示对象
-         */
-        RecycleDisplay = 1,
-        /**
-         * 回收Render
-         */
-        RecycleRender = 2,
-        /**
-         * 全部回收
-         */
-        RecycleAll = 3
-    }
-    /**
-     * 获取帧数据
-     * 为数组的顺序："a", "f", "t", "e", "d"
-     * @param {*} data 如果无法获取对应属性的数据，会使用默认值代替  a: 0, d: -1, f: 0, t: 100
-     * @returns
-     */
-    function getFrameInfo(data: any): FrameInfo;
-    /**
-     * 获取动作数据
-     *
-     * @param {any} data
-     * @param {number} key
-     * @returns
-     */
-    function getActionInfo(data: any, key: number): ActionInfo;
-    /**
-     * 获取自定义动作
-     * 如果无法获取对应属性的数据，会使用默认值代替
-     * a: 0, d: -1, f: 0, t: 100
-     * @static
-     * @param {any[]} actions 动作序列  如果无法获取对应属性的数据，会使用默认值代替  a: 0, d: -1, f: 0, t: 100
-     * @param {number} [key] 动作标识，需要使用整数
-     * @return {CustomAction}   自定义动作
-     */
-    function getCustomAction(actions: any[], key?: number): ActionInfo;
-}
 declare namespace jy {
     /**
      * 资源显示用位图
@@ -10375,6 +9044,278 @@ declare namespace jy {
         dispose(): void;
     }
 }
+/**
+ * DataLocator的主数据
+ * 原 junyou.DataLocator.data  的全局别名简写
+ */
+declare const $DD: jy.CfgData;
+/**
+ * DataLocator的附加数据
+ * 原 junyou.DataLocator.extra 的全局别名简写
+ */
+declare const $DE: jy.ExtraData;
+declare namespace jy {
+    /**
+     * 表单最终被解析成的类型
+     *
+     * @export
+     * @enum {number}
+     */
+    const enum CfgDataType {
+        /**
+         * 自动解析
+         */
+        Auto = 0,
+        /**
+         * 按ArraySet解析
+         */
+        ArraySet = 1,
+        /**
+         * 按数组解析
+         */
+        Array = 2,
+        /**
+         * 按字典解析
+         */
+        Dictionary = 3
+    }
+    /**
+     * 配置加载器<br/>
+     * 用于预加载数据的解析
+     * @author 3tion
+     *
+     */
+    let DataLocator: {
+        regParser: typeof regParser;
+        /**
+         * 解析打包的配置
+         */
+        parsePakedDatas(type?: number): void;
+        /**
+         *
+         * 注册通过H5ExcelTool导出的数据并且有唯一标识的使用此方法注册
+         * @param {keyof CfgData} key 数据的标识
+         * @param {(Creator<any> | 0)} CfgCreator 配置的类名
+         * @param {(string | 0)} [idkey="id"] 唯一标识 0用于标识数组
+         * @param {CfgDataType} [type]
+         */
+        regCommonParser: typeof regCommonParser;
+        regBytesParser: typeof regBytesParser;
+    };
+    /**
+     *
+     * 注册通过H5ExcelTool导出的数据并且有唯一标识的使用此方法注册
+     * @param {keyof CfgData} key 数据的标识
+     * @param {(Creator<any> | 0)} CfgCreator 配置的类名
+     * @param {(string | 0)} [idkey="id"] 唯一标识 0用于标识数组
+     * @param {CfgDataType} [type]
+     */
+    function regCommonParser(key: keyof CfgData, CfgCreator: Creator<any> | 0, idkey?: string | 0, type?: CfgDataType): void;
+    /**
+     * 注册配置解析
+     * @param key       配置的标识
+     * @param parser    解析器
+     */
+    function regParser(key: keyof CfgData, parser: ConfigDataParser): void;
+    /**
+     * 配置数据解析函数
+     */
+    interface ConfigDataParser {
+        (data: any): any;
+    }
+    /**
+     * 附加数据
+     *
+     * @interface ExtraData
+     */
+    interface ExtraData {
+    }
+    /**
+     * 配置数据
+     *
+     * @export
+     * @interface CfgData
+     */
+    interface CfgData {
+    }
+    /**
+     * 通用的Bytes版本的配置解析器
+     * @param buffer
+     */
+    function regBytesParser(key: keyof CfgData, CfgCreator: Creator<any> | 0, idkey?: string | 0, type?: CfgDataType): void;
+}
+declare namespace jy {
+    interface DataUtilsType {
+        /**
+         * 将配置from中 type		data1	data2	data3	data4...这些配置，解析存储到
+         * 配置VO为：
+         * ```typescript
+         * class Cfg {
+         * 		type:int;
+         * 		datas:any[];
+         * }
+         * ```
+         * 上面示例中
+         * typeKey 为 `type`
+         * dataKey 为 `data`
+         * checkStart 为 `1`
+         * checkEnd 为 `4`
+         * toDatasKey 为 `data`
+         * to的type  `datas数组中`
+         * @param {object} to 要写入的配置
+         * @param {object} from 配置的数据源
+         * @param {number} checkStart 数据源起始值	data **`1`**
+         * @param {number} checkEnd 数据源结束值	data **`4`**
+         * @param {string} dataKey 数据源数值的前缀	**`data`**
+          * @param {string} toDatasKey  配置的数值存储的数据的数组属性名，上例为 **`datas`**
+         * @memberof DataUtilsType
+         */
+        parseDatas(to: object, from: object, checkStart: number, checkEnd: number, dataKey: string, toDatasKey: string): void;
+        /**
+         * 将配置from中 type		data1	data2	data3	data4...这些配置，解析存储到
+         * 配置VO为：
+         * ```typescript
+         * class Cfg {
+         * 		type:int;
+         * 		datas:any[];
+         * }
+         * ```
+         * 上面示例中
+         * typeKey 为 `type`
+         * dataKey 为 `data`
+         * checkStart 为 `1`
+         * checkEnd 为 `4`
+         * toDatasKey 为 `data`
+         * to的type  `datas数组中`
+         * @param {*} to                要写入的配置
+         * @param {any[]} valueList     配置的数据源的值列表
+         * @param {string[]} keyList    配置数据的属性key列表
+         * @param {number} checkStart 数据源起始值	data **`1`**
+         * @param {number} checkEnd 数据源结束值	data **`4`**
+         * @param {string} dataKey 数据源数值的前缀	**`data`**
+         * @param {string} toDatasKey  配置的数值存储的数据的数组属性名，上例为 **`datas`**
+         * @memberof DataUtilsType
+         */
+        parseDatas2(to: any, valueList: any[], keyList: string[], checkStart: number, checkEnd: number, dataKey: string, toDatasKey: string): any;
+        /**
+         * 从数据集中获取key-value的数据
+         *
+         * @param {any[]} valueList 数据集合
+         * @param {string[]} keyList 属性列表
+         * @param {Object} [o]
+         * @returns {*}
+         * @memberof DataUtilsType
+         */
+        getData(valueList: any[], keyList: string[], o?: Object): any;
+        /**
+         * 从数据集中获取key-value的数据 的数组
+         *
+         * @param {any[][]} dataList 数据集合
+         * @param {string[]} keyList 属性列表
+         * @returns {any[]}
+         * @memberof DataUtilsType
+         */
+        getDataList(dataList: any[][], keyList: string[]): any[];
+        /**
+         * 处理数据
+         *
+         * @param {any[][]} dataList 数据集合
+         * @param {string[]} keyList 属性列表
+         * @param {(t: Object, args: any[], idx?: number) => any} forEach 处理器
+         * @param {*} thisObj
+         * @param {...any[]} args 附加参数
+         * @memberof DataUtilsType
+         */
+        parseDataList(dataList: any[][], keyList: string[], forEach: (t: Object, args: any[], idx?: number) => any, thisObj: any, ...args: any[]): any;
+        /**
+         * 将`valueList` 按 `keyList`向 `to` 拷贝数据
+         *
+         * @template T
+         * @param {T} to 目标对象
+         * @param {any[]} valueList 数据集
+         * @param {(keyof T)[]} keyList 属性列表
+         * @memberof DataUtilsType
+         */
+        copyData<T>(to: T, valueList: any[], keyList: (keyof T)[]): any;
+        /**
+         * 拷贝一组数据
+         *
+         * @template T
+         * @param {Creator<T>} creator
+         * @param {any[][]} dataList
+         * @param {(keyof T)[]} keyList
+         * @param {(t: T, args: any[], idx?: number) => any} forEach
+         * @param {*} thisObj
+         * @param {...any[]} args
+         * @memberof DataUtilsType
+         */
+        copyDataList<T>(creator: Creator<T>, dataList: any[][], keyList: (keyof T)[], forEach: (t: T, args: any[], idx?: number) => any, thisObj: any, ...args: any[]): any;
+        /**
+         * 获取一组坐标
+         *
+         * @param {any[][]} data
+         * @param {Point[]} out
+         * @memberof DataUtilsType
+         */
+        getZuobiaos(data: any[][], out: Point[]): any;
+        /**
+         * 根据 [x,y] 这样的数组，获取点Point
+         *
+         * @param {number[]} data
+         * @memberof DataUtilsType
+         */
+        getZuobiao(data: number[]): Point;
+        /**
+         *
+         * 解析配置为"x1""x2"....."x100"这样的属性  横向配置
+         * @static
+         * @param {object} from 被解析的配置数据
+         * @param {object} xattr 最终会变成  xattr.x1=100  xattr.x2=123这样的数据
+         * @param {boolean} [delOriginKey=true]  是否删除原始数据中的key
+         * @param {RegExp} [xReg=/^x\d+$/] 测试用字段，必须经过 test成功，才会进行处理
+         * @returns {number} 成功解析到的key的数量
+         */
+        parseXAttr(from: object, xattr: object, delOriginKey?: boolean, xReg?: RegExp): number;
+        /**
+         *
+         * 解析配置为 pro1  provalue1   pro2  provalue2 ..... pro100 provalue100  这样的纵向配置属性的配置
+         * @static
+         * @param {Object} from 被解析的配置数据
+         * @param {Object} xattr 最终会变成  xattr.x1=100  xattr.x2=123这样的数据
+         * @param {string} errPrefix
+         * @param {string} [keyPrefix="pro"]
+         * @param {string} [valuePrefix="provalue"]
+         * @param {boolean} [delOriginKey=true] 是否删除原始数据中的key
+         * @returns {number} 成功解析到的key的数量
+         */
+        parseXAttr2(from: object, xattr: object, keyPrefix?: string, valuePrefix?: string, delOriginKey?: boolean): number;
+        /**
+         * 按君游的数据格式，处理用`|`,`:`分隔的字符串
+         * `|`为`1级`分隔符
+         * `:`为`2级`分隔符
+         * @param value
+         */
+        getArray2D(value: any): any[][];
+        /**
+         * 按君游的数据格式，处理用`|`,`:`分隔的字符串
+         * @param value
+         */
+        getArray(value: any): any[];
+        /**
+         * 尝试将数据转成number类型，如果无法转换，用原始类型
+         *
+         * @param {*} value 数据
+         * @returns
+         */
+        tryParseNumber(value: any): any;
+    }
+    /**
+     *
+     * @author 君游项目解析工具
+     *
+     */
+    const DataUtils: DataUtilsType;
+}
 declare namespace jy {
     interface PathFinderCallback {
         /**
@@ -10594,13 +9535,19 @@ declare namespace jy {
         /**
          * 每边的中点
          */
-        m_WallMidpoint: {
+        wallMidPt: {
             0: Point;
             1: Point;
             2: Point;
         };
-        m_WallDistance: number[];
-        m_ArrivalWall: number;
+        /**
+         * 没边中点距离
+         */
+        wallDist: number[];
+        /**
+         * 通过墙的索引
+         */
+        wall: number;
         init(): void;
         /**
          * 检查并设置当前三角型与`cellB`的连接关系（方法会同时设置`cellB`与该三角型的连接）
@@ -10665,31 +9612,71 @@ declare namespace jy {
     }
 }
 declare namespace jy {
-    import Point = egret.Point;
-    class Line {
-        pA: Readonly<Point>;
-        pB: Readonly<Point>;
+    /**
+     * 网络事件的常量集
+     * @author
+     * -100~ -199
+     */
+    const enum EventConst {
         /**
-         * 是否计算过法线
+         * 登录成功
          */
-        private calcedNormal;
+        LOGIN_COMPLETE = -199,
         /**
-         * 法线
+         * 登录失败
          */
-        m_Normal: Point;
-        setPA(pt: Point): this;
-        setPB(pt: Point): this;
-        setPoints(pA: Point, pB: Point): this;
-        computeNormal(): void;
-        signedDistance(point: Point): number;
+        LOGIN_FAILED = -198,
         /**
-         * 检查点的位置
-         * @param point 要检查的点
-         * @param epsilon 精度
+         * 连接服务器成功
          */
-        classifyPoint(point: Point, epsilon?: NavMeshConst): PointClassification;
-        intersection(other: Line, intersectPoint?: Point): LineClassification;
-        equals(line: Line): boolean;
+        Connected = -197,
+        /**
+         * 连接服务器失败
+         */
+        ConnectFailed = -196,
+        /**
+         * 服务器断开连接
+         */
+        Disconnect = -195,
+        ShowReconnect = -194,
+        /**
+         * 纹理加载完成
+         */
+        Texture_Complete = -193,
+        /**
+         * 网络上线
+         */
+        Online = -192,
+        /**
+         * 网络断线
+         */
+        Offline = -191,
+        /**
+         * 手机从休眠状态中被唤醒
+         */
+        Awake = -190,
+        /**
+         * 频繁发送协议提示
+         */
+        NetServiceSendLimit = -189,
+        /**
+         * 解析资源版本hash的时候派发
+         */
+        ParseResHash = -188,
+        /**
+         * 资源加载失败
+         * data {ResItem}
+         */
+        ResLoadFailed = -187,
+        /**
+         * 资源加载完成
+         */
+        ResLoadSuccess = -186,
+        /**
+         * 单个配置加载成功
+         * data {string} 配置的Key
+         */
+        OneCfgComplete = -185
     }
 }
 declare namespace jy {
@@ -10707,6 +9694,31 @@ declare namespace jy {
          */
         linked: boolean;
         cells: Cell[];
+    }
+}
+declare namespace jy {
+    /**
+     *
+     * @author 3tion
+     *
+     */
+    const enum RequestState {
+        /**
+         * 未请求/未加载 0
+         */
+        UNREQUEST = 0,
+        /**
+         * 请求中/加载中，未获得值 1
+         */
+        REQUESTING = 1,
+        /**
+         * 已加载/已获取到值 2
+         */
+        COMPLETE = 2,
+        /**
+         * 加载失败 -1
+         */
+        FAILED = -1
     }
 }
 declare namespace jy {
@@ -11066,285 +10078,104 @@ declare namespace jy {
 }
 declare namespace jy {
     /**
-     * 基本单位<br/>
-     * 是一个状态机<br/>
+     * 使用http进行通信的网络服务
      * @author 3tion
      *
      */
-    abstract class Unit extends egret.EventDispatcher {
+    class HttpNetService extends NetService {
+        protected _loader: XMLHttpRequest;
+        protected _state: RequestState;
         /**
-         * 单位状态
-         *
-         * @type {UnitState}
+         * 未发送的请求
          */
-        state: UnitState;
+        protected _unsendRequest: Recyclable<NetSendData>[];
         /**
-         * 单位标识
+         * 正在发送的数据
          */
-        guid: Key;
+        protected _sendingList: Recyclable<NetSendData>[];
         /**
-         * 播放速度，默认为1倍速度<br/>
-         * 值越高，速度越快
+         * 请求发送成功的次数
          */
+        protected _success: number;
         /**
-        * 设置播放速度
+         * 请求连续发送失败的次数
+         */
+        protected _cerror: number;
+        /**
+         * 请求失败次数
+         */
+        protected _error: number;
+        constructor();
+        /**
+         * 重置
+         * @param actionUrl             请求地址
+         * @param autoTimeDelay         自动发送的最短延迟时间
+         */
+        setUrl(actionUrl: string, autoTimeDelay?: number): void;
+        /**
+        * @protected
         */
-        playSpeed: number;
+        protected onReadyStateChange(): void;
         /**
-         * 用于放纸娃娃贴图的容器
-         * 只允许放ResourceBitmap
+         * 发生错误
          */
-        protected _model: UModel;
+        protected errorHandler(): void;
+        protected complete(): void;
         /**
-         * 用于放纸娃娃贴图的容器
-         * 只允许放ResourceBitmap
+         * 检查在发送过程中的请求
          */
-        readonly model: Readonly<UModel>;
+        protected checkUnsend(): void;
+        protected _send(cmd: number, data: any, msgType: Key): void;
         /**
-         * 人物身体
-         */
-        protected body: DSprite;
-        /**
-         * 人物底图资源的字典
-         */
-        protected _resDict: {
-            [index: string]: UnitResource;
-        };
-        /**
-         * 人物底图资源的字典
-         * key      {string}            部位
-         * value    {UnitResource}      资源
-         * @readonly
-         * @type {{}
-         */
-        readonly resDict: {
-            readonly [index: string]: UnitResource;
-        };
-        /**
-         * 当前骑乘标识
-         */
-        protected _mountType: MountType;
-        /**
-         * 资源列表改变
-         */
-        protected _resListChange: Boolean;
-        /**
-         * 打包信息
-         */
-        protected _pstInfo: PstInfo;
-        /**
-         * 渲染器
-         */
-        protected _render: UnitRender;
-        /**
-         * 角色的动作序列
-         *
-         * @protected
-         * @type {number}
-         */
-        protected _action: number;
-        /**
-         * 纸娃娃排序列表
-         * 从下层到上层排序
-         * @protected
-         * @type {Key[]}
-         */
-        protected _partList: Key[];
-        /**
-         * 上一次渲染的信息
-         *
-         * @protected
-         * @type {FrameInfo}
-         */
-        lastFrame: Readonly<FrameInfo>;
-        /**
-         * 设置单位pst
-         */
-        pst: string;
-        protected abstract pstInfoChange(): any;
-        protected abstract getPstInfo(pst: string): PstInfo;
-        init(pst: string, setting: UnitSetting): this;
-        onSpawn(): void;
-        /**
-         * 重置渲染器时间
-         *
-         * @param {number} now (description)
-         */
-        resetRenderTime(now: number): void;
-        /**
-         * 初始化显示列表
-         * @param setting
-         */
-        protected initDisplayList(setting: UnitSetting): void;
-        /**
-         * 设置朝向
-         */
-        /**
-        * 获取朝向
-        */
-        faceTo: number;
-        $setFaceTo(value: number): void;
-        /**
-         * 播放自定义动作
-         *
-         * @param {ActionInfo} customAction 自定义动作
-         * @param {number} [startFrame=-1]  起始帧
-         */
-        doCustomAction(customAction: ActionInfo, startFrame?: number): void;
-        /**
-         * 执行动作序列
-         * @private 只允许UnitAction调用
-         */
-        doAction(now: number, action: number, startFrame?: number): Readonly<ActionInfo>;
-        /**
-         * 获取当前动作序列
-         */
-        getCurAction(): Readonly<ActionInfo>;
-        /**
-         * 对指定部位设置资源
-         *
-         * @protected
-         * @param {Key} part 部位
-         * @param {string} [uri] 资源路径，不传则清空部位
-         * @param {string} [pst] 通过其他pst配置进行加载
-         */
-        protected setRes(part: Key, uri?: string, pst?: string): UnitResource;
-        /**
-         * 资源列表发生改变
-         */
-        protected invalidateResList(): void;
-        /**
-         * 刷新资源列表
-         */
-        protected refreshResList(): void;
-        /**
-         * 检查/重置资源列表
-         *
-         * @param {string[]} [resOrder] 部位的排列顺序
-         * @param {{ [index: string]: UnitResource }} [resDict] 部位和资源的字典
-         */
-        checkResList(resOrder?: Key[], resDict?: {
-            [index: string]: UnitResource;
-        }): void;
-        /**
-         * 执行默认的，基于enterframe的渲染
+         * 发送消息之前，用于预处理一些http头信息等
          *
          * @protected
          */
-        protected $render(): void;
+        protected onBeforeSend(): void;
         /**
-         * 通过其他方式驱动数据
+         * 接收到服务端Response，用于预处理一些信息
          *
-         * @param {number} now 时间戳
+         * @protected
          */
-        doData(now: number): void;
+        protected onBeforeSolveData(): void;
         /**
-         * 通过其他方式驱动渲染
+         * 尝试发送
+         */
+        protected trySend(): void;
+    }
+}
+declare namespace jy {
+    /**
+     * 用于发送的网络数据<br/>
+     * @author 3tion
+     */
+    class NetSendData implements IRecyclable {
+        /**
+         * 协议号
+         */
+        cmd: number;
+        /**
+         * 数据
+         */
+        data: any;
+        /**
          *
-         * @param {number} now 时间戳
+         * protobuf message的类型
+         * @type {string | number}
          */
-        doRender(now: number): void;
-        /**
-         * 回收
-         */
+        msgType: string | number;
         onRecycle(): void;
+    }
+    /**
+     * 网络数据，类似AS3项目中Stream<br/>
+     * @author 3tion
+     *
+     */
+    class NetData extends NetSendData {
         /**
-         * 当前正在执行的动作
+         *  是否停止传播
          */
-        protected _currentAction: UnitAction;
-        /**
-         * 下一个动作
-         */
-        protected _nextAction: UnitAction;
-        protected aStandBy: UnitAction;
-        protected initDefaultAction(): void;
-        /**
-         * 开始执行单位动作
-         * @param {UnitAction} [action]     准备执行的动作，默认为待机动作
-         * @param {number}     [now]        执行时间，默认取全局时间
-         * @param {boolean}    [override]   是否强制覆盖当前动作，默认为否
-         * @return true     成功执行动作
-         *         false    未成功执行动作，将动作覆盖到下一个动作
-         */
-        startUnitAction(action?: UnitAction, now?: number, override?: boolean): boolean;
-        protected _startUA(action?: UnitAction, now?: number, override?: boolean): boolean;
-        /**
-         * 停止单位当前动作，做待机动作
-         *
-         * @param {number} [now]
-         */
-        stopUnitAction(now?: number): void;
-        setMountType(value: MountType): void;
-        /**
-         * 动作的动画播放完毕
-         */
-        playComplete(now: number): void;
-        /**
-         * 动作进行渲染的时候
-         */
-        onRenderFrame(now: number): void;
-        protected onActionEnd(): void;
-        /**
-         * 执行动作中的回调事件
-         */
-        fire(eventType: string, now: number): void;
-        /**
-         * 加到游戏引擎中
-         *
-         * @param {boolean} [doRender=true] 是否添加Event.ENTER_FRAME事件
-         */
-        addedToEngine(doRender?: boolean): void;
-        /**
-         * 添加到容器中
-         *
-         * @param {Container} container
-         * @param {boolean} [doRender=true]
-         *
-         * @memberOf Unit
-         */
-        addToContainer(container: egret.DisplayObjectContainer, doRender?: boolean): void;
-        protected play(): void;
-        protected onStage(e: egret.Event): void;
-        protected _depth: number;
-        protected _x: number;
-        protected _y: number;
-        protected _z: number;
-        /**
-        * 此方法只允许 UnitAction调用
-        */
-        x: number;
-        $setX(value: number): void;
-        /**
-        * 此方法只允许 UnitAction调用
-        */
-        y: number;
-        $setY(value: number): void;
-        /**
-        * 此方法只允许 UnitAction调用
-        */
-        z: number;
-        $setZ(value: number): void;
-        /**
-         * 检查模型和其他的y轴
-         */
-        protected checkPosition(): void;
-        protected _rotation: number;
-        /**
-         * 设置旋转角度
-         * 表示 DisplayObject 实例距其原始方向的旋转程度，以度为单位。
-         * 从 0 到 180 的值表示顺时针方向旋转；从 0 到 -180 的值表示逆时针方向旋转。对于此范围之外的值，可以通过加上或减去 360 获得该范围内的值。
-         * 例如，myDisplayObject.rotation = 450语句与 myDisplayObject.rotation = 90 是相同的
-         */
-        /**
-        * 获得模型的旋转角度
-        */
-        rotation: number;
-        /**
-         * 根据 resKey 获取纹理
-         * @param {Key} resKey resDict的key
-         * @param {IDrawInfo} [drawInfo] 动作，方向，帧数信息
-         */
-        getTexture(resKey: Key, drawInfo?: IDrawInfo): egret.Texture;
+        stopPropagation: Boolean;
     }
 }
 declare namespace jy {
@@ -11936,6 +10767,51 @@ declare namespace jy {
 }
 declare namespace jy {
     /**
+     *
+     * @author 3tion
+     *
+     */
+    class NetRouter {
+        /**
+         * key      协议号<br/>
+         * value    NetBin的数组
+         */
+        private _listenerMaps;
+        constructor();
+        /**
+         * 注册一cmd侦听;
+         * @param cmd      协议号
+         * @param handler   处理器
+         * @param priority  越大越优先
+         * @param once      是否只执行一次
+         * @return boolean true 做为新的兼听添加进去，false 原来就有处理器
+         *
+         */
+        register(cmd: number, handler: INetHandler, priority?: number, once?: boolean): boolean;
+        /**
+         * 删除兼听处理器
+         * @param cmd      协议号
+         * @param handler   处理器
+         * @return boolean true 删除成功  <br/>
+         *                 false 没有这个兼听
+         */
+        remove(cmd: number, handler: INetHandler): boolean;
+        private dispatchList;
+        /**
+        * 调用列表
+        */
+        dispatch(data: Recyclable<NetData>): void;
+        private _dispatch;
+    }
+    /**
+     * 协议处理函数
+     */
+    interface INetHandler {
+        (data: NetData): void;
+    }
+}
+declare namespace jy {
+    /**
      * 代码构建类，用于注册代码
      * @author 3tion
      */
@@ -12372,6 +11248,110 @@ declare namespace jy {
     }
 }
 declare namespace jy {
+    const enum ClassConst {
+        DebugIDPropertyKey = "_insid"
+    }
+    /**
+     * 创建器
+     */
+    type Creator<T> = {
+        new (): T;
+    } | {
+        (): T;
+    };
+    /**
+     *
+     * 调整ClassFactory
+     * @export
+     * @class ClassFactory
+     * @template T
+     */
+    class ClassFactory<T> {
+        private _creator;
+        private _props;
+        /**
+         * @param {Creator<T>} creator
+         * @param {Partial<T>} [props] 属性模板
+         * @memberof ClassFactory
+         */
+        constructor(creator: Creator<T>, props?: Partial<T>);
+        /**
+         * 获取实例
+         *
+         * @returns
+         */
+        get(): any;
+    }
+    /**
+     * 可回收的对象
+     *
+     * @export
+     * @interface IRecyclable
+     */
+    interface IRecyclable {
+        /**
+         * 回收时触发
+         */
+        onRecycle?: {
+            (): any;
+        };
+        /**
+         * 启用时触发
+         */
+        onSpawn?: {
+            (): any;
+        };
+        /**
+         * 回收对象的唯一自增标识
+         * 从回收池取出后，会变化
+         * 此属性只有在`DEBUG`时有效
+         */
+        _insid?: number;
+    }
+    /**
+     * 回收池
+     * @author 3tion
+     *
+     */
+    class RecyclablePool<T> {
+        private _pool;
+        private _max;
+        private _creator;
+        get(): T;
+        /**
+         * 回收
+         */
+        recycle(t: T): void;
+        constructor(TCreator: Creator<T>, max?: number);
+    }
+    type Recyclable<T> = T & {
+        recycle(): void;
+    };
+    /**
+     * 获取一个recyclable的对象
+     *
+     * @export
+     * @template T
+     * @param {(Creator<T> & { _pool?: RecyclablePool<T> })} clazz 对象定义
+     * @param {boolean} [addInstanceRecycle] 是否将回收方法附加在实例上，默认将回收方法放在实例
+     * @returns {Recyclable<T>}
+     */
+    function recyclable<T>(clazz: Creator<T> & {
+        _pool?: RecyclablePool<T>;
+    }, addInstanceRecycle?: boolean): Recyclable<T>;
+    namespace recyclable {
+        var recycleList: <T>(list: Recyclable<T>[], len: number) => void;
+    }
+    /**
+     * 单例工具
+     * @param clazz 要做单例的类型
+     */
+    function singleton<T>(clazz: {
+        new (): T;
+        _instance?: T;
+    }): T;
+}
+declare namespace jy {
     /**
      * 用于和服务端通信的数据
      * @author 3tion
@@ -12435,6 +11415,92 @@ declare namespace jy {
     }, sleepBy?: {
         (id: number): void;
     }): Mediator & IStateSwitcher & AwakeCheck;
+}
+declare namespace jy {
+    /**
+     * WSNetService的数据模式
+     */
+    const enum WSNetServiceDataMode {
+        /**
+         * 接收单数据帧单消息
+         */
+        ReceiveOneDataPerFrame = 0,
+        /**
+         * 接收单数据帧多消息
+         */
+        ReceiveMultiDataPerFrame = 1,
+        /**
+         * 接收掩码
+         */
+        ReceiveMask = 1,
+        /**
+         * 发送单数据帧多消息
+         */
+        SendMultiDataPerFrame = 0,
+        /**
+         * 发送单数据帧单消息
+         */
+        SendOneDataPerFrame = 2,
+        /**
+         * 发送掩码
+         */
+        SendMask = 2
+    }
+    /**
+     * WebSocket版本的NetService
+     * @author 3tion
+     */
+    class WSNetService extends NetService {
+        protected _ws: WebSocket;
+        readonly dataMode: WSNetServiceDataMode;
+        $send: (this: WSNetService, cmd: number, data: any, msgType: Key) => void;
+        /**
+         * 设置数据模式
+         *
+         * @param {WSNetServiceDataMode} mode
+         * @memberof WSNetService
+         */
+        setDataMode(mode: WSNetServiceDataMode): void;
+        /**
+         * 检查数据模式
+         *
+         * @memberof WSNetService
+         */
+        checkDataMode(): void;
+        constructor();
+        readonly connected: boolean;
+        /**
+         *
+         * 设置websocket地址
+         * @param {string} actionUrl
+         */
+        setUrl(actionUrl: string): void;
+        /**
+         * 打开新的连接
+         */
+        connect(): void;
+        protected onOpen: () => void;
+        protected _send(cmd: number, data: any, msgType: Key): void;
+        /**
+         *
+         * 发生错误
+         * @protected
+         */
+        protected onError: (ev: ErrorEvent) => void;
+        /**
+         *
+         * 断开连接
+         * @protected
+         */
+        protected onClose: (ev: CloseEvent) => void;
+        /**
+         * 主动断开连接
+         *
+         * @returns
+         * @memberof WSNetService
+         */
+        disconnect(): void;
+    }
 }
 declare namespace jy {
     /**
@@ -13443,6 +12509,360 @@ declare const enum ScrollDirection {
 }
 declare namespace jy {
     /**
+      * 基于时间回收的资源
+      */
+    interface IResource {
+        /**
+         * 是否为静态不销毁资源
+         */
+        isStatic?: boolean;
+        /**
+         * 最后使用的时间戳
+         */
+        lastUseTime: number;
+        /**
+         * 资源id
+         */
+        uri: string;
+        /**
+         * 资源路径
+         */
+        url: string;
+        /**
+         * 销毁资源
+         */
+        dispose(): any;
+    }
+}
+declare namespace jy.Res {
+    /**
+     * 设置失败的过期时间
+     * 失败次数超过`maxRetry`
+     * @export
+     * @param {number} second
+     */
+    function setFailedExpired(second: number): void;
+    /**
+     * 设置单个资源，不做延迟重试的最大重试次数，默认为3
+     * @param val
+     */
+    function setMaxRetry(val: number): void;
+    /**
+     * 设置最大加载线程  默认为 6
+     * @param val
+     */
+    function setMaxThread(val: number): void;
+    /**
+     * 资源类型
+     */
+    const enum ResItemType {
+        Binary = 0,
+        Text = 1,
+        Image = 2,
+        Json = 3,
+        /**
+         * 音频资源
+         */
+        Sound = 4,
+        /**
+         * 视频资源
+         */
+        Video = 5
+    }
+    /**
+     * 资源加载的回调
+     */
+    type ResCallback = CallbackInfo<{
+        (resItem: ResItem, ...args: any[]): any;
+    }>;
+    interface ResBase {
+        /**
+         * 资源标识
+         */
+        uri: string;
+        /**
+         * 资源路径
+         */
+        url: string;
+        /**
+         * 数据
+         */
+        data?: any;
+        version?: number;
+    }
+    interface ResItem extends ResBase {
+        /**
+         * 资源类型
+         */
+        type?: ResItemType;
+        /**
+         * 是否已存储本地缓存
+         */
+        local?: boolean;
+        /**
+         * 不使用本地缓存
+         */
+        noLocal?: boolean;
+        /**
+         * 资源正在加载时所在的组
+         * 加载完成后清理此值
+         */
+        qid?: ResQueueID;
+        /**
+         * 失败重试次数
+         */
+        retry?: number;
+        /**
+         * 资源加载状态
+         * 默认为 UnRequest
+         */
+        state?: RequestState;
+        /**
+         * 上次失败的过期时间
+         * 网络有时候不稳定，这次连续加载不到，但是后面可能能加载到
+         *
+         * @type {number}
+         * @memberof ResItem
+         */
+        ft?: number;
+        /**
+         * 是否被移除
+         */
+        removed?: boolean;
+        /**
+         * 分组标识
+         * 用于对资源进行区分
+         */
+        group?: Key;
+        /**
+         * 资源回调列队
+         */
+        callbacks?: ResCallback[];
+    }
+    const enum QueueLoadType {
+        /**
+         * 先入后出
+         */
+        FILO = 0,
+        /**
+         * 先入先出
+         */
+        FIFO = 1
+    }
+    /**
+     * 资源分组
+     */
+    interface ResQueue {
+        /**
+         * 分组名称
+         */
+        id: Key;
+        /**
+         * 分组优先级
+         */
+        priority?: number;
+        /**
+         * 分组中的列表
+         */
+        list: ResItem[];
+        /**
+         * 加载类型
+         */
+        type: QueueLoadType;
+    }
+    /**
+     * 内置的资源分组
+     */
+    const enum ResQueueID {
+        /**
+         * 常规资源，使用 FIFO
+         * 适合当前地图块，普通怪物资源，特效资源等
+         */
+        Normal = 0,
+        /**
+         * 后台加载资源，使用 FILO
+         * 用于后台加载，最低优先级
+         */
+        Backgroud = 1,
+        /**
+         * 高优先级资源
+         * FIFO
+         */
+        Highway = 2
+    }
+    /**
+     * 资源加载完成的回调
+     */
+    type ResLoadCallback = CallbackInfo<{
+        (item: ResItem, ...args: any[]): any;
+    }>;
+    interface ResLoader {
+        /**
+         * 加载完成的回调
+         */
+        loadFile(resItem: ResItem, callback: ResLoadCallback): any;
+    }
+    interface ResRequest extends egret.EventDispatcher {
+        item?: ResItem;
+        resCB?: ResLoadCallback;
+    }
+    type ResHttpRequest = Recyclable<egret.HttpRequest & ResRequest>;
+    class BinLoader implements ResLoader {
+        type: XMLHttpRequestResponseType;
+        constructor(type?: XMLHttpRequestResponseType);
+        loadFile(resItem: ResItem, callback: ResLoadCallback): void;
+        onLoadFinish(event: egret.Event): void;
+    }
+    type ResImgRequest = Recyclable<egret.ImageLoader & ResRequest>;
+    class ImageLoader implements ResLoader {
+        loadFile(resItem: ResItem, callback: ResLoadCallback): void;
+        onLoadFinish(event: egret.Event): void;
+    }
+    /**
+    * 获取资源的扩展名
+    * @param url
+    */
+    function getExt(url: string): string;
+    /**
+     * 内联绑定
+     * @param ext 扩展名
+     * @param type 类型
+     */
+    function bindExtType(ext: string, type: ResItemType): void;
+    /**
+     * 注册资源分析器
+     * @param type 分析器类型
+     * @param analyzer 分析器
+     */
+    function regAnalyzer(type: ResItemType, analyzer: ResLoader): void;
+    /**
+     * 添加资源的结果
+     * 0 号为返回值
+     *
+     * @export
+     * @interface AddResResult
+     * @extends {Array<any>}
+     */
+    interface AddResResult extends Array<any> {
+        readonly 0: ResItem;
+        readonly 1: boolean;
+        length: 2;
+    }
+    /**
+     * 添加资源
+     * @param {ResItem} resItem
+     * @param {ResQueueID} [queueID=ResQueueID.Normal]
+     * @returns {ResItem}
+     */
+    function addRes(resItem: ResItem, queueID?: ResQueueID): AddResResult;
+    /**
+     * 加载资源
+     * @param {string} uri 资源标识
+     * @param {ResCallback} callback 加载完成的回调
+     * @param {string} [url] 资源路径
+     * @param {ResQueueID} [queueID=ResQueueID.Normal]
+     */
+    function load(uri: string, url?: string, callback?: ResCallback, queueID?: ResQueueID): void;
+    interface LoadResListOption {
+        callback: CallbackInfo<{
+            (flag: boolean, ...args: any[]): any;
+        }>;
+        group: Key;
+        onProgress?: CallbackInfo<{
+            (item: Res.ResItem): any;
+        }>;
+    }
+    function loadList(list: ResItem[], opt: LoadResListOption, queueID?: ResQueueID): void;
+    /**
+     * 同步获取某个资源，如果资源未加载完成，则返回空
+     * @param uri 资源标识
+     */
+    function get(uri: string): any;
+    function set(uri: string, item: ResItem): boolean;
+    /**
+     * 移除某个资源
+     * @param uri
+     */
+    function remove(uri: string): void;
+    /**
+     * 阻止尝试某个资源加载，目前是还未加载的资源，从列队中做移除，其他状态不处理
+     * @param uri
+     */
+    function cancel(uri: string): void;
+    /**
+     * 加载资源
+     * @param {ResItem} resItem
+     * @param {ResQueueID} [queueID=ResQueueID.Normal]
+     */
+    function loadRes(resItem: ResItem, callback?: ResCallback, queueID?: ResQueueID): void;
+    function getLocalDB(version: number, keyPath: string, storeName: string): {
+        /**
+         * 存储资源
+         *
+         * @param {ResItem} data
+         * @param {(this: IDBRequest, ev: Event) => any} callback 存储资源执行完成后的回调
+         */
+        save(data: ResItem, callback?: (ev: Error | Event) => any): void;
+        /**
+         * 获取资源
+         *
+         * @param {string} url
+         * @param {{ (data: ResItem) }} callback
+         */
+        get(url: string, callback: (data: ResItem, url?: string) => any): void;
+        /**
+         * 删除指定资源
+         *
+         * @param {string} url
+         * @param {{ (this: IDBRequest, ev: Event) }} callback 删除指定资源执行完成后的回调
+         */
+        delete(url: string, callback?: (url: string, ev: Error | Event) => any): void;
+        /**
+         * 删除全部资源
+         *
+         * @param {{ (this: IDBRequest, ev: Event) }} callback 删除全部资源执行完成后的回调
+         */
+        clear(callback?: (ev: Error | Event) => any): void;
+    };
+    /**
+     *  尝试启用本地资源缓存
+     * @author 3tion(https://github.com/eos3tion/)
+     * @export
+     * @param {number} [version=1]
+     * @returns
+     */
+    function tryLocal(version?: number, keyPath?: string, storeName?: string): {
+        /**
+         * 存储资源
+         *
+         * @param {ResItem} data
+         * @param {(this: IDBRequest, ev: Event) => any} callback 存储资源执行完成后的回调
+         */
+        save(data: ResItem, callback?: (ev: Error | Event) => any): void;
+        /**
+         * 获取资源
+         *
+         * @param {string} url
+         * @param {{ (data: ResItem) }} callback
+         */
+        get(url: string, callback: (data: ResItem, url?: string) => any): void;
+        /**
+         * 删除指定资源
+         *
+         * @param {string} url
+         * @param {{ (this: IDBRequest, ev: Event) }} callback 删除指定资源执行完成后的回调
+         */
+        delete(url: string, callback?: (url: string, ev: Error | Event) => any): void;
+        /**
+         * 删除全部资源
+         *
+         * @param {{ (this: IDBRequest, ev: Event) }} callback 删除全部资源执行完成后的回调
+         */
+        clear(callback?: (ev: Error | Event) => any): void;
+    };
+}
+declare namespace jy {
+    /**
      * 为已布局好的render提供List功能
      *
      * @export
@@ -13723,6 +13143,103 @@ declare namespace jy {
         readonly name: string;
         constructor(name: string);
         parseData(data: any[][], suiData: SuiData): void;
+    }
+}
+declare namespace jy {
+    function get<T extends IResource>(resid: string, noResHandler: {
+        (...args: any[]): T;
+    }, thisObj?: any, ...args: any[]): T;
+    const ResManager: {
+        get: typeof get;
+        /**
+         * 获取纹理资源
+         *
+         * @param {string} resID 资源id
+         * @param {boolean} [noWebp] 是否不加webp后缀
+         * @returns {TextureResource}
+         */
+        getTextureRes(resID: string, noWebp?: boolean): TextureResource;
+        /**
+         * 获取资源
+         */
+        getResource: typeof getResource;
+        /**
+         * 注册资源
+         */
+        regResource: typeof regResource;
+        init(): void;
+    };
+    /**
+     * 获取资源
+     */
+    function getResource(resID: string): IResource;
+    /**
+     * 注册资源
+     */
+    function regResource(resID: string, res: IResource): boolean;
+}
+declare namespace jy {
+    import Bitmap = egret.Bitmap;
+    /**
+     *
+     * 纹理资源
+     * @export
+     * @class TextureResource
+     * @implements {IResource}
+     */
+    class TextureResource implements IResource {
+        /**
+         * 最后使用的时间戳
+         */
+        lastUseTime: number;
+        /**
+         * 资源id
+         */
+        readonly uri: string;
+        /**
+         * 资源最终路径
+         */
+        readonly url: string;
+        /**
+         * 加载列队
+         */
+        qid?: Res.ResQueueID;
+        constructor(uri: string, noWebp?: boolean);
+        /**
+         *
+         * 是否为静态不销毁的资源
+         * @type {boolean}
+         */
+        readonly isStatic: boolean;
+        private _tex;
+        /**
+         *
+         * 绑定的对象列表
+         * @private
+         * @type {Bitmap[]}
+         */
+        private _list;
+        /**
+         *
+         * 绑定一个目标
+         * @param {Bitmap} target
+         */
+        bind(bmp: Bitmap): void;
+        /**
+         *
+         * 解除目标的绑定
+         * @param {Bitmap} target
+         */
+        loose(bmp: Bitmap): void;
+        load(): void;
+        /**
+         * 资源加载完成
+         */
+        loadComplete(item: Res.ResItem): void;
+        /**
+         * 销毁资源
+         */
+        dispose(): void;
     }
 }
 declare module egret {
@@ -14424,6 +13941,37 @@ declare namespace jy {
         protected bindEvent(bmp: ArtText): void;
         protected onAddedToStage(e: egret.Event): void;
         protected onRemoveFromStage(): void;
+    }
+}
+declare namespace jy {
+    /**
+     * 状态限制器
+     * @author 3tion
+     */
+    interface ILimit {
+        /**
+         * 设置状态
+         *
+         * @param {Key} type
+         * @memberof ILimit
+         */
+        setState(type: Key): any;
+        /**
+         * 检查内容是否被禁止了;
+         * @param type
+         * @return
+         *
+         */
+        check(value: Key): boolean;
+    }
+}
+declare namespace jy {
+    /**
+     * 状态机监听器
+     * @author 3tion
+     */
+    interface IStateListener {
+        setState(type: Key): any;
     }
 }
 declare namespace jy {
@@ -15221,6 +14769,37 @@ declare namespace jy {
 }
 declare namespace jy {
     /**
+     * 状态机的状态实现
+     * @author 3tion
+     */
+    interface IStateSwitcher {
+        /**
+         *
+         * 在上一个状态sleep之前调用
+         * @param {Key} [type]
+         * @memberof IStateSwitcher
+         */
+        beforeLastSleep?(type?: Key): any;
+        /**
+         * 被一个状态禁止了
+         *
+         * @param {Key} [type]
+         *
+         * @memberof IStateSwitcher
+         */
+        sleepBy?(type?: Key): any;
+        /**
+         * 被一个状态开启了
+         *
+         * @param {Key} [type]
+         *
+         * @memberof IStateSwitcher
+         */
+        awakeBy?(type?: Key): any;
+    }
+}
+declare namespace jy {
+    /**
      * ## 主体UI的容器
      * 1. 当屏幕长或者宽任意一边小于`基准尺寸(basis)`时
      *      * 首先根据基准尺寸的窄边得到缩放比
@@ -15358,6 +14937,29 @@ declare namespace jy {
          */
         displayMenuDatas(vos: MenuBaseVO[]): void;
     }
+}
+declare namespace jy {
+    /**
+     * 绑定属性名，当属性值发生改变时，可自动对外抛eventType事件
+     *
+     * @export
+     * @param {Key} eventType     事件类型
+     * @param {boolean} [selfDispatch]          默认false，使用Facade抛事件，event.data为实例本身
+     *                                          如果为true，需要为EventDispatcher的实现，会使用自身抛事件
+     * @returns
+     */
+    function d_fire(eventType: Key, selfDispatch?: boolean): (host: any, property: string) => void;
+    /**
+     * 使用微软vs code中使用的代码
+     * 用于一些 lazy 的调用
+     * https://github.com/Microsoft/vscode/blob/master/src/vs/base/common/decorators.ts
+     *
+     * @export
+     * @param {*} target
+     * @param {string} key
+     * @param {*} descriptor
+     */
+    function d_memoize(target: any, key: string, descriptor: any): void;
 }
 declare namespace jy {
     /**
@@ -15681,6 +15283,64 @@ declare namespace jy {
         readonly selected: ReadonlyArray<IGroupItem>;
         clear(): void;
     }
+}
+declare namespace jy {
+    const enum LimitScene {
+        /**
+         * 默认场景
+         */
+        Default = 0
+    }
+    /**
+    * 限制列队
+    * @author 3tion
+    */
+    class LimitQueue implements ILimit {
+        protected _queue: ILimit[];
+        protected _current: Key;
+        listener: IStateListener;
+        constructor();
+        addLimiter(item: ILimit): boolean;
+        /**
+         * 设置状态
+         * @param value
+         *
+         */
+        setState(value: Key): void;
+        removeLimiter(item: ILimit): boolean;
+        clear(): void;
+        /**
+         * 是否被限制了
+         * @param type
+         * @return
+         *
+         */
+        check(type: Key): boolean;
+    }
+    interface UILimiterType {
+        impl: LimitQueue;
+        /**
+         * 最大历史数
+         *
+         * @type {number}
+         * @memberof UILimiterType
+         */
+        MaxHistory: number;
+        readonly current: Key;
+        /**
+         * 取得状态侦听管理器(以便注册关注的状态)
+         *
+         * @type {StateMachine}
+         * @memberof UILimiterType
+         */
+        readonly listener: StateMachine;
+        enter(scene: Key): void;
+        exit(scene?: Key): void;
+        check(scene: Key): boolean;
+    }
+    const UILimiter: UILimiterType;
+    function addToStates(value: IStateSwitcher, ...ids: Key[]): void;
+    function addToState(id: Key, value: IStateSwitcher): void;
 }
 declare namespace jy {
     /**
@@ -16158,30 +15818,376 @@ declare namespace jy {
     }
 }
 declare namespace jy {
-    interface MotionGuidePluginTween extends Tween {
+    /**
+     * 使用数值或者字符串类型作为Key
+     * V 作为Value的字典
+     * 原生的map(ECMAScript5无Map)无法自定义列表顺序，而是完全按照加载顺序的，所以才需要有此类型
+     * 列表存储Value
+     * @author 3tion
+     * @class ArraySet
+     * @template V
+     */
+    class ArraySet<V> {
+        private _list;
+        private _dict;
+        constructor();
         /**
-         * 是否需要旋转
+         * 获取原始列表，用于重新排序
+         * 请不要直接进行 + - 值，使用set delete 方法进行处理
+         * @readonly
          *
-         * @type {boolean}
-         * @memberOf Tween
          */
-        __needsRot: boolean;
-        __rotGlobalS: number;
-        __rotGlobalE: number;
-        __rotPathE: number;
-        __rotPathS: number;
-        __guideData: any;
+        readonly rawList: V[];
+        /**
+         * 获取原始的字典
+         * 请不要直接行 + - 值，使用set delete 方法进行处理
+         * @readonly
+         *
+         */
+        readonly rawDict: {
+            readonly [index: string]: V;
+        };
+        /**
+         * 设置原始字典
+         *
+         * @param { [index: string]: V } dict
+         *
+         */
+        setRawDict(dict: {
+            [index: string]: V;
+        }): this;
+        /**
+         *
+         * @param {V[]} list        要放入的数据
+         * @param {keyof V} keyPro   索引的属性名称
+         *
+         * 下例是一个形式为：{id:number,name:string}[]的数组，进行设值的例子
+         * @example
+         * let rawList:{id:number,name:string}[] = [{id:1,name:"test1"},{id:2,name:"test2"},{id:3,name:"test3"}];
+         * let set = new ArraySet<{id:number,name:string}>();
+         * set.setRawList(rawList,"id"); //设值操作
+         *
+         */
+        setRawList(list: V[], keyPro: keyof V): this;
+        /**
+         *
+         * 设置数据
+         *
+         * @param {Key} key
+         * @param {V} value
+         * @return {number} 返回值加入到数据中的索引
+         */
+        set(key: Key, value: V): number;
+        /**
+         * 获取数据
+         *
+         * @param {Key} key
+         * @returns
+         *
+         */
+        get(key: Key): V;
+        /**
+         * 根据key移除数据
+         *
+         * @param {Key} key
+         *
+         */
+        delete(key: Key): V;
+        /**
+         * 清理数据
+         *
+         *
+         */
+        clear(): void;
+        /**
+         * 获取总长度
+         *
+         * @readonly
+         *
+         */
+        readonly size: number;
     }
-    interface MotionGuidePluginTarget {
-        x?: number;
-        y?: number;
-        rotation?: number;
+}
+declare namespace jy {
+    /**
+     * 基本单位<br/>
+     * 是一个状态机<br/>
+     * @author 3tion
+     *
+     */
+    abstract class Unit extends egret.EventDispatcher {
+        /**
+         * 单位状态
+         *
+         * @type {UnitState}
+         */
+        state: UnitState;
+        /**
+         * 单位标识
+         */
+        guid: Key;
+        /**
+         * 播放速度，默认为1倍速度<br/>
+         * 值越高，速度越快
+         */
+        /**
+        * 设置播放速度
+        */
+        playSpeed: number;
+        /**
+         * 用于放纸娃娃贴图的容器
+         * 只允许放ResourceBitmap
+         */
+        protected _model: UModel;
+        /**
+         * 用于放纸娃娃贴图的容器
+         * 只允许放ResourceBitmap
+         */
+        readonly model: Readonly<UModel>;
+        /**
+         * 人物身体
+         */
+        protected body: DSprite;
+        /**
+         * 人物底图资源的字典
+         */
+        protected _resDict: {
+            [index: string]: UnitResource;
+        };
+        /**
+         * 人物底图资源的字典
+         * key      {string}            部位
+         * value    {UnitResource}      资源
+         * @readonly
+         * @type {{}
+         */
+        readonly resDict: {
+            readonly [index: string]: UnitResource;
+        };
+        /**
+         * 当前骑乘标识
+         */
+        protected _mountType: MountType;
+        /**
+         * 资源列表改变
+         */
+        protected _resListChange: Boolean;
+        /**
+         * 打包信息
+         */
+        protected _pstInfo: PstInfo;
+        /**
+         * 渲染器
+         */
+        protected _render: UnitRender;
+        /**
+         * 角色的动作序列
+         *
+         * @protected
+         * @type {number}
+         */
+        protected _action: number;
+        /**
+         * 纸娃娃排序列表
+         * 从下层到上层排序
+         * @protected
+         * @type {Key[]}
+         */
+        protected _partList: Key[];
+        /**
+         * 上一次渲染的信息
+         *
+         * @protected
+         * @type {FrameInfo}
+         */
+        lastFrame: Readonly<FrameInfo>;
+        /**
+         * 设置单位pst
+         */
+        pst: string;
+        protected abstract pstInfoChange(): any;
+        protected abstract getPstInfo(pst: string): PstInfo;
+        init(pst: string, setting: UnitSetting): this;
+        onSpawn(): void;
+        /**
+         * 重置渲染器时间
+         *
+         * @param {number} now (description)
+         */
+        resetRenderTime(now: number): void;
+        /**
+         * 初始化显示列表
+         * @param setting
+         */
+        protected initDisplayList(setting: UnitSetting): void;
+        /**
+         * 设置朝向
+         */
+        /**
+        * 获取朝向
+        */
+        faceTo: number;
+        $setFaceTo(value: number): void;
+        /**
+         * 播放自定义动作
+         *
+         * @param {ActionInfo} customAction 自定义动作
+         * @param {number} [startFrame=-1]  起始帧
+         */
+        doCustomAction(customAction: ActionInfo, startFrame?: number): void;
+        /**
+         * 执行动作序列
+         * @private 只允许UnitAction调用
+         */
+        doAction(now: number, action: number, startFrame?: number): Readonly<ActionInfo>;
+        /**
+         * 获取当前动作序列
+         */
+        getCurAction(): Readonly<ActionInfo>;
+        /**
+         * 对指定部位设置资源
+         *
+         * @protected
+         * @param {Key} part 部位
+         * @param {string} [uri] 资源路径，不传则清空部位
+         * @param {string} [pst] 通过其他pst配置进行加载
+         */
+        protected setRes(part: Key, uri?: string, pst?: string): UnitResource;
+        /**
+         * 资源列表发生改变
+         */
+        protected invalidateResList(): void;
+        /**
+         * 刷新资源列表
+         */
+        protected refreshResList(): void;
+        /**
+         * 检查/重置资源列表
+         *
+         * @param {string[]} [resOrder] 部位的排列顺序
+         * @param {{ [index: string]: UnitResource }} [resDict] 部位和资源的字典
+         */
+        checkResList(resOrder?: Key[], resDict?: {
+            [index: string]: UnitResource;
+        }): void;
+        /**
+         * 执行默认的，基于enterframe的渲染
+         *
+         * @protected
+         */
+        protected $render(): void;
+        /**
+         * 通过其他方式驱动数据
+         *
+         * @param {number} now 时间戳
+         */
+        doData(now: number): void;
+        /**
+         * 通过其他方式驱动渲染
+         *
+         * @param {number} now 时间戳
+         */
+        doRender(now: number): void;
+        /**
+         * 回收
+         */
+        onRecycle(): void;
+        /**
+         * 当前正在执行的动作
+         */
+        protected _currentAction: UnitAction;
+        /**
+         * 下一个动作
+         */
+        protected _nextAction: UnitAction;
+        protected aStandBy: UnitAction;
+        protected initDefaultAction(): void;
+        /**
+         * 开始执行单位动作
+         * @param {UnitAction} [action]     准备执行的动作，默认为待机动作
+         * @param {number}     [now]        执行时间，默认取全局时间
+         * @param {boolean}    [override]   是否强制覆盖当前动作，默认为否
+         * @return true     成功执行动作
+         *         false    未成功执行动作，将动作覆盖到下一个动作
+         */
+        startUnitAction(action?: UnitAction, now?: number, override?: boolean): boolean;
+        protected _startUA(action?: UnitAction, now?: number, override?: boolean): boolean;
+        /**
+         * 停止单位当前动作，做待机动作
+         *
+         * @param {number} [now]
+         */
+        stopUnitAction(now?: number): void;
+        setMountType(value: MountType): void;
+        /**
+         * 动作的动画播放完毕
+         */
+        playComplete(now: number): void;
+        /**
+         * 动作进行渲染的时候
+         */
+        onRenderFrame(now: number): void;
+        protected onActionEnd(): void;
+        /**
+         * 执行动作中的回调事件
+         */
+        fire(eventType: string, now: number): void;
+        /**
+         * 加到游戏引擎中
+         *
+         * @param {boolean} [doRender=true] 是否添加Event.ENTER_FRAME事件
+         */
+        addedToEngine(doRender?: boolean): void;
+        /**
+         * 添加到容器中
+         *
+         * @param {Container} container
+         * @param {boolean} [doRender=true]
+         *
+         * @memberOf Unit
+         */
+        addToContainer(container: egret.DisplayObjectContainer, doRender?: boolean): void;
+        protected play(): void;
+        protected onStage(e: egret.Event): void;
+        protected _depth: number;
+        protected _x: number;
+        protected _y: number;
+        protected _z: number;
+        /**
+        * 此方法只允许 UnitAction调用
+        */
+        x: number;
+        $setX(value: number): void;
+        /**
+        * 此方法只允许 UnitAction调用
+        */
+        y: number;
+        $setY(value: number): void;
+        /**
+        * 此方法只允许 UnitAction调用
+        */
+        z: number;
+        $setZ(value: number): void;
+        /**
+         * 检查模型和其他的y轴
+         */
+        protected checkPosition(): void;
+        protected _rotation: number;
+        /**
+         * 设置旋转角度
+         * 表示 DisplayObject 实例距其原始方向的旋转程度，以度为单位。
+         * 从 0 到 180 的值表示顺时针方向旋转；从 0 到 -180 的值表示逆时针方向旋转。对于此范围之外的值，可以通过加上或减去 360 获得该范围内的值。
+         * 例如，myDisplayObject.rotation = 450语句与 myDisplayObject.rotation = 90 是相同的
+         */
+        /**
+        * 获得模型的旋转角度
+        */
+        rotation: number;
+        /**
+         * 根据 resKey 获取纹理
+         * @param {Key} resKey resDict的key
+         * @param {IDrawInfo} [drawInfo] 动作，方向，帧数信息
+         */
+        getTexture(resKey: Key, drawInfo?: IDrawInfo): egret.Texture;
     }
-    const MotionGuidePlugin: {
-        priority: number;
-        install(manager: TweenManager): void;
-        init(tween: MotionGuidePluginTween, prop: string, value: any): any;
-        step(tween: MotionGuidePluginTween, prop: string, startValue: any, endValue: any, injectProps: any): any;
-        tween(tween: MotionGuidePluginTween, prop: string, value: any, startValues: any, endValues: any, ratio: number, wait: boolean, end: boolean): any;
-    };
 }
