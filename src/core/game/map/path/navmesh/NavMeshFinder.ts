@@ -18,63 +18,6 @@ namespace jy {
         }
     }
 
-    class WayPoint {
-        /**
-         * g + h
-         * 
-         * @type {number}
-         * @memberOf PathNode
-         */
-        f: number;
-        /**
-         * 实际运行成本，以从出发点移动到指定的正方形网格上，产生到那里的路径
-         * 
-         * @type {number}
-         * @memberOf PathNode
-         */
-        g: number;
-        /**
-         * 估计的运行成本
-         * 
-         * @type {number}
-         * @memberOf PathNode
-         */
-        h: number;
-        /**
-         * 节点所在的坐标x
-         * 
-         * @type {number}
-         * @memberOf PathNode
-         */
-        x: number;
-        /**
-         * 节点所在的坐标y
-         * 
-         * @type {number}
-         * @memberOf PathNode
-         */
-        y: number;
-        /**
-         * 节点的标识
-         * 
-         * @type {number}
-         * @memberOf PathNode
-         */
-        key: number;
-        step: number;
-
-        /**
-         * 上一个节点
-         * 
-         * @type {PathNode}
-         * @memberOf PathNode
-         */
-        prev?: WayPoint;
-        cell: Cell;
-        postion: Point;
-    }
-
-
     function calcH(tx: number, ty: number, x: number, y: number) {
         let tmp2 = tx - x;
         tmp2 = tmp2 < 0 ? -tmp2 : tmp2;
@@ -277,7 +220,7 @@ namespace jy {
                 } else if (lastLineB.classifyPoint(testB) != PointClassification.RightSide) {
                     lastPtB = testB;
                     lastCell = cell;
-                    lastLineB.setPB(lastPtA);
+                    lastLineB.setPB(lastPtB);
                 }
             }
             cell = next;
