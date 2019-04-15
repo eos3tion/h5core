@@ -8,7 +8,7 @@ namespace jy {
     }
 
     interface NavMeshDraw {
-        debugPane?: egret.Shape;
+        debugPane?: egret.Sprite;
     }
 
     const rect = new egret.Rectangle;
@@ -17,18 +17,28 @@ namespace jy {
             function (this: TileMapLayer & NavMeshDraw, x: number, y: number, w: number, h: number, map: NavMeshMapInfo) {
                 let gp = this.debugPane;
                 if (!gp) {
-                    this.debugPane = gp = new egret.Shape;
+                    this.debugPane = gp = new egret.Sprite;
                 }
                 if ($gm.$showMapGrid) {
-                    let trangles = map.cells;
+                    let cells = map.cells;
                     const g = gp.graphics;
+                    gp.removeChildren();
                     g.clear();
-                    if (trangles) {
+                    if (cells) {
                         rect.setTo(x, y, w, h);
                         g.lineStyle(2, 0xff00);
-                        for (let i = 0; i < trangles.length; i++) {
-                            const { pA, pB, pC } = trangles[i];
-                            if (rect.containsPoint(pA) || rect.containsPoint(pB) || rect.containsPoint(pC)) {
+                        for (let i = 0; i < cells.length; i++) {
+                            const { pA, pB, pC, x, y, idx } = cells[i];
+                            if (rect.containsPoint(pA) || rect.containsPoint(pB) || rect.containsPoint(pC) || rect.contains(x, y)) {
+                                let tf = new egret.TextField();
+
+                                tf.size = 18;
+                                tf.strokeColor = 0;
+                                tf.textColor = 0xff00;
+                                tf.text = idx + "";
+                                tf.x = x - tf.textWidth * .5;
+                                tf.y = y - tf.textHeight * .5;
+                                gp.addChild(tf);
                                 g.beginFill(0xff00, 0.1);
                                 g.moveTo(pA.x, pA.y);
                                 g.lineTo(pB.x, pB.y);
