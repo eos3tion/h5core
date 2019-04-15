@@ -7,12 +7,21 @@ interface $gmType {
      */
     toggleMapGrid();
     $showMapGrid: boolean;
+
+    regPathDraw(type: jy.MapPathType, handler: jy.drawPath);
+
+    pathSolution: { [type in jy.MapPathType]: jy.drawPath };
 }
 
 if (DEBUG) {
     var $gm = $gm || <$gmType>{};
     $gm.toggleMapGrid = function () {
         this.$showMapGrid = !this.$showMapGrid;
+    }
+    $gm.pathSolution = {} as { [type in jy.MapPathType]: jy.drawPath };
+
+    $gm.regPathDraw = function (type: jy.MapPathType, handler: jy.drawPath) {
+        $gm.pathSolution[type] = handler;
     }
 }
 namespace jy {
@@ -38,7 +47,6 @@ namespace jy {
             return;
         }
 
-        let get = ResManager.get;
         for (let r = sr; r <= er; r++) {
             for (let c = sc; c <= ec; c++) {
                 let uri = map.getMapUri(c, r);
@@ -66,6 +74,8 @@ namespace jy {
         }
         showing.length = j;
     }
+
+
     /**
     * MapRender
     * 用于处理地图平铺的渲染
@@ -83,7 +93,24 @@ namespace jy {
         /**
          * @private
          */
-        currentMap: MapInfo;
+        private _currentMap: MapInfo;
+        public get currentMap(): MapInfo {
+            return this._currentMap;
+        }
+        /**
+         * 显示/关闭地图格子显示
+         *
+         *
+         * @memberOf $gmType
+         */
+        public set currentMap(value: MapInfo) {
+            if (value != this._currentMap) {
+                this._currentMap = value;
+                if (DEBUG) {
+                    this.drawGrid = $gm.pathSolution[~~value.pathType];
+                }
+            }
+        }
 
         /**
          * mini的纹理
@@ -101,15 +128,6 @@ namespace jy {
         protected drawGrid?: { (x: number, y: number, w: number, h: number, cM: MapInfo): void };
 
 
-        /**
-         * Debug专用
-         */
-        private debugGridPanes: egret.Bitmap[];
-
-        /**
-         * 绘制格子用的纹理
-         */
-        private debugGridTexture: egret.Texture;
 
         /**
          * 上次渲染的起始 column
@@ -146,7 +164,6 @@ namespace jy {
         protected _idx: number;
 
         protected addMap(uri: string, c: number, r: number, pW: number, pH: number) {
-            const map = this.currentMap;
             let tm = ResManager.get(uri, this.noRes, this, uri, c, r, pW, pH);
             if (!tm.empty) {
                 // 舞台上的标记为静态
@@ -185,7 +202,7 @@ namespace jy {
         }
 
         public setRect(rect: egret.Rectangle, ox = 0, oy = 0) {
-            let cM = this.currentMap;
+            let cM = this._currentMap;
             if (!cM) {
                 return;
             }
@@ -211,7 +228,7 @@ namespace jy {
                 let tex = miniTexDict[texKey];
                 if (!tex) {
                     let { textureWidth, textureHeight } = mini;
-                    let { width, height } = this.currentMap;
+                    let { width, height } = this._currentMap;
                     miniTexDict[texKey] = tex = new egret.Texture();
                     let dw = textureWidth / width;
                     let dh = textureHeight / height;
@@ -230,66 +247,13 @@ namespace jy {
             tmp.load();
             return tmp;
         }
-        constructor(id: number) {
-            super(id)
-            if (DEBUG) {
-
-                this.drawGrid = (x: number, y: number, w: number, h: number, map: MapInfo) => {
-                    let gp = this.debugGridPanes;
-                    if (!gp) {
-                        this.debugGridPanes = gp = [];
-                    }
-                    let k = 0;
-                    if ($gm.$showMapGrid) {
-                        let tex = this.debugGridTexture;
-                        const { gridWidth, gridHeight } = map;
-                        let hw = gridWidth >> 1;
-                        let hh = gridHeight >> 1;
-                        if (!tex) {
-                            let s = new egret.Shape;
-                            let g = s.graphics;
-                            g.lineStyle(1, 0xcccc);
-                            g.beginFill(0xcccc, 0.5);
-                            g.drawRect(0, 0, gridWidth, gridHeight);
-                            g.endFill();
-                            let tex = new egret.RenderTexture();
-                            tex.drawToTexture(s);
-                            this.debugGridTexture = tex;
-                        }
-
-                        for (let i = x / gridWidth >> 0, len = i + w / gridWidth + 1, jstart = y / gridHeight >> 0, jlen = jstart + h / gridHeight + 1; i < len; i++) {
-                            for (let j = jstart; j < jlen; j++) {
-                                if (!map.getWalk(i, j)) {
-                                    let s = gp[k];
-                                    if (!s) {
-                                        gp[k] = s = new egret.Bitmap();
-                                    }
-                                    s.texture = tex;
-                                    this.addChild(s);
-                                    k++;
-                                    s.x = i * gridWidth - hw;
-                                    s.y = j * gridHeight - hh;
-                                }
-                            }
-                        }
-                    }
-                    for (let i = k; i < gp.length; i++) {
-                        let bmp = gp[i];
-                        bmp.texture = null;
-                        removeDisplay(bmp);
-                    }
-                    gp.length = k;
-
-                }
-            }
-        }
 
         /**
          * 设置小地图
          * @param uri 
          */
         setMini(uri: string) {
-            let miniUri = this.currentMap.getImgUri(uri);
+            let miniUri = this._currentMap.getImgUri(uri);
             let old = this.miniUri;
             if (old != miniUri) {
                 if (old) {

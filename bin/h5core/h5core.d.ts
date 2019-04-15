@@ -1,3 +1,17 @@
+declare namespace jy {
+    /**
+     * 扩展名常量
+     * @author 3tion
+     */
+    const enum Ext {
+        JPG = ".jpg",
+        PNG = ".png",
+        WEBP = ".webp",
+        BIN = ".bin",
+        JSON = ".json",
+        MP3 = ".mp3"
+    }
+}
 declare function parseInt(s: number, radix?: number): number;
 declare namespace jy {
     /**
@@ -444,20 +458,6 @@ interface Storage {
 }
 declare namespace jy {
     /**
-     * 扩展名常量
-     * @author 3tion
-     */
-    const enum Ext {
-        JPG = ".jpg",
-        PNG = ".png",
-        WEBP = ".webp",
-        BIN = ".bin",
-        JSON = ".json",
-        MP3 = ".mp3"
-    }
-}
-declare namespace jy {
-    /**
      * 延迟执行
      * @author 3tion
      */
@@ -485,6 +485,719 @@ declare namespace jy {
         clearCallLater(callback: Function, thisObj?: any): any;
         callLater2(callback: $CallbackInfo, now?: number, time?: number): void;
         clearCallLater2(callback: $CallbackInfo): any;
+    }
+}
+/**
+ * 参考createjs和白鹭的tween
+ * 调整tick的驱动方式
+ * https://github.com/CreateJS/TweenJS
+ * @author 3tion
+ */
+declare namespace jy {
+    class TweenManager {
+        protected _tweens: Tween[];
+        /**
+         * 注册过的插件列表
+         * Key      {string}            属性
+         * Value    {ITweenPlugin[]}    插件列表
+         *
+         * @type {{ [index: string]: ITweenPlugin[] }}
+         */
+        _plugins: {
+            [index: string]: ITweenPlugin[];
+        };
+        /**
+         * Returns a new tween instance. This is functionally identical to using "new Tween(...)", but looks cleaner
+         * with the chained syntax of TweenJS.
+         * <h4>Example</h4>
+         *
+         *		var tween = createjs. this.get(target);
+        *
+        * @method get
+        * @param {Object} target The target object that will have its properties tweened.
+        * @param {TweenOption} [props] The configuration properties to apply to this tween instance (ex. `{loop:true, paused:true}`).
+        * All properties default to `false`. Supported props are:
+        * <UL>
+        *    <LI> loop: sets the loop property on this tween.</LI>
+        *    <LI> useTicks: uses ticks for all durations instead of milliseconds.</LI>
+        *    <LI> ignoreGlobalPause: sets the {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}} property on
+        *    this tween.</LI>
+        *    <LI> override: if true, `createjs. this.removeTweens(target)` will be called to remove any other tweens with
+        *    the same target.
+        *    <LI> paused: indicates whether to start the tween paused.</LI>
+        *    <LI> position: indicates the initial position for this tween.</LI>
+        *    <LI> onChange: specifies a listener for the {{#crossLink "Tween/change:event"}}{{/crossLink}} event.</LI>
+        * </UL>
+        * @param {Object} [pluginData] An object containing data for use by installed plugins. See individual plugins'
+        * documentation for details.
+        * @param {Boolean} [override=false] If true, any previous tweens on the same target will be removed. This is the
+        * same as calling ` this.removeTweens(target)`.
+        * @return {Tween} A reference to the created tween. Additional chained tweens, method calls, or callbacks can be
+        * applied to the returned tween instance.
+        * @static
+        */
+        get(target: any, props?: TweenOption, pluginData?: any, override?: boolean): Tween;
+        /**
+         * 移除指定对象的所有tween
+         * Removes all existing tweens for a target. This is called automatically by new tweens if the `override`
+         * property is `true`.
+         * @method removeTweens
+         * @param {Object} target The target object to remove existing tweens from.
+         * @static
+         */
+        removeTweens(target: any): void;
+        /**
+         * 移除单个tween
+         *
+         * @param {Tween} twn
+         * @returns
+         *
+         * @memberOf TweenManager
+         */
+        removeTween(twn: Tween): void;
+        /**
+         * 暂停某个对象的全部Tween
+         *
+         * @static
+         * @param {*} target 指定对象
+         */
+        pauseTweens(target: any): void;
+        /**
+         * 恢复某个对象的全部Tween
+         *
+         * @static
+         * @param {*} target 指定对象
+         */
+        resumeTweens(target: any): void;
+        /**
+         * 由外部进行调用，进行心跳
+         * Advances all tweens. This typically uses the {{#crossLink "Ticker"}}{{/crossLink}} class, but you can call it
+         * manually if you prefer to use your own "heartbeat" implementation.
+         * @method tick
+         * @param {Number} delta The change in time in milliseconds since the last tick. Required unless all tweens have
+         * `useTicks` set to true.
+         * @param {Boolean} paused Indicates whether a global pause is in effect. Tweens with {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}}
+         * will ignore this, but all others will pause if this is `true`.
+         * @static
+         */
+        tick(delta: number, paused?: boolean): void;
+        /**
+         * 将tween注册/注销到管理器中，
+         *
+         * @param {Tween} tween
+         * @param {boolean} [value] (description)
+         * @returns {void}
+         * @private 此方法只允许tween调用
+         */
+        _register(tween: Tween, value?: boolean): void;
+        /**
+         * Stop and remove all existing tweens.
+         * 终止并移除所有的tween
+         * @method removeAllTweens
+         * @static
+         * @since 0.4.1
+         */
+        removeAllTweens(): void;
+        /**
+         * Indicates whether there are any active tweens (and how many) on the target object (if specified) or in general.
+         * @method hasActiveTweens
+         * @param {Object} [target] The target to check for active tweens. If not specified, the return value will indicate
+         * if there are any active tweens on any target.
+         * @return {Boolean} If there are active tweens.
+         * @static
+         */
+        hasActiveTweens(target: any): boolean;
+        /**
+         * Installs a plugin, which can modify how certain properties are handled when tweened. See the {{#crossLink "CSSPlugin"}}{{/crossLink}}
+         * for an example of how to write TweenJS plugins.
+         * @method installPlugin
+         * @static
+         * @param {Object} plugin The plugin class to install
+         * @param {Array} properties An array of properties that the plugin will handle.
+         */
+        installPlugin(plugin: ITweenPlugin, properties: string[]): void;
+    }
+}
+declare namespace jy {
+    interface GlobalInstance {
+        initTick: () => void;
+        nextTick: (callback: Function, thisObj?: any, ...args: any[]) => void;
+        nextTick2: (callback: CallbackInfo<Function>) => void;
+        /**
+         * 延迟执行
+         * @param {Function} callback 回调函数
+         * @param {number} [time=0] 延迟执行的时间
+         * @param {*} [thisObj] 回调的`this`指针
+         * @param args 回调参数列表
+         */
+        callLater(callback: Function, time?: number, thisObj?: any, ...args: any[]): any;
+        /**
+         * 延迟执行
+         * @param {$CallbackInfo} callback 回调函数
+         * @param {number} [time=0] 延迟执行的时间
+         */
+        callLater2(callback: $CallbackInfo, time?: number): any;
+        /**
+         * 清理延迟
+         * @param {Function} callback 回调函数
+         * @param {*} [thisObj]  回调的`this`指针
+         */
+        clearCallLater(callback: Function, thisObj?: any): any;
+        /**
+         * 清理延迟
+         * @param {$CallbackInfo} callback 要清理的回调
+         */
+        clearCallLater2(callback: $CallbackInfo): any;
+        /**
+         * 获取Tween
+         *
+         * @static
+         * @param {*} target 要对那个对象做Tween处理
+         * @param {TweenOption} props Tween的附加属性 (如： `{loop:true, paused:true}`).
+         * All properties default to `false`. Supported props are:
+         * <UL>
+         *    <LI> loop: sets the loop property on this tween.</LI>
+         *    <LI> useTicks: uses ticks for all durations instead of milliseconds.</LI>
+         *    <LI> ignoreGlobalPause: sets the {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}} property on
+         *    this tween.</LI>
+         *    <LI> override: if true, `createjs. this.removeTweens(target)` will be called to remove any other tweens with
+         *    the same target.
+         *    <LI> paused: indicates whether to start the tween paused.</LI>
+         *    <LI> position: indicates the initial position for this tween.</LI>
+         *    <LI> onChange: specifies a listener for the {{#crossLink "Tween/change:event"}}{{/crossLink}} event.</LI>
+         * </UL>
+         * @param {*} pluginData 插件数据
+         * @param {boolean} override 是否覆盖
+         * @returns {Tween} tween的实例
+         */
+        getTween(target: any, props?: TweenOption, pluginData?: any, override?: boolean): Tween;
+        /**
+         * 移除指定的Tween
+         *
+         * @param {Tween} tween
+         * @returns
+         */
+        removeTween(tween: Tween): any;
+        /**
+         * 移除指定目标的所有Tween
+         *
+         * @param {any} target
+         * @returns
+         */
+        removeTweens(target: any): any;
+        /**
+         * 判断是否为Native的版本
+         */
+        readonly isNative: boolean;
+        tweenManager: TweenManager;
+        /**
+         *  当前这一帧的时间
+         */
+        readonly now: number;
+        /**
+         * 按照帧，应该走的时间
+         * 每帧根据帧率加固定时间
+         * 用于处理逐帧同步用
+         */
+        readonly frameNow: number;
+        /**
+         * 是否支持webp
+         */
+        readonly webp: "" | Ext.WEBP;
+        /**
+         * 添加每帧执行回调
+         */
+        addInterval(callback: CallbackInfo<Function>): void;
+        /**
+         * 移除每帧执行回调
+         */
+        removeInterval(callback: CallbackInfo<Function>): void;
+    }
+    /**
+     * 动画的全局对象
+     * @author 3tion
+     *
+     */
+    const Global: GlobalInstance;
+}
+interface $NSFilter {
+    /**
+     * 感兴趣的请求
+     *
+     * @type { [index: number]: boolean }
+     * @memberOf $gmNSLog
+     */
+    cmds?: number[];
+    /**
+     * 是否为白名单模式，默认黑名单
+     *
+     * @type {boolean}
+     * @memberOf $NSFilter
+     */
+    isWhite: boolean;
+    /**
+     * 过滤器
+     *
+     * @type {{ ($gmNSLog, ...args): boolean }}
+     * @memberOf $NSFilter
+     */
+    filter?: {
+        ($gmNSLog: any, ...args: any[]): boolean;
+    };
+    /**
+     * 过滤器参数
+     *
+     * @type {any[]}
+     * @memberOf $NSFilter
+     */
+    filterParams?: any[];
+}
+interface $NSLog {
+    time: number;
+    type: "send" | "receive";
+    cmd: number;
+    data: any;
+}
+/**
+ * 用于扩展GM指令
+ *
+ * @interface $gmType
+ */
+interface $gmType {
+    /**
+     * 发送的网络消息的日志
+     *
+     * @type {$NSFilter}
+     * @memberOf $gmType
+     */
+    printSendFilter: $NSFilter;
+    /**
+     * 接收的网络消息的日志
+     *
+     * @type {$NSFilter}
+     * @memberOf $gmType
+     */
+    printReceiveFilter: $NSFilter;
+    /**
+     * 日志数据
+     *
+     * @type $NSLog[])}
+     * @memberOf $gmType
+     */
+    nsLogs: $NSLog[];
+    /**
+     * 输出日志内容
+     * @memberOf $gmType
+     */
+    showNSLog(): $NSLog[];
+    showNSLog(filter: {
+        ($gmNSLog: $NSLog, ...args: any[]): boolean;
+    }, ...args: any[]): $NSLog[];
+    showNSLog(isWhite: boolean, ...cmds: number[]): $NSLog[];
+    /**
+     * 使用黑名单模式，进行输出
+     *
+     * @param {...number[]} cmds
+     *
+     * @memberOf $gmType
+     */
+    showNSLog(...cmds: number[]): $NSLog[];
+    /**
+     * 最大网络日志数量
+     *
+     * @type {number}
+     * @memberOf $gmType
+     */
+    maxNSLogCount: number;
+    /**
+     * 控制台输出发送日志
+     * @memberOf $gm
+     */
+    printSend(): any;
+    /**
+     * 使用过滤函数过滤在控制台输出的发送日志
+     *
+     * @param {{ ($gmNSLog, ...args): boolean }} filter     过滤函数，函数返回true的会显示在控制台上
+     * @param {any} args                                    过滤函数使用的参数
+     *
+     * @memberOf $gmType
+     */
+    printSend(filter: {
+        ($gmNSLog: $NSLog, ...args: any[]): boolean;
+    }, ...args: any[]): any;
+    /**
+     * 显示或排除指定指令的发送日志，并在控制台输出
+     *
+     * @param {boolean} isWhite     是否为白名单模式
+     * @param {...number[]} cmds    指令列表
+     *
+     * @memberOf $gmType
+     */
+    printSend(isWhite: boolean, ...cmds: number[]): any;
+    /**
+     * 排除指定指令的发送日志，将其他日志信息在控制台输出
+     *
+     * @param {...number[]} cmds    黑名单列表
+     *
+     * @memberOf $gmType
+     */
+    printSend(...cmds: number[]): any;
+    /**
+     * 控制台输出接收日志
+     * @memberOf $gmType
+     */
+    printReceive(): any;
+    /**
+     * 使用过滤函数过滤并在控制台输出接收日志
+     *
+     * @param {{ ($gmNSLog, ...args): boolean }} filter     过滤函数，函数返回true的会显示在控制台上
+     * @param {any} args                                    过滤函数使用的参数
+     *
+     * @memberOf $gmType
+     */
+    printReceive(filter: {
+        ($gmNSLog: $NSLog, ...args: any[]): boolean;
+    }, ...args: any[]): any;
+    /**
+     * 显示或排除指定指令的接收日志，并在控制台输出
+     *
+     * @param {boolean} isWhite     是否为白名单模式
+     * @param {...number[]} cmds    指令列表
+     *
+     * @memberOf $gmType
+     */
+    printReceive(isWhite: boolean, ...cmds: number[]): any;
+    /**
+     * 排除指定指令的接收日志，将其他日志信息在控制台输出
+     *
+     * @param {...number[]} cmds
+     *
+     * @memberOf $gmType
+     */
+    printReceive(...cmds: number[]): any;
+    /**
+     * 调用printSend和printReceive的一个简写
+     *
+     *
+     * @memberof $gmType
+     */
+    print(): any;
+    /**
+     * 模拟服务端发送数据
+     *
+     * @param {number} cmd
+     * @param {*} [data]
+     *
+     * @memberof $gmType
+     */
+    route(cmd: number, data?: any): any;
+    /**
+     * 使用日志数据进行模拟调试
+     *
+     * @param {$NSLog[]} logs
+     *
+     * @memberof $gmType
+     */
+    batchRoute(logs: $NSLog[]): any;
+    /**
+     * 获取网络传输数据日志的过滤器
+     * @returns {$NSFilter}
+     *
+     * @memberOf $gmType
+     */
+    __getNSFilter(...args: any[]): $NSFilter;
+    /**
+     * 检查是否需要显示日志
+     *
+     * @param {$NSLog} log
+     * @param {$NSFilter} nsFilter
+     * @returns {boolean}
+     *
+     * @memberOf $gmType
+     */
+    __nsLogCheck(log: $NSLog, nsFilter: $NSFilter): boolean;
+}
+declare namespace jy {
+    const enum NSType {
+        Null = 0,
+        Boolean = 1,
+        String = 2,
+        Bytes = 4,
+        Double = 5,
+        Int32 = 6,
+        Uint32 = 7,
+        Int64 = 8
+    }
+    const NSBytesLen: {
+        /**NSType.Null */ 0: number;
+        /**NSType.Boolean */ 1: number;
+        /**NSType.Double */ 5: number;
+        /**NSType.Int32 */ 6: number;
+        /**NSType.Uint32 */ 7: number;
+        /**NSType.Int64 */ 8: number;
+    };
+    /**
+     * 用于存储头部的临时变量
+     */
+    const nsHeader: {
+        cmd: number;
+        len: number;
+    };
+    /**
+     * 头信息
+     *
+     * @export
+     * @interface NSHeader
+     */
+    interface NSHeader {
+        /**
+         * 指令/协议号
+         *
+         * @type {number}
+         * @memberof NSHeader
+         */
+        cmd: number;
+        /**
+         * 长度
+         *
+         * @type {number}
+         * @memberof NSHeader
+         */
+        len: number;
+    }
+    /**
+     * 通信服务
+     * 收发的协议结构：
+     * 2字节协议号 2字节包长度(n) n字节包
+     * @author 3tion
+     *
+     */
+    abstract class NetService {
+        /**
+        * 请求地址
+        */
+        protected _actionUrl: string;
+        setLimitEventEmitable(emit: boolean): void;
+        protected static _ins: NetService;
+        protected _limitAlert: boolean;
+        protected _limitSendFunc: {
+            (cmd: number, data?: any, msgType?: Key, limit?: number): any;
+        };
+        protected _nolimitSendFunc: {
+            (cmd: number, data?: any, msgType?: Key, limit?: number): any;
+        };
+        static get(): NetService;
+        /**
+             * 用于调试模式下写日志
+             *
+             * @param {number} time
+             * @param {("send" | "receive")} type
+             * @param {number} cmd
+             * @param {*} data
+             *
+             * @memberOf $gmType
+             */
+        protected $writeNSLog: {
+            (time: number, type: "send" | "receive", cmd: number, data: any): void;
+        };
+        protected _router: NetRouter;
+        /**
+         * 待发送的的被动指令列表
+         */
+        protected _pcmdList: Recyclable<NetSendData>[];
+        /**
+         * 接收数据的临时数组
+         */
+        protected _tmpList: Recyclable<NetData>[];
+        /**
+         * 读取的字节缓存
+         */
+        protected _readBuffer: ByteArray;
+        /**
+         * 发送的字节缓存
+         */
+        protected _sendBuffer: ByteArray;
+        protected _tempBytes: ByteArray;
+        /**
+         * 是否连通
+         */
+        readonly connected?: boolean;
+        /**
+         * 接收消息的创建器
+         *
+         */
+        _receiveMSG: {
+            [index: number]: Key;
+        };
+        /**
+         * 设置地址
+         *
+         * @abstract
+         * @param {string} actionUrl
+         */
+        abstract setUrl(actionUrl: string): any;
+        constructor();
+        setEndian(endian: any): void;
+        protected netChange: () => void;
+        /**
+         * 基础连接时间
+         *
+         *
+         * @memberOf NetService
+         */
+        baseConTime: number;
+        /**
+         * 最大连接时间
+         *
+         *
+         * @memberOf NetService
+         */
+        maxConTime: Time;
+        /**
+         * 重连次数
+         *
+         * @private
+         * @type {number}
+         * @memberOf NetService
+         */
+        protected _reconCount: number;
+        /**
+         * 下次自动拉取请求的时间戳
+         */
+        protected _nextAutoTime: number;
+        /**
+         * 下次自动请求的最短
+         */
+        protected _autoTimeDelay: number;
+        protected showReconnect(): void;
+        protected onawake(): void;
+        /**
+         * 基础类型消息
+         */
+        regReceiveMSGRef(cmd: number, ref: Key): void;
+        /**
+         * 注册处理器
+         * @param {number} cmd 协议号
+         * @param {INetHandler} handler 处理网络数据的处理器
+         * @param {number} [priority=0] 处理优先级
+         */
+        register(cmd: number, handler: INetHandler, priotity?: number): boolean;
+        /**
+         * 注册单次执行的处理器
+         * @param {number} cmd 协议号
+         * @param {INetHandler} handler 处理网络数据的处理器
+         * @param {number} [priority=0] 处理优先级
+         */
+        regOnce(cmd: number, handler: INetHandler, priotity?: number): boolean;
+        /**
+         * 移除协议号和处理器的监听
+         *
+         * @param {number} cmd 协议号
+         * @param {INetHandler} handler 处理网络数据的处理器
+         */
+        remove(cmd: number, handler: INetHandler): void;
+        protected _register(cmd: number, handler: INetHandler, priotity: number, once: boolean): boolean;
+        /**
+         * 即时发送指令<br/>
+         * 用于处理角色主动操作的请求，如点击合成道具，使用物品等
+         * @param {number} cmd 协议号
+         * @param {any} [data] 数据，简单数据(number,boolean,string)复合数据
+         * @param {string} [msgType] 如果是复合数据，必须有此值
+         * @param {number} [limit] 客户端发送时间限制，默认500毫秒
+         */
+        send(cmd: number, data?: any, msgType?: Key, limit?: number): void;
+        /**
+         * 即时发送指令
+         */
+        protected abstract _send(cmd: number, data: any, msgType: Key): any;
+        /**
+         * 断开连接
+         */
+        disconnect(): void;
+        /**
+         * 消极发送指令
+         * 如果使用通协议的指令，有堆积的指令，先合并，新的替换旧的
+         * __`请勿将一些用户操作使用此指令发送`__
+         * 处理一些实时性要求不高的指令，这些指令先缓存堆积，等到用户主动发指令的时候，一起发送
+         * @param {number} cmd 协议号
+         * @param {any} [data] 数据，简单数据(number,boolean,string)复合数据
+         * @param {string} [msgType] 如果是复合数据，必须有此值
+         */
+        sendPassive(cmd: number, data?: any, msgType?: Key): void;
+        /**
+         * 向缓冲数组中写入数据
+         */
+        writeToBuffer(bytes: ByteArray, data: NetSendData): void;
+        /**
+         * @private
+         * @param bytes
+         * @param out
+         */
+        decodeBytes(bytes: ByteArray): void;
+        /**
+         * 解析头部信息
+         *
+         * @protected
+         * @param {ByteArray} bytes
+         * @param {NSHeader} header
+         * @returns 是否可以继续  true    继续后续解析
+         *                       false   取消后续解析
+         * @memberof NetService
+         */
+        protected decodeHeader(bytes: ByteArray, header: NSHeader): boolean;
+        /**
+         * 存储数据长度
+         *
+         * @protected
+         * @param {ByteArray} bytes
+         * @param {number} val
+         * @memberof NetService
+         */
+        protected writeBytesLength(bytes: ByteArray, val: number): void;
+        /**
+         *
+         * 模拟服务端
+         * @param {number} cmd
+         * @param {*} [data]
+         */
+        route(cmd: number, data?: any): void;
+    }
+}
+declare namespace jy {
+    interface GameLayer extends egret.DisplayObject {
+        id: number;
+    }
+    /**
+     * GameLayer
+     * 用于后期扩展
+     */
+    class BaseLayer extends egret.Sprite {
+        /**
+         * 层id
+         */
+        id: number;
+        constructor(id: number);
+    }
+    /**
+     * UI使用的层级，宽度和高度设定为和stage一致
+     *
+     * @export
+     * @class UILayer
+     * @extends {GameLayer}
+     */
+    class UILayer extends BaseLayer {
+        readonly width: number;
+        readonly height: number;
+    }
+    /**
+     * 需要对子对象排序的层
+     */
+    class SortedLayer extends BaseLayer {
+        $doAddChild(child: egret.DisplayObject, index: number, notifyListeners?: boolean): egret.DisplayObject;
+        /**
+         * 进行排序
+         */
+        sort(): void;
     }
 }
 interface $gmType {
@@ -758,239 +1471,6 @@ declare namespace jy {
     }
     interface Component extends ComponentWithEnable {
     }
-}
-/**
- * 参考createjs和白鹭的tween
- * 调整tick的驱动方式
- * https://github.com/CreateJS/TweenJS
- * @author 3tion
- */
-declare namespace jy {
-    class TweenManager {
-        protected _tweens: Tween[];
-        /**
-         * 注册过的插件列表
-         * Key      {string}            属性
-         * Value    {ITweenPlugin[]}    插件列表
-         *
-         * @type {{ [index: string]: ITweenPlugin[] }}
-         */
-        _plugins: {
-            [index: string]: ITweenPlugin[];
-        };
-        /**
-         * Returns a new tween instance. This is functionally identical to using "new Tween(...)", but looks cleaner
-         * with the chained syntax of TweenJS.
-         * <h4>Example</h4>
-         *
-         *		var tween = createjs. this.get(target);
-        *
-        * @method get
-        * @param {Object} target The target object that will have its properties tweened.
-        * @param {TweenOption} [props] The configuration properties to apply to this tween instance (ex. `{loop:true, paused:true}`).
-        * All properties default to `false`. Supported props are:
-        * <UL>
-        *    <LI> loop: sets the loop property on this tween.</LI>
-        *    <LI> useTicks: uses ticks for all durations instead of milliseconds.</LI>
-        *    <LI> ignoreGlobalPause: sets the {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}} property on
-        *    this tween.</LI>
-        *    <LI> override: if true, `createjs. this.removeTweens(target)` will be called to remove any other tweens with
-        *    the same target.
-        *    <LI> paused: indicates whether to start the tween paused.</LI>
-        *    <LI> position: indicates the initial position for this tween.</LI>
-        *    <LI> onChange: specifies a listener for the {{#crossLink "Tween/change:event"}}{{/crossLink}} event.</LI>
-        * </UL>
-        * @param {Object} [pluginData] An object containing data for use by installed plugins. See individual plugins'
-        * documentation for details.
-        * @param {Boolean} [override=false] If true, any previous tweens on the same target will be removed. This is the
-        * same as calling ` this.removeTweens(target)`.
-        * @return {Tween} A reference to the created tween. Additional chained tweens, method calls, or callbacks can be
-        * applied to the returned tween instance.
-        * @static
-        */
-        get(target: any, props?: TweenOption, pluginData?: any, override?: boolean): Tween;
-        /**
-         * 移除指定对象的所有tween
-         * Removes all existing tweens for a target. This is called automatically by new tweens if the `override`
-         * property is `true`.
-         * @method removeTweens
-         * @param {Object} target The target object to remove existing tweens from.
-         * @static
-         */
-        removeTweens(target: any): void;
-        /**
-         * 移除单个tween
-         *
-         * @param {Tween} twn
-         * @returns
-         *
-         * @memberOf TweenManager
-         */
-        removeTween(twn: Tween): void;
-        /**
-         * 暂停某个对象的全部Tween
-         *
-         * @static
-         * @param {*} target 指定对象
-         */
-        pauseTweens(target: any): void;
-        /**
-         * 恢复某个对象的全部Tween
-         *
-         * @static
-         * @param {*} target 指定对象
-         */
-        resumeTweens(target: any): void;
-        /**
-         * 由外部进行调用，进行心跳
-         * Advances all tweens. This typically uses the {{#crossLink "Ticker"}}{{/crossLink}} class, but you can call it
-         * manually if you prefer to use your own "heartbeat" implementation.
-         * @method tick
-         * @param {Number} delta The change in time in milliseconds since the last tick. Required unless all tweens have
-         * `useTicks` set to true.
-         * @param {Boolean} paused Indicates whether a global pause is in effect. Tweens with {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}}
-         * will ignore this, but all others will pause if this is `true`.
-         * @static
-         */
-        tick(delta: number, paused?: boolean): void;
-        /**
-         * 将tween注册/注销到管理器中，
-         *
-         * @param {Tween} tween
-         * @param {boolean} [value] (description)
-         * @returns {void}
-         * @private 此方法只允许tween调用
-         */
-        _register(tween: Tween, value?: boolean): void;
-        /**
-         * Stop and remove all existing tweens.
-         * 终止并移除所有的tween
-         * @method removeAllTweens
-         * @static
-         * @since 0.4.1
-         */
-        removeAllTweens(): void;
-        /**
-         * Indicates whether there are any active tweens (and how many) on the target object (if specified) or in general.
-         * @method hasActiveTweens
-         * @param {Object} [target] The target to check for active tweens. If not specified, the return value will indicate
-         * if there are any active tweens on any target.
-         * @return {Boolean} If there are active tweens.
-         * @static
-         */
-        hasActiveTweens(target: any): boolean;
-        /**
-         * Installs a plugin, which can modify how certain properties are handled when tweened. See the {{#crossLink "CSSPlugin"}}{{/crossLink}}
-         * for an example of how to write TweenJS plugins.
-         * @method installPlugin
-         * @static
-         * @param {Object} plugin The plugin class to install
-         * @param {Array} properties An array of properties that the plugin will handle.
-         */
-        installPlugin(plugin: ITweenPlugin, properties: string[]): void;
-    }
-}
-declare namespace jy {
-    interface GlobalInstance {
-        initTick: () => void;
-        nextTick: (callback: Function, thisObj?: any, ...args: any[]) => void;
-        nextTick2: (callback: CallbackInfo<Function>) => void;
-        /**
-         * 延迟执行
-         * @param {Function} callback 回调函数
-         * @param {number} [time=0] 延迟执行的时间
-         * @param {*} [thisObj] 回调的`this`指针
-         * @param args 回调参数列表
-         */
-        callLater(callback: Function, time?: number, thisObj?: any, ...args: any[]): any;
-        /**
-         * 延迟执行
-         * @param {$CallbackInfo} callback 回调函数
-         * @param {number} [time=0] 延迟执行的时间
-         */
-        callLater2(callback: $CallbackInfo, time?: number): any;
-        /**
-         * 清理延迟
-         * @param {Function} callback 回调函数
-         * @param {*} [thisObj]  回调的`this`指针
-         */
-        clearCallLater(callback: Function, thisObj?: any): any;
-        /**
-         * 清理延迟
-         * @param {$CallbackInfo} callback 要清理的回调
-         */
-        clearCallLater2(callback: $CallbackInfo): any;
-        /**
-         * 获取Tween
-         *
-         * @static
-         * @param {*} target 要对那个对象做Tween处理
-         * @param {TweenOption} props Tween的附加属性 (如： `{loop:true, paused:true}`).
-         * All properties default to `false`. Supported props are:
-         * <UL>
-         *    <LI> loop: sets the loop property on this tween.</LI>
-         *    <LI> useTicks: uses ticks for all durations instead of milliseconds.</LI>
-         *    <LI> ignoreGlobalPause: sets the {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}} property on
-         *    this tween.</LI>
-         *    <LI> override: if true, `createjs. this.removeTweens(target)` will be called to remove any other tweens with
-         *    the same target.
-         *    <LI> paused: indicates whether to start the tween paused.</LI>
-         *    <LI> position: indicates the initial position for this tween.</LI>
-         *    <LI> onChange: specifies a listener for the {{#crossLink "Tween/change:event"}}{{/crossLink}} event.</LI>
-         * </UL>
-         * @param {*} pluginData 插件数据
-         * @param {boolean} override 是否覆盖
-         * @returns {Tween} tween的实例
-         */
-        getTween(target: any, props?: TweenOption, pluginData?: any, override?: boolean): Tween;
-        /**
-         * 移除指定的Tween
-         *
-         * @param {Tween} tween
-         * @returns
-         */
-        removeTween(tween: Tween): any;
-        /**
-         * 移除指定目标的所有Tween
-         *
-         * @param {any} target
-         * @returns
-         */
-        removeTweens(target: any): any;
-        /**
-         * 判断是否为Native的版本
-         */
-        readonly isNative: boolean;
-        tweenManager: TweenManager;
-        /**
-         *  当前这一帧的时间
-         */
-        readonly now: number;
-        /**
-         * 按照帧，应该走的时间
-         * 每帧根据帧率加固定时间
-         * 用于处理逐帧同步用
-         */
-        readonly frameNow: number;
-        /**
-         * 是否支持webp
-         */
-        readonly webp: "" | Ext.WEBP;
-        /**
-         * 添加每帧执行回调
-         */
-        addInterval(callback: CallbackInfo<Function>): void;
-        /**
-         * 移除每帧执行回调
-         */
-        removeInterval(callback: CallbackInfo<Function>): void;
-    }
-    /**
-     * 动画的全局对象
-     * @author 3tion
-     *
-     */
-    const Global: GlobalInstance;
 }
 declare const enum EgretEvent {
     /**************************************** egret.Event ****************************************/
@@ -1524,449 +2004,6 @@ declare namespace jy {
      */
     function copyProperties<To, From>(to: To, from: From, ...keys: (keyof From)[]): void;
 }
-interface $NSFilter {
-    /**
-     * 感兴趣的请求
-     *
-     * @type { [index: number]: boolean }
-     * @memberOf $gmNSLog
-     */
-    cmds?: number[];
-    /**
-     * 是否为白名单模式，默认黑名单
-     *
-     * @type {boolean}
-     * @memberOf $NSFilter
-     */
-    isWhite: boolean;
-    /**
-     * 过滤器
-     *
-     * @type {{ ($gmNSLog, ...args): boolean }}
-     * @memberOf $NSFilter
-     */
-    filter?: {
-        ($gmNSLog: any, ...args: any[]): boolean;
-    };
-    /**
-     * 过滤器参数
-     *
-     * @type {any[]}
-     * @memberOf $NSFilter
-     */
-    filterParams?: any[];
-}
-interface $NSLog {
-    time: number;
-    type: "send" | "receive";
-    cmd: number;
-    data: any;
-}
-/**
- * 用于扩展GM指令
- *
- * @interface $gmType
- */
-interface $gmType {
-    /**
-     * 发送的网络消息的日志
-     *
-     * @type {$NSFilter}
-     * @memberOf $gmType
-     */
-    printSendFilter: $NSFilter;
-    /**
-     * 接收的网络消息的日志
-     *
-     * @type {$NSFilter}
-     * @memberOf $gmType
-     */
-    printReceiveFilter: $NSFilter;
-    /**
-     * 日志数据
-     *
-     * @type $NSLog[])}
-     * @memberOf $gmType
-     */
-    nsLogs: $NSLog[];
-    /**
-     * 输出日志内容
-     * @memberOf $gmType
-     */
-    showNSLog(): $NSLog[];
-    showNSLog(filter: {
-        ($gmNSLog: $NSLog, ...args: any[]): boolean;
-    }, ...args: any[]): $NSLog[];
-    showNSLog(isWhite: boolean, ...cmds: number[]): $NSLog[];
-    /**
-     * 使用黑名单模式，进行输出
-     *
-     * @param {...number[]} cmds
-     *
-     * @memberOf $gmType
-     */
-    showNSLog(...cmds: number[]): $NSLog[];
-    /**
-     * 最大网络日志数量
-     *
-     * @type {number}
-     * @memberOf $gmType
-     */
-    maxNSLogCount: number;
-    /**
-     * 控制台输出发送日志
-     * @memberOf $gm
-     */
-    printSend(): any;
-    /**
-     * 使用过滤函数过滤在控制台输出的发送日志
-     *
-     * @param {{ ($gmNSLog, ...args): boolean }} filter     过滤函数，函数返回true的会显示在控制台上
-     * @param {any} args                                    过滤函数使用的参数
-     *
-     * @memberOf $gmType
-     */
-    printSend(filter: {
-        ($gmNSLog: $NSLog, ...args: any[]): boolean;
-    }, ...args: any[]): any;
-    /**
-     * 显示或排除指定指令的发送日志，并在控制台输出
-     *
-     * @param {boolean} isWhite     是否为白名单模式
-     * @param {...number[]} cmds    指令列表
-     *
-     * @memberOf $gmType
-     */
-    printSend(isWhite: boolean, ...cmds: number[]): any;
-    /**
-     * 排除指定指令的发送日志，将其他日志信息在控制台输出
-     *
-     * @param {...number[]} cmds    黑名单列表
-     *
-     * @memberOf $gmType
-     */
-    printSend(...cmds: number[]): any;
-    /**
-     * 控制台输出接收日志
-     * @memberOf $gmType
-     */
-    printReceive(): any;
-    /**
-     * 使用过滤函数过滤并在控制台输出接收日志
-     *
-     * @param {{ ($gmNSLog, ...args): boolean }} filter     过滤函数，函数返回true的会显示在控制台上
-     * @param {any} args                                    过滤函数使用的参数
-     *
-     * @memberOf $gmType
-     */
-    printReceive(filter: {
-        ($gmNSLog: $NSLog, ...args: any[]): boolean;
-    }, ...args: any[]): any;
-    /**
-     * 显示或排除指定指令的接收日志，并在控制台输出
-     *
-     * @param {boolean} isWhite     是否为白名单模式
-     * @param {...number[]} cmds    指令列表
-     *
-     * @memberOf $gmType
-     */
-    printReceive(isWhite: boolean, ...cmds: number[]): any;
-    /**
-     * 排除指定指令的接收日志，将其他日志信息在控制台输出
-     *
-     * @param {...number[]} cmds
-     *
-     * @memberOf $gmType
-     */
-    printReceive(...cmds: number[]): any;
-    /**
-     * 调用printSend和printReceive的一个简写
-     *
-     *
-     * @memberof $gmType
-     */
-    print(): any;
-    /**
-     * 模拟服务端发送数据
-     *
-     * @param {number} cmd
-     * @param {*} [data]
-     *
-     * @memberof $gmType
-     */
-    route(cmd: number, data?: any): any;
-    /**
-     * 使用日志数据进行模拟调试
-     *
-     * @param {$NSLog[]} logs
-     *
-     * @memberof $gmType
-     */
-    batchRoute(logs: $NSLog[]): any;
-    /**
-     * 获取网络传输数据日志的过滤器
-     * @returns {$NSFilter}
-     *
-     * @memberOf $gmType
-     */
-    __getNSFilter(...args: any[]): $NSFilter;
-    /**
-     * 检查是否需要显示日志
-     *
-     * @param {$NSLog} log
-     * @param {$NSFilter} nsFilter
-     * @returns {boolean}
-     *
-     * @memberOf $gmType
-     */
-    __nsLogCheck(log: $NSLog, nsFilter: $NSFilter): boolean;
-}
-declare namespace jy {
-    const enum NSType {
-        Null = 0,
-        Boolean = 1,
-        String = 2,
-        Bytes = 4,
-        Double = 5,
-        Int32 = 6,
-        Uint32 = 7,
-        Int64 = 8
-    }
-    const NSBytesLen: {
-        /**NSType.Null */ 0: number;
-        /**NSType.Boolean */ 1: number;
-        /**NSType.Double */ 5: number;
-        /**NSType.Int32 */ 6: number;
-        /**NSType.Uint32 */ 7: number;
-        /**NSType.Int64 */ 8: number;
-    };
-    /**
-     * 用于存储头部的临时变量
-     */
-    const nsHeader: {
-        cmd: number;
-        len: number;
-    };
-    /**
-     * 头信息
-     *
-     * @export
-     * @interface NSHeader
-     */
-    interface NSHeader {
-        /**
-         * 指令/协议号
-         *
-         * @type {number}
-         * @memberof NSHeader
-         */
-        cmd: number;
-        /**
-         * 长度
-         *
-         * @type {number}
-         * @memberof NSHeader
-         */
-        len: number;
-    }
-    /**
-     * 通信服务
-     * 收发的协议结构：
-     * 2字节协议号 2字节包长度(n) n字节包
-     * @author 3tion
-     *
-     */
-    abstract class NetService {
-        /**
-        * 请求地址
-        */
-        protected _actionUrl: string;
-        setLimitEventEmitable(emit: boolean): void;
-        protected static _ins: NetService;
-        protected _limitAlert: boolean;
-        protected _limitSendFunc: {
-            (cmd: number, data?: any, msgType?: Key, limit?: number): any;
-        };
-        protected _nolimitSendFunc: {
-            (cmd: number, data?: any, msgType?: Key, limit?: number): any;
-        };
-        static get(): NetService;
-        /**
-             * 用于调试模式下写日志
-             *
-             * @param {number} time
-             * @param {("send" | "receive")} type
-             * @param {number} cmd
-             * @param {*} data
-             *
-             * @memberOf $gmType
-             */
-        protected $writeNSLog: {
-            (time: number, type: "send" | "receive", cmd: number, data: any): void;
-        };
-        protected _router: NetRouter;
-        /**
-         * 待发送的的被动指令列表
-         */
-        protected _pcmdList: Recyclable<NetSendData>[];
-        /**
-         * 接收数据的临时数组
-         */
-        protected _tmpList: Recyclable<NetData>[];
-        /**
-         * 读取的字节缓存
-         */
-        protected _readBuffer: ByteArray;
-        /**
-         * 发送的字节缓存
-         */
-        protected _sendBuffer: ByteArray;
-        protected _tempBytes: ByteArray;
-        /**
-         * 是否连通
-         */
-        readonly connected?: boolean;
-        /**
-         * 接收消息的创建器
-         *
-         */
-        _receiveMSG: {
-            [index: number]: Key;
-        };
-        /**
-         * 设置地址
-         *
-         * @abstract
-         * @param {string} actionUrl
-         */
-        abstract setUrl(actionUrl: string): any;
-        constructor();
-        setEndian(endian: any): void;
-        protected netChange: () => void;
-        /**
-         * 基础连接时间
-         *
-         *
-         * @memberOf NetService
-         */
-        baseConTime: number;
-        /**
-         * 最大连接时间
-         *
-         *
-         * @memberOf NetService
-         */
-        maxConTime: Time;
-        /**
-         * 重连次数
-         *
-         * @private
-         * @type {number}
-         * @memberOf NetService
-         */
-        protected _reconCount: number;
-        /**
-         * 下次自动拉取请求的时间戳
-         */
-        protected _nextAutoTime: number;
-        /**
-         * 下次自动请求的最短
-         */
-        protected _autoTimeDelay: number;
-        protected showReconnect(): void;
-        protected onawake(): void;
-        /**
-         * 基础类型消息
-         */
-        regReceiveMSGRef(cmd: number, ref: Key): void;
-        /**
-         * 注册处理器
-         * @param {number} cmd 协议号
-         * @param {INetHandler} handler 处理网络数据的处理器
-         * @param {number} [priority=0] 处理优先级
-         */
-        register(cmd: number, handler: INetHandler, priotity?: number): boolean;
-        /**
-         * 注册单次执行的处理器
-         * @param {number} cmd 协议号
-         * @param {INetHandler} handler 处理网络数据的处理器
-         * @param {number} [priority=0] 处理优先级
-         */
-        regOnce(cmd: number, handler: INetHandler, priotity?: number): boolean;
-        /**
-         * 移除协议号和处理器的监听
-         *
-         * @param {number} cmd 协议号
-         * @param {INetHandler} handler 处理网络数据的处理器
-         */
-        remove(cmd: number, handler: INetHandler): void;
-        protected _register(cmd: number, handler: INetHandler, priotity: number, once: boolean): boolean;
-        /**
-         * 即时发送指令<br/>
-         * 用于处理角色主动操作的请求，如点击合成道具，使用物品等
-         * @param {number} cmd 协议号
-         * @param {any} [data] 数据，简单数据(number,boolean,string)复合数据
-         * @param {string} [msgType] 如果是复合数据，必须有此值
-         * @param {number} [limit] 客户端发送时间限制，默认500毫秒
-         */
-        send(cmd: number, data?: any, msgType?: Key, limit?: number): void;
-        /**
-         * 即时发送指令
-         */
-        protected abstract _send(cmd: number, data: any, msgType: Key): any;
-        /**
-         * 断开连接
-         */
-        disconnect(): void;
-        /**
-         * 消极发送指令
-         * 如果使用通协议的指令，有堆积的指令，先合并，新的替换旧的
-         * __`请勿将一些用户操作使用此指令发送`__
-         * 处理一些实时性要求不高的指令，这些指令先缓存堆积，等到用户主动发指令的时候，一起发送
-         * @param {number} cmd 协议号
-         * @param {any} [data] 数据，简单数据(number,boolean,string)复合数据
-         * @param {string} [msgType] 如果是复合数据，必须有此值
-         */
-        sendPassive(cmd: number, data?: any, msgType?: Key): void;
-        /**
-         * 向缓冲数组中写入数据
-         */
-        writeToBuffer(bytes: ByteArray, data: NetSendData): void;
-        /**
-         * @private
-         * @param bytes
-         * @param out
-         */
-        decodeBytes(bytes: ByteArray): void;
-        /**
-         * 解析头部信息
-         *
-         * @protected
-         * @param {ByteArray} bytes
-         * @param {NSHeader} header
-         * @returns 是否可以继续  true    继续后续解析
-         *                       false   取消后续解析
-         * @memberof NetService
-         */
-        protected decodeHeader(bytes: ByteArray, header: NSHeader): boolean;
-        /**
-         * 存储数据长度
-         *
-         * @protected
-         * @param {ByteArray} bytes
-         * @param {number} val
-         * @memberof NetService
-         */
-        protected writeBytesLength(bytes: ByteArray, val: number): void;
-        /**
-         *
-         * 模拟服务端
-         * @param {number} cmd
-         * @param {*} [data]
-         */
-        route(cmd: number, data?: any): void;
-    }
-}
 declare namespace jy {
     /**
      * 状态机
@@ -2279,43 +2316,6 @@ declare namespace jy {
     };
 }
 declare namespace jy {
-    interface GameLayer extends egret.DisplayObject {
-        id: number;
-    }
-    /**
-     * GameLayer
-     * 用于后期扩展
-     */
-    class BaseLayer extends egret.Sprite {
-        /**
-         * 层id
-         */
-        id: number;
-        constructor(id: number);
-    }
-    /**
-     * UI使用的层级，宽度和高度设定为和stage一致
-     *
-     * @export
-     * @class UILayer
-     * @extends {GameLayer}
-     */
-    class UILayer extends BaseLayer {
-        readonly width: number;
-        readonly height: number;
-    }
-    /**
-     * 需要对子对象排序的层
-     */
-    class SortedLayer extends BaseLayer {
-        $doAddChild(child: egret.DisplayObject, index: number, notifyListeners?: boolean): egret.DisplayObject;
-        /**
-         * 进行排序
-         */
-        sort(): void;
-    }
-}
-declare namespace jy {
     /**
      * 基础渲染器
      * @author 3tion
@@ -2576,6 +2576,270 @@ declare namespace jy {
          */
         getDirection(adKey: number): number;
     };
+}
+declare namespace jy {
+    /**
+     * 默认地图宽/高
+     */
+    const enum MapConst {
+        DefaultSize = 256,
+        MapPath = "m/"
+    }
+    /**
+     * 地图路径点寻路类型
+     */
+    const enum MapPathType {
+        /**
+         * 格子路径
+         */
+        Grid = 0,
+        /**
+         * 导航网格
+         */
+        NavMesh = 1
+    }
+    /**
+     * 地图基础信息<br/>
+     * 由地图编辑器生成的地图信息
+     * @author 3tion
+     *
+     */
+    class MapInfo {
+        /**
+         * 图片扩展
+         */
+        ext: Ext;
+        /**
+         * 地图唯一标识
+         */
+        id: Key;
+        /**
+         * 地图路径
+         */
+        path: string;
+        /**
+         * 路径类型
+         * 0 走格子的
+         * 1 走导航网格寻路
+         */
+        pathType: MapPathType;
+        /**
+         * 地图像素宽度
+         */
+        width: number;
+        /**
+         * 地图像素高度
+         */
+        height: number;
+        /**
+         * 单张底图的宽度
+         */
+        pWidth: number;
+        /**
+         * 单张底图的高度
+         */
+        pHeight: number;
+        /**
+         * X轴最大图片坐标
+         * 000开始
+         */
+        maxPicX: number;
+        /**
+         * Y轴最大图片数量
+         * 000开始
+         */
+        maxPicY: number;
+        /**
+         * 路径点是否可走
+         * 0 不可走
+         * @param x
+         * @param y
+         */
+        getWalk?(x: number, y: number): number;
+        /**
+        * 获取地图图块资源路径
+        */
+        getMapUri(col: number, row: number): string;
+        /**
+         * 获取图片路径
+         */
+        getImgUri(uri: string): string;
+        /**
+         * 地图前缀路径
+         */
+        static prefix: MapConst;
+    }
+}
+interface $gmType {
+    /**
+     * 显示/关闭地图格子显示
+     *
+     *
+     * @memberOf $gmType
+     */
+    toggleMapGrid(): any;
+    $showMapGrid: boolean;
+    regPathDraw(type: jy.MapPathType, handler: jy.drawPath): any;
+    pathSolution: {
+        [type in jy.MapPathType]: jy.drawPath;
+    };
+}
+declare namespace jy {
+    /**
+    * MapRender
+    * 用于处理地图平铺的渲染
+    */
+    class TileMapLayer extends BaseLayer {
+        miniUri: string;
+        /**
+         * 扩展预加载的图块数量
+         *
+         */
+        preload: number;
+        static checkRect?(map: MapInfo, rect: egret.Rectangle, preload: number, forEach: {
+            (uri: string, col: number, row: number): any;
+        }, checker?: {
+            (sc: number, sr: number, ec: number, er: number): boolean;
+        }): any;
+        /**
+         * @private
+         */
+        private _currentMap;
+        /**
+        * 显示/关闭地图格子显示
+        *
+        *
+        * @memberOf $gmType
+        */
+        currentMap: MapInfo;
+        /**
+         * mini的纹理
+         */
+        mini: egret.Texture;
+        miniTexDict: {
+            [key: number]: egret.Texture;
+        };
+        /**
+         *
+         * 显示中的地图
+         * @type {TileMap[]}
+         */
+        protected _showing: TileMap[];
+        protected drawGrid?: {
+            (x: number, y: number, w: number, h: number, cM: MapInfo): void;
+        };
+        /**
+         * 上次渲染的起始 column
+         *
+         * @protected
+         * @type {number}
+         */
+        protected lsc: number;
+        /**
+         * 上次渲染的起始 row
+         *
+         * @protected
+         * @type {number}
+         */
+        protected lsr: number;
+        /**
+         * 上次渲染的结束 column
+         *
+         * @protected
+         * @type {number}
+         */
+        protected lec: number;
+        /**
+         * 上次渲染的结束 row
+         *
+         * @protected
+         * @type {number}
+         */
+        protected ler: number;
+        protected _idx: number;
+        protected addMap(uri: string, c: number, r: number, pW: number, pH: number): void;
+        reset(): void;
+        protected check(sc: number, sr: number, ec: number, er: number): boolean;
+        setRect(rect: egret.Rectangle, ox?: number, oy?: number): void;
+        protected noRes(uri: string, c: number, r: number, pW: number, pH: number): TileMap;
+        /**
+         * 设置小地图
+         * @param uri
+         */
+        setMini(uri: string): void;
+        miniLoad(item: Res.ResItem): void;
+        removeChildren(): void;
+    }
+    /**
+    * TileMap
+    */
+    class TileMap extends egret.Bitmap implements IResource {
+        /**
+         * 表示此底图为空地图，最终不放置在舞台上
+         */
+        empty: boolean;
+        /**
+         * 地图块的列
+         */
+        col: number;
+        /**
+         * 地图块的行
+         */
+        row: number;
+        /**
+         * 资源唯一标识
+         */
+        uri: string;
+        /**
+         *
+         * 是否为静态资源
+         * @type {boolean}
+         */
+        isStatic: boolean;
+        lastUseTime: number;
+        /**
+         *
+         * 资源路径
+         * @type {string}
+         */
+        url: string;
+        constructor();
+        reset(col: number, row: number, uri: string): void;
+        load(): void;
+        /**
+         * 资源加载完成
+         */
+        loadComplete(item: Res.ResItem): void;
+        dispose(): void;
+    }
+}
+declare namespace jy {
+    import Point = egret.Point;
+    class Line {
+        pA: Readonly<Point>;
+        pB: Readonly<Point>;
+        /**
+         * 是否计算过法线
+         */
+        private calcedNormal;
+        /**
+         * 法线
+         */
+        m_Normal: Point;
+        setPA(pt: Point): this;
+        setPB(pt: Point): this;
+        setPoints(pA: Point, pB: Point): this;
+        computeNormal(): void;
+        signedDistance(point: Point): number;
+        /**
+         * 检查点的位置
+         * @param point 要检查的点
+         * @param epsilon 精度
+         */
+        classifyPoint(point: Point, epsilon?: NavMeshConst): PointClassification;
+        intersection(other: Line, intersectPoint?: Point): LineClassification;
+        equals(line: Line): boolean;
+    }
 }
 declare namespace jy {
     /**
@@ -7827,6 +8091,38 @@ declare namespace jy {
 }
 declare namespace jy {
     /**
+     * 固定大小的堆栈数据
+     */
+    class Heap<T> {
+        /**
+         * 原始数据
+         */
+        readonly heap: T[];
+        readonly maxSize: number;
+        private _count;
+        readonly compare: (a: T, b: T) => number;
+        constructor(size: number, compare?: {
+            (a: T, b: T): number;
+        });
+        /**
+         * 获取堆中，第一个元素
+         */
+        peek(): T;
+        put(obj: T): boolean;
+        pop(): T;
+        clear(newSize?: number): void;
+        readonly size: number;
+        toArray(): T[];
+        /**
+         * 遍历堆中元素
+         * @param callbackfn 回调函数，如果返回true，停止遍历
+         * @param thisArg 回调函数的 this 指针
+         */
+        forEach(callbackfn: (value: T, cursor: number, heap: Heap<T>) => boolean, thisArg?: any): void;
+    }
+}
+declare namespace jy {
+    /**
      * 项目中不使用long类型，此值暂时只用于存储Protobuff中的int64 sint64
      * @author
      *
@@ -10097,229 +10393,6 @@ declare namespace jy {
     }
 }
 declare namespace jy {
-    /**
-     * 地图基础信息<br/>
-     * 由地图编辑器生成的地图信息
-     * @author 3tion
-     *
-     */
-    class MapInfo extends egret.HashObject {
-        /**
-         * 图片扩展
-         */
-        ext: Ext;
-        /**
-         * 地图唯一标识
-         */
-        id: Key;
-        /**
-         * 地图路径
-         */
-        path: string;
-        /**
-         * 地图格子列数
-         */
-        columns: number;
-        /**
-         * 地图格子行数
-         */
-        rows: number;
-        /**
-         * 格子宽度
-         */
-        gridWidth: number;
-        /**
-         * 格子高度
-         */
-        gridHeight: number;
-        /**
-         * 地图像素宽度
-         */
-        width: number;
-        /**
-         * 地图像素高度
-         */
-        height: number;
-        /**
-         * 单张底图的宽度
-         */
-        pWidth: number;
-        /**
-         * 单张底图的高度
-         */
-        pHeight: number;
-        /**
-         * X轴最大图片坐标
-         * 000开始
-         */
-        maxPicX: number;
-        /**
-         * Y轴最大图片数量
-         * 000开始
-         */
-        maxPicY: number;
-        getWalk?(x: number, y: number): number;
-        /**
-         * 路径点信息 低版本WebView不支持 ArrayBuffer
-         */
-        pathdata?: Uint8Array;
-        constructor();
-        /**
-        * 获取地图图块资源路径
-        */
-        getMapUri(col: number, row: number): string;
-        /**
-         * 获取图片路径
-         */
-        getImgUri(uri: string): string;
-        /**
-         * 地图前缀路径
-         */
-        static prefix: string;
-    }
-}
-interface $gmType {
-    /**
-     * 显示/关闭地图格子显示
-     *
-     *
-     * @memberOf $gmType
-     */
-    toggleMapGrid(): any;
-    $showMapGrid: boolean;
-}
-declare namespace jy {
-    /**
-    * MapRender
-    * 用于处理地图平铺的渲染
-    */
-    class TileMapLayer extends BaseLayer {
-        miniUri: string;
-        /**
-         * 扩展预加载的图块数量
-         *
-         */
-        preload: number;
-        static checkRect?(map: MapInfo, rect: egret.Rectangle, preload: number, forEach: {
-            (uri: string, col: number, row: number): any;
-        }, checker?: {
-            (sc: number, sr: number, ec: number, er: number): boolean;
-        }): any;
-        /**
-         * @private
-         */
-        currentMap: MapInfo;
-        /**
-         * mini的纹理
-         */
-        mini: egret.Texture;
-        miniTexDict: {
-            [key: number]: egret.Texture;
-        };
-        /**
-         *
-         * 显示中的地图
-         * @type {TileMap[]}
-         */
-        protected _showing: TileMap[];
-        protected drawGrid?: {
-            (x: number, y: number, w: number, h: number, cM: MapInfo): void;
-        };
-        /**
-         * Debug专用
-         */
-        private debugGridPanes;
-        /**
-         * 绘制格子用的纹理
-         */
-        private debugGridTexture;
-        /**
-         * 上次渲染的起始 column
-         *
-         * @protected
-         * @type {number}
-         */
-        protected lsc: number;
-        /**
-         * 上次渲染的起始 row
-         *
-         * @protected
-         * @type {number}
-         */
-        protected lsr: number;
-        /**
-         * 上次渲染的结束 column
-         *
-         * @protected
-         * @type {number}
-         */
-        protected lec: number;
-        /**
-         * 上次渲染的结束 row
-         *
-         * @protected
-         * @type {number}
-         */
-        protected ler: number;
-        protected _idx: number;
-        protected addMap(uri: string, c: number, r: number, pW: number, pH: number): void;
-        reset(): void;
-        protected check(sc: number, sr: number, ec: number, er: number): boolean;
-        setRect(rect: egret.Rectangle, ox?: number, oy?: number): void;
-        protected noRes(uri: string, c: number, r: number, pW: number, pH: number): TileMap;
-        constructor(id: number);
-        /**
-         * 设置小地图
-         * @param uri
-         */
-        setMini(uri: string): void;
-        miniLoad(item: Res.ResItem): void;
-        removeChildren(): void;
-    }
-    /**
-    * TileMap
-    */
-    class TileMap extends egret.Bitmap implements IResource {
-        /**
-         * 表示此底图为空地图，最终不放置在舞台上
-         */
-        empty: boolean;
-        /**
-         * 地图块的列
-         */
-        col: number;
-        /**
-         * 地图块的行
-         */
-        row: number;
-        /**
-         * 资源唯一标识
-         */
-        uri: string;
-        /**
-         *
-         * 是否为静态资源
-         * @type {boolean}
-         */
-        isStatic: boolean;
-        lastUseTime: number;
-        /**
-         *
-         * 资源路径
-         * @type {string}
-         */
-        url: string;
-        constructor();
-        reset(col: number, row: number, uri: string): void;
-        load(): void;
-        /**
-         * 资源加载完成
-         */
-        loadComplete(item: Res.ResItem): void;
-        dispose(): void;
-    }
-}
-declare namespace jy {
     interface PathFinderCallback {
         /**
          *
@@ -10368,6 +10441,14 @@ declare namespace jy {
          */
         getPath(fx: number, fy: number, tx: number, ty: number, callback: CallbackInfo<PathFinderCallback>, opt?: PathFinderOption): any;
     }
+    /**
+     * 绘制路径信息
+     */
+    interface drawPath {
+        (this: TileMapLayer, x: number, y: number, w: number, h: number, map: MapInfo): any;
+    }
+}
+declare namespace jy {
     /**
      * 寻路的节点
      *
@@ -10448,7 +10529,7 @@ declare namespace jy {
          * @memberOf Astar
          */
         minCacTime: number;
-        bindMap(map: MapInfo): void;
+        bindMap(map: GridMapInfo): void;
         /**
          * 获取路径节点
          *
@@ -10464,6 +10545,163 @@ declare namespace jy {
         getPath(fx: number, fy: number, tx: number, ty: number, callback: CallbackInfo<PathFinderCallback>, opt?: PathFinderOption): {
             stop: boolean;
         };
+    }
+}
+declare namespace jy {
+    interface GridMapInfo extends MapInfo {
+        pathdata: Uint8Array;
+        /**
+         * 格子宽度
+         */
+        gridWidth: number;
+        /**
+         * 格子高度
+         */
+        gridHeight: number;
+        /**
+         * 地图格子列数
+         */
+        columns: number;
+        /**
+         * 地图格子行数
+         */
+        rows: number;
+    }
+}
+declare namespace jy {
+    import Point = egret.Point;
+    class Triangle {
+        readonly pA: Point;
+        readonly pB: Point;
+        readonly pC: Point;
+        sides: Line[];
+        /**
+         * 三角的中心x
+         */
+        readonly x = 0;
+        /**
+         * 三角的中心y
+         */
+        readonly y = 0;
+        /**
+         * 数据是否计算过
+         */
+        protected _calced: boolean;
+        constructor(p1?: Point, p2?: Point, p3?: Point);
+        setPoints(p1: Point, p2: Point, p3: Point): this;
+        calculateData(): void;
+        /**
+         * 检查点是否在三角形中间
+         * @param testPoint
+         */
+        isPointIn(testPoint: Point): boolean;
+    }
+    class Cell extends Triangle {
+        f: number;
+        h: number;
+        isOpen: boolean;
+        parent: Cell;
+        sessionId: number;
+        idx: number;
+        links: {
+            0: number;
+            1: number;
+            2: number;
+        };
+        /**
+         * 每边的中点
+         */
+        wallMidPt: {
+            0: Point;
+            1: Point;
+            2: Point;
+        };
+        /**
+         * 没边中点距离
+         */
+        wallDist: number[];
+        /**
+         * 通过墙的索引
+         */
+        wall: number;
+        init(): void;
+        /**
+         * 检查并设置当前三角型与`cellB`的连接关系（方法会同时设置`cellB`与该三角型的连接）
+         * @param cellB
+         */
+        checkAndLink(cellB: Cell): void;
+        /**
+         * 记录路径从上一个节点进入该节点的边（如果从终点开始寻路即为穿出边）
+         * @param index	路径上一个节点的索引
+         */
+        setWall(index: number): number;
+    }
+}
+declare namespace jy {
+    const enum NavMeshConst {
+        /**
+         * 精度
+         */
+        Epsilon = 0.000001
+    }
+    const enum TrangleSideIndex {
+        SideAB = 0,
+        SideBC = 1,
+        SideCA = 2
+    }
+    /**
+     * 点所在的位置
+     */
+    const enum PointClassification {
+        /**
+         * 点离在线上，或者离得非常非常近（低于精度）
+         */
+        OnLine = 0,
+        /**
+         * 按端点A->端点B，点在线的左边
+         */
+        LeftSide = 1,
+        /**
+         * 按端点A->端点B，点在线的右边
+         */
+        RightSide = 2
+    }
+    const enum LineClassification {
+        /**
+         * 共线
+         */
+        Collinear = 0,
+        /**
+         * 直线相交，但线段不相交
+         */
+        LinesIntersect = 1,
+        /**
+         * 两条线段相互平分
+         */
+        SegmentsIntersect = 2,
+        ABisectB = 3,
+        BBisectA = 4,
+        /**
+         * 平行
+         */
+        Paralell = 5
+    }
+}
+declare namespace jy {
+    class NavMeshFinder implements PathFinder {
+        map: NavMeshMapInfo;
+        openList: Heap<Cell>;
+        bindMap(map: NavMeshMapInfo): void;
+        getPath(fx: number, fy: number, tx: number, ty: number, callback: CallbackInfo<PathFinderCallback>, opt?: PathFinderOption): void;
+    }
+}
+declare namespace jy {
+    interface NavMeshMapInfo extends MapInfo {
+        /**
+         * 网格是否链接过
+         */
+        linked: boolean;
+        cells: Cell[];
     }
 }
 declare namespace jy {
