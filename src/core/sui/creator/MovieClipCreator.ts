@@ -139,12 +139,11 @@ namespace jy {
             let comps: egret.DisplayObject[];
             if (compsData) {
                 let sm = singleton(SuiResManager);
-                let j = 0;
                 comps = [];
                 for (let i = 0; i < compsData.length; i++) {
                     let dis = sm.createComponent(compsData[i], suiData, this);
                     if (dis instanceof egret.DisplayObject) {
-                        comps[j++] = dis;
+                        comps[i] = dis;
                     }
                 }
             } else {

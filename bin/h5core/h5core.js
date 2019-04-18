@@ -20111,12 +20111,11 @@ var jy;
             var comps;
             if (compsData) {
                 var sm = jy.singleton(jy.SuiResManager);
-                var j = 0;
                 comps = [];
                 for (var i = 0; i < compsData.length; i++) {
                     var dis = sm.createComponent(compsData[i], suiData, _this);
                     if (dis instanceof egret.DisplayObject) {
-                        comps[j++] = dis;
+                        comps[i] = dis;
                     }
                 }
             }
