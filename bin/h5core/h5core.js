@@ -5018,7 +5018,7 @@ var jy;
 var jy;
 (function (jy) {
     try {
-        var supportWebp = document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') == 0;
+        var supportWebp = window.supportWebp == false ? false : document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') == 0;
     }
     catch (err) { }
     var _webp = supportWebp ? ".webp" /* WEBP */ : "";
