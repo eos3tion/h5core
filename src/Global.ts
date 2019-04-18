@@ -1,6 +1,6 @@
 namespace jy {
 	try {
-		var supportWebp = document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') == 0;
+		var supportWebp = (window as any).supportWebp == false ? false : document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') == 0;
 	} catch (err) { }
 
 	const _webp = supportWebp ? Ext.WEBP : "";
