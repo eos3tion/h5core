@@ -9576,6 +9576,14 @@ declare namespace jy {
          * 获取数据
          */
         private _datas;
+        /**
+         * 最大宽度
+         */
+        readonly width: number;
+        /**
+         * 最大高度
+         */
+        readonly height: number;
         constructor(key: string, pstInfo: PstInfo);
         /**
          * 解析数据
