@@ -59,6 +59,15 @@ namespace jy {
          */
         private _datas: { [index: number]: egret.Texture[][] };
 
+        /**
+         * 最大宽度
+         */
+        readonly width: number;
+        /**
+         * 最大高度
+         */
+        readonly height: number;
+
         constructor(key: string, pstInfo: PstInfo) {
             this.key = key;
             let uri = this.uri = key + "/" + UnitResourceConst.CfgFile;
@@ -70,7 +79,8 @@ namespace jy {
          * 解析数据
          */
         public decodeData(data: {}) {
-            var _datas: { [index: number]: egret.Texture[][] } = {};
+            let _datas: { [index: number]: egret.Texture[][] } = {};
+            let w = 0, h = 0;
             for (let action in data) {
                 let dData: egret.Texture[][] = [];
                 _datas[action] = dData;
@@ -83,11 +93,23 @@ namespace jy {
                     if (!dirData) continue;
                     for (let f = 0, flen = dirData.length; f < flen; f++) {
                         if (dirData[f] !== 0) {
-                            fData[f] = getTextureFromImageData(dirData[f]);
+                            let tex = getTextureFromImageData(dirData[f]);
+                            let { textureWidth, textureHeight } = tex;
+                            if (textureWidth > w) {
+                                w = textureWidth;
+                            }
+                            if (textureHeight > h) {
+                                h = textureHeight;
+                            }
+                            fData[f] = tex;
                         }
                     }
                 }
             }
+            //@ts-ignore
+            this.width = w;
+            //@ts-ignore
+            this.height = h;
             this._datas = _datas;
             this.state = RequestState.COMPLETE;
             return;

@@ -12216,6 +12216,7 @@ var jy;
          */
         UnitResource.prototype.decodeData = function (data) {
             var _datas = {};
+            var w = 0, h = 0;
             for (var action in data) {
                 var dData = [];
                 _datas[action] = dData;
@@ -12230,11 +12231,23 @@ var jy;
                         continue;
                     for (var f = 0, flen = dirData.length; f < flen; f++) {
                         if (dirData[f] !== 0) {
-                            fData[f] = getTextureFromImageData(dirData[f]);
+                            var tex = getTextureFromImageData(dirData[f]);
+                            var textureWidth = tex.textureWidth, textureHeight = tex.textureHeight;
+                            if (textureWidth > w) {
+                                w = textureWidth;
+                            }
+                            if (textureHeight > h) {
+                                h = textureHeight;
+                            }
+                            fData[f] = tex;
                         }
                     }
                 }
             }
+            //@ts-ignore
+            this.width = w;
+            //@ts-ignore
+            this.height = h;
             this._datas = _datas;
             this.state = 2 /* COMPLETE */;
             return;
