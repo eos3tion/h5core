@@ -18273,6 +18273,7 @@ var jy;
             this._vgap = ~~vgap;
             this.itemWidth = itemWidth;
             this.itemHeight = itemHeight;
+            this.noDrawBG = option.noDrawBG;
             //@ts-ignore
             this.scrollType = type;
             this.container = con || new egret.Sprite();
@@ -18461,11 +18462,13 @@ var jy;
             if (maxWidth != this._w || maxHeight != this._h) {
                 this._w = maxWidth;
                 this._h = maxHeight;
-                var g = this._con.graphics;
-                g.clear();
-                g.beginFill(0, 0);
-                g.drawRect(0, 0, maxWidth, maxHeight);
-                g.endFill();
+                if (!this.noDrawBG) {
+                    var g = this._con.graphics;
+                    g.clear();
+                    g.beginFill(0, 0);
+                    g.drawRect(0, 0, maxWidth, maxHeight);
+                    g.endFill();
+                }
                 this.dispatch(-1999 /* Resize */);
             }
         };
