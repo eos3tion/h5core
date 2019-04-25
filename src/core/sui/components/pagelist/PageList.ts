@@ -83,6 +83,7 @@ namespace jy {
          */
         protected _w: number;
         noDrawBG: boolean;
+        bg: egret.Bitmap;
 
         get w() {
             return this._w;
@@ -203,16 +204,42 @@ namespace jy {
             this._vgap = ~~vgap;
             this.itemWidth = itemWidth;
             this.itemHeight = itemHeight;
-            this.noDrawBG = option.noDrawBG;
+            // this.noDrawBG = option.noDrawBG;
             //@ts-ignore
             this.scrollType = type;
-            this.container = con || new egret.Sprite();
+            con = con || new egret.Sprite();
+            let bmp = new egret.Bitmap();
+            bmp.texture = ColorUtil.getTexture(0, 0);
+            this.bg = bmp;
+            con.addChild(bmp)
+            this.container = con;
+            let self = this;
+
+            Object.defineProperties(con, makeDefDescriptors({
+                measuredHeight: {
+                    get() {
+                        return self._h;
+                    }
+
+                },
+                measuredWidth: {
+                    get() {
+                        return self._w;
+                    }
+                }
+            }))
+
             if (!noScroller) {
                 let scroller = this.scroller = new Scroller();
                 scroller.scrollType = this.scrollType;
                 scroller.bindObj2(con, con.suiRawRect);
             }
+
+
         }
+
+
+
 
         public set container(con: egret.Sprite) {
             if (!con) {
@@ -419,13 +446,9 @@ namespace jy {
             if (maxWidth != this._w || maxHeight != this._h) {
                 this._w = maxWidth;
                 this._h = maxHeight;
-                if (!this.noDrawBG) {
-                    let g = this._con.graphics;
-                    g.clear();
-                    g.beginFill(0, 0);
-                    g.drawRect(0, 0, maxWidth, maxHeight);
-                    g.endFill();
-                }
+                let bg = this.bg;
+                bg.width = maxWidth;
+                bg.height = maxHeight;
                 this.dispatch(EventConst.Resize);
             }
         }
