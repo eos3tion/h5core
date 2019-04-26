@@ -12,7 +12,7 @@ namespace jy {
         tmpPoint.setTo(x, y);
         for (let i = 0; i < cells.length; i++) {
             const cell = cells[i];
-            if (cell.isPointIn(tmpPoint)) {
+            if (cell.contain(tmpPoint)) {
                 return cell;
             }
         }

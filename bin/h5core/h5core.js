@@ -3918,12 +3918,15 @@ var jy;
         Line.prototype.intersection = function (other, intersectPoint) {
             var _a = other.pA, opAX = _a.x, opAY = _a.y, _b = other.pB, opBX = _b.x, opBY = _b.y;
             var _c = this, _d = _c.pA, pAX = _d.x, pAY = _d.y, _e = _c.pB, pBX = _e.x, pBY = _e.y;
-            var denom = (opBY - opAY) * (pBX - pAX) -
-                (opBX - opAX) * (pBY - pAY);
-            var u0 = (opBX - opAX) * (pAY - opAY) -
-                (opBY - opAY) * (pAX - opAX);
-            var u1 = (opAX - pAX) * (pBY - pAY) -
-                (opAY - pAY) * (pBX - pAX);
+            var doY = opBY - opAY;
+            var doX = opBX - opAX;
+            var dtY = pBY - pAY;
+            var dtX = pBX - pAX;
+            var dx = opAX - pAX;
+            var dy = opAY - pAY;
+            var denom = doY * dtX - doX * dtY;
+            var u0 = dx * doY - dy * doX;
+            var u1 = dx * dtY - dy * dtX;
             if (denom == 0) {
                 if (u0 == 0 && u1 == 0) {
                     return 0 /* Collinear */;
@@ -3935,18 +3938,18 @@ var jy;
             else {
                 u0 = u0 / denom;
                 u1 = u1 / denom;
-                var x = pAX + u0 * (pBX - pAX);
-                var y = pAY + u0 * (pBY - pAY);
+                var x = pAX + u0 * dtX;
+                var y = pAY + u0 * dtY;
                 if (intersectPoint) {
                     intersectPoint.setTo(x, y);
                 }
-                if ((u0 >= 0.0) && (u0 <= 1.0) && (u1 >= 0.0) && (u1 <= 1.0)) {
+                if ((u0 >= 0) && (u0 <= 1) && (u1 >= 0) && (u1 <= 1)) {
                     return 2 /* SegmentsIntersect */;
                 }
-                else if ((u1 >= 0.0) && (u1 <= 1.0)) {
+                else if ((u1 >= 0) && (u1 <= 1)) {
                     return (3 /* ABisectB */);
                 }
-                else if ((u0 >= 0.0) && (u0 <= 1.0)) {
+                else if ((u0 >= 0) && (u0 <= 1)) {
                     return (4 /* BBisectA */);
                 }
                 return 1 /* LinesIntersect */;
@@ -3961,6 +3964,37 @@ var jy;
     }());
     jy.Line = Line;
     __reflect(Line.prototype, "jy.Line");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    /**
+     * 多边形
+     */
+    var Polygon = /** @class */ (function () {
+        function Polygon() {
+        }
+        /**
+         * 是否包含点
+         * @param pt
+         */
+        Polygon.prototype.contain = function (pt) {
+            var x = pt.x, y = pt.y;
+            var inside = false;
+            var vs = this.points;
+            for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+                var _a = vs[i], xi = _a.x, yi = _a.y;
+                var _b = vs[j], xj = _b.x, yj = _b.y;
+                var intersect = ((yi > y) != (yj > y))
+                    && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+                if (intersect)
+                    inside = !inside;
+            }
+            return inside;
+        };
+        return Polygon;
+    }());
+    jy.Polygon = Polygon;
+    __reflect(Polygon.prototype, "jy.Polygon");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -13305,24 +13339,28 @@ var jy;
 var jy;
 (function (jy) {
     var Point = egret.Point;
-    var Triangle = /** @class */ (function () {
+    var Triangle = /** @class */ (function (_super) {
+        __extends(Triangle, _super);
         function Triangle(p1, p2, p3) {
-            this.sides = [new jy.Line, new jy.Line, new jy.Line];
+            var _this = _super.call(this) || this;
+            _this.sides = [new jy.Line, new jy.Line, new jy.Line];
             /**
              * 三角的中心x
              */
-            this.x = 0;
+            _this.x = 0;
             /**
              * 三角的中心y
              */
-            this.y = 0;
+            _this.y = 0;
             /**
              * 数据是否计算过
              */
-            this._calced = false;
-            this.pA = p1 || new Point;
-            this.pB = p2 || new Point;
-            this.pC = p3 || new Point;
+            _this._calced = false;
+            _this.pA = p1 || new Point;
+            _this.pB = p2 || new Point;
+            _this.pC = p3 || new Point;
+            _this.points = [p1, p2, p3];
+            return _this;
         }
         Triangle.prototype.setPoints = function (p1, p2, p3) {
             var _a = this, pA = _a.pA, pB = _a.pB, pC = _a.pC;
@@ -13350,7 +13388,7 @@ var jy;
          * 检查点是否在三角形中间
          * @param testPoint
          */
-        Triangle.prototype.isPointIn = function (testPoint) {
+        Triangle.prototype.contain = function (testPoint) {
             this.calculateData();
             // 点在所有边的右面或者线上
             return this.sides.every(function (side) {
@@ -13358,7 +13396,7 @@ var jy;
             });
         };
         return Triangle;
-    }());
+    }(jy.Polygon));
     jy.Triangle = Triangle;
     __reflect(Triangle.prototype, "jy.Triangle");
     var distance = Point.distance;
@@ -13496,7 +13534,7 @@ var jy;
         tmpPoint.setTo(x, y);
         for (var i = 0; i < cells.length; i++) {
             var cell = cells[i];
-            if (cell.isPointIn(tmpPoint)) {
+            if (cell.contain(tmpPoint)) {
                 return cell;
             }
         }
@@ -16573,7 +16611,7 @@ var jy;
                     jy.ThrowError("\u6CA1\u6709\u627E\u5230\u5BF9\u5E94\u7684\u529F\u80FD\u914D\u7F6E[" + module + "]");
                 }
             }
-            if (!noClientCheck) { //屏蔽客户端检测只针对open，不针对show
+            if (true && !noClientCheck) { //屏蔽客户端检测只针对open，不针对show
                 var flag = cfg && !cfg.close && cfg.serverOpen;
                 if (flag) {
                     if (this._checkers) {
@@ -18273,10 +18311,28 @@ var jy;
             this._vgap = ~~vgap;
             this.itemWidth = itemWidth;
             this.itemHeight = itemHeight;
-            this.noDrawBG = option.noDrawBG;
+            // this.noDrawBG = option.noDrawBG;
             //@ts-ignore
             this.scrollType = type;
-            this.container = con || new egret.Sprite();
+            con = con || new egret.Sprite();
+            var bmp = new egret.Bitmap();
+            bmp.texture = jy.ColorUtil.getTexture(0, 0);
+            this.bg = bmp;
+            con.addChild(bmp);
+            this.container = con;
+            var self = this;
+            Object.defineProperties(con, jy.makeDefDescriptors({
+                measuredHeight: {
+                    get: function () {
+                        return self._h;
+                    }
+                },
+                measuredWidth: {
+                    get: function () {
+                        return self._w;
+                    }
+                }
+            }));
             if (!noScroller) {
                 var scroller = this.scroller = new jy.Scroller();
                 scroller.scrollType = this.scrollType;
@@ -18462,13 +18518,9 @@ var jy;
             if (maxWidth != this._w || maxHeight != this._h) {
                 this._w = maxWidth;
                 this._h = maxHeight;
-                if (!this.noDrawBG) {
-                    var g = this._con.graphics;
-                    g.clear();
-                    g.beginFill(0, 0);
-                    g.drawRect(0, 0, maxWidth, maxHeight);
-                    g.endFill();
-                }
+                var bg = this.bg;
+                bg.width = maxWidth;
+                bg.height = maxHeight;
                 this.dispatch(-1999 /* Resize */);
             }
         };

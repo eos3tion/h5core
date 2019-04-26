@@ -2842,6 +2842,31 @@ declare namespace jy {
     }
 }
 declare namespace jy {
+    import Point = egret.Point;
+    /**
+     * 多边形
+     */
+    class Polygon {
+        /**
+         * 顶点列表
+         */
+        points: Point[];
+        /**
+         * 边
+         */
+        sides: Line[];
+        /**
+         * 边对应的三角形索引
+         */
+        links?: number[];
+        /**
+         * 是否包含点
+         * @param pt
+         */
+        contain(pt: Point): boolean;
+    }
+}
+declare namespace jy {
     /**
      *
      * 震动的基本实现
@@ -10411,14 +10436,6 @@ declare namespace jy {
         (path: Point[], isEnd?: boolean, ...args: any[]): any;
     }
     interface PathFinderOption {
-        /**
-         * 是否同步处理
-         */
-        sync?: boolean;
-        /**
-         * 默认当前地图格子总数
-         */
-        max?: number;
     }
     /**
      *
@@ -10457,6 +10474,16 @@ declare namespace jy {
     }
 }
 declare namespace jy {
+    interface PathFinderOption {
+        /**
+         * 是否同步处理
+         */
+        sync?: boolean;
+        /**
+         * 默认当前地图格子总数
+         */
+        max?: number;
+    }
     /**
      * 寻路的节点
      *
@@ -10578,7 +10605,7 @@ declare namespace jy {
 }
 declare namespace jy {
     import Point = egret.Point;
-    class Triangle {
+    class Triangle extends Polygon {
         readonly pA: Point;
         readonly pB: Point;
         readonly pC: Point;
@@ -10602,7 +10629,7 @@ declare namespace jy {
          * 检查点是否在三角形中间
          * @param testPoint
          */
-        isPointIn(testPoint: Point): boolean;
+        contain(testPoint: Point): boolean;
     }
     class Cell extends Triangle {
         f: number;
@@ -10611,11 +10638,7 @@ declare namespace jy {
         parent: Cell;
         sessionId: number;
         idx: number;
-        links: {
-            0: number;
-            1: number;
-            2: number;
-        };
+        links: number[];
         /**
          * 每边的中点
          */
@@ -10709,7 +10732,14 @@ declare namespace jy {
          * 网格是否链接过
          */
         linked: boolean;
+        /**
+         * 可走格位
+         */
         cells: Cell[];
+        /**
+         * 不可走区域的多边形
+         */
+        polys: Polygon[];
     }
 }
 declare namespace jy {
@@ -13543,6 +13573,7 @@ declare namespace jy {
          */
         protected _w: number;
         noDrawBG: boolean;
+        bg: egret.Bitmap;
         readonly w: number;
         /**
          * 根据render的最下方，得到的最大高度
