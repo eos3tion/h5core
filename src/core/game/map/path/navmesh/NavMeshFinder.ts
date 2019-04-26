@@ -1,6 +1,7 @@
 //参考项目 https://github.com/blianchen/navMeshTest
 namespace jy {
     import Point = egret.Point;
+    const { abs, sqrt } = Math;
 
     const tmpPoint = new Point;
     /**
@@ -8,14 +9,56 @@ namespace jy {
      * @param pt
      * @param cells 
      */
-    function findClosestCell(x: number, y: number, cells: Cell[]) {
+    function findClosestCell(x: number, y: number, map: NavMeshMapInfo) {
         tmpPoint.setTo(x, y);
+        const { polys, cells } = map;
         for (let i = 0; i < cells.length; i++) {
             const cell = cells[i];
             if (cell.contain(tmpPoint)) {
                 return cell;
             }
         }
+        //地图外
+        let edge = polys[0];
+        if (!edge.contain(tmpPoint)) {
+            return edge;
+        }
+        for (let i = 1; i < polys.length; i++) {
+            const cell = polys[i];
+            if (cell.contain(tmpPoint)) {
+                return cell;
+            }
+        }
+    }
+
+    const tmpLine = new Line();
+
+    function getNearestCell(fx: number, fy: number, start: Polygon, cells: Cell[], calcPoint?: Point) {
+        const sides = start.sides;
+        let minIdx: number;
+        let min = Infinity;
+        //找到离起点最近的边
+        for (let i = 0; i < sides.length; i++) {
+            const { pA, pB } = sides[i];
+            let dx = pB.x - pA.x;
+            let dy = pB.y - pA.y;
+            let A = dy / dx;
+            let B = pA.y - A * pA.y;
+            let D = A * A + 1;
+            let dist = abs((A * fx + B - fy) / sqrt(D));
+            if (dist < min) {
+                min = dist;
+                minIdx = i;
+                if (calcPoint) {
+                    let m = fx + A * fy;
+                    let ox = (m - A * B) / D;
+                    calcPoint.setTo(ox, A * ox + B);
+                }
+            }
+        }
+        let cell = cells[start.links[minIdx]];
+        return cell;
+
     }
 
     function calcH(tx: number, ty: number, x: number, y: number) {
@@ -31,14 +74,40 @@ namespace jy {
      * 将格子进行链接，方便寻路
      * @param pv 
      */
-    function linkCells(pv: Cell[]): void {
+    function linkCells(pv: Cell[]) {
         const len = pv.length;
         for (let i = 0; i < len; i++) {
             const cellA = pv[i];
             for (let j = i + 1; j < len; j++) {
                 const cellB = pv[j];
                 cellA.checkAndLink(cellB);
-                cellB.checkAndLink(cellA);
+            }
+        }
+    }
+
+    function linkPolys(polys: Polygon[], cells: Cell[]) {
+        const plen = polys.length;
+        const clen = cells.length;
+        for (let i = 0; i < plen; i++) {
+            const poly = polys[i];
+            poly.links = [];
+            for (let j = 0; j < clen; j++) {
+                let cell = cells[j];
+                linkPoly(poly, cell);
+            }
+        }
+        function linkPoly(poly: Polygon, cell: Cell) {
+            let { sides, links } = poly;
+            for (let i = 0; i < sides.length; i++) {
+                let side = sides[i];
+                let cellSides = cell.sides;
+                for (let j = 0; j < cellSides.length; j++) {
+                    const cSide = cellSides[j];
+                    if (side.equals(cSide)) {
+                        links[i] = cell.idx;
+                        break;
+                    }
+                }
             }
         }
     }
@@ -48,21 +117,40 @@ namespace jy {
         return b.f - a.f;
     }
 
+    export interface PathFinderOption {
+
+        /**
+         * 起始格位
+         */
+        start?: Polygon;
+        /**
+         * 目标格位
+         */
+        end?: Polygon;
+
+        /**
+         * 物体通过时，离边界的宽度
+         */
+        width?: number;
+    }
+    const empty = Temp.EmptyObject as PathFinderOption;
+
     export class NavMeshFinder implements PathFinder {
         map: NavMeshMapInfo;
         openList = new Heap<Cell>(0, compare);
         bindMap(map: NavMeshMapInfo) {
             this.map = map;
             if (!map.linked) {
-                linkCells(map.cells);
+                let { cells, polys } = map;
+                linkCells(cells);
+                linkPolys(polys, cells);
                 map.linked = true;
             }
             this.openList.clear(map.cells.length);
         }
         getPath(fx: number, fy: number, tx: number, ty: number, callback: CallbackInfo<PathFinderCallback>, opt?: PathFinderOption) {
             const map = this.map;
-            let startPos = new Point(fx, fy);
-            let endPos = new Point(tx, ty);
+
             if (!map) {
                 callback.callAndRecycle(null, true);
                 return;
@@ -72,27 +160,69 @@ namespace jy {
                 callback.callAndRecycle(null, true);
                 return;
             }
+
             const cells = map.cells;
-            if (!cells) {
+            let endPos = new Point(tx, ty);
+            if (!cells) {//没有格子认为全部可走
                 callback.callAndRecycle([endPos], true);
                 return;
             }
-            let startCell = findClosestCell(fx, fy, cells);
-            if (!startCell) {
+
+            opt = opt || empty;
+            let { start, end, width = 0 } = opt;
+
+            if (!start) {
+                start = findClosestCell(fx, fy, map);
+            }
+            if (!start) {
                 callback.callAndRecycle(null, true);
                 return
             }
-            let endCell = findClosestCell(tx, ty, cells);
-            if (!endCell) {
+
+            if (!end) {
+                end = findClosestCell(tx, ty, map);
+            }
+            if (!end) {
                 callback.callAndRecycle(null, true);
                 return
             }
             //其实和结束的格位相同
+            if (start == end) {
+                callback.callAndRecycle([endPos], true);
+                return;
+            }
+
+            let startPos = new Point(fx, fy);
+
+            pathSessionId++;
+            let endCell: Cell, startCell: Cell;
+            if (end instanceof Cell) {
+                endCell = end;
+            } else {
+                //得到起点和终点连线临近的格子边界点
+                endCell = getNearestCell(tx, ty, end, cells, tmpPoint);
+                if (!endCell) {
+                    callback.callAndRecycle(null, true);
+                    return
+                }
+                endPos.copyFrom(tmpPoint);
+            }
+
+            if (start instanceof Cell) {
+                startCell = start;
+            } else {
+                startCell = getNearestCell(fx, fy, start, cells);
+                if (!startCell) {
+                    callback.callAndRecycle(null, true);
+                    return
+                }
+            }
+
+            //重新找到的格位相同
             if (startCell == endCell) {
                 callback.callAndRecycle([endPos], true);
                 return;
             }
-            pathSessionId++;
 
             endCell.f = 0;
             endCell.h = 0;
@@ -125,7 +255,7 @@ namespace jy {
                     }
                     let adjacentTmp = cells[adjacentId];
                     if (adjacentTmp) {
-                        let f = currNode.f + adjacentTmp.wallDist[Math.abs(i - currNode.wall)] || 0;
+                        let f = currNode.f + adjacentTmp.wallDist[abs(i - currNode.wall)] || 0;
                         if (adjacentTmp.sessionId != pathSessionId) {
                             // 4. 如果该相邻节点不在开放列表中,则将该节点添加到开放列表中, 
                             //    并将该相邻节点的父节点设为当前节点,同时保存该相邻节点的G和F值;
@@ -159,7 +289,7 @@ namespace jy {
                 path = [];
                 _tmp.cell = node;
                 _tmp.pos = startPos;
-                while (getWayPoint(_tmp, endPos)) {
+                while (getWayPoint(_tmp, endPos, width)) {
                     path.push(_tmp.pos);
                 }
                 path.push(endPos);
@@ -175,13 +305,41 @@ namespace jy {
     }
 
     const _lastLineA = new Line();
-    const _lastLineB = new Line()
+    const _lastLineB = new Line();
 
-    function getWayPoint(tmp: { cell: Cell, pos: Point }, endPos: Point) {
+
+    function getSideAB({ wall, sides, sideLength, wallMidPt }: Cell, width: number) {
+        let line = sides[wall];
+        let lineLength = sideLength[wall];
+        let { pA: outA, pB: outB } = tmpLine;
+        if (lineLength <= width * 2) {
+            let midPt = wallMidPt[wall];
+            outA.copyFrom(midPt);
+            outB.copyFrom(midPt);
+        } else {
+            let { pA, pB } = line;
+            let dx = pB.x - pA.x;
+            let dy = pB.y - pA.y;
+            let delta = width / lineLength;
+            dx = dx * delta;
+            dy = dy * delta;
+            outA.setTo(pA.x + dx, pA.y + dy);
+            outB.setTo(pB.x - dx, pB.y - dy);
+        }
+        return tmpLine;
+    }
+
+    /**
+     * 
+     * @param tmp 
+     * @param endPos 
+     * @param width 可走宽度，如果通过边的边长低于2倍宽度，则直接走边的中点，否则按通过边的通过点+宽度得到的点
+     */
+    function getWayPoint(tmp: { cell: Cell, pos: Point }, endPos: Point, width: number) {
         let cell = tmp.cell;
         let startPt = tmp.pos;
         let lastCell = cell;
-        let outSide = cell.sides[cell.wall];	//路径线在网格中的穿出边
+        let outSide = getSideAB(cell, width);
         let lastPtA = outSide.pA;
         let lastPtB = outSide.pB;
         let lastLineA = _lastLineA;
@@ -194,7 +352,7 @@ namespace jy {
             let testA: Point, testB: Point;
             let next = cell.parent;
             if (next) {
-                let outSide = cell.sides[cell.wall];
+                let outSide = getSideAB(cell, width);
                 testA = outSide.pA;
                 testB = outSide.pB;
             } else {

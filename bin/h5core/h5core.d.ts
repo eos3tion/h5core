@@ -10648,9 +10648,13 @@ declare namespace jy {
             2: Point;
         };
         /**
-         * 没边中点距离
+         * 每边中点距离
          */
         wallDist: number[];
+        /**
+         * 边长
+         */
+        sideLength: number[];
         /**
          * 通过墙的索引
          */
@@ -10719,6 +10723,20 @@ declare namespace jy {
     }
 }
 declare namespace jy {
+    interface PathFinderOption {
+        /**
+         * 起始格位
+         */
+        start?: Polygon;
+        /**
+         * 目标格位
+         */
+        end?: Polygon;
+        /**
+         * 物体通过时，离边界的宽度
+         */
+        width?: number;
+    }
     class NavMeshFinder implements PathFinder {
         map: NavMeshMapInfo;
         openList: Heap<Cell>;

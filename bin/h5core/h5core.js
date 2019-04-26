@@ -13458,9 +13458,13 @@ var jy;
              */
             _this.wallMidPt = [new Point, new Point, new Point];
             /**
-             * 没边中点距离
+             * 每边中点距离
              */
             _this.wallDist = [0, 0, 0];
+            /**
+             * 边长
+             */
+            _this.sideLength = [0, 0, 0];
             /**
              * 通过墙的索引
              */
@@ -13469,10 +13473,13 @@ var jy;
         }
         Cell.prototype.init = function () {
             this.calculateData();
-            var _a = this, m_WallMidpoint = _a.wallMidPt, m_WallDistance = _a.wallDist, pA = _a.pA, pB = _a.pB, pC = _a.pC;
+            var _a = this, m_WallMidpoint = _a.wallMidPt, m_WallDistance = _a.wallDist, pA = _a.pA, pB = _a.pB, pC = _a.pC, sideLength = _a.sideLength, sides = _a.sides;
             var mAB = getMidPoint(m_WallMidpoint[0 /* SideAB */], pA, pB);
             var mBC = getMidPoint(m_WallMidpoint[1 /* SideBC */], pB, pC);
             var mCA = getMidPoint(m_WallMidpoint[2 /* SideCA */], pC, pA);
+            sides.forEach(function (side, idx) {
+                sideLength[idx] = Point.distance(side.pA, side.pB);
+            });
             m_WallDistance[0] = distance(mAB, mBC);
             m_WallDistance[1] = distance(mCA, mBC);
             m_WallDistance[2] = distance(mAB, mCA);
@@ -13524,20 +13531,60 @@ var jy;
 var jy;
 (function (jy) {
     var Point = egret.Point;
+    var abs = Math.abs, sqrt = Math.sqrt;
     var tmpPoint = new Point;
     /**
      * 获取格子
      * @param pt
      * @param cells
      */
-    function findClosestCell(x, y, cells) {
+    function findClosestCell(x, y, map) {
         tmpPoint.setTo(x, y);
+        var polys = map.polys, cells = map.cells;
         for (var i = 0; i < cells.length; i++) {
             var cell = cells[i];
             if (cell.contain(tmpPoint)) {
                 return cell;
             }
         }
+        //地图外
+        var edge = polys[0];
+        if (!edge.contain(tmpPoint)) {
+            return edge;
+        }
+        for (var i = 1; i < polys.length; i++) {
+            var cell = polys[i];
+            if (cell.contain(tmpPoint)) {
+                return cell;
+            }
+        }
+    }
+    var tmpLine = new jy.Line();
+    function getNearestCell(fx, fy, start, cells, calcPoint) {
+        var sides = start.sides;
+        var minIdx;
+        var min = Infinity;
+        //找到离起点最近的边
+        for (var i = 0; i < sides.length; i++) {
+            var _a = sides[i], pA = _a.pA, pB = _a.pB;
+            var dx = pB.x - pA.x;
+            var dy = pB.y - pA.y;
+            var A = dy / dx;
+            var B = pA.y - A * pA.y;
+            var D = A * A + 1;
+            var dist = abs((A * fx + B - fy) / sqrt(D));
+            if (dist < min) {
+                min = dist;
+                minIdx = i;
+                if (calcPoint) {
+                    var m = fx + A * fy;
+                    var ox = (m - A * B) / D;
+                    calcPoint.setTo(ox, A * ox + B);
+                }
+            }
+        }
+        var cell = cells[start.links[minIdx]];
+        return cell;
     }
     function calcH(tx, ty, x, y) {
         var tmp2 = tx - x;
@@ -13557,7 +13604,32 @@ var jy;
             for (var j = i + 1; j < len; j++) {
                 var cellB = pv[j];
                 cellA.checkAndLink(cellB);
-                cellB.checkAndLink(cellA);
+            }
+        }
+    }
+    function linkPolys(polys, cells) {
+        var plen = polys.length;
+        var clen = cells.length;
+        for (var i = 0; i < plen; i++) {
+            var poly = polys[i];
+            poly.links = [];
+            for (var j = 0; j < clen; j++) {
+                var cell = cells[j];
+                linkPoly(poly, cell);
+            }
+        }
+        function linkPoly(poly, cell) {
+            var sides = poly.sides, links = poly.links;
+            for (var i = 0; i < sides.length; i++) {
+                var side = sides[i];
+                var cellSides = cell.sides;
+                for (var j = 0; j < cellSides.length; j++) {
+                    var cSide = cellSides[j];
+                    if (side.equals(cSide)) {
+                        links[i] = cell.idx;
+                        break;
+                    }
+                }
             }
         }
     }
@@ -13565,6 +13637,7 @@ var jy;
     function compare(a, b) {
         return b.f - a.f;
     }
+    var empty = jy.Temp.EmptyObject;
     var NavMeshFinder = /** @class */ (function () {
         function NavMeshFinder() {
             this.openList = new jy.Heap(0, compare);
@@ -13572,15 +13645,15 @@ var jy;
         NavMeshFinder.prototype.bindMap = function (map) {
             this.map = map;
             if (!map.linked) {
-                linkCells(map.cells);
+                var cells = map.cells, polys = map.polys;
+                linkCells(cells);
+                linkPolys(polys, cells);
                 map.linked = true;
             }
             this.openList.clear(map.cells.length);
         };
         NavMeshFinder.prototype.getPath = function (fx, fy, tx, ty, callback, opt) {
             var map = this.map;
-            var startPos = new Point(fx, fy);
-            var endPos = new Point(tx, ty);
             if (!map) {
                 callback.callAndRecycle(null, true);
                 return;
@@ -13590,26 +13663,62 @@ var jy;
                 return;
             }
             var cells = map.cells;
-            if (!cells) {
+            var endPos = new Point(tx, ty);
+            if (!cells) { //没有格子认为全部可走
                 callback.callAndRecycle([endPos], true);
                 return;
             }
-            var startCell = findClosestCell(fx, fy, cells);
-            if (!startCell) {
+            opt = opt || empty;
+            var start = opt.start, end = opt.end, _a = opt.width, width = _a === void 0 ? 0 : _a;
+            if (!start) {
+                start = findClosestCell(fx, fy, map);
+            }
+            if (!start) {
                 callback.callAndRecycle(null, true);
                 return;
             }
-            var endCell = findClosestCell(tx, ty, cells);
-            if (!endCell) {
+            if (!end) {
+                end = findClosestCell(tx, ty, map);
+            }
+            if (!end) {
                 callback.callAndRecycle(null, true);
                 return;
             }
             //其实和结束的格位相同
+            if (start == end) {
+                callback.callAndRecycle([endPos], true);
+                return;
+            }
+            var startPos = new Point(fx, fy);
+            pathSessionId++;
+            var endCell, startCell;
+            if (end instanceof jy.Cell) {
+                endCell = end;
+            }
+            else {
+                //得到起点和终点连线临近的格子边界点
+                endCell = getNearestCell(tx, ty, end, cells, tmpPoint);
+                if (!endCell) {
+                    callback.callAndRecycle(null, true);
+                    return;
+                }
+                endPos.copyFrom(tmpPoint);
+            }
+            if (start instanceof jy.Cell) {
+                startCell = start;
+            }
+            else {
+                startCell = getNearestCell(fx, fy, start, cells);
+                if (!startCell) {
+                    callback.callAndRecycle(null, true);
+                    return;
+                }
+            }
+            //重新找到的格位相同
             if (startCell == endCell) {
                 callback.callAndRecycle([endPos], true);
                 return;
             }
-            pathSessionId++;
             endCell.f = 0;
             endCell.h = 0;
             endCell.isOpen = false;
@@ -13638,7 +13747,7 @@ var jy;
                     }
                     var adjacentTmp = cells[adjacentId];
                     if (adjacentTmp) {
-                        var f = currNode.f + adjacentTmp.wallDist[Math.abs(i - currNode.wall)] || 0;
+                        var f = currNode.f + adjacentTmp.wallDist[abs(i - currNode.wall)] || 0;
                         if (adjacentTmp.sessionId != pathSessionId) {
                             // 4. 如果该相邻节点不在开放列表中,则将该节点添加到开放列表中, 
                             //    并将该相邻节点的父节点设为当前节点,同时保存该相邻节点的G和F值;
@@ -13672,7 +13781,7 @@ var jy;
                 path = [];
                 _tmp.cell = node;
                 _tmp.pos = startPos;
-                while (getWayPoint(_tmp, endPos)) {
+                while (getWayPoint(_tmp, endPos, width)) {
                     path.push(_tmp.pos);
                 }
                 path.push(endPos);
@@ -13690,11 +13799,39 @@ var jy;
     };
     var _lastLineA = new jy.Line();
     var _lastLineB = new jy.Line();
-    function getWayPoint(tmp, endPos) {
+    function getSideAB(_a, width) {
+        var wall = _a.wall, sides = _a.sides, sideLength = _a.sideLength, wallMidPt = _a.wallMidPt;
+        var line = sides[wall];
+        var lineLength = sideLength[wall];
+        var outA = tmpLine.pA, outB = tmpLine.pB;
+        if (lineLength <= width * 2) {
+            var midPt = wallMidPt[wall];
+            outA.copyFrom(midPt);
+            outB.copyFrom(midPt);
+        }
+        else {
+            var pA = line.pA, pB = line.pB;
+            var dx = pB.x - pA.x;
+            var dy = pB.y - pA.y;
+            var delta = width / lineLength;
+            dx = dx * delta;
+            dy = dy * delta;
+            outA.setTo(pA.x + dx, pA.y + dy);
+            outB.setTo(pB.x - dx, pB.y - dy);
+        }
+        return tmpLine;
+    }
+    /**
+     *
+     * @param tmp
+     * @param endPos
+     * @param width 可走宽度，如果通过边的边长低于2倍宽度，则直接走边的中点，否则按通过边的通过点+宽度得到的点
+     */
+    function getWayPoint(tmp, endPos, width) {
         var cell = tmp.cell;
         var startPt = tmp.pos;
         var lastCell = cell;
-        var outSide = cell.sides[cell.wall]; //路径线在网格中的穿出边
+        var outSide = getSideAB(cell, width);
         var lastPtA = outSide.pA;
         var lastPtB = outSide.pB;
         var lastLineA = _lastLineA;
@@ -13707,7 +13844,7 @@ var jy;
             var testA = void 0, testB = void 0;
             var next = cell.parent;
             if (next) {
-                var outSide_1 = cell.sides[cell.wall];
+                var outSide_1 = getSideAB(cell, width);
                 testA = outSide_1.pA;
                 testB = outSide_1.pB;
             }
