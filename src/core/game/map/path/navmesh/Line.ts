@@ -85,12 +85,15 @@ namespace jy {
         intersection(other: Line, intersectPoint?: Point) {
             const { pA: { x: opAX, y: opAY }, pB: { x: opBX, y: opBY } } = other;
             const { pA: { x: pAX, y: pAY }, pB: { x: pBX, y: pBY } } = this;
-            let denom = (opBY - opAY) * (pBX - pAX) -
-                (opBX - opAX) * (pBY - pAY)
-            let u0 = (opBX - opAX) * (pAY - opAY) -
-                (opBY - opAY) * (pAX - opAX);
-            let u1 = (opAX - pAX) * (pBY - pAY) -
-                (opAY - pAY) * (pBX - pAX);
+            const doY = opBY - opAY;
+            const doX = opBX - opAX;
+            const dtY = pBY - pAY;
+            const dtX = pBX - pAX;
+            const dx = opAX - pAX;
+            const dy = opAY - pAY;
+            const denom = doY * dtX - doX * dtY;
+            let u0 = dx * doY - dy * doX;
+            let u1 = dx * dtY - dy * dtX;
             if (denom == 0) {
                 if (u0 == 0 && u1 == 0) {
                     return LineClassification.Collinear;
@@ -100,18 +103,18 @@ namespace jy {
             } else {
                 u0 = u0 / denom;
                 u1 = u1 / denom;
-                let x = pAX + u0 * (pBX - pAX);
-                let y = pAY + u0 * (pBY - pAY);
+                let x = pAX + u0 * dtX;
+                let y = pAY + u0 * dtY;
                 if (intersectPoint) {
                     intersectPoint.setTo(x, y);
                 }
-                if ((u0 >= 0.0) && (u0 <= 1.0) && (u1 >= 0.0) && (u1 <= 1.0)) {
+                if ((u0 >= 0) && (u0 <= 1) && (u1 >= 0) && (u1 <= 1)) {
                     return LineClassification.SegmentsIntersect;
                 }
-                else if ((u1 >= 0.0) && (u1 <= 1.0)) {
+                else if ((u1 >= 0) && (u1 <= 1)) {
                     return (LineClassification.ABisectB);
                 }
-                else if ((u0 >= 0.0) && (u0 <= 1.0)) {
+                else if ((u0 >= 0) && (u0 <= 1)) {
                     return (LineClassification.BBisectA);
                 }
                 return LineClassification.LinesIntersect;

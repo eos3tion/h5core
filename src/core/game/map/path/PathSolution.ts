@@ -12,14 +12,7 @@ declare namespace jy {
     }
 
     export interface PathFinderOption {
-        /**
-         * 是否同步处理
-         */
-        sync?: boolean;
-        /**
-         * 默认当前地图格子总数
-         */
-        max?: number;
+
     }
 
     /**

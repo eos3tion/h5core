@@ -1,7 +1,7 @@
 namespace jy {
     import Point = egret.Point;
 
-    export class Triangle {
+    export class Triangle extends Polygon {
 
         readonly pA: Point;
         readonly pB: Point;
@@ -23,9 +23,11 @@ namespace jy {
         protected _calced = false;
 
         constructor(p1?: Point, p2?: Point, p3?: Point) {
+            super();
             this.pA = p1 || new Point;
             this.pB = p2 || new Point;
             this.pC = p3 || new Point;
+            this.points = [p1, p2, p3];
         }
 
         setPoints(p1: Point, p2: Point, p3: Point) {
@@ -56,7 +58,7 @@ namespace jy {
          * 检查点是否在三角形中间
          * @param testPoint 
          */
-        isPointIn(testPoint: Point) {
+        contain(testPoint: Point) {
             this.calculateData();
             // 点在所有边的右面或者线上
             return this.sides.every(
@@ -121,7 +123,7 @@ namespace jy {
 
         idx: number;
 
-        links = [-1, -1, -1] as { [idx in TrangleSideIndex]: number };
+        links = [-1, -1, -1];
 
         /**
          * 每边的中点

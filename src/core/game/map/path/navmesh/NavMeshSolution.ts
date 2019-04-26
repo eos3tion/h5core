@@ -4,7 +4,15 @@ namespace jy {
          * 网格是否链接过
          */
         linked: boolean;
+        /**
+         * 可走格位
+         */
         cells: Cell[];
+
+        /**
+         * 不可走区域的多边形
+         */
+        polys: Polygon[];
     }
 
     interface NavMeshDraw {
