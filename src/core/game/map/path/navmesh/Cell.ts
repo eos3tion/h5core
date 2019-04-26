@@ -130,9 +130,14 @@ namespace jy {
          */
         wallMidPt = [new Point, new Point, new Point] as { [idx in TrangleSideIndex]: Point };
         /**
-         * 没边中点距离
+         * 每边中点距离
          */
         wallDist = [0, 0, 0];
+
+        /**
+         * 边长
+         */
+        sideLength = [0, 0, 0];
 
         /**
          * 通过墙的索引
@@ -142,11 +147,13 @@ namespace jy {
 
         init() {
             this.calculateData();
-            const { wallMidPt: m_WallMidpoint, wallDist: m_WallDistance, pA, pB, pC } = this;
+            const { wallMidPt: m_WallMidpoint, wallDist: m_WallDistance, pA, pB, pC, sideLength, sides } = this;
             let mAB = getMidPoint(m_WallMidpoint[TrangleSideIndex.SideAB], pA, pB);
             let mBC = getMidPoint(m_WallMidpoint[TrangleSideIndex.SideBC], pB, pC);
             let mCA = getMidPoint(m_WallMidpoint[TrangleSideIndex.SideCA], pC, pA);
-
+            sides.forEach((side, idx) => {
+                sideLength[idx] = Point.distance(side.pA, side.pB);
+            })
             m_WallDistance[0] = distance(mAB, mBC);
             m_WallDistance[1] = distance(mCA, mBC);
             m_WallDistance[2] = distance(mAB, mCA);
