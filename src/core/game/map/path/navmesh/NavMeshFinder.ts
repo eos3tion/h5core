@@ -311,7 +311,8 @@ namespace jy {
     function getSideAB({ wall, sides, sideLength, wallMidPt }: Cell, width: number) {
         let line = sides[wall];
         let lineLength = sideLength[wall];
-        let { pA: outA, pB: outB } = tmpLine;
+        let outA = new Point();
+        let outB = new Point();
         if (lineLength <= width * 2) {
             let midPt = wallMidPt[wall];
             outA.copyFrom(midPt);
@@ -326,7 +327,7 @@ namespace jy {
             outA.setTo(pA.x + dx, pA.y + dy);
             outB.setTo(pB.x - dx, pB.y - dy);
         }
-        return tmpLine;
+        return { pA: outA, pB: outB };
     }
 
     /**
@@ -349,7 +350,7 @@ namespace jy {
         lastCell = cell;
         cell = cell.parent;
         do {
-            let testA: Point, testB: Point;
+            let testA, testB: Point;
             let next = cell.parent;
             if (next) {
                 let outSide = getSideAB(cell, width);

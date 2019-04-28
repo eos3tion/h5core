@@ -13803,7 +13803,8 @@ var jy;
         var wall = _a.wall, sides = _a.sides, sideLength = _a.sideLength, wallMidPt = _a.wallMidPt;
         var line = sides[wall];
         var lineLength = sideLength[wall];
-        var outA = tmpLine.pA, outB = tmpLine.pB;
+        var outA = new Point();
+        var outB = new Point();
         if (lineLength <= width * 2) {
             var midPt = wallMidPt[wall];
             outA.copyFrom(midPt);
@@ -13819,7 +13820,7 @@ var jy;
             outA.setTo(pA.x + dx, pA.y + dy);
             outB.setTo(pB.x - dx, pB.y - dy);
         }
-        return tmpLine;
+        return { pA: outA, pB: outB };
     }
     /**
      *
