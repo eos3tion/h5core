@@ -11719,111 +11719,64 @@ declare namespace jy {
  */
 declare namespace jy {
     /**
-     * 任务朝向
-     *
-     * @enum {number}
+     * 偶数方向的方向工具
+     * 方向0为面朝正下方，逆时针旋转
      */
-    const enum FaceTo {
+    interface FaceUtil {
         /**
-       * 人物方向 ↓
-       */
-        face0 = 0,
-        /**
-         * 人物方向 ↘
+         * 总面数
          */
-        face1 = 1,
+        readonly total: number;
         /**
-         * 人物方向 →
+         * face0的弧度
          */
-        face2 = 2,
+        readonly face0Rad: number;
         /**
-         * 人物方向 ↗
+         * face0的角度
          */
-        face3 = 3,
+        readonly face0Deg: number;
         /**
-         * 人物方向 ↑
+         * 根据起点和终点获取朝向
+         *
+         * @param fx
+         * @param fy
+         * @param tx
+         * @param ty
          */
-        face4 = 4,
+        getFace(fx: number, fy: number, tx: number, ty: number): any;
         /**
-         * 人物方向 ↖
+         * 获取对立方向
          */
-        face5 = 5,
+        getOpps(faceTo: number): number;
         /**
-         * 人物方向 ←
+         * 获取方向对应角度
+         * @param faceTo
          */
-        face6 = 6,
+        getDeg(faceTo: number): number;
         /**
-         * 人物方向 ↙
+         * 获取方向对应弧度
+         * @param faceTo
          */
-        face7 = 7
+        getRad(faceTo: number): number;
+        /**
+         * 获取方向对应的弧度的sin
+         * 常用于计算y
+         * @param faceTo
+         */
+        getRadSin(faceTo: number): number;
+        /**
+         * 获取方向对应的弧度cos
+         * 常用于计算x
+         * @param faceTo
+         */
+        getRadCos(faceTo: number): number;
     }
     /**
-     * 朝向工具，用于处理斜45°人物朝向
-     * @author 3tion
-     *
+     * 获取`朝向工具` 此方法只做偶数方向，即每个角度相同的
+     * 方向0为面朝正下方
+     * @param total 朝向总数
      */
-    const FaceToUtils: {
-        /**
-         * 朝向对应坐标偏移量
-         */
-        FacePos: number[][];
-        /**
-         * 获取朝向的弧度值
-         * @param direction
-         * @return
-         *
-         */
-        FaceToRad: number[];
-        /**
-         * 获取朝向对应的角度
-         */
-        FaceToDeg: number[];
-        /**
-         * 获取朝向的弧度值的Sin
-         * @param direction
-         * @return
-         *
-         */
-        FaceToRadSin: number[];
-        /**
-         * 获取朝向的弧度值的Cos
-         * @param direction
-         * @return
-         *
-         */
-        FaceToRadCos: number[];
-        /**
-         * 方向的对立方向数组
-         */
-        OPPS: number[];
-        /**
-         * 根据弧度取的朝向值
-         * @param rad		-π~+π
-         * @return
-         *
-         */
-        getFaceTo: (rad: number) => number;
-        /**
-         * 根据起点到终点取的朝向值
-         * @param fx
-         * @param fy
-         * @param tx
-         * @param ty
-         * @return
-         *
-         */
-        getFaceTo8: (fx: number, fy: number, tx: number, ty: number) => number;
-        /**
-         * 根据起点到终点取得屏幕朝向值
-         * @param fx
-         * @param fy
-         * @param tx
-         * @param ty
-         * @return
-         *
-         */
-        getMouseFaceTo8: (fx: number, fy: number, tx: number, ty: number) => number;
-    };
+    function getFaceUtil(total: number): FaceUtil;
 }
 declare namespace jy {
     /**

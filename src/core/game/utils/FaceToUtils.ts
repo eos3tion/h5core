@@ -2,267 +2,157 @@
  * @author 3tion
  */
 namespace jy {
+
     /**
-     * 任务朝向
-     * 
-     * @enum {number}
+     * 偶数方向的方向工具  
+     * 方向0为面朝正下方，逆时针旋转  
      */
-    export const enum FaceTo {
+    export interface FaceUtil {
         /**
-       * 人物方向 ↓
-       */
-        face0 = 0,
-        /**
-         * 人物方向 ↘
+         * 总面数
          */
-        face1 = 1,
+        readonly total: number;
         /**
-         * 人物方向 →
+         * face0的弧度
          */
-        face2 = 2,
+        readonly face0Rad: number;
         /**
-         * 人物方向 ↗
+         * face0的角度
          */
-        face3 = 3,
+        readonly face0Deg: number;
         /**
-         * 人物方向 ↑
+         * 根据起点和终点获取朝向  
+         * 
+         * @param fx 
+         * @param fy 
+         * @param tx 
+         * @param ty 
          */
-        face4 = 4,
+        getFace(fx: number, fy: number, tx: number, ty: number);
+
         /**
-         * 人物方向 ↖
+         * 获取对立方向
          */
-        face5 = 5,
+        getOpps(faceTo: number): number;
+
         /**
-         * 人物方向 ←
+         * 获取方向对应角度
+         * @param faceTo 
          */
-        face6 = 6,
+        getDeg(faceTo: number): number;
+
         /**
-         * 人物方向 ↙
+         * 获取方向对应弧度
+         * @param faceTo 
          */
-        face7 = 7
+        getRad(faceTo: number): number;
+
+        /**
+         * 获取方向对应的弧度的sin  
+         * 常用于计算y
+         * @param faceTo 
+         */
+        getRadSin(faceTo: number): number;
+
+        /**
+         * 获取方向对应的弧度cos
+         * 常用于计算x
+         * @param faceTo 
+         */
+        getRadCos(faceTo: number): number;
     }
-	/**
-	 * 朝向工具，用于处理斜45°人物朝向
-	 * @author 3tion
-	 *
-	 */
-    export const FaceToUtils = {
-    	/**
-		 * 朝向对应坐标偏移量
-		 */
-        FacePos: [
-			/*0*/[0, 1],
-			/*1*/[1, 1],
-			/*2*/[1, 0],
-			/*3*/[1, -1],
-			/*4*/[0, -1],
-			/*5*/[-1, -1],
-			/*6*/[-1, 0],
-			/*7*/[-1, 1]],
 
-        /**
-         * 获取朝向的弧度值
-         * @param direction
-         * @return
-         *
-         */
-        FaceToRad: [
-			/*0*/1.5707963267948966,
-			/*1*/0.7853981633974483,
-			/*2*/0,
-			/*3*/-0.7853981633974483,
-			/*4*/-1.5707963267948966,
-			/*5*/-2.356194490192345,
-			/*6*/3.141592653589793,
-            /*7*/2.356194490192345],
-        /**
-         * 获取朝向对应的角度
-         */
-        FaceToDeg: [
-            /*0*/90,
-            /*1*/60,
-            /*2*/45,
-            /*3*/30,
-            /*4*/0,
-            /*5*/-30,
-            /*6*/-45,
-            /*7*/-60
-        ],
-        /**
-         * 获取朝向的弧度值的Sin
-         * @param direction
-         * @return
-         *
-         */
-        FaceToRadSin: [
-            /*0*/1,
-            /*1*/0.7071067811865475,
-            /*2*/0,
-            /*3*/-0.7071067811865475,
-            /*4*/-1,
-            /*5*/-0.7071067811865476,
-            /*6*/1.2246467991473532e-16,
-            /*7*/0.7071067811865476
-        ],
-        /**
-         * 获取朝向的弧度值的Cos
-         * @param direction
-         * @return
-         *
-         */
-        FaceToRadCos: [
-            /*0*/6.123233995736766e-17,
-            /*1*/0.7071067811865476,
-            /*2*/1,
-            /*3*/0.7071067811865476,
-            /*4*/6.123233995736766e-17,
-            /*5*/-0.7071067811865475,
-            /*6*/-1,
-            /*7*/-0.7071067811865475
-        ],
-		/**
-		 * 方向的对立方向数组
-		 */
-        OPPS: [
-			/*0*/4,
-			/*1*/5,
-			/*2*/6,
-			/*3*/7,
-			/*4*/0,
-			/*5*/1,
-			/*6*/2,
-			/*7*/3],
+    const faceUtilCache = {} as { [totalFace: number]: FaceUtil }
 
+    /**
+     * 获取`朝向工具` 此方法只做偶数方向，即每个角度相同的  
+     * 方向0为面朝正下方
+     * @param total 朝向总数 
+     */
+    export function getFaceUtil(total: number) {
+        if (total < 2 || total & 1) {
+            DEBUG && ThrowError(`此工具不支持非正偶数方向`)
+            return;
+        }
+        let util = faceUtilCache[total];
+        if (!util) {
+            const hTotal = total >> 1;
+            const hTotal_1 = hTotal + 1;
+            const list = [];
+            for (let i = hTotal - 1; i >= 0; i--) {
+                list.push(Math.tan(Math.PI / total * hTotal_1 + Math.PI / hTotal * i));
+            }
 
+            //生成对立点
+            const opps = new Array(total);
+            for (let i = 0; i < hTotal; i++) {
+                opps[i] = hTotal + i;
+                opps[hTotal + i] = i;
+            }
 
-		/**
-		 * 根据弧度取的朝向值
-		 * @param rad		-π~+π
-		 * @return
-		 *
-		 */
-        getFaceTo: function (rad: number): number {
-            if (rad < -2.748893571891069) {
-                return 6;
+            //生成角度，弧度
+            const degs = new Array(total);
+            const rads = new Array(total);
+            const sinRads = new Array(total);
+            const cosRads = new Array(total);
+            let startDeg = 90;
+            let deltaDeg = 360 / total;
+            let startRad = Math.PI_1_2;
+            let deltaRad = Math.PI2 / total;
+            const { sin, cos } = Math;
+            for (let i = 0; i < total; i++) {
+                degs[i] = startDeg - i * deltaDeg;
+                let rad = startRad - i * deltaRad;
+                rads[i] = rad;
+                sinRads[i] = sin(rad);
+                cosRads[i] = cos(rad);
             }
-            else if (rad < -1.9634954084936207) {
-                return 5;
-            }
-            else if (rad < -1.1780972450961724) {
-                return 4;
-            }
-            else if (rad < -0.39269908169872414) {
-                return 3;
-            }
-            else if (rad < 0.39269908169872414) {
-                return 2;
-            }
-            else if (rad < 1.1780972450961724) {
-                return 1;
-            }
-            else if (rad < 1.9634954084936207) {
-                return 0;
-            }
-            else if (rad < 2.748893571891069) {
-                return 7;
-            }
-            else {
-                return 6;
-            }
-        },
 
-        /**
-		 * 根据起点到终点取的朝向值
-		 * @param fx
-		 * @param fy
-		 * @param tx
-		 * @param ty
-		 * @return
-		 *
-		 */
-        getFaceTo8: function (fx: number, fy: number, tx: number, ty: number): number {
-            let d = (ty - fy) / (tx - fx);
-            if (fx <= tx) {
-                if (d > 1.2071067811865472) {
-                    return 0;
-                }
-                else if (d > 0.20710678118654754) {
-                    return 1;
-                }
-                else if (d > -0.20710678118654754) {
-                    return 2;
-                }
-                else if (d > -1.2071067811865472) {
-                    return 3;
-                }
-                else {
-                    return 4;
-                }
-            }
-            else {
-                if (d <= -1.2071067811865472) {
-                    return 0;
-                }
-                else if (d <= -0.20710678118654754) {
-                    return 7;
-                }
-                else if (d <= 0.20710678118654754) {
-                    return 6;
-                }
-                else if (d <= 1.2071067811865472) {
-                    return 5;
-                }
-                else {
-                    return 4;
-                }
-            }
-        },
-
-        /**
-		 * 根据起点到终点取得屏幕朝向值
-		 * @param fx
-		 * @param fy
-		 * @param tx
-		 * @param ty
-		 * @return
-		 *
-		 */
-        getMouseFaceTo8: function (fx: number, fy: number, tx: number, ty: number): number {
-            let d = (ty - fy) / (tx - fx);
-            if (fx <= tx) {
-                if (d > 2.414213562373095) {
-                    return 0;
-                }
-                else if (d > 0.41421356237309503) {
-                    return 1;
-                }
-                else if (d > -0.41421356237309503) {
-                    return 2;
-                }
-                else if (d > -2.414213562373095) {
-                    return 3;
-                }
-                else {
-                    return 4;
-                }
-            }
-            else {
-                if (d <= -2.414213562373095) {
-                    return 0;
-                }
-                else if (d <= -0.41421356237309503) {
-                    return 7;
-                }
-                else if (d <= 0.41421356237309503) {
-                    return 6;
-                }
-                else if (d <= 2.414213562373095) {
-                    return 5;
-                }
-                else {
-                    return 4;
+            util = {
+                face0Deg: startDeg,
+                face0Rad: startRad,
+                total,
+                getFace(fx: number, fy: number, tx: number, ty: number) {
+                    let d = (ty - fy) / (tx - fx);
+                    let face = hTotal;
+                    if (fx <= tx) {
+                        for (let i = 0; i < hTotal; i++) {
+                            if (d > list[i]) {
+                                face = i;
+                                break;
+                            }
+                        }
+                    }
+                    else {
+                        for (let i = hTotal; i >= 1; i--) {
+                            if (d <= list[i]) {
+                                face = hTotal + i + 1;
+                                break;
+                            }
+                        }
+                        if (face == total) {
+                            face = 0;
+                        }
+                    }
+                    return face;
+                },
+                getOpps(faceTo: number) {
+                    return opps[faceTo];
+                },
+                getDeg(faceTo: number) {
+                    return degs[faceTo];
+                },
+                getRad(faceTo: number) {
+                    return rads[faceTo];
+                },
+                getRadSin(faceTo: number) {
+                    return sinRads[faceTo];
+                },
+                getRadCos(faceTo: number) {
+                    return cosRads[faceTo];
                 }
             }
         }
+        return util;
     }
 }

@@ -15364,227 +15364,96 @@ var jy;
  */
 var jy;
 (function (jy) {
+    var faceUtilCache = {};
     /**
-     * 朝向工具，用于处理斜45°人物朝向
-     * @author 3tion
-     *
+     * 获取`朝向工具` 此方法只做偶数方向，即每个角度相同的
+     * 方向0为面朝正下方
+     * @param total 朝向总数
      */
-    jy.FaceToUtils = {
-        /**
-         * 朝向对应坐标偏移量
-         */
-        FacePos: [
-            /*0*/ [0, 1],
-            /*1*/ [1, 1],
-            /*2*/ [1, 0],
-            /*3*/ [1, -1],
-            /*4*/ [0, -1],
-            /*5*/ [-1, -1],
-            /*6*/ [-1, 0],
-            /*7*/ [-1, 1]
-        ],
-        /**
-         * 获取朝向的弧度值
-         * @param direction
-         * @return
-         *
-         */
-        FaceToRad: [
-            /*0*/ 1.5707963267948966,
-            /*1*/ 0.7853981633974483,
-            /*2*/ 0,
-            /*3*/ -0.7853981633974483,
-            /*4*/ -1.5707963267948966,
-            /*5*/ -2.356194490192345,
-            /*6*/ 3.141592653589793,
-            /*7*/ 2.356194490192345
-        ],
-        /**
-         * 获取朝向对应的角度
-         */
-        FaceToDeg: [
-            /*0*/ 90,
-            /*1*/ 60,
-            /*2*/ 45,
-            /*3*/ 30,
-            /*4*/ 0,
-            /*5*/ -30,
-            /*6*/ -45,
-            /*7*/ -60
-        ],
-        /**
-         * 获取朝向的弧度值的Sin
-         * @param direction
-         * @return
-         *
-         */
-        FaceToRadSin: [
-            /*0*/ 1,
-            /*1*/ 0.7071067811865475,
-            /*2*/ 0,
-            /*3*/ -0.7071067811865475,
-            /*4*/ -1,
-            /*5*/ -0.7071067811865476,
-            /*6*/ 1.2246467991473532e-16,
-            /*7*/ 0.7071067811865476
-        ],
-        /**
-         * 获取朝向的弧度值的Cos
-         * @param direction
-         * @return
-         *
-         */
-        FaceToRadCos: [
-            /*0*/ 6.123233995736766e-17,
-            /*1*/ 0.7071067811865476,
-            /*2*/ 1,
-            /*3*/ 0.7071067811865476,
-            /*4*/ 6.123233995736766e-17,
-            /*5*/ -0.7071067811865475,
-            /*6*/ -1,
-            /*7*/ -0.7071067811865475
-        ],
-        /**
-         * 方向的对立方向数组
-         */
-        OPPS: [
-            /*0*/ 4,
-            /*1*/ 5,
-            /*2*/ 6,
-            /*3*/ 7,
-            /*4*/ 0,
-            /*5*/ 1,
-            /*6*/ 2,
-            /*7*/ 3
-        ],
-        /**
-         * 根据弧度取的朝向值
-         * @param rad		-π~+π
-         * @return
-         *
-         */
-        getFaceTo: function (rad) {
-            if (rad < -2.748893571891069) {
-                return 6;
-            }
-            else if (rad < -1.9634954084936207) {
-                return 5;
-            }
-            else if (rad < -1.1780972450961724) {
-                return 4;
-            }
-            else if (rad < -0.39269908169872414) {
-                return 3;
-            }
-            else if (rad < 0.39269908169872414) {
-                return 2;
-            }
-            else if (rad < 1.1780972450961724) {
-                return 1;
-            }
-            else if (rad < 1.9634954084936207) {
-                return 0;
-            }
-            else if (rad < 2.748893571891069) {
-                return 7;
-            }
-            else {
-                return 6;
-            }
-        },
-        /**
-         * 根据起点到终点取的朝向值
-         * @param fx
-         * @param fy
-         * @param tx
-         * @param ty
-         * @return
-         *
-         */
-        getFaceTo8: function (fx, fy, tx, ty) {
-            var d = (ty - fy) / (tx - fx);
-            if (fx <= tx) {
-                if (d > 1.2071067811865472) {
-                    return 0;
-                }
-                else if (d > 0.20710678118654754) {
-                    return 1;
-                }
-                else if (d > -0.20710678118654754) {
-                    return 2;
-                }
-                else if (d > -1.2071067811865472) {
-                    return 3;
-                }
-                else {
-                    return 4;
-                }
-            }
-            else {
-                if (d <= -1.2071067811865472) {
-                    return 0;
-                }
-                else if (d <= -0.20710678118654754) {
-                    return 7;
-                }
-                else if (d <= 0.20710678118654754) {
-                    return 6;
-                }
-                else if (d <= 1.2071067811865472) {
-                    return 5;
-                }
-                else {
-                    return 4;
-                }
-            }
-        },
-        /**
-         * 根据起点到终点取得屏幕朝向值
-         * @param fx
-         * @param fy
-         * @param tx
-         * @param ty
-         * @return
-         *
-         */
-        getMouseFaceTo8: function (fx, fy, tx, ty) {
-            var d = (ty - fy) / (tx - fx);
-            if (fx <= tx) {
-                if (d > 2.414213562373095) {
-                    return 0;
-                }
-                else if (d > 0.41421356237309503) {
-                    return 1;
-                }
-                else if (d > -0.41421356237309503) {
-                    return 2;
-                }
-                else if (d > -2.414213562373095) {
-                    return 3;
-                }
-                else {
-                    return 4;
-                }
-            }
-            else {
-                if (d <= -2.414213562373095) {
-                    return 0;
-                }
-                else if (d <= -0.41421356237309503) {
-                    return 7;
-                }
-                else if (d <= 0.41421356237309503) {
-                    return 6;
-                }
-                else if (d <= 2.414213562373095) {
-                    return 5;
-                }
-                else {
-                    return 4;
-                }
-            }
+    function getFaceUtil(total) {
+        if (total < 2 || total & 1) {
+            true && jy.ThrowError("\u6B64\u5DE5\u5177\u4E0D\u652F\u6301\u975E\u6B63\u5076\u6570\u65B9\u5411");
+            return;
         }
-    };
+        var util = faceUtilCache[total];
+        if (!util) {
+            var hTotal_2 = total >> 1;
+            var hTotal_1 = hTotal_2 + 1;
+            var list_2 = [];
+            for (var i = hTotal_2 - 1; i >= 0; i--) {
+                list_2.push(Math.tan(Math.PI / total * hTotal_1 + Math.PI / hTotal_2 * i));
+            }
+            //生成对立点
+            var opps_1 = new Array(total);
+            for (var i = 0; i < hTotal_2; i++) {
+                opps_1[i] = hTotal_2 + i;
+                opps_1[hTotal_2 + i] = i;
+            }
+            //生成角度，弧度
+            var degs_1 = new Array(total);
+            var rads_1 = new Array(total);
+            var sinRads_1 = new Array(total);
+            var cosRads_1 = new Array(total);
+            var startDeg = 90;
+            var deltaDeg = 360 / total;
+            var startRad = Math.PI_1_2;
+            var deltaRad = Math.PI2 / total;
+            var sin = Math.sin, cos = Math.cos;
+            for (var i = 0; i < total; i++) {
+                degs_1[i] = startDeg - i * deltaDeg;
+                var rad = startRad - i * deltaRad;
+                rads_1[i] = rad;
+                sinRads_1[i] = sin(rad);
+                cosRads_1[i] = cos(rad);
+            }
+            util = {
+                face0Deg: startDeg,
+                face0Rad: startRad,
+                total: total,
+                getFace: function (fx, fy, tx, ty) {
+                    var d = (ty - fy) / (tx - fx);
+                    var face = hTotal_2;
+                    if (fx <= tx) {
+                        for (var i = 0; i < hTotal_2; i++) {
+                            if (d > list_2[i]) {
+                                face = i;
+                                break;
+                            }
+                        }
+                    }
+                    else {
+                        for (var i = hTotal_2; i >= 1; i--) {
+                            if (d <= list_2[i]) {
+                                face = hTotal_2 + i + 1;
+                                break;
+                            }
+                        }
+                        if (face == total) {
+                            face = 0;
+                        }
+                    }
+                    return face;
+                },
+                getOpps: function (faceTo) {
+                    return opps_1[faceTo];
+                },
+                getDeg: function (faceTo) {
+                    return degs_1[faceTo];
+                },
+                getRad: function (faceTo) {
+                    return rads_1[faceTo];
+                },
+                getRadSin: function (faceTo) {
+                    return sinRads_1[faceTo];
+                },
+                getRadCos: function (faceTo) {
+                    return cosRads_1[faceTo];
+                }
+            };
+        }
+        return util;
+    }
+    jy.getFaceUtil = getFaceUtil;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
