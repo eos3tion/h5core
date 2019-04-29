@@ -8099,8 +8099,14 @@ declare namespace jy {
      * @interface Point3D
      * @extends {Point}
      */
-    interface Point3D extends Point {
+    interface Point3 extends Point {
         z: number;
+    }
+    /**
+     * 有 `x` `y` `z` `w`4个属性
+     */
+    interface Point4 extends Point3 {
+        w: number;
     }
     /**
      * 矩形
