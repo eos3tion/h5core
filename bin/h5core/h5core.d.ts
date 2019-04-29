@@ -7672,8 +7672,14 @@ declare namespace jy {
      * @interface Point3D
      * @extends {Point}
      */
-    interface Point3D extends Point {
+    interface Point3 extends Point {
         z: number;
+    }
+    /**
+     * 有 `x` `y` `z` `w`4个属性
+     */
+    interface Point4 extends Point3 {
+        w: number;
     }
     /**
      * 矩形
@@ -11762,6 +11768,7 @@ declare namespace jy {
          */
         protected _w: number;
         noDrawBG: boolean;
+        bg: egret.Bitmap;
         readonly w: number;
         /**
          * 根据render的最下方，得到的最大高度
