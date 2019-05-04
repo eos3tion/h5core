@@ -9667,7 +9667,7 @@ var jy;
         var p0 = points[0];
         var s = 0;
         var last = p0;
-        for (var i = 1; i < length; i++) {
+        for (var i = 1, length_1 = points.length; i < length_1; i++) {
             var p = points[i];
             s += (p.x - last.x) * (p.y + last.y);
             last = p;
@@ -15090,10 +15090,28 @@ var jy;
             this._vgap = ~~vgap;
             this.itemWidth = itemWidth;
             this.itemHeight = itemHeight;
-            this.noDrawBG = option.noDrawBG;
+            // this.noDrawBG = option.noDrawBG;
             //@ts-ignore
             this.scrollType = type;
-            this.container = con || new egret.Sprite();
+            con = con || new egret.Sprite();
+            var bmp = new egret.Bitmap();
+            bmp.texture = jy.ColorUtil.getTexture(0, 0);
+            this.bg = bmp;
+            con.addChild(bmp);
+            this.container = con;
+            var self = this;
+            Object.defineProperties(con, jy.makeDefDescriptors({
+                measuredHeight: {
+                    get: function () {
+                        return self._h;
+                    }
+                },
+                measuredWidth: {
+                    get: function () {
+                        return self._w;
+                    }
+                }
+            }));
             if (!noScroller) {
                 var scroller = this.scroller = new jy.Scroller();
                 scroller.scrollType = this.scrollType;
@@ -15279,13 +15297,9 @@ var jy;
             if (maxWidth != this._w || maxHeight != this._h) {
                 this._w = maxWidth;
                 this._h = maxHeight;
-                if (!this.noDrawBG) {
-                    var g = this._con.graphics;
-                    g.clear();
-                    g.beginFill(0, 0);
-                    g.drawRect(0, 0, maxWidth, maxHeight);
-                    g.endFill();
-                }
+                var bg = this.bg;
+                bg.width = maxWidth;
+                bg.height = maxHeight;
                 this.dispatch(-1999 /* Resize */);
             }
         };
