@@ -20,12 +20,10 @@ namespace jy {
             let stage = host.stage || egret.sys.$TempStage;
             let basis = this._basis;
             let sw = stage.stageWidth, sh = stage.stageHeight, bw = basis.width, bh = basis.height;
-            let dw = sw, dh = sh, lw = sw, lh = sh;
+            let lw = sw, lh = sh;
             let scale = 1;
             if (sw < bw || sh < bh) { //屏幕宽高，任意一边小于基准宽高
                 let result = getFixedLayout(sw, sh, bw, bh);
-                dh = result.dh;
-                dw = result.dw;
                 lw = result.lw;
                 lh = result.lh;
                 scale = result.scale;
