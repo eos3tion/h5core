@@ -112,6 +112,6 @@ namespace jy {
         /**
          * 地图前缀路径
          */
-        static prefix = MapConst.MapPath;
+        static prefix: string = MapConst.MapPath;
     }
 }
