@@ -11756,10 +11756,6 @@ declare namespace jy {
          * 是否 不创建默认的 scroller
          */
         noScroller?: boolean;
-        /**
-         * 是否`不绘制`背景
-         */
-        noDrawBG?: boolean;
     }
     class PageList<T, R extends ListItemRender<T>> extends AbsPageList<T, R> {
         protected _factory: ClassFactory<R>;
