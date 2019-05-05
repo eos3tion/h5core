@@ -2579,13 +2579,6 @@ declare namespace jy {
 }
 declare namespace jy {
     /**
-     * 默认地图宽/高
-     */
-    const enum MapConst {
-        DefaultSize = 256,
-        MapPath = "m/"
-    }
-    /**
      * 地图路径点寻路类型
      */
     const enum MapPathType {
@@ -2667,7 +2660,7 @@ declare namespace jy {
         /**
          * 地图前缀路径
          */
-        static prefix: MapConst;
+        static prefix: string;
     }
 }
 interface $gmType {
@@ -13538,10 +13531,6 @@ declare namespace jy {
          * 是否 不创建默认的 scroller
          */
         noScroller?: boolean;
-        /**
-         * 是否`不绘制`背景
-         */
-        noDrawBG?: boolean;
     }
     class PageList<T, R extends ListItemRender<T>> extends AbsPageList<T, R> {
         protected _factory: ClassFactory<R>;

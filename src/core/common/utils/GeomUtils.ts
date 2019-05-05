@@ -52,7 +52,7 @@ namespace jy {
         let p0 = points[0];
         let s = 0;
         let last = p0;
-        for (let i = 1; i < length; i++) {
+        for (let i = 1, length = points.length; i < length; i++) {
             let p = points[i];
             s += (p.x - last.x) * (p.y + last.y);
             last = p;
