@@ -13559,7 +13559,6 @@ var jy;
             }
         }
     }
-    var tmpLine = new jy.Line();
     function getNearestCell(fx, fy, start, cells, calcPoint) {
         var sides = start.sides;
         var minIdx;
@@ -13567,19 +13566,33 @@ var jy;
         //找到离起点最近的边
         for (var i = 0; i < sides.length; i++) {
             var _a = sides[i], pA = _a.pA, pB = _a.pB;
-            var dx = pB.x - pA.x;
-            var dy = pB.y - pA.y;
-            var A = dy / dx;
-            var B = pA.y - A * pA.y;
-            var D = A * A + 1;
-            var dist = abs((A * fx + B - fy) / sqrt(D));
-            if (dist < min) {
-                min = dist;
-                minIdx = i;
-                if (calcPoint) {
-                    var m = fx + A * fy;
-                    var ox = (m - A * B) / D;
-                    calcPoint.setTo(ox, A * ox + B);
+            var pAx = pA.x;
+            var dx = pB.x - pAx;
+            if (dx) {
+                var pAy = pA.y;
+                var dy = pB.y - pAy;
+                var A = dy / dx;
+                var B = pAy - A * pAy;
+                var D = A * A + 1;
+                var dist = abs((A * fx + B - fy) / sqrt(D));
+                if (dist < min) {
+                    min = dist;
+                    minIdx = i;
+                    if (calcPoint) {
+                        var m = fx + A * fy;
+                        var ox = (m - A * B) / D;
+                        calcPoint.setTo(ox, A * ox + B);
+                    }
+                }
+            }
+            else {
+                var dist = abs(fx - pA.x);
+                if (dist < min) {
+                    min = dist;
+                    minIdx = i;
+                    if (calcPoint) {
+                        calcPoint.setTo(pAx, fy);
+                    }
                 }
             }
         }

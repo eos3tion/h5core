@@ -31,8 +31,6 @@ namespace jy {
         }
     }
 
-    const tmpLine = new Line();
-
     function getNearestCell(fx: number, fy: number, start: Polygon, cells: Cell[], calcPoint?: Point) {
         const sides = start.sides;
         let minIdx: number;
@@ -40,21 +38,35 @@ namespace jy {
         //找到离起点最近的边
         for (let i = 0; i < sides.length; i++) {
             const { pA, pB } = sides[i];
-            let dx = pB.x - pA.x;
-            let dy = pB.y - pA.y;
-            let A = dy / dx;
-            let B = pA.y - A * pA.y;
-            let D = A * A + 1;
-            let dist = abs((A * fx + B - fy) / sqrt(D));
-            if (dist < min) {
-                min = dist;
-                minIdx = i;
-                if (calcPoint) {
-                    let m = fx + A * fy;
-                    let ox = (m - A * B) / D;
-                    calcPoint.setTo(ox, A * ox + B);
+            let pAx = pA.x;
+            let dx = pB.x - pAx;
+            if (dx) {
+                let pAy = pA.y;
+                let dy = pB.y - pAy;
+                let A = dy / dx;
+                let B = pAy - A * pAy;
+                let D = A * A + 1;
+                let dist = abs((A * fx + B - fy) / sqrt(D));
+                if (dist < min) {
+                    min = dist;
+                    minIdx = i;
+                    if (calcPoint) {
+                        let m = fx + A * fy;
+                        let ox = (m - A * B) / D;
+                        calcPoint.setTo(ox, A * ox + B);
+                    }
+                }
+            } else {
+                let dist = abs(fx - pA.x);
+                if (dist < min) {
+                    min = dist;
+                    minIdx = i;
+                    if (calcPoint) {
+                        calcPoint.setTo(pAx, fy);
+                    }
                 }
             }
+
         }
         let cell = cells[start.links[minIdx]];
         return cell;
