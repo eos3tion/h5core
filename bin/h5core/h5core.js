@@ -3859,13 +3859,15 @@ var jy;
     function dot(pA, pB) {
         return pA.x * pB.x + pA.y * pB.y;
     }
+    var tmpPt = new Point;
     var Line = /** @class */ (function () {
         function Line() {
             this.pA = new Point;
             this.pB = new Point;
         }
         Line.prototype.setPA = function (pt) {
-            this.pA.copyFrom(pt);
+            var pa = this.pA;
+            pa.setTo(pt.x, pt.y);
             this.calcedNormal = false;
             return this;
         };
@@ -3895,7 +3897,8 @@ var jy;
         };
         Line.prototype.signedDistance = function (point) {
             this.computeNormal();
-            var v2f = point.subtract(this.pA);
+            tmpPt.copyFrom(point);
+            var v2f = tmpPt.subtract(this.pA);
             return dot(this.m_Normal, v2f);
         };
         /**
@@ -3941,7 +3944,8 @@ var jy;
                 var x = pAX + u0 * dtX;
                 var y = pAY + u0 * dtY;
                 if (intersectPoint) {
-                    intersectPoint.setTo(x, y);
+                    intersectPoint.x = x;
+                    intersectPoint.y = y;
                 }
                 if ((u0 >= 0) && (u0 <= 1) && (u1 >= 0) && (u1 <= 1)) {
                     return 2 /* SegmentsIntersect */;
@@ -8489,7 +8493,7 @@ var jy;
             if (version === void 0) { version = 1; }
             if (keyPath === void 0) { keyPath = "uri"; }
             if (storeName === void 0) { storeName = "res"; }
-            if (egret.Capabilities.runtimeType != egret.RuntimeType.WEB) { //不处理native的情况
+            if (egret.Capabilities.runtimeType != "web" /* WEB */) { //不处理native的情况
                 return;
             }
             var db = getLocalDB(version, keyPath, storeName);
@@ -21093,7 +21097,7 @@ var jy;
             this.addChild(this.thumb);
             this.tipTxt = new egret.TextField();
             this.tipTxt.y = -12;
-            this.tipTxt.textAlign = egret.HorizontalAlign.CENTER;
+            this.tipTxt.textAlign = "center" /* CENTER */;
             this.tipTxt.width = 80;
             this.tipTxt.size = 12;
             this.tipTxt.bold = false;
@@ -22141,7 +22145,7 @@ var jy;
             if (duration === void 0) { duration = 1000; }
             if (delay === void 0) { delay = 1000; }
             var txt = new egret.TextField();
-            txt.textAlign = egret.HorizontalAlign.CENTER;
+            txt.textAlign = "center" /* CENTER */;
             if (/<[^>]+>/.test(msg)) {
                 txt.setHtmlText(msg);
             }

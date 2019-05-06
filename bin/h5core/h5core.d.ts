@@ -2819,18 +2819,18 @@ declare namespace jy {
          * 法线
          */
         m_Normal: Point;
-        setPA(pt: Point): this;
-        setPB(pt: Point): this;
-        setPoints(pA: Point, pB: Point): this;
+        setPA(pt: jy.Point): this;
+        setPB(pt: jy.Point): this;
+        setPoints(pA: jy.Point, pB: jy.Point): this;
         computeNormal(): void;
-        signedDistance(point: Point): number;
+        signedDistance(point: jy.Point): number;
         /**
          * 检查点的位置
          * @param point 要检查的点
          * @param epsilon 精度
          */
-        classifyPoint(point: Point, epsilon?: NavMeshConst): PointClassification;
-        intersection(other: Line, intersectPoint?: Point): LineClassification;
+        classifyPoint(point: jy.Point, epsilon?: NavMeshConst): PointClassification;
+        intersection(other: Line, intersectPoint?: jy.Point): LineClassification;
         equals(line: Line): boolean;
     }
 }
@@ -2856,7 +2856,7 @@ declare namespace jy {
          * 是否包含点
          * @param pt
          */
-        contain(pt: Point): boolean;
+        contain(pt: jy.Point): boolean;
     }
 }
 declare namespace jy {
@@ -10622,13 +10622,13 @@ declare namespace jy {
          */
         protected _calced: boolean;
         constructor(p1?: Point, p2?: Point, p3?: Point);
-        setPoints(p1: Point, p2: Point, p3: Point): this;
+        setPoints(p1: jy.Point, p2: jy.Point, p3: jy.Point): this;
         calculateData(): void;
         /**
          * 检查点是否在三角形中间
          * @param testPoint
          */
-        contain(testPoint: Point): boolean;
+        contain(testPoint: jy.Point): boolean;
     }
     class Cell extends Triangle {
         f: number;

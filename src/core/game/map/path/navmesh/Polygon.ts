@@ -21,7 +21,7 @@ namespace jy {
          * 是否包含点
          * @param pt 
          */
-        contain(pt: Point) {
+        contain(pt: jy.Point) {
             let { x, y } = pt;
             let inside = false;
             let vs = this.points;

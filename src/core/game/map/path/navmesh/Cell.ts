@@ -30,7 +30,7 @@ namespace jy {
             this.points = [p1, p2, p3];
         }
 
-        setPoints(p1: Point, p2: Point, p3: Point) {
+        setPoints(p1: jy.Point, p2: jy.Point, p3: jy.Point) {
             const { pA, pB, pC } = this;
             pA.copyFrom(p1);
             pB.copyFrom(p2);
@@ -58,7 +58,7 @@ namespace jy {
          * 检查点是否在三角形中间
          * @param testPoint 
          */
-        contain(testPoint: Point) {
+        contain(testPoint: jy.Point) {
             this.calculateData();
             // 点在所有边的右面或者线上
             return this.sides.every(

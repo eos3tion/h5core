@@ -12,6 +12,7 @@ namespace jy {
         return pA.x * pB.x + pA.y * pB.y;
     }
 
+    let tmpPt = new Point;
     export class Line {
         pA = new Point as Readonly<Point>
 
@@ -26,19 +27,20 @@ namespace jy {
          */
         m_Normal: Point;
 
-        setPA(pt: Point) {
-            this.pA.copyFrom(pt);
+        setPA(pt: jy.Point) {
+            let pa = this.pA;
+            pa.setTo(pt.x, pt.y);
             this.calcedNormal = false;
             return this;
         }
 
-        setPB(pt: Point) {
+        setPB(pt: jy.Point) {
             this.pB.copyFrom(pt);
             this.calcedNormal = false;
             return this;
         }
 
-        setPoints(pA: Point, pB: Point) {
+        setPoints(pA: jy.Point, pB: jy.Point) {
             this.pA.copyFrom(pA);
             this.pB.copyFrom(pB);
             this.calcedNormal = false;
@@ -59,9 +61,10 @@ namespace jy {
             }
         }
 
-        signedDistance(point: Point) {
+        signedDistance(point: jy.Point) {
             this.computeNormal();
-            let v2f = point.subtract(this.pA);
+            tmpPt.copyFrom(point);
+            let v2f = tmpPt.subtract(this.pA);
             return dot(this.m_Normal, v2f);
         }
 
@@ -70,7 +73,7 @@ namespace jy {
          * @param point 要检查的点
          * @param epsilon 精度
          */
-        classifyPoint(point: Point, epsilon = NavMeshConst.Epsilon) {
+        classifyPoint(point: jy.Point, epsilon = NavMeshConst.Epsilon) {
             let result = PointClassification.OnLine;
             let distance = this.signedDistance(point);
             if (distance > epsilon) {
@@ -82,7 +85,7 @@ namespace jy {
             return result;
         }
 
-        intersection(other: Line, intersectPoint?: Point) {
+        intersection(other: Line, intersectPoint?: jy.Point) {
             const { pA: { x: opAX, y: opAY }, pB: { x: opBX, y: opBY } } = other;
             const { pA: { x: pAX, y: pAY }, pB: { x: pBX, y: pBY } } = this;
             const doY = opBY - opAY;
@@ -106,7 +109,8 @@ namespace jy {
                 let x = pAX + u0 * dtX;
                 let y = pAY + u0 * dtY;
                 if (intersectPoint) {
-                    intersectPoint.setTo(x, y);
+                    intersectPoint.x = x;
+                    intersectPoint.y = y;
                 }
                 if ((u0 >= 0) && (u0 <= 1) && (u1 >= 0) && (u1 <= 1)) {
                     return LineClassification.SegmentsIntersect;
