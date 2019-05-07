@@ -10700,20 +10700,29 @@ declare namespace jy {
          */
         RightSide = 2
     }
+    /**
+     * 线段位置情况的定义
+     */
     const enum LineClassification {
         /**
          * 共线
          */
         Collinear = 0,
         /**
-         * 直线相交，但线段不相交
+         * 线段不相交，线段所在直线相交
          */
         LinesIntersect = 1,
         /**
-         * 两条线段相互平分
+         * 两条线段相交
          */
         SegmentsIntersect = 2,
+        /**
+         * 线段不想交，线段所在直线相交，交点在传入检查的线段上
+         */
         ABisectB = 3,
+        /**
+         * 线段不想交，线段所在直线相交，交点在当前线上
+         */
         BBisectA = 4,
         /**
          * 平行

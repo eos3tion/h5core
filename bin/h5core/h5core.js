@@ -13847,8 +13847,10 @@ var jy;
      */
     function getWayPoint(tmp, endPos, width) {
         var cell = tmp.cell;
+        if (!cell || cell.wall == -1) {
+            return;
+        }
         var startPt = tmp.pos;
-        var lastCell = cell;
         var outSide = getSideAB(cell, width);
         var lastPtA = outSide.pA;
         var lastPtB = outSide.pB;
@@ -13856,8 +13858,8 @@ var jy;
         var lastLineB = _lastLineB;
         lastLineA.setPoints(startPt, lastPtA);
         lastLineB.setPoints(startPt, lastPtB);
-        lastCell = cell;
         cell = cell.parent;
+        var lastCell = cell;
         do {
             var testA = void 0, testB = void 0;
             var next = cell.parent;
@@ -15412,9 +15414,9 @@ var jy;
             var rads_1 = new Array(total);
             var sinRads_1 = new Array(total);
             var cosRads_1 = new Array(total);
-            var startDeg = 90;
+            var startDeg = 180; //方向0，↓，为180°
             var deltaDeg = 360 / total;
-            var startRad = Math.PI_1_2;
+            var startRad = Math.PI;
             var deltaRad = Math.PI2 / total;
             var sin = Math.sin, cos = Math.cos;
             for (var i = 0; i < total; i++) {

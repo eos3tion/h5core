@@ -350,8 +350,10 @@ namespace jy {
      */
     function getWayPoint(tmp: { cell: Cell, pos: Point }, endPos: Point, width: number) {
         let cell = tmp.cell;
+        if (!cell || cell.wall == -1) {
+            return;
+        }
         let startPt = tmp.pos;
-        let lastCell = cell;
         let outSide = getSideAB(cell, width);
         let lastPtA = outSide.pA;
         let lastPtB = outSide.pB;
@@ -359,8 +361,8 @@ namespace jy {
         let lastLineB = _lastLineB;
         lastLineA.setPoints(startPt, lastPtA);
         lastLineB.setPoints(startPt, lastPtB);
-        lastCell = cell;
         cell = cell.parent;
+        let lastCell = cell;
         do {
             let testA, testB: Point;
             let next = cell.parent;
