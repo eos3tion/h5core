@@ -95,9 +95,9 @@ namespace jy {
             const rads = new Array(total);
             const sinRads = new Array(total);
             const cosRads = new Array(total);
-            let startDeg = 90;
+            let startDeg = 180;//方向0，↓，为180°
             let deltaDeg = 360 / total;
-            let startRad = Math.PI_1_2;
+            let startRad = Math.PI;
             let deltaRad = Math.PI2 / total;
             const { sin, cos } = Math;
             for (let i = 0; i < total; i++) {
