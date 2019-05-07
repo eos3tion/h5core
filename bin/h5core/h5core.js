@@ -13535,7 +13535,7 @@ var jy;
 var jy;
 (function (jy) {
     var Point = egret.Point;
-    var abs = Math.abs, sqrt = Math.sqrt;
+    var abs = Math.abs;
     var tmpPoint = new Point;
     /**
      * 获取格子
@@ -13568,34 +13568,42 @@ var jy;
         var minIdx;
         var min = Infinity;
         //找到离起点最近的边
+        //算法参考 https://blog.csdn.net/u012138730/article/details/79779996
         for (var i = 0; i < sides.length; i++) {
             var _a = sides[i], pA = _a.pA, pB = _a.pB;
             var pAx = pA.x;
             var dx = pB.x - pAx;
-            if (dx) {
-                var pAy = pA.y;
-                var dy = pB.y - pAy;
-                var A = dy / dx;
-                var B = pAy - A * pAy;
-                var D = A * A + 1;
-                var dist = abs((A * fx + B - fy) / sqrt(D));
-                if (dist < min) {
-                    min = dist;
-                    minIdx = i;
-                    if (calcPoint) {
-                        var m = fx + A * fy;
-                        var ox = (m - A * B) / D;
-                        calcPoint.setTo(ox, A * ox + B);
-                    }
-                }
+            var pAy = pA.y;
+            var dy = pB.y - pAy;
+            var pdx = fx - pAx;
+            var pdy = fy - pAy;
+            var d = dx * dx + dy * dy; //线段长度的平方
+            var t = dx * pdx + dy * pdy; // (fx,fy)向量  点积  AB的向量
+            if (d > 0) {
+                t /= d;
             }
-            else {
-                var dist = abs(fx - pA.x);
-                if (dist < min) {
-                    min = dist;
-                    minIdx = i;
-                    if (calcPoint) {
-                        calcPoint.setTo(pAx, fy);
+            if (t < 0) { // 当t（r）< 0时，最短距离即为 pt点 和 （A点和P点）之间的距离。
+                t = 0;
+            }
+            else if (t > 1) { // 当t（r）> 1时，最短距离即为 pt点 和 （B点和P点）之间的距离。
+                t = 1;
+            }
+            // t = 0，计算 pt点 和 A点的距离; t = 1, 计算 pt点 和 B点 的距离; 否则计算 pt点 和 投影点 的距离。
+            dx = pAx + t * dx - fx;
+            dy = pAy + t * dy - fy;
+            var dist = dx * dx + dy * dy;
+            if (dist < min) {
+                min = dist;
+                minIdx = i;
+                if (calcPoint) {
+                    if (t == 0) {
+                        calcPoint.copyFrom(pA);
+                    }
+                    else if (t == 1) {
+                        calcPoint.copyFrom(pB);
+                    }
+                    else {
+                        calcPoint.setTo(dx + fx, dy + fy);
                     }
                 }
             }
@@ -13847,9 +13855,6 @@ var jy;
      */
     function getWayPoint(tmp, endPos, width) {
         var cell = tmp.cell;
-        if (!cell || cell.wall == -1) {
-            return;
-        }
         var startPt = tmp.pos;
         var outSide = getSideAB(cell, width);
         var lastPtA = outSide.pA;
@@ -13858,8 +13863,8 @@ var jy;
         var lastLineB = _lastLineB;
         lastLineA.setPoints(startPt, lastPtA);
         lastLineB.setPoints(startPt, lastPtB);
-        cell = cell.parent;
         var lastCell = cell;
+        cell = cell.parent;
         do {
             var testA = void 0, testB = void 0;
             var next = cell.parent;

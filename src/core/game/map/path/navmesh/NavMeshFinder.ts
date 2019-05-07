@@ -1,7 +1,7 @@
 //参考项目 https://github.com/blianchen/navMeshTest
 namespace jy {
     import Point = egret.Point;
-    const { abs, sqrt } = Math;
+    const { abs } = Math;
 
     const tmpPoint = new Point;
     /**
@@ -36,37 +36,42 @@ namespace jy {
         let minIdx: number;
         let min = Infinity;
         //找到离起点最近的边
+        //算法参考 https://blog.csdn.net/u012138730/article/details/79779996
         for (let i = 0; i < sides.length; i++) {
             const { pA, pB } = sides[i];
             let pAx = pA.x;
             let dx = pB.x - pAx;
-            if (dx) {
-                let pAy = pA.y;
-                let dy = pB.y - pAy;
-                let A = dy / dx;
-                let B = pAy - A * pAy;
-                let D = A * A + 1;
-                let dist = abs((A * fx + B - fy) / sqrt(D));
-                if (dist < min) {
-                    min = dist;
-                    minIdx = i;
-                    if (calcPoint) {
-                        let m = fx + A * fy;
-                        let ox = (m - A * B) / D;
-                        calcPoint.setTo(ox, A * ox + B);
-                    }
-                }
-            } else {
-                let dist = abs(fx - pA.x);
-                if (dist < min) {
-                    min = dist;
-                    minIdx = i;
-                    if (calcPoint) {
-                        calcPoint.setTo(pAx, fy);
+            let pAy = pA.y;
+            let dy = pB.y - pAy;
+            let pdx = fx - pAx;
+            let pdy = fy - pAy;
+            let d = dx * dx + dy * dy;//线段长度的平方
+            let t = dx * pdx + dy * pdy;// (fx,fy)向量  点积  AB的向量
+            if (d > 0) {
+                t /= d;
+            }
+            if (t < 0) {// 当t（r）< 0时，最短距离即为 pt点 和 （A点和P点）之间的距离。
+                t = 0;
+            } else if (t > 1) { // 当t（r）> 1时，最短距离即为 pt点 和 （B点和P点）之间的距离。
+                t = 1;
+            }
+            // t = 0，计算 pt点 和 A点的距离; t = 1, 计算 pt点 和 B点 的距离; 否则计算 pt点 和 投影点 的距离。
+            dx = pAx + t * dx - fx;
+            dy = pAy + t * dy - fy;
+            let dist = dx * dx + dy * dy;
+            if (dist < min) {
+                min = dist;
+                minIdx = i;
+                if (calcPoint) {
+                    if (t == 0) {
+                        calcPoint.copyFrom(pA);
+                    } else if (t == 1) {
+                        calcPoint.copyFrom(pB);
+                    } else {
+                        calcPoint.setTo(dx + fx, dy + fy);
                     }
                 }
             }
-
         }
         let cell = cells[start.links[minIdx]];
         return cell;
@@ -350,9 +355,6 @@ namespace jy {
      */
     function getWayPoint(tmp: { cell: Cell, pos: Point }, endPos: Point, width: number) {
         let cell = tmp.cell;
-        if (!cell || cell.wall == -1) {
-            return;
-        }
         let startPt = tmp.pos;
         let outSide = getSideAB(cell, width);
         let lastPtA = outSide.pA;
@@ -361,8 +363,8 @@ namespace jy {
         let lastLineB = _lastLineB;
         lastLineA.setPoints(startPt, lastPtA);
         lastLineB.setPoints(startPt, lastPtB);
-        cell = cell.parent;
         let lastCell = cell;
+        cell = cell.parent;
         do {
             let testA, testB: Point;
             let next = cell.parent;
