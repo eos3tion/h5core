@@ -13711,7 +13711,11 @@ var jy;
             }
             //其实和结束的格位相同
             if (start == end) {
-                callback.callAndRecycle([endPos], true);
+                var result = null;
+                if (start instanceof jy.Cell) {
+                    result = [endPos];
+                }
+                callback.callAndRecycle(result, true);
                 return;
             }
             var startPos = new Point(fx, fy);

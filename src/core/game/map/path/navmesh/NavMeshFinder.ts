@@ -205,7 +205,11 @@ namespace jy {
             }
             //其实和结束的格位相同
             if (start == end) {
-                callback.callAndRecycle([endPos], true);
+                let result = null;
+                if (start instanceof Cell) {
+                    result = [endPos];
+                }
+                callback.callAndRecycle(result, true);
                 return;
             }
 
