@@ -2433,6 +2433,36 @@ var jy;
         return "#" + c.toString(16).zeroize(6);
     }
     var textureCaches = {};
+    var idx = 0;
+    var increaseCount = 5;
+    var size = Math.pow(2, increaseCount);
+    var canvas = document.createElement("canvas");
+    canvas.height = canvas.width = size;
+    var bmd = new egret.BitmapData(canvas);
+    bmd.$deleteSource = false;
+    var ctx = canvas.getContext("2d");
+    function checkCanvas() {
+        if (idx >= size * size) {
+            size <<= 1;
+            bmd.width = bmd.height = canvas.height = canvas.width = size << 2;
+            increaseCount++;
+        }
+    }
+    /**
+     * ```
+     * ┌─┬─┐
+     * │0│1│
+     * ├─┼─┤
+     * │2│3│
+     * └─┴─┘
+     * ```
+     */
+    var poses = [
+        /**0 */ [0, 0],
+        /**1 */ [1, 0],
+        /**2 */ [0, 1],
+        /**3 */ [1, 1]
+    ];
     /**
      * 颜色工具
      * @author 3tion
@@ -2469,14 +2499,39 @@ var jy;
             var key = color + "_" + alpha;
             var tex = textureCaches[key];
             if (!tex) {
-                var canvas = document.createElement("canvas");
-                canvas.height = canvas.width = 1;
-                var ctx = canvas.getContext("2d");
+                checkCanvas();
+                textureCaches[key] = tex = new egret.Texture();
+                var count = increaseCount;
+                var x = 0, y = 0;
+                var cidx = idx;
+                do {
+                    var shift = 2 * count;
+                    var area = cidx >> shift;
+                    cidx = cidx - (area << shift);
+                    var pos = poses[area];
+                    x += pos[0] * shift;
+                    y += pos[1] * shift;
+                    if (!--count) {
+                        var pos_1 = poses[cidx];
+                        x += pos_1[0];
+                        y += pos_1[1];
+                        break;
+                    }
+                } while (true);
                 ctx.globalAlpha = alpha;
                 ctx.fillStyle = getColorString(color);
-                ctx.fillRect(0, 0, 1, 1);
-                tex = new egret.Texture();
-                tex.bitmapData = new egret.BitmapData(canvas);
+                x <<= 2;
+                y <<= 2;
+                ctx.fillRect(x, y, 4, 4);
+                tex.disposeBitmapData = false;
+                tex.bitmapData = bmd;
+                if (bmd.webGLTexture) { //清理webgl纹理，让渲染可以重置
+                    egret.WebGLUtils.deleteWebGLTexture(bmd);
+                    bmd.webGLTexture = null;
+                }
+                var ww = 2;
+                tex.$initData(x + 1, y + 1, ww, ww, 0, 0, ww, ww, ww, ww);
+                idx++;
             }
             return tex;
         }
@@ -7840,7 +7895,7 @@ var jy;
             if (version === void 0) { version = 1; }
             if (keyPath === void 0) { keyPath = "uri"; }
             if (storeName === void 0) { storeName = "res"; }
-            if (egret.Capabilities.runtimeType != egret.RuntimeType.WEB) { //不处理native的情况
+            if (egret.Capabilities.runtimeType != "web" /* WEB */) { //不处理native的情况
                 return;
             }
             var db = getLocalDB(version, keyPath, storeName);
@@ -17852,7 +17907,7 @@ var jy;
             this.addChild(this.thumb);
             this.tipTxt = new egret.TextField();
             this.tipTxt.y = -12;
-            this.tipTxt.textAlign = egret.HorizontalAlign.CENTER;
+            this.tipTxt.textAlign = "center" /* CENTER */;
             this.tipTxt.width = 80;
             this.tipTxt.size = 12;
             this.tipTxt.bold = false;
@@ -18827,7 +18882,7 @@ var jy;
             if (duration === void 0) { duration = 1000; }
             if (delay === void 0) { delay = 1000; }
             var txt = new egret.TextField();
-            txt.textAlign = egret.HorizontalAlign.CENTER;
+            txt.textAlign = "center" /* CENTER */;
             if (/<[^>]+>/.test(msg)) {
                 txt.setHtmlText(msg);
             }
