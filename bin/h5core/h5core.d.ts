@@ -10418,10 +10418,295 @@ declare namespace jy {
     }
 }
 declare namespace jy {
+    const enum MapPBDictKey {
+        GridMapInfoPB = 10,
+        MapEffPB = 11,
+        MapInfoPB = 12,
+        MapLinePB = 13,
+        MapListPB = 14,
+        MapOvalPB = 15,
+        MapPointPB = 16,
+        MaskPolyPB = 17,
+        NavMeshMapInfoPB = 18,
+        PolyPointIdxPB = 19,
+        TPointIdxPB = 20
+    }
     /**
      * 地图的PB数据
      */
     const MapPB: PBStructDictInput;
+}
+/**
+ * 使用JunyouProtoTools，从 [文本框中，复制粘贴] 生成
+ * 生成时间 2019-05-09 18:03:46
+ **/
+declare namespace jy {
+    interface GridMapInfoPB {
+        /**
+         * 格子列数
+         */
+        columns: number;
+        /**
+         * 格子行数
+         */
+        rows: number;
+        /**
+         * 格子宽度
+         */
+        gridWidth: number;
+        /**
+         * 格子高度
+         */
+        gridHeight: number;
+        /**
+         * 可选参数 格子是否可走的数据
+         */
+        pathdata?: ByteArray;
+        /**
+         * 可选参数 格子透明度数据
+         */
+        alphadata?: ByteArray;
+    }
+}
+/**
+ * 使用JunyouProtoTools，从 [文本框中，复制粘贴] 生成
+ * 生成时间 2019-05-09 18:02:53
+ **/
+declare namespace jy {
+    interface MapEffPB {
+        /**
+         * 资源路径
+         */
+        uri: string;
+        /**
+         * 层级标识
+         */
+        layer: number;
+        /**
+         * 坐标x
+         */
+        x: number;
+        /**
+         * 坐标y
+         */
+        y: number;
+        /**
+         * 缩放X的100倍
+         */
+        scaleX: number;
+        /**
+         * 缩放Y的100倍
+         */
+        scaleY: number;
+        /**
+         * 可选参数 移动效果的持续时间参数
+         */
+        duration?: number;
+        /**
+         * 可选参数 x方向的移动速度
+         */
+        speedX?: number;
+        /**
+         * 可选参数 y方向的移动速度
+         */
+        speedY?: number;
+        /**
+         * 可选参数 用于同步移动的时间种子
+         */
+        seed?: number;
+    }
+}
+/**
+ * 使用JunyouProtoTools，从 [文本框中，复制粘贴] 生成
+ * 生成时间 2019-05-09 18:03:46
+ **/
+declare namespace jy {
+    interface MapInfoPB {
+        /**
+         * 地图唯一标识
+         */
+        id: number;
+        /**
+         * 扩展名存储类型
+         */
+        extType: number;
+        /**
+         * 地图类型 `0` GridMapInfo `1` NavMeshMapInfo
+         */
+        type: number;
+        /**
+         * 地图宽度
+         */
+        width: number;
+        /**
+         * 地图高度
+         */
+        height: number;
+        /**
+         * 特殊地图数据，根据`type`不同，里面数据不同
+         */
+        data: ByteArray;
+        /**
+         * 可选参数 效果列表
+         */
+        effs?: MapEffPB[];
+        /**
+         * 可选参数 带标识的导航线/多边形信息
+         */
+        lines?: MapLinePB[];
+        /**
+         * 可选参数 带标识的椭圆区域
+         */
+        ovals?: MapOvalPB[];
+    }
+}
+/**
+ * 使用JunyouProtoTools，从 [文本框中，复制粘贴] 生成
+ * 生成时间 2019-05-09 18:02:53
+ **/
+declare namespace jy {
+    interface MapLinePB {
+        /**
+         * 线的标识
+         */
+        id: number;
+        /**
+         * 可选参数 线上的点
+         */
+        points?: MapPointPB[];
+        /**
+         * 可选参数 是否为封闭的区域，即最后一个点，是否会和第一个点连上
+         */
+        flag?: boolean;
+        /**
+         * 可选参数 默认为直线，后续用于支持曲线（可能使用赫米特差值算法补差值,或者直接当特定点为贝塞尔的控制点）
+         */
+        type?: number;
+    }
+}
+/**
+ * 使用JunyouProtoTools，从 [文本框中，复制粘贴] 生成
+ * 生成时间 2019-05-09 18:19:34
+ **/
+declare namespace jy {
+    interface MapListPB {
+        /**
+         * 可选参数 地图数据集合
+         */
+        maps?: MapInfoPB[];
+    }
+}
+/**
+ * 使用JunyouProtoTools，从 [文本框中，复制粘贴] 生成
+ * 生成时间 2019-05-09 18:02:53
+ **/
+declare namespace jy {
+    interface MapOvalPB {
+        /**
+         * 椭圆的标识
+         */
+        id: number;
+        /**
+         * 横轴长度
+         */
+        a: number;
+        /**
+         * 可选参数 纵轴长度，没有此值则代表圆形，`a`则为圆形直径
+         */
+        b?: number;
+        /**
+         * 中心点坐标
+         */
+        center: MapPointPB;
+    }
+}
+/**
+ * 使用JunyouProtoTools，从 [文本框中，复制粘贴] 生成
+ * 生成时间 2019-05-09 18:02:53
+ **/
+declare namespace jy {
+    interface MapPointPB {
+        /**
+         * 坐标 x
+         */
+        x: number;
+        /**
+         * 坐标 y
+         */
+        y: number;
+    }
+}
+/**
+ * 使用JunyouProtoTools，从 [文本框中，复制粘贴] 生成
+ * 生成时间 2019-05-09 18:02:53
+ **/
+declare namespace jy {
+    interface MaskPolyPB {
+        /**
+         * 可选参数 多边形的点集
+         */
+        points?: MapPointPB[];
+        /**
+         * 可选参数 如果alpha数据(0-100)，100代表不透明，0代表完全透明
+         */
+        data?: number;
+    }
+}
+/**
+ * 使用JunyouProtoTools，从 [文本框中，复制粘贴] 生成
+ * 生成时间 2019-05-09 18:02:53
+ **/
+declare namespace jy {
+    interface NavMeshMapInfoPB {
+        /**
+         * 可选参数 所有的点数据
+         */
+        points?: MapPointPB[];
+        /**
+         * 可选参数 所有三角形对应点的索引数据
+         */
+        trians?: TPointIdxPB[];
+        /**
+         * 可选参数 不可走区域的三角形数据
+         */
+        polys?: PolyPointIdxPB[];
+        /**
+         * 可选参数 透明/遮罩区域对应的数据
+         */
+        masks?: MaskPolyPB[];
+    }
+}
+/**
+ * 使用JunyouProtoTools，从 [文本框中，复制粘贴] 生成
+ * 生成时间 2019-05-09 18:02:53
+ **/
+declare namespace jy {
+    interface PolyPointIdxPB {
+        /**
+         * 可选参数 点的索引集合
+         */
+        idxs?: number[];
+    }
+}
+/**
+ * 使用JunyouProtoTools，从 [文本框中，复制粘贴] 生成
+ * 生成时间 2019-05-09 18:02:53
+ **/
+declare namespace jy {
+    interface TPointIdxPB {
+        /**
+         * 点A索引
+         */
+        a: number;
+        /**
+         * 点B索引
+         */
+        b: number;
+        /**
+         * 点C索引
+         */
+        c: number;
+    }
 }
 declare namespace jy {
     interface PathFinderCallback {
