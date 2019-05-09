@@ -2193,46 +2193,22 @@ declare namespace jy {
         $$inted?: any;
         [index: string]: PBStruct | Key;
     }
-    /**
-     * 注册定义
-     *
-     * @param {PBStruct} msg 消息
-     * @param {*} def 类型定义
-     */
-    function regDef(msg: PBStruct, def: any): any;
-    /**
-     * 注册定义
-     *
-     * @param {Key} msgType 消息类型标识
-     * @param {*} def 类型定义
-     */
-    function regDef(msgType: Key, def: any): any;
-    /**
-     * 注册消息的结构
-     * @param msgType 消息类型标识
-     * @param struct 结构
-     */
-    function regStruct(msgType: Key, struct: PBStruct): void;
-    function initDefault(struct: PBStruct, ref?: {
-        new (): any;
-        prototype: any;
-    }): void;
-    /**
-     *
-     * @author 3tion
-     * ProtoBuf工具集
-     *
-     */
-    const PBUtils: {
+    function getPBUtils(): {
         /**
          * 注册定义
          */
-        regDef: typeof regDef;
-        regStruct: typeof regStruct;
+        regDef: {
+            (msg: PBStruct, def: any): any;
+            (msgType: string | number, def: any): any;
+        };
+        regStruct: (msgType: string | number, struct: PBStruct) => void;
         /**
          * 初始化默认值
          */
-        initDefault: typeof initDefault;
+        initDefault: (struct: PBStruct, ref?: {
+            new (): any;
+            prototype: any;
+        }) => void;
         /**
          * 增加ProtoBuf的消息的结构字典
          *
@@ -2242,27 +2218,44 @@ declare namespace jy {
          * @memberOf PBMessageUtils
          */
         add(dict: PBStructDictInput): void;
-        readFrom: typeof readFrom;
-        writeTo: typeof writeTo;
+        readFrom: (msgType: string | number | PBStruct, bytes: ByteArray, len?: number) => any;
+        writeTo: (msg: object, msgType: string | number | PBStruct, bytes?: ByteArray, debugOutData?: Object) => ByteArray;
     };
     /**
-     * 读取消息
-     *
-     * @param {(Key | PBStruct)} msgType
-     * @param {ByteArray} bytes
-     * @param {number} [len]
-     * @returns {any}
+     * 默认的PB工具
      */
-    function readFrom(msgType: Key | PBStruct, bytes: ByteArray, len?: number): any;
+    const PBUtils: {
+        /**
+         * 注册定义
+         */
+        regDef: {
+            (msg: PBStruct, def: any): any;
+            (msgType: string | number, def: any): any;
+        };
+        regStruct: (msgType: string | number, struct: PBStruct) => void;
+        /**
+         * 初始化默认值
+         */
+        initDefault: (struct: PBStruct, ref?: {
+            new (): any;
+            prototype: any;
+        }) => void;
+        /**
+         * 增加ProtoBuf的消息的结构字典
+         *
+         * @static
+         * @param {PBStructDict} dict
+         *
+         * @memberOf PBMessageUtils
+         */
+        add(dict: PBStructDictInput): void;
+        readFrom: (msgType: string | number | PBStruct, bytes: ByteArray, len?: number) => any;
+        writeTo: (msg: object, msgType: string | number | PBStruct, bytes?: ByteArray, debugOutData?: Object) => ByteArray;
+    };
     /**
-     * 写入消息
-     *
-     * @param {object} msg
-     * @param {(Key | PBStruct)} msgType
-     * @param {ByteArray} [bytes]
-     * @returns {ByteArray}
+     * 定义类型
      */
-    function writeTo(msg: object, msgType: Key | PBStruct, bytes?: ByteArray, debugOutData?: Object): ByteArray;
+    type PBUtils = typeof PBUtils;
 }
 declare namespace jy {
     /**
@@ -10423,6 +10416,12 @@ declare namespace jy {
          */
         dispose(): void;
     }
+}
+declare namespace jy {
+    /**
+     * 地图的PB数据
+     */
+    const MapPB: PBStructDictInput;
 }
 declare namespace jy {
     interface PathFinderCallback {

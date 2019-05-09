@@ -363,6 +363,8 @@ namespace jy {
         6: [5, PBFieldType.Optional, PBType.String]/*可选 字符串型默认值 */
     }
 
+    const PBUtils = getPBUtils();
+
     PBUtils.initDefault(CfgHeadStruct);
 
     interface CfgHead extends JSONHeadItem {
