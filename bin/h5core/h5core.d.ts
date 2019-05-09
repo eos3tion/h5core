@@ -2610,6 +2610,10 @@ declare namespace jy {
          */
         pathType: MapPathType;
         /**
+         * 没有地图底图的数据集合
+         */
+        noPic: Uint8Array;
+        /**
          * 地图像素宽度
          */
         width: number;
@@ -2683,7 +2687,7 @@ declare namespace jy {
          */
         preload: number;
         static checkRect?(map: MapInfo, rect: egret.Rectangle, preload: number, forEach: {
-            (uri: string, col: number, row: number): any;
+            (uri: string, col: number, row: number, map: MapInfo): any;
         }, checker?: {
             (sc: number, sr: number, ec: number, er: number): boolean;
         }): any;
@@ -2743,7 +2747,7 @@ declare namespace jy {
          */
         protected ler: number;
         protected _idx: number;
-        protected addMap(uri: string, c: number, r: number, pW: number, pH: number): void;
+        protected addMap(uri: string, c: number, r: number, map: MapInfo): void;
         reset(): void;
         protected check(sc: number, sr: number, ec: number, er: number): boolean;
         setRect(rect: egret.Rectangle, ox?: number, oy?: number): void;
@@ -2757,13 +2761,17 @@ declare namespace jy {
         removeChildren(): void;
     }
     /**
+     * 获取类似地图一样，由行列构成的数据集，数据为2进制数据
+     * @param x 横坐标
+     * @param y 纵坐标
+     * @param columns 一行的总列数
+     * @param data 二进制数据集
+     */
+    function getMapBit(x: number, y: number, columns: number, data: Uint8Array): number;
+    /**
     * TileMap
     */
     class TileMap extends egret.Bitmap implements IResource {
-        /**
-         * 表示此底图为空地图，最终不放置在舞台上
-         */
-        empty: boolean;
         /**
          * 地图块的列
          */
@@ -10518,7 +10526,7 @@ declare namespace jy {
 }
 /**
  * 使用JunyouProtoTools，从 [文本框中，复制粘贴] 生成
- * 生成时间 2019-05-09 18:03:46
+ * 生成时间 2019-05-09 20:00:13
  **/
 declare namespace jy {
     interface MapInfoPB {
@@ -10558,6 +10566,18 @@ declare namespace jy {
          * 可选参数 带标识的椭圆区域
          */
         ovals?: MapOvalPB[];
+        /**
+         * 可选参数 单张底图宽度
+         */
+        pWidth?: number;
+        /**
+         * 可选参数 单张底图高度，当没有此值时，和pWidth一致
+         */
+        pHeight?: number;
+        /**
+         * 可选参数 没有地图数据的数据索引
+         */
+        noPic?: ByteArray;
     }
 }
 /**

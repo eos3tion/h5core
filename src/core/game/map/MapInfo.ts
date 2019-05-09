@@ -55,6 +55,11 @@ namespace jy {
         pathType: MapPathType;
 
         /**
+         * 没有地图底图的数据集合
+         */
+        noPic: Uint8Array;
+
+        /**
          * 地图像素宽度
          */
         public width: number;

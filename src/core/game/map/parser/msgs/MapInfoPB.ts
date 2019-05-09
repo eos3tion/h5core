@@ -1,9 +1,9 @@
 /**
  * 使用JunyouProtoTools，从 [文本框中，复制粘贴] 生成
- * 生成时间 2019-05-09 18:03:46
+ * 生成时间 2019-05-09 20:00:13
  **/
 declare namespace jy {
-	export interface MapInfoPB{
+	export interface MapInfoPB {
 		/**
 		 * 地图唯一标识
 		 */
@@ -40,5 +40,17 @@ declare namespace jy {
 		 * 可选参数 带标识的椭圆区域
 		 */
 		ovals?: MapOvalPB[];
+		/**
+		 * 可选参数 单张底图宽度
+		 */
+		pWidth?: number;
+		/**
+		 * 可选参数 单张底图高度，当没有此值时，和pWidth一致
+		 */
+		pHeight?: number;
+		/**
+		 * 可选参数 没有地图数据的数据索引
+		 */
+		noPic?: ByteArray;
 	}
 }

@@ -3676,28 +3676,10 @@ var jy;
         for (var r = sr; r <= er; r++) {
             for (var c = sc; c <= ec; c++) {
                 var uri = map.getMapUri(c, r);
-                forEach.call(caller, uri, c, r, pW, pH);
+                forEach.call(caller, uri, c, r, map);
             }
         }
         return true;
-    }
-    /**
-     * 刷新当前地图
-     */
-    function checkEmpty() {
-        //@ts-ignore
-        var showing = this._showing;
-        var j = 0;
-        for (var i = 0; i < showing.length; i++) {
-            var show = showing[i];
-            if (show.empty) {
-                jy.removeDisplay(show);
-            }
-            else {
-                showing[j++] = show;
-            }
-        }
-        showing.length = j;
     }
     /**
     * MapRender
@@ -3741,9 +3723,10 @@ var jy;
             enumerable: true,
             configurable: true
         });
-        TileMapLayer.prototype.addMap = function (uri, c, r, pW, pH) {
-            var tm = jy.ResManager.get(uri, this.noRes, this, uri, c, r, pW, pH);
-            if (!tm.empty) {
+        TileMapLayer.prototype.addMap = function (uri, c, r, map) {
+            var pW = map.pWidth, pH = map.pHeight, noPic = map.noPic, maxPicX = map.maxPicX;
+            if (!noPic || getMapBit(c, r, maxPicX, noPic) == 0) { //检查是否需要放置底图
+                var tm = jy.ResManager.get(uri, this.noRes, this, uri, c, r, pW, pH);
                 // 舞台上的标记为静态
                 tm.isStatic = true;
                 var idx = this._idx;
@@ -3855,6 +3838,20 @@ var jy;
     }(jy.BaseLayer));
     jy.TileMapLayer = TileMapLayer;
     __reflect(TileMapLayer.prototype, "jy.TileMapLayer");
+    /**
+     * 获取类似地图一样，由行列构成的数据集，数据为2进制数据
+     * @param x 横坐标
+     * @param y 纵坐标
+     * @param columns 一行的总列数
+     * @param data 二进制数据集
+     */
+    function getMapBit(x, y, columns, data) {
+        var position = y * columns + x;
+        var byteCount = position >> 3;
+        var bitCount = position - (byteCount << 3);
+        return (data[byteCount] >> 7 - bitCount) & 1;
+    }
+    jy.getMapBit = getMapBit;
     TileMapLayer.checkRect = checkRect;
     /**
     * TileMap
@@ -3882,19 +3879,7 @@ var jy;
                 return;
             }
             if (uri == this.uri) {
-                if (data.textureWidth == 1 && data.textureHeight == 1) { //检查纹理大小，如果是 1×1 则为特殊图片，不被加到舞台上
-                    this.empty = true; //只标记，不在此帧从舞台移除
-                    this.isStatic = true; //将这类资源标记为静态，永远不销毁，因为本身基本不占用内存
-                    data.dispose();
-                    this.texture = undefined;
-                    var parent_1 = this.parent;
-                    if (parent_1 instanceof TileMapLayer) {
-                        jy.Global.callLater(checkEmpty, 500 /* 设置为500是因为可能有多张1*1的空图片加载，减少刷新次数 */, parent_1);
-                    }
-                }
-                else {
-                    this.texture = data;
-                }
+                this.texture = data;
             }
         };
         TileMap.prototype.dispose = function () {
@@ -6553,9 +6538,9 @@ var jy;
             function getPath(p, paths) {
                 var parentKey = p.parent;
                 if (parentKey) {
-                    var parent_2 = paths[parentKey];
-                    if (parent_2) {
-                        return getPath(parent_2, paths) + p.path;
+                    var parent_1 = paths[parentKey];
+                    if (parent_1) {
+                        return getPath(parent_1, paths) + p.path;
                     }
                     else if (true) {
                         jy.ThrowError("\u8DEF\u5F84[" + p.path + "]\u914D\u7F6E\u4E86\u7236\u7EA7(parent)\uFF0C\u4F46\u662F\u627E\u4E0D\u5230\u5BF9\u5E94\u7684\u7236\u7EA7");
@@ -9566,14 +9551,14 @@ var jy;
             if (_count < maxSize) {
                 heap[_count] = obj;
                 var i = _count;
-                var parent_3 = i >> 1;
+                var parent_2 = i >> 1;
                 var tmp = heap[i];
-                while (parent_3 > 0) {
-                    var v = heap[parent_3];
+                while (parent_2 > 0) {
+                    var v = heap[parent_2];
                     if (compare(tmp, v) > 0) {
                         heap[i] = v;
-                        i = parent_3;
-                        parent_3 >>= 1;
+                        i = parent_2;
+                        parent_2 >>= 1;
                     }
                     else
                         break;
@@ -11481,9 +11466,9 @@ var jy;
         };
         GameEngine.prototype.addLayer = function (layer, cfg) {
             if (cfg && cfg.parentid) {
-                var parent_4 = this.getLayer(cfg.parentid);
-                if (parent_4 instanceof egret.DisplayObjectContainer) {
-                    this.addLayerToContainer(layer, parent_4);
+                var parent_3 = this.getLayer(cfg.parentid);
+                if (parent_3 instanceof egret.DisplayObjectContainer) {
+                    this.addLayerToContainer(layer, parent_3);
                 }
             }
             else {
@@ -11978,14 +11963,14 @@ var jy;
                     display.scaleX = display.scaleY = scale;
                 }
                 stop = option.stop;
-                var parent_5 = option.parent;
-                if (parent_5) {
+                var parent_4 = option.parent;
+                if (parent_4) {
                     var idx = option.childIdx;
                     if (idx == undefined) {
-                        parent_5.addChild(display);
+                        parent_4.addChild(display);
                     }
                     else {
-                        parent_5.addChildAt(display, idx);
+                        parent_4.addChildAt(display, idx);
                     }
                 }
                 var loop = option.loop;

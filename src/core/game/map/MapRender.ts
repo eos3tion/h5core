@@ -25,7 +25,7 @@ if (DEBUG) {
     }
 }
 namespace jy {
-    function checkRect(map: MapInfo, rect: egret.Rectangle, preload: number, forEach: { (uri: string, col: number, row: number, pW?: number, pH?: number) }, checker?: { (sc: number, sr: number, ec: number, er: number): boolean }, caller?, ox = 0, oy = 0) {
+    function checkRect(map: MapInfo, rect: egret.Rectangle, preload: number, forEach: { (uri: string, col: number, row: number, map: MapInfo) }, checker?: { (sc: number, sr: number, ec: number, er: number): boolean }, caller?, ox = 0, oy = 0) {
         //检查地图，进行加载区块
         let x = rect.x + ox;
         let y = rect.y + oy;
@@ -50,30 +50,12 @@ namespace jy {
         for (let r = sr; r <= er; r++) {
             for (let c = sc; c <= ec; c++) {
                 let uri = map.getMapUri(c, r);
-                forEach.call(caller, uri, c, r, pW, pH);
+                forEach.call(caller, uri, c, r, map);
             }
         }
         return true;
     }
 
-
-    /**
-     * 刷新当前地图
-     */
-    function checkEmpty(this: TileMapLayer) {
-        //@ts-ignore
-        let showing = this._showing;
-        let j = 0;
-        for (let i = 0; i < showing.length; i++) {
-            const show = showing[i];
-            if (show.empty) {
-                removeDisplay(show);
-            } else {
-                showing[j++] = show;
-            }
-        }
-        showing.length = j;
-    }
 
 
     /**
@@ -89,7 +71,7 @@ namespace jy {
          */
         preload = 0;
 
-        static checkRect?(map: MapInfo, rect: egret.Rectangle, preload: number, forEach: { (uri: string, col: number, row: number) }, checker?: { (sc: number, sr: number, ec: number, er: number): boolean });
+        static checkRect?(map: MapInfo, rect: egret.Rectangle, preload: number, forEach: { (uri: string, col: number, row: number, map: MapInfo) }, checker?: { (sc: number, sr: number, ec: number, er: number): boolean });
         /**
          * @private
          */
@@ -163,9 +145,10 @@ namespace jy {
 
         protected _idx: number;
 
-        protected addMap(uri: string, c: number, r: number, pW: number, pH: number) {
-            let tm = ResManager.get(uri, this.noRes, this, uri, c, r, pW, pH);
-            if (!tm.empty) {
+        protected addMap(uri: string, c: number, r: number, map: MapInfo) {
+            let { pWidth: pW, pHeight: pH, noPic, maxPicX } = map;
+            if (!noPic || getMapBit(c, r, maxPicX, noPic) == 0) {//检查是否需要放置底图
+                let tm = ResManager.get(uri, this.noRes, this, uri, c, r, pW, pH);
                 // 舞台上的标记为静态
                 tm.isStatic = true;
                 let idx = this._idx;
@@ -280,15 +263,26 @@ namespace jy {
             super.removeChildren();
         }
     }
+
+    /**
+     * 获取类似地图一样，由行列构成的数据集，数据为2进制数据
+     * @param x 横坐标
+     * @param y 纵坐标
+     * @param columns 一行的总列数
+     * @param data 二进制数据集
+     */
+    export function getMapBit(x: number, y: number, columns: number, data: Uint8Array) {
+        let position = y * columns + x;
+        let byteCount = position >> 3;
+        let bitCount = position - (byteCount << 3);
+        return (data[byteCount] >> 7 - bitCount) & 1;
+    }
+
     TileMapLayer.checkRect = checkRect;
     /**
     * TileMap
     */
     export class TileMap extends egret.Bitmap implements IResource {
-        /**
-         * 表示此底图为空地图，最终不放置在舞台上
-         */
-        empty: boolean;
         /**
          * 地图块的列
          */
@@ -343,18 +337,7 @@ namespace jy {
                 return;
             }
             if (uri == this.uri) {
-                if (data.textureWidth == 1 && data.textureHeight == 1) {//检查纹理大小，如果是 1×1 则为特殊图片，不被加到舞台上
-                    this.empty = true;//只标记，不在此帧从舞台移除
-                    this.isStatic = true;//将这类资源标记为静态，永远不销毁，因为本身基本不占用内存
-                    data.dispose();
-                    this.texture = undefined;
-                    let parent = this.parent;
-                    if (parent instanceof TileMapLayer) {
-                        Global.callLater(checkEmpty, 500/* 设置为500是因为可能有多张1*1的空图片加载，减少刷新次数 */, parent);
-                    }
-                } else {
-                    this.texture = data;
-                }
+                this.texture = data;
             }
         }
 
