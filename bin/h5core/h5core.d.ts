@@ -9430,7 +9430,11 @@ declare namespace jy {
         /**
          * 地图预览图
          */
-        Mini = 1710
+        Mini = 1710,
+        /**
+         * 地图之下的一层
+         */
+        UnderMap = 1705
     }
     /**
      * 层级配置
