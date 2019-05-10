@@ -23,7 +23,7 @@ namespace jy {
         /*MapInfoPB*/12: { 1: ["id", 2, 5], 2: ["extType", 2, 5], 3: ["type", 2, 5], 4: ["width", 2, 5], 5: ["height", 2, 5], 6: ["data", 2, 12], 7: ["effs", 3, 11, MapPBDictKey.MapEffPB], 8: ["lines", 3, 11, MapPBDictKey.MapLinePB], 9: ["ovals", 3, 11, MapPBDictKey.MapOvalPB] },
         /*MapLinePB*/13: { 1: ["id", 2, 5], 2: ["points", 3, 11, MapPBDictKey.MapPointPB], 3: ["flag", 1, 8], 4: ["type", 1, 5] },
         /*MapListPB*/14: { 1: ["maps", 3, 11, MapPBDictKey.MapInfoPB] },
-        /*MapOvalPB*/15: { 1: ["id", 2, 5], 2: ["a", 2, 5], 3: ["b", 1, 5], 4: ["center", 2, 11, MapPBDictKey.MapPointPB] },
+        /*MapOvalPB*/15: { 1: ["id", 2, 5], 2: ["a", 1, 5], 3: ["b", 1, 5], 4: ["center", 2, 11, MapPBDictKey.MapPointPB] },
         /*MapPointPB*/16: { 1: ["x", 2, 5], 2: ["y", 2, 5] },
         /*MaskPolyPB*/17: { 1: ["points", 3, 11, MapPBDictKey.MapPointPB], 2: ["data", 1, 5] },
         /*NavMeshMapInfoPB*/18: { 1: ["points", 3, 11, MapPBDictKey.MapPointPB], 2: ["trians", 3, 11, MapPBDictKey.TPointIdxPB], 3: ["polys", 3, 11, MapPBDictKey.PolyPointIdxPB], 4: ["masks", 3, 11, MapPBDictKey.MaskPolyPB] },

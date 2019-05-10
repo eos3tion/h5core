@@ -10618,7 +10618,7 @@ declare namespace jy {
 }
 /**
  * 使用JunyouProtoTools，从 [文本框中，复制粘贴] 生成
- * 生成时间 2019-05-09 18:02:53
+ * 生成时间 2019-05-10 09:48:31
  **/
 declare namespace jy {
     interface MapOvalPB {
@@ -10627,9 +10627,9 @@ declare namespace jy {
          */
         id: number;
         /**
-         * 横轴长度
+         * 可选参数 横轴长度，如果没有横轴长度，则表示只是一个有标识的点
          */
-        a: number;
+        a?: number;
         /**
          * 可选参数 纵轴长度，没有此值则代表圆形，`a`则为圆形直径
          */
@@ -10887,7 +10887,14 @@ declare namespace jy {
 }
 declare namespace jy {
     interface GridMapInfo extends MapInfo {
+        /**
+         * 路径点数据
+         */
         pathdata: Uint8Array;
+        /**
+         * 透明区域点数据
+         */
+        adata?: Uint8Array;
         /**
          * 格子宽度
          */

@@ -1,7 +1,14 @@
 namespace jy {
 
     export interface GridMapInfo extends MapInfo {
+        /**
+         * 路径点数据
+         */
         pathdata: Uint8Array;
+        /**
+         * 透明区域点数据
+         */
+        adata?: Uint8Array;
         /**
          * 格子宽度
          */
@@ -11,7 +18,7 @@ namespace jy {
          * 格子高度
          */
         gridHeight: number;
-        
+
         /**
          * 地图格子列数
          */
