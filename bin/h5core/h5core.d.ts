@@ -10427,17 +10427,16 @@ declare namespace jy {
 }
 declare namespace jy {
     const enum MapPBDictKey {
-        GridMapInfoPB = 10,
-        MapEffPB = 11,
-        MapInfoPB = 12,
-        MapLinePB = 13,
-        MapListPB = 14,
-        MapOvalPB = 15,
-        MapPointPB = 16,
-        MaskPolyPB = 17,
-        NavMeshMapInfoPB = 18,
-        PolyPointIdxPB = 19,
-        TPointIdxPB = 20
+        GridMapInfoPB = 110,
+        MapEffPB = 111,
+        MapInfoPB = 112,
+        MapLinePB = 113,
+        MapOvalPB = 114,
+        MapPointPB = 115,
+        MaskPolyPB = 116,
+        NavMeshMapInfoPB = 117,
+        PolyPointIdxPB = 118,
+        TPointIdxPB = 119
     }
     /**
      * 地图的PB数据
@@ -10606,18 +10605,6 @@ declare namespace jy {
          * 可选参数 默认为直线，后续用于支持曲线（可能使用赫米特差值算法补差值,或者直接当特定点为贝塞尔的控制点）
          */
         type?: number;
-    }
-}
-/**
- * 使用JunyouProtoTools，从 [文本框中，复制粘贴] 生成
- * 生成时间 2019-05-09 18:19:34
- **/
-declare namespace jy {
-    interface MapListPB {
-        /**
-         * 可选参数 地图数据集合
-         */
-        maps?: MapInfoPB[];
     }
 }
 /**
