@@ -1,9 +1,9 @@
 /**
  * 使用JunyouProtoTools，从 [文本框中，复制粘贴] 生成
- * 生成时间 2019-05-09 18:02:53
+ * 生成时间 2019-05-10 12:47:14
  **/
 declare namespace jy {
-	export interface MapEffPB{
+	export interface MapEffPB {
 		/**
 		 * 资源路径
 		 */
@@ -44,5 +44,9 @@ declare namespace jy {
 		 * 可选参数 用于同步移动的时间种子
 		 */
 		seed?: number;
+		/**
+		 * 可选参数 旋转
+		 */
+		rotation?: number;
 	}
 }
