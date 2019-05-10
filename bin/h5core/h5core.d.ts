@@ -2220,6 +2220,9 @@ declare namespace jy {
         add(dict: PBStructDictInput): void;
         readFrom: (msgType: string | number | PBStruct, bytes: ByteArray, len?: number) => any;
         writeTo: (msg: object, msgType: string | number | PBStruct, bytes?: ByteArray, debugOutData?: Object) => ByteArray;
+        readMessage: (bytes: ByteArray, msgType: string | number | PBStruct) => any;
+        readString: (bytes: ByteArray) => string;
+        readBytes: (bytes: ByteArray) => ByteArray;
     };
     /**
      * 默认的PB工具
@@ -2251,6 +2254,9 @@ declare namespace jy {
         add(dict: PBStructDictInput): void;
         readFrom: (msgType: string | number | PBStruct, bytes: ByteArray, len?: number) => any;
         writeTo: (msg: object, msgType: string | number | PBStruct, bytes?: ByteArray, debugOutData?: Object) => ByteArray;
+        readMessage: (bytes: ByteArray, msgType: string | number | PBStruct) => any;
+        readString: (bytes: ByteArray) => string;
+        readBytes: (bytes: ByteArray) => ByteArray;
     };
     /**
      * 定义类型
@@ -11037,6 +11043,12 @@ declare namespace jy {
     }
 }
 declare namespace jy {
+    interface MapMaskInfo {
+        poly: Polygon;
+        data?: number;
+    }
+}
+declare namespace jy {
     interface PathFinderOption {
         /**
          * 起始格位
@@ -11072,6 +11084,10 @@ declare namespace jy {
          * 不可走区域的多边形
          */
         polys: Polygon[];
+        /**
+         * 遮罩数据列表
+         */
+        masks?: MapMaskInfo[];
     }
 }
 declare namespace jy {

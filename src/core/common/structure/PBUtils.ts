@@ -284,7 +284,10 @@ namespace jy {
                 }
             },
             readFrom,
-            writeTo
+            writeTo,
+            readMessage,
+            readString,
+            readBytes,
         }
 
 

@@ -2592,7 +2592,10 @@ var jy;
                 }
             },
             readFrom: readFrom,
-            writeTo: writeTo
+            writeTo: writeTo,
+            readMessage: readMessage,
+            readString: readString,
+            readBytes: readBytes,
         };
         /**
          * 读取消息

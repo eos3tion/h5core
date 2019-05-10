@@ -13,6 +13,11 @@ namespace jy {
          * 不可走区域的多边形
          */
         polys: Polygon[];
+
+        /**
+         * 遮罩数据列表
+         */
+        masks?: MapMaskInfo[];
     }
 
     interface NavMeshDraw {
