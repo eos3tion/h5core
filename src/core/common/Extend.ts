@@ -390,7 +390,7 @@ String.zeroize = function (value: jy.Key, length = 2) {
     let str = "" + value;
     let zeros: string;
     let len = length - str.length;
-    if (length > 3 && length < zeroLen) {
+    if (length < zeroLen) {
         zeros = _zeros.slice(0, len);
     } else {
         zeros = "";
