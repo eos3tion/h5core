@@ -147,7 +147,7 @@ namespace jy {
 
         protected addMap(uri: string, c: number, r: number, map: MapInfo) {
             let { pWidth: pW, pHeight: pH, noPic, maxPicX } = map;
-            if (!noPic || getMapBit(c, r, maxPicX, noPic) == 0) {//检查是否需要放置底图
+            if (!noPic || getMapBit(c, r, maxPicX + 1, noPic) == 0) {//检查是否需要放置底图
                 let tm = ResManager.get(uri, this.noRes, this, uri, c, r, pW, pH);
                 // 舞台上的标记为静态
                 tm.isStatic = true;

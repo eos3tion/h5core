@@ -3707,7 +3707,7 @@ var jy;
         });
         TileMapLayer.prototype.addMap = function (uri, c, r, map) {
             var pW = map.pWidth, pH = map.pHeight, noPic = map.noPic, maxPicX = map.maxPicX;
-            if (!noPic || getMapBit(c, r, maxPicX, noPic) == 0) { //检查是否需要放置底图
+            if (!noPic || getMapBit(c, r, maxPicX + 1, noPic) == 0) { //检查是否需要放置底图
                 var tm = jy.ResManager.get(uri, this.noRes, this, uri, c, r, pW, pH);
                 // 舞台上的标记为静态
                 tm.isStatic = true;
