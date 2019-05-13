@@ -533,33 +533,12 @@ var egret;
         }
         this.textFlow = value ? htmlTextParser.parser(value) : jy.Temp.EmptyArray;
     };
-    var ept = egret.EventDispatcher.prototype;
-    ept.removeAllListeners = function () {
-        var values = this.$EventDispatcher;
-        values[1 /**eventsMap */] = {};
-        values[2 /**captureEventsMap */] = {};
-    };
-    ept.removeListeners = function (type, useCapture) {
-        var eventMap = this.$getEventMap(useCapture);
-        var list = eventMap[type];
-        if (list) {
-            list.length = 0;
-        }
-    };
-    ept.on = ept.addEventListener;
-    ept.off = ept.removeEventListener;
-    ept.hasListen = ept.hasEventListener;
-    ept.dispatch = function (type, data) {
-        return this.dispatchEventWith(type, false, data);
-    };
     egret.Graphics.prototype.drawRectangle = function (rect) {
         this.drawRect(rect.x, rect.y, rect.width, rect.height);
     };
     // DisplayObject重写了EventDispatcher的removeEventListener
     var dpt = egret.DisplayObject.prototype;
-    dpt.off = dpt.removeEventListener;
     dpt.removeListeners = function (type, useCapture) {
-        var eventMap = this.$getEventMap(useCapture);
         var list;
         if ("enterFrame" == type) {
             list = egret.DisplayObject.$enterFrameCallBackList;
@@ -570,7 +549,7 @@ var egret;
         if (list) {
             list.remove(this);
         }
-        ept.removeListeners.call(this, type, useCapture);
+        egret.EventDispatcher.prototype.removeListeners.call(this, type, useCapture);
     };
     dpt.removeAllListeners = function () {
         var values = this.$EventDispatcher;
@@ -14781,7 +14760,7 @@ var jy;
         return ListItemRenderer;
     }(egret.EventDispatcher));
     jy.ListItemRenderer = ListItemRenderer;
-    __reflect(ListItemRenderer.prototype, "jy.ListItemRenderer", ["jy.ListItemRender", "egret.EventDispatcher", "jy.SelectableComponents"]);
+    __reflect(ListItemRenderer.prototype, "jy.ListItemRenderer", ["jy.ListItemRender", "jy.SelectableComponents"]);
     jy.expand(ListItemRenderer, jy.ViewController, "addReadyExecute", "addDepend", "onStage", "interest", "checkInject", "checkInterest", "awakeTimer", "sleepTimer", "bindTimer", "looseTimer", "stageChange");
     // export abstract class AListItemRenderer<T, S extends egret.DisplayObject> extends ListItemRenderer<T, S> implements SuiDataCallback {
     //     /**
@@ -15849,7 +15828,7 @@ var jy;
     var Event = egret.Event;
     var key = "$__$Drag";
     function dispatchTouchEvent(target, type, e, deltaX, deltaY, deltaTime) {
-        if (!target.hasEventListener(type)) {
+        if (!target.hasListen(type)) {
             return true;
         }
         var event = Event.create(TouchEvent, type, true, true);
