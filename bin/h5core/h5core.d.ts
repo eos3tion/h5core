@@ -192,6 +192,8 @@ interface StringConstructor {
         };
     }>;
 }
+declare const _zeros = "000000000000000000000000000000000000000000000000000000000000";
+declare const zeroLen: number;
 /****************************************扩展Date****************************************/
 interface Date {
     /**

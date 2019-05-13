@@ -233,12 +233,21 @@ Object.defineProperties(String.prototype, jy.makeDefDescriptors({
         }
     }
 }));
+var _zeros = "000000000000000000000000000000000000000000000000000000000000";
+var zeroLen = _zeros.length;
 String.zeroize = function (value, length) {
     if (length === void 0) { length = 2; }
     var str = "" + value;
-    var zeros = "";
-    for (var i = 0, len = length - str.length; i < len; i++) {
-        zeros += "0";
+    var zeros;
+    var len = length - str.length;
+    if (length > 3 && length < zeroLen) {
+        zeros = _zeros.slice(0, len);
+    }
+    else {
+        zeros = "";
+        for (var i = 0; i < len; i++) {
+            zeros += "0";
+        }
     }
     return zeros + str;
 };
