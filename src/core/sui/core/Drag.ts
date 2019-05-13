@@ -20,7 +20,7 @@ namespace jy {
     import Event = egret.Event;
     const key = "$__$Drag";
     function dispatchTouchEvent(target: egret.DisplayObject, type: any, e: egret.TouchEvent, deltaX?: number, deltaY?: number, deltaTime?: number) {
-        if (!target.hasEventListener(type)) {
+        if (!target.hasListen(type)) {
             return true;
         }
         let event: TouchEvent = Event.create(TouchEvent, type, true, true);
