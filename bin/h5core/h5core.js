@@ -240,7 +240,7 @@ String.zeroize = function (value, length) {
     var str = "" + value;
     var zeros;
     var len = length - str.length;
-    if (length > 3 && length < zeroLen) {
+    if (length < zeroLen) {
         zeros = _zeros.slice(0, len);
     }
     else {
