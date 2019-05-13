@@ -383,11 +383,20 @@ interface StringConstructor {
     subHandler: Readonly<{ [index: string]: { (input: any): string } }>;
 }
 
+const _zeros = "000000000000000000000000000000000000000000000000000000000000";
+const zeroLen = _zeros.length;
+
 String.zeroize = function (value: jy.Key, length = 2) {
     let str = "" + value;
-    let zeros = "";
-    for (let i = 0, len = length - str.length; i < len; i++) {
-        zeros += "0";
+    let zeros: string;
+    let len = length - str.length;
+    if (length > 3 && length < zeroLen) {
+        zeros = _zeros.slice(0, len);
+    } else {
+        zeros = "";
+        for (let i = 0; i < len; i++) {
+            zeros += "0";
+        }
     }
     return zeros + str;
 };
