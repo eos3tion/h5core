@@ -545,28 +545,7 @@ var egret;
     egret.Graphics.prototype.drawRectangle = function (rect) {
         this.drawRect(rect.x, rect.y, rect.width, rect.height);
     };
-    // DisplayObject重写了EventDispatcher的removeEventListener
     var dpt = egret.DisplayObject.prototype;
-    dpt.removeListeners = function (type, useCapture) {
-        var list;
-        if ("enterFrame" == type) {
-            list = egret.DisplayObject.$enterFrameCallBackList;
-        }
-        else if ("render" == type) {
-            list = egret.DisplayObject.$renderCallBackList;
-        }
-        if (list) {
-            list.remove(this);
-        }
-        egret.EventDispatcher.prototype.removeListeners.call(this, type, useCapture);
-    };
-    dpt.removeAllListeners = function () {
-        var values = this.$EventDispatcher;
-        values[1 /**eventsMap */] = {};
-        values[2 /**captureEventsMap */] = {};
-        egret.DisplayObject.$enterFrameCallBackList.remove(this);
-        egret.DisplayObject.$renderCallBackList.remove(this);
-    };
     Object.defineProperties(dpt, jy.makeDefDescriptors({
         bright: {
             set: function (value) {
