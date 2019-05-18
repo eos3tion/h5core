@@ -7153,8 +7153,28 @@ declare namespace jy {
          * 注册资源
          */
         regResource: typeof regResource;
-        init(): void;
+        /**
+         * 初始化
+         * @param time 设置资源销毁的时间(单位：毫秒)，至少大于检查时间 `30秒`
+         */
+        init(time?: number): void;
+        /**
+         * 强制gc
+         * 清理所有未使用的资源
+         */
+        gc(): void;
+        /**
+         * 从删除特定资源
+         */
+        disposeRes: typeof disposeRes;
     };
+    /**
+     * 删除资源
+     * @param filter
+     */
+    function disposeRes(filter: {
+        (res: IResource): boolean;
+    }): void;
     /**
      * 获取资源
      */

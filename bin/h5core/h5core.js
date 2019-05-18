@@ -8081,6 +8081,7 @@ var jy;
         }
         return res;
     }
+    var disposeTime = 300000 /* DisposeTime */;
     jy.ResManager = {
         get: get,
         /**
@@ -8113,35 +8114,61 @@ var jy;
          * 注册资源
          */
         regResource: regResource,
-        //按时间检测资源
-        init: function () {
-            var tobeDele = [];
-            jy.TimerUtil.addCallback(30000 /* CheckTime */, function () {
-                var expire = jy.Global.now - 300000 /* DisposeTime */;
-                var reses = _resources;
-                var delLen = 0;
-                for (var key in reses) {
-                    var res = reses[key];
-                    if (!res.isStatic && res.lastUseTime < expire) {
-                        tobeDele[delLen++] = key;
-                    }
-                }
-                // //对附加的checker进行检查
-                // for (let i = 0; i < _checkers.length; i++) {
-                //     _checkers[i].resCheck(expire);
-                // }
-                for (var i = 0; i < delLen; i++) {
-                    var key = tobeDele[i];
-                    var res = reses[key];
-                    if (res) {
-                        res.dispose();
-                        jy.Res.remove(res.uri);
-                        delete reses[key];
-                    }
-                }
-            });
-        }
+        /**
+         * 初始化
+         * @param time 设置资源销毁的时间(单位：毫秒)，至少大于检查时间 `30秒`
+         */
+        init: function (time) {
+            if (time === void 0) { time = 300000 /* DisposeTime */; }
+            if (time < 30000 /* CheckTime */) {
+                time = 30000 /* CheckTime */;
+            }
+            disposeTime = time;
+            jy.TimerUtil.addCallback(30000 /* CheckTime */, checkRes);
+        },
+        /**
+         * 强制gc
+         * 清理所有未使用的资源
+         */
+        gc: function () {
+            disposeRes(function (res) { return !res.isStatic; });
+        },
+        /**
+         * 从删除特定资源
+         */
+        disposeRes: disposeRes
     };
+    var tobeDele = [];
+    /**
+     * 删除资源
+     * @param filter
+     */
+    function disposeRes(filter) {
+        var reses = _resources;
+        var delLen = 0;
+        for (var key in reses) {
+            var res = reses[key];
+            if (filter(res)) {
+                tobeDele[delLen++] = key;
+            }
+        }
+        for (var i = 0; i < delLen; i++) {
+            var key = tobeDele[i];
+            var res = reses[key];
+            if (res) {
+                res.dispose();
+                jy.Res.remove(res.uri);
+                delete reses[key];
+            }
+        }
+    }
+    /**
+     * 检查资源
+     */
+    function checkRes() {
+        var expire = jy.Global.now - disposeTime;
+        disposeRes(function (res) { return !res.isStatic && res.lastUseTime < expire; });
+    }
     /**
      * 获取资源
      */

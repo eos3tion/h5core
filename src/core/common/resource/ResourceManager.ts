@@ -28,6 +28,8 @@ namespace jy {
         }
         return res;
     }
+    let disposeTime = ResourceManagerConst.DisposeTime;
+
     export const ResManager = {
         get,
         /**
@@ -63,35 +65,65 @@ namespace jy {
          */
         regResource,
 
-        //按时间检测资源
-        init() {
-            let tobeDele: string[] = [];
-            TimerUtil.addCallback(ResourceManagerConst.CheckTime, () => {
-                let expire = Global.now - ResourceManagerConst.DisposeTime;
-                let reses = _resources;
-                let delLen = 0;
-                for (let key in reses) {
-                    let res = <IResource>reses[key];
-                    if (!res.isStatic && res.lastUseTime < expire) {
-                        tobeDele[delLen++] = key;
-                    }
-                }
-                // //对附加的checker进行检查
-                // for (let i = 0; i < _checkers.length; i++) {
-                //     _checkers[i].resCheck(expire);
-                // }
-                for (let i = 0; i < delLen; i++) {
-                    let key = tobeDele[i];
-                    let res = <IResource>reses[key];
-                    if (res) {
-                        res.dispose();
-                        Res.remove(res.uri);
-                        delete reses[key];
-                    }
-                }
-            });
+        /**
+         * 初始化
+         * @param time 设置资源销毁的时间(单位：毫秒)，至少大于检查时间 `30秒`  
+         */
+        init(time: number = ResourceManagerConst.DisposeTime) {
+            if (time < ResourceManagerConst.CheckTime) {
+                time = ResourceManagerConst.CheckTime;
+            }
+            disposeTime = time;
+            TimerUtil.addCallback(ResourceManagerConst.CheckTime, checkRes);
+        },
+
+        /**
+         * 强制gc  
+         * 清理所有未使用的资源
+         */
+        gc() {
+            disposeRes(res => !res.isStatic);
+        },
+        /**
+         * 从删除特定资源
+         */
+        disposeRes
+    }
+
+    const tobeDele: string[] = [];
+    /**
+     * 删除资源
+     * @param filter 
+     */
+    function disposeRes(filter: { (res: IResource): boolean }) {
+        let reses = _resources;
+        let delLen = 0;
+        for (let key in reses) {
+            let res = reses[key];
+            if (filter(res)) {
+                tobeDele[delLen++] = key;
+            }
+        }
+        for (let i = 0; i < delLen; i++) {
+            let key = tobeDele[i];
+            let res = reses[key];
+            if (res) {
+                res.dispose();
+                Res.remove(res.uri);
+                delete reses[key];
+            }
         }
     }
+
+    /**
+     * 检查资源
+     */
+    function checkRes() {
+        let expire = Global.now - disposeTime;
+        disposeRes(res => !res.isStatic && res.lastUseTime < expire);
+    }
+
+
     /**
      * 获取资源
      */
