@@ -88,7 +88,7 @@ namespace jy {
         public set currentMap(value: MapInfo) {
             if (value != this._currentMap) {
                 this._currentMap = value;
-                if (DEBUG) {
+                if (DEBUG && value) {
                     this.drawGrid = $gm.pathSolution[~~value.pathType];
                 }
             }

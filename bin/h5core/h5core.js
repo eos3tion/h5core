@@ -3685,7 +3685,7 @@ var jy;
             set: function (value) {
                 if (value != this._currentMap) {
                     this._currentMap = value;
-                    if (true) {
+                    if (true && value) {
                         this.drawGrid = $gm.pathSolution[~~value.pathType];
                     }
                 }
