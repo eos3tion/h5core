@@ -866,28 +866,7 @@ module egret {
         PrivateFilter = "_briFilter"
     }
 
-    // DisplayObject重写了EventDispatcher的removeEventListener
     let dpt = DisplayObject.prototype;
-    dpt.removeListeners = function (type, useCapture) {
-        let list: DisplayObject[];
-        if ("enterFrame" == type) {
-            list = DisplayObject.$enterFrameCallBackList;
-        } else if ("render" == type) {
-            list = DisplayObject.$renderCallBackList;
-        }
-        if (list) {
-            list.remove(this);
-        }
-        egret.EventDispatcher.prototype.removeListeners.call(this, type, useCapture);
-    }
-    dpt.removeAllListeners = function (this: DisplayObject) {
-        let values = this.$EventDispatcher;
-        values[1/**eventsMap */] = {};
-        values[2/**captureEventsMap */] = {};
-        DisplayObject.$enterFrameCallBackList.remove(this);
-        DisplayObject.$renderCallBackList.remove(this);
-    }
-
     Object.defineProperties(dpt, jy.makeDefDescriptors({
         bright: {
             set: function (this: egret.DisplayObject, value: number) {
