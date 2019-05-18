@@ -137,7 +137,7 @@ namespace jy {
      * @param uri 
      */
     function getResVer(uri: string) {
-        return ~~(_hash && _hash[uri.hash()]);
+        return ~~(uri && _hash && _hash[uri.hash()]);
     }
     function tryReplace(v: any, replacer: { [index: string]: string }) {
         if (replacer) {
@@ -255,21 +255,30 @@ namespace jy {
          * @returns {string}
          */
         getResUrl(uri: string): string {
-            let url = uriDict[uri];
-            if (!url) {
-                let ver = getResVer(uri);
-                if (ver) {
-                    if (uri.indexOf("?") == -1) {
-                        uri = uri + "?" + ver;
+            if (uri) {
+                let url = uriDict[uri];
+                if (!url) {
+                    let ver = getResVer(uri);
+                    if (ver) {
+                        if (uri.indexOf("?") == -1) {
+                            uri = uri + "?" + ver;
+                        }
+                        else {
+                            uri = uri + "&jyver=" + ver;
+                        }
                     }
-                    else {
-                        uri = uri + "&jyver=" + ver;
+                    url = getUrlWithPath(uri, _res);
+                    uriDict[uri] = url;
+                }
+                if (DEBUG) {
+                    if (url.search(/(undefined|null)/) > -1) {
+                        ThrowError(`url中出现了${RegExp.$1}这样的字符，请检查`);
                     }
                 }
-                url = getUrlWithPath(uri, _res);
-                uriDict[uri] = url;
+                return url;
+            } else if (DEBUG) {
+                ThrowError(`设置了空的uri`);
             }
-            return url;
         },
         /**
          * 获取参数
