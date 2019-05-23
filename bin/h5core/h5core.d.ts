@@ -7572,14 +7572,6 @@ declare namespace jy {
     const ResManager: {
         get: typeof get;
         /**
-         * 获取纹理资源
-         *
-         * @param {string} resID 资源id
-         * @param {boolean} [noWebp] 是否不加webp后缀
-         * @returns {TextureResource}
-         */
-        getTextureRes(resID: string, noWebp?: boolean): TextureResource;
-        /**
          * 获取资源
          */
         getResource: typeof getResource;
@@ -7680,6 +7672,14 @@ declare namespace jy {
          * 销毁资源
          */
         dispose(): void;
+        /**
+         * 获取纹理资源
+         *
+         * @param {string} resID 资源id
+         * @param {boolean} [noWebp] 是否不加webp后缀
+         * @returns {TextureResource}
+         */
+        static get(uri: string, noWebp?: boolean): TextureResource;
     }
 }
 declare namespace jy {

@@ -26,7 +26,7 @@ namespace jy {
 
 		addedToStage() {
 			if (this.uri) {
-				let res = ResManager.getTextureRes(this.uri, this.noWebp);
+				let res = TextureResource.get(this.uri, this.noWebp);
 				if (res) {
 					res.qid = this.qid;
 					//先设置为占位用，避免有些玩家加载慢，无法看到图

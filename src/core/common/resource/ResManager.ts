@@ -33,29 +33,6 @@ namespace jy {
     export const ResManager = {
         get,
         /**
-         * 获取纹理资源
-         * 
-         * @param {string} resID 资源id
-         * @param {boolean} [noWebp] 是否不加webp后缀
-         * @returns {TextureResource} 
-         */
-        getTextureRes(resID: string, noWebp?: boolean): TextureResource {
-            let resources = _resources;
-            let res = <TextureResource>resources[resID];
-            if (res) {
-                if (!(res instanceof TextureResource)) {
-                    ThrowError(`[${resID}]资源有误，不是TextureResource`);
-                    res = undefined;
-                }
-            }
-            if (!res) {
-                res = new TextureResource(resID, noWebp);
-                resources[resID] = res;
-            }
-            return res;
-        },
-
-        /**
          * 获取资源
          */
         getResource,
