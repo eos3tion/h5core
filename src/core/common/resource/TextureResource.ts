@@ -120,5 +120,27 @@ namespace jy {
             }
             this._list.length = 0;
         }
+
+        /**
+         * 获取纹理资源
+         * 
+         * @param {string} resID 资源id
+         * @param {boolean} [noWebp] 是否不加webp后缀
+         * @returns {TextureResource} 
+         */
+        static get(uri: string, noWebp?: boolean) {
+            let res = ResManager.getResource(uri) as TextureResource;
+            if (res) {
+                if (!(res instanceof TextureResource)) {
+                    ThrowError(`[${uri}]资源有误，不是TextureResource`);
+                    res = undefined;
+                }
+            }
+            if (!res) {
+                res = new TextureResource(uri, noWebp);
+                ResManager.regResource(uri, res);
+            }
+            return res;
+        }
     }
 }

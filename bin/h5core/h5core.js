@@ -8074,28 +8074,6 @@ var jy;
     jy.ResManager = {
         get: get,
         /**
-         * 获取纹理资源
-         *
-         * @param {string} resID 资源id
-         * @param {boolean} [noWebp] 是否不加webp后缀
-         * @returns {TextureResource}
-         */
-        getTextureRes: function (resID, noWebp) {
-            var resources = _resources;
-            var res = resources[resID];
-            if (res) {
-                if (!(res instanceof jy.TextureResource)) {
-                    jy.ThrowError("[" + resID + "]\u8D44\u6E90\u6709\u8BEF\uFF0C\u4E0D\u662FTextureResource");
-                    res = undefined;
-                }
-            }
-            if (!res) {
-                res = new jy.TextureResource(resID, noWebp);
-                resources[resID] = res;
-            }
-            return res;
-        },
-        /**
          * 获取资源
          */
         getResource: getResource,
@@ -8272,6 +8250,27 @@ var jy;
                 this._tex = undefined;
             }
             this._list.length = 0;
+        };
+        /**
+         * 获取纹理资源
+         *
+         * @param {string} resID 资源id
+         * @param {boolean} [noWebp] 是否不加webp后缀
+         * @returns {TextureResource}
+         */
+        TextureResource.get = function (uri, noWebp) {
+            var res = jy.ResManager.getResource(uri);
+            if (res) {
+                if (!(res instanceof TextureResource)) {
+                    jy.ThrowError("[" + uri + "]\u8D44\u6E90\u6709\u8BEF\uFF0C\u4E0D\u662FTextureResource");
+                    res = undefined;
+                }
+            }
+            if (!res) {
+                res = new TextureResource(uri, noWebp);
+                jy.ResManager.regResource(uri, res);
+            }
+            return res;
         };
         return TextureResource;
     }());
@@ -14429,7 +14428,7 @@ var jy;
         }
         Image.prototype.addedToStage = function () {
             if (this.uri) {
-                var res = jy.ResManager.getTextureRes(this.uri, this.noWebp);
+                var res = jy.TextureResource.get(this.uri, this.noWebp);
                 if (res) {
                     res.qid = this.qid;
                     //先设置为占位用，避免有些玩家加载慢，无法看到图
