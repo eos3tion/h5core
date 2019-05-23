@@ -41,7 +41,7 @@ namespace jy {
     let increaseCount = 5;
     let size = Math.pow(2, increaseCount);
     let canvas = document.createElement("canvas");
-    canvas.height = canvas.width = size;
+    canvas.height = canvas.width = size << 2;
     let bmd = new egret.BitmapData(canvas);
     bmd.$deleteSource = false;
     let ctx = canvas.getContext("2d");
@@ -49,7 +49,13 @@ namespace jy {
     function checkCanvas() {
         if (idx >= size * size) {
             size <<= 1;
+            let data = ctx.getImageData(0, 0, canvas.width, canvas.height);
             bmd.width = bmd.height = canvas.height = canvas.width = size << 2;
+            ctx.putImageData(data, 0, 0);
+            if (bmd.webGLTexture) {//清理webgl纹理，让渲染可以重置
+                egret.WebGLUtils.deleteWebGLTexture(bmd);
+                bmd.webGLTexture = null;
+            }
             increaseCount++;
         }
     }
