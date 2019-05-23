@@ -43,8 +43,8 @@ namespace jy {
 				if (res) {
 					res.loose(this);
 				}
+				this.texture = undefined;
 			}
-			this.texture = undefined;
 		}
 
 		/**

@@ -17882,8 +17882,8 @@ var jy;
                 if (res) {
                     res.loose(this);
                 }
+                this.texture = undefined;
             }
-            this.texture = undefined;
         };
         Object.defineProperty(Image.prototype, "source", {
             /**
