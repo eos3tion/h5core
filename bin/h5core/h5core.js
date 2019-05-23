@@ -2895,14 +2895,20 @@ var jy;
     var increaseCount = 5;
     var size = Math.pow(2, increaseCount);
     var canvas = document.createElement("canvas");
-    canvas.height = canvas.width = size;
+    canvas.height = canvas.width = size << 2;
     var bmd = new egret.BitmapData(canvas);
     bmd.$deleteSource = false;
     var ctx = canvas.getContext("2d");
     function checkCanvas() {
         if (idx >= size * size) {
             size <<= 1;
+            var data = ctx.getImageData(0, 0, canvas.width, canvas.height);
             bmd.width = bmd.height = canvas.height = canvas.width = size << 2;
+            ctx.putImageData(data, 0, 0);
+            if (bmd.webGLTexture) { //清理webgl纹理，让渲染可以重置
+                egret.WebGLUtils.deleteWebGLTexture(bmd);
+                bmd.webGLTexture = null;
+            }
             increaseCount++;
         }
     }
@@ -10037,6 +10043,175 @@ var jy;
     }());
     jy.TimeVO = TimeVO;
     __reflect(TimeVO.prototype, "jy.TimeVO");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    var Bin = /** @class */ (function (_super) {
+        __extends(Bin, _super);
+        function Bin() {
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            /**
+             * 是否旋转了90°
+             */
+            _this.rot = false;
+            return _this;
+        }
+        Bin.prototype.clone = function () {
+            return new Bin(this.x, this.y, this.width, this.height);
+        };
+        return Bin;
+    }(egret.Rectangle));
+    jy.Bin = Bin;
+    __reflect(Bin.prototype, "jy.Bin");
+    /**
+     * 短边优先装箱
+     * 动态装箱，暂时只用短边优先的单一策略
+     */
+    var ShortSideBinPacker = /** @class */ (function () {
+        function ShortSideBinPacker(width, height, allowRotation) {
+            this.width = width;
+            this.height = height;
+            this.rot = !!allowRotation;
+            this.usedRects = [];
+            this.freeRects = [new Bin(0, 0, width, height)];
+        }
+        /**
+         * 调整大小，如果宽度或者高度比原先小，则返回false
+         * @param width
+         * @param height
+         */
+        ShortSideBinPacker.prototype.resize = function (width, height) {
+            var _a = this, ow = _a.width, oh = _a.height;
+            if (width > ow && height > oh) {
+                this.width = width;
+                this.height = height;
+                this.freeRects.push(
+                /**右侧增加一个高度和原本相同的 */ new Bin(ow, 0, width - ow, oh), 
+                /** 下方整块 */ new Bin(0, oh, width, height - oh));
+                return true;
+            }
+        };
+        ShortSideBinPacker.prototype.insert = function (width, height) {
+            var bestShortSideFit = Infinity;
+            var bestLongSideFit = 0;
+            var _a = this, freeRects = _a.freeRects, rotations = _a.rot;
+            var min = Math.min, max = Math.max;
+            var bestNode = new Bin;
+            for (var i = 0, len = freeRects.length; i < len; i++) {
+                var _b = freeRects[i], rw = _b.width, rh = _b.height, rx = _b.x, ry = _b.y;
+                // Try to place the Rect in upright (non-flipped) orientation.
+                if (rw >= width && rh >= height) {
+                    var leftoverHoriz = rw - width;
+                    var leftoverVert = rh - height;
+                    var shortSideFit = min(leftoverHoriz, leftoverVert);
+                    var longSideFit = max(leftoverHoriz, leftoverVert);
+                    if (shortSideFit < bestShortSideFit || (shortSideFit == bestShortSideFit && longSideFit < bestLongSideFit)) {
+                        bestNode.x = rx;
+                        bestNode.y = ry;
+                        bestNode.width = width;
+                        bestNode.height = height;
+                        bestShortSideFit = shortSideFit;
+                        bestLongSideFit = longSideFit;
+                    }
+                }
+                if (rotations && rw >= height && rh >= width) {
+                    var flippedLeftoverHoriz = rw - height;
+                    var flippedLeftoverVert = rh - width;
+                    var flippedShortSideFit = min(flippedLeftoverHoriz, flippedLeftoverVert);
+                    var flippedLongSideFit = max(flippedLeftoverHoriz, flippedLeftoverVert);
+                    if (flippedShortSideFit < bestShortSideFit || (flippedShortSideFit == bestShortSideFit && flippedLongSideFit < bestLongSideFit)) {
+                        bestNode.x = rx;
+                        bestNode.y = ry;
+                        bestNode.width = height;
+                        bestNode.height = width;
+                        bestNode.rot = true;
+                        bestShortSideFit = flippedShortSideFit;
+                        bestLongSideFit = flippedLongSideFit;
+                    }
+                }
+            }
+            if (bestNode.height) {
+                placeRect(bestNode, this);
+                return bestNode;
+            }
+        };
+        return ShortSideBinPacker;
+    }());
+    jy.ShortSideBinPacker = ShortSideBinPacker;
+    __reflect(ShortSideBinPacker.prototype, "jy.ShortSideBinPacker");
+    function placeRect(node, packer) {
+        var freeRects = packer.freeRects, usedRects = packer.usedRects;
+        var fRectLen = freeRects.length;
+        for (var i = 0; i < fRectLen; i++) {
+            if (splitFreeNode(freeRects[i], node, packer)) {
+                freeRects.splice(i, 1);
+                i--;
+                fRectLen--;
+            }
+        }
+        //去重
+        pruneFreeList(packer);
+        usedRects.push(node);
+    }
+    function splitFreeNode(freeNode, usedNode, packer) {
+        var freeRects = packer.freeRects;
+        // Test with SAT if the Rects even intersect.
+        var usedNode_x = usedNode.x, usedNode_y = usedNode.y, usedNode_right = usedNode.right, usedNode_bottom = usedNode.bottom;
+        var freeNode_x = freeNode.x, freeNode_y = freeNode.y, freeNode_right = freeNode.right, freeNode_bottom = freeNode.bottom;
+        if (usedNode_x >= freeNode_right || usedNode_right <= freeNode_x
+            || usedNode_y >= freeNode_bottom || usedNode_bottom <= freeNode_y)
+            return false;
+        var newNode;
+        if (usedNode_x < freeNode_right && usedNode_right > freeNode_x) {
+            // New node at the top side of the used node.
+            if (usedNode_y > freeNode_y && usedNode_y < freeNode_bottom) {
+                newNode = freeNode.clone();
+                newNode.height = usedNode_y - freeNode_y;
+                freeRects.push(newNode);
+            }
+            // New node at the bottom side of the used node.
+            if (usedNode_bottom < freeNode_bottom) {
+                newNode = freeNode.clone();
+                newNode.y = usedNode_bottom;
+                newNode.height = freeNode_bottom - usedNode_bottom;
+                freeRects.push(newNode);
+            }
+        }
+        if (usedNode_y < freeNode_bottom && usedNode_bottom > freeNode_y) {
+            // New node at the left side of the used node.
+            if (usedNode_x > freeNode_x && usedNode_x < freeNode_right) {
+                newNode = freeNode.clone();
+                newNode.width = usedNode_x - freeNode_x;
+                freeRects.push(newNode);
+            }
+            // New node at the right side of the used node.
+            if (usedNode_right < freeNode_right) {
+                newNode = freeNode.clone();
+                newNode.x = usedNode_right;
+                newNode.width = freeNode_right - usedNode_right;
+                freeRects.push(newNode);
+            }
+        }
+        return true;
+    }
+    function pruneFreeList(packer) {
+        var freeRects = packer.freeRects;
+        for (var i = 0; i < freeRects.length; i++) {
+            var a = freeRects[i];
+            for (var j = i + 1; j < freeRects.length; j++) {
+                var b = freeRects[j];
+                if (b.containsRect(a)) {
+                    freeRects.splice(i, 1);
+                    i--;
+                    break;
+                }
+                if (a.containsRect(b)) {
+                    freeRects.splice(j, 1);
+                    j--;
+                }
+            }
+        }
+    }
 })(jy || (jy = {}));
 var jy;
 (function (jy) {

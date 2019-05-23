@@ -8445,6 +8445,38 @@ declare namespace jy {
     }
 }
 declare namespace jy {
+    class Bin extends egret.Rectangle {
+        /**
+         * 是否旋转了90°
+         */
+        rot: boolean;
+        clone(): Bin;
+    }
+    interface BinPacker {
+        width: number;
+        height: number;
+        rot: boolean;
+        usedRects: Bin[];
+        freeRects: Bin[];
+    }
+    interface ShortSideBinPacker extends BinPacker {
+    }
+    /**
+     * 短边优先装箱
+     * 动态装箱，暂时只用短边优先的单一策略
+     */
+    class ShortSideBinPacker {
+        constructor(width: number, height: number, allowRotation?: boolean);
+        /**
+         * 调整大小，如果宽度或者高度比原先小，则返回false
+         * @param width
+         * @param height
+         */
+        resize(width: number, height: number): boolean;
+        insert(width: number, height: number): Bin;
+    }
+}
+declare namespace jy {
     /**
      * 圆圈倒计时
      *
