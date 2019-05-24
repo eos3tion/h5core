@@ -2973,8 +2973,9 @@ var jy;
                     var area = cidx >> shift;
                     cidx = cidx - (area << shift);
                     var pos = poses[area];
-                    x += pos[0] * shift;
-                    y += pos[1] * shift;
+                    var pp = 2 << (shift / 2 - 1);
+                    x += pos[0] * pp;
+                    y += pos[1] * pp;
                     if (!--count) {
                         var pos_1 = poses[cidx];
                         x += pos_1[0];
