@@ -121,8 +121,9 @@ namespace jy {
                     let area = cidx >> shift;
                     cidx = cidx - (area << shift);
                     let pos = poses[area];
-                    x += pos[0] * shift;
-                    y += pos[1] * shift;
+                    let pp = 2 << (shift / 2 - 1);
+                    x += pos[0] * pp;
+                    y += pos[1] * pp;
                     if (!--count) {
                         let pos = poses[cidx];
                         x += pos[0];
