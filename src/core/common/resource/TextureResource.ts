@@ -180,39 +180,42 @@ namespace jy {
 
 
     function getDynamicTexSheet() {
-        let size = TextureSheetConst.MaxSize >> 1;
+        let size = TextureSheetConst.MaxSize >> 2;
         let sheet = getTextureSheet(size);
         let packer = new ShortSideBinPacker(size, size);
         return {
             set(uri: string, tex: DynamicTexture) {
-                let bmd = tex.bitmapData;
-                let source = bmd.source;
-                let { width, height } = source;
-                let ww = width + TextureSheetConst.Padding;//padding
-                let hh = height + TextureSheetConst.Padding;//padding
-                let bin = packer.insert(ww, hh);
-                if (!bin) {//装不下
-                    //先扩展
-                    if (size < TextureSheetConst.MaxSize) {
-                        size = size * 2;
-                        packer.extSize(size, size);
-                        sheet.extSize(size);
-                        bin = packer.insert(ww, hh);
-                        if (!bin) {
+                //检查是否已经加载过
+                if (!sheet.get(uri)) {
+                    let bmd = tex.bitmapData;
+                    let source = bmd.source;
+                    let { width, height } = source;
+                    let ww = width + TextureSheetConst.Padding;//padding
+                    let hh = height + TextureSheetConst.Padding;//padding
+                    let bin = packer.insert(ww, hh);
+                    if (!bin) {//装不下
+                        //先扩展
+                        if (size < TextureSheetConst.MaxSize) {
+                            size = size * 2;
+                            packer.extSize(size, size);
+                            sheet.extSize(size);
+                            bin = packer.insert(ww, hh);
+                            if (!bin) {
+                                return
+                            }
+                        } else {
                             return
                         }
-                    } else {
-                        return
                     }
+                    tex.$bin = bin;
+                    //将突破绘制到sheet上，并清除原纹理
+                    let ctx = sheet.ctx;
+                    ctx.globalAlpha = 1;
+                    let { x, y } = bin;
+                    ctx.drawImage(source as CanvasImageSource, x, y);
+                    bmd.$dispose();
+                    sheet.reg(uri, { x, y, width, height }, tex);
                 }
-                tex.$bin = bin;
-                //将突破绘制到sheet上，并清除原纹理
-                let ctx = sheet.ctx;
-                ctx.globalAlpha = 1;
-                let { x, y } = bin;
-                ctx.drawImage(source as CanvasImageSource, x, y);
-                bmd.$dispose();
-                sheet.reg(uri, { x, y, width: ww, height: hh }, tex);
             },
             remove(uri: string) {
                 let tex = sheet.remove(uri) as DynamicTexture;
