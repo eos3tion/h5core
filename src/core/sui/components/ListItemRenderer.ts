@@ -132,13 +132,16 @@ namespace jy {
          * 一定要super调一下
          */
         private _bind() {
-            if (!this._skin) {
+            let skin = this._skin;
+            if (!skin) {
                 if (this.skinlib && this.skinClass) {
                     this.skin = singleton(SuiResManager).createDisplayObject(this.skinlib, this.skinClass) as S;
                 }
             } else {
                 this.inited = true;
+                this.stageChange(!!skin.stage)
             }
+
             this.checkInject();
             this.bindComponent();
         }

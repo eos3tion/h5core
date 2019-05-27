@@ -164,8 +164,10 @@ namespace jy {
                     on(type, ins.handler, this, ins.priority);
                 }
                 const _awakeCallers = this._awakeCallers;
-                for (let i = 0; i < _awakeCallers.length; i++) {
-                    _awakeCallers[i].call(this);
+                if (_awakeCallers) {
+                    for (let i = 0; i < _awakeCallers.length; i++) {
+                        _awakeCallers[i].call(this);
+                    }
                 }
                 //检查timer绑定
                 this.awakeTimer();
