@@ -38,11 +38,11 @@ namespace jy {
         }
 
         /**
-         * 调整大小，如果宽度或者高度比原先小，则返回false
+         * 扩展大小，如果宽度或者高度比原先小，则返回false
          * @param width 
          * @param height 
          */
-        resize(width: number, height: number) {
+        extSize(width: number, height: number) {
             let { width: ow, height: oh } = this;
             if (width > ow && height > oh) {
                 this.width = width;

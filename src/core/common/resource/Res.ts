@@ -102,6 +102,10 @@ namespace jy.Res {
         version?: number;
     }
 
+    export interface TypedResItem<T> extends ResItem {
+        data: T;
+    }
+
     export interface ResItem extends ResBase {
         /**
          * 资源类型

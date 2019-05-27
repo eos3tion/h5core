@@ -4,6 +4,19 @@ if (DEBUG) {
 }
 namespace jy {
 
+    export interface TextureResourceOption {
+        /**
+         * 是否不要webp纹理
+         */
+        noWebp?: boolean;
+
+        /**
+         * 是否将纹理装箱到指定纹理集  
+         * 如果不设置，则表示没有
+         */
+        sheetKey?: Key;
+    }
+
 
     import Bitmap = egret.Bitmap;
     /**
@@ -32,6 +45,10 @@ namespace jy {
          * 加载列队
          */
         qid?: Res.ResQueueID;
+        /**
+         * 关联的纹理表单标识
+         */
+        sheetKey: Key;
 
         constructor(uri: string, noWebp?: boolean) {
             this.uri = uri;
@@ -91,9 +108,17 @@ namespace jy {
         /**
          * 资源加载完成
          */
-        loadComplete(item: Res.ResItem) {
+        loadComplete(item: Res.TypedResItem<egret.Texture>) {
             let { data, uri } = item;
             if (uri == this.uri) {
+                let sheetKey = this.sheetKey;
+                if (sheetKey) {
+                    let sheet = sheetsDict[sheetKey];
+                    if (!sheet) {
+                        sheetsDict[sheetKey] = sheet = getDynamicTexSheet();
+                    }
+                    sheet.set(uri, data);
+                }
                 this._tex = data;
                 for (let bmp of this._list) {
                     bmp.texture = data;
@@ -114,9 +139,17 @@ namespace jy {
          * 销毁资源
          */
         dispose() {
-            if (this._tex) {
-                this._tex.dispose();
+            let tex = this._tex;
+            if (tex) {
                 this._tex = undefined;
+                let sheetKey = this.sheetKey;
+                if (sheetKey) {
+                    let sheet = sheetsDict[sheetKey];
+                    if (sheet) {
+                        sheet.remove(this.uri);
+                    }
+                }
+                tex.dispose();
             }
             this._list.length = 0;
         }
@@ -128,7 +161,7 @@ namespace jy {
          * @param {boolean} [noWebp] 是否不加webp后缀
          * @returns {TextureResource} 
          */
-        static get(uri: string, noWebp?: boolean) {
+        static get(uri: string, { noWebp, sheetKey }: TextureResourceOption) {
             let res = ResManager.getResource(uri) as TextureResource;
             if (res) {
                 if (!(res instanceof TextureResource)) {
@@ -138,9 +171,74 @@ namespace jy {
             }
             if (!res) {
                 res = new TextureResource(uri, noWebp);
+                res.sheetKey = sheetKey;
                 ResManager.regResource(uri, res);
             }
             return res;
         }
     }
+
+
+    function getDynamicTexSheet() {
+        let size = TextureSheetConst.MaxSize >> 2;
+        let sheet = getTextureSheet(size);
+        let packer = new ShortSideBinPacker(size, size);
+        return {
+            set(uri: string, tex: DynamicTexture) {
+                //检查是否已经加载过
+                if (!sheet.get(uri)) {
+                    let bmd = tex.bitmapData;
+                    let source = bmd.source;
+                    let { width, height } = source;
+                    let ww = width + TextureSheetConst.Padding;//padding
+                    let hh = height + TextureSheetConst.Padding;//padding
+                    let bin = packer.insert(ww, hh);
+                    if (!bin) {//装不下
+                        //先扩展
+                        if (size < TextureSheetConst.MaxSize) {
+                            size = size * 2;
+                            packer.extSize(size, size);
+                            sheet.extSize(size);
+                            bin = packer.insert(ww, hh);
+                            if (!bin) {
+                                return
+                            }
+                        } else {
+                            return
+                        }
+                    }
+                    tex.$bin = bin;
+                    //将突破绘制到sheet上，并清除原纹理
+                    let ctx = sheet.ctx;
+                    ctx.globalAlpha = 1;
+                    let { x, y } = bin;
+                    ctx.drawImage(source as CanvasImageSource, x, y);
+                    bmd.$dispose();
+                    sheet.reg(uri, { x, y, width, height }, tex);
+                }
+            },
+            remove(uri: string) {
+                let tex = sheet.remove(uri) as DynamicTexture;
+                if (tex) {
+                    let bin = tex.$bin;
+                    if (bin) {
+                        tex.$bin = undefined;
+                        //将位置还原给装箱数据
+                        packer.usedRects.remove(bin);
+                        packer.freeRects.pushOnce(bin);
+                    }
+                }
+            }
+        }
+
+    }
+
+    interface DynamicTexture extends egret.Texture {
+        $bin?: Bin;
+    }
+
+    declare type DynamicTexSheet = ReturnType<typeof getDynamicTexSheet>
+
+    const sheetsDict = {} as { [key: string]: DynamicTexSheet };
+
 }

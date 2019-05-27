@@ -33,29 +33,16 @@ namespace jy {
         return "#" + c.toString(16).zeroize(6);
     }
 
-    const textureCaches: {
-        [colorKey: string]: egret.Texture
-    } = {};
-
     let idx = 0;
     let increaseCount = 5;
     let size = Math.pow(2, increaseCount);
-    let canvas = document.createElement("canvas");
-    canvas.height = canvas.width = size << 2;
-    let bmd = new egret.BitmapData(canvas);
-    bmd.$deleteSource = false;
-    let ctx = canvas.getContext("2d");
+
+    let sheet = getTextureSheet(size << 2);
 
     function checkCanvas() {
         if (idx >= size * size) {
             size <<= 1;
-            let data = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            bmd.width = bmd.height = canvas.height = canvas.width = size << 2;
-            ctx.putImageData(data, 0, 0);
-            if (bmd.webGLTexture) {//清理webgl纹理，让渲染可以重置
-                egret.WebGLUtils.deleteWebGLTexture(bmd);
-                bmd.webGLTexture = null;
-            }
+            sheet.extSize(size << 2);
             increaseCount++;
         }
     }
@@ -109,10 +96,9 @@ namespace jy {
          */
         getTexture(color = 0, alpha = 0.8) {
             let key = color + "_" + alpha;
-            let tex = textureCaches[key];
+            let tex = sheet.get(key);
             if (!tex) {
                 checkCanvas();
-                textureCaches[key] = tex = new egret.Texture();
                 let count = increaseCount;
                 let x = 0, y = 0;
                 let cidx = idx;
@@ -131,21 +117,17 @@ namespace jy {
                         break
                     }
                 } while (true)
-
+                let ctx = sheet.ctx;
                 ctx.globalAlpha = alpha;
                 ctx.fillStyle = getColorString(color);
                 x <<= 2;
                 y <<= 2;
                 ctx.fillRect(x, y, 4, 4);
-                tex.disposeBitmapData = false;
-                tex.bitmapData = bmd;
-                if (bmd.webGLTexture) {//清理webgl纹理，让渲染可以重置
-                    egret.WebGLUtils.deleteWebGLTexture(bmd);
-                    bmd.webGLTexture = null;
-                }
                 const ww = 2;
-                tex.$initData(x + 1, y + 1, ww, ww, 0, 0, ww, ww, ww, ww);
-                idx++;
+                tex = sheet.reg(key, { x: x + 1, y: y + 1, width: ww, height: ww });
+                if (tex) {
+                    idx++;
+                }
             }
             return tex;
         }
