@@ -614,5 +614,5 @@ namespace jy {
     /**
      * 定义类型
      */
-    export declare type PBUtils = typeof PBUtils;
+    export declare type PBUtils = ReturnType<typeof getPBUtils>;
 }
