@@ -603,6 +603,102 @@ var egret;
 })(egret || (egret = {}));
 var jy;
 (function (jy) {
+    function getTextureSheet(size, canvas) {
+        if (size === void 0) { size = 256 /* DefaultSize */; }
+        canvas = canvas || document.createElement("canvas"); //canvas作为可传入，避免如“小程序”或其他环境，需要通过其他方法创建canvas
+        var bmd = new egret.BitmapData(canvas);
+        bmd.width = bmd.height = canvas.height = canvas.width = size;
+        bmd.$deleteSource = false;
+        var ctx = canvas.getContext("2d");
+        var texCount = 0;
+        var texs = {};
+        return {
+            /**
+             * 获取纹理
+             * @param key
+             */
+            get: function (key) {
+                return texs[key];
+            },
+            /**
+             * 注册纹理
+             * @param key 纹理的key
+             * @param rect 纹理的坐标和宽度高度
+             * @param [ntex] 外部纹理，如果不传，则直接创建
+             * @returns {egret.Texture} 则表明注册成功
+             */
+            reg: function (key, _a, ntex) {
+                var x = _a.x, y = _a.y, width = _a.width, height = _a.height;
+                var tex = texs[key];
+                if (!tex) {
+                    tex = ntex || new egret.Texture;
+                    tex.disposeBitmapData = false;
+                    tex.bitmapData = bmd;
+                    texs[key] = tex;
+                    texCount++;
+                    if (bmd.webGLTexture) { //清理webgl纹理，让渲染可以重置
+                        egret.WebGLUtils.deleteWebGLTexture(bmd);
+                        bmd.webGLTexture = null;
+                    }
+                    tex.$initData(x, y, width, height, 0, 0, width, height, width, height);
+                    return tex;
+                }
+            },
+            /**
+             * 删除指定纹理
+             * @param key
+             */
+            remove: function (key) {
+                var tex = texs[key];
+                if (tex) {
+                    ctx.clearRect(tex.$bitmapX, tex.$bitmapY, tex.textureWidth, tex.textureHeight);
+                    delete texs[key];
+                    texCount--;
+                    return tex;
+                }
+            },
+            /**
+             * 获取上下文对象
+             */
+            get ctx() {
+                return ctx;
+            },
+            /**
+             * 扩展尺寸
+             * @param newSize
+             */
+            extSize: function (newSize) {
+                if (newSize > 2048 /* MaxSize */) { //2048为相对比较安全的纹理尺寸
+                    return false;
+                }
+                if (newSize > size) {
+                    var data = ctx.getImageData(0, 0, size, size);
+                    size = newSize;
+                    bmd.width = bmd.height = canvas.height = canvas.width = size;
+                    ctx.putImageData(data, 0, 0);
+                    if (bmd.webGLTexture) { //清理webgl纹理，让渲染可以重置
+                        egret.WebGLUtils.deleteWebGLTexture(bmd);
+                        bmd.webGLTexture = null;
+                    }
+                }
+                return true;
+            },
+            /**
+             * 销毁纹理
+             */
+            dispose: function () {
+                canvas.width = canvas.height = 0;
+                bmd.$dispose();
+            },
+            get texCount() {
+                return texCount;
+            }
+        };
+    }
+    jy.getTextureSheet = getTextureSheet;
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * Mediator和Proxy的基类
      * @author 3tion
@@ -2003,7 +2099,10 @@ var jy;
                 }
             },
             readFrom: readFrom,
-            writeTo: writeTo
+            writeTo: writeTo,
+            readMessage: readMessage,
+            readString: readString,
+            readBytes: readBytes,
         };
         /**
          * 读取消息
@@ -2406,25 +2505,14 @@ var jy;
     function getColorString(c) {
         return "#" + c.toString(16).zeroize(6);
     }
-    var textureCaches = {};
     var idx = 0;
     var increaseCount = 5;
     var size = Math.pow(2, increaseCount);
-    var canvas = document.createElement("canvas");
-    canvas.height = canvas.width = size << 2;
-    var bmd = new egret.BitmapData(canvas);
-    bmd.$deleteSource = false;
-    var ctx = canvas.getContext("2d");
+    var sheet = jy.getTextureSheet(size << 2);
     function checkCanvas() {
         if (idx >= size * size) {
             size <<= 1;
-            var data = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            bmd.width = bmd.height = canvas.height = canvas.width = size << 2;
-            ctx.putImageData(data, 0, 0);
-            if (bmd.webGLTexture) { //清理webgl纹理，让渲染可以重置
-                egret.WebGLUtils.deleteWebGLTexture(bmd);
-                bmd.webGLTexture = null;
-            }
+            sheet.extSize(size << 2);
             increaseCount++;
         }
     }
@@ -2477,10 +2565,9 @@ var jy;
             if (color === void 0) { color = 0; }
             if (alpha === void 0) { alpha = 0.8; }
             var key = color + "_" + alpha;
-            var tex = textureCaches[key];
+            var tex = sheet.get(key);
             if (!tex) {
                 checkCanvas();
-                textureCaches[key] = tex = new egret.Texture();
                 var count = increaseCount;
                 var x = 0, y = 0;
                 var cidx = idx;
@@ -2499,20 +2586,17 @@ var jy;
                         break;
                     }
                 } while (true);
+                var ctx = sheet.ctx;
                 ctx.globalAlpha = alpha;
                 ctx.fillStyle = getColorString(color);
                 x <<= 2;
                 y <<= 2;
                 ctx.fillRect(x, y, 4, 4);
-                tex.disposeBitmapData = false;
-                tex.bitmapData = bmd;
-                if (bmd.webGLTexture) { //清理webgl纹理，让渲染可以重置
-                    egret.WebGLUtils.deleteWebGLTexture(bmd);
-                    bmd.webGLTexture = null;
-                }
                 var ww = 2;
-                tex.$initData(x + 1, y + 1, ww, ww, 0, 0, ww, ww, ww, ww);
-                idx++;
+                tex = sheet.reg(key, { x: x + 1, y: y + 1, width: ww, height: ww });
+                if (tex) {
+                    idx++;
+                }
             }
             return tex;
         }
@@ -8232,6 +8316,14 @@ var jy;
         TextureResource.prototype.loadComplete = function (item) {
             var data = item.data, uri = item.uri;
             if (uri == this.uri) {
+                var sheetKey = this.sheetKey;
+                if (sheetKey) {
+                    var sheet = sheetsDict[sheetKey];
+                    if (!sheet) {
+                        sheetsDict[sheetKey] = sheet = getDynamicTexSheet();
+                    }
+                    sheet.set(uri, data);
+                }
                 this._tex = data;
                 for (var _i = 0, _a = this._list; _i < _a.length; _i++) {
                     var bmp = _a[_i];
@@ -8252,9 +8344,17 @@ var jy;
          * 销毁资源
          */
         TextureResource.prototype.dispose = function () {
-            if (this._tex) {
-                this._tex.dispose();
+            var tex = this._tex;
+            if (tex) {
                 this._tex = undefined;
+                var sheetKey = this.sheetKey;
+                if (sheetKey) {
+                    var sheet = sheetsDict[sheetKey];
+                    if (sheet) {
+                        sheet.remove(this.uri);
+                    }
+                }
+                tex.dispose();
             }
             this._list.length = 0;
         };
@@ -8265,7 +8365,8 @@ var jy;
          * @param {boolean} [noWebp] 是否不加webp后缀
          * @returns {TextureResource}
          */
-        TextureResource.get = function (uri, noWebp) {
+        TextureResource.get = function (uri, _a) {
+            var noWebp = _a.noWebp, sheetKey = _a.sheetKey;
             var res = jy.ResManager.getResource(uri);
             if (res) {
                 if (!(res instanceof TextureResource)) {
@@ -8275,6 +8376,7 @@ var jy;
             }
             if (!res) {
                 res = new TextureResource(uri, noWebp);
+                res.sheetKey = sheetKey;
                 jy.ResManager.regResource(uri, res);
             }
             return res;
@@ -8283,6 +8385,60 @@ var jy;
     }());
     jy.TextureResource = TextureResource;
     __reflect(TextureResource.prototype, "jy.TextureResource", ["jy.IResource"]);
+    function getDynamicTexSheet() {
+        var size = 2048 /* MaxSize */ >> 2;
+        var sheet = jy.getTextureSheet(size);
+        var packer = new jy.ShortSideBinPacker(size, size);
+        return {
+            set: function (uri, tex) {
+                //检查是否已经加载过
+                if (!sheet.get(uri)) {
+                    var bmd = tex.bitmapData;
+                    var source = bmd.source;
+                    var width = source.width, height = source.height;
+                    var ww = width + 1 /* Padding */; //padding
+                    var hh = height + 1 /* Padding */; //padding
+                    var bin = packer.insert(ww, hh);
+                    if (!bin) { //装不下
+                        //先扩展
+                        if (size < 2048 /* MaxSize */) {
+                            size = size * 2;
+                            packer.extSize(size, size);
+                            sheet.extSize(size);
+                            bin = packer.insert(ww, hh);
+                            if (!bin) {
+                                return;
+                            }
+                        }
+                        else {
+                            return;
+                        }
+                    }
+                    tex.$bin = bin;
+                    //将突破绘制到sheet上，并清除原纹理
+                    var ctx = sheet.ctx;
+                    ctx.globalAlpha = 1;
+                    var x = bin.x, y = bin.y;
+                    ctx.drawImage(source, x, y);
+                    bmd.$dispose();
+                    sheet.reg(uri, { x: x, y: y, width: width, height: height }, tex);
+                }
+            },
+            remove: function (uri) {
+                var tex = sheet.remove(uri);
+                if (tex) {
+                    var bin = tex.$bin;
+                    if (bin) {
+                        tex.$bin = undefined;
+                        //将位置还原给装箱数据
+                        packer.usedRects.remove(bin);
+                        packer.freeRects.pushOnce(bin);
+                    }
+                }
+            }
+        };
+    }
+    var sheetsDict = {};
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -9321,11 +9477,11 @@ var jy;
             this.freeRects = [new Bin(0, 0, width, height)];
         }
         /**
-         * 调整大小，如果宽度或者高度比原先小，则返回false
+         * 扩展大小，如果宽度或者高度比原先小，则返回false
          * @param width
          * @param height
          */
-        ShortSideBinPacker.prototype.resize = function (width, height) {
+        ShortSideBinPacker.prototype.extSize = function (width, height) {
             var _a = this, ow = _a.width, oh = _a.height;
             if (width > ow && height > oh) {
                 this.width = width;
@@ -14604,7 +14760,7 @@ var jy;
         }
         Image.prototype.addedToStage = function () {
             if (this.uri) {
-                var res = jy.TextureResource.get(this.uri, this.noWebp);
+                var res = jy.TextureResource.get(this.uri, this);
                 if (res) {
                     res.qid = this.qid;
                     //先设置为占位用，避免有些玩家加载慢，无法看到图
@@ -14657,7 +14813,7 @@ var jy;
         return Image;
     }(egret.Bitmap));
     jy.Image = Image;
-    __reflect(Image.prototype, "jy.Image");
+    __reflect(Image.prototype, "jy.Image", ["jy.TextureResourceOption"]);
     ;
     jy.addEnable(Image);
 })(jy || (jy = {}));
