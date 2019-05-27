@@ -1081,6 +1081,48 @@ declare namespace jy {
     }
 }
 declare namespace jy {
+    const enum TextureSheetConst {
+        DefaultSize = 256,
+        MaxSize = 2048,
+        Padding = 1
+    }
+    function getTextureSheet(size?: number, canvas?: HTMLCanvasElement): {
+        /**
+         * 获取纹理
+         * @param key
+         */
+        get(key: string | number): egret.Texture;
+        /**
+         * 注册纹理
+         * @param key 纹理的key
+         * @param rect 纹理的坐标和宽度高度
+         * @param [ntex] 外部纹理，如果不传，则直接创建
+         * @returns {egret.Texture} 则表明注册成功
+         */
+        reg(key: string | number, { x, y, width, height }: Rect, ntex?: egret.Texture): egret.Texture;
+        /**
+         * 删除指定纹理
+         * @param key
+         */
+        remove(key: string | number): egret.Texture;
+        /**
+         * 获取上下文对象
+         */
+        readonly ctx: CanvasRenderingContext2D;
+        /**
+         * 扩展尺寸
+         * @param newSize
+         */
+        extSize(newSize: number): boolean;
+        /**
+         * 销毁纹理
+         */
+        dispose(): void;
+        readonly texCount: number;
+    };
+    type TextureSheet = ReturnType<typeof getTextureSheet>;
+}
+declare namespace jy {
     interface GameLayer extends egret.DisplayObject {
         id: number;
     }
@@ -2178,7 +2220,7 @@ declare namespace jy {
     /**
      * 定义类型
      */
-    type PBUtils = typeof PBUtils;
+    type PBUtils = ReturnType<typeof getPBUtils>;
 }
 declare namespace jy {
     /**
@@ -7294,6 +7336,9 @@ declare namespace jy.Res {
         data?: any;
         version?: number;
     }
+    interface TypedResItem<T> extends ResItem {
+        data: T;
+    }
     interface ResItem extends ResBase {
         /**
          * 资源类型
@@ -7611,6 +7656,17 @@ declare namespace jy {
     function regResource(resID: string, res: IResource): boolean;
 }
 declare namespace jy {
+    interface TextureResourceOption {
+        /**
+         * 是否不要webp纹理
+         */
+        noWebp?: boolean;
+        /**
+         * 是否将纹理装箱到指定纹理集
+         * 如果不设置，则表示没有
+         */
+        sheetKey?: Key;
+    }
     import Bitmap = egret.Bitmap;
     /**
      *
@@ -7636,6 +7692,10 @@ declare namespace jy {
          * 加载列队
          */
         qid?: Res.ResQueueID;
+        /**
+         * 关联的纹理表单标识
+         */
+        sheetKey: Key;
         constructor(uri: string, noWebp?: boolean);
         /**
          *
@@ -7667,7 +7727,7 @@ declare namespace jy {
         /**
          * 资源加载完成
          */
-        loadComplete(item: Res.ResItem): void;
+        loadComplete(item: Res.TypedResItem<egret.Texture>): void;
         /**
          * 销毁资源
          */
@@ -7679,7 +7739,7 @@ declare namespace jy {
          * @param {boolean} [noWebp] 是否不加webp后缀
          * @returns {TextureResource}
          */
-        static get(uri: string, noWebp?: boolean): TextureResource;
+        static get(uri: string, { noWebp, sheetKey }: TextureResourceOption): TextureResource;
     }
 }
 declare namespace jy {
@@ -8468,11 +8528,11 @@ declare namespace jy {
     class ShortSideBinPacker {
         constructor(width: number, height: number, allowRotation?: boolean);
         /**
-         * 调整大小，如果宽度或者高度比原先小，则返回false
+         * 扩展大小，如果宽度或者高度比原先小，则返回false
          * @param width
          * @param height
          */
-        resize(width: number, height: number): boolean;
+        extSize(width: number, height: number): boolean;
         insert(width: number, height: number): Bin;
     }
 }
@@ -13494,7 +13554,7 @@ declare namespace jy {
      * @pb
      *
      */
-    class Image extends egret.Bitmap {
+    class Image extends egret.Bitmap implements TextureResourceOption {
         /**
          * 资源唯一标识
          */
@@ -13504,6 +13564,7 @@ declare namespace jy {
          */
         qid?: Res.ResQueueID;
         noWebp?: boolean;
+        sheetKey?: Key;
         constructor();
         addedToStage(): void;
         removedFromStage(): void;
