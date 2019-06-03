@@ -220,6 +220,7 @@ namespace jy {
                 this.onChange();
                 this.dispatch(EventConst.ITEM_SELECTED);
             }
+            this.dispatch(EventConst.ITEM_TOUCH_TAP, render);
         }
 
 

@@ -4195,6 +4195,7 @@ var jy;
                 this.onChange();
                 this.dispatch(-1052 /* ITEM_SELECTED */);
             }
+            this.dispatch(-1001 /* ITEM_TOUCH_TAP */, render);
         };
         AbsPageList.prototype.getAllItems = function () {
             return this._list;
