@@ -4526,8 +4526,10 @@ var jy;
                     jy.on(type, ins.handler, this, ins.priority);
                 }
                 var _awakeCallers = this._awakeCallers;
-                for (var i = 0; i < _awakeCallers.length; i++) {
-                    _awakeCallers[i].call(this);
+                if (_awakeCallers) {
+                    for (var i = 0; i < _awakeCallers.length; i++) {
+                        _awakeCallers[i].call(this);
+                    }
                 }
                 //检查timer绑定
                 this.awakeTimer();
@@ -18132,13 +18134,15 @@ var jy;
          * 一定要super调一下
          */
         ListItemRenderer.prototype._bind = function () {
-            if (!this._skin) {
+            var skin = this._skin;
+            if (!skin) {
                 if (this.skinlib && this.skinClass) {
                     this.skin = jy.singleton(jy.SuiResManager).createDisplayObject(this.skinlib, this.skinClass);
                 }
             }
             else {
                 this.inited = true;
+                this.stageChange(!!skin.stage);
             }
             this.checkInject();
             this.bindComponent();
