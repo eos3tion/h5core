@@ -3220,6 +3220,10 @@ declare namespace jy {
         bindObj2(content: egret.DisplayObject, scrollRect: egret.Rectangle, scrollbar?: ScrollBar): void;
         protected onResize(): void;
         protected onDragStart(e: egret.TouchEvent): void;
+        /**
+         * 停止拖拽，避免有些情况下，需要主动停止拖拽的情况
+         */
+        stopDrag(): void;
         protected getDragPos(e: egret.TouchEvent): number;
         protected onDragMove(e: egret.TouchEvent): void;
         stopTouchTween(): void;

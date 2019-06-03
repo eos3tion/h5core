@@ -4765,6 +4765,17 @@ var jy;
             content.on(-1088 /* DragEnd */, this.onDragEnd, this);
             this.dispatch(-1051 /* ScrollerDragStart */);
         };
+        /**
+         * 停止拖拽，避免有些情况下，需要主动停止拖拽的情况
+         */
+        Scroller.prototype.stopDrag = function () {
+            var content = this._content;
+            if (!content) {
+                return;
+            }
+            content.off(-1089 /* DragMove */, this.onDragMove, this);
+            content.off(-1088 /* DragEnd */, this.onDragEnd, this);
+        };
         Scroller.prototype.getDragPos = function (e) {
             return this._scrollType == 0 /* Vertical */ ? e.stageY : e.stageX;
         };
@@ -4821,8 +4832,7 @@ var jy;
             else {
                 this.hideBar();
             }
-            content.off(-1089 /* DragMove */, this.onDragMove, this);
-            content.off(-1088 /* DragEnd */, this.onDragEnd, this);
+            this.stopDrag();
             this.dispatch(-1050 /* ScrollerDragEnd */, currentPos - this._startPos);
         };
         Scroller.prototype.showBar = function () {

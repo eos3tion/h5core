@@ -192,6 +192,18 @@ namespace jy {
             this.dispatch(EventConst.ScrollerDragStart);
         }
 
+        /**
+         * 停止拖拽，避免有些情况下，需要主动停止拖拽的情况
+         */
+        stopDrag() {
+            let content = this._content;
+            if (!content) {
+                return;
+            }
+            content.off(EventConst.DragMove, this.onDragMove, this);
+            content.off(EventConst.DragEnd, this.onDragEnd, this);
+        }
+
         protected getDragPos(e: egret.TouchEvent) {
             return this._scrollType == ScrollDirection.Vertical ? e.stageY : e.stageX;
         }
@@ -252,8 +264,7 @@ namespace jy {
             else {
                 this.hideBar();
             }
-            content.off(EventConst.DragMove, this.onDragMove, this);
-            content.off(EventConst.DragEnd, this.onDragEnd, this);
+            this.stopDrag();
             this.dispatch(EventConst.ScrollerDragEnd, currentPos - this._startPos);
         }
 
