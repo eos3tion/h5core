@@ -1642,6 +1642,16 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
+    function updateEgretTexutre(bmd) {
+        var glTexture = bmd.webGLTexture;
+        if (glTexture) { //清理webgl纹理，让渲染可以重置
+            var gl = glTexture.glContext;
+            if (gl) {
+                gl.bindTexture(gl.TEXTURE_2D, glTexture);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, bmd.source);
+            }
+        }
+    }
     function getTextureSheet(size, canvas) {
         if (size === void 0) { size = 256 /* DefaultSize */; }
         canvas = canvas || document.createElement("canvas"); //canvas作为可传入，避免如“小程序”或其他环境，需要通过其他方法创建canvas
@@ -1675,10 +1685,7 @@ var jy;
                     tex.bitmapData = bmd;
                     texs[key] = tex;
                     texCount++;
-                    if (bmd.webGLTexture) { //清理webgl纹理，让渲染可以重置
-                        egret.WebGLUtils.deleteWebGLTexture(bmd);
-                        bmd.webGLTexture = null;
-                    }
+                    updateEgretTexutre(bmd);
                     tex.$initData(x, y, width, height, 0, 0, width, height, width, height);
                     return tex;
                 }
@@ -1715,10 +1722,7 @@ var jy;
                     size = newSize;
                     bmd.width = bmd.height = canvas.height = canvas.width = size;
                     ctx.putImageData(data, 0, 0);
-                    if (bmd.webGLTexture) { //清理webgl纹理，让渲染可以重置
-                        egret.WebGLUtils.deleteWebGLTexture(bmd);
-                        bmd.webGLTexture = null;
-                    }
+                    updateEgretTexutre(bmd);
                 }
                 return true;
             },
