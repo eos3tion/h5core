@@ -6,6 +6,17 @@ namespace jy {
         Padding = 1,
     }
 
+    function updateEgretTexutre(bmd: egret.BitmapData) {
+        let glTexture = bmd.webGLTexture;
+        if (glTexture) {//清理webgl纹理，让渲染可以重置
+            let gl = glTexture.glContext as WebGLRenderingContext;
+            if (gl) {
+                gl.bindTexture(gl.TEXTURE_2D, glTexture);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, bmd.source);
+            }
+        }
+    }
+
     export function getTextureSheet(size: number = TextureSheetConst.DefaultSize, canvas?: HTMLCanvasElement) {
         canvas = canvas || document.createElement("canvas");//canvas作为可传入，避免如“小程序”或其他环境，需要通过其他方法创建canvas
         let bmd = new egret.BitmapData(canvas);
@@ -37,10 +48,7 @@ namespace jy {
                     tex.bitmapData = bmd;
                     texs[key] = tex;
                     texCount++;
-                    if (bmd.webGLTexture) {//清理webgl纹理，让渲染可以重置
-                        egret.WebGLUtils.deleteWebGLTexture(bmd);
-                        bmd.webGLTexture = null;
-                    }
+                    updateEgretTexutre(bmd);
                     tex.$initData(x, y, width, height, 0, 0, width, height, width, height);
                     return tex;
                 }
@@ -78,10 +86,7 @@ namespace jy {
                     size = newSize;
                     bmd.width = bmd.height = canvas.height = canvas.width = size;
                     ctx.putImageData(data, 0, 0);
-                    if (bmd.webGLTexture) {//清理webgl纹理，让渲染可以重置
-                        egret.WebGLUtils.deleteWebGLTexture(bmd);
-                        bmd.webGLTexture = null;
-                    }
+                    updateEgretTexutre(bmd);
                 }
                 return true;
             },
