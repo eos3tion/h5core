@@ -5,7 +5,7 @@ namespace jy {
 	 * @pb 
 	 *
 	 */
-	export class Image extends egret.Bitmap {
+	export class Image extends egret.Bitmap implements TextureResourceOption {
 
 		/**
          * 资源唯一标识
@@ -18,6 +18,8 @@ namespace jy {
 
 		noWebp?: boolean;
 
+		sheetKey?: Key;
+
 		constructor() {
 			super();
 			this.on(EgretEvent.ADDED_TO_STAGE, this.addedToStage, this);
@@ -26,7 +28,7 @@ namespace jy {
 
 		addedToStage() {
 			if (this.uri) {
-				let res = TextureResource.get(this.uri, this.noWebp);
+				let res = TextureResource.get(this.uri, this);
 				if (res) {
 					res.qid = this.qid;
 					//先设置为占位用，避免有些玩家加载慢，无法看到图
