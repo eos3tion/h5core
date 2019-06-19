@@ -261,10 +261,16 @@ namespace jy {
         abstract bindResource(resKey: string, resouce: SplitUnitResource, textures: { [index: number]: egret.Texture[][] });
     }
 
-    function getRep(data: number, repArr: any[]): string {
-        let str = data + "";
-        if (repArr && (data in repArr)) {
-            str = repArr[data];
+    function getRep(data: number, repArr: any[]) {
+        let str = "";
+        let len = repArr && repArr.length || 0;
+        if (len) {
+            do {
+                str = repArr[data % len] + str;
+                data = data / len >> 0;
+            } while (data)
+        } else {
+            str = data + "";
         }
         return str;
     }
