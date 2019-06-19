@@ -2963,9 +2963,16 @@ var jy;
     jy.SplitInfo = SplitInfo;
     __reflect(SplitInfo.prototype, "jy.SplitInfo");
     function getRep(data, repArr) {
-        var str = data + "";
-        if (repArr && (data in repArr)) {
-            str = repArr[data];
+        var str = "";
+        var len = repArr && repArr.length || 0;
+        if (len) {
+            do {
+                str = repArr[data % len] + str;
+                data = data / len >> 0;
+            } while (data);
+        }
+        else {
+            str = data + "";
         }
         return str;
     }
