@@ -42,6 +42,7 @@ namespace jy {
         protected _key = PosKey.Y;
         protected _sizeKey = SizeKey.Height;
         protected _measureKey = EgretMeasureSizeKey.Height;
+        protected drag: DragDele;
 
         public constructor() {
             super();
@@ -110,13 +111,14 @@ namespace jy {
                     old.off(EgretEvent.ENTER_FRAME, this.onRender, this);
                     old.off(EventConst.Resize, this.onResize, this);
                     looseDrag(old);
+                    this.drag = undefined;
                     old.off(EventConst.DragStart, this.onDragStart, this);
                     old.off(EventConst.DragMove, this.onDragMove, this);
                     old.off(EventConst.DragEnd, this.onDragEnd, this);
                 }
                 this._content = content;
                 if (content) {
-                    bindDrag(content);
+                    this.drag = bindDrag(content);
                     content.on(EventConst.DragStart, this.onDragStart, this);
                     content.on(EventConst.Resize, this.onResize, this);
                 }
@@ -199,6 +201,10 @@ namespace jy {
             let content = this._content;
             if (!content) {
                 return;
+            }
+            let drag = this.drag;
+            if (drag) {
+                stopDrag(drag.dragId);
             }
             content.off(EventConst.DragMove, this.onDragMove, this);
             content.off(EventConst.DragEnd, this.onDragEnd, this);

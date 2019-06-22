@@ -19,6 +19,9 @@ namespace jy {
     import TouchEvent = egret.TouchEvent;
     import Event = egret.Event;
     const key = "$__$Drag";
+
+    const dragStartDict = {} as { [pointer: number]: boolean };
+
     function dispatchTouchEvent(target: egret.DisplayObject, type: any, e: egret.TouchEvent, deltaX?: number, deltaY?: number, deltaTime?: number) {
         if (!target.hasListen(type)) {
             return true;
@@ -37,12 +40,12 @@ namespace jy {
         return result;
     }
 
-    interface DragDele {
+    export interface DragDele {
         host: egret.DisplayObject;
         lt?: number;
         lx?: number;
         ly?: number;
-        dragStart?: boolean;
+        dragId?: number;
         isCon: boolean;
         /**
          * 最大拖拽时间
@@ -59,6 +62,7 @@ namespace jy {
         this.lt = Date.now();
         this.lx = e.stageX;
         this.ly = e.stageY;
+        this.dragId = e.touchPointID;
         stage.on(EgretEvent.TOUCH_MOVE, onMove, this);
         stage.on(EgretEvent.TOUCH_END, onEnd, this);
     }
@@ -72,7 +76,8 @@ namespace jy {
         let dy = ny - this.ly;
         let now = Date.now();
         let delta = now - this.lt;
-        let { dragStart, host } = this;
+        let { dragId, host } = this;
+        let dragStart = dragStartDict[dragId];
         if (dragStart) {
             if (this.isCon) {
                 (host as egret.DisplayObjectContainer).touchChildren = false;
@@ -90,7 +95,7 @@ namespace jy {
             if (dragStart) {
                 dispatchTouchEvent(host, EventConst.DragStart, e, dx, dy, delta);
             }
-            this.dragStart = dragStart;
+            dragStartDict[dragId] = dragStart;
         }
         if (dragStart) {
             this.lx = nx;
@@ -99,7 +104,8 @@ namespace jy {
         }
     }
     function onEnd(this: DragDele, e: egret.TouchEvent) {
-        if (this.dragStart) {
+        let dragId = this.dragId;
+        if (dragId != null && dragStartDict[dragId]) {
             e.preventDefault();//阻止普通点击事件发生
             e.stopImmediatePropagation();
             let host = this.host;
@@ -108,7 +114,8 @@ namespace jy {
             }
             dispatchTouchEvent(host, EventConst.DragEnd, e);
         }
-        this.dragStart = false;
+        dragStartDict[dragId] = false;
+        this.dragId = null;
         stage.off(EgretEvent.TOUCH_MOVE, onMove, this);
         stage.off(EgretEvent.TOUCH_END, onEnd, this);
     }
@@ -127,6 +134,15 @@ namespace jy {
         let dele: DragDele = { host, isCon, minDragTime, minSqDist };
         host.on(EgretEvent.TOUCH_BEGIN, onStart, dele);
         host[key] = dele;
+        return dele;
+    }
+
+    /**
+     * 停止指定id的拖拽
+     * @param pointId 
+     */
+    export function stopDrag(pointId: number) {
+        dragStartDict[pointId] = false;
     }
 
     export function looseDrag(host: egret.DisplayObject) {
