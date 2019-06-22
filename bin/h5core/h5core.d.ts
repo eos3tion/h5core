@@ -3190,6 +3190,7 @@ declare namespace jy {
         protected _key: PosKey;
         protected _sizeKey: SizeKey;
         protected _measureKey: EgretMeasureSizeKey;
+        protected drag: DragDele;
         constructor();
         /**
          * 滚动条方式 0：垂直，1：水平 defalut:0
@@ -14112,6 +14113,22 @@ declare module egret {
     }
 }
 declare namespace jy {
+    interface DragDele {
+        host: egret.DisplayObject;
+        lt?: number;
+        lx?: number;
+        ly?: number;
+        dragId?: number;
+        isCon: boolean;
+        /**
+         * 最大拖拽时间
+         */
+        minDragTime: number;
+        /**
+         * 最小拖拽距离的平方
+         */
+        minSqDist: number;
+    }
     /**
      *
      * @param {egret.DisplayObject} host 要被拖拽的对象
@@ -14119,7 +14136,12 @@ declare namespace jy {
      * @param {number} [minDragTime=300] 最小拖拽事件
      * @param {number} [minSqDist=400] 最小
      */
-    function bindDrag(host: egret.DisplayObject, stopChildren?: boolean, minDragTime?: number, minSqDist?: number): void;
+    function bindDrag(host: egret.DisplayObject, stopChildren?: boolean, minDragTime?: number, minSqDist?: number): DragDele;
+    /**
+     * 停止指定id的拖拽
+     * @param pointId
+     */
+    function stopDrag(pointId: number): void;
     function looseDrag(host: egret.DisplayObject): void;
 }
 declare namespace jy {
