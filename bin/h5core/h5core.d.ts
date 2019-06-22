@@ -12025,6 +12025,11 @@ declare namespace jy {
          * 最小拖拽距离的平方
          */
         minSqDist: number;
+        /**
+         * 调用了EndDrag的时间
+         * 用于判断是不是同一帧
+         */
+        et?: number;
     }
     /**
      *

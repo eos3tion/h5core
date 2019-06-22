@@ -55,6 +55,12 @@ namespace jy {
          * 最小拖拽距离的平方
          */
         minSqDist: number;
+
+        /**
+         * 调用了EndDrag的时间  
+         * 用于判断是不是同一帧
+         */
+        et?: number;
     }
     let stage: egret.Stage;
 
@@ -67,6 +73,9 @@ namespace jy {
         stage.on(EgretEvent.TOUCH_END, onEnd, this);
     }
     function onMove(this: DragDele, e: TouchEvent) {
+        if (this.et == Global.now) {
+            return
+        }
         if (!e.touchDown) {
             return onEnd.call(this, e);
         }
@@ -104,17 +113,16 @@ namespace jy {
         }
     }
     function onEnd(this: DragDele, e: egret.TouchEvent) {
+        if (this.et == Global.now) {
+            return
+        }
         let dragId = this.dragId;
         if (dragId != null && dragStartDict[dragId]) {
             e.preventDefault();//阻止普通点击事件发生
             e.stopImmediatePropagation();
             let host = this.host;
-            if (this.isCon) {
-                (host as egret.DisplayObjectContainer).touchChildren = true;
-            }
             dispatchTouchEvent(host, EventConst.DragEnd, e);
         }
-        dragStartDict[dragId] = false;
         dragEnd(this);
     }
 
@@ -148,7 +156,12 @@ namespace jy {
     }
 
     function dragEnd(dele: DragDele) {
+        dele.et = Global.now;
+        dragStartDict[dele.dragId] = false;
         dele.dragId = null;
+        if (dele.isCon) {
+            (dele.host as egret.DisplayObjectContainer).touchChildren = true;
+        }
         stage.off(EgretEvent.TOUCH_MOVE, onMove, dele);
         stage.off(EgretEvent.TOUCH_END, onEnd, dele);
     }
