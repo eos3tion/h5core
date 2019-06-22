@@ -3745,10 +3745,7 @@ var jy;
             if (!content) {
                 return;
             }
-            var drag = this.drag;
-            if (drag) {
-                jy.stopDrag(drag.dragId);
-            }
+            jy.stopDrag(content);
             content.off(-1089 /* DragMove */, this.onDragMove, this);
             content.off(-1088 /* DragEnd */, this.onDragEnd, this);
         };
@@ -16292,9 +16289,7 @@ var jy;
             dispatchTouchEvent(host, -1088 /* DragEnd */, e);
         }
         dragStartDict[dragId] = false;
-        this.dragId = null;
-        stage.off("touchMove" /* TOUCH_MOVE */, onMove, this);
-        stage.off("touchEnd" /* TOUCH_END */, onEnd, this);
+        dragEnd(this);
     }
     /**
      *
@@ -16320,15 +16315,23 @@ var jy;
      * 停止指定id的拖拽
      * @param pointId
      */
-    function stopDrag(pointId) {
-        dragStartDict[pointId] = false;
+    function stopDrag(host) {
+        var dele = host[key];
+        if (dele) {
+            dragStartDict[dele.pointId] = false;
+            dragEnd(dele);
+        }
     }
     jy.stopDrag = stopDrag;
+    function dragEnd(dele) {
+        dele.dragId = null;
+        stage.off("touchMove" /* TOUCH_MOVE */, onMove, dele);
+        stage.off("touchEnd" /* TOUCH_END */, onEnd, dele);
+    }
     function looseDrag(host) {
         var dele = host[key];
         if (dele) {
-            stage.off("touchMove" /* TOUCH_MOVE */, onMove, dele);
-            stage.off("touchEnd" /* TOUCH_END */, onEnd, dele);
+            dragEnd(dele);
             dele.host.off("touchBegin" /* TOUCH_BEGIN */, onStart, dele);
             if (dele.isCon) {
                 host.touchChildren = true;
