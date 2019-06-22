@@ -19499,6 +19499,9 @@ var jy;
         stage.on("touchEnd" /* TOUCH_END */, onEnd, this);
     }
     function onMove(e) {
+        if (this.et == jy.Global.now) {
+            return;
+        }
         if (!e.touchDown) {
             return onEnd.call(this, e);
         }
@@ -19538,17 +19541,16 @@ var jy;
         }
     }
     function onEnd(e) {
+        if (this.et == jy.Global.now) {
+            return;
+        }
         var dragId = this.dragId;
         if (dragId != null && dragStartDict[dragId]) {
             e.preventDefault(); //阻止普通点击事件发生
             e.stopImmediatePropagation();
             var host = this.host;
-            if (this.isCon) {
-                host.touchChildren = true;
-            }
             dispatchTouchEvent(host, -1088 /* DragEnd */, e);
         }
-        dragStartDict[dragId] = false;
         dragEnd(this);
     }
     /**
@@ -19584,7 +19586,12 @@ var jy;
     }
     jy.stopDrag = stopDrag;
     function dragEnd(dele) {
+        dele.et = jy.Global.now;
+        dragStartDict[dele.dragId] = false;
         dele.dragId = null;
+        if (dele.isCon) {
+            dele.host.touchChildren = true;
+        }
         stage.off("touchMove" /* TOUCH_MOVE */, onMove, dele);
         stage.off("touchEnd" /* TOUCH_END */, onEnd, dele);
     }
