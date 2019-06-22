@@ -115,9 +115,7 @@ namespace jy {
             dispatchTouchEvent(host, EventConst.DragEnd, e);
         }
         dragStartDict[dragId] = false;
-        this.dragId = null;
-        stage.off(EgretEvent.TOUCH_MOVE, onMove, this);
-        stage.off(EgretEvent.TOUCH_END, onEnd, this);
+        dragEnd(this);
     }
 
     /**
@@ -141,15 +139,24 @@ namespace jy {
      * 停止指定id的拖拽
      * @param pointId 
      */
-    export function stopDrag(pointId: number) {
-        dragStartDict[pointId] = false;
+    export function stopDrag(host: egret.DisplayObject) {
+        let dele = host[key];
+        if (dele) {
+            dragStartDict[dele.pointId] = false;
+            dragEnd(dele);
+        }
+    }
+
+    function dragEnd(dele: DragDele) {
+        dele.dragId = null;
+        stage.off(EgretEvent.TOUCH_MOVE, onMove, dele);
+        stage.off(EgretEvent.TOUCH_END, onEnd, dele);
     }
 
     export function looseDrag(host: egret.DisplayObject) {
         let dele = host[key];
         if (dele) {
-            stage.off(EgretEvent.TOUCH_MOVE, onMove, dele);
-            stage.off(EgretEvent.TOUCH_END, onEnd, dele);
+            dragEnd(dele);
             dele.host.off(EgretEvent.TOUCH_BEGIN, onStart, dele);
             if (dele.isCon) {
                 (host as egret.DisplayObjectContainer).touchChildren = true;

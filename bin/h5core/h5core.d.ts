@@ -14141,7 +14141,7 @@ declare namespace jy {
      * 停止指定id的拖拽
      * @param pointId
      */
-    function stopDrag(pointId: number): void;
+    function stopDrag(host: egret.DisplayObject): void;
     function looseDrag(host: egret.DisplayObject): void;
 }
 declare namespace jy {

@@ -202,10 +202,7 @@ namespace jy {
             if (!content) {
                 return;
             }
-            let drag = this.drag;
-            if (drag) {
-                stopDrag(drag.dragId);
-            }
+            stopDrag(content);
             content.off(EventConst.DragMove, this.onDragMove, this);
             content.off(EventConst.DragEnd, this.onDragEnd, this);
         }
