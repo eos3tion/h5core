@@ -67,6 +67,11 @@ namespace jy {
          * 是否 不创建默认的 scroller
          */
         noScroller?: boolean;
+
+        /**
+         * scroller相关参数
+         */
+        scrollerOption?: ScrollerOption;
     }
 
     export class PageList<T, R extends ListItemRender<T>> extends AbsPageList<T, R> {
@@ -183,7 +188,7 @@ namespace jy {
 
         protected init(option: PageListOption) {
             option = option || Temp.EmptyObject as PageListOption;
-            let { hgap, vgap, type, itemWidth, itemHeight, columnCount, staticSize, noScroller, con } = option;
+            let { hgap, vgap, type, itemWidth, itemHeight, columnCount, staticSize, noScroller, con, scrollerOption } = option;
             this.staticSize = staticSize;
             type = ~~type;
             columnCount = ~~columnCount;
@@ -225,7 +230,7 @@ namespace jy {
             }))
 
             if (!noScroller) {
-                let scroller = this.scroller = new Scroller();
+                let scroller = this.scroller = new Scroller(scrollerOption);
                 scroller.scrollType = this.scrollType;
                 scroller.bindObj2(con, con.suiRawRect);
             }

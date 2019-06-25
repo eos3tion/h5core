@@ -3163,6 +3163,11 @@ declare namespace jy {
     function d_interest(eventType: Key, triggerOnStage?: boolean, isPrivate?: boolean, priority?: number): (target: any, _: string, value: any) => void;
 }
 declare namespace jy {
+    /**
+     * Scroller的参数
+     */
+    interface ScrollerOption extends DragOption {
+    }
     class Scroller extends egret.EventDispatcher {
         /**
          * 开始拖拽时的坐标
@@ -3191,7 +3196,8 @@ declare namespace jy {
         protected _sizeKey: SizeKey;
         protected _measureKey: EgretMeasureSizeKey;
         protected drag: DragDele;
-        constructor();
+        readonly opt?: Readonly<ScrollerOption>;
+        constructor(opt?: ScrollerOption);
         /**
          * 滚动条方式 0：垂直，1：水平 defalut:0
          */
@@ -13897,6 +13903,10 @@ declare namespace jy {
          * 是否 不创建默认的 scroller
          */
         noScroller?: boolean;
+        /**
+         * scroller相关参数
+         */
+        scrollerOption?: ScrollerOption;
     }
     class PageList<T, R extends ListItemRender<T>> extends AbsPageList<T, R> {
         protected _factory: ClassFactory<R>;
@@ -14113,6 +14123,20 @@ declare module egret {
     }
 }
 declare namespace jy {
+    interface DragOption {
+        /**
+         * 最大拖拽时间
+         */
+        minDragTime?: number;
+        /**
+         * 最小拖拽距离的平方
+         */
+        minSqDist?: number;
+        /**
+         * 是否阻止子控件的touch事件
+         */
+        stopChildren?: number;
+    }
     interface DragDele {
         host: egret.DisplayObject;
         lt?: number;
@@ -14141,7 +14165,7 @@ declare namespace jy {
      * @param {number} [minDragTime=300] 最小拖拽事件
      * @param {number} [minSqDist=400] 最小
      */
-    function bindDrag(host: egret.DisplayObject, stopChildren?: boolean, minDragTime?: number, minSqDist?: number): DragDele;
+    function bindDrag(host: egret.DisplayObject, opt?: DragOption): DragDele;
     /**
      * 停止指定id的拖拽
      * @param pointId
