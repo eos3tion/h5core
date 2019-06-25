@@ -1,5 +1,12 @@
 namespace jy {
 
+    /**
+     * Scroller的参数
+     */
+    export interface ScrollerOption extends DragOption {
+
+    }
+
 
     export class Scroller extends egret.EventDispatcher {
         /**
@@ -43,9 +50,11 @@ namespace jy {
         protected _sizeKey = SizeKey.Height;
         protected _measureKey = EgretMeasureSizeKey.Height;
         protected drag: DragDele;
+        readonly opt?: Readonly<ScrollerOption>;
 
-        public constructor() {
+        public constructor(opt?: ScrollerOption) {
             super();
+            this.opt = opt;
         }
         /**
          * 滚动条方式 0：垂直，1：水平 defalut:0
@@ -118,7 +127,7 @@ namespace jy {
                 }
                 this._content = content;
                 if (content) {
-                    this.drag = bindDrag(content);
+                    this.drag = bindDrag(content, this.opt);
                     content.on(EventConst.DragStart, this.onDragStart, this);
                     content.on(EventConst.Resize, this.onResize, this);
                 }

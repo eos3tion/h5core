@@ -40,6 +40,21 @@ namespace jy {
         return result;
     }
 
+    export interface DragOption {
+        /**
+         * 最大拖拽时间
+         */
+        minDragTime?: number;
+        /**
+         * 最小拖拽距离的平方
+         */
+        minSqDist?: number;
+        /**
+         * 是否阻止子控件的touch事件
+         */
+        stopChildren?: number;
+    }
+
     export interface DragDele {
         host: egret.DisplayObject;
         lt?: number;
@@ -133,7 +148,8 @@ namespace jy {
      * @param {number} [minDragTime=300] 最小拖拽事件 
      * @param {number} [minSqDist=400] 最小 
      */
-    export function bindDrag(host: egret.DisplayObject, stopChildren = true, minDragTime = 300, minSqDist = 400) {
+    export function bindDrag(host: egret.DisplayObject, opt?: DragOption) {
+        const { stopChildren = true, minDragTime = 300, minSqDist = 400 } = opt || Temp.EmptyObject as DragOption;
         stage = stage || egret.sys.$TempStage;
         const isCon = stopChildren && host instanceof egret.DisplayObjectContainer;
         host.touchEnabled = true;

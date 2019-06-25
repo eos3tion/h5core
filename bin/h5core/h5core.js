@@ -3576,7 +3576,7 @@ var jy;
 (function (jy) {
     var Scroller = /** @class */ (function (_super) {
         __extends(Scroller, _super);
-        function Scroller() {
+        function Scroller(opt) {
             var _this = _super.call(this) || this;
             _this._scrollType = 0 /* Vertical */;
             /**鼠标每移动1像素，元件移动的像素 */
@@ -3590,6 +3590,7 @@ var jy;
             _this._key = "y" /* Y */;
             _this._sizeKey = "height" /* Height */;
             _this._measureKey = "measuredHeight" /* Height */;
+            _this.opt = opt;
             return _this;
         }
         Object.defineProperty(Scroller.prototype, "scrollType", {
@@ -3665,7 +3666,7 @@ var jy;
                 }
                 this._content = content;
                 if (content) {
-                    this.drag = jy.bindDrag(content);
+                    this.drag = jy.bindDrag(content, this.opt);
                     content.on(-1090 /* DragStart */, this.onDragStart, this);
                     content.on(-1999 /* Resize */, this.onResize, this);
                 }
@@ -15499,7 +15500,7 @@ var jy;
         });
         PageList.prototype.init = function (option) {
             option = option || jy.Temp.EmptyObject;
-            var hgap = option.hgap, vgap = option.vgap, type = option.type, itemWidth = option.itemWidth, itemHeight = option.itemHeight, columnCount = option.columnCount, staticSize = option.staticSize, noScroller = option.noScroller, con = option.con;
+            var hgap = option.hgap, vgap = option.vgap, type = option.type, itemWidth = option.itemWidth, itemHeight = option.itemHeight, columnCount = option.columnCount, staticSize = option.staticSize, noScroller = option.noScroller, con = option.con, scrollerOption = option.scrollerOption;
             this.staticSize = staticSize;
             type = ~~type;
             columnCount = ~~columnCount;
@@ -15539,7 +15540,7 @@ var jy;
                 }
             }));
             if (!noScroller) {
-                var scroller = this.scroller = new jy.Scroller();
+                var scroller = this.scroller = new jy.Scroller(scrollerOption);
                 scroller.scrollType = this.scrollType;
                 scroller.bindObj2(con, con.suiRawRect);
             }
@@ -16300,10 +16301,8 @@ var jy;
      * @param {number} [minDragTime=300] 最小拖拽事件
      * @param {number} [minSqDist=400] 最小
      */
-    function bindDrag(host, stopChildren, minDragTime, minSqDist) {
-        if (stopChildren === void 0) { stopChildren = true; }
-        if (minDragTime === void 0) { minDragTime = 300; }
-        if (minSqDist === void 0) { minSqDist = 400; }
+    function bindDrag(host, opt) {
+        var _a = opt || jy.Temp.EmptyObject, _b = _a.stopChildren, stopChildren = _b === void 0 ? true : _b, _c = _a.minDragTime, minDragTime = _c === void 0 ? 300 : _c, _d = _a.minSqDist, minSqDist = _d === void 0 ? 400 : _d;
         stage = stage || egret.sys.$TempStage;
         var isCon = stopChildren && host instanceof egret.DisplayObjectContainer;
         host.touchEnabled = true;
