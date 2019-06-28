@@ -14135,7 +14135,7 @@ declare namespace jy {
         /**
          * 是否阻止子控件的touch事件
          */
-        stopChildren?: number;
+        stopChildren?: boolean;
     }
     interface DragDele {
         host: egret.DisplayObject;
