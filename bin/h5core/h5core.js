@@ -12062,7 +12062,7 @@ var jy;
              */
             get: function () {
                 var info = this.aniInfo;
-                return info && info.uri;
+                return info && info.key;
             },
             enumerable: true,
             configurable: true
