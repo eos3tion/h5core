@@ -179,7 +179,7 @@ namespace jy {
          */
         get uri() {
             let info = this.aniInfo;
-            return info && info.uri;
+            return info && info.key;
         }
         /**
          * 显示对象
