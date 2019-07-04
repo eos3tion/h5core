@@ -9605,6 +9605,10 @@ interface $gmAniInfo {
     time: number;
 }
 declare namespace jy {
+    const enum AniTickMode {
+        UseEnterframe = 0,
+        Custom = 1
+    }
     /**
      * 由于目前特效和渲染器是完全一一对应关系，所以直接做成AniBitmap
      * @author 3tion
@@ -9666,6 +9670,7 @@ declare namespace jy {
          * 特效标识
          */
         readonly guid: number;
+        tickMode: AniTickMode;
         /**
          * 获取资源的地址标识
          */

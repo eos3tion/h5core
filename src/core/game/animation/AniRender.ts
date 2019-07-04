@@ -106,6 +106,11 @@ if (DEBUG) {
     }
 }
 namespace jy {
+
+    export const enum AniTickMode {
+        UseEnterframe = 0,
+        Custom = 1,
+    }
 	/**
 	 * 由于目前特效和渲染器是完全一一对应关系，所以直接做成AniBitmap
 	 * @author 3tion
@@ -169,6 +174,8 @@ namespace jy {
          * 特效标识
          */
         readonly guid: number;
+
+        tickMode = AniTickMode.UseEnterframe;
 
         /**
          * 获取资源的地址标识
@@ -339,7 +346,7 @@ namespace jy {
                     if (old) {
                         display.off(EgretEvent.ENTER_FRAME, old, this);
                     }
-                    if (render) {
+                    if (render && this.tickMode == AniTickMode.UseEnterframe) {
                         display.on(EgretEvent.ENTER_FRAME, render, this);
                     }
                 }
@@ -383,6 +390,7 @@ namespace jy {
                 this.aniInfo = undefined;
             }
             this.idx = 0;
+            this.tickMode = AniTickMode.UseEnterframe;
             //@ts-ignore
             this.guid = NaN;
             this.waitTexture = false;
