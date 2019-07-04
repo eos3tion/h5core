@@ -165,14 +165,10 @@ namespace jy {
          * @type {number}
          */
         plTime: number;
-        protected _guid: number;
-
         /**
          * 特效标识
          */
-        public get guid(): number {
-            return this._guid;
-        }
+        readonly guid: number;
 
         /**
          * 获取资源的地址标识
@@ -309,7 +305,7 @@ namespace jy {
             if (DEBUG) {
                 if ($gm._recordAni) {
                     let stack = new Error().stack;
-                    let guid = this._guid;
+                    let guid = this.guid;
                     let bin = <$gmAniInfo>{ stack, guid, time: now };
                     $gm._aniRecords[guid] = bin;
                 }
@@ -354,7 +350,7 @@ namespace jy {
         public onRecycle() {
             if (DEBUG) {
                 if ($gm._recordAni) {
-                    delete $gm._aniRecords[this._guid];
+                    delete $gm._aniRecords[this.guid];
                 }
             }
             let handler = this.handler;
@@ -363,7 +359,7 @@ namespace jy {
                 handler.recycle();
                 this.handler = undefined;
             }
-            delete AniRender._renderByGuid[this._guid];
+            delete _renderByGuid[this.guid];
             this.state = AniPlayState.Recycled;
             let display = this.display;
             if (display) {
@@ -387,7 +383,8 @@ namespace jy {
                 this.aniInfo = undefined;
             }
             this.idx = 0;
-            this._guid = NaN;
+            //@ts-ignore
+            this.guid = NaN;
             this.waitTexture = false;
             this.loop = undefined;
             this._render = undefined;
@@ -425,14 +422,12 @@ namespace jy {
             } else {
                 aniInfo.bind(this);
             }
-            this._guid = guid;
+            //@ts-ignore
+            this.guid = guid;
         }
 
 
         /***********************************静态方法****************************************/
-        private static _renderByGuid: { [index: number]: Recyclable<AniRender> } = {};
-
-        private static guid = 1;
         /**
          * 获取ANI动画
          * 
@@ -497,8 +492,8 @@ namespace jy {
                 ani.waitTexture = !!option.waitTexture;
                 ani.idx = checkStart(aniInfo, loop, option.start >>> 0);//强制为正整数
             }
-            !guid && (guid = this.guid++);
-            this._renderByGuid[guid] = ani;
+            !guid && (guid = _guid++);
+            _renderByGuid[guid] = ani;
             ani.init(aniInfo, display, guid);
             if (!stop) {
                 ani.play();
@@ -512,7 +507,7 @@ namespace jy {
          * @param guid  唯一标识
          */
         public static getRunningAni(guid: number) {
-            return this._renderByGuid[guid];
+            return _renderByGuid[guid];
         }
 
         /**
@@ -520,7 +515,7 @@ namespace jy {
          * @param {number} guid AniRender的唯一标识
          */
         public static recycle(guid: number) {
-            let ani = this._renderByGuid[guid];
+            let ani = _renderByGuid[guid];
             if (ani) {
                 ani.recycle();
             }
@@ -636,4 +631,8 @@ namespace jy {
          */
         scale?: number;
     }
+
+
+    let _guid = 1;
+    const _renderByGuid: { [index: number]: Recyclable<AniRender> } = {};
 }

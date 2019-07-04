@@ -9662,7 +9662,6 @@ declare namespace jy {
          * @type {number}
          */
         plTime: number;
-        protected _guid: number;
         /**
          * 特效标识
          */
@@ -9707,8 +9706,6 @@ declare namespace jy {
         protected onStage(e: egret.Event): void;
         init(aniInfo: AniInfo, display: Recyclable<ResourceBitmap>, guid: number): void;
         /***********************************静态方法****************************************/
-        private static _renderByGuid;
-        private static guid;
         /**
          * 获取ANI动画
          *
