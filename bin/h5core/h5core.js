@@ -11370,16 +11370,6 @@ var jy;
             _this.a = 0;
             return _this;
         }
-        Object.defineProperty(AniRender.prototype, "guid", {
-            /**
-             * 特效标识
-             */
-            get: function () {
-                return this._guid;
-            },
-            enumerable: true,
-            configurable: true
-        });
         Object.defineProperty(AniRender.prototype, "uri", {
             /**
              * 获取资源的地址标识
@@ -11501,7 +11491,7 @@ var jy;
             if (true) {
                 if ($gm._recordAni) {
                     var stack = new Error().stack;
-                    var guid = this._guid;
+                    var guid = this.guid;
                     var bin = { stack: stack, guid: guid, time: now };
                     $gm._aniRecords[guid] = bin;
                 }
@@ -11546,7 +11536,7 @@ var jy;
         AniRender.prototype.onRecycle = function () {
             if (true) {
                 if ($gm._recordAni) {
-                    delete $gm._aniRecords[this._guid];
+                    delete $gm._aniRecords[this.guid];
                 }
             }
             var handler = this.handler;
@@ -11555,7 +11545,7 @@ var jy;
                 handler.recycle();
                 this.handler = undefined;
             }
-            delete AniRender._renderByGuid[this._guid];
+            delete _renderByGuid[this.guid];
             this.state = 3 /* Recycled */;
             var display = this.display;
             if (display) {
@@ -11579,7 +11569,8 @@ var jy;
                 this.aniInfo = undefined;
             }
             this.idx = 0;
-            this._guid = NaN;
+            //@ts-ignore
+            this.guid = NaN;
             this.waitTexture = false;
             this.loop = undefined;
             this._render = undefined;
@@ -11616,8 +11607,10 @@ var jy;
             else {
                 aniInfo.bind(this);
             }
-            this._guid = guid;
+            //@ts-ignore
+            this.guid = guid;
         };
+        /***********************************静态方法****************************************/
         /**
          * 获取ANI动画
          *
@@ -11683,8 +11676,8 @@ var jy;
                 ani.waitTexture = !!option.waitTexture;
                 ani.idx = checkStart(aniInfo, loop, option.start >>> 0); //强制为正整数
             }
-            !guid && (guid = this.guid++);
-            this._renderByGuid[guid] = ani;
+            !guid && (guid = _guid++);
+            _renderByGuid[guid] = ani;
             ani.init(aniInfo, display, guid);
             if (!stop) {
                 ani.play();
@@ -11696,21 +11689,18 @@ var jy;
          * @param guid  唯一标识
          */
         AniRender.getRunningAni = function (guid) {
-            return this._renderByGuid[guid];
+            return _renderByGuid[guid];
         };
         /**
          * 回收某个特效
          * @param {number} guid AniRender的唯一标识
          */
         AniRender.recycle = function (guid) {
-            var ani = this._renderByGuid[guid];
+            var ani = _renderByGuid[guid];
             if (ani) {
                 ani.recycle();
             }
         };
-        /***********************************静态方法****************************************/
-        AniRender._renderByGuid = {};
-        AniRender.guid = 1;
         return AniRender;
     }(jy.BaseRender));
     jy.AniRender = AniRender;
@@ -11725,6 +11715,8 @@ var jy;
         }
         return startFrame;
     }
+    var _guid = 1;
+    var _renderByGuid = {};
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
