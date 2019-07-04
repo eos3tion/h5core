@@ -12056,11 +12056,22 @@ var jy;
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(AniRender.prototype, "uri", {
+            /**
+             * 获取资源的地址标识
+             */
+            get: function () {
+                var info = this.aniInfo;
+                return info && info.uri;
+            },
+            enumerable: true,
+            configurable: true
+        });
         /**
          * render方法基于
          */
         AniRender.prototype.render = function () {
-            var aniinfo = this._aniInfo;
+            var aniinfo = this.aniInfo;
             if (aniinfo) {
                 var actionInfo = aniinfo.actionInfo;
                 if (actionInfo) {
@@ -12076,8 +12087,8 @@ var jy;
          * @param {number} now 时间戳
          */
         AniRender.prototype.doData = function (now) {
-            if (this._aniInfo) {
-                var actionInfo = this._aniInfo.actionInfo;
+            if (this.aniInfo) {
+                var actionInfo = this.aniInfo.actionInfo;
                 if (actionInfo) {
                     this.onData(actionInfo, now);
                 }
@@ -12138,7 +12149,7 @@ var jy;
             return !info.isCircle;
         };
         AniRender.prototype.callback = function () {
-            var _aniInfo = this._aniInfo;
+            var _aniInfo = this.aniInfo;
             if (_aniInfo) {
                 var _a = this, f = _a.f, loop = _a.loop, display = _a.display, state = _a.state;
                 this.idx = checkStart(_aniInfo, loop, f);
@@ -12237,10 +12248,11 @@ var jy;
                     display.recycle();
                 }
             }
-            var info = this._aniInfo;
+            var info = this.aniInfo;
             if (info) {
                 info.loose(this);
-                this._aniInfo = undefined;
+                //@ts-ignore
+                this.aniInfo = undefined;
             }
             this.idx = 0;
             this._guid = NaN;
@@ -12268,7 +12280,8 @@ var jy;
             }
         };
         AniRender.prototype.init = function (aniInfo, display, guid) {
-            this._aniInfo = aniInfo;
+            //@ts-ignore
+            this.aniInfo = aniInfo;
             //@ts-ignore
             this.display = display;
             display.on("addedToStage" /* ADDED_TO_STAGE */, this.onStage, this);
