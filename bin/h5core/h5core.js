@@ -11366,6 +11366,7 @@ var jy;
              * @memberof AniRender
              */
             _this.waitTexture = false;
+            _this.tickMode = 0 /* UseEnterframe */;
             // ani动画的`暂定`动作固定值0
             _this.a = 0;
             return _this;
@@ -11526,7 +11527,7 @@ var jy;
                     if (old) {
                         display.off("enterFrame" /* ENTER_FRAME */, old, this);
                     }
-                    if (render) {
+                    if (render && this.tickMode == 0 /* UseEnterframe */) {
                         display.on("enterFrame" /* ENTER_FRAME */, render, this);
                     }
                 }
@@ -11569,6 +11570,7 @@ var jy;
                 this.aniInfo = undefined;
             }
             this.idx = 0;
+            this.tickMode = 0 /* UseEnterframe */;
             //@ts-ignore
             this.guid = NaN;
             this.waitTexture = false;
