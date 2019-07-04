@@ -175,11 +175,18 @@ namespace jy {
         }
 
         /**
+         * 获取资源的地址标识
+         */
+        get uri() {
+            let info = this.aniInfo;
+            return info && info.uri;
+        }
+        /**
          * 显示对象
          */
         public readonly display: Recyclable<ResourceBitmap>;
 
-        protected _aniInfo: AniInfo;
+        readonly aniInfo: AniInfo;
 
         public constructor() {
             super();
@@ -191,7 +198,7 @@ namespace jy {
          * render方法基于
          */
         protected render() {
-            let aniinfo = this._aniInfo;
+            let aniinfo = this.aniInfo;
             if (aniinfo) {
                 let actionInfo = aniinfo.actionInfo;
                 if (actionInfo) {
@@ -207,8 +214,8 @@ namespace jy {
          * @param {number} now 时间戳
          */
         public doData(now: number) {
-            if (this._aniInfo) {
-                var actionInfo = this._aniInfo.actionInfo;
+            if (this.aniInfo) {
+                var actionInfo = this.aniInfo.actionInfo;
                 if (actionInfo) {
                     this.onData(actionInfo, now);
                 }
@@ -273,7 +280,7 @@ namespace jy {
         }
 
         public callback() {
-            let _aniInfo = this._aniInfo;
+            let _aniInfo = this.aniInfo;
             if (_aniInfo) {
                 let { f, loop, display, state } = this;
                 this.idx = checkStart(_aniInfo, loop, f);
@@ -373,10 +380,11 @@ namespace jy {
                     display.recycle();
                 }
             }
-            let info = this._aniInfo;
+            let info = this.aniInfo;
             if (info) {
                 info.loose(this);
-                this._aniInfo = undefined;
+                //@ts-ignore
+                this.aniInfo = undefined;
             }
             this.idx = 0;
             this._guid = NaN;
@@ -406,7 +414,8 @@ namespace jy {
         }
 
         public init(aniInfo: AniInfo, display: Recyclable<ResourceBitmap>, guid: number) {
-            this._aniInfo = aniInfo;
+            //@ts-ignore
+            this.aniInfo = aniInfo;
             //@ts-ignore
             this.display = display;
             display.on(EgretEvent.ADDED_TO_STAGE, this.onStage, this);

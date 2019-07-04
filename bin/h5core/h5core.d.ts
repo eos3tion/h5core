@@ -9232,10 +9232,14 @@ declare namespace jy {
          */
         readonly guid: number;
         /**
+         * 获取资源的地址标识
+         */
+        readonly uri: string;
+        /**
          * 显示对象
          */
         readonly display: Recyclable<ResourceBitmap>;
-        protected _aniInfo: AniInfo;
+        readonly aniInfo: AniInfo;
         constructor();
         /**
          * render方法基于
