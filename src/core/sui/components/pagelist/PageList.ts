@@ -756,7 +756,7 @@ namespace jy {
                     let render = list[i];
                     let v = render.view;
                     if (v) {
-                        _con.addChild(v, false);
+                        _con.addChild(v);
                     }
                 }
                 this._showStart = 0;
@@ -837,7 +837,7 @@ namespace jy {
                 }
                 for (let i = 0, tlen = tmp.length; i < tlen; i++) {
                     let v = tmp[i];
-                    _con.addChild(v, false);
+                    _con.addChild(v);
                 }
                 this._showStart = fIdx;
                 this._showEnd = lIdx;
@@ -851,7 +851,7 @@ namespace jy {
                 }
                 for (let i = tmp.length - 1; i >= 0; i--) {
                     let v = tmp[i];
-                    _con.addChild(v, false);
+                    _con.addChild(v);
                 }
                 this._showStart = lIdx;
                 this._showEnd = fIdx;

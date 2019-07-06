@@ -19293,7 +19293,7 @@ var jy;
                     var render = list[i];
                     var v = render.view;
                     if (v) {
-                        _con.addChild(v, false);
+                        _con.addChild(v);
                     }
                 }
                 this._showStart = 0;
@@ -19374,7 +19374,7 @@ var jy;
                 }
                 for (var i = 0, tlen = tmp.length; i < tlen; i++) {
                     var v = tmp[i];
-                    _con.addChild(v, false);
+                    _con.addChild(v);
                 }
                 this._showStart = fIdx;
                 this._showEnd = lIdx;
@@ -19389,7 +19389,7 @@ var jy;
                 }
                 for (var i = tmp.length - 1; i >= 0; i--) {
                     var v = tmp[i];
-                    _con.addChild(v, false);
+                    _con.addChild(v);
                 }
                 this._showStart = lIdx;
                 this._showEnd = fIdx;
