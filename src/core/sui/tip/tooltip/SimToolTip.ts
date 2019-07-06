@@ -26,7 +26,7 @@ namespace jy {
             tf.size = 12;
             tf.x = corner;
             tf.y = corner;
-            this.addChild(tf);
+            this.addChild(tf, false);
             this.drawRect(0, 0, maxWidth, maxHeight);
         }
 
@@ -56,7 +56,7 @@ namespace jy {
 
         show(container: egret.DisplayObjectContainer, x?: number, y?: number) {
             if (x != undefined && y != undefined) {
-                container.addChild(this);
+                container.addChild(this, false);
                 this.x = x;
                 this.y = y;
             }

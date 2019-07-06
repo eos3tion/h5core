@@ -28,10 +28,10 @@ namespace jy {
 
         public bindChildren() {
             let { txtbg, subBtn, addBtn, txt } = this;
-            this.addChild(txtbg);
+            this.addChild(txtbg, false);
 
-            this.addChild(subBtn);
-            this.addChild(addBtn);
+            this.addChild(subBtn, false);
+            this.addChild(addBtn, false);
             subBtn.enabled = true;
             addBtn.enabled = true;
             subBtn.bindTouch(this.subValue, this);
@@ -40,13 +40,13 @@ namespace jy {
             this.addChild(txt);
 
             if (this.minBtn) {
-                this.addChild(this.minBtn);
+                this.addChild(this.minBtn, false);
                 this.minBtn.enabled = true;
                 this.minBtn.bindTouch(this.setMinValue, this);
             }
 
             if (this.maxBtn) {
-                this.addChild(this.maxBtn);
+                this.addChild(this.maxBtn, false);
                 this.maxBtn.enabled = true;
                 this.maxBtn.bindTouch(this.setMaxValue, this);
                 this._width = this.maxBtn.width + this.maxBtn.x;

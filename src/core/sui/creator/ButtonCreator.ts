@@ -95,7 +95,7 @@ namespace jy {
 
         public bindChildren() {
             if (this.txtLabel) {
-                this.addChild(this.txtLabel);
+                this.addChild(this.txtLabel, false);
             }
             this.refresh(true);
         }
@@ -164,19 +164,19 @@ namespace jy {
             }
             if (changed) {
                 if (this.floor) {
-                    super.addChild(this.floor);
+                    super.addChild(this.floor, false);
                 }
                 if (bmp) {
-                    super.addChild(bmp);
+                    super.addChild(bmp, false);
                 }
                 if (this.txtLabel) {
-                    super.addChild(this.txtLabel);
+                    super.addChild(this.txtLabel, false);
                 }
                 if (this.ceil) {
-                    super.addChild(this.ceil);
+                    super.addChild(this.ceil, false);
                 }
                 if (this._children) {
-                    super.addChild(this._children);
+                    super.addChild(this._children, false);
                 }
             }
         }
@@ -216,13 +216,13 @@ namespace jy {
             this.off(EgretEvent.TOUCH_TAP, handler, thisObject, useCapture);
         }
 
-        public addChild(child: egret.DisplayObject) {
+        public addChild(child: egret.DisplayObject, notify = true) {
             let children = this._children;
             if (!children) {
                 this._children = children = new egret.DisplayObjectContainer;
                 this.refresh(true);
             }
-            children.addChild(child);
+            children.addChild(child, notify);
             return child;
         }
 

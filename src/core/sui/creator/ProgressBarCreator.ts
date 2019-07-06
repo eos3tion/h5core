@@ -189,13 +189,13 @@ namespace jy {
 					}
 				}
 				if (bg) {
-					progressBar.addChild(bg);
+					progressBar.addChild(bg, false);
 				}
 				if (bar) {
-					progressBar.addChild(bar);
+					progressBar.addChild(bar, false);
 				}
 				if (tf) {
-					progressBar.addChild(tf);
+					progressBar.addChild(tf, false);
 				}
 				progressBar.skin = { bg, bar, tf };
 				return progressBar;

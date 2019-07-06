@@ -254,7 +254,7 @@ namespace jy {
             m.y = sy / scaleY;
             m.width = width / scaleX;
             m.height = height / scaleY;
-            this.addChildAt(m, 0);
+            this.addChildAt(m, 0, false);
             this.x = -sx;
             this.y = -sy;
             if (this._mTouchClose) {

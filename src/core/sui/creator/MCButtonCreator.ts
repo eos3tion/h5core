@@ -23,7 +23,7 @@ namespace jy {
             //检查是否有文本框
             this.txtLabel = (mc as any).tf;
             this.mc = mc;
-            this.addChild(mc);
+            this.addChild(mc, false);
             this.refresh();
         }
 

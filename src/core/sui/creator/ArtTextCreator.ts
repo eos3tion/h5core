@@ -83,7 +83,7 @@ namespace jy {
                     bmp = <egret.Bitmap>children[i];
                 } else {
                     bmp = new egret.Bitmap();
-                    this.addChild(bmp);
+                    this.addChild(bmp, false);
                 }
                 let tx = txs[key];
                 if (!tx) {
@@ -102,7 +102,7 @@ namespace jy {
             }
             this.artwidth = ox - hgap;
             for (i = numChildren - 1; i >= len; i--) {
-                this.$doRemoveChild(i);
+                this.$doRemoveChild(i, false);
             }
             this._maxHeight = _maxHeight;
             this.checkAlign();

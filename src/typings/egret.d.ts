@@ -171,6 +171,7 @@ declare namespace egret {
          * @platform Web,Native
          */
         off(type: string | number, listener: Function, thisObject?: any, useCapture?: boolean): void;
+        $off(type: string | number, listener: Function, thisObject?: any, useCapture?: boolean): void;
         /**
          * @language zh_CN
          * 派发一个指定参数的事件。
@@ -233,12 +234,17 @@ declare namespace egret {
          *
          * @memberOf EventDispatcher
          */
-        removeListeners(type: string | number, useCapture: boolean): void;
+        removeListeners(type: string | number, useCapture?: boolean): void;
         /**
          * 删除所有事件监听
          *
          */
         removeAllListeners(): void;
+    }
+    interface EventDispatcher {
+        addEventListener(type: string | number, listener: Function, thisObject?: any, useCapture?: boolean, priority?: number): any;
+        removeEventListener(type: string | number, listener: Function, thisObject?: any, useCapture?: boolean): any;
+        hasEventListener(type: string | number): boolean;
     }
 }
 declare namespace egret.sys {
@@ -1108,7 +1114,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        globalToLocal(stageX?: number, stageY?: number, resultPoint?: Point): Point;
+        globalToLocal(stageX?: number, stageY?: number, resultPoint?: Point2): Point2;
         /**
          * Converts the point object from the display object's (local) coordinates to the Stage (global) coordinates.
          * @param localX the x value in the local coordinates
@@ -1130,7 +1136,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        localToGlobal(localX?: number, localY?: number, resultPoint?: Point): Point;
+        localToGlobal(localX?: number, localY?: number, resultPoint?: Point2): Point2;
         /**
          * @private
          * 获取显示对象占用的矩形区域集合，通常包括自身绘制的测量区域，如果是容器，还包括所有子项占据的区域。
@@ -1229,7 +1235,7 @@ declare namespace egret {
          * @version Egret 2.4
          * @platform Web,Native
          */
-        off(type: string | number, listener: Function, thisObject?: any, useCapture?: boolean): void;
+        $off(type: string | number, listener: Function, thisObject?: any, useCapture?: boolean): void;
         /**
          * @inheritDoc
          * @version Egret 2.4
@@ -1261,6 +1267,8 @@ declare namespace egret {
          * @platform Web,Native
          */
         willTrigger(type: string): boolean;
+        removeListeners(type: string | number, useCapture?: boolean): void;
+        removeAllListeners(): void;
     }
 }
 declare namespace egret {
@@ -1664,7 +1672,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        addChild(child: DisplayObject): DisplayObject;
+        addChild(child: DisplayObject, notifyListeners?: boolean): DisplayObject;
         /**
          * Adds a child DisplayObject instance to this DisplayObjectContainer instance. The child is added at the index position
          * specified. An index of 0 represents the back (bottom) of the display list for this DisplayObjectContainer object.
@@ -1690,7 +1698,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        addChildAt(child: DisplayObject, index: number): DisplayObject;
+        addChildAt(child: DisplayObject, index: number, notifyListeners?: boolean): DisplayObject;
         /**
          * @private
          */
@@ -1798,7 +1806,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        removeChild(child: DisplayObject): DisplayObject;
+        removeChild(child: DisplayObject, notifyListeners?: boolean): DisplayObject;
         /**
          * Removes a child DisplayObject from the specified index position in the child list of the DisplayObjectContainer.
          * The parent property of the removed child is set to null, and the object is garbage collected if no other references
@@ -1820,7 +1828,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        removeChildAt(index: number): DisplayObject;
+        removeChildAt(index: number, notifyListeners?: boolean): DisplayObject;
         /**
          * @private
          */
@@ -1911,7 +1919,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        removeChildren(): void;
+        removeChildren(notifyListeners?: boolean): void;
         /**
          * @private
          * 一个子项被添加到容器内，此方法不仅在操作addChild()时会被回调，在操作setChildIndex()或swapChildren时也会回调。
@@ -1968,132 +1976,6 @@ declare namespace egret {
          * @private
          */
         $hitTest(stageX: number, stageY: number): DisplayObject;
-    }
-}
-declare namespace egret {
-    /**
-     * SpriteSheet is a mosaic of multiple sub-bitmaps, comprising a plurality of Texture objects.
-     * Each Texture object shares the set bitmap of SpriteSheet, but it points to its different areas.
-     * On WebGL / OpenGL, this operation can significantly improve performance.
-     * At the same time, SpriteSheet can carry out material integration easily to reduce the number of HTTP requests
-     * For specification of the SpriteSheet format, see the document https://github.com/egret-labs/egret-core/wiki/Egret-SpriteSheet-Specification
-     * @see http://edn.egret.com/cn/docs/page/135 The use of texture packs
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @includeExample egret/display/SpriteSheet.ts
-     * @language en_US
-     */
-    /**
-     * SpriteSheet 是一张由多个子位图拼接而成的集合位图，它包含多个 Texture 对象。
-     * 每一个 Texture 都共享 SpriteSheet 的集合位图，但是指向它的不同的区域。
-     * 在WebGL / OpenGL上，这种做法可以显著提升性能
-     * 同时，SpriteSheet可以很方便的进行素材整合，降低HTTP请求数量
-     * SpriteSheet 格式的具体规范可以参见此文档  https://github.com/egret-labs/egret-core/wiki/Egret-SpriteSheet-Specification
-     * @see http://edn.egret.com/cn/docs/page/135 纹理集的使用
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @includeExample egret/display/SpriteSheet.ts
-     * @language zh_CN
-     */
-    class SpriteSheet extends HashObject {
-        /**
-         * Create an egret.SpriteSheet object
-         * @param texture {Texture} Texture
-         * @version Egret 2.4
-         * @platform Web,Native
-         * @language en_US
-         */
-        /**
-         * 创建一个 egret.SpriteSheet 对象
-         * @param texture {Texture} 纹理
-         * @version Egret 2.4
-         * @platform Web,Native
-         * @language zh_CN
-         */
-        constructor(texture: Texture);
-        /**
-         * @private
-         * 表示这个SpriteSheet的位图区域在bitmapData上的起始位置x。
-         */
-        private _bitmapX;
-        /**
-         * @private
-         * 表示这个SpriteSheet的位图区域在bitmapData上的起始位置y。
-         */
-        private _bitmapY;
-        /**
-         * @private
-         * 共享的位图数据
-         */
-        $texture: Texture;
-        /**
-         * @private
-         * 纹理缓存字典
-         */
-        _textureMap: MapLike<Texture>;
-        /**
-         * Obtain a cached Texture object according to the specified texture name
-         * @param name {string} Cache the name of this Texture object
-         * @returns {egret.Texture} The Texture object
-         * @version Egret 2.4
-         * @platform Web,Native
-         * @language en_US
-         */
-        /**
-         * 根据指定纹理名称获取一个缓存的 Texture 对象
-         * @param name {string} 缓存这个 Texture 对象所使用的名称
-         * @returns {egret.Texture} Texture 对象
-         * @version Egret 2.4
-         * @platform Web,Native
-         * @language zh_CN
-         */
-        getTexture(name: string): Texture;
-        /**
-         * Create a new Texture object for the specified area on SpriteSheet and cache it
-         * @param name {string} Cache the name of this Texture object. If the name already exists, the previous Texture object will be overwrited.
-         * @param bitmapX {number} Starting coordinate x of texture area on bitmapData
-         * @param bitmapY {number} Starting coordinate y of texture area on bitmapData
-         * @param bitmapWidth {number} Width of texture area on bitmapData
-         * @param bitmapHeight {number} Height of texture area on bitmapData
-         * @param offsetX {number} Starting point x for a non-transparent area of the original bitmap
-         * @param offsetY {number} Starting point y for a non-transparent area of the original bitmap
-         * @param textureWidth {number} Width of the original bitmap. If it is not passed, use the bitmapWidth  value.
-         * @param textureHeight {number} Height of the original bitmap. If it is not passed, use the bitmapHeight value.
-         * @returns {egret.Texture} The created Texture object
-         * @version Egret 2.4
-         * @platform Web,Native
-         * @language en_US
-         */
-        /**
-         * 为 SpriteSheet 上的指定区域创建一个新的 Texture 对象并缓存它
-         * @param name {string} 缓存这个 Texture 对象所使用的名称，如果名称已存在，将会覆盖之前的 Texture 对象
-         * @param bitmapX {number} 纹理区域在 bitmapData 上的起始坐标x
-         * @param bitmapY {number} 纹理区域在 bitmapData 上的起始坐标y
-         * @param bitmapWidth {number} 纹理区域在 bitmapData 上的宽度
-         * @param bitmapHeight {number} 纹理区域在 bitmapData 上的高度
-         * @param offsetX {number} 原始位图的非透明区域 x 起始点
-         * @param offsetY {number} 原始位图的非透明区域 y 起始点
-         * @param textureWidth {number} 原始位图的高度，若不传入，则使用 bitmapWidth 的值。
-         * @param textureHeight {number} 原始位图的宽度，若不传入，则使用 bitmapHeight 的值。
-         * @returns {egret.Texture} 创建的 Texture 对象
-         * @version Egret 2.4
-         * @platform Web,Native
-         * @language zh_CN
-         */
-        createTexture(name: string, bitmapX: number, bitmapY: number, bitmapWidth: number, bitmapHeight: number, offsetX?: number, offsetY?: number, textureWidth?: number, textureHeight?: number): Texture;
-        /**
-         * dispose texture
-         * @version Egret 2.4
-         * @platform Web,Native
-         * @language en_US
-         */
-        /**
-         * 释放纹理
-         * @version Egret 2.4
-         * @platform Web,Native
-         * @language zh_CN
-         */
-        dispose(): void;
     }
 }
 declare namespace egret {
@@ -7167,7 +7049,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        transformPoint(pointX: number, pointY: number, resultPoint?: Point): Point;
+        transformPoint(pointX: number, pointY: number, resultPoint?: Point2): Point2;
         /**
          * Translates the matrix along the x and y axes, as specified by the dx and dy parameters.
          * @param dx The amount of movement along the x axis to the right, in pixels.
@@ -8630,12 +8512,13 @@ declare namespace egret {
      */
     /**
      * URLLoaderDataFormat 类提供了一些用于指定如何接收已下载数据的值。
+     * https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest/responseType
      * @see egret.HttpRequest
      * @version Egret 2.4
      * @platform Web,Native
      * @language zh_CN
      */
-    class HttpResponseType {
+    const enum HttpResponseType {
         /**
          * Specifies that downloaded data is received as text. This is the default value of HttpRequest.responseType
          * @version Egret 2.4
@@ -8648,7 +8531,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        static TEXT: string;
+        TEXT = "text",
         /**
          * Specifies that downloaded data is received as raw binary data.
          * @version Egret 2.4
@@ -8661,7 +8544,14 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        static ARRAY_BUFFER: string;
+        ARRAY_BUFFER = "arraybuffer",
+        JSON = "json",
+        Blob = "blob",
+        Document = "document",
+        /**
+         * 等同于 `text`
+         */
+        Empty = ""
     }
 }
 declare namespace egret {
@@ -10819,355 +10709,6 @@ declare namespace egret {
      * @language zh_CN
      */
     function getImplementation(interfaceName: string): any;
-}
-declare namespace egret {
-    /**
-     * Bitmap font, texture set of a font. It is generally used as the value of the BitmapText.font attribute.
-     * @see http://bbs.egret-labs.org/thread-918-1-1.html TextureMerger
-     * @see http://bbs.egret-labs.org/forum.php?mod=viewthread&tid=251 Text(Containing the specific usage of the bitmap font )
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @includeExample egret/text/BitmapFont.ts
-     * @language en_US
-     */
-    /**
-     * 位图字体,是一个字体的纹理集，通常作为BitmapText.font属性的值。
-     * @see http://bbs.egret-labs.org/thread-918-1-1.html TextureMerger
-     * @see http://bbs.egret-labs.org/forum.php?mod=viewthread&tid=251 文本(含位图字体具体用法)
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @includeExample egret/text/BitmapFont.ts
-     * @language zh_CN
-     */
-    class BitmapFont extends SpriteSheet {
-        /**
-         * Create an egret.BitmapFont object
-         * @param texture {egret.Texture} Texture set that use TextureMerger create
-         * @param config {any} Configure data that use TextureMerger create
-         * @version Egret 2.4
-         * @platform Web,Native
-         * @language en_US
-         */
-        /**
-         * 创建一个 egret.BitmapFont 对象
-         * @param texture {egret.Texture} 使用TextureMerger生成的纹理集
-         * @param config {any} 使用TextureMerger生成的配置数据
-         * @version Egret 2.4
-         * @platform Web,Native
-         * @language zh_CN
-         */
-        constructor(texture: Texture, config: any);
-        /**
-         * @private
-         */
-        private charList;
-        /**
-         * Obtain corresponding texture through the name attribute
-         * @param name {string} name Attribute
-         * @returns {egret.Texture}
-         * @version Egret 2.4
-         * @platform Web,Native
-         * @language en_US
-         */
-        /**
-         * 通过 name 属性获取对应纹理
-         * @param name {string} name属性
-         * @returns {egret.Texture}
-         * @version Egret 2.4
-         * @platform Web,Native
-         * @language zh_CN
-         */
-        getTexture(name: string): Texture;
-        /**
-         * @private
-         */
-        getConfig(name: string, key: string): number;
-        /**
-         * @private
-         */
-        private firstCharHeight;
-        /**
-         * @private
-         *
-         * @returns
-         */
-        _getFirstCharHeight(): number;
-        /**
-         * @private
-         *
-         * @param fntText
-         * @returns
-         */
-        private parseConfig;
-        /**
-         * @private
-         *
-         * @param configText
-         * @param key
-         * @returns
-         */
-        private getConfigByKey;
-    }
-}
-declare namespace egret {
-    /**
-     * Bitmap font adopts the Bitmap+SpriteSheet mode to render text.
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @includeExample egret/text/BitmapText.ts
-     * @language en_US
-     */
-    /**
-     * 位图字体采用了Bitmap+SpriteSheet的方式来渲染文字。
-     * @version Egret 2.4
-     * @platform Web,Native
-     * @includeExample egret/text/BitmapText.ts
-     * @language zh_CN
-     */
-    class BitmapText extends DisplayObject {
-        /**
-         * Create an egret.BitmapText object
-         * @version Egret 2.4
-         * @platform Web,Native
-         * @language en_US
-         */
-        /**
-         * 创建一个 egret.BitmapText 对象
-         * @version Egret 2.4
-         * @platform Web,Native
-         * @language zh_CN
-         */
-        constructor();
-        private $smoothing;
-        /**
-         * Whether or not is smoothed when scaled.
-         * @default true。
-         * @version Egret 3.0
-         * @platform Web
-         * @language en_US
-         */
-        /**
-         * 控制在缩放时是否进行平滑处理。
-         * @default true。
-         * @version Egret 3.0
-         * @platform Web
-         * @language zh_CN
-         */
-        smoothing: boolean;
-        private $text;
-        /**
-         * A string to display in the text field.
-         * @version Egret 2.4
-         * @platform Web,Native
-         * @language en_US
-         */
-        /**
-         * 要显示的文本内容
-         * @version Egret 2.4
-         * @platform Web,Native
-         * @language zh_CN
-         */
-        text: string;
-        /**
-         * @private
-         */
-        $setText(value: string): boolean;
-        protected $textFieldWidth: number;
-        /**
-         * @private
-         */
-        $getWidth(): number;
-        /**
-         * @private
-         */
-        $setWidth(value: number): boolean;
-        private $textLinesChanged;
-        /**
-         * @private
-         */
-        $invalidateContentBounds(): void;
-        protected $textFieldHeight: number;
-        /**
-         * @private
-         */
-        $getHeight(): number;
-        /**
-         * @private
-         */
-        $setHeight(value: number): boolean;
-        protected $font: BitmapFont;
-        protected $fontStringChanged: boolean;
-        /**
-         * The name of the font to use, or a comma-separated list of font names, the type of value must be BitmapFont.
-         * @default null
-         * @version Egret 2.4
-         * @platform Web,Native
-         * @language en_US
-         */
-        /**
-         * 要使用的字体的名称或用逗号分隔的字体名称列表，类型必须是 BitmapFont。
-         * @default null
-         * @version Egret 2.4
-         * @platform Web,Native
-         * @language zh_CN
-         */
-        font: Object;
-        $setFont(value: any): boolean;
-        private $lineSpacing;
-        /**
-         /**
-         * An integer representing the amount of vertical space between lines.
-         * @default 0
-         * @version Egret 2.4
-         * @platform Web,Native
-         * @language en_US
-         */
-        /**
-         * 一个整数，表示行与行之间的垂直间距量
-         * @default 0
-         * @version Egret 2.4
-         * @platform Web,Native
-         * @language zh_CN
-         */
-        lineSpacing: number;
-        $setLineSpacing(value: number): boolean;
-        private $letterSpacing;
-        /**
-         * An integer representing the amount of distance between characters.
-         * @default 0
-         * @version Egret 2.4
-         * @platform Web,Native
-         * @language en_US
-         */
-        /**
-         * 一个整数，表示字符之间的距离。
-         * @default 0
-         * @version Egret 2.4
-         * @platform Web,Native
-         * @language zh_CN
-         */
-        letterSpacing: number;
-        $setLetterSpacing(value: number): boolean;
-        private $textAlign;
-        /**
-         * Horizontal alignment of text.
-         * @default：egret.HorizontalAlign.LEFT
-         * @version Egret 2.5.6
-         * @platform Web,Native
-         * @language en_US
-         */
-        /**
-         * 文本的水平对齐方式。
-         * @default：egret.HorizontalAlign.LEFT
-         * @version Egret 2.5.6
-         * @platform Web,Native
-         * @language zh_CN
-         */
-        textAlign: string;
-        $setTextAlign(value: string): boolean;
-        private $verticalAlign;
-        /**
-         * Vertical alignment of text.
-         * @default：egret.VerticalAlign.TOP
-         * @version Egret 2.5.6
-         * @platform Web,Native
-         * @language en_US
-         */
-        /**
-         * 文字的垂直对齐方式。
-         * @default：egret.VerticalAlign.TOP
-         * @version Egret 2.5.6
-         * @platform Web,Native
-         * @language zh_CN
-         */
-        verticalAlign: string;
-        $setVerticalAlign(value: string): boolean;
-        /**
-         * A ratio of the width of the space character. This value is multiplied by the height of the first character is the space character width.
-         * @default 0.33
-         * @version Egret 2.4
-         * @platform Web,Native
-         * @language en_US
-         */
-        /**
-         * 一个空格字符的宽度比例。这个数值乘以第一个字符的高度即为空格字符的宽。
-         * @default 0.33
-         * @version Egret 2.4
-         * @platform Web,Native
-         * @language zh_CN
-         */
-        static EMPTY_FACTOR: number;
-        /**
-         * @private
-         */
-        $updateRenderNode(): void;
-        /**
-         * @private
-         */
-        $measureContentBounds(bounds: Rectangle): void;
-        private $textWidth;
-        /**
-         * Get the BitmapText measured width
-         * @version Egret 2.4
-         * @platform Web,Native
-         * @language en_US
-         */
-        /**
-         * 获取位图文本测量宽度
-         * @version Egret 2.4
-         * @platform Web,Native
-         * @language zh_CN
-         */
-        readonly textWidth: number;
-        private $textHeight;
-        /**
-         * Get Text BitmapText height
-         * @version Egret 2.4
-         * @platform Web,Native
-         * @language en_US
-         */
-        /**
-         * 获取位图文本测量高度
-         * @version Egret 2.4
-         * @platform Web,Native
-         * @language zh_CN
-         */
-        readonly textHeight: number;
-        /**
-         * @private
-         */
-        private $textOffsetX;
-        /**
-         * @private
-         */
-        private $textOffsetY;
-        /**
-         * @private
-         */
-        private $textStartX;
-        /**
-         * @private
-         */
-        private $textStartY;
-        /**
-         * @private
-         */
-        private textLines;
-        /**
-         * @private 每一行文字的宽度
-         */
-        private $textLinesWidth;
-        /**
-         * @private
-         */
-        $lineHeights: number[];
-        /**
-         * @private
-         *
-         * @returns
-         */
-        $getTextLines(): string[];
-    }
 }
 declare namespace egret {
     /**

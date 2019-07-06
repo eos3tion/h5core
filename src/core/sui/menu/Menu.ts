@@ -78,7 +78,7 @@ namespace jy {
             let v = target.view;
             if (b) {
                 if (v instanceof egret.DisplayObjectContainer) {
-                    v.addChild(dis);
+                    v.addChild(dis, false);
                     let init = dis.menuinitFunc;
                     if (init) {
                         init.call(target, target, dis);
@@ -86,7 +86,7 @@ namespace jy {
                 }
                 this.currentShow = target;
             } else {
-                removeDisplay(dis);
+                removeDisplay(dis, false);
                 this.currentShow = undefined;
             }
             target.dispatch(EventConst.Resize);
@@ -107,14 +107,14 @@ namespace jy {
             let rendercls = this.style.renderClass;
             let bguri = this.style.scalebg;
             let bg = <ScaleBitmap>manager.createDisplayObject(uri, bguri);
-            this.addChild(bg);
+            this.addChild(bg, false);
             bg.width = rec.width;
             bg.height = rec.height;
             this.renders = [];
             for (let i = 0; i < this.maxRenderCount; i++) {
                 let render = new rendercls();
                 this.renders[i] = render;
-                this.addChild(render.view);
+                this.addChild(render.view, false);
             }
         }
 
@@ -129,12 +129,12 @@ namespace jy {
             for (let i = 0; i < len; i++) {
                 let render = this.renders[i];
                 render.data = vos[i];
-                this.addChild(render.view);
+                this.addChild(render.view, false);
                 tmp[i] = render;
             }
             if (len < blen) {
                 for (let i = len; i < blen; i++) {
-                    removeDisplay(this.renders[i].view);
+                    removeDisplay(this.renders[i].view, false);
                 }
             }
             let rec = style.possize;

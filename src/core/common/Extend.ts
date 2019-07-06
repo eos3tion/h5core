@@ -34,9 +34,9 @@ namespace jy {
      * @export
      * @param {egret.DisplayObject} display
      */
-    export function removeDisplay(display: egret.DisplayObject) {
+    export function removeDisplay(display: egret.DisplayObject, fire = true) {
         if (display && display.parent) {
-            display.parent.removeChild(display);
+            display.parent.removeChild(display, fire);
         }
     }
 }

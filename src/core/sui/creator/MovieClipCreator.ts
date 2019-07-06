@@ -214,7 +214,7 @@ namespace jy {
                 let tc = sm.sharedTFCreator;
                 let suiData = this.suiData;
                 //清理子对象
-                this.removeChildren();
+                this.removeChildren(false);
                 for (let dat of frameData.data) {
                     let idx: number, pData, comp: egret.DisplayObject, textData: TextData;
                     if (Array.isArray(dat)) {
@@ -229,7 +229,7 @@ namespace jy {
                     } else {
                         comp = dict[idx];
                         if (comp instanceof egret.DisplayObject) {
-                            this.addChild(comp);
+                            this.$doAddChild(comp, this.numChildren, false)
                             if (pData) {//调整基础属性
                                 SuiResManager.initBaseData(comp, pData);
                             }

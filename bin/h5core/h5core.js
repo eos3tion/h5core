@@ -58,9 +58,10 @@ var jy;
      * @export
      * @param {egret.DisplayObject} display
      */
-    function removeDisplay(display) {
+    function removeDisplay(display, fire) {
+        if (fire === void 0) { fire = true; }
         if (display && display.parent) {
-            display.parent.removeChild(display);
+            display.parent.removeChild(display, fire);
         }
     }
     jy.removeDisplay = removeDisplay;
@@ -5384,7 +5385,7 @@ var jy;
         }
         Button.prototype.bindChildren = function () {
             if (this.txtLabel) {
-                this.addChild(this.txtLabel);
+                this.addChild(this.txtLabel, false);
             }
             this.refresh(true);
         };
@@ -5453,19 +5454,19 @@ var jy;
             }
             if (changed) {
                 if (this.floor) {
-                    _super.prototype.addChild.call(this, this.floor);
+                    _super.prototype.addChild.call(this, this.floor, false);
                 }
                 if (bmp) {
-                    _super.prototype.addChild.call(this, bmp);
+                    _super.prototype.addChild.call(this, bmp, false);
                 }
                 if (this.txtLabel) {
-                    _super.prototype.addChild.call(this, this.txtLabel);
+                    _super.prototype.addChild.call(this, this.txtLabel, false);
                 }
                 if (this.ceil) {
-                    _super.prototype.addChild.call(this, this.ceil);
+                    _super.prototype.addChild.call(this, this.ceil, false);
                 }
                 if (this._children) {
-                    _super.prototype.addChild.call(this, this._children);
+                    _super.prototype.addChild.call(this, this._children, false);
                 }
             }
         };
@@ -5501,13 +5502,14 @@ var jy;
         Button.prototype.looseTouch = function (handler, thisObject, useCapture) {
             this.off("touchTap" /* TOUCH_TAP */, handler, thisObject, useCapture);
         };
-        Button.prototype.addChild = function (child) {
+        Button.prototype.addChild = function (child, notify) {
+            if (notify === void 0) { notify = true; }
             var children = this._children;
             if (!children) {
                 this._children = children = new egret.DisplayObjectContainer;
                 this.refresh(true);
             }
-            children.addChild(child);
+            children.addChild(child, notify);
             return child;
         };
         Button.prototype.dispose = function () {
@@ -5647,7 +5649,7 @@ var jy;
                 jy.removeDisplay(dis);
             }
             else {
-                this._host.addChild(dis);
+                this._host.addChild(dis, false);
             }
             var stage = dis.stage;
             if (stage) {
@@ -17636,7 +17638,7 @@ var jy;
             m.y = sy / scaleY;
             m.width = width / scaleX;
             m.height = height / scaleY;
-            this.addChildAt(m, 0);
+            this.addChildAt(m, 0, false);
             this.x = -sx;
             this.y = -sy;
             if (this._mTouchClose) {
@@ -18150,6 +18152,10 @@ var jy;
             enumerable: true,
             configurable: true
         });
+        ListItemRenderer.prototype.onRecycle = function () {
+        };
+        ListItemRenderer.prototype.onSpawn = function () {
+        };
         /**
          * 子类重写
          * 初始化组件
@@ -18412,7 +18418,7 @@ var jy;
         return ListItemRenderer;
     }(egret.EventDispatcher));
     jy.ListItemRenderer = ListItemRenderer;
-    __reflect(ListItemRenderer.prototype, "jy.ListItemRenderer", ["jy.ListItemRender", "jy.SelectableComponents"]);
+    __reflect(ListItemRenderer.prototype, "jy.ListItemRenderer", ["jy.ListItemRender", "egret.EventDispatcher", "jy.IRecyclable", "jy.SelectableComponents"]);
     jy.expand(ListItemRenderer, jy.ViewController, "addReadyExecute", "addDepend", "onStage", "interest", "checkInject", "checkInterest", "awakeTimer", "sleepTimer", "bindTimer", "looseTimer", "stageChange");
     // export abstract class AListItemRenderer<T, S extends egret.DisplayObject> extends ListItemRenderer<T, S> implements SuiDataCallback {
     //     /**
@@ -18712,6 +18718,8 @@ var jy;
          */
         function PageList(renderfactory, option) {
             var _this = _super.call(this) || this;
+            _this._pool = [];
+            _this.maxPoolSize = 100;
             _this._sizeChanged = false;
             _this.scroller = null; //站位用，便于对Scroller的绑定
             _this._waitForSetIndex = false;
@@ -18791,7 +18799,7 @@ var jy;
             var bmp = new egret.Bitmap();
             bmp.texture = jy.ColorUtil.getTexture(0, 0);
             this.bg = bmp;
-            con.addChild(bmp);
+            con.addChild(bmp, false);
             this.container = con;
             var self = this;
             Object.defineProperties(con, jy.makeDefDescriptors({
@@ -18889,7 +18897,8 @@ var jy;
             var list = this._list;
             var render = list[index];
             if (!render) {
-                render = this._factory.get();
+                render = this._pool.pop() || this._factory.get();
+                render.onSpawn();
                 list[index] = render;
                 render.on(-1999 /* Resize */, this.onSizeChange, this);
                 render.on(-1001 /* ITEM_TOUCH_TAP */, this.onTouchItem, this);
@@ -19201,7 +19210,13 @@ var jy;
             jy.removeDisplay(item.view);
             item.off(-1999 /* Resize */, this.onSizeChange, this);
             item.off(-1001 /* ITEM_TOUCH_TAP */, this.onTouchItem, this);
-            item.dispose();
+            if (this._pool.length < this.maxPoolSize) {
+                item.onRecycle();
+                this._pool.push(item);
+            }
+            else {
+                item.dispose();
+            }
             if (!this.renderChange) {
                 this.renderChange = true;
                 this.once("enterFrame" /* ENTER_FRAME */, this.refreshByRemoveItem, this);
@@ -19278,7 +19293,7 @@ var jy;
                     var render = list[i];
                     var v = render.view;
                     if (v) {
-                        _con.addChild(v);
+                        _con.addChild(v, false);
                     }
                 }
                 this._showStart = 0;
@@ -19359,7 +19374,7 @@ var jy;
                 }
                 for (var i = 0, tlen = tmp.length; i < tlen; i++) {
                     var v = tmp[i];
-                    _con.addChild(v);
+                    _con.addChild(v, false);
                 }
                 this._showStart = fIdx;
                 this._showEnd = lIdx;
@@ -19374,7 +19389,7 @@ var jy;
                 }
                 for (var i = tmp.length - 1; i >= 0; i--) {
                     var v = tmp[i];
-                    _con.addChild(v);
+                    _con.addChild(v, false);
                 }
                 this._showStart = lIdx;
                 this._showEnd = fIdx;
@@ -20274,7 +20289,7 @@ var jy;
                     ele = this.getElement(suiData, data);
                 }
                 if (ele) {
-                    view.addChild(ele);
+                    view.addChild(ele, false);
                 }
                 else if (true) {
                     jy.ThrowError("\u6CA1\u6709\u6B63\u786E\u521B\u5EFA\u539F\u4EF6\uFF0C\u7C7B\u578B\uFF1A" + type + "\uFF0C\u6570\u636E\uFF1A" + JSON.stringify(data));
@@ -20475,7 +20490,7 @@ var jy;
                 }
                 else {
                     bmp = new egret.Bitmap();
-                    this.addChild(bmp);
+                    this.addChild(bmp, false);
                 }
                 var tx = txs[key];
                 if (!tx) {
@@ -20494,7 +20509,7 @@ var jy;
             }
             this.artwidth = ox - hgap;
             for (i = numChildren - 1; i >= len; i--) {
-                this.$doRemoveChild(i);
+                this.$doRemoveChild(i, false);
             }
             this._maxHeight = _maxHeight;
             this.checkAlign();
@@ -20608,7 +20623,7 @@ var jy;
             //检查是否有文本框
             this.txtLabel = mc.tf;
             this.mc = mc;
-            this.addChild(mc);
+            this.addChild(mc, false);
             this.refresh();
         };
         MCButton.prototype.refresh = function () {
@@ -20750,7 +20765,7 @@ var jy;
                 var tc = sm.sharedTFCreator;
                 var suiData = this.suiData;
                 //清理子对象
-                this.removeChildren();
+                this.removeChildren(false);
                 for (var _i = 0, _a = frameData.data; _i < _a.length; _i++) {
                     var dat = _a[_i];
                     var idx = void 0, pData = void 0, comp = void 0, textData = void 0;
@@ -20768,7 +20783,7 @@ var jy;
                     else {
                         comp = dict[idx];
                         if (comp instanceof egret.DisplayObject) {
-                            this.addChild(comp);
+                            this.$doAddChild(comp, this.numChildren, false);
                             if (pData) { //调整基础属性
                                 jy.SuiResManager.initBaseData(comp, pData);
                             }
@@ -20834,21 +20849,21 @@ var jy;
         }
         NumericStepper.prototype.bindChildren = function () {
             var _a = this, txtbg = _a.txtbg, subBtn = _a.subBtn, addBtn = _a.addBtn, txt = _a.txt;
-            this.addChild(txtbg);
-            this.addChild(subBtn);
-            this.addChild(addBtn);
+            this.addChild(txtbg, false);
+            this.addChild(subBtn, false);
+            this.addChild(addBtn, false);
             subBtn.enabled = true;
             addBtn.enabled = true;
             subBtn.bindTouch(this.subValue, this);
             addBtn.bindTouch(this.addValue, this);
             this.addChild(txt);
             if (this.minBtn) {
-                this.addChild(this.minBtn);
+                this.addChild(this.minBtn, false);
                 this.minBtn.enabled = true;
                 this.minBtn.bindTouch(this.setMinValue, this);
             }
             if (this.maxBtn) {
-                this.addChild(this.maxBtn);
+                this.addChild(this.maxBtn, false);
                 this.maxBtn.enabled = true;
                 this.maxBtn.bindTouch(this.setMaxValue, this);
                 this._width = this.maxBtn.width + this.maxBtn.x;
@@ -21153,13 +21168,13 @@ var jy;
                     }
                 }
                 if (bg) {
-                    progressBar.addChild(bg);
+                    progressBar.addChild(bg, false);
                 }
                 if (bar) {
-                    progressBar.addChild(bar);
+                    progressBar.addChild(bar, false);
                 }
                 if (tf) {
-                    progressBar.addChild(tf);
+                    progressBar.addChild(tf, false);
                 }
                 progressBar.skin = { bg: bg, bar: bar, tf: tf };
                 return progressBar;
@@ -21257,8 +21272,8 @@ var jy;
         ScrollBar.prototype.initBaseContainer = function () {
             var bar = new egret.Sprite();
             var bg = new egret.Sprite();
-            this.addChild(bg);
-            this.addChild(bar);
+            this.addChild(bg, false);
+            this.addChild(bar, false);
             bg.visible = false;
             this.bar = bar;
             this.bg = bg;
@@ -21293,7 +21308,7 @@ var jy;
             else {
                 this.checkBgSize();
             }
-            this.bg.addChild(value);
+            this.bg.addChild(value, false);
             this.$setSupportSize(this._supportSize);
         };
         /**
@@ -21311,7 +21326,7 @@ var jy;
             else {
                 this.checkBarSize();
             }
-            this.bar.addChild(value);
+            this.bar.addChild(value, false);
             this.$setSupportSize(this._supportSize);
         };
         Object.defineProperty(ScrollBar.prototype, "bgSize", {
@@ -21567,15 +21582,15 @@ var jy;
         Slider.prototype.initBaseContainer = function () {
             this.thumb = new egret.Sprite();
             this.bgline = new egret.Sprite();
-            this.addChild(this.bgline);
-            this.addChild(this.thumb);
+            this.addChild(this.bgline, false);
+            this.addChild(this.thumb, false);
             this.tipTxt = new egret.TextField();
             this.tipTxt.y = -12;
             this.tipTxt.textAlign = "center" /* CENTER */;
             this.tipTxt.width = 80;
             this.tipTxt.size = 12;
             this.tipTxt.bold = false;
-            this.addChild(this.tipTxt);
+            this.addChild(this.tipTxt, false);
         };
         /**
          * 设置底条新式
@@ -21584,7 +21599,7 @@ var jy;
          */
         Slider.prototype.setBg = function (bg) {
             this._bgBmp = bg;
-            this.bgline.addChild(bg);
+            this.bgline.addChild(bg, false);
             this._width = bg.width;
         };
         /**
@@ -21596,7 +21611,7 @@ var jy;
             this.thumb.x = tb.x;
             this.thumb.y = tb.y;
             tb.x = tb.y = 0;
-            this.thumb.addChild(tb);
+            this.thumb.addChild(tb, false);
             this._halfThumbWidth = tb.width * 0.5;
         };
         Object.defineProperty(Slider.prototype, "value", {
@@ -21867,11 +21882,11 @@ var jy;
             }
             this._changed = false;
             if (this.bg) {
-                this.addChild(this.bg);
+                this.addChild(this.bg, false);
             }
-            this.addChild(this.icon);
+            this.addChild(this.icon, false);
             if (this._countTxt) {
-                this.addChild(this._countTxt);
+                this.addChild(this._countTxt, false);
             }
             return true;
         };
@@ -22525,7 +22540,7 @@ var jy;
             var v = target.view;
             if (b) {
                 if (v instanceof egret.DisplayObjectContainer) {
-                    v.addChild(dis);
+                    v.addChild(dis, false);
                     var init = dis.menuinitFunc;
                     if (init) {
                         init.call(target, target, dis);
@@ -22534,7 +22549,7 @@ var jy;
                 this.currentShow = target;
             }
             else {
-                jy.removeDisplay(dis);
+                jy.removeDisplay(dis, false);
                 this.currentShow = undefined;
             }
             target.dispatch(-1999 /* Resize */);
@@ -22546,14 +22561,14 @@ var jy;
             var rendercls = this.style.renderClass;
             var bguri = this.style.scalebg;
             var bg = manager.createDisplayObject(uri, bguri);
-            this.addChild(bg);
+            this.addChild(bg, false);
             bg.width = rec.width;
             bg.height = rec.height;
             this.renders = [];
             for (var i = 0; i < this.maxRenderCount; i++) {
                 var render = new rendercls();
                 this.renders[i] = render;
-                this.addChild(render.view);
+                this.addChild(render.view, false);
             }
         };
         /**
@@ -22567,12 +22582,12 @@ var jy;
             for (var i = 0; i < len; i++) {
                 var render = this.renders[i];
                 render.data = vos[i];
-                this.addChild(render.view);
+                this.addChild(render.view, false);
                 tmp[i] = render;
             }
             if (len < blen) {
                 for (var i = len; i < blen; i++) {
-                    jy.removeDisplay(this.renders[i].view);
+                    jy.removeDisplay(this.renders[i].view, false);
                 }
             }
             var rec = style.possize;
@@ -22629,7 +22644,7 @@ var jy;
             txt.alpha = 1;
             jy.Layout.layout(txt, 10 /* MIDDLE_CENTER */);
             txt.textColor = color;
-            this._parent.addChild(txt);
+            this._parent.addChild(txt, false);
             var tween = jy.Global.getTween(txt);
             tween.to({ y: txt.y - 100 }, duration).to({ alpha: 0 }, delay).call(this.txtComplete, this, [tween, txt]);
         };
@@ -22676,7 +22691,7 @@ var jy;
             tf.size = 12;
             tf.x = corner;
             tf.y = corner;
-            this.addChild(tf);
+            this.addChild(tf, false);
             this.drawRect(0, 0, maxWidth, maxHeight);
         };
         SimToolTip.prototype.setTipData = function (msg) {
@@ -22701,7 +22716,7 @@ var jy;
         };
         SimToolTip.prototype.show = function (container, x, y) {
             if (x != undefined && y != undefined) {
-                container.addChild(this);
+                container.addChild(this, false);
                 this.x = x;
                 this.y = y;
             }
