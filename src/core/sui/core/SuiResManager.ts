@@ -530,7 +530,7 @@ namespace jy {
                     ele = this.getElement(suiData, data);
                 }
                 if (ele) {
-                    view.addChild(ele);
+                    view.addChild(ele, false);
                 } else if (DEBUG) {
                     ThrowError(`没有正确创建原件，类型：${type}，数据：${JSON.stringify(data)}`);
                 }

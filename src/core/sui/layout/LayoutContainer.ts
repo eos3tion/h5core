@@ -75,7 +75,7 @@ namespace jy {
             if (hide) {
                 removeDisplay(dis);
             } else {
-                this._host.addChild(dis);
+                this._host.addChild(dis, false);
             }
             let stage = dis.stage;
             if (stage) {

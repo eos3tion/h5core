@@ -76,7 +76,11 @@ namespace jy {
 
     export class PageList<T, R extends ListItemRender<T>> extends AbsPageList<T, R> {
 
-        protected _factory: ClassFactory<R>
+        protected _factory: ClassFactory<R>;
+
+        protected _pool: R[] = [];
+
+        maxPoolSize = 100;
 
         /**
          * 根据render的最右侧，得到的最大宽度
@@ -211,7 +215,7 @@ namespace jy {
             let bmp = new egret.Bitmap();
             bmp.texture = ColorUtil.getTexture(0, 0);
             this.bg = bmp;
-            con.addChild(bmp)
+            con.addChild(bmp, false)
             this.container = con;
             let self = this;
 
@@ -340,7 +344,8 @@ namespace jy {
             let list = this._list;
             let render = list[index];
             if (!render) {
-                render = this._factory.get();
+                render = this._pool.pop() || this._factory.get();
+                render.onSpawn();
                 list[index] = render;
                 render.on(EventConst.Resize, this.onSizeChange, this);
                 render.on(EventConst.ITEM_TOUCH_TAP, this.onTouchItem, this);
@@ -655,7 +660,12 @@ namespace jy {
             removeDisplay(item.view);
             item.off(EventConst.Resize, this.onSizeChange, this);
             item.off(EventConst.ITEM_TOUCH_TAP, this.onTouchItem, this);
-            item.dispose();
+            if (this._pool.length < this.maxPoolSize) {
+                item.onRecycle();
+                this._pool.push(item);
+            } else {
+                item.dispose();
+            }
             if (!this.renderChange) {
                 this.renderChange = true;
                 this.once(EgretEvent.ENTER_FRAME, this.refreshByRemoveItem, this);
@@ -746,7 +756,7 @@ namespace jy {
                     let render = list[i];
                     let v = render.view;
                     if (v) {
-                        _con.addChild(v);
+                        _con.addChild(v, false);
                     }
                 }
                 this._showStart = 0;
@@ -827,7 +837,7 @@ namespace jy {
                 }
                 for (let i = 0, tlen = tmp.length; i < tlen; i++) {
                     let v = tmp[i];
-                    _con.addChild(v);
+                    _con.addChild(v, false);
                 }
                 this._showStart = fIdx;
                 this._showEnd = lIdx;
@@ -841,7 +851,7 @@ namespace jy {
                 }
                 for (let i = tmp.length - 1; i >= 0; i--) {
                     let v = tmp[i];
-                    _con.addChild(v);
+                    _con.addChild(v, false);
                 }
                 this._showStart = lIdx;
                 this._showEnd = fIdx;

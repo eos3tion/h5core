@@ -4,7 +4,7 @@ namespace jy {
         $_rndIdx?: number;
     }
 
-    export interface ListItemRender<T> extends egret.EventDispatcher {
+    export interface ListItemRender<T> extends egret.EventDispatcher, IRecyclable {
 
         handleView(): void;
 
@@ -123,6 +123,14 @@ namespace jy {
 
         public constructor() {
             super();
+
+        }
+
+        onRecycle() {
+
+        }
+
+        onSpawn() {
 
         }
 

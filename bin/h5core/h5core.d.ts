@@ -17,7 +17,7 @@ declare namespace jy {
      * @export
      * @param {egret.DisplayObject} display
      */
-    function removeDisplay(display: egret.DisplayObject): void;
+    function removeDisplay(display: egret.DisplayObject, fire?: boolean): void;
 }
 /****************************************扩展Object****************************************/
 interface Object {
@@ -2873,7 +2873,7 @@ declare namespace jy {
          * @memberOf Button
          */
         looseTouch(handler: Function, thisObject?: any, useCapture?: boolean): void;
-        addChild(child: egret.DisplayObject): egret.DisplayObject;
+        addChild(child: egret.DisplayObject, notify?: boolean): egret.DisplayObject;
         dispose(): void;
     }
     /**
@@ -11498,7 +11498,7 @@ declare namespace jy {
     interface ListItemRenderSkin extends egret.DisplayObject {
         $_rndIdx?: number;
     }
-    interface ListItemRender<T> extends egret.EventDispatcher {
+    interface ListItemRender<T> extends egret.EventDispatcher, IRecyclable {
         handleView(): void;
         dispose(): void;
         readonly view: egret.DisplayObject;
@@ -11573,6 +11573,8 @@ declare namespace jy {
         private _oldHeight;
         inited: boolean;
         constructor();
+        onRecycle(): void;
+        onSpawn(): void;
         /**
          * 子类重写
          * 初始化组件
@@ -11813,6 +11815,8 @@ declare namespace jy {
     }
     class PageList<T, R extends ListItemRender<T>> extends AbsPageList<T, R> {
         protected _factory: ClassFactory<R>;
+        protected _pool: R[];
+        maxPoolSize: number;
         /**
          * 根据render的最右侧，得到的最大宽度
          */

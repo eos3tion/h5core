@@ -22,7 +22,7 @@ namespace jy {
             txt.alpha = 1;
             Layout.layout(txt, LayoutType.MIDDLE_CENTER);
             txt.textColor = color;
-            this._parent.addChild(txt);
+            this._parent.addChild(txt, false);
             let tween = Global.getTween(txt);
             tween.to({ y: txt.y - 100 }, duration).to({ alpha: 0 }, delay).call(this.txtComplete, this, [tween, txt]);
         }

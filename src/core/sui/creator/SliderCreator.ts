@@ -133,15 +133,15 @@ namespace jy {
         private initBaseContainer() {
             this.thumb = new egret.Sprite();
             this.bgline = new egret.Sprite();
-            this.addChild(this.bgline);
-            this.addChild(this.thumb);
+            this.addChild(this.bgline, false);
+            this.addChild(this.thumb, false);
             this.tipTxt = new egret.TextField();
             this.tipTxt.y = -12;
             this.tipTxt.textAlign = egret.HorizontalAlign.CENTER;
             this.tipTxt.width = 80;
             this.tipTxt.size = 12;
             this.tipTxt.bold = false;
-            this.addChild(this.tipTxt);
+            this.addChild(this.tipTxt, false);
         }
 
         /**
@@ -151,7 +151,7 @@ namespace jy {
          */
         public setBg(bg: ScaleBitmap) {
             this._bgBmp = bg;
-            this.bgline.addChild(bg);
+            this.bgline.addChild(bg, false);
             this._width = bg.width;
         }
 
@@ -164,7 +164,7 @@ namespace jy {
             this.thumb.x = tb.x;
             this.thumb.y = tb.y;
             tb.x = tb.y = 0;
-            this.thumb.addChild(tb);
+            this.thumb.addChild(tb, false);
             this._halfThumbWidth = tb.width * 0.5;
         }
 

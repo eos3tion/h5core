@@ -26,8 +26,8 @@ namespace jy {
         protected initBaseContainer() {
             let bar = new egret.Sprite();
             let bg = new egret.Sprite();
-            this.addChild(bg);
-            this.addChild(bar);
+            this.addChild(bg, false);
+            this.addChild(bar, false);
             bg.visible = false;
             this.bar = bar;
             this.bg = bg;
@@ -59,7 +59,7 @@ namespace jy {
             else {
                 this.checkBgSize();
             }
-            this.bg.addChild(value);
+            this.bg.addChild(value, false);
             this.$setSupportSize(this._supportSize);
         }
 
@@ -78,7 +78,7 @@ namespace jy {
             else {
                 this.checkBarSize();
             }
-            this.bar.addChild(value);
+            this.bar.addChild(value, false);
             this.$setSupportSize(this._supportSize);
         }
 

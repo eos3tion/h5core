@@ -159,11 +159,11 @@ namespace jy {
             }
             this._changed = false;
             if (this.bg) {
-                this.addChild(this.bg);
+                this.addChild(this.bg, false);
             }
-            this.addChild(this.icon);
+            this.addChild(this.icon, false);
             if (this._countTxt) {
-                this.addChild(this._countTxt);
+                this.addChild(this._countTxt, false);
             }
             return true;
         }
