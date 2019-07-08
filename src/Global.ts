@@ -42,7 +42,7 @@ namespace jy {
 		let temp: CallbackInfo<Function>[] = [];
 
 		ticker.render = function (triggerByFrame, costTicker) {
-			let _now = DateUtils.serverTime;
+			let _now = Date.now();
 			let dis = _now - now;
 			now = _now;
 			if (dis > 2000) {

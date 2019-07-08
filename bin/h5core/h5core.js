@@ -969,7 +969,7 @@ var jy;
         var delta = 0 | 1000 / ticker.$frameRate;
         var temp = [];
         ticker.render = function (triggerByFrame, costTicker) {
-            var _now = jy.DateUtils.serverTime;
+            var _now = Date.now();
             var dis = _now - now;
             now = _now;
             if (dis > 2000) {
@@ -20783,7 +20783,7 @@ var jy;
                     else {
                         comp = dict[idx];
                         if (comp instanceof egret.DisplayObject) {
-                            this.$doAddChild(comp, this.numChildren, false);
+                            this.addChild(comp);
                             if (pData) { //调整基础属性
                                 jy.SuiResManager.initBaseData(comp, pData);
                             }
