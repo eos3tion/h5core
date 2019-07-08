@@ -229,7 +229,7 @@ namespace jy {
                     } else {
                         comp = dict[idx];
                         if (comp instanceof egret.DisplayObject) {
-                            this.$doAddChild(comp, this.numChildren, false)
+                            this.addChild(comp)
                             if (pData) {//调整基础属性
                                 SuiResManager.initBaseData(comp, pData);
                             }
