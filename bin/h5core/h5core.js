@@ -8984,7 +8984,7 @@ var jy;
             var data = item.data, uri = item.uri;
             if (uri == this.uri) {
                 var sheetKey = this.sheetKey;
-                if (sheetKey) {
+                if (sheetKey && data) {
                     var sheet = sheetsDict[sheetKey];
                     if (!sheet) {
                         sheetsDict[sheetKey] = sheet = getDynamicTexSheet();

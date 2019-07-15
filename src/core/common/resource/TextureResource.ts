@@ -112,7 +112,7 @@ namespace jy {
             let { data, uri } = item;
             if (uri == this.uri) {
                 let sheetKey = this.sheetKey;
-                if (sheetKey) {
+                if (sheetKey && data) {
                     let sheet = sheetsDict[sheetKey];
                     if (!sheet) {
                         sheetsDict[sheetKey] = sheet = getDynamicTexSheet();
