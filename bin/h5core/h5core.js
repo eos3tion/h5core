@@ -23597,7 +23597,7 @@ var jy;
             if (duration == null || duration <= 0) {
                 return this;
             }
-            var o = this._curQueueProps.clone();
+            var o = this._curQueueProps.$clone();
             return this._addStep({ d: duration, p0: o, p1: o, v: passive });
         };
         /**
@@ -23621,7 +23621,7 @@ var jy;
             if (isNaN(duration) || duration < 0) {
                 duration = 0;
             }
-            return this._addStep({ d: duration || 0, p0: this._curQueueProps.clone(), e: ease, p1: this._appendQueueProps(props).clone() });
+            return this._addStep({ d: duration || 0, p0: this._curQueueProps.$clone(), e: ease, p1: this._appendQueueProps(props).$clone() });
         };
         /**
          * 排列一个指定的函数进行执行
