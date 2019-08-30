@@ -67,7 +67,7 @@ var jy;
     jy.removeDisplay = removeDisplay;
 })(jy || (jy = {}));
 Object.defineProperties(Object.prototype, jy.makeDefDescriptors({
-    clone: {
+    $clone: {
         value: function () {
             var o = {};
             for (var n in this) {
@@ -10480,7 +10480,7 @@ var jy;
             return this;
         };
         CircleCountdown.prototype.addCfg = function (color) {
-            color = color.clone();
+            color = color.$clone();
             var colors = this._cfgs;
             var prev = colors[colors.length - 1];
             if (prev && !prev.noGradient) { //如果使用渐变色，上一个点的结束颜色使用当前颜色值

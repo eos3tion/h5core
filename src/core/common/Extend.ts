@@ -49,7 +49,7 @@ interface Object {
      * 
      * @memberOf Object
      */
-    clone(): Object;
+    $clone(): Object;
     /**
      * 将数据拷贝到 to
      * @param to 目标
@@ -88,7 +88,7 @@ interface Object {
 }
 
 Object.defineProperties(Object.prototype, jy.makeDefDescriptors({
-    clone: {
+    $clone: {
         value: function () {
             let o = {};
             for (let n in this) {
