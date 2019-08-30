@@ -27,7 +27,7 @@ interface Object {
      *
      * @memberOf Object
      */
-    clone(): Object;
+    $clone(): Object;
     /**
      * 将数据拷贝到 to
      * @param to 目标

@@ -100,7 +100,7 @@ namespace jy {
         }
 
         addCfg(color: CircleCountdownCfg) {
-            color = color.clone() as CircleCountdownCfg;
+            color = color.$clone() as CircleCountdownCfg;
             let colors = this._cfgs;
             let prev = colors[colors.length - 1];
             if (prev && !prev.noGradient) {//如果使用渐变色，上一个点的结束颜色使用当前颜色值
