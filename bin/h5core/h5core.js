@@ -13416,6 +13416,7 @@ var jy;
                 if (this._asyncHelper) {
                     this._asyncHelper.readyNow();
                 }
+                jy.dispatch(-990 /* MediatorReady */, this._name);
             }
         };
         Mediator.prototype.hide = function () {

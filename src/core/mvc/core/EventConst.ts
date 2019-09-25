@@ -54,6 +54,10 @@ declare namespace jy {
 		/**
 		 * 有模块显示了
 		 */
-        MODULE_SHOW
+        MODULE_SHOW,
+        /**
+         * Mediator准备好了
+         */
+        MediatorReady,
     }
 }
