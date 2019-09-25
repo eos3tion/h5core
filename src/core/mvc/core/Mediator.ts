@@ -123,6 +123,7 @@ namespace jy {
                 if (this._asyncHelper) {
                     this._asyncHelper.readyNow();
                 }
+                dispatch(EventConst.MediatorReady, this._name);
             }
         }
 

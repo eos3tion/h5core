@@ -12311,7 +12311,11 @@ declare namespace jy {
         /**
          * 有模块显示了
          */
-        MODULE_SHOW = -991
+        MODULE_SHOW = -991,
+        /**
+         * Mediator准备好了
+         */
+        MediatorReady = -990
     }
 }
 declare namespace jy {
