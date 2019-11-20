@@ -61,6 +61,21 @@ namespace jy {
 		static setLib = setLib;
 
 		/**
+		 * 设置名字库的数据
+		 * @param a 
+		 * @param b 
+		 * @param c1 
+		 * @param c2 
+		 */
+		static setLib2(a: string[], b?: string[], c1?: string[], c2?: string[]) {
+			let isArray = Array.isArray;
+			isArray(a) && (A = a);
+			isArray(b) && (B = b);
+			isArray(c1) && (C[Sex.Male] = c1);
+			isArray(c2) && (C[Sex.Female] = c2);
+		}
+
+		/**
 		 * 加载名字库
 		 * @param url 
 		 * @param callback 
