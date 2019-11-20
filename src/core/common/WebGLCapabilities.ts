@@ -213,7 +213,7 @@ namespace jy {
                 stencil: true,
                 failIfMajorPerformanceCaveat: true
             };
-            g = canvas.getContext("webgl", webglAttr) || canvas.getContext("experimental-webgl", webglAttr);
+            g = canvas.getContext("webgl", webglAttr) || canvas.getContext("experimental-webgl", webglAttr) as WebGLRenderingContext;
         }
         if (!g) {
             return;

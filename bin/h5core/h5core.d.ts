@@ -1145,8 +1145,8 @@ declare namespace jy {
      * @extends {GameLayer}
      */
     class UILayer extends BaseLayer {
-        readonly width: number;
-        readonly height: number;
+        get width(): number;
+        get height(): number;
     }
     /**
      * 需要对子对象排序的层
@@ -1171,7 +1171,7 @@ interface $gmType {
     };
 }
 declare namespace jy {
-    type InjectProxy = {
+    export type InjectProxy = {
         new (): IAsync;
     } | Key;
     interface InjectProxyBin {
@@ -1187,7 +1187,7 @@ declare namespace jy {
      * @author 3tion
      *
      */
-    abstract class FHost implements IDepender {
+    export abstract class FHost implements IDepender {
         protected _name: string | number;
         /**
          * 用于处理依赖注入的Proxy
@@ -1202,7 +1202,7 @@ declare namespace jy {
         /**
          * 唯一标识
          */
-        readonly name: string | number;
+        get name(): string | number;
         constructor(name: string | number);
         /**
          * 检查依赖注入的数据
@@ -1221,7 +1221,7 @@ declare namespace jy {
          * 作为依赖者的Helper
          */
         protected _dependerHelper: DependerHelper;
-        readonly isReady: boolean;
+        get isReady(): boolean;
         startSync(): void;
         /**
          * 添加依赖项
@@ -1252,7 +1252,8 @@ declare namespace jy {
      * @param {({ new (): IAsync } | string)} ref 如果注册的是Class，必须是Inline方式注册的Proxy
      * @returns
      */
-    function d_dependProxy(ref: InjectProxy, isPri?: boolean): (target: any, key: string) => void;
+    export function d_dependProxy(ref: InjectProxy, isPri?: boolean): (target: any, key: string) => void;
+    export {};
 }
 declare namespace jy {
     /**
@@ -1262,7 +1263,7 @@ declare namespace jy {
      */
     class BaseCreator<T extends egret.DisplayObject> {
         protected _suiData: SuiData;
-        readonly suiData: SuiData;
+        get suiData(): SuiData;
         protected _baseData: BaseData;
         protected _createT: () => T;
         protected _parsed: boolean;
@@ -1356,7 +1357,7 @@ declare namespace jy {
          * 可以构造一个@skill/@zhudongskill/skillpage/!2/btnButton的字符串来主播引导
          *
          */
-        readonly guid: string;
+        get guid(): string;
         constructor();
         init(c: BaseCreator<egret.DisplayObject>): void;
         protected stageEvent(remove?: boolean): void;
@@ -1426,7 +1427,7 @@ declare namespace jy {
          * @platform Web,Native
          */
         protected getLayoutBounds(bounds: egret.Rectangle): void;
-        readonly view: this;
+        get view(): this;
     }
     interface Component extends ComponentWithEnable {
     }
@@ -2000,7 +2001,7 @@ declare namespace jy {
          *
          * @readonly
          */
-        readonly states: (string | number)[];
+        get states(): (string | number)[];
         add(value: IStateListener): void;
         remove(value: IStateListener): void;
         /**
@@ -2229,7 +2230,7 @@ declare namespace jy {
      * @export
      * @enum {number}
      */
-    const enum Color {
+    export const enum Color {
         Red = 16711680,
         Green = 65280,
         Yellow = 16776960,
@@ -2242,7 +2243,7 @@ declare namespace jy {
      * @export
      * @enum {string}
      */
-    const enum ColorString {
+    export const enum ColorString {
         Red = "#ff0000",
         Green = "#00ff00",
         Yellow = "#ffff00",
@@ -2255,7 +2256,7 @@ declare namespace jy {
      * @author 3tion
      *
      */
-    const ColorUtil: {
+    export const ColorUtil: {
         /**
          * 获取颜色字符串 #a1b2c3
          * @param c
@@ -2272,6 +2273,7 @@ declare namespace jy {
          */
         getTexture(color?: number, alpha?: number): egret.Texture;
     };
+    export {};
 }
 declare namespace jy {
     /**
@@ -2322,10 +2324,11 @@ declare namespace jy {
          * 播放速度，默认为1倍速度<br/>
          * 值越高，速度越快
          */
+        get playSpeed(): number;
         /**
-        * 设置播放速度
-        */
-        playSpeed: number;
+         * 设置播放速度
+         */
+        set playSpeed(value: number);
         /**
          *  处理数据帧
          */
@@ -2660,13 +2663,14 @@ declare namespace jy {
          * @private
          */
         private _currentMap;
+        get currentMap(): MapInfo;
         /**
-        * 显示/关闭地图格子显示
-        *
-        *
-        * @memberOf $gmType
-        */
-        currentMap: MapInfo;
+         * 显示/关闭地图格子显示
+         *
+         *
+         * @memberOf $gmType
+         */
+        set currentMap(value: MapInfo);
         /**
          * mini的纹理
          */
@@ -2849,7 +2853,7 @@ declare namespace jy {
          * @type {ShakeTarget}
          */
         protected _target: ShakeTarget;
-        readonly target: ShakeTarget;
+        get target(): ShakeTarget;
         /**
          * 单位X方向基准值      一般为单位初始值
          *
@@ -2868,7 +2872,7 @@ declare namespace jy {
         /**
          * 总执行时间
          */
-        readonly total: number;
+        get total(): number;
         setShakeTarget(target: ShakeTarget): Shake;
         /**
          * 设置单位基准值
@@ -2963,7 +2967,7 @@ declare namespace jy {
          * @return true 可以结束<br/>
          *         false 不可结束
          */
-        readonly canStop: Boolean;
+        get canStop(): Boolean;
         /**
          * 强制结束
          */
@@ -2978,7 +2982,7 @@ declare namespace jy {
          * @return true，动作已经结束，可以做下一个动作<br/>
          *         false, 动作未结束，
          */
-        readonly isEnd: Boolean;
+        get isEnd(): Boolean;
         /**
          * 执行事件
          */
@@ -3013,7 +3017,7 @@ declare namespace jy {
          */
         protected _readyState: RequestState;
         constructor(name: string | number);
-        readonly isReady: boolean;
+        get isReady(): boolean;
         startSync(): boolean;
         /**
          * 用于重写，主要用于向服务端发送一些指令/或者是开始进行http请求进行拉配置
@@ -3122,7 +3126,7 @@ declare namespace jy {
          * 从舞台移除时候，自动移除定时回调
          */
         sleepTimer(): void;
-        readonly isReady: boolean;
+        get isReady(): boolean;
         onStage(e: egret.Event): void;
         stageChange(onStage: boolean): void;
         checkInterest(): void;
@@ -3201,10 +3205,11 @@ declare namespace jy {
         /**
          * 滚动条方式 0：垂直，1：水平 defalut:0
          */
+        set scrollType(value: ScrollDirection);
         /**
-        * 滚动条方式 0：垂直，1：水平 defalut:0
-        */
-        scrollType: ScrollDirection;
+         * 滚动条方式 0：垂直，1：水平 defalut:0
+         */
+        get scrollType(): ScrollDirection;
         protected checkScrollBarView(): void;
         protected onScrollBarAdded(): void;
         /**
@@ -3262,7 +3267,7 @@ declare namespace jy {
          * @readonly
          * @protected
          */
-        protected readonly scrollEndPos: number;
+        protected get scrollEndPos(): number;
         protected checkAndResetBarPos(): void;
     }
 }
@@ -3278,13 +3283,13 @@ declare namespace jy {
          *
          * @readonly
          */
-        readonly dataLen: number;
+        get dataLen(): number;
         /**
          * 获取数据集
          *
          * @readonly
          */
-        readonly data: T[];
+        get data(): T[];
         /**
          * 渲染指定位置的render
          *
@@ -3293,12 +3298,13 @@ declare namespace jy {
          * @ param {number} end (结束索引)
          */
         protected doRender(start: number, end?: number): void;
-        selectedIndex: number;
+        set selectedIndex(value: number);
         protected $setSelectedIndex(value: number): void;
         /**
          * 获取选中对象的数据
          */
-        readonly selectedData: T;
+        get selectedData(): T;
+        get selectedIndex(): number;
         /**
          *
          * 根据索引获得视图
@@ -3326,7 +3332,7 @@ declare namespace jy {
         find(handle: {
             (data: T, render: R, idx: number, ...args: any[]): boolean;
         }, ...otherParams: any[]): R;
-        readonly selectedItem: R;
+        get selectedItem(): R;
         /**
          * 更新item数据
          *
@@ -3359,7 +3365,7 @@ declare namespace jy {
         protected onTouchItem(e: egret.TouchEvent): void;
         protected changeRender(render: R, index?: number): void;
         getAllItems(): R[];
-        readonly length: number;
+        get length(): number;
         /**
          * 让所有在舞台上的render重新刷新一次数据
          *
@@ -3491,20 +3497,22 @@ declare namespace jy {
         /**
          * 设置按钮上的标签
          */
-        /**
-        * 获取按钮上的标签
-        */
-        label: string;
+        set label(value: string);
         $setLabel(value: string): void;
+        /**
+         * 获取按钮上的标签
+         */
+        get label(): string;
         $setEnabled(value: boolean): void;
         /**
          * 设置选中
          */
-        /**
-        * 获取当前按钮选中状态
-        */
-        selected: boolean;
+        set selected(value: boolean);
         protected $setSelected(value: boolean): void;
+        /**
+         * 获取当前按钮选中状态
+         */
+        get selected(): boolean;
         protected refresh(changed?: boolean): void;
         /**
          * 获取按钮的帧数
@@ -3574,7 +3582,7 @@ declare namespace jy {
         protected onStage(): void;
         protected offStage(): void;
         abstract onResize(): any;
-        readonly view: egret.Sprite;
+        get view(): egret.Sprite;
         /**
          * 移除视图
          *
@@ -3629,16 +3637,18 @@ declare namespace jy {
         protected _size: egret.Rectangle;
         protected itemClick(): void;
         getSize(): egret.Rectangle;
-        data: T;
+        set data(value: T);
         /**
          * 只允许子类重写
          * @protected
          */
         protected $setData(val: T): void;
-        skin: egret.DisplayObject;
+        get data(): T;
+        set skin(value: egret.DisplayObject);
+        get skin(): egret.DisplayObject;
         protected $setSkin(value: egret.DisplayObject): void;
         protected bindComponent(): void;
-        readonly view: egret.DisplayObject;
+        get view(): egret.DisplayObject;
     }
 }
 declare namespace jy {
@@ -3656,7 +3666,7 @@ declare namespace jy {
          */
         addItem(item: IGroupItem): void;
         getAllItems(): IGroupItem[];
-        readonly length: number;
+        get length(): number;
         /**
          * 获取 IGroupItem
          *
@@ -3681,13 +3691,15 @@ declare namespace jy {
         /**
          * 设置选中组件
          */
-        selectedItem: IGroupItem;
+        set selectedItem(item: IGroupItem);
         protected $setSelectedItem(item?: IGroupItem): boolean;
+        get selectedItem(): IGroupItem;
         /**
          * 设置选中索引
          */
-        selectedIndex: number;
+        set selectedIndex(idx: number);
         protected $setSelectedIndex(idx: number): void;
+        get selectedIndex(): number;
         clear(): void;
         onRecycle(): void;
     }
@@ -6517,7 +6529,7 @@ declare namespace jy {
     }
 }
 declare namespace jy {
-    interface Path {
+    export interface Path {
         /**
          * 路径
          *
@@ -6547,7 +6559,7 @@ declare namespace jy {
          */
         parent?: string;
     }
-    interface JConfig {
+    export interface JConfig {
         /**
          * 替换用参数
          */
@@ -6603,7 +6615,7 @@ declare namespace jy {
      * @export
      * @class ConfigUtils
      */
-    const ConfigUtils: {
+    export const ConfigUtils: {
         replace(data: JConfig): JConfig;
         setData(data: JConfig): void;
         /**
@@ -6665,6 +6677,7 @@ declare namespace jy {
          */
         getUrl(uri: string, pathKey: string): string;
     };
+    export {};
 }
 /**
  * DataLocator的主数据
@@ -6683,7 +6696,7 @@ declare namespace jy {
      * @export
      * @enum {number}
      */
-    const enum CfgDataType {
+    export const enum CfgDataType {
         /**
          * 自动解析
          */
@@ -6707,7 +6720,7 @@ declare namespace jy {
      * @author 3tion
      *
      */
-    let DataLocator: {
+    export let DataLocator: {
         regParser: typeof regParser;
         /**
          * 解析打包的配置
@@ -6742,7 +6755,7 @@ declare namespace jy {
     /**
      * 配置数据解析函数
      */
-    interface ConfigDataParser {
+    export interface ConfigDataParser {
         (data: any): any;
     }
     /**
@@ -6750,7 +6763,7 @@ declare namespace jy {
      *
      * @interface ExtraData
      */
-    interface ExtraData {
+    export interface ExtraData {
     }
     /**
      * 配置数据
@@ -6758,13 +6771,14 @@ declare namespace jy {
      * @export
      * @interface CfgData
      */
-    interface CfgData {
+    export interface CfgData {
     }
     /**
      * 通用的Bytes版本的配置解析器
      * @param buffer
      */
     function regBytesParser(key: keyof CfgData, CfgCreator: Creator<any> | 0, idkey?: string | 0, type?: CfgDataType): void;
+    export {};
 }
 declare namespace jy {
     interface DataUtilsType {
@@ -7230,7 +7244,7 @@ declare namespace jy {
          */
         checkDataMode(): void;
         constructor();
-        readonly connected: boolean;
+        get connected(): boolean;
         /**
          *
          * 设置websocket地址
@@ -7625,7 +7639,7 @@ declare namespace jy {
     function get<T extends IResource>(resid: string, noResHandler: {
         (...args: any[]): T;
     }, thisObj?: any, ...args: any[]): T;
-    const ResManager: {
+    export const ResManager: {
         get: typeof get;
         /**
          * 获取资源
@@ -7665,6 +7679,7 @@ declare namespace jy {
      * 注册资源
      */
     function regResource(resID: string, res: IResource): boolean;
+    export {};
 }
 declare namespace jy {
     interface TextureResourceOption {
@@ -7713,7 +7728,7 @@ declare namespace jy {
          * 是否为静态不销毁的资源
          * @type {boolean}
          */
-        readonly isStatic: boolean;
+        get isStatic(): boolean;
         private _tex;
         /**
          *
@@ -7893,14 +7908,14 @@ declare namespace jy {
          * @readonly
          *
          */
-        readonly rawList: V[];
+        get rawList(): V[];
         /**
          * 获取原始的字典
          * 请不要直接行 + - 值，使用set delete 方法进行处理
          * @readonly
          *
          */
-        readonly rawDict: {
+        get rawDict(): {
             readonly [index: string]: V;
         };
         /**
@@ -7961,7 +7976,7 @@ declare namespace jy {
          * @readonly
          *
          */
-        readonly size: number;
+        get size(): number;
     }
 }
 declare namespace jy {
@@ -8058,7 +8073,7 @@ declare namespace jy {
          * @readonly
          * @memberof ByteArray
          */
-        readonly outBytes: Uint8Array;
+        get outBytes(): Uint8Array;
         /**
          * 重置索引
          *
@@ -8150,7 +8165,7 @@ declare namespace jy {
         put(obj: T): boolean;
         pop(): T;
         clear(newSize?: number): void;
-        readonly size: number;
+        get size(): number;
         toArray(): T[];
         /**
          * 遍历堆中元素
@@ -8503,7 +8518,7 @@ declare namespace jy {
         * @readonly
         * @memberOf TimeVO
         */
-        readonly todayTime: number;
+        get todayTime(): number;
         /**
          * 获取指定时间戳那天的时间
          *
@@ -8675,7 +8690,7 @@ declare namespace jy {
     function doCopy(str: string): boolean;
 }
 declare namespace jy {
-    const DataUrlUtils: {
+    export const DataUrlUtils: {
         /**
          * 根据dataUrl获取 base64字符串
          *
@@ -8724,6 +8739,7 @@ declare namespace jy {
     function getDisplayDataURL(dis: egret.DisplayObject, type: string, rect?: egret.Rectangle, encodeOptions?: any, scale?: number): string;
     function getBase64(dataUrl: string): string;
     function getBytes(dataUrl: string): Uint8Array;
+    export {};
 }
 declare namespace jy {
     interface FilterUtilsType {
@@ -8852,7 +8868,7 @@ declare namespace jy {
     const LangUtil: LangUtilInterface;
 }
 declare namespace jy {
-    const enum Sex {
+    export const enum Sex {
         /**
          * 男
          */
@@ -8870,7 +8886,7 @@ declare namespace jy {
         c1?: string;
         c2?: string;
     }): void;
-    class NameUtils {
+    export class NameUtils {
         private _random;
         /**
          *
@@ -8885,6 +8901,14 @@ declare namespace jy {
          * @memberof NameUtils
          */
         static setLib: typeof setLib;
+        /**
+         * 设置名字库的数据
+         * @param a
+         * @param b
+         * @param c1
+         * @param c2
+         */
+        static setLib2(a: string[], b?: string[], c1?: string[], c2?: string[]): void;
         /**
          * 加载名字库
          * @param url
@@ -8906,6 +8930,7 @@ declare namespace jy {
         getName(sex?: Sex): string;
         dispose(): void;
     }
+    export {};
 }
 declare namespace jy {
     interface RPCCallback {
@@ -9143,13 +9168,14 @@ declare namespace jy {
      * @param {*} [thisObj]         回调函数的`this`对象
      */
     function removeCallback(time: number, callback: Function, thisObj?: any): void;
-    const TimerUtil: {
+    export const TimerUtil: {
         addCallback: typeof addCallback;
         removeCallback: typeof removeCallback;
         tick: typeof tick;
         add: typeof add;
         remove: typeof remove;
     };
+    export {};
 }
 declare namespace jy {
     /**
@@ -9177,7 +9203,7 @@ declare namespace jy {
      * 文字过滤
      * @author 3tion
      */
-    const WordFilter: {
+    export const WordFilter: {
         /**
          * 由于脏字文件使用ajax读取，可能存在跨域问题，所以在H5中使用javascript方式加载
          */
@@ -9211,6 +9237,7 @@ declare namespace jy {
          */
         checkWord: typeof checkWord1;
     };
+    export {};
 }
 /**
  * 是否不做客户端检查
@@ -9363,7 +9390,7 @@ declare namespace jy {
          * 单位坐标发生变化时调用
          */
         invalidateSort(): void;
-        readonly viewRect: egret.Rectangle;
+        get viewRect(): egret.Rectangle;
         protected _stage: egret.Stage;
         protected _layers: GameLayer[];
         /**
@@ -9537,7 +9564,7 @@ declare namespace jy {
         loose(render: AniRender): void;
         init(key: string, data: any[]): void;
         getResource(uri?: string): UnitResource;
-        readonly actionInfo: ActionInfo;
+        get actionInfo(): ActionInfo;
     }
 }
 interface $gmType {
@@ -9674,7 +9701,7 @@ declare namespace jy {
         /**
          * 获取资源的地址标识
          */
-        readonly uri: string;
+        get uri(): string;
         /**
          * 显示对象
          */
@@ -9959,7 +9986,7 @@ declare namespace jy {
          * @type {number}
          */
         z: number;
-        readonly depth: number;
+        get depth(): number;
         /**
          * 当前资源是否成功渲染
          *
@@ -10002,7 +10029,7 @@ declare namespace jy {
          * 关联的纹理
          */
         textures: egret.Texture[];
-        readonly isStatic: boolean;
+        get isStatic(): boolean;
         constructor(uri: string, url: string);
         /**
          * 绑定纹理集
@@ -10158,7 +10185,7 @@ declare namespace jy {
         };
         private _lastPos;
         protected _changed: boolean;
-        readonly changed: boolean;
+        get changed(): boolean;
         /**
          * 标记已经改变完
          */
@@ -10178,7 +10205,7 @@ declare namespace jy {
         /**
          * 获取当前镜头绑定的单位
          */
-        readonly host: {
+        get host(): {
             x: number;
             y: number;
         };
@@ -10207,7 +10234,7 @@ declare namespace jy {
         /**
          * 获取相机显示区域
          */
-        readonly rect: egret.Rectangle;
+        get rect(): egret.Rectangle;
     }
     /**
      * 获取坐标点的hash值
@@ -11513,10 +11540,11 @@ declare namespace jy {
          * 播放速度，默认为1倍速度<br/>
          * 值越高，速度越快
          */
+        get playSpeed(): number;
         /**
-        * 设置播放速度
-        */
-        playSpeed: number;
+         * 设置播放速度
+         */
+        set playSpeed(value: number);
         /**
          * 用于放纸娃娃贴图的容器
          * 只允许放ResourceBitmap
@@ -11526,7 +11554,7 @@ declare namespace jy {
          * 用于放纸娃娃贴图的容器
          * 只允许放ResourceBitmap
          */
-        readonly model: Readonly<UModel>;
+        get model(): Readonly<UModel>;
         /**
          * 人物身体
          */
@@ -11544,7 +11572,7 @@ declare namespace jy {
          * @readonly
          * @type {{}
          */
-        readonly resDict: {
+        get resDict(): {
             readonly [index: string]: UnitResource;
         };
         /**
@@ -11587,7 +11615,7 @@ declare namespace jy {
         /**
          * 设置单位pst
          */
-        pst: string;
+        set pst(pst: string);
         protected abstract pstInfoChange(): any;
         protected abstract getPstInfo(pst: string): PstInfo;
         init(pst: string, setting: UnitSetting): this;
@@ -11606,11 +11634,12 @@ declare namespace jy {
         /**
          * 设置朝向
          */
-        /**
-        * 获取朝向
-        */
-        faceTo: number;
+        set faceTo(value: number);
         $setFaceTo(value: number): void;
+        /**
+         * 获取朝向
+         */
+        get faceTo(): number;
         /**
          * 播放自定义动作
          *
@@ -11736,20 +11765,23 @@ declare namespace jy {
         protected _x: number;
         protected _y: number;
         protected _z: number;
+        get x(): number;
         /**
-        * 此方法只允许 UnitAction调用
-        */
-        x: number;
+         * 此方法只允许 UnitAction调用
+         */
+        set x(value: number);
         $setX(value: number): void;
+        get y(): number;
         /**
-        * 此方法只允许 UnitAction调用
-        */
-        y: number;
+         * 此方法只允许 UnitAction调用
+         */
+        set y(value: number);
         $setY(value: number): void;
+        get z(): number;
         /**
-        * 此方法只允许 UnitAction调用
-        */
-        z: number;
+         * 此方法只允许 UnitAction调用
+         */
+        set z(value: number);
         $setZ(value: number): void;
         /**
          * 检查模型和其他的y轴
@@ -11762,16 +11794,17 @@ declare namespace jy {
          * 从 0 到 180 的值表示顺时针方向旋转；从 0 到 -180 的值表示逆时针方向旋转。对于此范围之外的值，可以通过加上或减去 360 获得该范围内的值。
          * 例如，myDisplayObject.rotation = 450语句与 myDisplayObject.rotation = 90 是相同的
          */
-        /**
-        * 获得模型的旋转角度
-        */
-        rotation: number;
+        set rotation(value: number);
         /**
          * 根据 resKey 获取纹理
          * @param {Key} resKey resDict的key
          * @param {IDrawInfo} [drawInfo] 动作，方向，帧数信息
          */
         getTexture(resKey: Key, drawInfo?: IDrawInfo): egret.Texture;
+        /**
+         * 获得模型的旋转角度
+         */
+        get rotation(): number;
     }
 }
 declare namespace jy {
@@ -12375,7 +12408,7 @@ declare namespace jy {
          *
          * @memberOf Facade
          */
-        readonly mm: ModuleManager;
+        get mm(): ModuleManager;
         protected _removeHost(name: Key, dict: {
             [index: string]: ScriptHelper<FHost>;
         }): FHost;
@@ -12680,7 +12713,8 @@ declare namespace jy {
         /**
          *  获取视图
          */
-        view: IModulePanel;
+        get view(): IModulePanel;
+        set view(value: IModulePanel);
         /**
          * 开始尝试同步
          */
@@ -13123,9 +13157,9 @@ declare namespace jy {
          * Value	{IModuleChecker}	    模块限制检查器
          *
          */
-        checkers: {
+        set checkers(value: {
             [index: number]: IModuleChecker;
-        };
+        });
         doCheckLimits(): void;
         /**
          * 检查限制
@@ -13318,7 +13352,7 @@ declare namespace jy {
     const enum Const {
         defaultModalAlpha = 0.8
     }
-    interface Panel extends IAsync, ComponentWithEnable {
+    export interface Panel extends IAsync, ComponentWithEnable {
         createNativeDisplayObject(): void;
     }
     /**
@@ -13326,7 +13360,7 @@ declare namespace jy {
      * @author 3tion
      *
      */
-    class Panel extends egret.Sprite implements SuiDataCallback, IAsyncPanel {
+    export class Panel extends egret.Sprite implements SuiDataCallback, IAsyncPanel {
         /**
          * 背景/底
          */
@@ -13387,7 +13421,7 @@ declare namespace jy {
         static modalAlpha: Const;
         protected _readyState: RequestState;
         constructor();
-        readonly isReady: boolean;
+        get isReady(): boolean;
         protected init(): void;
         bind(key: string, className: string, ...otherDepends: string[]): void;
         startSync(): void;
@@ -13404,7 +13438,8 @@ declare namespace jy {
          */
         skinDataComplete(): void;
         protected modalToStage(): void;
-        isModal: boolean;
+        get isModal(): boolean;
+        set isModal(value: boolean);
         protected _mTouchClose: boolean;
         /**
          * 设置模式窗口的灰色区域是否可以点击关闭面板
@@ -13432,9 +13467,10 @@ declare namespace jy {
          * @protected
          */
         hide(): void;
-        protected readonly isShow: boolean;
+        protected get isShow(): boolean;
         show(): void;
     }
+    export {};
 }
 declare namespace jy {
     /**
@@ -13592,7 +13628,7 @@ declare namespace jy {
         /**
          * 设置资源标识
          */
-        source: string;
+        set source(value: string);
         /**
          * 销毁图片
          */
@@ -13653,10 +13689,12 @@ declare namespace jy {
     }
     class ListItemRenderer<T, S extends ListItemRenderSkin> extends egret.EventDispatcher implements ListItemRender<T>, SelectableComponents {
         private _idx;
-        index: number;
+        get index(): number;
+        set index(value: number);
         protected _data: T;
         private _dataChange;
-        dataChange: boolean;
+        get dataChange(): boolean;
+        set dataChange(value: boolean);
         skinlib: string;
         skinClass: string;
         /**
@@ -13691,7 +13729,8 @@ declare namespace jy {
         bindComponent(): void;
         private onTouchTap;
         protected $setData(value: T): void;
-        data: T;
+        get data(): T;
+        set data(value: T);
         /**
          * 设置容器
          *
@@ -13700,8 +13739,9 @@ declare namespace jy {
          * @memberOf ListItemRenderer
          */
         setContainer(value: egret.DisplayObjectContainer): this;
-        skin: S;
+        set skin(value: S);
         protected $setSkin(value: S): void;
+        get skin(): S;
         /**
          * 根据数据处理视图
          *
@@ -13720,11 +13760,12 @@ declare namespace jy {
          * 获取视图
          * @readonly
          */
-        readonly view: S;
+        get view(): S;
         private _visible;
-        visible: boolean;
+        set visible(value: boolean);
         protected $setVisible(value: boolean): void;
-        selected: boolean;
+        get visible(): boolean;
+        set selected(value: boolean);
         /**
          * 设置视图的坐标
          *
@@ -13747,6 +13788,7 @@ declare namespace jy {
         }): any;
         protected $setSelected(value: boolean): void;
         dispatch(type: Key, data?: any): boolean;
+        get selected(): boolean;
         /**
          * 子类重写
          * 销毁组件
@@ -13780,7 +13822,7 @@ declare namespace jy {
          * 作为依赖者的Helper
          */
         protected _dependerHelper: DependerHelper;
-        readonly isReady: boolean;
+        get isReady(): boolean;
         startSync(): void;
     }
 }
@@ -13817,7 +13859,7 @@ declare namespace jy {
          *
          * @type {number}
          */
-        readonly totalpageCount: number;
+        get totalpageCount(): number;
         bindObj(content: egret.DisplayObject, scrollRect: egret.Rectangle, scrollbar?: ScrollBar): void;
         protected onDragStart(e: egret.TouchEvent): void;
         protected onDragEnd(e: egret.TouchEvent): void;
@@ -13930,12 +13972,12 @@ declare namespace jy {
         protected _w: number;
         noDrawBG: boolean;
         bg: egret.Bitmap;
-        readonly w: number;
+        get w(): number;
         /**
          * 根据render的最下方，得到的最大高度
          */
         protected _h: number;
-        readonly h: number;
+        get h(): number;
         /**
          * 水平间距
          *
@@ -13993,7 +14035,7 @@ declare namespace jy {
          *
          * @readonly
          */
-        container: egret.Sprite;
+        get container(): egret.Sprite;
         /**
          * Creates an instance of PageList.
          * @param {ClassFactory<R> | Creator<R>} renderfactory
@@ -14001,6 +14043,7 @@ declare namespace jy {
          */
         constructor(renderfactory: ClassFactory<R> | Creator<R>, option?: PageListOption);
         protected init(option: PageListOption): void;
+        set container(con: egret.Sprite);
         displayList(data?: T[]): this;
         /**
          * 基于容器原始坐标进行排布
@@ -14028,8 +14071,10 @@ declare namespace jy {
         protected reCalc(): void;
         $setSelectedIndex(value: number): void;
         private moveScroll;
-        tweenX: number;
-        tweenY: number;
+        get tweenX(): number;
+        set tweenX(value: number);
+        get tweenY(): number;
+        set tweenY(value: number);
         /**
          * 滚动到指定index
          */
@@ -14075,13 +14120,13 @@ declare namespace jy {
          *
          * @readonly
          */
-        readonly showStart: number;
+        get showStart(): number;
         /**
          * 在舞台之上的结束索引
          *
          * @readonly
          */
-        readonly showEnd: number;
+        get showEnd(): number;
         protected _lastRect: egret.Rectangle;
         checkViewRect(): void;
     }
@@ -14339,7 +14384,7 @@ declare namespace jy {
          * 使用计数
          */
         using: number;
-        readonly isStatic: boolean;
+        get isStatic(): boolean;
         readonly uri: string;
         lastUseTime: number;
         /**
@@ -14843,7 +14888,8 @@ declare namespace jy {
          */
         setVerticalAlign(value: LayoutTypeVertical): void;
         protected $setValue(val: string | number): void;
-        value: string | number;
+        set value(val: string | number);
+        get value(): string | number;
         $getWidth(): number;
         protected checkAlign(): void;
         dispose(): void;
@@ -15002,14 +15048,18 @@ declare namespace jy {
         private _maxValue;
         constructor();
         bindChildren(): void;
-        width: number;
+        set width(value: number);
+        get width(): number;
         private setMinValue;
         private addValue;
         private subValue;
         private setMaxValue;
-        value: number;
-        minValue: number;
-        maxValue: number;
+        set value(val: number);
+        get value(): number;
+        set minValue(value: number);
+        get minValue(): number;
+        set maxValue(value: number);
+        get maxValue(): number;
     }
     class NumericStepperCreator extends BaseCreator<NumericStepper> {
         private uiData;
@@ -15074,15 +15124,16 @@ declare namespace jy {
         useMask: boolean;
         protected _skin: ProgressBarSkinDele;
         constructor();
+        get labelFun(): (value: number, maxValue: number) => string;
         /**自定义文本显示方法*/
-        labelFun: (value: number, maxValue: number) => string;
+        set labelFun(value: (value: number, maxValue: number) => string);
         /**
          * 设置进度条宽度
          *
          * @param {number} width
          */
         setWidth(width: number): void;
-        skin: ProgressBarSkinDele;
+        set skin(skin: ProgressBarSkinDele);
         progress(value: number, maxValue: number): void;
         updateLabel(): void;
         getPercent(): number;
@@ -15127,8 +15178,9 @@ declare namespace jy {
         constructor();
         protected initBaseContainer(): void;
         /**滚动条方式 0：垂直，1：水平 defalut:0*/
+        set scrollType(value: ScrollDirection);
         /**滚动条方式 0：垂直，1：水平 defalut:0*/
-        scrollType: ScrollDirection;
+        get scrollType(): ScrollDirection;
         /**
          * 设置滚动条的底与默认尺寸
          *
@@ -15146,13 +15198,16 @@ declare namespace jy {
         /**
          * 滚动条背景尺寸
          */
-        bgSize: number;
+        set bgSize(value: number);
+        get bgSize(): number;
         /**
          * 滑块的尺寸
          */
-        barSize: number;
+        set barSize(value: number);
+        get barSize(): number;
         /**当垂直滚动时，此值为滑块的宽度，当水平滚动时，此值为滑块的高度 */
-        supportSize: number;
+        set supportSize(value: number);
+        get supportSize(): number;
         protected $setSupportSize(_supportSize: number): void;
         protected $setBarSize(_barSize: number): void;
         protected $setBgSize(_bgSize: number): void;
@@ -15195,7 +15250,7 @@ declare namespace jy {
         constructor();
         private addListener;
         private onAddToStage;
-        barEnabled: boolean;
+        set barEnabled(value: boolean);
         private bgClick;
         private bgOut;
         private onThumbBegin;
@@ -15215,21 +15270,24 @@ declare namespace jy {
          * @param {egret.Bitmap} tb (description)
          */
         setThumb(tb: egret.Bitmap): void;
-        value: number;
+        set value(val: number);
+        get value(): number;
         /**
          * 设置底条宽度
          */
-        width: number;
+        set width(value: number);
         /**
          * 设置底条高度
          */
-        height: number;
-        maxVlaue: number;
-        minValue: number;
+        set height(value: number);
+        get width(): number;
+        get height(): number;
+        set maxVlaue(value: number);
+        set minValue(value: number);
         /**
          * 滑块移动一个单位的值
          */
-        step: number;
+        set step(value: number);
         private checkStepPixel;
     }
     class SliderCreator extends BaseCreator<Slider> {
@@ -15280,23 +15338,27 @@ declare namespace jy {
          * @static
          */
         static getCountString: (count: number) => string;
-        data: any;
+        set data(value: any);
         /**
          * 设置数据，只允许子类调用
          * @protected
          */
         $setData<T>(value: T): void;
-        rect: egret.Rectangle;
-        countTxt: egret.TextField;
-        iconSource: string;
-        count: number;
+        get data(): any;
+        set rect(rect: egret.Rectangle);
+        get rect(): egret.Rectangle;
+        set countTxt(txt: egret.TextField);
+        get countTxt(): egret.TextField;
+        set iconSource(uri: string);
+        set count(value: number);
         /**
          * 数量显示状态<br/>
          * 0 不显示数值<br/>
          * 1 默认显示大于1的数量<br/>
          * 2 大于1的数量，显示数值，超过一万的，会以xxx万显示 默认为2<br/>
          */
-        countShow: SlotCountShow;
+        set countShow(value: SlotCountShow);
+        get countShow(): SlotCountShow;
         refreshCount(): void;
         getCount(): string;
         invalidateDisplay(): void;
@@ -15310,8 +15372,8 @@ declare namespace jy {
          * to be override
          */
         dispose(): void;
-        readonly width: number;
-        readonly height: number;
+        get width(): number;
+        get height(): number;
     }
     /**
      * 格位创建器
@@ -15452,7 +15514,7 @@ declare namespace jy {
     }
 }
 declare namespace jy {
-    const enum LayoutType {
+    export const enum LayoutType {
         /**
          * 全屏
          */
@@ -15550,17 +15612,17 @@ declare namespace jy {
          */
         BOTTOM_RIGHT = 15
     }
-    const enum LayoutTypeVertical {
+    export const enum LayoutTypeVertical {
         TOP = 4,
         MIDDLE = 8,
         BOTTOM = 12
     }
-    const enum LayoutTypeHorizon {
+    export const enum LayoutTypeHorizon {
         LEFT = 1,
         CENTER = 2,
         RIGHT = 3
     }
-    interface LayoutDisplay {
+    export interface LayoutDisplay {
         width?: number;
         height?: number;
         x?: number;
@@ -15569,7 +15631,7 @@ declare namespace jy {
         $layoutSize?: Size;
         display?: egret.DisplayObject;
     }
-    interface LayoutDisplayParent extends Size {
+    export interface LayoutDisplayParent extends Size {
     }
     /**
      * 基于Point位置的布局方式，进行布局
@@ -15591,7 +15653,7 @@ declare namespace jy {
      * @author 3tion
      *
      */
-    const Layout: {
+    export const Layout: {
         /**
          * 对DisplayObject，基于父级进行排布
          *
@@ -15653,6 +15715,7 @@ declare namespace jy {
             bottom: number;
         };
     };
+    export {};
 }
 declare namespace jy {
     /**
@@ -16113,7 +16176,7 @@ declare namespace jy {
          *
          * @readonly
          */
-        readonly selected: ReadonlyArray<IGroupItem>;
+        get selected(): ReadonlyArray<IGroupItem>;
         clear(): void;
     }
 }
