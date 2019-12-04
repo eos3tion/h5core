@@ -48,5 +48,9 @@ declare namespace jy {
 		 * 可选参数 旋转
 		 */
 		rotation?: number;
+		/**
+		 * 可选参数 分组名称
+		 */
+		group?: string;
 	}
 }
