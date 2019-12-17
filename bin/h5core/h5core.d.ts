@@ -11933,6 +11933,7 @@ declare namespace jy {
          */
         constructor(renderfactory: ClassFactory<R> | Creator<R>, option?: PageListOption);
         protected init(option: PageListOption): void;
+        resize(width?: number, height?: number): void;
         set container(con: egret.Sprite);
         displayList(data?: T[]): this;
         /**

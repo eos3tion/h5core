@@ -236,12 +236,29 @@ namespace jy {
             if (!noScroller) {
                 let scroller = this.scroller = new Scroller(scrollerOption);
                 scroller.scrollType = this.scrollType;
-                scroller.bindObj2(con, con.suiRawRect);
+                scroller.bindObj2(con, con.suiRawRect.clone());
             }
 
 
         }
 
+        resize(width?: number, height?: number) {
+            let con = this._con;
+            if (con) {
+                let rect = con.scrollRect;
+                if (rect) {
+                    if (!isNaN(+width)) {
+                        rect.width = width;
+                    }
+                    if (!isNaN(+height)) {
+                        rect.height = height;
+                    }
+                    con.scrollRect = rect;
+                    this._lastRect = null;
+                    this.checkViewRect();
+                }
+            }
+        }
 
 
 
