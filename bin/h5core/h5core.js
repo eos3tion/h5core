@@ -18839,7 +18839,24 @@ var jy;
             if (!noScroller) {
                 var scroller = this.scroller = new jy.Scroller(scrollerOption);
                 scroller.scrollType = this.scrollType;
-                scroller.bindObj2(con, con.suiRawRect);
+                scroller.bindObj2(con, con.suiRawRect.clone());
+            }
+        };
+        PageList.prototype.resize = function (width, height) {
+            var con = this._con;
+            if (con) {
+                var rect = con.scrollRect;
+                if (rect) {
+                    if (!isNaN(+width)) {
+                        rect.width = width;
+                    }
+                    if (!isNaN(+height)) {
+                        rect.height = height;
+                    }
+                    con.scrollRect = rect;
+                    this._lastRect = null;
+                    this.checkViewRect();
+                }
             }
         };
         PageList.prototype.displayList = function (data) {
