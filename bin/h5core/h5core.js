@@ -15593,9 +15593,15 @@ var jy;
                     if (!isNaN(+height)) {
                         rect.height = height;
                     }
-                    con.scrollRect = rect;
                     this._lastRect = null;
                     this.checkViewRect();
+                    if (width >= this._w) {
+                        rect.x = 0;
+                    }
+                    if (height >= this._h) {
+                        rect.y = 0;
+                    }
+                    con.scrollRect = rect;
                 }
             }
         };
