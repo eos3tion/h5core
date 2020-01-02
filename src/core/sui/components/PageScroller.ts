@@ -112,7 +112,7 @@ namespace jy {
             let pagederiction = page > this.currentPage ? -1 : 1;
             this._scrollToPage = page;
             this._lastFrameTime = Global.now;
-            if (now - this._lastMoveTime < 150) {
+            if (now - this._lastFrameTime < 150) {
                 //检测手势速度
                 //eg：当前在2.8页，即玩家意图从第2页翻到第三页，原本手势是从右向左滑动，但是在最后松开的时候，向右猛拉
                 //此时判断手势速度，大于指定值，返回到第2页，否则移动到第三页

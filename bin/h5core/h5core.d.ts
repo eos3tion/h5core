@@ -2511,14 +2511,9 @@ declare namespace jy {
     interface ScrollerOption extends DragOption {
     }
     class Scroller extends egret.EventDispatcher {
-        /**
-         * 开始拖拽时的坐标
-         */
-        _startPos: number;
         protected _scrollbar: ScrollBar;
         protected _content: egret.DisplayObject;
         protected _scrollType: ScrollDirection;
-        protected _lastMoveTime: number;
         protected _lastTargetPos: number;
         /***滑块移动一像素，target滚动的距离*/
         protected _piexlDistance: number;
@@ -2531,7 +2526,16 @@ declare namespace jy {
         /**速度递减速率 */
         blockSpeed: number;
         protected _useScrollBar: boolean;
+        /**
+         * 多帧拖拽的累计偏移量
+         */
+        protected _offsets: number;
+        /**
+         *
+         */
+        protected _offCount: number;
         protected _moveSpeed: number;
+        protected _dragSt: number;
         protected _lastFrameTime: number;
         protected _deriction: ScrollDirection;
         protected _key: PosKey;
@@ -2569,6 +2573,7 @@ declare namespace jy {
         drawTouchArea(content?: egret.Shape): void;
         bindObj2(content: egret.DisplayObject, scrollRect: egret.Rectangle, scrollbar?: ScrollBar): void;
         protected onResize(): void;
+        protected onTouchBegin(): void;
         protected onDragStart(e: egret.TouchEvent): void;
         /**
          * 停止拖拽，避免有些情况下，需要主动停止拖拽的情况
@@ -12171,7 +12176,6 @@ declare namespace jy {
         ScrollerDragStart = -1051,
         /**
          * Scroller 停止拖拽
-         * data {number} 停止拖拽时的坐标和开始拖拽时坐标的差值
          */
         ScrollerDragEnd = -1050,
         /**
