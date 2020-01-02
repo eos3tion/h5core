@@ -4635,6 +4635,14 @@ var jy;
             _this.minEndSpeed = 0.08;
             /**速度递减速率 */
             _this.blockSpeed = 0.98;
+            /**
+             * 多帧拖拽的累计偏移量
+             */
+            _this._offsets = 0;
+            /**
+             *
+             */
+            _this._offCount = 0;
             _this._moveSpeed = 0;
             _this._deriction = 0 /* Vertical */;
             _this._key = "y" /* Y */;
@@ -4710,6 +4718,7 @@ var jy;
                     old.off(-1999 /* Resize */, this.onResize, this);
                     jy.looseDrag(old);
                     this.drag = undefined;
+                    old.off("touchBegin" /* TOUCH_BEGIN */, this.onTouchBegin, this);
                     old.off(-1090 /* DragStart */, this.onDragStart, this);
                     old.off(-1089 /* DragMove */, this.onDragMove, this);
                     old.off(-1088 /* DragEnd */, this.onDragEnd, this);
@@ -4717,6 +4726,7 @@ var jy;
                 this._content = content;
                 if (content) {
                     this.drag = jy.bindDrag(content, this.opt);
+                    content.on("touchBegin" /* TOUCH_BEGIN */, this.onTouchBegin, this);
                     content.on(-1090 /* DragStart */, this.onDragStart, this);
                     content.on(-1999 /* Resize */, this.onResize, this);
                 }
@@ -4773,6 +4783,14 @@ var jy;
                 this.scaleBar();
             }
         };
+        Scroller.prototype.onTouchBegin = function () {
+            this._moveSpeed = 0;
+            var content = this._content;
+            if (!content) {
+                return;
+            }
+            content.off("enterFrame" /* ENTER_FRAME */, this.onRender, this);
+        };
         Scroller.prototype.onDragStart = function (e) {
             var content = this._content;
             if (!content) {
@@ -4781,8 +4799,10 @@ var jy;
             if (content[this._measureKey] < content.scrollRect[this._sizeKey]) {
                 return;
             }
-            this._lastTargetPos = this._startPos = this.getDragPos(e);
-            this._lastMoveTime = jy.Global.now;
+            this._lastTargetPos = this.getDragPos(e);
+            this._dragSt = jy.Global.now;
+            this._offsets = 0;
+            this._offCount = 0;
             this.showBar();
             content.on(-1089 /* DragMove */, this.onDragMove, this);
             content.on(-1088 /* DragEnd */, this.onDragEnd, this);
@@ -4806,14 +4826,9 @@ var jy;
         Scroller.prototype.onDragMove = function (e) {
             var currentPos = this.getDragPos(e);
             var sub = currentPos - this._lastTargetPos;
-            this._deriction = sub > 0 ? 1 : -1;
-            sub = Math.abs(sub);
-            var now = jy.Global.now;
-            var subTime = now - this._lastMoveTime;
-            this._lastMoveTime = now;
+            this._offsets += sub;
+            this._offCount++;
             this._lastTargetPos = currentPos;
-            this._moveSpeed = subTime > 0 ? sub / subTime : 0;
-            sub = sub * this.globalspeed * this._deriction;
             this.doScrollContent(sub);
         };
         Scroller.prototype.stopTouchTween = function () {
@@ -4848,16 +4863,22 @@ var jy;
                 return;
             }
             var currentPos = this.getDragPos(e);
+            var _a = this, _offsets = _a._offsets, _offCount = _a._offCount;
+            _offsets += this._lastTargetPos - currentPos;
+            _offCount++;
+            this._offsets = _offsets;
+            this._offCount = _offCount;
+            var sub = _offsets / _offCount;
+            this._deriction = sub > 0 ? 1 : -1;
+            sub = Math.abs(sub);
             var now = jy.Global.now;
-            if (now - this._lastMoveTime < 150) {
-                content.on("enterFrame" /* ENTER_FRAME */, this.onRender, this);
-                this._lastFrameTime = this._lastMoveTime;
-            }
-            else {
-                this.hideBar();
-            }
+            var subTime = now - this._dragSt;
+            this._lastTargetPos = currentPos;
+            this._moveSpeed = subTime > 0 ? sub / subTime : 0;
+            content.on("enterFrame" /* ENTER_FRAME */, this.onRender, this);
+            this._lastFrameTime = now;
             this.stopDrag();
-            this.dispatch(-1050 /* ScrollerDragEnd */, currentPos - this._startPos);
+            this.dispatch(-1050 /* ScrollerDragEnd */);
         };
         Scroller.prototype.showBar = function () {
             if (this._useScrollBar && !this.alwaysShowBar) {
@@ -18569,7 +18590,7 @@ var jy;
             var pagederiction = page > this.currentPage ? -1 : 1;
             this._scrollToPage = page;
             this._lastFrameTime = jy.Global.now;
-            if (now - this._lastMoveTime < 150) {
+            if (now - this._lastFrameTime < 150) {
                 //检测手势速度
                 //eg：当前在2.8页，即玩家意图从第2页翻到第三页，原本手势是从右向左滑动，但是在最后松开的时候，向右猛拉
                 //此时判断手势速度，大于指定值，返回到第2页，否则移动到第三页

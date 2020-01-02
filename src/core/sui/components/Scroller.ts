@@ -9,17 +9,12 @@ namespace jy {
 
 
     export class Scroller extends egret.EventDispatcher {
-        /**
-         * 开始拖拽时的坐标
-         */
-        _startPos: number;
         protected _scrollbar: ScrollBar;
 
         protected _content: egret.DisplayObject;
 
         protected _scrollType = ScrollDirection.Vertical;
 
-        protected _lastMoveTime: number;
 
         protected _lastTargetPos: number;
 
@@ -40,9 +35,18 @@ namespace jy {
 
         protected _useScrollBar: boolean;
 
+        /**
+         * 多帧拖拽的累计偏移量
+         */
+        protected _offsets = 0;
+        /**
+         * 
+         */
+        protected _offCount = 0;
 
         protected _moveSpeed = 0;
 
+        protected _dragSt: number;
         protected _lastFrameTime: number;
 
         protected _deriction = ScrollDirection.Vertical;
@@ -121,6 +125,7 @@ namespace jy {
                     old.off(EventConst.Resize, this.onResize, this);
                     looseDrag(old);
                     this.drag = undefined;
+                    old.off(EgretEvent.TOUCH_BEGIN, this.onTouchBegin, this);
                     old.off(EventConst.DragStart, this.onDragStart, this);
                     old.off(EventConst.DragMove, this.onDragMove, this);
                     old.off(EventConst.DragEnd, this.onDragEnd, this);
@@ -128,6 +133,7 @@ namespace jy {
                 this._content = content;
                 if (content) {
                     this.drag = bindDrag(content, this.opt);
+                    content.on(EgretEvent.TOUCH_BEGIN, this.onTouchBegin, this);
                     content.on(EventConst.DragStart, this.onDragStart, this);
                     content.on(EventConst.Resize, this.onResize, this);
                 }
@@ -187,6 +193,15 @@ namespace jy {
             }
         }
 
+        protected onTouchBegin() {
+            this._moveSpeed = 0;
+            let content = this._content;
+            if (!content) {
+                return;
+            }
+            content.off(EgretEvent.ENTER_FRAME, this.onRender, this);
+        }
+
         protected onDragStart(e: egret.TouchEvent) {
             let content = this._content;
             if (!content) {
@@ -195,8 +210,10 @@ namespace jy {
             if (content[this._measureKey] < content.scrollRect[this._sizeKey]) {
                 return
             }
-            this._lastTargetPos = this._startPos = this.getDragPos(e);
-            this._lastMoveTime = Global.now;
+            this._lastTargetPos = this.getDragPos(e);
+            this._dragSt = Global.now;
+            this._offsets = 0;
+            this._offCount = 0;
             this.showBar();
             content.on(EventConst.DragMove, this.onDragMove, this);
             content.on(EventConst.DragEnd, this.onDragEnd, this);
@@ -223,14 +240,9 @@ namespace jy {
         protected onDragMove(e: egret.TouchEvent) {
             let currentPos = this.getDragPos(e);
             let sub = currentPos - this._lastTargetPos;
-            this._deriction = sub > 0 ? 1 : -1;
-            sub = Math.abs(sub);
-            let now = Global.now;
-            let subTime = now - this._lastMoveTime;
-            this._lastMoveTime = now;
+            this._offsets += sub;
+            this._offCount++;
             this._lastTargetPos = currentPos;
-            this._moveSpeed = subTime > 0 ? sub / subTime : 0;
-            sub = sub * this.globalspeed * this._deriction;
             this.doScrollContent(sub);
         }
 
@@ -268,16 +280,24 @@ namespace jy {
                 return;
             }
             let currentPos = this.getDragPos(e);
+            let { _offsets, _offCount } = this;
+            _offsets += this._lastTargetPos - currentPos;
+            _offCount++;
+            this._offsets = _offsets;
+            this._offCount = _offCount;
+            let sub = _offsets / _offCount;
+            this._deriction = sub > 0 ? 1 : -1;
+            sub = Math.abs(sub);
             let now = Global.now;
-            if (now - this._lastMoveTime < 150) {
-                content.on(EgretEvent.ENTER_FRAME, this.onRender, this);
-                this._lastFrameTime = this._lastMoveTime;
-            }
-            else {
-                this.hideBar();
-            }
+            let subTime = now - this._dragSt;
+            this._lastTargetPos = currentPos;
+            this._moveSpeed = subTime > 0 ? sub / subTime : 0;
+
+            content.on(EgretEvent.ENTER_FRAME, this.onRender, this);
+            this._lastFrameTime = now;
+
             this.stopDrag();
-            this.dispatch(EventConst.ScrollerDragEnd, currentPos - this._startPos);
+            this.dispatch(EventConst.ScrollerDragEnd);
         }
 
         public showBar() {

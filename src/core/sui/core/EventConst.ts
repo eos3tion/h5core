@@ -56,7 +56,6 @@ declare namespace jy {
         ScrollerDragStart,
         /** 
          * Scroller 停止拖拽
-         * data {number} 停止拖拽时的坐标和开始拖拽时坐标的差值
          */
         ScrollerDragEnd,
 
