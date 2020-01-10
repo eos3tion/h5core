@@ -24,20 +24,12 @@ namespace jy {
             let stage = host.stage || egret.sys.$TempStage;
             let basis = this._basis;
             let sw = stage.stageWidth, sh = stage.stageHeight, bw = basis.width, bh = basis.height;
-
-            let dw = sw, dh = sh, lw = sw, lh = sh;
-            let scale = 1;
-            if (sw > bw || sh > bh) { //屏幕宽高，任意一边大于基准宽高
-                let result = getFixedLayout(sw, sh, bw, bh, true);
-                dh = result.dh;
-                dw = result.dw;
-                lw = result.lw;
-                lh = result.lh;
-                scale = result.scale;
-            } else {
-                dw = bw;
-                dh = bh;
-            }
+            let result = getFixedLayout(sw, sh, bw, bh, true);
+            let dh = result.dh;
+            let dw = result.dw;
+            let lw = result.lw;
+            let lh = result.lh;
+            let scale = result.scale;
             this._lw = lw;
             this._lh = lh;
             host.scaleY = host.scaleX = scale;
