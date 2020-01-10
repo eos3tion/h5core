@@ -22127,20 +22127,12 @@ var jy;
             var stage = host.stage || egret.sys.$TempStage;
             var basis = this._basis;
             var sw = stage.stageWidth, sh = stage.stageHeight, bw = basis.width, bh = basis.height;
-            var dw = sw, dh = sh, lw = sw, lh = sh;
-            var scale = 1;
-            if (sw > bw || sh > bh) { //屏幕宽高，任意一边大于基准宽高
-                var result = jy.getFixedLayout(sw, sh, bw, bh, true);
-                dh = result.dh;
-                dw = result.dw;
-                lw = result.lw;
-                lh = result.lh;
-                scale = result.scale;
-            }
-            else {
-                dw = bw;
-                dh = bh;
-            }
+            var result = jy.getFixedLayout(sw, sh, bw, bh, true);
+            var dh = result.dh;
+            var dw = result.dw;
+            var lw = result.lw;
+            var lh = result.lh;
+            var scale = result.scale;
             this._lw = lw;
             this._lh = lh;
             host.scaleY = host.scaleX = scale;
