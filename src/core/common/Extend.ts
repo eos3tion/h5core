@@ -390,15 +390,19 @@ String.zeroize = function (value: jy.Key, length = 2) {
     let str = "" + value;
     let zeros: string;
     let len = length - str.length;
-    if (length < zeroLen) {
-        zeros = _zeros.slice(0, len);
-    } else {
-        zeros = "";
-        for (let i = 0; i < len; i++) {
-            zeros += "0";
+    if (len > 0) {
+        if (length < zeroLen) {
+            zeros = _zeros.slice(0, len);
+        } else {
+            zeros = "";
+            for (let i = 0; i < len; i++) {
+                zeros += "0";
+            }
         }
+        return zeros + str;
+    } else {
+        return str;
     }
-    return zeros + str;
 };
 
 String.subHandler = {};

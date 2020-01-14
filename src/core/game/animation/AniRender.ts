@@ -532,7 +532,7 @@ namespace jy {
 
     function checkStart(aniInfo: AniInfo, loop: number, startFrame: number) {
         let actionInfo = aniInfo.actionInfo;
-        if (loop || (loop == undefined && actionInfo && actionInfo.isCircle)) {
+        if (actionInfo && (loop || (loop == undefined && actionInfo.isCircle))) {
             let total = aniInfo.actionInfo.frames.length;
             if (startFrame > total) {
                 startFrame = startFrame % total;

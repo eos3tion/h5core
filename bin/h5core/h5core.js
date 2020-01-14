@@ -248,16 +248,21 @@ String.zeroize = function (value, length) {
     var str = "" + value;
     var zeros;
     var len = length - str.length;
-    if (length < zeroLen) {
-        zeros = _zeros.slice(0, len);
+    if (len > 0) {
+        if (length < zeroLen) {
+            zeros = _zeros.slice(0, len);
+        }
+        else {
+            zeros = "";
+            for (var i = 0; i < len; i++) {
+                zeros += "0";
+            }
+        }
+        return zeros + str;
     }
     else {
-        zeros = "";
-        for (var i = 0; i < len; i++) {
-            zeros += "0";
-        }
+        return str;
     }
-    return zeros + str;
 };
 String.subHandler = {};
 String.regSubHandler = function (key, handler) {
@@ -11753,7 +11758,7 @@ var jy;
     __reflect(AniRender.prototype, "jy.AniRender", ["jy.IRecyclable"]);
     function checkStart(aniInfo, loop, startFrame) {
         var actionInfo = aniInfo.actionInfo;
-        if (loop || (loop == undefined && actionInfo && actionInfo.isCircle)) {
+        if (actionInfo && (loop || (loop == undefined && actionInfo.isCircle))) {
             var total = aniInfo.actionInfo.frames.length;
             if (startFrame > total) {
                 startFrame = startFrame % total;
