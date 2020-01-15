@@ -7866,6 +7866,16 @@ declare namespace jy {
          * 秒补0
          */
         ss?: boolean;
+        /**
+         * 如果计算出如：`0小时31分`这种
+         * true  则显示 `31分`
+         * false 则显示 `0小时31分`
+         *
+         * 但是如果是 `1天0小时31分`这种
+         * `小时`虽然是`0`，但比`小时`大的单位`天`有值
+         * true 和 false 都会显示 `1天0小时31分`
+         */
+        hideZero?: boolean;
     }
     interface DateUtilsInterface {
         /**
