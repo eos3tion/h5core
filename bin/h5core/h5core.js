@@ -10098,38 +10098,47 @@ var jy;
             if (typeof format === "number") {
                 format = getDefaultCDFOption(format);
             }
+            var hideZero = format.hideZero;
             var out = "";
             var tmp = format.d;
             if (tmp) { // 需要显示天
                 var day = leftTime / 86400000 /* ONE_DAY */ >> 0;
-                leftTime = leftTime - day * 86400000 /* ONE_DAY */;
-                out += tmp.substitute(day);
+                if (!hideZero || day) {
+                    leftTime = leftTime - day * 86400000 /* ONE_DAY */;
+                    out += tmp.substitute(day);
+                }
             }
             tmp = format.h;
             if (tmp) { // 需要显示小时
                 var hour = leftTime / 3600000 /* ONE_HOUR */ >> 0;
-                leftTime = leftTime - hour * 3600000 /* ONE_HOUR */;
-                if (format.hh) {
-                    hour = hour.zeroize(2);
+                if (out || !hideZero || hour) {
+                    leftTime = leftTime - hour * 3600000 /* ONE_HOUR */;
+                    if (format.hh) {
+                        hour = hour.zeroize(2);
+                    }
+                    out += tmp.substitute(hour);
                 }
-                out += tmp.substitute(hour);
             }
             tmp = format.m;
             if (tmp) { // 需要显示分钟
                 var minute = leftTime / 60000 /* ONE_MINUTE */ >> 0;
-                leftTime = leftTime - minute * 60000 /* ONE_MINUTE */;
-                if (format.mm) {
-                    minute = minute.zeroize(2);
+                if (out || !hideZero || minute) {
+                    leftTime = leftTime - minute * 60000 /* ONE_MINUTE */;
+                    if (format.mm) {
+                        minute = minute.zeroize(2);
+                    }
+                    out += tmp.substitute(minute);
                 }
-                out += tmp.substitute(minute);
             }
             tmp = format.s;
             if (tmp) {
                 var second = leftTime / 1000 /* ONE_SECOND */ >> 0;
-                if (format.ss) {
-                    second = second.zeroize(2);
+                if (out || !hideZero || second) {
+                    if (format.ss) {
+                        second = second.zeroize(2);
+                    }
+                    out += tmp.substitute(second);
                 }
-                out += tmp.substitute(second);
             }
             return out;
         }

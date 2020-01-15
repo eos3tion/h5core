@@ -105,6 +105,17 @@ namespace jy {
 		 * 秒补0
 		 */
 		ss?: boolean;
+
+		/**
+		 * 如果计算出如：`0小时31分`这种  
+		 * true  则显示 `31分`  
+		 * false 则显示 `0小时31分`  
+		 * 
+		 * 但是如果是 `1天0小时31分`这种  
+		 * `小时`虽然是`0`，但比`小时`大的单位`天`有值  
+		 * true 和 false 都会显示 `1天0小时31分`
+		 */
+		hideZero?: boolean;
 	}
 	export interface DateUtilsInterface {
         /**
@@ -370,38 +381,47 @@ namespace jy {
 			if (typeof format === "number") {
 				format = getDefaultCDFOption(format);
 			}
+			let hideZero = format.hideZero;
 			let out = "";
 			let tmp = format.d;
 			if (tmp) {// 需要显示天
 				let day = leftTime / Time.ONE_DAY >> 0;
-				leftTime = leftTime - day * Time.ONE_DAY;
-				out += tmp.substitute(day);
+				if (!hideZero || day) {
+					leftTime = leftTime - day * Time.ONE_DAY;
+					out += tmp.substitute(day);
+				}
 			}
 			tmp = format.h;
 			if (tmp) {// 需要显示小时
 				let hour: any = leftTime / Time.ONE_HOUR >> 0;
-				leftTime = leftTime - hour * Time.ONE_HOUR;
-				if (format.hh) {
-					hour = hour.zeroize(2);
+				if (out || !hideZero || hour) {
+					leftTime = leftTime - hour * Time.ONE_HOUR;
+					if (format.hh) {
+						hour = hour.zeroize(2);
+					}
+					out += tmp.substitute(hour);
 				}
-				out += tmp.substitute(hour);
 			}
 			tmp = format.m;
 			if (tmp) {// 需要显示分钟
 				let minute: any = leftTime / Time.ONE_MINUTE >> 0;
-				leftTime = leftTime - minute * Time.ONE_MINUTE;
-				if (format.mm) {
-					minute = minute.zeroize(2);
+				if (out || !hideZero || minute) {
+					leftTime = leftTime - minute * Time.ONE_MINUTE;
+					if (format.mm) {
+						minute = minute.zeroize(2);
+					}
+					out += tmp.substitute(minute);
 				}
-				out += tmp.substitute(minute);
 			}
 			tmp = format.s;
 			if (tmp) {
 				let second: any = leftTime / Time.ONE_SECOND >> 0;
-				if (format.ss) {
-					second = second.zeroize(2);
+				if (out || !hideZero || second) {
+					if (format.ss) {
+						second = second.zeroize(2);
+					}
+					out += tmp.substitute(second);
 				}
-				out += tmp.substitute(second);
 			}
 			return out;
 		}
