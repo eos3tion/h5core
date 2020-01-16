@@ -69,6 +69,15 @@ namespace jy {
             return _decode(this, value >> 6, value & 63);
         }
 
+        /**
+         * 按小时分钟解析
+         * @param hour 
+         * @param minute 
+         */
+        decode2(hour: number, minute: number) {
+            return _decode(this, hour, minute);
+        }
+
 
         /**
          * 从字符串中解析
