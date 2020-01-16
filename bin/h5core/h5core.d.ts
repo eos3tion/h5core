@@ -8061,6 +8061,12 @@ declare namespace jy {
          */
         decodeBit(value: number): TimeVO;
         /**
+         * 按小时分钟解析
+         * @param hour
+         * @param minute
+         */
+        decode2(hour: number, minute: number): TimeVO;
+        /**
          * 从字符串中解析
          *
          * @param {number} strTime 通过解析器解析的数据
