@@ -58,8 +58,8 @@ namespace jy {
                             render.callback();
                         }
                     }
-                } else {// 不做加载失败的处理
-                    this.state = RequestState.COMPLETE;
+                } else {
+                    this.state = RequestState.FAILED;
                 }
                 this._refList = undefined;
             }

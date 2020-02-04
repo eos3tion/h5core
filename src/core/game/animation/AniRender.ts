@@ -201,9 +201,9 @@ namespace jy {
          * render方法基于
          */
         protected render() {
-            let aniinfo = this.aniInfo;
-            if (aniinfo) {
-                let actionInfo = aniinfo.actionInfo;
+            let aniInfo = this.aniInfo;
+            if (aniInfo) {
+                let actionInfo = aniInfo.actionInfo;
                 if (actionInfo) {
                     let now = Global.now;
                     this.onData(actionInfo, now);
@@ -217,10 +217,13 @@ namespace jy {
          * @param {number} now 时间戳
          */
         public doData(now: number) {
-            if (this.aniInfo) {
-                var actionInfo = this.aniInfo.actionInfo;
+            let aniInfo = this.aniInfo;
+            if (aniInfo) {
+                let actionInfo = aniInfo.actionInfo;
                 if (actionInfo) {
                     this.onData(actionInfo, now);
+                } else if (aniInfo.state == RequestState.FAILED) {
+                    AniRender.recycle(this.guid);
                 }
             }
         }

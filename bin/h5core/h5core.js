@@ -11992,8 +11992,8 @@ var jy;
                         }
                     }
                 }
-                else { // 不做加载失败的处理
-                    this.state = 2 /* COMPLETE */;
+                else {
+                    this.state = -1 /* FAILED */;
                 }
                 this._refList = undefined;
             }
@@ -12128,9 +12128,9 @@ var jy;
          * render方法基于
          */
         AniRender.prototype.render = function () {
-            var aniinfo = this.aniInfo;
-            if (aniinfo) {
-                var actionInfo = aniinfo.actionInfo;
+            var aniInfo = this.aniInfo;
+            if (aniInfo) {
+                var actionInfo = aniInfo.actionInfo;
                 if (actionInfo) {
                     var now = jy.Global.now;
                     this.onData(actionInfo, now);
@@ -12144,10 +12144,14 @@ var jy;
          * @param {number} now 时间戳
          */
         AniRender.prototype.doData = function (now) {
-            if (this.aniInfo) {
-                var actionInfo = this.aniInfo.actionInfo;
+            var aniInfo = this.aniInfo;
+            if (aniInfo) {
+                var actionInfo = aniInfo.actionInfo;
                 if (actionInfo) {
                     this.onData(actionInfo, now);
+                }
+                else if (aniInfo.state == -1 /* FAILED */) {
+                    AniRender.recycle(this.guid);
                 }
             }
         };
