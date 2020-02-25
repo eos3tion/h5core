@@ -2162,58 +2162,56 @@ var jy;
                 var subMsgType = body[3];
                 var value = void 0;
                 var isRepeated = label == 3 /* Repeated */;
-                if (!isRepeated || (tag & 7) != 7) { //自定义  tag & 0b111 == 7 为 数组中 undefined的情况
-                    switch (type) {
-                        case 1 /* Double */:
-                            value = bytes.readPBDouble();
-                            break;
-                        case 2 /* Float */:
-                            value = bytes.readPBFloat();
-                            break;
-                        case 3 /* Int64 */:
-                        case 4 /* UInt64 */:
-                        case 18 /* SInt64 */:
-                            value = bytes.readVarint64(); //理论上项目不使用
-                            break;
-                        case 17 /* SInt32 */:
-                            value = decodeZigzag32(bytes.readVarint());
-                            break;
-                        case 5 /* Int32 */:
-                        case 13 /* Uint32 */:
-                        case 14 /* Enum */:
-                            value = bytes.readVarint();
-                            break;
-                        case 6 /* Fixed64 */:
-                        case 16 /* SFixed64 */:
-                            value = bytes.readFix64(); //理论上项目不使用
-                            break;
-                        case 7 /* Fixed32 */:
-                            value = bytes.readFix32();
-                            break;
-                        case 8 /* Bool */:
-                            value = bytes.readBoolean();
-                            break;
-                        case 9 /* String */:
-                            value = readString(bytes);
-                            break;
-                        case 10 /* Group */: //(protobuf 已弃用)
-                            value = undefined;
-                            if (true) {
-                                jy.ThrowError("\u8BFB\u53D6\u6D88\u606F\u7C7B\u578B\u4E3A\uFF1A" + msgType + "\uFF0C\u7D22\u5F15" + idx + "\u65F6\u6570\u636E\u51FA\u73B0\u5DF2\u5F03\u7528\u7684GROUP\u5206\u7EC4\u7C7B\u578B");
-                            }
-                            break;
-                        case 11 /* Message */: //消息
-                            value = readMessage(bytes, subMsgType);
-                            break;
-                        case 12 /* Bytes */:
-                            value = readBytes(bytes);
-                            break;
-                        case 15 /* SFixed32 */:
-                            value = bytes.readSFix32();
-                            break;
-                        default:
-                            value = readValue(tag, bytes);
-                    }
+                switch (type) {
+                    case 1 /* Double */:
+                        value = bytes.readPBDouble();
+                        break;
+                    case 2 /* Float */:
+                        value = bytes.readPBFloat();
+                        break;
+                    case 3 /* Int64 */:
+                    case 4 /* UInt64 */:
+                    case 18 /* SInt64 */:
+                        value = bytes.readVarint64(); //理论上项目不使用
+                        break;
+                    case 17 /* SInt32 */:
+                        value = decodeZigzag32(bytes.readVarint());
+                        break;
+                    case 5 /* Int32 */:
+                    case 13 /* Uint32 */:
+                    case 14 /* Enum */:
+                        value = bytes.readVarint();
+                        break;
+                    case 6 /* Fixed64 */:
+                    case 16 /* SFixed64 */:
+                        value = bytes.readFix64(); //理论上项目不使用
+                        break;
+                    case 7 /* Fixed32 */:
+                        value = bytes.readFix32();
+                        break;
+                    case 8 /* Bool */:
+                        value = bytes.readBoolean();
+                        break;
+                    case 9 /* String */:
+                        value = readString(bytes);
+                        break;
+                    case 10 /* Group */: //(protobuf 已弃用)
+                        value = undefined;
+                        if (true) {
+                            jy.ThrowError("\u8BFB\u53D6\u6D88\u606F\u7C7B\u578B\u4E3A\uFF1A" + msgType + "\uFF0C\u7D22\u5F15" + idx + "\u65F6\u6570\u636E\u51FA\u73B0\u5DF2\u5F03\u7528\u7684GROUP\u5206\u7EC4\u7C7B\u578B");
+                        }
+                        break;
+                    case 11 /* Message */: //消息
+                        value = readMessage(bytes, subMsgType);
+                        break;
+                    case 12 /* Bytes */:
+                        value = readBytes(bytes);
+                        break;
+                    case 15 /* SFixed32 */:
+                        value = bytes.readSFix32();
+                        break;
+                    default:
+                        value = readValue(tag, bytes);
                 }
                 if (isRepeated) { //repeated
                     var arr = msg[name_4];
@@ -2299,7 +2297,7 @@ var jy;
                     continue;
                 }
                 var value = msg[name_5];
-                if (value == undefined || value === body[4] /* 默认值 */) {
+                if (value == null || value === body[4] /* 默认值 */) {
                     continue;
                 }
                 var type = body[2];
@@ -2313,13 +2311,13 @@ var jy;
                     }
                     for (var key in value) {
                         var element = value[key];
-                        // 针对repeated中无法处理空的占位数组做处理，Protobuf 2 中不支持undefined进行占位  由于 wireType 只使用 0 1 2 3 4 5
-                        // 现在使用 7 作为  undefined 占位使用
-                        if (true && debugOutData) {
-                            arr.push(writeElementTo(element, type, element == undefined ? ((num << 3) | 7) : tag, bytes, subMsgType));
-                        }
-                        else {
-                            writeElementTo(element, type, element == undefined ? ((num << 3) | 7) : tag, bytes, subMsgType);
+                        if (element != null) {
+                            if (true && debugOutData) {
+                                arr.push(writeElementTo(element, type, tag, bytes, subMsgType));
+                            }
+                            else {
+                                writeElementTo(element, type, tag, bytes, subMsgType);
+                            }
                         }
                     }
                 }
