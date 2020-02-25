@@ -329,61 +329,60 @@ namespace jy {
                 let label = body[1];
                 let type = body[2];
                 let subMsgType = body[3];
-                let value;
+                let value: any;
                 let isRepeated = label == PBFieldType.Repeated;
-                if (!isRepeated || (tag & 0b111) != 7) {//自定义  tag & 0b111 == 7 为 数组中 undefined的情况
-                    switch (type) {
-                        case PBType.Double:
-                            value = bytes.readPBDouble();
-                            break;
-                        case PBType.Float:
-                            value = bytes.readPBFloat();
-                            break;
-                        case PBType.Int64:
-                        case PBType.UInt64:
-                        case PBType.SInt64:
-                            value = bytes.readVarint64();//理论上项目不使用
-                            break;
-                        case PBType.SInt32:
-                            value = decodeZigzag32(bytes.readVarint());
-                            break;
-                        case PBType.Int32:
-                        case PBType.Uint32:
-                        case PBType.Enum:
-                            value = bytes.readVarint();
-                            break;
-                        case PBType.Fixed64:
-                        case PBType.SFixed64:
-                            value = bytes.readFix64();//理论上项目不使用
-                            break;
-                        case PBType.Fixed32:
-                            value = bytes.readFix32();
-                            break;
-                        case PBType.Bool:
-                            value = bytes.readBoolean();
-                            break;
-                        case PBType.String:
-                            value = readString(bytes);
-                            break;
-                        case PBType.Group://(protobuf 已弃用)
-                            value = undefined;
-                            if (DEBUG) {
-                                ThrowError(`读取消息类型为：${msgType}，索引${idx}时数据出现已弃用的GROUP分组类型`);
-                            }
-                            break;
-                        case PBType.Message://消息
-                            value = readMessage(bytes, subMsgType);
-                            break;
-                        case PBType.Bytes:
-                            value = readBytes(bytes);
-                            break;
-                        case PBType.SFixed32:
-                            value = bytes.readSFix32();
-                            break;
-                        default:
-                            value = readValue(tag, bytes);
-                    }
+                switch (type) {
+                    case PBType.Double:
+                        value = bytes.readPBDouble();
+                        break;
+                    case PBType.Float:
+                        value = bytes.readPBFloat();
+                        break;
+                    case PBType.Int64:
+                    case PBType.UInt64:
+                    case PBType.SInt64:
+                        value = bytes.readVarint64();//理论上项目不使用
+                        break;
+                    case PBType.SInt32:
+                        value = decodeZigzag32(bytes.readVarint());
+                        break;
+                    case PBType.Int32:
+                    case PBType.Uint32:
+                    case PBType.Enum:
+                        value = bytes.readVarint();
+                        break;
+                    case PBType.Fixed64:
+                    case PBType.SFixed64:
+                        value = bytes.readFix64();//理论上项目不使用
+                        break;
+                    case PBType.Fixed32:
+                        value = bytes.readFix32();
+                        break;
+                    case PBType.Bool:
+                        value = bytes.readBoolean();
+                        break;
+                    case PBType.String:
+                        value = readString(bytes);
+                        break;
+                    case PBType.Group://(protobuf 已弃用)
+                        value = undefined;
+                        if (DEBUG) {
+                            ThrowError(`读取消息类型为：${msgType}，索引${idx}时数据出现已弃用的GROUP分组类型`);
+                        }
+                        break;
+                    case PBType.Message://消息
+                        value = readMessage(bytes, subMsgType);
+                        break;
+                    case PBType.Bytes:
+                        value = readBytes(bytes);
+                        break;
+                    case PBType.SFixed32:
+                        value = bytes.readSFix32();
+                        break;
+                    default:
+                        value = readValue(tag, bytes);
                 }
+
                 if (isRepeated) {//repeated
                     let arr = msg[name];
                     if (!arr) msg[name] = arr = [];
@@ -473,7 +472,7 @@ namespace jy {
                     continue;
                 }
                 let value = msg[name];
-                if (value == undefined || value === body[4]/* 默认值 */) {
+                if (value == null || value === body[4]/* 默认值 */) {
                     continue;
                 }
 
@@ -488,12 +487,12 @@ namespace jy {
                     }
                     for (let key in value) {
                         let element = value[key];
-                        // 针对repeated中无法处理空的占位数组做处理，Protobuf 2 中不支持undefined进行占位  由于 wireType 只使用 0 1 2 3 4 5
-                        // 现在使用 7 作为  undefined 占位使用
-                        if (DEBUG && debugOutData) {
-                            arr.push(writeElementTo(element, type, element == undefined ? ((num << 3) | 7) : tag, bytes, subMsgType));
-                        } else {
-                            writeElementTo(element, type, element == undefined ? ((num << 3) | 7) : tag, bytes, subMsgType);
+                        if (element != null) {
+                            if (DEBUG && debugOutData) {
+                                arr.push(writeElementTo(element, type, tag, bytes, subMsgType));
+                            } else {
+                                writeElementTo(element, type, tag, bytes, subMsgType);
+                            }
                         }
                     }
 
