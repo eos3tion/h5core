@@ -19051,7 +19051,7 @@ var jy;
                             w = itemWidth;
                         }
                         else {
-                            size = this.getSize(v);
+                            size = render.size || this.getSize(v);
                             w = size.width;
                         }
                         var vh = void 0;
@@ -19060,7 +19060,7 @@ var jy;
                         }
                         else {
                             if (!size) {
-                                size = this.getSize(v);
+                                size = render.size || this.getSize(v);
                             }
                             vh = size.height;
                         }
@@ -19500,7 +19500,17 @@ var jy;
                         rec.height = d.itemHeight || suiRect.height;
                     }
                     else {
-                        rec = v;
+                        var size = render.size;
+                        if (size) {
+                            tempRect.x = v.x;
+                            tempRect.y = v.y;
+                            tempRect.width = size.width;
+                            tempRect.height = size.height;
+                            rec = tempRect;
+                        }
+                        else {
+                            rec = v;
+                        }
                     }
                     if (jy.intersects(rec, rect)) {
                         if (!first) {
@@ -19525,6 +19535,7 @@ var jy;
     }(jy.AbsPageList));
     jy.PageList = PageList;
     __reflect(PageList.prototype, "jy.PageList");
+    var tempRect = { x: 0, y: 0, width: 0, height: 0 };
     var define = {
         set: function (rect) {
             egret.DisplayObject.prototype.$setScrollRect.call(this, rect);

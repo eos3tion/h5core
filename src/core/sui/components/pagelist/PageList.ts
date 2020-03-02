@@ -435,7 +435,7 @@ namespace jy {
                         if (itemWidth) {
                             w = itemWidth;
                         } else {
-                            size = this.getSize(v);
+                            size = render.size || this.getSize(v);
                             w = size.width;
                         }
                         let vh: number;
@@ -443,7 +443,7 @@ namespace jy {
                             vh = itemHeight;
                         } else {
                             if (!size) {
-                                size = this.getSize(v);
+                                size = render.size || this.getSize(v);
                             }
                             vh = size.height;
                         }
@@ -895,7 +895,16 @@ namespace jy {
                         rec.width = d.itemWidth || suiRect.width;
                         rec.height = d.itemHeight || suiRect.height;
                     } else {
-                        rec = v;
+                        let size = render.size;
+                        if (size) {
+                            tempRect.x = v.x;
+                            tempRect.y = v.y;
+                            tempRect.width = size.width;
+                            tempRect.height = size.height;
+                            rec = tempRect;
+                        } else {
+                            rec = v;
+                        }
                     }
                     if (intersects(rec, rect)) {
                         if (!first) {
@@ -916,6 +925,8 @@ namespace jy {
             }
         }
     }
+
+    const tempRect = { x: 0, y: 0, width: 0, height: 0 };
 
     const define = {
         set(rect: egret.Rectangle) {

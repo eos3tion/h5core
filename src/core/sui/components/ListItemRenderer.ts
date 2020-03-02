@@ -6,6 +6,11 @@ namespace jy {
 
     export interface ListItemRender<T> extends egret.EventDispatcher, IRecyclable {
 
+        /**
+         * ItemRender的尺寸，用于优化可变大小的Render
+         */
+        size?: Size;
+
         handleView(): void;
 
         dispose(): void;
