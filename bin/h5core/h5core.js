@@ -13227,9 +13227,17 @@ var jy;
             for (var _i = 2; _i < arguments.length; _i++) {
                 args[_i - 2] = arguments[_i];
             }
-            this.toggle(mediator.name, 1 /* SHOW */, false); //showTip为 false是不用再次提示，executeMediator已经执行过模块是否开启的检查
-            this._executeMediator.apply(//showTip为 false是不用再次提示，executeMediator已经执行过模块是否开启的检查
-            this, __spreadArrays([mediator, handlerName], args));
+            var self = this;
+            self.toggle(mediator.name, 1 /* SHOW */, false); //showTip为 false是不用再次提示，executeMediator已经执行过模块是否开启的检查
+            var view = mediator.$view;
+            if (view.stage) {
+                self._executeMediator.apply(self, __spreadArrays([mediator, handlerName], args));
+            }
+            else {
+                view.once("addedToStage" /* ADDED_TO_STAGE */, function () {
+                    self._executeMediator.apply(self, __spreadArrays([mediator, handlerName], args));
+                });
+            }
         };
         /**
          * 执行Proxy的方法

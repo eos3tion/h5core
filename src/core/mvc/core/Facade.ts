@@ -362,8 +362,16 @@ namespace jy {
         }
 
         protected _executeAndShowMediator(mediator: Mediator, handlerName: string, ...args: any[]) {
-            this.toggle(mediator.name, ToggleState.SHOW, false);//showTip为 false是不用再次提示，executeMediator已经执行过模块是否开启的检查
-            this._executeMediator(mediator, handlerName, ...args);
+            let self = this;
+            self.toggle(mediator.name, ToggleState.SHOW, false);//showTip为 false是不用再次提示，executeMediator已经执行过模块是否开启的检查
+            let view = mediator.$view;
+            if (view.stage) {
+                self._executeMediator(mediator, handlerName, ...args);
+            } else {
+                view.once(EgretEvent.ADDED_TO_STAGE, function () {
+                    self._executeMediator(mediator, handlerName, ...args);
+                })
+            }
         }
 
 
