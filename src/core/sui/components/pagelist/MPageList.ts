@@ -13,6 +13,7 @@ namespace jy {
 
         public displayList(data?: T[]) {
             this._selectedIndex = -1;
+            this._selectedItem = undefined;
             let dataLen = data && data.length || 0;
             //如果新赋值的数据长度比以前的短，就自动清理掉多出来的item
             let olen = Math.max(this._dataLen, this._viewCount);

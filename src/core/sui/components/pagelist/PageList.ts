@@ -288,6 +288,7 @@ namespace jy {
 
         public displayList(data?: T[]) {
             this._selectedIndex = -1;
+            this._selectedItem = undefined;
             if (this._data != data) {
                 this.rawDataChanged = true;
             }
