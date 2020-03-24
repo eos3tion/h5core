@@ -3098,6 +3098,7 @@ declare namespace jy {
         interest(eventType: Key, handler: {
             (e?: egret.Event): void;
         }, triggerOnStage?: boolean, priority?: number): void;
+        uninterest(eventType: Key): void;
         removeSkinListener(skin: egret.DisplayObject): void;
         addSkinListener(skin: egret.DisplayObject): void;
         /**

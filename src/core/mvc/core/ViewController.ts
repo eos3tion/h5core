@@ -65,6 +65,20 @@ namespace jy {
             }
         }
 
+        uninterest(eventType: Key) {
+            let _interests = this._interests;
+            if (_interests) {
+                let ins = _interests[eventType];
+                if (ins) {
+                    delete _interests[eventType];
+                    let _awakeCallers = this._awakeCallers;
+                    if (_awakeCallers) {
+                        _awakeCallers.remove(ins.handler);
+                    }
+                }
+            }
+        }
+
         removeSkinListener(skin: egret.DisplayObject) {
             if (skin) {
                 skin.off(EgretEvent.REMOVED_FROM_STAGE, this.onStage, this);

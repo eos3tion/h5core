@@ -4442,6 +4442,19 @@ var jy;
                 _awakeCallers.pushOnce(handler);
             }
         };
+        ViewController.prototype.uninterest = function (eventType) {
+            var _interests = this._interests;
+            if (_interests) {
+                var ins = _interests[eventType];
+                if (ins) {
+                    delete _interests[eventType];
+                    var _awakeCallers = this._awakeCallers;
+                    if (_awakeCallers) {
+                        _awakeCallers.remove(ins.handler);
+                    }
+                }
+            }
+        };
         ViewController.prototype.removeSkinListener = function (skin) {
             if (skin) {
                 skin.off("removedFromStage" /* REMOVED_FROM_STAGE */, this.onStage, this);
@@ -18494,7 +18507,7 @@ var jy;
     }(egret.EventDispatcher));
     jy.ListItemRenderer = ListItemRenderer;
     __reflect(ListItemRenderer.prototype, "jy.ListItemRenderer", ["jy.ListItemRender", "egret.EventDispatcher", "jy.IRecyclable", "jy.SelectableComponents"]);
-    jy.expand(ListItemRenderer, jy.ViewController, "addReadyExecute", "addDepend", "onStage", "interest", "checkInject", "checkInterest", "awakeTimer", "sleepTimer", "bindTimer", "looseTimer", "stageChange");
+    jy.expand(ListItemRenderer, jy.ViewController, "addReadyExecute", "addDepend", "onStage", "interest", "uninterest", "checkInject", "checkInterest", "awakeTimer", "sleepTimer", "bindTimer", "looseTimer", "stageChange");
     // export abstract class AListItemRenderer<T, S extends egret.DisplayObject> extends ListItemRenderer<T, S> implements SuiDataCallback {
     //     /**
     //      * 子类重写设置皮肤
