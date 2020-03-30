@@ -1086,6 +1086,7 @@ declare namespace jy {
         MaxSize = 2048,
         Padding = 1
     }
+    function updateEgretTexutre(bmd: egret.BitmapData): void;
     function getTextureSheet(size?: number, canvas?: HTMLCanvasElement): {
         /**
          * 获取纹理
@@ -1118,7 +1119,11 @@ declare namespace jy {
          * 销毁纹理
          */
         dispose(): void;
-        readonly texCount: number;
+        getTexCount(): number;
+        /**
+         * 获取当前尺寸
+         */
+        getSize(): number;
     };
     type TextureSheet = ReturnType<typeof getTextureSheet>;
 }
@@ -7748,7 +7753,7 @@ declare namespace jy {
          * 绑定一个目标
          * @param {Bitmap} target
          */
-        bind(bmp: Bitmap): void;
+        bind(bmp: Bitmap, placehoder?: egret.Texture, load?: boolean): void;
         /**
          *
          * 解除目标的绑定
