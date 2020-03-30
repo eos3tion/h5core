@@ -626,6 +626,7 @@ var jy;
             }
         }
     }
+    jy.updateEgretTexutre = updateEgretTexutre;
     function getTextureSheet(size, canvas) {
         if (size === void 0) { size = 256 /* DefaultSize */; }
         canvas = canvas || document.createElement("canvas"); //canvas作为可传入，避免如“小程序”或其他环境，需要通过其他方法创建canvas
@@ -707,8 +708,14 @@ var jy;
                 canvas.width = canvas.height = 0;
                 bmd.$dispose();
             },
-            get texCount() {
+            getTexCount: function () {
                 return texCount;
+            },
+            /**
+             * 获取当前尺寸
+             */
+            getSize: function () {
+                return size;
             }
         };
     }
@@ -8359,12 +8366,17 @@ var jy;
          * 绑定一个目标
          * @param {Bitmap} target
          */
-        TextureResource.prototype.bind = function (bmp) {
-            if (this._tex) {
+        TextureResource.prototype.bind = function (bmp, placehoder, load) {
+            var tex = this._tex;
+            if (tex) {
                 bmp.texture = this._tex;
                 bmp.dispatch(-193 /* Texture_Complete */);
             }
-            this._list.pushOnce(bmp);
+            else {
+                bmp.texture = placehoder;
+                this._list.pushOnce(bmp);
+                load && this.load();
+            }
             this.lastUseTime = jy.Global.now;
         };
         /**
@@ -8395,7 +8407,7 @@ var jy;
                     if (!sheet) {
                         sheetsDict[sheetKey] = sheet = getDynamicTexSheet();
                     }
-                    sheet.set(uri, data);
+                    sheet.bind(uri, data);
                 }
                 this._tex = data;
                 for (var _i = 0, _a = this._list; _i < _a.length; _i++) {
@@ -8459,57 +8471,82 @@ var jy;
     jy.TextureResource = TextureResource;
     __reflect(TextureResource.prototype, "jy.TextureResource", ["jy.IResource"]);
     function getDynamicTexSheet() {
-        var size = 2048 /* MaxSize */ >> 2;
-        var sheet = jy.getTextureSheet(size);
-        var packer = new jy.ShortSideBinPacker(size, size);
+        var cur = createNewSheet();
+        var dict = {};
         return {
-            set: function (uri, tex) {
-                //检查是否已经加载过
-                if (!sheet.get(uri)) {
-                    var bmd = tex.bitmapData;
-                    var source = bmd.source;
-                    var width = source.width, height = source.height;
-                    var ww = width + 1 /* Padding */; //padding
-                    var hh = height + 1 /* Padding */; //padding
-                    var bin = packer.insert(ww, hh);
-                    if (!bin) { //装不下
-                        //先扩展
-                        if (size < 2048 /* MaxSize */) {
-                            size = size * 2;
-                            packer.extSize(size, size);
-                            sheet.extSize(size);
-                            bin = packer.insert(ww, hh);
-                            if (!bin) {
-                                return;
-                            }
-                        }
-                        else {
-                            return;
+            bind: bind,
+            remove: function (uri) {
+                var _cur = dict[uri];
+                if (_cur) {
+                    var sheet = _cur.sheet, packer = _cur.packer;
+                    var tex = sheet.remove(uri);
+                    if (tex) {
+                        var bin = tex.$bin;
+                        if (bin) {
+                            tex.$bin = undefined;
+                            //将位置还原给装箱数据
+                            packer.usedRects.remove(bin);
+                            packer.freeRects.pushOnce(bin);
                         }
                     }
-                    tex.$bin = bin;
-                    //将突破绘制到sheet上，并清除原纹理
-                    var ctx = sheet.ctx;
-                    ctx.globalAlpha = 1;
-                    var x = bin.x, y = bin.y;
-                    ctx.drawImage(source, x, y);
-                    bmd.$dispose();
-                    sheet.reg(uri, { x: x, y: y, width: width, height: height }, tex);
                 }
             },
-            remove: function (uri) {
-                var tex = sheet.remove(uri);
-                if (tex) {
-                    var bin = tex.$bin;
-                    if (bin) {
-                        tex.$bin = undefined;
-                        //将位置还原给装箱数据
-                        packer.usedRects.remove(bin);
-                        packer.freeRects.pushOnce(bin);
-                    }
-                }
+            get: function (uri) {
+                var _cur = dict[uri];
+                return _cur && _cur.sheet.get(uri);
             }
         };
+        function bind(uri, tex) {
+            //检查是否已经加载过
+            var _cur = dict[uri];
+            if (_cur) { //已经有，不做处理
+                return;
+            }
+            var bmd = tex.bitmapData;
+            var source = bmd.source;
+            var width = source.width, height = source.height;
+            if (width > 2048 /* MaxSize */ || height > 2048 /* MaxSize */) { //超过大小的纹理不做任何处理
+                return;
+            }
+            _cur = cur;
+            var sheet = _cur.sheet, packer = _cur.packer;
+            var ww = width + 1 /* Padding */; //padding
+            var hh = height + 1 /* Padding */; //padding
+            var bin = packer.insert(ww, hh);
+            if (!bin) { //装不下
+                var size = sheet.getSize();
+                //先扩展
+                if (size < 2048 /* MaxSize */) {
+                    size = size << 1;
+                    packer.extSize(size, size);
+                    sheet.extSize(size);
+                    bin = packer.insert(ww, hh);
+                    if (!bin) { //加倍纹理大小了，还放不下，说明当前纹理和之前用的纹理大小差异很大，直接不扩充纹理
+                        return;
+                    }
+                }
+                else {
+                    //创建新纹理
+                    cur = createNewSheet();
+                    return bind(uri, tex);
+                }
+            }
+            dict[uri] = cur;
+            tex.$bin = bin;
+            //将突破绘制到sheet上，并清除原纹理
+            var ctx = sheet.ctx;
+            ctx.globalAlpha = 1;
+            var x = bin.x, y = bin.y;
+            ctx.drawImage(source, x, y);
+            bmd.$dispose();
+            sheet.reg(uri, { x: x, y: y, width: width, height: height }, tex);
+        }
+        function createNewSheet() {
+            var size = 2048 /* MaxSize */ >> 2;
+            var sheet = jy.getTextureSheet(size);
+            var packer = new jy.ShortSideBinPacker(size, size);
+            return { sheet: sheet, packer: packer };
+        }
     }
     var sheetsDict = {};
 })(jy || (jy = {}));
@@ -14888,9 +14925,7 @@ var jy;
                 if (res) {
                     res.qid = this.qid;
                     //先设置为占位用，避免有些玩家加载慢，无法看到图
-                    this.texture = this.placehoder;
-                    res.bind(this);
-                    res.load();
+                    res.bind(this, this.placehoder, true);
                 }
             }
         };
