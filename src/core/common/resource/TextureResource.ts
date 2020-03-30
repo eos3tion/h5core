@@ -121,7 +121,12 @@ namespace jy {
                     if (!sheet) {
                         sheetsDict[sheetKey] = sheet = getDynamicTexSheet();
                     }
-                    sheet.bind(uri, data);
+                    let dat = sheet.get(uri);
+                    if (dat) {
+                        data = dat;
+                    } else {
+                        sheet.bind(uri, data);
+                    }
                 }
                 this._tex = data;
                 for (let bmp of this._list) {
