@@ -16191,6 +16191,8 @@ var jy;
             //设置rect时，检查哪些Render应该在舞台上
             var lastRect = this._lastRect;
             var checkStart, inc;
+            var showStart = this._showStart;
+            var showEnd = this._showEnd;
             if (lastRect) {
                 //检查滚动方向
                 var key1 = "x" /* X */, key2 = "width" /* Width */;
@@ -16204,13 +16206,11 @@ var jy;
                         return;
                     }
                 }
-                var showStart = this._showStart;
-                var showEnd = this._showEnd;
                 //先全部从舞台移除
                 for (var i = showStart; i <= showEnd; i++) {
                     var render = list[i];
                     if (render) {
-                        jy.removeDisplay(render.view);
+                        render.$_stage = false;
                     }
                 }
                 if (delta > 0) { //向大的检查
@@ -16282,6 +16282,13 @@ var jy;
                 this._showStart = lIdx;
                 this._showEnd = fIdx;
             }
+            //清理 $_stage 为false的render
+            for (var i = showStart; i <= showEnd; i++) {
+                var render = list[i];
+                if (!render.$_stage) {
+                    jy.removeDisplay(render.view);
+                }
+            }
             tmp.length = 0;
             return;
             function check(i, d) {
@@ -16315,6 +16322,7 @@ var jy;
                             first = render;
                             fIdx = i;
                         }
+                        render.$_stage = true;
                         tmp.push(v);
                     }
                     else {
