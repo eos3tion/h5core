@@ -6,7 +6,7 @@ namespace jy {
         Padding = 1,
     }
 
-    function updateEgretTexutre(bmd: egret.BitmapData) {
+    export function updateEgretTexutre(bmd: egret.BitmapData) {
         let glTexture = bmd.webGLTexture;
         if (glTexture) {//清理webgl纹理，让渲染可以重置
             let gl = glTexture.glContext as WebGLRenderingContext;
@@ -97,10 +97,15 @@ namespace jy {
                 canvas.width = canvas.height = 0;
                 bmd.$dispose();
             },
-            get texCount() {
+            getTexCount() {
                 return texCount;
+            },
+            /**
+             * 获取当前尺寸
+             */
+            getSize() {
+                return size;
             }
-
         }
     }
 
