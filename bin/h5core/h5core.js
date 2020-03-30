@@ -8407,7 +8407,13 @@ var jy;
                     if (!sheet) {
                         sheetsDict[sheetKey] = sheet = getDynamicTexSheet();
                     }
-                    sheet.bind(uri, data);
+                    var dat = sheet.get(uri);
+                    if (dat) {
+                        data = dat;
+                    }
+                    else {
+                        sheet.bind(uri, data);
+                    }
                 }
                 this._tex = data;
                 for (var _i = 0, _a = this._list; _i < _a.length; _i++) {
@@ -16285,7 +16291,7 @@ var jy;
             //清理 $_stage 为false的render
             for (var i = showStart; i <= showEnd; i++) {
                 var render = list[i];
-                if (!render.$_stage) {
+                if (render && !render.$_stage) {
                     jy.removeDisplay(render.view);
                 }
             }

@@ -883,7 +883,7 @@ namespace jy {
             //清理 $_stage 为false的render
             for (let i = showStart; i <= showEnd; i++) {
                 let render = list[i];
-                if (!render.$_stage) {
+                if (render && !render.$_stage) {
                     removeDisplay(render.view);
                 }
             }
