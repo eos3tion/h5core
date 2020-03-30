@@ -32,9 +32,7 @@ namespace jy {
 				if (res) {
 					res.qid = this.qid;
 					//先设置为占位用，避免有些玩家加载慢，无法看到图
-					this.texture = this.placehoder;
-					res.bind(this);
-					res.load();
+					res.bind(this, this.placehoder, true);
 				}
 			}
 		}
