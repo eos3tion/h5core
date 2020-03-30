@@ -772,7 +772,7 @@ namespace jy {
         checkViewRect() {
             const _con = this._con;
             let rect = _con.scrollRect;
-            let list = this._list;
+            let list = this._list as (R & { $_stage?: boolean })[];
             let len = list.length;
             let len_1 = len - 1;
             if (!rect) {
@@ -791,6 +791,8 @@ namespace jy {
             //设置rect时，检查哪些Render应该在舞台上
             let lastRect = this._lastRect;
             let checkStart: number, inc: boolean;
+            let showStart = this._showStart;
+            let showEnd = this._showEnd;
             if (lastRect) {
                 //检查滚动方向
                 let key1 = PosKey.X, key2 = SizeKey.Width;
@@ -804,17 +806,13 @@ namespace jy {
                         return;
                     }
                 }
-                let showStart = this._showStart;
-                let showEnd = this._showEnd;
                 //先全部从舞台移除
                 for (let i = showStart; i <= showEnd; i++) {
                     let render = list[i];
                     if (render) {
-                        removeDisplay(render.view);
+                        render.$_stage = false;
                     }
                 }
-
-
                 if (delta > 0) {//向大的检查
                     checkStart = showStart;
                     inc = true;
@@ -881,6 +879,15 @@ namespace jy {
                 this._showStart = lIdx;
                 this._showEnd = fIdx;
             }
+
+            //清理 $_stage 为false的render
+            for (let i = showStart; i <= showEnd; i++) {
+                let render = list[i];
+                if (!render.$_stage) {
+                    removeDisplay(render.view);
+                }
+            }
+
             tmp.length = 0;
             return;
             function check(i, d: PageList<T, ListItemRender<T>>) {
@@ -912,6 +919,7 @@ namespace jy {
                             first = render;
                             fIdx = i;
                         }
+                        render.$_stage = true;
                         tmp.push(v);
                     } else {
                         if (first) {
