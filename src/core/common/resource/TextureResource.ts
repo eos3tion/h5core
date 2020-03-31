@@ -41,6 +41,8 @@ namespace jy {
          */
         readonly url: string;
 
+        state = RequestState.UNREQUEST;
+
         /**
          * 加载列队
          */
@@ -82,7 +84,7 @@ namespace jy {
             let tex = this._tex;
             if (tex) {
                 bmp.texture = this._tex;
-                bmp.dispatch(EventConst.Texture_Complete);
+                Global.nextTick(bmp.dispatch, bmp, EventConst.Texture_Complete);
             } else {
                 bmp.texture = placehoder;
                 this._list.pushOnce(bmp);
@@ -102,11 +104,14 @@ namespace jy {
         }
 
         load() {
-            Res.loadRes({
-                uri: this.uri,
-                url: this.url,
-                type: Res.ResItemType.Image
-            }, CallbackInfo.get(this.loadComplete, this), this.qid);
+            if (this.state == RequestState.UNREQUEST) {
+                this.state = RequestState.REQUESTING;
+                Res.loadRes({
+                    uri: this.uri,
+                    url: this.url,
+                    type: Res.ResItemType.Image
+                }, CallbackInfo.get(this.loadComplete, this), this.qid);
+            }
         }
 
         /**
@@ -129,6 +134,7 @@ namespace jy {
                     }
                 }
                 this._tex = data;
+                this.state = RequestState.COMPLETE;
                 for (let bmp of this._list) {
                     bmp.texture = data;
                     if (DEBUG && !data) {
@@ -161,6 +167,7 @@ namespace jy {
                 tex.dispose();
             }
             this._list.length = 0;
+            this.state = RequestState.UNREQUEST;
         }
 
         /**
@@ -187,90 +194,6 @@ namespace jy {
         }
     }
 
-
-    function getDynamicTexSheet() {
-        let cur = createNewSheet();
-        const dict = {} as { [uri: string]: ReturnType<typeof createNewSheet> }
-        return {
-            bind,
-            remove(uri: string) {
-                let _cur = dict[uri];
-                if (_cur) {
-                    const { sheet, packer } = _cur;
-                    let tex = sheet.remove(uri) as DynamicTexture;
-                    if (tex) {
-                        let bin = tex.$bin;
-                        if (bin) {
-                            tex.$bin = undefined;
-                            //将位置还原给装箱数据
-                            packer.usedRects.remove(bin);
-                            packer.freeRects.pushOnce(bin);
-                        }
-                    }
-                }
-            },
-            get(uri: string) {
-                let _cur = dict[uri];
-                return _cur && _cur.sheet.get(uri);
-            }
-        }
-        function bind(uri: string, tex: DynamicTexture) {
-            //检查是否已经加载过
-            let _cur = dict[uri];
-            if (_cur) {//已经有，不做处理
-                return
-            }
-            let bmd = tex.bitmapData;
-            let source = bmd.source;
-            let { width, height } = source;
-            if (width > TextureSheetConst.MaxSize || height > TextureSheetConst.MaxSize) {//超过大小的纹理不做任何处理
-                return;
-            }
-            _cur = cur;
-            const { sheet, packer } = _cur;
-            let ww = width + TextureSheetConst.Padding;//padding
-            let hh = height + TextureSheetConst.Padding;//padding
-            let bin = packer.insert(ww, hh);
-            if (!bin) {//装不下
-                let size = sheet.getSize();
-                //先扩展
-                if (size < TextureSheetConst.MaxSize) {
-                    size = size << 1;
-                    packer.extSize(size, size);
-                    sheet.extSize(size);
-                    bin = packer.insert(ww, hh);
-                    if (!bin) {//加倍纹理大小了，还放不下，说明当前纹理和之前用的纹理大小差异很大，直接不扩充纹理
-                        return
-                    }
-                } else {
-                    //创建新纹理
-                    cur = createNewSheet();
-                    return bind(uri, tex);
-                }
-            }
-            dict[uri] = cur;
-            tex.$bin = bin;
-            //将突破绘制到sheet上，并清除原纹理
-            let ctx = sheet.ctx;
-            ctx.globalAlpha = 1;
-            let { x, y } = bin;
-            ctx.drawImage(source as CanvasImageSource, x, y);
-            bmd.$dispose();
-            sheet.reg(uri, { x, y, width, height }, tex);
-        }
-        function createNewSheet() {
-            let size = TextureSheetConst.MaxSize >> 2;
-            let sheet = getTextureSheet(size);
-            let packer = new ShortSideBinPacker(size, size);
-            return { sheet, packer }
-        }
-    }
-
-    interface DynamicTexture extends egret.Texture {
-        $bin?: Bin;
-    }
-
-    declare type DynamicTexSheet = ReturnType<typeof getDynamicTexSheet>
 
     const sheetsDict = {} as { [key: string]: DynamicTexSheet };
 
