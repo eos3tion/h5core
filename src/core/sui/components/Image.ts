@@ -76,6 +76,10 @@ namespace jy {
 			this.off(EgretEvent.REMOVED_FROM_STAGE, this.removedFromStage, this);
 		}
 
+		hasTexture() {
+			return this.texture != this.placehoder;
+		}
+
 	}
 
 	export interface Image extends ComponentWithEnable { };

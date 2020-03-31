@@ -40,19 +40,19 @@ namespace jy {
              * @param [ntex] 外部纹理，如果不传，则直接创建
              * @returns {egret.Texture} 则表明注册成功
              */
-            reg(key: Key, { x, y, width, height }: Rect, ntex?: egret.Texture) {
+            reg(key: Key, rect: Rect, ntex?: egret.Texture) {
                 let tex = texs[key];
                 if (!tex) {
                     tex = ntex || new egret.Texture;
-                    tex.disposeBitmapData = false;
-                    tex.bitmapData = bmd;
-                    texs[key] = tex;
+                    update(key, rect, tex)
                     texCount++;
-                    updateEgretTexutre(bmd);
-                    tex.$initData(x, y, width, height, 0, 0, width, height, width, height);
                     return tex;
                 }
             },
+            /**
+             * 更新纹理
+             */
+            update,
             /**
              * 删除指定纹理
              * @param key 
@@ -106,6 +106,14 @@ namespace jy {
             getSize() {
                 return size;
             }
+        }
+
+        function update(key: Key, { x, y, width, height }: Rect, tex: egret.Texture) {
+            tex.disposeBitmapData = false;
+            tex.bitmapData = bmd;
+            texs[key] = tex;
+            updateEgretTexutre(bmd);
+            tex.$initData(x, y, width, height, 0, 0, width, height, width, height);
         }
     }
 

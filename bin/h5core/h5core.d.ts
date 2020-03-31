@@ -1100,7 +1100,11 @@ declare namespace jy {
          * @param [ntex] 外部纹理，如果不传，则直接创建
          * @returns {egret.Texture} 则表明注册成功
          */
-        reg(key: string | number, { x, y, width, height }: Rect, ntex?: egret.Texture): egret.Texture;
+        reg(key: string | number, rect: Rect, ntex?: egret.Texture): egret.Texture;
+        /**
+         * 更新纹理
+         */
+        update: (key: string | number, { x, y, width, height }: Rect, tex: egret.Texture) => void;
         /**
          * 删除指定纹理
          * @param key
@@ -7725,6 +7729,7 @@ declare namespace jy {
          * 资源最终路径
          */
         readonly url: string;
+        state: RequestState;
         /**
          * 加载列队
          */
@@ -8766,6 +8771,20 @@ declare namespace jy {
     function getDisplayDataURL(dis: egret.DisplayObject, type: string, rect?: egret.Rectangle, encodeOptions?: any, scale?: number): string;
     function getBase64(dataUrl: string): string;
     function getBytes(dataUrl: string): Uint8Array;
+    export {};
+}
+declare namespace jy {
+    export function getDynamicTexSheet(): {
+        bind: (uri: string, tex: DynamicTexture) => any;
+        update: (uri: string, tex: egret.Texture) => void;
+        bindOrUpdate(uri: string, tex: DynamicTexture): void;
+        remove(uri: string): void;
+        get: (uri: string) => egret.Texture;
+    };
+    interface DynamicTexture extends egret.Texture {
+        $bin?: Bin;
+    }
+    export type DynamicTexSheet = ReturnType<typeof getDynamicTexSheet>;
     export {};
 }
 declare namespace jy {
@@ -13664,6 +13683,7 @@ declare namespace jy {
          * 销毁图片
          */
         dispose(): void;
+        hasTexture(): boolean;
     }
     interface Image extends ComponentWithEnable {
     }
