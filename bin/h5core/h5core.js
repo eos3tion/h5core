@@ -12005,6 +12005,7 @@ var jy;
          */
         GameEngine.prototype.sleepLayer = function (layerID) {
             var layer = this._layers[layerID];
+            layer.isShow = false;
             jy.removeDisplay(layer);
         };
         GameEngine.prototype.awakeLayer = function (layerID) {
@@ -12015,6 +12016,7 @@ var jy;
             }
         };
         GameEngine.prototype.addLayer = function (layer, cfg) {
+            layer.isShow = true;
             if (cfg && cfg.parentid) {
                 var parent_3 = this.getLayer(cfg.parentid);
                 if (parent_3 instanceof egret.DisplayObjectContainer) {
