@@ -1,7 +1,6 @@
 namespace jy {
 
 
-
 	/**
 	 * 2d游戏的引擎管理游戏层级关系<br/>
 	 * @author 3tion
@@ -113,6 +112,7 @@ namespace jy {
          */
         public sleepLayer(layerID: GameLayerID) {
             let layer = this._layers[layerID];
+            layer.isShow = false;
             removeDisplay(layer);
         }
 
@@ -125,6 +125,7 @@ namespace jy {
         }
 
         protected addLayer(layer: GameLayer, cfg?: LayerConfig) {
+            layer.isShow = true;
             if (cfg && cfg.parentid) {
                 let parent = this.getLayer(cfg.parentid);
                 if (parent instanceof egret.DisplayObjectContainer) {

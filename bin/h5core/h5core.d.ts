@@ -9093,6 +9093,7 @@ declare namespace jy {
 declare namespace jy {
     interface GameLayer extends egret.DisplayObject {
         id: number;
+        isShow?: boolean;
     }
     /**
      * GameLayer
