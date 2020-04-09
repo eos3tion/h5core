@@ -21,7 +21,11 @@ namespace jy {
         /**
          * 导航网格
          */
-        NavMesh = 1
+        NavMesh = 1,
+        /**
+         * 等角（交错）
+         */
+        Staggered = 2,
     }
 
 	/**
@@ -99,6 +103,20 @@ namespace jy {
          */
         public getWalk?(x: number, y: number): number;
 
+        /**
+         * 此方法在执行过`bindMapPos`后生效  
+         * 屏幕坐标转换为地图坐标  
+         * @param x 
+         * @param y 
+         */
+        screen2Map?(x: number, y: number): Point;
+        /**
+         * 此方法在执行过`bindMapPos`后生效  
+         * 地图坐标转换为屏幕坐标
+         * @param x 
+         * @param y 
+         */
+        map2Screen?(x: number, y: number): Point;
 
         /**
         * 获取地图图块资源路径
@@ -118,5 +136,32 @@ namespace jy {
          * 地图前缀路径
          */
         static prefix: string = MapConst.MapPath;
+    }
+
+    export interface MapPosSolver<T extends MapInfo> {
+        init?(map: T);
+        screen2Map(this: T, x: number, y: number): Point;
+        map2Screen(this: T, x: number, y: number): Point;
+    }
+
+
+
+    function defaultPosSolver(x: number, y: number) {
+        return { x, y };
+    }
+
+    const mapPosSolver = {} as { [type: number]: MapPosSolver<MapInfo> };
+
+    export function regMapPosSolver<T extends MapInfo>(type: MapPathType, solver: MapPosSolver<T>) {
+        mapPosSolver[type] = solver;
+    }
+
+    export function bindMapPos(map: MapInfo) {
+        let solver = mapPosSolver[map.pathType];
+        if (solver) {
+            solver.init?.(map);
+        }
+        map.screen2Map = solver && solver.screen2Map || defaultPosSolver;
+        map.map2Screen = solver && solver.map2Screen || defaultPosSolver;
     }
 }

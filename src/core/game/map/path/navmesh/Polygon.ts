@@ -1,5 +1,4 @@
 namespace jy {
-    import Point = egret.Point;
     /**
      * 多边形
      */
@@ -21,8 +20,11 @@ namespace jy {
          * 是否包含点
          * @param pt 
          */
-        contain(pt: jy.Point) {
-            let { x, y } = pt;
+        contain({ x, y }: Point) {
+            return this.containPos(x, y);
+        }
+
+        containPos(x: number, y: number) {
             let inside = false;
             let vs = this.points;
             for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {

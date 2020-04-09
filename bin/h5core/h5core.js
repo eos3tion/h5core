@@ -1655,6 +1655,175 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
+    var Bin = /** @class */ (function (_super) {
+        __extends(Bin, _super);
+        function Bin() {
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            /**
+             * 是否旋转了90°
+             */
+            _this.rot = false;
+            return _this;
+        }
+        Bin.prototype.clone = function () {
+            return new Bin(this.x, this.y, this.width, this.height);
+        };
+        return Bin;
+    }(egret.Rectangle));
+    jy.Bin = Bin;
+    __reflect(Bin.prototype, "jy.Bin");
+    /**
+     * 短边优先装箱
+     * 动态装箱，暂时只用短边优先的单一策略
+     */
+    var ShortSideBinPacker = /** @class */ (function () {
+        function ShortSideBinPacker(width, height, allowRotation) {
+            this.width = width;
+            this.height = height;
+            this.rot = !!allowRotation;
+            this.usedRects = [];
+            this.freeRects = [new Bin(0, 0, width, height)];
+        }
+        /**
+         * 扩展大小，如果宽度或者高度比原先小，则返回false
+         * @param width
+         * @param height
+         */
+        ShortSideBinPacker.prototype.extSize = function (width, height) {
+            var _a = this, ow = _a.width, oh = _a.height;
+            if (width > ow && height > oh) {
+                this.width = width;
+                this.height = height;
+                this.freeRects.push(
+                /**右侧增加一个高度和原本相同的 */ new Bin(ow, 0, width - ow, oh), 
+                /** 下方整块 */ new Bin(0, oh, width, height - oh));
+                return true;
+            }
+        };
+        ShortSideBinPacker.prototype.insert = function (width, height) {
+            var bestShortSideFit = Infinity;
+            var bestLongSideFit = 0;
+            var _a = this, freeRects = _a.freeRects, rotations = _a.rot;
+            var min = Math.min, max = Math.max;
+            var bestNode = new Bin;
+            for (var i = 0, len = freeRects.length; i < len; i++) {
+                var _b = freeRects[i], rw = _b.width, rh = _b.height, rx = _b.x, ry = _b.y;
+                // Try to place the Rect in upright (non-flipped) orientation.
+                if (rw >= width && rh >= height) {
+                    var leftoverHoriz = rw - width;
+                    var leftoverVert = rh - height;
+                    var shortSideFit = min(leftoverHoriz, leftoverVert);
+                    var longSideFit = max(leftoverHoriz, leftoverVert);
+                    if (shortSideFit < bestShortSideFit || (shortSideFit == bestShortSideFit && longSideFit < bestLongSideFit)) {
+                        bestNode.x = rx;
+                        bestNode.y = ry;
+                        bestNode.width = width;
+                        bestNode.height = height;
+                        bestShortSideFit = shortSideFit;
+                        bestLongSideFit = longSideFit;
+                    }
+                }
+                if (rotations && rw >= height && rh >= width) {
+                    var flippedLeftoverHoriz = rw - height;
+                    var flippedLeftoverVert = rh - width;
+                    var flippedShortSideFit = min(flippedLeftoverHoriz, flippedLeftoverVert);
+                    var flippedLongSideFit = max(flippedLeftoverHoriz, flippedLeftoverVert);
+                    if (flippedShortSideFit < bestShortSideFit || (flippedShortSideFit == bestShortSideFit && flippedLongSideFit < bestLongSideFit)) {
+                        bestNode.x = rx;
+                        bestNode.y = ry;
+                        bestNode.width = height;
+                        bestNode.height = width;
+                        bestNode.rot = true;
+                        bestShortSideFit = flippedShortSideFit;
+                        bestLongSideFit = flippedLongSideFit;
+                    }
+                }
+            }
+            if (bestNode.height) {
+                placeRect(bestNode, this);
+                return bestNode;
+            }
+        };
+        return ShortSideBinPacker;
+    }());
+    jy.ShortSideBinPacker = ShortSideBinPacker;
+    __reflect(ShortSideBinPacker.prototype, "jy.ShortSideBinPacker");
+    function placeRect(node, packer) {
+        var freeRects = packer.freeRects, usedRects = packer.usedRects;
+        var fRectLen = freeRects.length;
+        for (var i = 0; i < fRectLen; i++) {
+            if (splitFreeNode(freeRects[i], node, packer)) {
+                freeRects.splice(i, 1);
+                i--;
+                fRectLen--;
+            }
+        }
+        //去重
+        pruneFreeList(packer);
+        usedRects.push(node);
+    }
+    function splitFreeNode(freeNode, usedNode, packer) {
+        var freeRects = packer.freeRects;
+        // Test with SAT if the Rects even intersect.
+        var usedNode_x = usedNode.x, usedNode_y = usedNode.y, usedNode_right = usedNode.right, usedNode_bottom = usedNode.bottom;
+        var freeNode_x = freeNode.x, freeNode_y = freeNode.y, freeNode_right = freeNode.right, freeNode_bottom = freeNode.bottom;
+        if (usedNode_x >= freeNode_right || usedNode_right <= freeNode_x
+            || usedNode_y >= freeNode_bottom || usedNode_bottom <= freeNode_y)
+            return false;
+        var newNode;
+        if (usedNode_x < freeNode_right && usedNode_right > freeNode_x) {
+            // New node at the top side of the used node.
+            if (usedNode_y > freeNode_y && usedNode_y < freeNode_bottom) {
+                newNode = freeNode.clone();
+                newNode.height = usedNode_y - freeNode_y;
+                freeRects.push(newNode);
+            }
+            // New node at the bottom side of the used node.
+            if (usedNode_bottom < freeNode_bottom) {
+                newNode = freeNode.clone();
+                newNode.y = usedNode_bottom;
+                newNode.height = freeNode_bottom - usedNode_bottom;
+                freeRects.push(newNode);
+            }
+        }
+        if (usedNode_y < freeNode_bottom && usedNode_bottom > freeNode_y) {
+            // New node at the left side of the used node.
+            if (usedNode_x > freeNode_x && usedNode_x < freeNode_right) {
+                newNode = freeNode.clone();
+                newNode.width = usedNode_x - freeNode_x;
+                freeRects.push(newNode);
+            }
+            // New node at the right side of the used node.
+            if (usedNode_right < freeNode_right) {
+                newNode = freeNode.clone();
+                newNode.x = usedNode_right;
+                newNode.width = freeNode_right - usedNode_right;
+                freeRects.push(newNode);
+            }
+        }
+        return true;
+    }
+    function pruneFreeList(packer) {
+        var freeRects = packer.freeRects;
+        for (var i = 0; i < freeRects.length; i++) {
+            var a = freeRects[i];
+            for (var j = i + 1; j < freeRects.length; j++) {
+                var b = freeRects[j];
+                if (b.containsRect(a)) {
+                    freeRects.splice(i, 1);
+                    i--;
+                    break;
+                }
+                if (a.containsRect(b)) {
+                    freeRects.splice(j, 1);
+                    j--;
+                }
+            }
+        }
+    }
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     function updateEgretTexutre(bmd) {
         var glTexture = bmd.webGLTexture;
         if (glTexture) { //清理webgl纹理，让渲染可以重置
@@ -3114,6 +3283,139 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
+    function getDynamicTexSheet() {
+        var cur = createNewSheet();
+        var dict = {};
+        return {
+            bind: bind,
+            update: update,
+            bindOrUpdate: function (uri, tex) {
+                if (get(uri)) {
+                    update(uri, tex);
+                }
+                else {
+                    bind(uri, tex);
+                }
+            },
+            remove: function (uri) {
+                var _cur = dict[uri];
+                if (_cur) {
+                    var sheet = _cur.sheet, packer = _cur.packer;
+                    var tex = sheet.remove(uri);
+                    if (tex) {
+                        var bin = tex.$bin;
+                        if (bin) {
+                            tex.$bin = undefined;
+                            //将位置还原给装箱数据
+                            packer.usedRects.remove(bin);
+                            packer.freeRects.pushOnce(bin);
+                        }
+                    }
+                }
+            },
+            get: get
+        };
+        function get(uri) {
+            var _cur = dict[uri];
+            return _cur && _cur.sheet.get(uri);
+        }
+        function bind(uri, tex) {
+            //检查是否已经加载过
+            var _cur = dict[uri];
+            if (_cur) { //已经有，不做处理
+                return;
+            }
+            var bmd = tex.bitmapData;
+            var source = bmd.source;
+            var width = source.width, height = source.height;
+            if (width > 2048 /* MaxSize */ || height > 2048 /* MaxSize */) { //超过大小的纹理不做任何处理
+                return;
+            }
+            _cur = cur;
+            var sheet = _cur.sheet, packer = _cur.packer;
+            var ww = width + 1 /* Padding */; //padding
+            var hh = height + 1 /* Padding */; //padding
+            var bin = packer.insert(ww, hh);
+            if (!bin) { //装不下
+                var size = sheet.getSize();
+                //先扩展
+                if (size < 2048 /* MaxSize */) {
+                    size = size << 1;
+                    packer.extSize(size, size);
+                    sheet.extSize(size);
+                    bin = packer.insert(ww, hh);
+                    if (!bin) { //加倍纹理大小了，还放不下，说明当前纹理和之前用的纹理大小差异很大，直接不扩充纹理
+                        return;
+                    }
+                }
+                else {
+                    //创建新纹理
+                    cur = createNewSheet();
+                    return bind(uri, tex);
+                }
+            }
+            dict[uri] = cur;
+            setTexData(bin, sheet, tex);
+            var x = bin.x, y = bin.y;
+            sheet.reg(uri, { x: x, y: y, width: width, height: height }, tex);
+        }
+        function update(uri, tex) {
+            var _cur = dict[uri];
+            if (_cur) { //已经有，不做处理
+                var sheet = _cur.sheet;
+                var oldTex = sheet.get(uri);
+                if (oldTex && oldTex.textureWidth == tex.textureWidth && oldTex.textureHeight == tex.textureHeight) {
+                    var bin = oldTex.$bin;
+                    setTexData(bin, sheet, tex);
+                    sheet.update(uri, bin, tex);
+                }
+            }
+        }
+        function setTexData(bin, sheet, tex) {
+            var bmd = tex.bitmapData;
+            var source = bmd.source;
+            var width = source.width, height = source.height;
+            tex.$bin = bin;
+            //将突破绘制到sheet上，并清除原纹理
+            var ctx = sheet.ctx;
+            ctx.globalAlpha = 1;
+            var x = bin.x, y = bin.y;
+            if (tex instanceof egret.RenderTexture) {
+                var imgData = ctx.createImageData(width, height);
+                var data = imgData.data;
+                tex.$renderBuffer.context.getPixels(0, 0, width, height, data);
+                var hh = height >> 1;
+                var width4 = width << 2;
+                //调整方向
+                for (var y_1 = 0; y_1 < hh; y_1++) {
+                    var index1 = width4 * (height - y_1 - 1);
+                    var index2 = width4 * y_1;
+                    for (var i = 0; i < width4; i++) {
+                        var d1 = index1 + i;
+                        var d2 = index2 + i;
+                        var tmp = data[d1];
+                        data[d1] = data[d2];
+                        data[d2] = tmp;
+                    }
+                }
+                ctx.putImageData(imgData, x, y);
+            }
+            else {
+                ctx.drawImage(source, x, y);
+            }
+            bmd.$dispose();
+        }
+        function createNewSheet() {
+            var size = 2048 /* MaxSize */ >> 2;
+            var sheet = jy.getTextureSheet(size);
+            var packer = new jy.ShortSideBinPacker(size, size);
+            return { sheet: sheet, packer: packer };
+        }
+    }
+    jy.getDynamicTexSheet = getDynamicTexSheet;
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     var slowDispatching;
     function onSlowRender() {
         jy.dispatch(-1996 /* SlowRender */);
@@ -3733,6 +4035,24 @@ var jy;
     }());
     jy.MapInfo = MapInfo;
     __reflect(MapInfo.prototype, "jy.MapInfo");
+    function defaultPosSolver(x, y) {
+        return { x: x, y: y };
+    }
+    var mapPosSolver = {};
+    function regMapPosSolver(type, solver) {
+        mapPosSolver[type] = solver;
+    }
+    jy.regMapPosSolver = regMapPosSolver;
+    function bindMapPos(map) {
+        var _a, _b;
+        var solver = mapPosSolver[map.pathType];
+        if (solver) {
+            (_b = (_a = solver).init) === null || _b === void 0 ? void 0 : _b.call(_a, map);
+        }
+        map.screen2Map = solver && solver.screen2Map || defaultPosSolver;
+        map.map2Screen = solver && solver.map2Screen || defaultPosSolver;
+    }
+    jy.bindMapPos = bindMapPos;
 })(jy || (jy = {}));
 if (true) {
     var $gm = $gm || {};
@@ -3932,20 +4252,12 @@ var jy;
     }(jy.BaseLayer));
     jy.TileMapLayer = TileMapLayer;
     __reflect(TileMapLayer.prototype, "jy.TileMapLayer");
-    /**
-     * 获取类似地图一样，由行列构成的数据集，数据为2进制数据
-     * @param x 横坐标
-     * @param y 纵坐标
-     * @param columns 一行的总列数
-     * @param data 二进制数据集
-     */
     function getMapBit(x, y, columns, data) {
         var position = y * columns + x;
         var byteCount = position >> 3;
         var bitCount = position - (byteCount << 3);
-        return (data[byteCount] >> 7 - bitCount) & 1;
+        return (data[byteCount] >> bitCount) & 1;
     }
-    jy.getMapBit = getMapBit;
     TileMapLayer.checkRect = checkRect;
     /**
     * TileMap
@@ -4122,8 +4434,11 @@ var jy;
          * 是否包含点
          * @param pt
          */
-        Polygon.prototype.contain = function (pt) {
-            var x = pt.x, y = pt.y;
+        Polygon.prototype.contain = function (_a) {
+            var x = _a.x, y = _a.y;
+            return this.containPos(x, y);
+        };
+        Polygon.prototype.containPos = function (x, y) {
             var inside = false;
             var vs = this.points;
             for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
@@ -10268,175 +10583,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    var Bin = /** @class */ (function (_super) {
-        __extends(Bin, _super);
-        function Bin() {
-            var _this = _super !== null && _super.apply(this, arguments) || this;
-            /**
-             * 是否旋转了90°
-             */
-            _this.rot = false;
-            return _this;
-        }
-        Bin.prototype.clone = function () {
-            return new Bin(this.x, this.y, this.width, this.height);
-        };
-        return Bin;
-    }(egret.Rectangle));
-    jy.Bin = Bin;
-    __reflect(Bin.prototype, "jy.Bin");
-    /**
-     * 短边优先装箱
-     * 动态装箱，暂时只用短边优先的单一策略
-     */
-    var ShortSideBinPacker = /** @class */ (function () {
-        function ShortSideBinPacker(width, height, allowRotation) {
-            this.width = width;
-            this.height = height;
-            this.rot = !!allowRotation;
-            this.usedRects = [];
-            this.freeRects = [new Bin(0, 0, width, height)];
-        }
-        /**
-         * 扩展大小，如果宽度或者高度比原先小，则返回false
-         * @param width
-         * @param height
-         */
-        ShortSideBinPacker.prototype.extSize = function (width, height) {
-            var _a = this, ow = _a.width, oh = _a.height;
-            if (width > ow && height > oh) {
-                this.width = width;
-                this.height = height;
-                this.freeRects.push(
-                /**右侧增加一个高度和原本相同的 */ new Bin(ow, 0, width - ow, oh), 
-                /** 下方整块 */ new Bin(0, oh, width, height - oh));
-                return true;
-            }
-        };
-        ShortSideBinPacker.prototype.insert = function (width, height) {
-            var bestShortSideFit = Infinity;
-            var bestLongSideFit = 0;
-            var _a = this, freeRects = _a.freeRects, rotations = _a.rot;
-            var min = Math.min, max = Math.max;
-            var bestNode = new Bin;
-            for (var i = 0, len = freeRects.length; i < len; i++) {
-                var _b = freeRects[i], rw = _b.width, rh = _b.height, rx = _b.x, ry = _b.y;
-                // Try to place the Rect in upright (non-flipped) orientation.
-                if (rw >= width && rh >= height) {
-                    var leftoverHoriz = rw - width;
-                    var leftoverVert = rh - height;
-                    var shortSideFit = min(leftoverHoriz, leftoverVert);
-                    var longSideFit = max(leftoverHoriz, leftoverVert);
-                    if (shortSideFit < bestShortSideFit || (shortSideFit == bestShortSideFit && longSideFit < bestLongSideFit)) {
-                        bestNode.x = rx;
-                        bestNode.y = ry;
-                        bestNode.width = width;
-                        bestNode.height = height;
-                        bestShortSideFit = shortSideFit;
-                        bestLongSideFit = longSideFit;
-                    }
-                }
-                if (rotations && rw >= height && rh >= width) {
-                    var flippedLeftoverHoriz = rw - height;
-                    var flippedLeftoverVert = rh - width;
-                    var flippedShortSideFit = min(flippedLeftoverHoriz, flippedLeftoverVert);
-                    var flippedLongSideFit = max(flippedLeftoverHoriz, flippedLeftoverVert);
-                    if (flippedShortSideFit < bestShortSideFit || (flippedShortSideFit == bestShortSideFit && flippedLongSideFit < bestLongSideFit)) {
-                        bestNode.x = rx;
-                        bestNode.y = ry;
-                        bestNode.width = height;
-                        bestNode.height = width;
-                        bestNode.rot = true;
-                        bestShortSideFit = flippedShortSideFit;
-                        bestLongSideFit = flippedLongSideFit;
-                    }
-                }
-            }
-            if (bestNode.height) {
-                placeRect(bestNode, this);
-                return bestNode;
-            }
-        };
-        return ShortSideBinPacker;
-    }());
-    jy.ShortSideBinPacker = ShortSideBinPacker;
-    __reflect(ShortSideBinPacker.prototype, "jy.ShortSideBinPacker");
-    function placeRect(node, packer) {
-        var freeRects = packer.freeRects, usedRects = packer.usedRects;
-        var fRectLen = freeRects.length;
-        for (var i = 0; i < fRectLen; i++) {
-            if (splitFreeNode(freeRects[i], node, packer)) {
-                freeRects.splice(i, 1);
-                i--;
-                fRectLen--;
-            }
-        }
-        //去重
-        pruneFreeList(packer);
-        usedRects.push(node);
-    }
-    function splitFreeNode(freeNode, usedNode, packer) {
-        var freeRects = packer.freeRects;
-        // Test with SAT if the Rects even intersect.
-        var usedNode_x = usedNode.x, usedNode_y = usedNode.y, usedNode_right = usedNode.right, usedNode_bottom = usedNode.bottom;
-        var freeNode_x = freeNode.x, freeNode_y = freeNode.y, freeNode_right = freeNode.right, freeNode_bottom = freeNode.bottom;
-        if (usedNode_x >= freeNode_right || usedNode_right <= freeNode_x
-            || usedNode_y >= freeNode_bottom || usedNode_bottom <= freeNode_y)
-            return false;
-        var newNode;
-        if (usedNode_x < freeNode_right && usedNode_right > freeNode_x) {
-            // New node at the top side of the used node.
-            if (usedNode_y > freeNode_y && usedNode_y < freeNode_bottom) {
-                newNode = freeNode.clone();
-                newNode.height = usedNode_y - freeNode_y;
-                freeRects.push(newNode);
-            }
-            // New node at the bottom side of the used node.
-            if (usedNode_bottom < freeNode_bottom) {
-                newNode = freeNode.clone();
-                newNode.y = usedNode_bottom;
-                newNode.height = freeNode_bottom - usedNode_bottom;
-                freeRects.push(newNode);
-            }
-        }
-        if (usedNode_y < freeNode_bottom && usedNode_bottom > freeNode_y) {
-            // New node at the left side of the used node.
-            if (usedNode_x > freeNode_x && usedNode_x < freeNode_right) {
-                newNode = freeNode.clone();
-                newNode.width = usedNode_x - freeNode_x;
-                freeRects.push(newNode);
-            }
-            // New node at the right side of the used node.
-            if (usedNode_right < freeNode_right) {
-                newNode = freeNode.clone();
-                newNode.x = usedNode_right;
-                newNode.width = freeNode_right - usedNode_right;
-                freeRects.push(newNode);
-            }
-        }
-        return true;
-    }
-    function pruneFreeList(packer) {
-        var freeRects = packer.freeRects;
-        for (var i = 0; i < freeRects.length; i++) {
-            var a = freeRects[i];
-            for (var j = i + 1; j < freeRects.length; j++) {
-                var b = freeRects[j];
-                if (b.containsRect(a)) {
-                    freeRects.splice(i, 1);
-                    i--;
-                    break;
-                }
-                if (a.containsRect(b)) {
-                    freeRects.splice(j, 1);
-                    j--;
-                }
-            }
-        }
-    }
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
     /**
      * 圆圈倒计时
      *
@@ -10715,139 +10861,6 @@ var jy;
         }
         return bytes;
     }
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
-    function getDynamicTexSheet() {
-        var cur = createNewSheet();
-        var dict = {};
-        return {
-            bind: bind,
-            update: update,
-            bindOrUpdate: function (uri, tex) {
-                if (get(uri)) {
-                    update(uri, tex);
-                }
-                else {
-                    bind(uri, tex);
-                }
-            },
-            remove: function (uri) {
-                var _cur = dict[uri];
-                if (_cur) {
-                    var sheet = _cur.sheet, packer = _cur.packer;
-                    var tex = sheet.remove(uri);
-                    if (tex) {
-                        var bin = tex.$bin;
-                        if (bin) {
-                            tex.$bin = undefined;
-                            //将位置还原给装箱数据
-                            packer.usedRects.remove(bin);
-                            packer.freeRects.pushOnce(bin);
-                        }
-                    }
-                }
-            },
-            get: get
-        };
-        function get(uri) {
-            var _cur = dict[uri];
-            return _cur && _cur.sheet.get(uri);
-        }
-        function bind(uri, tex) {
-            //检查是否已经加载过
-            var _cur = dict[uri];
-            if (_cur) { //已经有，不做处理
-                return;
-            }
-            var bmd = tex.bitmapData;
-            var source = bmd.source;
-            var width = source.width, height = source.height;
-            if (width > 2048 /* MaxSize */ || height > 2048 /* MaxSize */) { //超过大小的纹理不做任何处理
-                return;
-            }
-            _cur = cur;
-            var sheet = _cur.sheet, packer = _cur.packer;
-            var ww = width + 1 /* Padding */; //padding
-            var hh = height + 1 /* Padding */; //padding
-            var bin = packer.insert(ww, hh);
-            if (!bin) { //装不下
-                var size = sheet.getSize();
-                //先扩展
-                if (size < 2048 /* MaxSize */) {
-                    size = size << 1;
-                    packer.extSize(size, size);
-                    sheet.extSize(size);
-                    bin = packer.insert(ww, hh);
-                    if (!bin) { //加倍纹理大小了，还放不下，说明当前纹理和之前用的纹理大小差异很大，直接不扩充纹理
-                        return;
-                    }
-                }
-                else {
-                    //创建新纹理
-                    cur = createNewSheet();
-                    return bind(uri, tex);
-                }
-            }
-            dict[uri] = cur;
-            setTexData(bin, sheet, tex);
-            var x = bin.x, y = bin.y;
-            sheet.reg(uri, { x: x, y: y, width: width, height: height }, tex);
-        }
-        function update(uri, tex) {
-            var _cur = dict[uri];
-            if (_cur) { //已经有，不做处理
-                var sheet = _cur.sheet;
-                var oldTex = sheet.get(uri);
-                if (oldTex && oldTex.textureWidth == tex.textureWidth && oldTex.textureHeight == tex.textureHeight) {
-                    var bin = oldTex.$bin;
-                    setTexData(bin, sheet, tex);
-                    sheet.update(uri, bin, tex);
-                }
-            }
-        }
-        function setTexData(bin, sheet, tex) {
-            var bmd = tex.bitmapData;
-            var source = bmd.source;
-            var width = source.width, height = source.height;
-            tex.$bin = bin;
-            //将突破绘制到sheet上，并清除原纹理
-            var ctx = sheet.ctx;
-            ctx.globalAlpha = 1;
-            var x = bin.x, y = bin.y;
-            if (tex instanceof egret.RenderTexture) {
-                var imgData = ctx.createImageData(width, height);
-                var data = imgData.data;
-                tex.$renderBuffer.context.getPixels(0, 0, width, height, data);
-                var hh = height >> 1;
-                var width4 = width << 2;
-                //调整方向
-                for (var y_1 = 0; y_1 < hh; y_1++) {
-                    var index1 = width4 * (height - y_1 - 1);
-                    var index2 = width4 * y_1;
-                    for (var i = 0; i < width4; i++) {
-                        var d1 = index1 + i;
-                        var d2 = index2 + i;
-                        var tmp = data[d1];
-                        data[d1] = data[d2];
-                        data[d2] = tmp;
-                    }
-                }
-                ctx.putImageData(imgData, x, y);
-            }
-            else {
-                ctx.drawImage(source, x, y);
-            }
-            bmd.$dispose();
-        }
-        function createNewSheet() {
-            var size = 2048 /* MaxSize */ >> 2;
-            var sheet = jy.getTextureSheet(size);
-            var packer = new jy.ShortSideBinPacker(size, size);
-            return { sheet: sheet, packer: packer };
-        }
-    }
-    jy.getDynamicTexSheet = getDynamicTexSheet;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -13683,6 +13696,48 @@ var jy;
 var jy;
 (function (jy) {
     /**
+     * 单data，最多支持256种数据
+     */
+    function getMapDataHelper(columns, rows, bitDataCount, rawData) {
+        var total = Math.ceil(rows * columns * bitDataCount / 8);
+        var mapData = rawData && rawData.length == total ? new Uint8Array(rawData) : new Uint8Array(Math.ceil(rows * columns * bitDataCount / 8));
+        var dataMask = (1 << bitDataCount) - 1;
+        return {
+            get: function (x, y) {
+                var _a = getPos(x, y), byteCount = _a[0], bitCount = _a[1];
+                return mapData[byteCount] >> bitCount & dataMask;
+            },
+            set: function (x, y, value) {
+                var _a = getPos(x, y), byteCount = _a[0], bitCount = _a[1];
+                mapData[byteCount] = setByte(mapData[byteCount], value, bitCount);
+            },
+            data: mapData
+        };
+        function getPos(x, y) {
+            var position = (y * columns + x) * bitDataCount;
+            var byteCount = position >> 3;
+            var bitCount = position - (byteCount << 3);
+            return [byteCount, bitCount];
+        }
+        function setByte(byte, value, bitStartIdx) {
+            var left = getLeftValue(byte, bitStartIdx);
+            value = value << bitStartIdx;
+            var bitEndIdx = bitStartIdx + bitDataCount;
+            var right = getRightValue(byte, bitEndIdx);
+            return left | value | right;
+        }
+        function getLeftValue(value, bitIdx) {
+            return value & ((1 << bitIdx) - 1);
+        }
+        function getRightValue(value, bitIdx) {
+            return value >> bitIdx << bitIdx;
+        }
+    }
+    jy.getMapDataHelper = getMapDataHelper;
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    /**
      * 地图的PB数据
      */
     jy.MapPB = {
@@ -13923,6 +13978,49 @@ var jy;
 var jy;
 (function (jy) {
     if (true) {
+        var sheets_1 = jy.getDynamicTexSheet();
+        var getTexture = function (gridWidth, gridHeight, level) {
+            var showLevel = level > 1;
+            var color = level ? 0xcccc : 0xcc3333;
+            return $getTexture(gridWidth, gridHeight, color, level, showLevel);
+            function $getTexture(gridWidth, gridHeight, color, level, showLevel) {
+                var key = gridWidth + "_" + gridHeight + "_" + color + "_" + level + "_" + showLevel;
+                var tex = sheets_1.get(key);
+                if (!tex) {
+                    var hw = gridWidth >> 1;
+                    var hh = gridHeight >> 1;
+                    var canvas = document.createElement("canvas");
+                    canvas.width = gridWidth;
+                    canvas.height = gridHeight;
+                    var g = canvas.getContext("2d");
+                    var c = jy.ColorUtil.getColorString(color);
+                    g.strokeStyle = c;
+                    g.fillStyle = c;
+                    g.beginPath();
+                    g.moveTo(0, 0);
+                    g.lineTo(gridWidth, 0);
+                    g.lineTo(gridWidth, gridHeight);
+                    g.lineTo(0, gridHeight);
+                    g.lineTo(0, 0);
+                    g.closePath();
+                    g.stroke();
+                    if (showLevel) {
+                        g.fillStyle = "#000000";
+                        g.font = "normal normal 12px arial";
+                        g.textBaseline = "middle";
+                        var l = level + "";
+                        var textHalfWidth = g.measureText(l).width >> 1;
+                        g.fillText(l, hw - textHalfWidth, hh, gridWidth);
+                    }
+                    g.globalAlpha = 0.1;
+                    g.fill();
+                    var tex_1 = new egret.Texture();
+                    tex_1.bitmapData = new egret.BitmapData(canvas);
+                    sheets_1.bindOrUpdate(key, tex_1);
+                }
+                return tex;
+            }
+        };
         $gm.regPathDraw(0 /* Grid */, function (x, y, w, h, map) {
             var gp = this.debugGridPanes;
             if (!gp) {
@@ -13930,34 +14028,24 @@ var jy;
             }
             var k = 0;
             if ($gm.$showMapGrid) {
-                var tex = this.debugGridTexture;
-                var gridWidth = map.gridWidth, gridHeight = map.gridHeight;
-                var hw = gridWidth >> 1;
-                var hh = gridHeight >> 1;
-                if (!tex) {
-                    var s = new egret.Shape;
-                    var g = s.graphics;
-                    g.lineStyle(1, 0xcccc);
-                    g.beginFill(0xcccc, 0.5);
-                    g.drawRect(0, 0, gridWidth, gridHeight);
-                    g.endFill();
-                    var tex_1 = new egret.RenderTexture();
-                    tex_1.drawToTexture(s);
-                    this.debugGridTexture = tex_1;
+                if (!map.map2Screen) {
+                    jy.bindMapPos(map);
                 }
+                var gridWidth = map.gridWidth, gridHeight = map.gridHeight;
                 for (var i = x / gridWidth >> 0, len = i + w / gridWidth + 1, jstart = y / gridHeight >> 0, jlen = jstart + h / gridHeight + 1; i < len; i++) {
                     for (var j = jstart; j < jlen; j++) {
-                        if (!map.getWalk(i, j)) {
-                            var s = gp[k];
-                            if (!s) {
-                                gp[k] = s = new egret.Bitmap();
-                            }
-                            s.texture = tex;
-                            this.addChild(s);
-                            k++;
-                            s.x = i * gridWidth - hw;
-                            s.y = j * gridHeight - hh;
+                        var level = map.getWalk(i, j);
+                        var tex = getTexture(gridWidth, gridHeight, level);
+                        var s = gp[k];
+                        if (!s) {
+                            gp[k] = s = new egret.Bitmap();
                         }
+                        s.texture = tex;
+                        var pt = map.map2Screen(i, j);
+                        s.x = pt.x;
+                        s.y = pt.y;
+                        this.addChild(s);
+                        k++;
                     }
                 }
             }
@@ -13969,6 +14057,23 @@ var jy;
             gp.length = k;
         });
     }
+    jy.regMapPosSolver(0 /* Grid */, {
+        map2Screen: function (x, y) {
+            var _a = this, gridWidth = _a.gridWidth, gridHeight = _a.gridHeight;
+            var hw = gridWidth >> 1;
+            var hh = gridHeight >> 1;
+            return {
+                x: x * gridWidth - hw,
+                y: y * gridHeight - hh,
+            };
+        },
+        screen2Map: function (x, y) {
+            return {
+                x: Math.round(x / this.gridWidth),
+                y: Math.round(y / this.gridHeight)
+            };
+        }
+    });
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -14583,6 +14688,141 @@ var jy;
             }
         });
     }
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    if (true) {
+        var sheets_2 = jy.getDynamicTexSheet();
+        var getTexture = function (gridWidth, gridHeight, level) {
+            var showLevel = level > 1;
+            var color = level ? 0xcccc : 0xcc3333;
+            return $getTexture(gridWidth, gridHeight, color, level, showLevel);
+            function $getTexture(gridWidth, gridHeight, color, level, showLevel) {
+                var key = gridWidth + "_" + gridHeight + "_" + color + "_" + level + "_" + showLevel;
+                var tex = sheets_2.get(key);
+                if (!tex) {
+                    var hw = gridWidth >> 1;
+                    var hh = gridHeight >> 1;
+                    var canvas = document.createElement("canvas");
+                    canvas.width = gridWidth;
+                    canvas.height = gridHeight;
+                    var g = canvas.getContext("2d");
+                    var c = jy.ColorUtil.getColorString(color);
+                    g.strokeStyle = c;
+                    g.fillStyle = c;
+                    g.beginPath();
+                    g.moveTo(hw, 0);
+                    g.lineTo(gridWidth, hh);
+                    g.lineTo(hw, gridHeight);
+                    g.lineTo(0, hh);
+                    g.lineTo(hw, 0);
+                    g.closePath();
+                    g.stroke();
+                    g.globalAlpha = 0.1;
+                    g.fill();
+                    if (showLevel) {
+                        g.globalAlpha = 1;
+                        g.fillStyle = "#ffffff";
+                        g.font = "normal normal 10px arial";
+                        g.textBaseline = "middle";
+                        var l = level + "";
+                        var textHalfWidth = g.measureText(l).width >> 1;
+                        var x = hw - textHalfWidth;
+                        g.strokeStyle = "#000000";
+                        g.strokeText(l, x, hh, gridWidth);
+                        g.fillText(l, x, hh, gridWidth);
+                    }
+                    var tex_2 = new egret.Texture();
+                    tex_2.bitmapData = new egret.BitmapData(canvas);
+                    sheets_2.bindOrUpdate(key, tex_2);
+                }
+                return tex;
+            }
+        };
+        $gm.regPathDraw(2 /* Staggered */, function (x, y, w, h, map) {
+            var gp = this.debugGridPanes;
+            if (!gp) {
+                this.debugGridPanes = gp = [];
+            }
+            var k = 0;
+            if ($gm.$showMapGrid) {
+                if (!map.map2Screen) {
+                    jy.bindMapPos(map);
+                }
+                var gridWidth = map.gridWidth, gridHeight = map.gridHeight;
+                for (var i = x / gridWidth >> 0, len = i + w / gridWidth + 1, jstart = (y * 2 / gridHeight >> 0) - 1, jlen = jstart + h * 2 / gridHeight + 1; i < len; i++) {
+                    for (var j = jstart; j < jlen; j++) {
+                        var level = map.getWalk(i, j);
+                        var tex = getTexture(gridWidth, gridHeight, level);
+                        var s = gp[k];
+                        if (!s) {
+                            gp[k] = s = new egret.Bitmap();
+                        }
+                        s.texture = tex;
+                        this.addChild(s);
+                        k++;
+                        var pt = map.map2Screen(i, j);
+                        s.x = pt.x;
+                        s.y = pt.y;
+                    }
+                }
+            }
+            for (var i = k; i < gp.length; i++) {
+                var bmp = gp[i];
+                bmp.texture = null;
+                jy.removeDisplay(bmp);
+            }
+            gp.length = k;
+        });
+    }
+    jy.regMapPosSolver(2 /* Staggered */, {
+        init: function (map) {
+            var polygon = new jy.Polygon();
+            map.polygon = polygon;
+            var gridWidth = map.gridWidth, gridHeight = map.gridHeight;
+            var hh = gridHeight >> 1;
+            var hw = gridWidth >> 1;
+            map.hh = hh;
+            map.hw = hw;
+            polygon.points = [{ x: hw, y: 0 }, { x: gridWidth, y: hh }, { x: hw, y: gridHeight }, { x: 0, y: hh }];
+        },
+        map2Screen: function (i, j) {
+            var _a = this, gridWidth = _a.gridWidth, hw = _a.hw, hh = _a.hh;
+            var x = i * gridWidth;
+            if (j & 1) {
+                x += hw;
+            }
+            var y = j * hh;
+            return {
+                x: x,
+                y: y,
+            };
+        },
+        screen2Map: function (x, y) {
+            var _a = this, gridHeight = _a.gridHeight, gridWidth = _a.gridWidth, hw = _a.hw, hh = _a.hh;
+            var i = x / gridWidth >> 0;
+            var j = y / gridHeight >> 0;
+            //得到格子所在区域
+            var dx = x - i * gridWidth;
+            var dy = y - j * gridHeight;
+            j *= 2;
+            if (!this.polygon.containPos(dx, dy)) { //不在格子内
+                //检查坐标所在区域
+                //   左上  右上   
+                //   左下  右下
+                if (dx < hw) {
+                    i--;
+                }
+                if (dy < hh) { //左上
+                    j--;
+                }
+                else { //左下
+                    j++;
+                }
+            }
+            return { x: i, y: j };
+        }
+    });
 })(jy || (jy = {}));
 var jy;
 (function (jy) {

@@ -1,14 +1,18 @@
 namespace jy {
+    export interface StaggeredMapInfo extends MapInfo {
 
-    export interface GridMapInfo extends MapInfo {
-        /**
-         * 路径点数据
-         */
         pathdata: Uint8Array;
+
+        /**
+         * 路径数据最大支持的位数
+         */
+        pdatabit: number;
+
         /**
          * 透明区域点数据
          */
         adata?: Uint8Array;
+
         /**
          * 格子宽度
          */
@@ -28,6 +32,20 @@ namespace jy {
          * 地图格子行数
          */
         rows: number;
+
+        /**
+         * 算格子用多边形
+         */
+        polygon: Polygon;
+
+        /**
+         * 格子高度的一半
+         */
+        hh: number;
+        /**
+         * 格子宽度的一半
+         */
+        hw: number;
     }
 
     interface GridPathDraw {
@@ -61,11 +79,11 @@ namespace jy {
                     g.strokeStyle = c;
                     g.fillStyle = c;
                     g.beginPath();
-                    g.moveTo(0, 0);
-                    g.lineTo(gridWidth, 0);
-                    g.lineTo(gridWidth, gridHeight);
-                    g.lineTo(0, gridHeight);
-                    g.lineTo(0, 0);
+                    g.moveTo(hw, 0);
+                    g.lineTo(gridWidth, hh);
+                    g.lineTo(hw, gridHeight);
+                    g.lineTo(0, hh);
+                    g.lineTo(hw, 0);
                     g.closePath();
                     g.stroke();
                     g.globalAlpha = 0.1;
@@ -82,6 +100,7 @@ namespace jy {
                         g.strokeText(l, x, hh, gridWidth);
                         g.fillText(l, x, hh, gridWidth);
                     }
+
                     let tex = new egret.Texture();
                     tex.bitmapData = new egret.BitmapData(canvas);
                     sheets.bindOrUpdate(key, tex);
@@ -90,7 +109,8 @@ namespace jy {
             }
         }
 
-        $gm.regPathDraw(MapPathType.Grid,
+
+        $gm.regPathDraw(MapPathType.Staggered,
             function (this: TileMapLayer & GridPathDraw, x: number, y: number, w: number, h: number, map: GridMapInfo) {
                 let gp = this.debugGridPanes;
                 if (!gp) {
@@ -102,7 +122,7 @@ namespace jy {
                         bindMapPos(map);
                     }
                     const { gridWidth, gridHeight } = map;
-                    for (let i = x / gridWidth >> 0, len = i + w / gridWidth + 1, jstart = y / gridHeight >> 0, jlen = jstart + h / gridHeight + 1; i < len; i++) {
+                    for (let i = x / gridWidth >> 0, len = i + w / gridWidth + 1, jstart = (y * 2 / gridHeight >> 0) - 1, jlen = jstart + h * 2 / gridHeight + 1; i < len; i++) {
                         for (let j = jstart; j < jlen; j++) {
                             let level = map.getWalk(i, j);
                             let tex = getTexture(gridWidth, gridHeight, level);
@@ -111,11 +131,11 @@ namespace jy {
                                 gp[k] = s = new egret.Bitmap();
                             }
                             s.texture = tex;
+                            this.addChild(s);
+                            k++;
                             let pt = map.map2Screen(i, j);
                             s.x = pt.x;
                             s.y = pt.y;
-                            this.addChild(s);
-                            k++;
                         }
                     }
                 }
@@ -130,22 +150,55 @@ namespace jy {
         );
     }
 
-    regMapPosSolver(MapPathType.Grid, {
-        map2Screen(x, y) {
-            const { gridWidth, gridHeight } = this;
-            let hw = gridWidth >> 1;
+
+    regMapPosSolver(MapPathType.Staggered, {
+        init(map) {
+            let polygon = new Polygon();
+            map.polygon = polygon;
+            const { gridWidth, gridHeight } = map;
             let hh = gridHeight >> 1;
+            let hw = gridWidth >> 1;
+            map.hh = hh;
+            map.hw = hw;
+            polygon.points = [{ x: hw, y: 0 }, { x: gridWidth, y: hh }, { x: hw, y: gridHeight }, { x: 0, y: hh }]
+        },
+        map2Screen(i, j) {
+            const { gridWidth, hw, hh } = this;
+            let x = i * gridWidth;
+            if (j & 1) {
+                x += hw;
+            }
+            let y = j * hh;
+
             return {
-                x: x * gridWidth - hw,
-                y: y * gridHeight - hh,
+                x,
+                y,
             }
         },
         screen2Map(x, y) {
-            return {
-                x: Math.round(x / this.gridWidth),
-                y: Math.round(y / this.gridHeight)
-            }
-        }
-    } as MapPosSolver<GridMapInfo>)
+            const { gridHeight, gridWidth, hw, hh } = this;
+            let i = x / gridWidth >> 0;
+            let j = y / gridHeight >> 0;
 
+            //得到格子所在区域
+            let dx = x - i * gridWidth;
+            let dy = y - j * gridHeight;
+            j *= 2;
+            if (!this.polygon.containPos(dx, dy)) {//不在格子内
+                //检查坐标所在区域
+                //   左上  右上   
+                //   左下  右下
+                if (dx < hw) {
+                    i--;
+                }
+                if (dy < hh) {//左上
+                    j--;
+                } else {//左下
+                    j++;
+                }
+            }
+
+            return { x: i, y: j };
+        }
+    } as MapPosSolver<StaggeredMapInfo>)
 }

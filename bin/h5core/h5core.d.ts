@@ -1081,6 +1081,38 @@ declare namespace jy {
     }
 }
 declare namespace jy {
+    class Bin extends egret.Rectangle {
+        /**
+         * 是否旋转了90°
+         */
+        rot: boolean;
+        clone(): Bin;
+    }
+    interface BinPacker {
+        width: number;
+        height: number;
+        rot: boolean;
+        usedRects: Bin[];
+        freeRects: Bin[];
+    }
+    interface ShortSideBinPacker extends BinPacker {
+    }
+    /**
+     * 短边优先装箱
+     * 动态装箱，暂时只用短边优先的单一策略
+     */
+    class ShortSideBinPacker {
+        constructor(width: number, height: number, allowRotation?: boolean);
+        /**
+         * 扩展大小，如果宽度或者高度比原先小，则返回false
+         * @param width
+         * @param height
+         */
+        extSize(width: number, height: number): boolean;
+        insert(width: number, height: number): Bin;
+    }
+}
+declare namespace jy {
     const enum TextureSheetConst {
         DefaultSize = 256,
         MaxSize = 2048,
@@ -2286,6 +2318,20 @@ declare namespace jy {
     export {};
 }
 declare namespace jy {
+    export function getDynamicTexSheet(): {
+        bind: (uri: string, tex: DynamicTexture) => any;
+        update: (uri: string, tex: egret.Texture) => void;
+        bindOrUpdate(uri: string, tex: DynamicTexture): void;
+        remove(uri: string): void;
+        get: (uri: string) => egret.Texture;
+    };
+    interface DynamicTexture extends egret.Texture {
+        $bin?: Bin;
+    }
+    export type DynamicTexSheet = ReturnType<typeof getDynamicTexSheet>;
+    export {};
+}
+declare namespace jy {
     /**
      * 基础渲染器
      * @author 3tion
@@ -2560,7 +2606,11 @@ declare namespace jy {
         /**
          * 导航网格
          */
-        NavMesh = 1
+        NavMesh = 1,
+        /**
+         * 等角（交错）
+         */
+        Staggered = 2
     }
     /**
      * 地图基础信息<br/>
@@ -2625,6 +2675,20 @@ declare namespace jy {
          */
         getWalk?(x: number, y: number): number;
         /**
+         * 此方法在执行过`bindMapPos`后生效
+         * 屏幕坐标转换为地图坐标
+         * @param x
+         * @param y
+         */
+        screen2Map?(x: number, y: number): Point;
+        /**
+         * 此方法在执行过`bindMapPos`后生效
+         * 地图坐标转换为屏幕坐标
+         * @param x
+         * @param y
+         */
+        map2Screen?(x: number, y: number): Point;
+        /**
         * 获取地图图块资源路径
         */
         getMapUri(col: number, row: number): string;
@@ -2637,6 +2701,13 @@ declare namespace jy {
          */
         static prefix: string;
     }
+    interface MapPosSolver<T extends MapInfo> {
+        init?(map: T): any;
+        screen2Map(this: T, x: number, y: number): Point;
+        map2Screen(this: T, x: number, y: number): Point;
+    }
+    function regMapPosSolver<T extends MapInfo>(type: MapPathType, solver: MapPosSolver<T>): void;
+    function bindMapPos(map: MapInfo): void;
 }
 interface $gmType {
     /**
@@ -2739,14 +2810,12 @@ declare namespace jy {
         miniLoad(item: Res.ResItem): void;
         removeChildren(): void;
     }
-    /**
-     * 获取类似地图一样，由行列构成的数据集，数据为2进制数据
-     * @param x 横坐标
-     * @param y 纵坐标
-     * @param columns 一行的总列数
-     * @param data 二进制数据集
-     */
-    function getMapBit(x: number, y: number, columns: number, data: Uint8Array): number;
+    const enum MapDataBitCount {
+        Bit1 = 1,
+        Bit2 = 2,
+        Bit4 = 4,
+        Bit8 = 8
+    }
     /**
     * TileMap
     */
@@ -2815,7 +2884,6 @@ declare namespace jy {
     }
 }
 declare namespace jy {
-    import Point = egret.Point;
     /**
      * 多边形
      */
@@ -2836,7 +2904,8 @@ declare namespace jy {
          * 是否包含点
          * @param pt
          */
-        contain(pt: jy.Point): boolean;
+        contain({ x, y }: Point): boolean;
+        containPos(x: number, y: number): boolean;
     }
 }
 declare namespace jy {
@@ -8564,38 +8633,6 @@ declare namespace jy {
     }
 }
 declare namespace jy {
-    class Bin extends egret.Rectangle {
-        /**
-         * 是否旋转了90°
-         */
-        rot: boolean;
-        clone(): Bin;
-    }
-    interface BinPacker {
-        width: number;
-        height: number;
-        rot: boolean;
-        usedRects: Bin[];
-        freeRects: Bin[];
-    }
-    interface ShortSideBinPacker extends BinPacker {
-    }
-    /**
-     * 短边优先装箱
-     * 动态装箱，暂时只用短边优先的单一策略
-     */
-    class ShortSideBinPacker {
-        constructor(width: number, height: number, allowRotation?: boolean);
-        /**
-         * 扩展大小，如果宽度或者高度比原先小，则返回false
-         * @param width
-         * @param height
-         */
-        extSize(width: number, height: number): boolean;
-        insert(width: number, height: number): Bin;
-    }
-}
-declare namespace jy {
     /**
      * 圆圈倒计时
      *
@@ -8772,20 +8809,6 @@ declare namespace jy {
     function getDisplayDataURL(dis: egret.DisplayObject, type: string, rect?: egret.Rectangle, encodeOptions?: any, scale?: number): string;
     function getBase64(dataUrl: string): string;
     function getBytes(dataUrl: string): Uint8Array;
-    export {};
-}
-declare namespace jy {
-    export function getDynamicTexSheet(): {
-        bind: (uri: string, tex: DynamicTexture) => any;
-        update: (uri: string, tex: egret.Texture) => void;
-        bindOrUpdate(uri: string, tex: DynamicTexture): void;
-        remove(uri: string): void;
-        get: (uri: string) => egret.Texture;
-    };
-    interface DynamicTexture extends egret.Texture {
-        $bin?: Bin;
-    }
-    export type DynamicTexSheet = ReturnType<typeof getDynamicTexSheet>;
     export {};
 }
 declare namespace jy {
@@ -10556,6 +10579,20 @@ declare namespace jy {
     }
 }
 declare namespace jy {
+    /**
+     * 单data，最多支持256种数据
+     */
+    function getMapDataHelper(columns: number, rows: number, bitDataCount: MapDataBitCount, rawData?: Uint8Array): {
+        get(x: number, y: number): number;
+        set(x: number, y: number, value: number): void;
+        data: Readonly<Uint8Array>;
+    };
+    /**
+     * 用于辅助处理格子的数据
+     */
+    type MapDataHelper = ReturnType<typeof getMapDataHelper>;
+}
+declare namespace jy {
     const enum MapPBDictKey {
         GridMapInfoPB = 110,
         MapEffPB = 111,
@@ -11041,6 +11078,10 @@ declare namespace jy {
 declare namespace jy {
     import Point = egret.Point;
     class Triangle extends Polygon {
+        /**
+         * 顶点列表
+         */
+        points: Point[];
         readonly pA: Point;
         readonly pB: Point;
         readonly pC: Point;
@@ -11212,6 +11253,47 @@ declare namespace jy {
          * 遮罩数据列表
          */
         masks?: MapMaskInfo[];
+    }
+}
+declare namespace jy {
+    interface StaggeredMapInfo extends MapInfo {
+        pathdata: Uint8Array;
+        /**
+         * 路径数据最大支持的位数
+         */
+        pdatabit: number;
+        /**
+         * 透明区域点数据
+         */
+        adata?: Uint8Array;
+        /**
+         * 格子宽度
+         */
+        gridWidth: number;
+        /**
+         * 格子高度
+         */
+        gridHeight: number;
+        /**
+         * 地图格子列数
+         */
+        columns: number;
+        /**
+         * 地图格子行数
+         */
+        rows: number;
+        /**
+         * 算格子用多边形
+         */
+        polygon: Polygon;
+        /**
+         * 格子高度的一半
+         */
+        hh: number;
+        /**
+         * 格子宽度的一半
+         */
+        hw: number;
     }
 }
 declare namespace jy {

@@ -264,19 +264,20 @@ namespace jy {
         }
     }
 
-    /**
-     * 获取类似地图一样，由行列构成的数据集，数据为2进制数据
-     * @param x 横坐标
-     * @param y 纵坐标
-     * @param columns 一行的总列数
-     * @param data 二进制数据集
-     */
-    export function getMapBit(x: number, y: number, columns: number, data: Uint8Array) {
+    export const enum MapDataBitCount {
+        Bit1 = 1,
+        Bit2 = 2,
+        Bit4 = 4,
+        Bit8 = 8
+    }
+
+    function getMapBit(x: number, y: number, columns: number, data: Uint8Array) {
         let position = y * columns + x;
         let byteCount = position >> 3;
         let bitCount = position - (byteCount << 3);
-        return (data[byteCount] >> 7 - bitCount) & 1;
+        return (data[byteCount] >> bitCount) & 1;
     }
+
 
     TileMapLayer.checkRect = checkRect;
     /**

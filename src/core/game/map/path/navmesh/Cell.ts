@@ -3,6 +3,11 @@ namespace jy {
 
     export class Triangle extends Polygon {
 
+        /**
+         * 顶点列表
+         */
+        points: Point[];
+
         readonly pA: Point;
         readonly pB: Point;
         readonly pC: Point;
