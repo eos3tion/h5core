@@ -10640,6 +10640,10 @@ declare namespace jy {
          * 可选参数 格子透明度数据
          */
         alphadata?: ByteArray;
+        /**
+         * 可选参数 格子中路径占用的位数(1bit,2bit,4bit,8bit)
+         */
+        pdatabit?: number;
     }
 }
 /**
