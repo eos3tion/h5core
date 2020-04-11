@@ -402,6 +402,7 @@ declare namespace jy {
         clearCallLater(callback: Function, thisObj?: any): any;
         callLater2(callback: $CallbackInfo, now?: number, time?: number): void;
         clearCallLater2(callback: $CallbackInfo): any;
+        clear(): void;
     }
 }
 /**

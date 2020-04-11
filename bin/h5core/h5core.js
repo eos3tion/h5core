@@ -684,6 +684,14 @@ var jy;
             this._callLaters.remove(callback);
             return callback.recycle();
         };
+        CallLater.prototype.clear = function () {
+            var callLaters = this._callLaters;
+            for (var i = 0; i < callLaters.length; i++) {
+                var cInfo = callLaters[i];
+                cInfo.recycle();
+            }
+            callLaters.length = 0;
+        };
         return CallLater;
     }());
     jy.CallLater = CallLater;
