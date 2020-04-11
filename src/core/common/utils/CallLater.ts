@@ -70,5 +70,14 @@ namespace jy {
             this._callLaters.remove(callback);
             return callback.recycle();
         }
+
+        public clear() {
+            let callLaters = this._callLaters;
+            for (let i = 0; i < callLaters.length; i++) {
+                const cInfo = callLaters[i];
+                cInfo.recycle();
+            }
+            callLaters.length = 0;
+        }
     }
 }
