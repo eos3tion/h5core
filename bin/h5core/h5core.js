@@ -4059,6 +4059,7 @@ var jy;
         }
         map.screen2Map = solver && solver.screen2Map || defaultPosSolver;
         map.map2Screen = solver && solver.map2Screen || defaultPosSolver;
+        map.getFacePos = solver && solver.getFacePos || defaultPosSolver;
     }
     jy.bindMapPos = bindMapPos;
 })(jy || (jy = {}));
@@ -17186,7 +17187,7 @@ var jy;
                 if (this._asyncHelper) {
                     this._asyncHelper.readyNow();
                 }
-                jy.dispatch(-990 /* MediatorReady */, this._name);
+                jy.dispatch(-989 /* MediatorReady */, this._name);
             }
         };
         Mediator.prototype.hide = function () {
@@ -17432,7 +17433,7 @@ var jy;
             this._unopens = [];
             this._hById = {};
             this._ioBind = new Map();
-            jy.on(-993 /* MODULE_NEED_CHECK_SHOW */, this.check, this);
+            jy.on(-992 /* MODULE_NEED_CHECK_SHOW */, this.check, this);
         };
         /**
          * 设置模块配置数据
@@ -17679,6 +17680,7 @@ var jy;
             }
             this._needCheckShow = false;
             var changed = false;
+            var openChanged = false;
             var _a = this, _allById = _a._allById, _unshowns = _a._unshowns, _unopens = _a._unopens;
             var j = 0;
             for (var i = 0; i < _unshowns.length; i++) {
@@ -17720,6 +17722,7 @@ var jy;
                             callback.execute();
                         }
                     }
+                    openChanged = true;
                 }
                 else {
                     _unopens[j++] = id;
@@ -17728,6 +17731,9 @@ var jy;
             _unopens.length = j;
             if (changed) {
                 jy.dispatch(-994 /* MODULE_SHOW_CHANGED */, _unshowns.length);
+            }
+            if (openChanged) {
+                jy.dispatch(-993 /* MODULE_OPEN_CHANGED */, _unopens.length);
             }
         };
         /**
