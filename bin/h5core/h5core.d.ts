@@ -2706,6 +2706,13 @@ declare namespace jy {
         init?(map: T): any;
         screen2Map(this: T, x: number, y: number): Point;
         map2Screen(this: T, x: number, y: number): Point;
+        /**
+         * 根据当前点获取朝向对应坐标
+         * @param x
+         * @param y
+         * @param face
+         */
+        getFacePos(x: number, y: number, face: number): any;
     }
     function regMapPosSolver<T extends MapInfo>(type: MapPathType, solver: MapPosSolver<T>): void;
     function bindMapPos(map: MapInfo): void;

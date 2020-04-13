@@ -14069,6 +14069,16 @@ var jy;
             gp.length = k;
         });
     }
+    var poses = [
+        /*↓*/ [0, 1],
+        /*↘*/ [1, 1],
+        /*→*/ [1, 0],
+        /*↗*/ [1, -1],
+        /*↑*/ [0, -1],
+        /*↖*/ [-1, -1],
+        /*←*/ [-1, 0],
+        /*↙*/ [-1, 1]
+    ];
     jy.regMapPosSolver(0 /* Grid */, {
         map2Screen: function (x, y) {
             var _a = this, gridWidth = _a.gridWidth, gridHeight = _a.gridHeight;
@@ -14083,6 +14093,13 @@ var jy;
             return {
                 x: Math.round(x / this.gridWidth),
                 y: Math.round(y / this.gridHeight)
+            };
+        },
+        getFacePos: function (x, y, face8) {
+            var pos = poses[face8];
+            return {
+                x: x + pos[0],
+                y: y + pos[1]
             };
         }
     });
@@ -14787,6 +14804,26 @@ var jy;
             gp.length = k;
         });
     }
+    var posesOdd = [
+        /* ↓  */ [0, 2],
+        /* ↘ */ [0, 1],
+        /* →  */ [1, 0],
+        /* ↗ */ [1, -1],
+        /* ↑  */ [0, -2],
+        /* ↖ */ [0, -1],
+        /* ←  */ [-1, 0],
+        /* ↙ */ [0, 1]
+    ];
+    var posesEven = [
+        /* ↓  */ [0, 2],
+        /* ↘ */ [0, 1],
+        /* →  */ [1, 0],
+        /* ↗ */ [0, -1],
+        /* ↑  */ [0, -2],
+        /* ↖ */ [-1, -1],
+        /* ←  */ [-1, 0],
+        /* ↙ */ [-1, 1]
+    ];
     jy.regMapPosSolver(2 /* Staggered */, {
         init: function (map) {
             var polygon = new jy.Polygon();
@@ -14833,6 +14870,27 @@ var jy;
                 }
             }
             return { x: i, y: j };
+        },
+        /**
+         * 根据当前坐标相邻的指定朝向对应的坐标
+         * @param x
+         * @param y
+         * @param face8 0 ↓
+         *              1 ↘
+         *              2 →
+         *              3 ↗
+         *              4 ↑
+         *              5 ↖
+         *              6 ←
+         *              7 ↙
+         */
+        getFacePos: function (x, y, face8) {
+            var poses = y & 1 ? posesOdd : posesEven;
+            var _a = poses[face8], ox = _a[0], oy = _a[1];
+            return {
+                x: x + ox,
+                y: y + oy
+            };
         }
     });
 })(jy || (jy = {}));
