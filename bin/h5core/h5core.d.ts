@@ -10251,42 +10251,47 @@ declare namespace jy {
          */
         MODULE_CHECKER_INITED = -998,
         /**
-         * 尝试调用某个功能<br/>
+         * 尝试调用某个功能
          * data 为功能ID
          */
         MODULE_TRY_TOGGLE = -997,
         /**
-        * 有功能，服务端要求临时关闭<br/>
+        * 有功能，服务端要求临时关闭
         * data 为功能ID
         */
         MODULE_SERVER_CLOSE = -996,
         /**
-        * 有临时关闭的功能，服务端要求再打开<br/>
+        * 有临时关闭的功能，服务端要求再打开
         * data 为功能ID
         */
         MODULE_SERVER_OPEN = -995,
         /**
-         * 模块显示状态发生改变发生改变<br/>
+         * 模块显示状态发生改变发生改变
          * data 为剩余未显示的按钮数量
          */
         MODULE_SHOW_CHANGED = -994,
         /**
+         * 模块的开启状态发生改变
+         * data 为剩余未开启的按钮数量
+         */
+        MODULE_OPEN_CHANGED = -993,
+        /**
          * 有模块需要检查是否会造成显示变化或者功能开启发生变更
          */
-        MODULE_NEED_CHECK_SHOW = -993,
+        MODULE_NEED_CHECK_SHOW = -992,
         /**
          * 有模块不符合显示的条件
          * data 为功能ID
          */
-        MODULE_NOT_SHOW = -992,
+        MODULE_NOT_SHOW = -991,
         /**
          * 有模块显示了
          */
-        MODULE_SHOW = -991,
+        MODULE_SHOW = -990,
         /**
          * Mediator准备好了
          */
-        MediatorReady = -990
+        MediatorReady = -989
     }
 }
 declare namespace jy {

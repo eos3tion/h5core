@@ -348,6 +348,7 @@ namespace jy {
             }
             this._needCheckShow = false;
             let changed = false;
+            let openChanged = false;
             let { _allById, _unshowns, _unopens } = this;
             let j = 0;
             for (let i = 0; i < _unshowns.length; i++) {
@@ -387,6 +388,7 @@ namespace jy {
                             callback.execute();
                         }
                     }
+                    openChanged = true;
                 } else {
                     _unopens[j++] = id;
                 }
@@ -394,6 +396,9 @@ namespace jy {
             _unopens.length = j;
             if (changed) {
                 dispatch(EventConst.MODULE_SHOW_CHANGED, _unshowns.length);
+            }
+            if (openChanged) {
+                dispatch(EventConst.MODULE_OPEN_CHANGED, _unopens.length);
             }
         }
 
