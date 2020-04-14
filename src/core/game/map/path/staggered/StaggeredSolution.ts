@@ -150,6 +150,27 @@ namespace jy {
         );
     }
 
+    const posesOdd = [
+        /* ↓  */[0, 2],
+        /* ↘ */[0, 1],
+        /* →  */[1, 0],
+        /* ↗ */[1, -1],
+        /* ↑  */[0, -2],
+        /* ↖ */[0, -1],
+        /* ←  */[-1, 0],
+        /* ↙ */[0, 1]
+    ]
+
+    const posesEven = [
+        /* ↓  */[0, 2],
+        /* ↘ */[0, 1],
+        /* →  */[1, 0],
+        /* ↗ */[0, -1],
+        /* ↑  */[0, -2],
+        /* ↖ */[-1, -1],
+        /* ←  */[-1, 0],
+        /* ↙ */[-1, 1]
+    ]
 
     regMapPosSolver(MapPathType.Staggered, {
         init(map) {
@@ -202,6 +223,27 @@ namespace jy {
             }
 
             return { x: i, y: j };
+        },
+        /**
+         * 根据当前坐标相邻的指定朝向对应的坐标
+         * @param x 
+         * @param y 
+         * @param face8 0 ↓  
+         *              1 ↘  
+         *              2 →  
+         *              3 ↗  
+         *              4 ↑  
+         *              5 ↖  
+         *              6 ←  
+         *              7 ↙
+         */
+        getFacePos(x: number, y: number, face8: number) {
+            const poses = y & 1 ? posesOdd : posesEven
+            const [ox, oy] = poses[face8];
+            return {
+                x: x + ox,
+                y: y + oy
+            }
         }
     } as MapPosSolver<StaggeredMapInfo>)
 }

@@ -118,6 +118,15 @@ namespace jy {
          */
         map2Screen?(x: number, y: number): Point;
 
+
+        /**
+         * 此方法在执行过`bindMapPos`后生效  
+         * @param x 
+         * @param y 
+         * @param face 
+         */
+        getFacePos?(x: number, y: number, face: number): Point;
+
         /**
         * 获取地图图块资源路径
         */
@@ -170,5 +179,6 @@ namespace jy {
         }
         map.screen2Map = solver && solver.screen2Map || defaultPosSolver;
         map.map2Screen = solver && solver.map2Screen || defaultPosSolver;
+        map.getFacePos = solver && solver.getFacePos || defaultPosSolver;
     }
 }

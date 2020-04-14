@@ -130,6 +130,17 @@ namespace jy {
         );
     }
 
+    const poses = [
+        /*↓*/[0, 1],
+        /*↘*/[1, 1],
+        /*→*/[1, 0],
+        /*↗*/[1, -1],
+        /*↑*/[0, -1],
+        /*↖*/[-1, -1],
+        /*←*/[-1, 0],
+        /*↙*/[-1, 1]
+    ]
+
     regMapPosSolver(MapPathType.Grid, {
         map2Screen(x, y, isCenter?: boolean) {
             const { gridWidth, gridHeight } = this;
@@ -150,6 +161,13 @@ namespace jy {
             return {
                 x: Math.round(x / this.gridWidth),
                 y: Math.round(y / this.gridHeight)
+            }
+        },
+        getFacePos(x: number, y: number, face8: number) {
+            let pos = poses[face8];
+            return {
+                x: x + pos[0],
+                y: y + pos[1]
             }
         }
     } as MapPosSolver<GridMapInfo>)
