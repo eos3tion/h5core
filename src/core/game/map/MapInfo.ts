@@ -141,7 +141,14 @@ namespace jy {
     export interface MapPosSolver<T extends MapInfo> {
         init?(map: T);
         screen2Map(this: T, x: number, y: number): Point;
-        map2Screen(this: T, x: number, y: number): Point;
+        /**
+         * 地图坐标转为屏幕坐标，默认左上
+         * @param this 
+         * @param x 
+         * @param y 
+         * @param isCenter 转为中心点
+         */
+        map2Screen(this: T, x: number, y: number, isCenter?: boolean): Point;
     }
 
 

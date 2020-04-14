@@ -121,8 +121,8 @@ namespace jy {
                     if (!map.map2Screen) {
                         bindMapPos(map);
                     }
-                    const { gridWidth, gridHeight } = map;
-                    for (let i = x / gridWidth >> 0, len = i + w / gridWidth + 1, jstart = (y * 2 / gridHeight >> 0) - 1, jlen = jstart + h * 2 / gridHeight + 1; i < len; i++) {
+                    const { gridWidth, gridHeight, columns, rows } = map;
+                    for (let i = x / gridWidth >> 0, len = Math.min(i + w / gridWidth + 1, columns), jstart = (y * 2 / gridHeight >> 0) - 1, jlen = Math.min(jstart + h * 2 / gridHeight + 1, rows); i < len; i++) {
                         for (let j = jstart; j < jlen; j++) {
                             let level = map.getWalk(i, j);
                             let tex = getTexture(gridWidth, gridHeight, level);
@@ -162,14 +162,17 @@ namespace jy {
             map.hw = hw;
             polygon.points = [{ x: hw, y: 0 }, { x: gridWidth, y: hh }, { x: hw, y: gridHeight }, { x: 0, y: hh }]
         },
-        map2Screen(i, j) {
+        map2Screen(i, j, isCenter?: boolean) {
             const { gridWidth, hw, hh } = this;
             let x = i * gridWidth;
             if (j & 1) {
                 x += hw;
             }
             let y = j * hh;
-
+            if (isCenter) {
+                x += hw;
+                y += hh;
+            }
             return {
                 x,
                 y,

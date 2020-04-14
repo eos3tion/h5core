@@ -14035,8 +14035,8 @@ var jy;
                 if (!map.map2Screen) {
                     jy.bindMapPos(map);
                 }
-                var gridWidth = map.gridWidth, gridHeight = map.gridHeight;
-                for (var i = x / gridWidth >> 0, len = i + w / gridWidth + 1, jstart = y / gridHeight >> 0, jlen = jstart + h / gridHeight + 1; i < len; i++) {
+                var gridWidth = map.gridWidth, gridHeight = map.gridHeight, columns = map.columns, rows = map.rows;
+                for (var i = x / gridWidth >> 0, len = Math.min(i + w / gridWidth + 1, columns), jstart = y / gridHeight >> 0, jlen = Math.min(jstart + h / gridHeight + 1, rows); i < len; i++) {
                     for (var j = jstart; j < jlen; j++) {
                         var level = map.getWalk(i, j);
                         var tex = getTexture(gridWidth, gridHeight, level);
@@ -14062,13 +14062,19 @@ var jy;
         });
     }
     jy.regMapPosSolver(0 /* Grid */, {
-        map2Screen: function (x, y) {
+        map2Screen: function (x, y, isCenter) {
             var _a = this, gridWidth = _a.gridWidth, gridHeight = _a.gridHeight;
             var hw = gridWidth >> 1;
             var hh = gridHeight >> 1;
+            x = x * gridWidth;
+            y = y * gridHeight;
+            if (isCenter) {
+                x += hw;
+                y += hh;
+            }
             return {
-                x: x * gridWidth - hw,
-                y: y * gridHeight - hh,
+                x: x,
+                y: y,
             };
         },
         screen2Map: function (x, y) {
@@ -14753,8 +14759,8 @@ var jy;
                 if (!map.map2Screen) {
                     jy.bindMapPos(map);
                 }
-                var gridWidth = map.gridWidth, gridHeight = map.gridHeight;
-                for (var i = x / gridWidth >> 0, len = i + w / gridWidth + 1, jstart = (y * 2 / gridHeight >> 0) - 1, jlen = jstart + h * 2 / gridHeight + 1; i < len; i++) {
+                var gridWidth = map.gridWidth, gridHeight = map.gridHeight, columns = map.columns, rows = map.rows;
+                for (var i = x / gridWidth >> 0, len = Math.min(i + w / gridWidth + 1, columns), jstart = (y * 2 / gridHeight >> 0) - 1, jlen = Math.min(jstart + h * 2 / gridHeight + 1, rows); i < len; i++) {
                     for (var j = jstart; j < jlen; j++) {
                         var level = map.getWalk(i, j);
                         var tex = getTexture(gridWidth, gridHeight, level);
@@ -14790,13 +14796,17 @@ var jy;
             map.hw = hw;
             polygon.points = [{ x: hw, y: 0 }, { x: gridWidth, y: hh }, { x: hw, y: gridHeight }, { x: 0, y: hh }];
         },
-        map2Screen: function (i, j) {
+        map2Screen: function (i, j, isCenter) {
             var _a = this, gridWidth = _a.gridWidth, hw = _a.hw, hh = _a.hh;
             var x = i * gridWidth;
             if (j & 1) {
                 x += hw;
             }
             var y = j * hh;
+            if (isCenter) {
+                x += hw;
+                y += hh;
+            }
             return {
                 x: x,
                 y: y,

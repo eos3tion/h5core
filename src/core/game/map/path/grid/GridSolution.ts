@@ -101,8 +101,8 @@ namespace jy {
                     if (!map.map2Screen) {
                         bindMapPos(map);
                     }
-                    const { gridWidth, gridHeight } = map;
-                    for (let i = x / gridWidth >> 0, len = i + w / gridWidth + 1, jstart = y / gridHeight >> 0, jlen = jstart + h / gridHeight + 1; i < len; i++) {
+                    const { gridWidth, gridHeight, columns, rows } = map;
+                    for (let i = x / gridWidth >> 0, len = Math.min(i + w / gridWidth + 1, columns), jstart = y / gridHeight >> 0, jlen = Math.min(jstart + h / gridHeight + 1, rows); i < len; i++) {
                         for (let j = jstart; j < jlen; j++) {
                             let level = map.getWalk(i, j);
                             let tex = getTexture(gridWidth, gridHeight, level);
@@ -131,13 +131,19 @@ namespace jy {
     }
 
     regMapPosSolver(MapPathType.Grid, {
-        map2Screen(x, y) {
+        map2Screen(x, y, isCenter?: boolean) {
             const { gridWidth, gridHeight } = this;
             let hw = gridWidth >> 1;
             let hh = gridHeight >> 1;
+            x = x * gridWidth;
+            y = y * gridHeight;
+            if (isCenter) {
+                x += hw;
+                y += hh;
+            }
             return {
-                x: x * gridWidth - hw,
-                y: y * gridHeight - hh,
+                x,
+                y,
             }
         },
         screen2Map(x, y) {
