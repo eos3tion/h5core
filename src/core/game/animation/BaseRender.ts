@@ -1,10 +1,5 @@
 namespace jy {
-    let slowDispatching: boolean;
 
-    function onSlowRender() {
-        dispatch(EventConst.SlowRender);
-        slowDispatching = false;
-    }
 	/**
 	 * 基础渲染器
 	 * @author 3tion
@@ -92,17 +87,9 @@ namespace jy {
                 let flen = frames.length - 1;
                 let ps = this.playSpeed * BaseRender.globalPlaySpeed;
                 let frame: FrameInfo;
+                let isCom = false;
                 if (ps > 0) {
                     if (delta > 500) {//被暂停过程时间，直接执行会导致循环次数过多，舍弃结果
-                        if (nextRenderTime != 0) {
-                            DEBUG && printSlow(delta);
-                            if (BaseRender.dispatchSlowRender) {
-                                if (!slowDispatching) {
-                                    slowDispatching = true;
-                                    Global.nextTick(onSlowRender);
-                                }
-                            }
-                        }
                         nextRenderTime = now;
                         renderedTime = now;
                     }
@@ -116,6 +103,7 @@ namespace jy {
                             let tt = frame.t * ps;// 容错
                             if (tt <= 0) {
                                 tt = now - renderedTime;
+                                isCom = idx == flen;
                                 break;
                             }
                             nextRenderTime = renderedTime + tt;
@@ -152,11 +140,13 @@ namespace jy {
                 this.willRenderFrame = frame;
                 if (idx > flen) {
                     this.idx = 0;
-                    if (this.isComplete(actionInfo)) {
-                        this.doComplete(now);
-                        return;
-                    }
+                    isCom = true;
                 }
+                if (isCom && this.isComplete(actionInfo)) {
+                    this.doComplete(now);
+                    return;
+                }
+
             }
         }
 
@@ -214,16 +204,5 @@ namespace jy {
 
         public constructor() {
         }
-    }
-
-    if (DEBUG) {
-        var printSlow = (function () {
-            return function (delta: number) {
-                Global.callLater(print, 0, null, delta);
-            };
-            function print(delta: number) {
-                console.log(`Render上次执行时间和当前时间差值过长[${delta}]`);
-            }
-        })()
     }
 }

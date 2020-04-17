@@ -45,9 +45,14 @@ namespace jy {
 			let _now = Date.now();
 			let dis = _now - now;
 			now = _now;
-			if (dis > 2000) {
-				//有2秒钟大概就是进入过休眠了
-				dispatch(EventConst.Awake);
+			if (dis > 500) {
+				if (dis > 2000) {
+					//有2秒钟大概就是进入过休眠了
+					dispatch(EventConst.Awake);
+				} else {
+					dispatch(EventConst.SlowRender);
+				}
+				console.log(`上次执行时间和当前时间差值过长[${dis}]`);
 				frameNow = _now;
 			} else {
 				frameNow += delta;
