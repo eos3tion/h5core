@@ -2641,11 +2641,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    var slowDispatching;
-    function onSlowRender() {
-        jy.dispatch(-1996 /* SlowRender */);
-        slowDispatching = false;
-    }
     /**
      * 基础渲染器
      * @author 3tion
@@ -2712,17 +2707,9 @@ var jy;
                 var flen = frames_1.length - 1;
                 var ps = this.playSpeed * BaseRender.globalPlaySpeed;
                 var frame = void 0;
+                var isCom = false;
                 if (ps > 0) {
                     if (delta > 500) { //被暂停过程时间，直接执行会导致循环次数过多，舍弃结果
-                        if (nextRenderTime != 0) {
-                            true && printSlow(delta);
-                            if (BaseRender.dispatchSlowRender) {
-                                if (!slowDispatching) {
-                                    slowDispatching = true;
-                                    jy.Global.nextTick(onSlowRender);
-                                }
-                            }
-                        }
                         nextRenderTime = now;
                         renderedTime = now;
                     }
@@ -2736,6 +2723,7 @@ var jy;
                             var tt = frame.t * ps; // 容错
                             if (tt <= 0) {
                                 tt = now - renderedTime;
+                                isCom = idx == flen;
                                 break;
                             }
                             nextRenderTime = renderedTime + tt;
@@ -2773,10 +2761,11 @@ var jy;
                 this.willRenderFrame = frame;
                 if (idx > flen) {
                     this.idx = 0;
-                    if (this.isComplete(actionInfo)) {
-                        this.doComplete(now);
-                        return;
-                    }
+                    isCom = true;
+                }
+                if (isCom && this.isComplete(actionInfo)) {
+                    this.doComplete(now);
+                    return;
                 }
             }
         };
@@ -2828,16 +2817,6 @@ var jy;
     }());
     jy.BaseRender = BaseRender;
     __reflect(BaseRender.prototype, "jy.BaseRender", ["jy.IDrawInfo"]);
-    if (true) {
-        var printSlow = (function () {
-            return function (delta) {
-                jy.Global.callLater(print, 0, null, delta);
-            };
-            function print(delta) {
-                console.log("Render\u4E0A\u6B21\u6267\u884C\u65F6\u95F4\u548C\u5F53\u524D\u65F6\u95F4\u5DEE\u503C\u8FC7\u957F[" + delta + "]");
-            }
-        })();
-    }
 })(jy || (jy = {}));
 /**
  * 资源打包信息
@@ -5265,9 +5244,15 @@ var jy;
             var _now = Date.now();
             var dis = _now - now;
             now = _now;
-            if (dis > 2000) {
-                //有2秒钟大概就是进入过休眠了
-                jy.dispatch(-190 /* Awake */);
+            if (dis > 500) {
+                if (dis > 2000) {
+                    //有2秒钟大概就是进入过休眠了
+                    jy.dispatch(-190 /* Awake */);
+                }
+                else {
+                    jy.dispatch(-1996 /* SlowRender */);
+                }
+                console.log("\u4E0A\u6B21\u6267\u884C\u65F6\u95F4\u548C\u5F53\u524D\u65F6\u95F4\u5DEE\u503C\u8FC7\u957F[" + dis + "]");
                 frameNow = _now;
             }
             else {
