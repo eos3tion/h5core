@@ -14063,6 +14063,13 @@ var jy;
         /*↙*/ [-1, 1]
     ];
     jy.regMapPosSolver(0 /* Grid */, {
+        init: function (map) {
+            if (true) {
+                map.DEBUGgetGridTexture = function (level) {
+                    return getTexture(map.gridWidth, map.gridHeight, level);
+                };
+            }
+        },
         map2Screen: function (x, y, isCenter) {
             var _a = this, gridWidth = _a.gridWidth, gridHeight = _a.gridHeight;
             var hw = gridWidth >> 1;
@@ -14815,6 +14822,11 @@ var jy;
     ];
     jy.regMapPosSolver(2 /* Staggered */, {
         init: function (map) {
+            if (true) {
+                map.DEBUGgetGridTexture = function (level) {
+                    return getTexture(map.gridWidth, map.gridHeight, level);
+                };
+            }
             var polygon = new jy.Polygon();
             map.polygon = polygon;
             var gridWidth = map.gridWidth, gridHeight = map.gridHeight;

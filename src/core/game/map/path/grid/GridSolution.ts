@@ -142,6 +142,13 @@ namespace jy {
     ]
 
     regMapPosSolver(MapPathType.Grid, {
+        init(map) {
+            if (DEBUG) {
+                map.DEBUGgetGridTexture = function (level) {
+                    return getTexture(map.gridWidth, map.gridHeight, level);
+                }
+            }
+        },
         map2Screen(x, y, isCenter?: boolean) {
             const { gridWidth, gridHeight } = this;
             let hw = gridWidth >> 1;
