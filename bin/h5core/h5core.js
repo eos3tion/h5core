@@ -2739,33 +2739,30 @@ var jy;
                             }
                         }
                         else {
-                            this.idx = 0;
+                            idx = 0;
                             if (this.isComplete(actionInfo)) {
-                                this.doComplete(now);
-                                return;
+                                isCom = true;
                             }
                             else {
-                                idx = 0;
                                 frame = frames_1[0];
-                                break;
                             }
+                            break;
                         }
                     } while (true);
                 }
                 else { // 播放速度为0则暂停
                     frame = frames_1[idx];
                 }
-                this.idx = idx;
                 this.renderedTime = renderedTime;
                 this.nextRenderTime = nextRenderTime;
                 this.willRenderFrame = frame;
                 if (idx > flen) {
-                    this.idx = 0;
+                    idx = 0;
                     isCom = true;
                 }
+                this.idx = idx;
                 if (isCom && this.isComplete(actionInfo)) {
                     this.doComplete(now);
-                    return;
                 }
             }
         };
