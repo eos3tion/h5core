@@ -2712,7 +2712,15 @@ declare namespace jy {
     interface MapPosSolver<T extends MapInfo> {
         init?(map: T): any;
         screen2Map(this: T, x: number, y: number): Point;
+        /**
+         * 地图坐标转为屏幕坐标，默认左上
+         * @param this
+         * @param x
+         * @param y
+         * @param isCenter 转为中心点
+         */
         map2Screen(this: T, x: number, y: number, isCenter?: boolean): Point;
+        getFacePos(x: number, y: number, face: number): Point;
     }
     function regMapPosSolver<T extends MapInfo>(type: MapPathType, solver: MapPosSolver<T>): void;
     function bindMapPos(map: MapInfo): void;
@@ -12297,7 +12305,7 @@ declare namespace jy {
          * @param tx
          * @param ty
          */
-        getFace(fx: number, fy: number, tx: number, ty: number): any;
+        getFace(fx: number, fy: number, tx: number, ty: number): number;
         /**
          * 获取对立方向
          */
