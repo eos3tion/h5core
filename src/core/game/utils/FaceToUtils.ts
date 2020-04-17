@@ -28,7 +28,7 @@ namespace jy {
          * @param tx 
          * @param ty 
          */
-        getFace(fx: number, fy: number, tx: number, ty: number);
+        getFace(fx: number, fy: number, tx: number, ty: number): number;
 
         /**
          * 获取对立方向
