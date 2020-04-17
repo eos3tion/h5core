@@ -158,6 +158,8 @@ namespace jy {
          * @param isCenter 转为中心点
          */
         map2Screen(this: T, x: number, y: number, isCenter?: boolean): Point;
+
+        getFacePos(x: number, y: number, face: number): Point;
     }
 
 
