@@ -223,11 +223,14 @@ namespace jy {
         public doAction(now: number, action: number, startFrame: number = -1): Readonly<ActionInfo> {
             let render = this._render;
             action = ~~action;
-            if (this._action != action) {
+            let oldAction = this._action;
+            if (oldAction != action) {
                 this._action = action;
                 render.actionInfo = this._pstInfo.frames[action];
                 render.reset(now);
-                startFrame = 0;
+                if (oldAction != null) {
+                    startFrame = 0;
+                }
             }
             if (startFrame > -1) {
                 render.f = startFrame;
