@@ -8366,13 +8366,13 @@ var jy;
          */
         TextureResource.prototype.bind = function (bmp, placehoder, load) {
             var tex = this._tex;
+            this._list.pushOnce(bmp);
             if (tex) {
                 bmp.texture = this._tex;
                 jy.Global.nextTick(bmp.dispatch, bmp, -193 /* Texture_Complete */);
             }
             else {
                 bmp.texture = placehoder;
-                this._list.pushOnce(bmp);
                 load && this.load();
             }
             this.lastUseTime = jy.Global.now;

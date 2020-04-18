@@ -82,12 +82,12 @@ namespace jy {
          */
         public bind(bmp: Bitmap, placehoder?: egret.Texture, load?: boolean) {
             let tex = this._tex;
+            this._list.pushOnce(bmp);
             if (tex) {
                 bmp.texture = this._tex;
                 Global.nextTick(bmp.dispatch, bmp, EventConst.Texture_Complete);
             } else {
                 bmp.texture = placehoder;
-                this._list.pushOnce(bmp);
                 load && this.load();
             }
             this.lastUseTime = Global.now;
