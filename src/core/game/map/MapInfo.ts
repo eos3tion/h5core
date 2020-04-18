@@ -145,6 +145,12 @@ namespace jy {
          * 地图前缀路径
          */
         static prefix: string = MapConst.MapPath;
+
+        /**
+         * bindMap后 DEBUG模式下的方法
+         * @param level 
+         */
+        DEBUGgetGridTexture?(level?: number)
     }
 
     export interface MapPosSolver<T extends MapInfo> {

@@ -174,6 +174,11 @@ namespace jy {
 
     regMapPosSolver(MapPathType.Staggered, {
         init(map) {
+            if (DEBUG) {
+                map.DEBUGgetGridTexture = function (level) {
+                    return getTexture(map.gridWidth, map.gridHeight, level);
+                }
+            }
             let polygon = new Polygon();
             map.polygon = polygon;
             const { gridWidth, gridHeight } = map;
