@@ -11181,6 +11181,12 @@ declare namespace jy {
          * @param {$CallbackInfo} callback
          */
         regModuleShow(mid: Key, callback: $CallbackInfo): void;
+        /**
+         * 关闭某个模块
+         * @param mid
+         * @param close
+         */
+        close(mid: Key, close?: ModuleCloseState): void;
     }
 }
 declare namespace jy {

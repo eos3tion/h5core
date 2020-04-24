@@ -544,5 +544,25 @@ namespace jy {
                 }
             }
         }
+
+        /**
+         * 关闭某个模块
+         * @param mid 
+         * @param close 
+         */
+        close(mid: Key, close = ModuleCloseState.Closed) {
+            let cfg = this._allById[mid];
+            if (cfg) {
+                cfg.close = close;
+                //找到对应io
+                let displays = this._bindedIOById[mid];
+                if (displays) {
+                    for (let dis of displays) {
+                        dis.visible = false;
+                    }
+                }
+                dispatch(EventConst.MODULE_SHOW_CHANGED, this._unshowns.length);
+            }
+        }
     }
 }

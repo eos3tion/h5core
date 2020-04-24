@@ -14298,6 +14298,27 @@ var jy;
                 }
             }
         };
+        /**
+         * 关闭某个模块
+         * @param mid
+         * @param close
+         */
+        ModuleManager.prototype.close = function (mid, close) {
+            if (close === void 0) { close = 2 /* Closed */; }
+            var cfg = this._allById[mid];
+            if (cfg) {
+                cfg.close = close;
+                //找到对应io
+                var displays = this._bindedIOById[mid];
+                if (displays) {
+                    for (var _i = 0, displays_2 = displays; _i < displays_2.length; _i++) {
+                        var dis = displays_2[_i];
+                        dis.visible = false;
+                    }
+                }
+                jy.dispatch(-994 /* MODULE_SHOW_CHANGED */, this._unshowns.length);
+            }
+        };
         return ModuleManager;
     }());
     jy.ModuleManager = ModuleManager;
