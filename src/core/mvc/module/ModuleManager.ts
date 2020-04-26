@@ -260,26 +260,25 @@ namespace jy {
                 if (!cfg) {
                     ThrowError(`没有找到对应的功能配置[${module}]`);
                 }
+                if (noClientCheck) { //屏蔽客户端检测只针对open，不针对show
+                    return true;
+                }
             }
-            if (DEBUG && !noClientCheck) { //屏蔽客户端检测只针对open，不针对show
-                let flag = cfg && !cfg.close && cfg.serverOpen;
-                if (flag) {
-                    if (this._checkers) {
-                        let checker = this._checkers[cfg.limittype];
-                        if (checker) {
-                            flag = checker.check(cfg.limits, showtip);
-                        }
+            let flag = cfg && !cfg.close && cfg.serverOpen;
+            if (flag) {
+                if (this._checkers) {
+                    let checker = this._checkers[cfg.limittype];
+                    if (checker) {
+                        flag = checker.check(cfg.limits, showtip);
                     }
                 }
-                else {
-                    if (showtip && this.showTip) {
-                        this.showTip(ModuleTipState.ComingSoon);
-                    }
-                }
-                return flag;
-            } else {
-                return true;
             }
+            else {
+                if (showtip && this.showTip) {
+                    this.showTip(ModuleTipState.ComingSoon);
+                }
+            }
+            return flag;
         }
 
         /**

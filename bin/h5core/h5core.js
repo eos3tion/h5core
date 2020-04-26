@@ -14014,27 +14014,25 @@ var jy;
                 if (!cfg) {
                     jy.ThrowError("\u6CA1\u6709\u627E\u5230\u5BF9\u5E94\u7684\u529F\u80FD\u914D\u7F6E[" + module + "]");
                 }
+                if (noClientCheck) { //屏蔽客户端检测只针对open，不针对show
+                    return true;
+                }
             }
-            if (true && !noClientCheck) { //屏蔽客户端检测只针对open，不针对show
-                var flag = cfg && !cfg.close && cfg.serverOpen;
-                if (flag) {
-                    if (this._checkers) {
-                        var checker = this._checkers[cfg.limittype];
-                        if (checker) {
-                            flag = checker.check(cfg.limits, showtip);
-                        }
+            var flag = cfg && !cfg.close && cfg.serverOpen;
+            if (flag) {
+                if (this._checkers) {
+                    var checker = this._checkers[cfg.limittype];
+                    if (checker) {
+                        flag = checker.check(cfg.limits, showtip);
                     }
                 }
-                else {
-                    if (showtip && this.showTip) {
-                        this.showTip(1 /* ComingSoon */);
-                    }
-                }
-                return flag;
             }
             else {
-                return true;
+                if (showtip && this.showTip) {
+                    this.showTip(1 /* ComingSoon */);
+                }
             }
+            return flag;
         };
         /**
         * 将交互对象和功能id进行绑定，当交互对象抛出事件后，会执行功能对应的处理器
