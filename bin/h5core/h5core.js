@@ -4225,7 +4225,9 @@ var jy;
                 this.miniUri = miniUri;
                 this.mini = undefined;
                 this.miniTexDict = {};
-                jy.Res.load(miniUri, jy.ConfigUtils.getResUrl(miniUri), jy.CallbackInfo.get(this.miniLoad, this), 2 /* Highway */);
+                if (miniUri) {
+                    jy.Res.load(miniUri, jy.ConfigUtils.getResUrl(miniUri), jy.CallbackInfo.get(this.miniLoad, this), 2 /* Highway */);
+                }
             }
         };
         TileMapLayer.prototype.miniLoad = function (item) {

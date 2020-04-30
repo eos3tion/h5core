@@ -245,7 +245,9 @@ namespace jy {
                 this.miniUri = miniUri;
                 this.mini = undefined;
                 this.miniTexDict = {};
-                Res.load(miniUri, ConfigUtils.getResUrl(miniUri), CallbackInfo.get(this.miniLoad, this), Res.ResQueueID.Highway);
+                if (miniUri) {
+                    Res.load(miniUri, ConfigUtils.getResUrl(miniUri), CallbackInfo.get(this.miniLoad, this), Res.ResQueueID.Highway);
+                }
             }
         }
 
