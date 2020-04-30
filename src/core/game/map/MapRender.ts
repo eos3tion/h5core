@@ -236,7 +236,7 @@ namespace jy {
          * @param uri 
          */
         setMini(uri: string) {
-            let miniUri = this._currentMap.getImgUri(uri);
+            let miniUri = uri && this._currentMap.getImgUri(uri);
             let old = this.miniUri;
             if (old != miniUri) {
                 if (old) {

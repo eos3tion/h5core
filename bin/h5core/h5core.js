@@ -4216,7 +4216,7 @@ var jy;
          * @param uri
          */
         TileMapLayer.prototype.setMini = function (uri) {
-            var miniUri = this._currentMap.getImgUri(uri);
+            var miniUri = uri && this._currentMap.getImgUri(uri);
             var old = this.miniUri;
             if (old != miniUri) {
                 if (old) {
