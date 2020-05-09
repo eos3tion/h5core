@@ -19390,7 +19390,7 @@ var jy;
                 }
             }
         };
-        PageList.prototype.displayList = function (data) {
+        PageList.prototype.displayList = function (data, noScrollToHead) {
             this._selectedIndex = -1;
             this._selectedItem = undefined;
             if (this._data != data) {
@@ -19420,7 +19420,7 @@ var jy;
             this._dataLen = nlen;
             this.initItems();
             var scroller = this.scroller;
-            if (scroller) {
+            if (scroller && !noScrollToHead) {
                 scroller.scrollToHead();
             }
             this.rawDataChanged = false;

@@ -286,7 +286,7 @@ namespace jy {
             }
         }
 
-        public displayList(data?: T[]) {
+        public displayList(data?: T[], noScrollToHead?: boolean) {
             this._selectedIndex = -1;
             this._selectedItem = undefined;
             if (this._data != data) {
@@ -316,7 +316,7 @@ namespace jy {
             this._dataLen = nlen;
             this.initItems();
             let scroller = this.scroller;
-            if (scroller) {
+            if (scroller && !noScrollToHead) {
                 scroller.scrollToHead();
             }
             this.rawDataChanged = false;
