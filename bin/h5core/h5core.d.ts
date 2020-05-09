@@ -11999,7 +11999,7 @@ declare namespace jy {
         protected init(option: PageListOption): void;
         resize(width?: number, height?: number): void;
         set container(con: egret.Sprite);
-        displayList(data?: T[]): this;
+        displayList(data?: T[], noScrollToHead?: boolean): this;
         /**
          * 基于容器原始坐标进行排布
          * @param type 如果设置 `LayoutType.FullScreen(0)`，基于`LayoutType.TOP_LEFT`定位
