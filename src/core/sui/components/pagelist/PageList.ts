@@ -382,7 +382,7 @@ namespace jy {
         protected onSizeChange() {
             if (!this._sizeChanged) {
                 this._sizeChanged = true;
-                this.once(EgretEvent.ENTER_FRAME, this.reCalc, this);
+                Global.callLater(this.reCalc, 100, this);
             }
         }
 

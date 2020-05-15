@@ -19480,7 +19480,7 @@ var jy;
         PageList.prototype.onSizeChange = function () {
             if (!this._sizeChanged) {
                 this._sizeChanged = true;
-                this.once("enterFrame" /* ENTER_FRAME */, this.reCalc, this);
+                jy.Global.callLater(this.reCalc, 100, this);
             }
         };
         PageList.prototype.getSize = function (v) {
