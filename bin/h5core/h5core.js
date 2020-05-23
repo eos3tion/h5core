@@ -7537,7 +7537,7 @@ var jy;
         }
     }
     function getZuobiao(data) {
-        return { x: data[0], y: data[1] };
+        return { x: +data[0] || 0, y: +data[1] || 0 };
     }
     /**
      *

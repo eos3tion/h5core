@@ -213,7 +213,7 @@ namespace jy {
     }
 
     function getZuobiao(data: number[]): Point {
-        return { x: data[0], y: data[1] };
+        return { x: +data[0] || 0, y: +data[1] || 0 };
     }
     /**
      *
