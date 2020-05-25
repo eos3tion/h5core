@@ -2937,6 +2937,8 @@ declare namespace jy {
         protected offStage(): void;
         abstract onResize(): any;
         get view(): egret.Sprite;
+        show(...dises: egret.DisplayObject[]): void;
+        hide(...dises: egret.DisplayObject[]): void;
         /**
          * 移除视图
          *
