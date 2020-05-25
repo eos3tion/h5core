@@ -51,6 +51,25 @@ namespace jy {
             return this._host;
         }
 
+        show(...dises: egret.DisplayObject[]) {
+            for (let i = 0; i < dises.length; i++) {
+                const dis = dises[i];
+                if (dis.$layoutHost == this) {
+                    this._host.addChild(dis);
+                }
+            }
+
+        }
+
+        hide(...dises: egret.DisplayObject[]) {
+            for (let i = 0; i < dises.length; i++) {
+                const dis = dises[i];
+                if (dis.$layoutHost == this) {
+                    removeDisplay(dis);
+                }
+            }
+        }
+
         /**
          * 移除视图
          * 

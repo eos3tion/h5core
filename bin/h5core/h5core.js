@@ -5990,6 +5990,30 @@ var jy;
             enumerable: true,
             configurable: true
         });
+        LayoutContainer.prototype.show = function () {
+            var dises = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                dises[_i] = arguments[_i];
+            }
+            for (var i = 0; i < dises.length; i++) {
+                var dis = dises[i];
+                if (dis.$layoutHost == this) {
+                    this._host.addChild(dis);
+                }
+            }
+        };
+        LayoutContainer.prototype.hide = function () {
+            var dises = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                dises[_i] = arguments[_i];
+            }
+            for (var i = 0; i < dises.length; i++) {
+                var dis = dises[i];
+                if (dis.$layoutHost == this) {
+                    jy.removeDisplay(dis);
+                }
+            }
+        };
         /**
          * 移除视图
          *
