@@ -1,6 +1,6 @@
 /**
  * 使用JunyouProtoTools，从 [文本框中，复制粘贴] 生成
- * 生成时间 2019-05-09 18:03:46
+ * 生成时间 2020-06-03 23:02:32
  **/
 declare namespace jy {
 	export interface GridMapInfoPB {
@@ -32,5 +32,9 @@ declare namespace jy {
 		 * 可选参数 格子中路径占用的位数(1bit,2bit,4bit,8bit)
 		 */
 		pdatabit?: number;
+		/**
+		 * 可选参数 点集数据
+		 */
+		points?: PointGroupPB[];
 	}
 }

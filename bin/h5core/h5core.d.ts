@@ -10617,16 +10617,17 @@ declare namespace jy {
 }
 declare namespace jy {
     const enum MapPBDictKey {
-        GridMapInfoPB = 110,
-        MapEffPB = 111,
-        MapInfoPB = 112,
-        MapLinePB = 113,
-        MapOvalPB = 114,
-        MapPointPB = 115,
-        MaskPolyPB = 116,
-        NavMeshMapInfoPB = 117,
-        PolyPointIdxPB = 118,
-        TPointIdxPB = 119
+        GridMapInfoPB = 100,
+        MapEffPB = 101,
+        MapInfoPB = 102,
+        MapLinePB = 103,
+        MapOvalPB = 104,
+        MapPointPB = 105,
+        MaskPolyPB = 106,
+        NavMeshMapInfoPB = 107,
+        PointGroupPB = 108,
+        PolyPointIdxPB = 109,
+        TPointIdxPB = 110
     }
     /**
      * 地图的PB数据
@@ -10635,7 +10636,7 @@ declare namespace jy {
 }
 /**
  * 使用JunyouProtoTools，从 [文本框中，复制粘贴] 生成
- * 生成时间 2019-05-09 18:03:46
+ * 生成时间 2020-06-03 23:02:32
  **/
 declare namespace jy {
     interface GridMapInfoPB {
@@ -10667,6 +10668,10 @@ declare namespace jy {
          * 可选参数 格子中路径占用的位数(1bit,2bit,4bit,8bit)
          */
         pdatabit?: number;
+        /**
+         * 可选参数 点集数据
+         */
+        points?: PointGroupPB[];
     }
 }
 /**
@@ -10883,6 +10888,22 @@ declare namespace jy {
          * 可选参数 透明/遮罩区域对应的数据
          */
         masks?: MaskPolyPB[];
+    }
+}
+/**
+ * 使用JunyouProtoTools，从 [文本框中，复制粘贴] 生成
+ * 生成时间 2020-06-03 23:02:32
+ **/
+declare namespace jy {
+    interface PointGroupPB {
+        /**
+         * 点集标识
+         */
+        id: string;
+        /**
+         * 可选参数 有序点集
+         */
+        points?: MapPointPB[];
     }
 }
 /**
