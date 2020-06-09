@@ -36,26 +36,38 @@ namespace jy {
             this.layoutAll();
         }
 
-        public add(d: egret.DisplayObject, type: LayoutType, offsetRect: egret.Rectangle, hide?: boolean) {
+        public add(d: egret.DisplayObject, type: LayoutType, offsetRect?: egret.Rectangle, hide?: boolean) {
             let raw = d.suiRawRect;
+            offsetRect = offsetRect || this._host.suiRawRect;
             let result = Layout.getLayoutPos(raw.width, raw.height, offsetRect.width, offsetRect.height, type);
             let dx = raw.x - offsetRect.x;
             let dy = raw.y - offsetRect.y;
-            let oh = dx - result.x;
-            let ov = dy - result.y;
-            this.addLayout(d, type, raw, oh, ov, false, false, hide);
+            let left = dx - result.x;
+            let top = dy - result.y;
+            let right = offsetRect.x + offsetRect.width - raw.x - raw.width;
+            let bottom = offsetRect.y + offsetRect.height - raw.y - raw.height;
+
+            this.addDis(d, { size: raw, type, left, top, right, bottom, outerV: false, outerH: false }, hide)
         }
 
         protected binLayout(bin: LayoutBin) {
             if (bin.type == LayoutType.FullScreen) {
-                let { dis } = bin;
+                let { dis, top, left, bottom, right } = bin;
                 let host = this._host;
                 let scale = host.scaleX;
-                dis.x = bin.hoffset * scale;
-                dis.y = bin.voffset * scale;
                 let stage = host.stage || egret.sys.$TempStage;
-                dis.width = stage.stageWidth / scale;
-                dis.height = stage.stageHeight / scale;
+                if (left != undefined) {
+                    dis.x = left;
+                    if (right != undefined) {
+                        dis.width = stage.stageWidth / scale - left - right;
+                    }
+                }
+                if (top != undefined) {
+                    dis.y = top;
+                    if (bottom != undefined) {
+                        dis.height = stage.stageHeight / scale - top - bottom;
+                    }
+                }
             } else {
                 super.binLayout(bin);
             }
