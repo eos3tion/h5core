@@ -4658,16 +4658,16 @@ var jy;
             dis.$layoutHost = undefined;
             return this.$layoutBins.delete(dis.hashCode);
         };
-        LayoutContainer.prototype.addLayout = function (dis, type, size, hoffset, voffset, outerV, outerH, hide) {
-            if (type === void 0) { type = 5 /* TOP_LEFT */; }
+        LayoutContainer.prototype.addDis = function (dis, bin, hide) {
             var list = this.$layoutBins;
-            size = size || dis;
             var key = dis.hashCode;
             if (list.get(key)) {
                 return;
             }
+            bin = bin || { type: 5 /* TOP_LEFT */, size: dis };
+            bin.dis = dis;
+            bin.size = bin.size || dis;
             dis.$layoutHost = this;
-            var bin = { dis: dis, type: type, hoffset: hoffset, voffset: voffset, outerV: outerV, outerH: outerH, size: size };
             list.set(key, bin);
             if (hide) {
                 jy.removeDisplay(dis);
@@ -4681,6 +4681,16 @@ var jy;
             }
             //不管在不在舞台上，都应该监听
             dis.on("addedToStage" /* ADDED_TO_STAGE */, this.onAdded, this);
+        };
+        LayoutContainer.prototype.addLayout = function (dis, type, size, left, top, outerV, outerH, hide) {
+            if (type === void 0) { type = 5 /* TOP_LEFT */; }
+            var list = this.$layoutBins;
+            var key = dis.hashCode;
+            if (list.get(key)) {
+                return;
+            }
+            var bin = { dis: dis, type: type, left: left, top: top, outerV: outerV, outerH: outerH, size: size };
+            this.addDis(dis, bin, hide);
         };
         LayoutContainer.prototype.onAdded = function (e) {
             var dis = e.currentTarget;
@@ -4696,7 +4706,7 @@ var jy;
             }
         };
         LayoutContainer.prototype.binLayout = function (bin) {
-            var dis = bin.dis, type = bin.type, hoffset = bin.hoffset, voffset = bin.voffset, outerV = bin.outerV, outerH = bin.outerH, size = bin.size;
+            var dis = bin.dis, type = bin.type, hoffset = bin.left, voffset = bin.top, outerV = bin.outerV, outerH = bin.outerH, size = bin.size;
             var pt = jy.Temp.SharedPoint1;
             jy.Layout.getLayoutPos(size.width, size.height, this._lw, this._lh, type, pt, hoffset, voffset, outerV, outerH);
             dis.x = pt.x;
@@ -19367,23 +19377,34 @@ var jy;
         };
         MainUIContainer.prototype.add = function (d, type, offsetRect, hide) {
             var raw = d.suiRawRect;
+            offsetRect = offsetRect || this._host.suiRawRect;
             var result = jy.Layout.getLayoutPos(raw.width, raw.height, offsetRect.width, offsetRect.height, type);
             var dx = raw.x - offsetRect.x;
             var dy = raw.y - offsetRect.y;
-            var oh = dx - result.x;
-            var ov = dy - result.y;
-            this.addLayout(d, type, raw, oh, ov, false, false, hide);
+            var left = dx - result.x;
+            var top = dy - result.y;
+            var right = offsetRect.x + offsetRect.width - raw.x - raw.width;
+            var bottom = offsetRect.y + offsetRect.height - raw.y - raw.height;
+            this.addDis(d, { size: raw, type: type, left: left, top: top, right: right, bottom: bottom, outerV: false, outerH: false }, hide);
         };
         MainUIContainer.prototype.binLayout = function (bin) {
             if (bin.type == 0 /* FullScreen */) {
-                var dis = bin.dis;
+                var dis = bin.dis, top_1 = bin.top, left = bin.left, bottom = bin.bottom, right = bin.right;
                 var host = this._host;
                 var scale = host.scaleX;
-                dis.x = bin.hoffset * scale;
-                dis.y = bin.voffset * scale;
                 var stage = host.stage || egret.sys.$TempStage;
-                dis.width = stage.stageWidth / scale;
-                dis.height = stage.stageHeight / scale;
+                if (left != undefined) {
+                    dis.x = left;
+                    if (right != undefined) {
+                        dis.width = stage.stageWidth / scale - left - right;
+                    }
+                }
+                if (top_1 != undefined) {
+                    dis.y = top_1;
+                    if (bottom != undefined) {
+                        dis.height = stage.stageHeight / scale - top_1 - bottom;
+                    }
+                }
             }
             else {
                 _super.prototype.binLayout.call(this, bin);

@@ -81,15 +81,16 @@ namespace jy {
             return this.$layoutBins.delete(dis.hashCode);
         }
 
-        public addLayout(dis: egret.DisplayObject, type = LayoutType.TOP_LEFT, size?: Size, hoffset?, voffset?, outerV?: boolean, outerH?: boolean, hide?: boolean) {
+        addDis(dis: egret.DisplayObject, bin?: LayoutBin, hide?: boolean) {
             let list = this.$layoutBins;
-            size = size || dis;
             let key = dis.hashCode;
             if (list.get(key)) {
                 return;
             }
+            bin = bin || { type: LayoutType.TOP_LEFT, size: dis } as LayoutBin;
+            bin.dis = dis;
+            bin.size = bin.size || dis;
             dis.$layoutHost = this;
-            let bin = { dis, type, hoffset, voffset, outerV, outerH, size } as LayoutBin;
             list.set(key, bin);
             if (hide) {
                 removeDisplay(dis);
@@ -103,6 +104,17 @@ namespace jy {
             //不管在不在舞台上，都应该监听
             dis.on(EgretEvent.ADDED_TO_STAGE, this.onAdded, this);
         }
+
+        public addLayout(dis: egret.DisplayObject, type = LayoutType.TOP_LEFT, size?: Size, left?: number, top?: number, outerV?: boolean, outerH?: boolean, hide?: boolean) {
+            let list = this.$layoutBins;
+            let key = dis.hashCode;
+            if (list.get(key)) {
+                return;
+            }
+            let bin = { dis, type, left, top, outerV, outerH, size } as LayoutBin;
+            this.addDis(dis, bin, hide);
+        }
+
         protected onAdded(e: egret.Event) {
             let dis = e.currentTarget as egret.DisplayObject;
             let host = dis.$layoutHost;
@@ -117,7 +129,7 @@ namespace jy {
             }
         }
         protected binLayout(bin: LayoutBin) {
-            const { dis, type, hoffset, voffset, outerV, outerH, size } = bin;
+            const { dis, type, left: hoffset, top: voffset, outerV, outerH, size } = bin;
             let pt = Temp.SharedPoint1;
             Layout.getLayoutPos(size.width, size.height, this._lw, this._lh, type, pt, hoffset, voffset, outerV, outerH);
             dis.x = pt.x;
@@ -140,18 +152,20 @@ namespace jy {
     }
 
     export interface LayoutBin {
-        dis: egret.DisplayObject;
-        type: LayoutType;
+        dis?: egret.DisplayObject;
+        type?: LayoutType;
 
-        hoffset?: number;
+        left?: number;
 
-        voffset?: number;
+        top?: number;
 
         offsetType?: number;
 
         outerV?: boolean;
         outerH?: boolean;
-        size: Size;
+        size?: Size;
+        right?: number;
+        bottom?: number;
     }
 
     /**

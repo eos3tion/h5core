@@ -2946,21 +2946,24 @@ declare namespace jy {
          * @returns
          */
         remove(dis: egret.DisplayObject): LayoutBin;
-        addLayout(dis: egret.DisplayObject, type?: LayoutType, size?: Size, hoffset?: any, voffset?: any, outerV?: boolean, outerH?: boolean, hide?: boolean): void;
+        addDis(dis: egret.DisplayObject, bin?: LayoutBin, hide?: boolean): void;
+        addLayout(dis: egret.DisplayObject, type?: LayoutType, size?: Size, left?: number, top?: number, outerV?: boolean, outerH?: boolean, hide?: boolean): void;
         protected onAdded(e: egret.Event): void;
         protected binLayout(bin: LayoutBin): void;
         protected $doLayout(): void;
         protected layoutAll(): void;
     }
     interface LayoutBin {
-        dis: egret.DisplayObject;
-        type: LayoutType;
-        hoffset?: number;
-        voffset?: number;
+        dis?: egret.DisplayObject;
+        type?: LayoutType;
+        left?: number;
+        top?: number;
         offsetType?: number;
         outerV?: boolean;
         outerH?: boolean;
-        size: Size;
+        size?: Size;
+        right?: number;
+        bottom?: number;
     }
     /**
      * @param sw 舞台宽度
@@ -13690,7 +13693,7 @@ declare namespace jy {
      */
     class MainUIContainer extends LayoutContainer {
         onResize(): void;
-        add(d: egret.DisplayObject, type: LayoutType, offsetRect: egret.Rectangle, hide?: boolean): void;
+        add(d: egret.DisplayObject, type: LayoutType, offsetRect?: egret.Rectangle, hide?: boolean): void;
         protected binLayout(bin: LayoutBin): void;
     }
 }
