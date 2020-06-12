@@ -124,7 +124,7 @@ namespace jy {
                         }
                     }
                     else {
-                        for (let i = hTotal; i >= 1; i--) {
+                        for (let i = hTotal; i >= 0; i--) {
                             if (d <= list[i]) {
                                 face = hTotal + i + 1;
                                 break;

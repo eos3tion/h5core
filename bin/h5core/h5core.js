@@ -16436,7 +16436,7 @@ var jy;
                         }
                     }
                     else {
-                        for (var i = hTotal_2; i >= 1; i--) {
+                        for (var i = hTotal_2; i >= 0; i--) {
                             if (d <= list_2[i]) {
                                 face = hTotal_2 + i + 1;
                                 break;
