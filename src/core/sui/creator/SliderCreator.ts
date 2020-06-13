@@ -1,181 +1,172 @@
 namespace jy {
 
+    export interface SliderSkinDele {
+        bar: egret.DisplayObject;
+        bg: egret.DisplayObject;
+        thumb: egret.DisplayObject;
+    }
+
+    export interface SliderTip extends egret.DisplayObject {
+        label: string;
+        setLabel(value: string);
+    }
+
     export class Slider extends Component {
 
         private _width: number;
 
-        private _height: number;
 
         private _value: number;
 
         /***滑块 */
-        public thumb: egret.Sprite;
+        public thumb: egret.DisplayObject;
         /****底 */
-        public bgline: egret.Sprite;
-
-        private _bgBmp: ScaleBitmap;
-
-        private tipTxt: egret.TextField;
+        public bg: egret.DisplayObject;
 
         private _lastThumbX: number;
 
-        private _maxVlaue: number;
+        private _max: number;
 
-        private _minValue: number;
+        private _min: number;
 
         private _step: number;
 
         /**每步step需要的像素 */
         private _perStepPixel: number;
 
-        private _halfThumbWidth: number;
         /*使不使用底条点击直接设值 */
-        private _barEnabled: boolean;
+        private _bgClickEnabled: boolean;
+        bar?: egret.DisplayObject;
+        tip?: SliderTip;
+        _skin: SliderSkinDele;
 
 
         public constructor() {
             super();
-            this.initBaseContainer();
-            this.touchChildren = this.touchEnabled = true;
-            this.thumb.touchEnabled = true;
-            this.bgline.touchEnabled = true;
-            this.addListener();
         }
 
-        private addListener() {
-            this.thumb.on(EgretEvent.TOUCH_BEGIN, this.onThumbBegin, this);
+        bindTip(tip: SliderTip) {
+            this.tip = tip;
+        }
+
+        set skin(skin: SliderSkinDele) {
+            this._skin = skin;
+            const { bg, bar, thumb } = skin;
+            this.bg = bg;
+            this._width = bg.width;
+            this.bar = bar;
+            this.thumb = thumb;
+            TouchDown.loose(thumb);
+            thumb.anchorOffsetX = thumb.width >> 1;
+            this.touchEnabled = this.touchChildren = true;
+            thumb.on(EgretEvent.TOUCH_BEGIN, this.onThumbBegin, this);
             this.on(EgretEvent.ADDED_TO_STAGE, this.onAddToStage, this);
         }
 
-        private onAddToStage(e: egret.Event) {
-            if (this._barEnabled) {
+        private onAddToStage() {
+            if (this._bgClickEnabled) {
                 this.stage.on(EgretEvent.TOUCH_END, this.bgOut, this);
             }
         }
         /*使不使用底条点击直接设值 */
-        public set barEnabled(value: boolean) {
-            this._barEnabled = value;
+        public set bgClickEnable(value: boolean) {
+            this._bgClickEnabled = value;
+            const { bg, stage } = this;
             if (value) {
-                this.bgline.on(EgretEvent.TOUCH_BEGIN, this.bgClick, this);
-                if (this.stage) {
-                    this.stage.on(EgretEvent.TOUCH_END, this.bgOut, this);
+                bg.on(EgretEvent.TOUCH_BEGIN, this.bgClick, this);
+                if (stage) {
+                    stage.on(EgretEvent.TOUCH_END, this.bgOut, this);
                 }
-
             }
             else {
-                this.bgline.off(EgretEvent.TOUCH_BEGIN, this.bgClick, this);
-                if (this.stage) {
-                    this.bgline.off(EgretEvent.TOUCH_END, this.bgOut, this);
+                bg.off(EgretEvent.TOUCH_BEGIN, this.bgClick, this);
+                if (stage) {
+                    bg.off(EgretEvent.TOUCH_END, this.bgOut, this);
                 }
 
             }
         }
 
-        private bgClick(e: egret.TouchEvent) {
+        bgClick(e: egret.TouchEvent) {
             this._lastThumbX = this.thumb.localToGlobal().x;
             let currentX: number = e.stageX;
-            this.tipTxt.visible = true;
             this.calculatevalue(currentX);
-            this.tipTxt.text = this.value.toString();
+            let tip = this.tip;
+            if (tip) {
+                tip.visible = true;
+            }
         }
 
-        private bgOut(e: egret.TouchEvent) {
-            this.tipTxt.visible = false;
+        private bgOut() {
+            this.tip.visible = false;
         }
 
-        private onThumbBegin(e: egret.TouchEvent) {
-            this._lastThumbX = this.thumb.localToGlobal().x;
-            this.stage.on(EgretEvent.TOUCH_MOVE, this.mouseMove, this)
-            this.thumb.on(EgretEvent.TOUCH_END, this.onThumbEnd, this);
-            this.thumb.on(EgretEvent.TOUCH_RELEASE_OUTSIDE, this.onThumbEnd, this);
-            this.tipTxt.visible = true;
+        private onThumbBegin() {
+            let { thumb, stage, tip } = this;
+            this._lastThumbX = thumb.localToGlobal().x;
+            stage.on(EgretEvent.TOUCH_MOVE, this.mouseMove, this)
+            thumb.on(EgretEvent.TOUCH_END, this.onThumbEnd, this);
+            thumb.on(EgretEvent.TOUCH_RELEASE_OUTSIDE, this.onThumbEnd, this);
+            if (tip) {
+                tip.visible = true;
+            }
         }
 
 
 
-        private onThumbEnd(e: egret.TouchEvent) {
-            this.stage.off(EgretEvent.TOUCH_MOVE, this.mouseMove, this);
-            this.thumb.off(EgretEvent.TOUCH_END, this.onThumbEnd, this);
-            this.thumb.off(EgretEvent.TOUCH_RELEASE_OUTSIDE, this.onThumbEnd, this);
+        private onThumbEnd() {
+            let { stage, thumb, mouseMove, onThumbEnd } = this;
+            stage.off(EgretEvent.TOUCH_MOVE, mouseMove, this);
+            thumb.off(EgretEvent.TOUCH_END, onThumbEnd, this);
+            thumb.off(EgretEvent.TOUCH_RELEASE_OUTSIDE, onThumbEnd, this);
         }
 
         private mouseMove(e: egret.TouchEvent) {
-
-            let currentX: number = e.stageX;
-
-            this.calculatevalue(currentX);
-
-            this.tipTxt.text = this.value.toString();
+            this.calculatevalue(e.stageX);
         }
 
         private calculatevalue(currentX: number) {
             let sub = currentX - this._lastThumbX;
             let steps: number;
             let value: number;
-            if (Math.abs(sub) >= this._perStepPixel) {
-                steps = sub / this._perStepPixel;
+            let { _perStepPixel, _min, _max, _value, _step, thumb } = this;
+            if (Math.abs(sub) >= _perStepPixel) {
+                steps = sub / _perStepPixel;
                 steps = Math.round(steps);
-                value = this.value + steps * this._step;
-                if (value <= this._minValue) {
-                    value = this._minValue;
+
+                value = _value + steps * _step;
+                if (value <= _min) {
+                    value = _min;
                 }
-                if (value >= this._maxVlaue) {
-                    value = this._maxVlaue;
+                if (value >= _max) {
+                    value = _max;
                 }
 
                 this.value = value;
-                this._lastThumbX = this.thumb.localToGlobal().x;
+                this._lastThumbX = thumb.localToGlobal().x;
 
-                this.tipTxt.x = this.thumb.x + this._halfThumbWidth - 40;
+                let tip = this.tip;
+                if (tip) {
+                    tip.x = thumb.x;
+                    tip.setLabel(value + "")
+                }
             }
         }
 
-        private initBaseContainer() {
-            this.thumb = new egret.Sprite();
-            this.bgline = new egret.Sprite();
-            this.addChild(this.bgline, false);
-            this.addChild(this.thumb, false);
-            this.tipTxt = new egret.TextField();
-            this.tipTxt.y = -12;
-            this.tipTxt.textAlign = egret.HorizontalAlign.CENTER;
-            this.tipTxt.width = 80;
-            this.tipTxt.size = 12;
-            this.tipTxt.bold = false;
-            this.addChild(this.tipTxt, false);
-        }
-
-        /**
-         * 设置底条新式
-         * 
-         * @param {ScaleBitmap} bg (description)
-         */
-        public setBg(bg: ScaleBitmap) {
-            this._bgBmp = bg;
-            this.bgline.addChild(bg, false);
-            this._width = bg.width;
-        }
-
-        /**
-         * 设置滑块样式
-         * 
-         * @param {egret.Bitmap} tb (description)
-         */
-        public setThumb(tb: egret.Bitmap) {
-            this.thumb.x = tb.x;
-            this.thumb.y = tb.y;
-            tb.x = tb.y = 0;
-            this.thumb.addChild(tb, false);
-            this._halfThumbWidth = tb.width * 0.5;
-        }
-
         public set value(val: number) {
-            if (this._value == val) return;
-            this._value = val;
-            this.dispatch(EventConst.VALUE_CHANGE);
-            this.thumb.x = ((val - this._minValue) / this._step) * this._perStepPixel - this._halfThumbWidth;
+            if (this._value != val) {
+                this._value = val;
+                this.dispatch(EventConst.VALUE_CHANGE);
+                let x = ((val - this._min) / this._step) * this._perStepPixel;
+                this.thumb.x = x;
+                let bar = this.bar;
+                if (bar) {
+                    bar.width = x;
+                }
+            }
         }
 
-        public get value(): number {
+        public get value() {
             return this._value;
         }
 
@@ -183,21 +174,12 @@ namespace jy {
          * 设置底条宽度
          */
         public set width(value: number) {
-            if (this._width == value) return;
-            this._width = value;
-            if (this._bgBmp) {
-                this._bgBmp.width = value;
-            }
-        }
-
-        /**
-         * 设置底条高度
-         */
-        public set height(value: number) {
-            if (this._height == value) return;
-            this._height = value;
-            if (this._bgBmp) {
-                this._bgBmp.height = value;
+            if (this._width != value) {
+                this._width = value;
+                let { bg } = this;
+                if (bg) {
+                    bg.width = value;
+                }
             }
         }
 
@@ -205,89 +187,27 @@ namespace jy {
             return this._width;
         }
 
-        public get height(): number {
-            return this._height;
-        }
-
-        public set maxVlaue(value: number) {
-            this._maxVlaue = value;
-            this.checkStepPixel();
-        }
-
-        public set minValue(value: number) {
-            this._minValue = value;
-            this.checkStepPixel();
-        }
-
-        /**
-         * 滑块移动一个单位的值
-         */
-        public set step(value: number) {
-            this._step = value;
-            this.checkStepPixel();
-        }
-
-        private checkStepPixel() {
-            this._perStepPixel = this.bgline.width / ((this._maxVlaue - this._minValue) / this._step);
+        setMinMax(min: number, max: number, step = 1) {
+            this._max = max;
+            this._min = min;
+            this._step = step;
+            this._perStepPixel = this._width * step / (max - min);
         }
     }
     export class SliderCreator extends BaseCreator<Slider>{
 
-        private uiData: any[];
-
-        private txtCreator: TextFieldCreator;
-
-        private scale9Creator: ScaleBitmapCreator;
-
-        private bitmapCreator: BitmapCreator<egret.Bitmap>;
-
-        private suiManager: SuiResManager;
-
-        public constructor() {
-            super();
-        }
-
         public parseSelfData(data: any) {
-            this.uiData = data;
-            this.txtCreator = new TextFieldCreator();
-            this.scale9Creator = new ScaleBitmapCreator();
-            this.bitmapCreator = new BitmapCreator(this._suiData);
-            this.suiManager = singleton(SuiResManager);
-            this._createT = this.createSlider;
-        }
-
-
-        private createSlider(): Slider {
-            let slider: Slider = new Slider();
-            let comData = this.uiData;
-            let len = comData.length;
-            let tmpData;
-            let type;
-            let sourceData = this._suiData.sourceComponentData;
-            let index;
-            let sourceArr;
-            let name;
-
-            for (let i = 0; i < len; i++) {
-                tmpData = comData[i];
-                type = tmpData[0];
-                index = tmpData[2];
-
-                if (type == 0) {
-                    this.bitmapCreator.parseSelfData(index);
-                    let bmp: egret.Bitmap = <egret.Bitmap>this.bitmapCreator.get();
-                    slider.setThumb(bmp);
-
-                }
-                else if (type == 5) {
-                    sourceArr = sourceData[type]
-                    name = sourceArr[0][index];
-                    let sc: ScaleBitmap = <ScaleBitmap>this.suiManager.createDisplayObject(this._suiData.key, name, tmpData[1]);
-                    slider.setBg(sc);
-                }
+            let suiData = this._suiData;
+            let framesData = MovieClipCreator.prototype.$getFramesData(data);
+            this._createT = () => {
+                let mc = new MovieClip(data, framesData, suiData) as any;
+                let bar = new Slider();
+                bar.skin = mc;
+                bar.addChild(mc);
+                return bar;
             }
-
-            return slider;
         }
+
+
     }
 }

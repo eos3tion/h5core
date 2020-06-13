@@ -18530,37 +18530,48 @@ var jy;
     var Slider = /** @class */ (function (_super) {
         __extends(Slider, _super);
         function Slider() {
-            var _this = _super.call(this) || this;
-            _this.initBaseContainer();
-            _this.touchChildren = _this.touchEnabled = true;
-            _this.thumb.touchEnabled = true;
-            _this.bgline.touchEnabled = true;
-            _this.addListener();
-            return _this;
+            return _super.call(this) || this;
         }
-        Slider.prototype.addListener = function () {
-            this.thumb.on("touchBegin" /* TOUCH_BEGIN */, this.onThumbBegin, this);
-            this.on("addedToStage" /* ADDED_TO_STAGE */, this.onAddToStage, this);
+        Slider.prototype.bindTip = function (tip) {
+            this.tip = tip;
         };
-        Slider.prototype.onAddToStage = function (e) {
-            if (this._barEnabled) {
+        Object.defineProperty(Slider.prototype, "skin", {
+            set: function (skin) {
+                this._skin = skin;
+                var bg = skin.bg, bar = skin.bar, thumb = skin.thumb;
+                this.bg = bg;
+                this._width = bg.width;
+                this.bar = bar;
+                this.thumb = thumb;
+                jy.TouchDown.loose(thumb);
+                thumb.anchorOffsetX = thumb.width >> 1;
+                this.touchEnabled = this.touchChildren = true;
+                thumb.on("touchBegin" /* TOUCH_BEGIN */, this.onThumbBegin, this);
+                this.on("addedToStage" /* ADDED_TO_STAGE */, this.onAddToStage, this);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Slider.prototype.onAddToStage = function () {
+            if (this._bgClickEnabled) {
                 this.stage.on("touchEnd" /* TOUCH_END */, this.bgOut, this);
             }
         };
-        Object.defineProperty(Slider.prototype, "barEnabled", {
+        Object.defineProperty(Slider.prototype, "bgClickEnable", {
             /*使不使用底条点击直接设值 */
             set: function (value) {
-                this._barEnabled = value;
+                this._bgClickEnabled = value;
+                var _a = this, bg = _a.bg, stage = _a.stage;
                 if (value) {
-                    this.bgline.on("touchBegin" /* TOUCH_BEGIN */, this.bgClick, this);
-                    if (this.stage) {
-                        this.stage.on("touchEnd" /* TOUCH_END */, this.bgOut, this);
+                    bg.on("touchBegin" /* TOUCH_BEGIN */, this.bgClick, this);
+                    if (stage) {
+                        stage.on("touchEnd" /* TOUCH_END */, this.bgOut, this);
                     }
                 }
                 else {
-                    this.bgline.off("touchBegin" /* TOUCH_BEGIN */, this.bgClick, this);
-                    if (this.stage) {
-                        this.bgline.off("touchEnd" /* TOUCH_END */, this.bgOut, this);
+                    bg.off("touchBegin" /* TOUCH_BEGIN */, this.bgClick, this);
+                    if (stage) {
+                        bg.off("touchEnd" /* TOUCH_END */, this.bgOut, this);
                     }
                 }
             },
@@ -18570,94 +18581,73 @@ var jy;
         Slider.prototype.bgClick = function (e) {
             this._lastThumbX = this.thumb.localToGlobal().x;
             var currentX = e.stageX;
-            this.tipTxt.visible = true;
             this.calculatevalue(currentX);
-            this.tipTxt.text = this.value.toString();
+            var tip = this.tip;
+            if (tip) {
+                tip.visible = true;
+            }
         };
-        Slider.prototype.bgOut = function (e) {
-            this.tipTxt.visible = false;
+        Slider.prototype.bgOut = function () {
+            this.tip.visible = false;
         };
-        Slider.prototype.onThumbBegin = function (e) {
-            this._lastThumbX = this.thumb.localToGlobal().x;
-            this.stage.on("touchMove" /* TOUCH_MOVE */, this.mouseMove, this);
-            this.thumb.on("touchEnd" /* TOUCH_END */, this.onThumbEnd, this);
-            this.thumb.on("touchReleaseOutside" /* TOUCH_RELEASE_OUTSIDE */, this.onThumbEnd, this);
-            this.tipTxt.visible = true;
+        Slider.prototype.onThumbBegin = function () {
+            var _a = this, thumb = _a.thumb, stage = _a.stage, tip = _a.tip;
+            this._lastThumbX = thumb.localToGlobal().x;
+            stage.on("touchMove" /* TOUCH_MOVE */, this.mouseMove, this);
+            thumb.on("touchEnd" /* TOUCH_END */, this.onThumbEnd, this);
+            thumb.on("touchReleaseOutside" /* TOUCH_RELEASE_OUTSIDE */, this.onThumbEnd, this);
+            if (tip) {
+                tip.visible = true;
+            }
         };
-        Slider.prototype.onThumbEnd = function (e) {
-            this.stage.off("touchMove" /* TOUCH_MOVE */, this.mouseMove, this);
-            this.thumb.off("touchEnd" /* TOUCH_END */, this.onThumbEnd, this);
-            this.thumb.off("touchReleaseOutside" /* TOUCH_RELEASE_OUTSIDE */, this.onThumbEnd, this);
+        Slider.prototype.onThumbEnd = function () {
+            var _a = this, stage = _a.stage, thumb = _a.thumb, mouseMove = _a.mouseMove, onThumbEnd = _a.onThumbEnd;
+            stage.off("touchMove" /* TOUCH_MOVE */, mouseMove, this);
+            thumb.off("touchEnd" /* TOUCH_END */, onThumbEnd, this);
+            thumb.off("touchReleaseOutside" /* TOUCH_RELEASE_OUTSIDE */, onThumbEnd, this);
         };
         Slider.prototype.mouseMove = function (e) {
-            var currentX = e.stageX;
-            this.calculatevalue(currentX);
-            this.tipTxt.text = this.value.toString();
+            this.calculatevalue(e.stageX);
         };
         Slider.prototype.calculatevalue = function (currentX) {
             var sub = currentX - this._lastThumbX;
             var steps;
             var value;
-            if (Math.abs(sub) >= this._perStepPixel) {
-                steps = sub / this._perStepPixel;
+            var _a = this, _perStepPixel = _a._perStepPixel, _min = _a._min, _max = _a._max, _value = _a._value, _step = _a._step, thumb = _a.thumb;
+            if (Math.abs(sub) >= _perStepPixel) {
+                steps = sub / _perStepPixel;
                 steps = Math.round(steps);
-                value = this.value + steps * this._step;
-                if (value <= this._minValue) {
-                    value = this._minValue;
+                value = _value + steps * _step;
+                if (value <= _min) {
+                    value = _min;
                 }
-                if (value >= this._maxVlaue) {
-                    value = this._maxVlaue;
+                if (value >= _max) {
+                    value = _max;
                 }
                 this.value = value;
-                this._lastThumbX = this.thumb.localToGlobal().x;
-                this.tipTxt.x = this.thumb.x + this._halfThumbWidth - 40;
+                this._lastThumbX = thumb.localToGlobal().x;
+                var tip = this.tip;
+                if (tip) {
+                    tip.x = thumb.x;
+                    tip.setLabel(value + "");
+                }
             }
-        };
-        Slider.prototype.initBaseContainer = function () {
-            this.thumb = new egret.Sprite();
-            this.bgline = new egret.Sprite();
-            this.addChild(this.bgline, false);
-            this.addChild(this.thumb, false);
-            this.tipTxt = new egret.TextField();
-            this.tipTxt.y = -12;
-            this.tipTxt.textAlign = "center" /* CENTER */;
-            this.tipTxt.width = 80;
-            this.tipTxt.size = 12;
-            this.tipTxt.bold = false;
-            this.addChild(this.tipTxt, false);
-        };
-        /**
-         * 设置底条新式
-         *
-         * @param {ScaleBitmap} bg (description)
-         */
-        Slider.prototype.setBg = function (bg) {
-            this._bgBmp = bg;
-            this.bgline.addChild(bg, false);
-            this._width = bg.width;
-        };
-        /**
-         * 设置滑块样式
-         *
-         * @param {egret.Bitmap} tb (description)
-         */
-        Slider.prototype.setThumb = function (tb) {
-            this.thumb.x = tb.x;
-            this.thumb.y = tb.y;
-            tb.x = tb.y = 0;
-            this.thumb.addChild(tb, false);
-            this._halfThumbWidth = tb.width * 0.5;
         };
         Object.defineProperty(Slider.prototype, "value", {
             get: function () {
                 return this._value;
             },
             set: function (val) {
-                if (this._value == val)
-                    return;
-                this._value = val;
-                this.dispatch(-1040 /* VALUE_CHANGE */);
-                this.thumb.x = ((val - this._minValue) / this._step) * this._perStepPixel - this._halfThumbWidth;
+                if (this._value != val) {
+                    this._value = val;
+                    this.dispatch(-1040 /* VALUE_CHANGE */);
+                    var x = ((val - this._min) / this._step) * this._perStepPixel;
+                    this.thumb.x = x;
+                    var bar = this.bar;
+                    if (bar) {
+                        bar.width = x;
+                    }
+                }
             },
             enumerable: true,
             configurable: true
@@ -18670,63 +18660,23 @@ var jy;
              * 设置底条宽度
              */
             set: function (value) {
-                if (this._width == value)
-                    return;
-                this._width = value;
-                if (this._bgBmp) {
-                    this._bgBmp.width = value;
+                if (this._width != value) {
+                    this._width = value;
+                    var bg = this.bg;
+                    if (bg) {
+                        bg.width = value;
+                    }
                 }
             },
             enumerable: true,
             configurable: true
         });
-        Object.defineProperty(Slider.prototype, "height", {
-            get: function () {
-                return this._height;
-            },
-            /**
-             * 设置底条高度
-             */
-            set: function (value) {
-                if (this._height == value)
-                    return;
-                this._height = value;
-                if (this._bgBmp) {
-                    this._bgBmp.height = value;
-                }
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Slider.prototype, "maxVlaue", {
-            set: function (value) {
-                this._maxVlaue = value;
-                this.checkStepPixel();
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Slider.prototype, "minValue", {
-            set: function (value) {
-                this._minValue = value;
-                this.checkStepPixel();
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Slider.prototype, "step", {
-            /**
-             * 滑块移动一个单位的值
-             */
-            set: function (value) {
-                this._step = value;
-                this.checkStepPixel();
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Slider.prototype.checkStepPixel = function () {
-            this._perStepPixel = this.bgline.width / ((this._maxVlaue - this._minValue) / this._step);
+        Slider.prototype.setMinMax = function (min, max, step) {
+            if (step === void 0) { step = 1; }
+            this._max = max;
+            this._min = min;
+            this._step = step;
+            this._perStepPixel = this._width * step / (max - min);
         };
         return Slider;
     }(jy.Component));
@@ -18735,43 +18685,18 @@ var jy;
     var SliderCreator = /** @class */ (function (_super) {
         __extends(SliderCreator, _super);
         function SliderCreator() {
-            return _super.call(this) || this;
+            return _super !== null && _super.apply(this, arguments) || this;
         }
         SliderCreator.prototype.parseSelfData = function (data) {
-            this.uiData = data;
-            this.txtCreator = new jy.TextFieldCreator();
-            this.scale9Creator = new jy.ScaleBitmapCreator();
-            this.bitmapCreator = new jy.BitmapCreator(this._suiData);
-            this.suiManager = jy.singleton(jy.SuiResManager);
-            this._createT = this.createSlider;
-        };
-        SliderCreator.prototype.createSlider = function () {
-            var slider = new Slider();
-            var comData = this.uiData;
-            var len = comData.length;
-            var tmpData;
-            var type;
-            var sourceData = this._suiData.sourceComponentData;
-            var index;
-            var sourceArr;
-            var name;
-            for (var i = 0; i < len; i++) {
-                tmpData = comData[i];
-                type = tmpData[0];
-                index = tmpData[2];
-                if (type == 0) {
-                    this.bitmapCreator.parseSelfData(index);
-                    var bmp = this.bitmapCreator.get();
-                    slider.setThumb(bmp);
-                }
-                else if (type == 5) {
-                    sourceArr = sourceData[type];
-                    name = sourceArr[0][index];
-                    var sc = this.suiManager.createDisplayObject(this._suiData.key, name, tmpData[1]);
-                    slider.setBg(sc);
-                }
-            }
-            return slider;
+            var suiData = this._suiData;
+            var framesData = jy.MovieClipCreator.prototype.$getFramesData(data);
+            this._createT = function () {
+                var mc = new jy.MovieClip(data, framesData, suiData);
+                var bar = new Slider();
+                bar.skin = mc;
+                bar.addChild(mc);
+                return bar;
+            };
         };
         return SliderCreator;
     }(jy.BaseCreator));

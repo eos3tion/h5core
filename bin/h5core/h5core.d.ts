@@ -13188,76 +13188,54 @@ declare namespace jy {
     }
 }
 declare namespace jy {
+    interface SliderSkinDele {
+        bar: egret.DisplayObject;
+        bg: egret.DisplayObject;
+        thumb: egret.DisplayObject;
+    }
+    interface SliderTip extends egret.DisplayObject {
+        label: string;
+        setLabel(value: string): any;
+    }
     class Slider extends Component {
         private _width;
-        private _height;
         private _value;
         /***滑块 */
-        thumb: egret.Sprite;
+        thumb: egret.DisplayObject;
         /****底 */
-        bgline: egret.Sprite;
-        private _bgBmp;
-        private tipTxt;
+        bg: egret.DisplayObject;
         private _lastThumbX;
-        private _maxVlaue;
-        private _minValue;
+        private _max;
+        private _min;
         private _step;
         /**每步step需要的像素 */
         private _perStepPixel;
-        private _halfThumbWidth;
-        private _barEnabled;
+        private _bgClickEnabled;
+        bar?: egret.DisplayObject;
+        tip?: SliderTip;
+        _skin: SliderSkinDele;
         constructor();
-        private addListener;
+        bindTip(tip: SliderTip): void;
+        set skin(skin: SliderSkinDele);
         private onAddToStage;
-        set barEnabled(value: boolean);
-        private bgClick;
+        set bgClickEnable(value: boolean);
+        bgClick(e: egret.TouchEvent): void;
         private bgOut;
         private onThumbBegin;
         private onThumbEnd;
         private mouseMove;
         private calculatevalue;
-        private initBaseContainer;
-        /**
-         * 设置底条新式
-         *
-         * @param {ScaleBitmap} bg (description)
-         */
-        setBg(bg: ScaleBitmap): void;
-        /**
-         * 设置滑块样式
-         *
-         * @param {egret.Bitmap} tb (description)
-         */
-        setThumb(tb: egret.Bitmap): void;
         set value(val: number);
         get value(): number;
         /**
          * 设置底条宽度
          */
         set width(value: number);
-        /**
-         * 设置底条高度
-         */
-        set height(value: number);
         get width(): number;
-        get height(): number;
-        set maxVlaue(value: number);
-        set minValue(value: number);
-        /**
-         * 滑块移动一个单位的值
-         */
-        set step(value: number);
-        private checkStepPixel;
+        setMinMax(min: number, max: number, step?: number): void;
     }
     class SliderCreator extends BaseCreator<Slider> {
-        private uiData;
-        private txtCreator;
-        private scale9Creator;
-        private bitmapCreator;
-        private suiManager;
-        constructor();
         parseSelfData(data: any): void;
-        private createSlider;
     }
 }
 declare namespace jy {
