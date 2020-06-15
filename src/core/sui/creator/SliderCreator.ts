@@ -154,10 +154,12 @@ namespace jy {
         }
 
         public set value(val: number) {
+            let { _min, _max, _step, _perStepPixel } = this;
+            val = Math.clamp(val, _min, _max)
             if (this._value != val) {
                 this._value = val;
                 this.dispatch(EventConst.VALUE_CHANGE);
-                let x = ((val - this._min) / this._step) * this._perStepPixel;
+                let x = _perStepPixel ? ((val - _min) / _step) * _perStepPixel : this._width;
                 this.thumb.x = x;
                 let bar = this.bar;
                 if (bar) {
@@ -188,10 +190,13 @@ namespace jy {
         }
 
         setMinMax(min: number, max: number, step = 1) {
+            if (min > max) {
+                min = max;
+            }
             this._max = max;
             this._min = min;
             this._step = step;
-            this._perStepPixel = this._width * step / (max - min);
+            this._perStepPixel = min == max ? 0 : this._width * step / (max - min);
         }
     }
     export class SliderCreator extends BaseCreator<Slider>{
