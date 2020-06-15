@@ -18638,10 +18638,12 @@ var jy;
                 return this._value;
             },
             set: function (val) {
+                var _a = this, _min = _a._min, _max = _a._max, _step = _a._step, _perStepPixel = _a._perStepPixel;
+                val = Math.clamp(val, _min, _max);
                 if (this._value != val) {
                     this._value = val;
                     this.dispatch(-1040 /* VALUE_CHANGE */);
-                    var x = ((val - this._min) / this._step) * this._perStepPixel;
+                    var x = _perStepPixel ? ((val - _min) / _step) * _perStepPixel : this._width;
                     this.thumb.x = x;
                     var bar = this.bar;
                     if (bar) {
@@ -18673,10 +18675,13 @@ var jy;
         });
         Slider.prototype.setMinMax = function (min, max, step) {
             if (step === void 0) { step = 1; }
+            if (min > max) {
+                min = max;
+            }
             this._max = max;
             this._min = min;
             this._step = step;
-            this._perStepPixel = this._width * step / (max - min);
+            this._perStepPixel = min == max ? 0 : this._width * step / (max - min);
         };
         return Slider;
     }(jy.Component));
