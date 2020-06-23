@@ -56,17 +56,24 @@ namespace jy {
                 let host = this._host;
                 let scale = host.scaleX;
                 let stage = host.stage || egret.sys.$TempStage;
+                let rect = dis.suiRawRect;
+                let sw = stage.stageWidth / scale;
+                let sh = stage.stageHeight / scale;
                 if (left != undefined) {
                     dis.x = left;
                     if (right != undefined) {
-                        dis.width = stage.stageWidth / scale - left - right;
+                        dis.width = sw - left - right;
                     }
+                } else if (right != undefined) {
+                    dis.x = sw - rect.width - right;
                 }
                 if (top != undefined) {
                     dis.y = top;
                     if (bottom != undefined) {
-                        dis.height = stage.stageHeight / scale - top - bottom;
+                        dis.height = sh - top - bottom;
                     }
+                } else if (bottom != undefined) {
+                    dis.x = sh - rect.height - right;
                 }
             } else {
                 super.binLayout(bin);
