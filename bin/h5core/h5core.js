@@ -22914,17 +22914,26 @@ var jy;
                 var host = this._host;
                 var scale = host.scaleX;
                 var stage = host.stage || egret.sys.$TempStage;
+                var rect = dis.suiRawRect;
+                var sw = stage.stageWidth / scale;
+                var sh = stage.stageHeight / scale;
                 if (left != undefined) {
                     dis.x = left;
                     if (right != undefined) {
-                        dis.width = stage.stageWidth / scale - left - right;
+                        dis.width = sw - left - right;
                     }
+                }
+                else if (right != undefined) {
+                    dis.x = sw - rect.width - right;
                 }
                 if (top_1 != undefined) {
                     dis.y = top_1;
                     if (bottom != undefined) {
-                        dis.height = stage.stageHeight / scale - top_1 - bottom;
+                        dis.height = sh - top_1 - bottom;
                     }
+                }
+                else if (bottom != undefined) {
+                    dis.x = sh - rect.height - right;
                 }
             }
             else {
