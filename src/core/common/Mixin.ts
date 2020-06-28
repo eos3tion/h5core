@@ -72,7 +72,7 @@ namespace jy {
     function _expand(pt: any, bpt: any, keys: string[]) {
         for (let name of Object.getOwnPropertyNames(bpt)) {
             if (!keys || ~keys.indexOf(name)) {
-                if (!(name in pt)) {
+                if (!pt.hasOwnProperty(name)) {
                     pt[name] = bpt[name];
                 }
             }
