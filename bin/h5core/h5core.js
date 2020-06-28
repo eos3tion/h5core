@@ -2488,7 +2488,7 @@ var jy;
         for (var _i = 0, _a = Object.getOwnPropertyNames(bpt); _i < _a.length; _i++) {
             var name_2 = _a[_i];
             if (!keys || ~keys.indexOf(name_2)) {
-                if (!(name_2 in pt)) {
+                if (!pt.hasOwnProperty(name_2)) {
                     pt[name_2] = bpt[name_2];
                 }
             }
