@@ -73,7 +73,7 @@ namespace jy {
                         dis.height = sh - top - bottom;
                     }
                 } else if (bottom != undefined) {
-                    dis.x = sh - rect.height - right;
+                    dis.y = sh - rect.height - bottom;
                 }
             } else {
                 super.binLayout(bin);

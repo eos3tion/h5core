@@ -22933,7 +22933,7 @@ var jy;
                     }
                 }
                 else if (bottom != undefined) {
-                    dis.x = sh - rect.height - right;
+                    dis.y = sh - rect.height - bottom;
                 }
             }
             else {
