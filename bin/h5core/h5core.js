@@ -19466,18 +19466,24 @@ var jy;
          * @param type 如果设置 `LayoutType.FullScreen(0)`，基于`LayoutType.TOP_LEFT`定位
          */
         PageList.prototype.layout = function (type) {
-            if (!this.scroller) { //有scroller的不处理
-                var con = this._con;
-                var suiRawRect = con.suiRawRect;
-                if (suiRawRect) {
-                    if (type == 0 /* FullScreen */) { //设0恢复原样，基于 top_left 定位
-                        type = 5 /* TOP_LEFT */;
-                    }
-                    var pt = jy.Temp.SharedPoint1;
-                    jy.Layout.getLayoutPos(this._w, this._h, suiRawRect.width, suiRawRect.height, type, pt);
-                    con.x = suiRawRect.x + pt.x;
-                    con.y = suiRawRect.y + pt.y;
+            var con = this._con;
+            var suiRawRect = con.suiRawRect;
+            if (suiRawRect) {
+                var _a = this, _w = _a._w, _h = _a._h;
+                var width = suiRawRect.width, height = suiRawRect.height, x = suiRawRect.x, y = suiRawRect.y;
+                if (type == 0 /* FullScreen */) { //设0恢复原样，基于 top_left 定位
+                    type = 5 /* TOP_LEFT */;
                 }
+                var pt = jy.Temp.SharedPoint1;
+                jy.Layout.getLayoutPos(_w, _h, width, height, type, pt);
+                if (_w < width) {
+                    x += pt.x;
+                }
+                if (_h < height) {
+                    y += pt.y;
+                }
+                con.x = x;
+                con.y = y;
             }
             return this;
         };
