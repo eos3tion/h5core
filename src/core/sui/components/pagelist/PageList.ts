@@ -328,18 +328,24 @@ namespace jy {
          * @param type 如果设置 `LayoutType.FullScreen(0)`，基于`LayoutType.TOP_LEFT`定位 
          */
         layout(type: LayoutType) {
-            if (!this.scroller) {//有scroller的不处理
-                let con = this._con;
-                let suiRawRect = con.suiRawRect;
-                if (suiRawRect) {
-                    if (type == LayoutType.FullScreen) {//设0恢复原样，基于 top_left 定位
-                        type = LayoutType.TOP_LEFT;
-                    }
-                    let pt = Temp.SharedPoint1;
-                    Layout.getLayoutPos(this._w, this._h, suiRawRect.width, suiRawRect.height, type, pt);
-                    con.x = suiRawRect.x + pt.x;
-                    con.y = suiRawRect.y + pt.y;
+            let con = this._con;
+            let suiRawRect = con.suiRawRect;
+            if (suiRawRect) {
+                let { _w, _h } = this;
+                let { width, height, x, y } = suiRawRect;
+                if (type == LayoutType.FullScreen) {//设0恢复原样，基于 top_left 定位
+                    type = LayoutType.TOP_LEFT;
                 }
+                let pt = Temp.SharedPoint1;
+                Layout.getLayoutPos(_w, _h, width, height, type, pt);
+                if (_w < width) {
+                    x += pt.x;
+                }
+                if (_h < height) {
+                    y += pt.y;
+                }
+                con.x = x;
+                con.y = y;
             }
             return this;
         }
