@@ -2017,6 +2017,91 @@ declare namespace jy {
 }
 declare namespace jy {
     /**
+     * 临时对象
+     * @author 3tion
+     *
+     */
+    const Temp: {
+        /**
+         * 共享数组1
+         */
+        SharedArray1: any[];
+        /**
+         * 共享数组2
+         */
+        SharedArray2: any[];
+        /**
+         * 共享数组3
+         */
+        SharedArray3: any[];
+        SharedRect1: {
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+        };
+        SharedRect2: {
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+        };
+        /**
+         * 白鹭的点
+         */
+        EgretPoint: egret.Point;
+        /**
+         * 白鹭的矩形
+         */
+        EgretRectangle: egret.Rectangle;
+        /**
+         * 共享点1
+         */
+        SharedPoint1: {
+            x: number;
+            y: number;
+            z: number;
+        };
+        /**
+         * 共享点2
+         */
+        SharedPoint2: {
+            x: number;
+            y: number;
+            z: number;
+        };
+        /**
+         * 不做任何事情的空方法，接收任意长度的数据，返回空
+         */
+        voidFunction: () => any;
+        /**
+         * 用于替换的方法,接收任意长度的数据，返回null
+         */
+        willReplacedFunction: () => any;
+        /**
+         * 返回 true 的函数
+         */
+        retTrueFunc: () => boolean;
+        /**
+         * 返回 false 的函数
+         */
+        retFalseFunc: () => boolean;
+        /**
+         * 空对象
+         */
+        EmptyObject: Readonly<{}>;
+        /**
+         * 空数组
+         */
+        EmptyArray: any[];
+        /**
+         * 管线方法，用于符合函数的结构，并将数值传递下去
+         */
+        pipeFunction: <T>(arg: T) => T;
+    };
+}
+declare namespace jy {
+    /**
      * 基础渲染器
      * @author 3tion
      *
@@ -3471,6 +3556,72 @@ declare namespace jy {
         new (): T;
         _instance?: T;
     }): T;
+}
+declare namespace jy {
+    const enum Operator {
+        /**
+         * 具体值
+         */
+        Value = 1,
+        BracketsMask = 2048,
+        /**
+         * 括号
+         */
+        Brackets = 2048,
+        /**
+         * 函数
+         */
+        Function = 2049,
+        /**
+         * 比较
+         * = > < <> >= <=
+         */
+        Comperation = 2
+    }
+    interface Node {
+        parent: Node;
+        op: Operator;
+        nodes: Node[];
+        value: string;
+        /**
+         * 原始内容
+         */
+        raw: string;
+        /**
+         * 起始索引
+         */
+        start: number;
+        /**
+         * 结束索引
+         */
+        end: number;
+    }
+    export class Condition {
+        /**
+         * 注册值处理器
+         */
+        static setValueSolver(solver: ConditionValueSolver): void;
+        /**
+         * 注册函数处理器
+         * @param funcName
+         * @param handler
+         */
+        static regFuncSolver(funcName: string, handler: ConditionFuncSolver): void;
+        readonly root: Node;
+        /**
+         * 上下文数据
+         * @param context
+         */
+        check(context?: any): any;
+        decode(content: string): this;
+    }
+    export type ConditionFuncSolver = {
+        (nodes: Node[], context: any): any;
+    };
+    export type ConditionValueSolver = {
+        (value: string, context: any): any;
+    };
+    export {};
 }
 declare namespace jy {
     /**
@@ -8640,91 +8791,6 @@ declare namespace jy {
      *
      */
     const RequestLimit: RequestLimitType;
-}
-declare namespace jy {
-    /**
-     * 临时对象
-     * @author 3tion
-     *
-     */
-    const Temp: {
-        /**
-         * 共享数组1
-         */
-        SharedArray1: any[];
-        /**
-         * 共享数组2
-         */
-        SharedArray2: any[];
-        /**
-         * 共享数组3
-         */
-        SharedArray3: any[];
-        SharedRect1: {
-            x: number;
-            y: number;
-            width: number;
-            height: number;
-        };
-        SharedRect2: {
-            x: number;
-            y: number;
-            width: number;
-            height: number;
-        };
-        /**
-         * 白鹭的点
-         */
-        EgretPoint: egret.Point;
-        /**
-         * 白鹭的矩形
-         */
-        EgretRectangle: egret.Rectangle;
-        /**
-         * 共享点1
-         */
-        SharedPoint1: {
-            x: number;
-            y: number;
-            z: number;
-        };
-        /**
-         * 共享点2
-         */
-        SharedPoint2: {
-            x: number;
-            y: number;
-            z: number;
-        };
-        /**
-         * 不做任何事情的空方法，接收任意长度的数据，返回空
-         */
-        voidFunction: () => any;
-        /**
-         * 用于替换的方法,接收任意长度的数据，返回null
-         */
-        willReplacedFunction: () => any;
-        /**
-         * 返回 true 的函数
-         */
-        retTrueFunc: () => boolean;
-        /**
-         * 返回 false 的函数
-         */
-        retFalseFunc: () => boolean;
-        /**
-         * 空对象
-         */
-        EmptyObject: Readonly<{}>;
-        /**
-         * 空数组
-         */
-        EmptyArray: any[];
-        /**
-         * 管线方法，用于符合函数的结构，并将数值传递下去
-         */
-        pipeFunction: <T>(arg: T) => T;
-    };
 }
 declare namespace jy {
     function tick(now: number): void;
