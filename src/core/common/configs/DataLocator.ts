@@ -219,6 +219,9 @@ namespace jy {
             case JSONHeadType.Time:
                 value = new TimeVO().decodeBit(value || def || 0);
                 break;
+            case JSONHeadType.Condition:
+                value = new Condition().decode(value);
+                break;
         }
         return value;
     }
@@ -311,7 +314,8 @@ namespace jy {
         Date = 6,
         Time = 7,
         DateTime = 8,
-        Int32 = 9
+        Int32 = 9,
+        Condition = 10,
     }
 
 

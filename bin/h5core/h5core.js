@@ -3431,6 +3431,84 @@ var jy;
 var jy;
 (function (jy) {
     /**
+     * 临时对象
+     * @author 3tion
+     *
+     */
+    jy.Temp = {
+        /**
+         * 共享数组1
+         */
+        SharedArray1: [],
+        /**
+         * 共享数组2
+         */
+        SharedArray2: [],
+        /**
+         * 共享数组3
+         */
+        SharedArray3: [],
+        SharedRect1: { x: 0, y: 0, width: 0, height: 0 },
+        SharedRect2: { x: 0, y: 0, width: 0, height: 0 },
+        /**
+         * 白鹭的点
+         */
+        EgretPoint: new egret.Point(),
+        /**
+         * 白鹭的矩形
+         */
+        EgretRectangle: new egret.Rectangle(),
+        /**
+         * 共享点1
+         */
+        SharedPoint1: { x: 0, y: 0, z: 0 },
+        /**
+         * 共享点2
+         */
+        SharedPoint2: { x: 0, y: 0, z: 0 },
+        /**
+         * 不做任何事情的空方法，接收任意长度的数据，返回空
+         */
+        voidFunction: function () { },
+        /**
+         * 用于替换的方法,接收任意长度的数据，返回null
+         */
+        willReplacedFunction: function () {
+            if (true) {
+                jy.ThrowError("\u9700\u8981\u88AB\u66FF\u6362\u7684\u65B9\u6CD5\uFF0C\u6CA1\u6709\u88AB\u66FF\u6362\uFF0C\u5806\u6808\u4FE1\u606F\uFF1A" + new Error().stack);
+            }
+        },
+        /**
+         * 返回 true 的函数
+         */
+        retTrueFunc: function () {
+            return true;
+        },
+        /**
+         * 返回 false 的函数
+         */
+        retFalseFunc: function () {
+            return false;
+        },
+        /**
+         * 空对象
+         */
+        EmptyObject: Object.freeze({}),
+        /**
+         * 空数组
+         */
+        EmptyArray: Object.freeze([]),
+        /**
+         * 管线方法，用于符合函数的结构，并将数值传递下去
+         */
+        pipeFunction: function (arg) {
+            return arg;
+        }
+    };
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    /**
      * 基础渲染器
      * @author 3tion
      *
@@ -6687,6 +6765,216 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
+    var Comparations = ["=", "<", ">"];
+    var Condition = /** @class */ (function () {
+        function Condition() {
+        }
+        /**
+         * 注册值处理器
+         */
+        Condition.setValueSolver = function (solver) {
+            conditionValueSolver = solver;
+        };
+        /**
+         * 注册函数处理器
+         * @param funcName
+         * @param handler
+         */
+        Condition.regFuncSolver = function (funcName, handler) {
+            //新的直接覆盖旧的
+            funcSolvers[funcName] = handler;
+        };
+        /**
+         * 上下文数据
+         * @param context
+         */
+        Condition.prototype.check = function (context) {
+            var root = this.root;
+            return !root || getValue(root, context);
+        };
+        Condition.prototype.decode = function (content) {
+            if (content) {
+                var pos = 0;
+                var len = content.length;
+                var nod = {
+                    raw: content.trim(),
+                    start: pos,
+                    end: len,
+                    nodes: []
+                };
+                //@ts-ignore
+                this.root = nod;
+                while (pos < len) {
+                    var char = content.charAt(pos);
+                    if (char == "(") {
+                        var raw = content.substring(nod.start, pos);
+                        var func = raw.trim();
+                        var node = {
+                            start: pos + 1,
+                            nodes: [],
+                            parent: nod,
+                        };
+                        nod.nodes.push(node);
+                        if (func) {
+                            nod.op = 2049 /* Function */;
+                            nod.value = func;
+                        }
+                        else {
+                            nod.op = 2048 /* Brackets */;
+                        }
+                        nod = node;
+                    }
+                    else if (char == ",") {
+                        var raw = content.substring(nod.start, pos);
+                        nod.end = pos;
+                        nod.raw = raw;
+                        if (!nod.op) {
+                            nod.op = 1 /* Value */;
+                            nod.value = raw;
+                        }
+                        var value = raw.trim();
+                        do {
+                            nod = nod.parent;
+                        } while (nod && !isBrackedsType(nod.op));
+                        var node = {
+                            start: pos + 1,
+                            nodes: [],
+                            parent: nod,
+                            raw: raw,
+                            value: value,
+                        };
+                        nod.nodes.push(node);
+                        nod = node;
+                    }
+                    else if (Comparations.indexOf(char) > -1) {
+                        if (nod.op) {
+                            throw Error(char + "\u5DE6\u8FB9\u6CA1\u6709\u6B63\u786E\u7684\u6BD4\u8F83\u503C\uFF0C\u8BF7\u68C0\u67E5\uFF1A" + content.substring(0, pos));
+                        }
+                        nod.op = 2 /* Comperation */;
+                        var nextStart = pos + 1;
+                        var nextChar = content.charAt(pos + 1);
+                        if (char == "<") {
+                            if (nextChar == "=" || nextChar == ">") {
+                                nod.value = char + nextChar;
+                                nextStart++;
+                            }
+                        }
+                        else if (char == ">") {
+                            if (nextChar == "=") {
+                                nod.value = char + nextChar;
+                                nextStart++;
+                            }
+                        }
+                        var raw = content.substring(nod.start, pos);
+                        var node = {
+                            start: nextStart,
+                            nodes: [],
+                            parent: nod
+                        };
+                        nod.nodes.push({
+                            op: 1,
+                            start: nod.start,
+                            end: pos,
+                            parent: nod,
+                            raw: raw,
+                            value: raw,
+                        }, node);
+                        nod = node;
+                        pos = nextStart - 1;
+                    }
+                    else if (char == ")") {
+                        nod.end = pos;
+                        var raw = content.substring(nod.start, pos);
+                        nod.raw = raw;
+                        if (!nod.op) {
+                            nod.op = 1 /* Value */;
+                            nod.value = raw;
+                        }
+                        do {
+                            nod = nod.parent;
+                            if (nod) {
+                                nod.end = pos;
+                                if (isBrackedsType(nod.op)) {
+                                    break;
+                                }
+                            }
+                            else {
+                                break;
+                            }
+                        } while (true);
+                    }
+                    pos++;
+                }
+            }
+            return this;
+        };
+        return Condition;
+    }());
+    jy.Condition = Condition;
+    __reflect(Condition.prototype, "jy.Condition");
+    function checkComparation(_a, context) {
+        var nodes = _a.nodes, value = _a.value;
+        var c1 = nodes[0], c2 = nodes[1];
+        var v1 = getValue(c1, context);
+        var v2 = getValue(c2, context);
+        switch (value) {
+            case "=":
+                return v1 == v2;
+            case "<":
+                return v1 < v2;
+            case ">":
+                return v1 > v2;
+            case "<>":
+                return v1 != v2;
+            case "<=":
+                return v1 <= v2;
+            case ">=":
+                return v1 >= v2;
+        }
+    }
+    function getValue(node, context) {
+        var op = node.op, value = node.value;
+        switch (op) {
+            case 1 /* Value */:
+                return conditionValueSolver(value, context);
+            case 2049 /* Function */:
+                return getFunc(node, context);
+            case 2 /* Comperation */:
+                return checkComparation(node, context);
+        }
+    }
+    var conditionValueSolver = jy.Temp.pipeFunction;
+    var funcSolvers = {
+        and: function (nodes, context) {
+            for (var i = 0; i < nodes.length; i++) {
+                var node = nodes[i];
+                if (!getValue(node, context)) {
+                    return false;
+                }
+            }
+            return true;
+        },
+        or: function (nodes, context) {
+            for (var i = 0; i < nodes.length; i++) {
+                var node = nodes[i];
+                if (getValue(node, context)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    };
+    function getFunc(_a, context) {
+        var value = _a.value, nodes = _a.nodes;
+        var handler = funcSolvers[value];
+        return handler(nodes, context);
+    }
+    function isBrackedsType(op) {
+        return (op & 2048 /* BracketsMask */) == 2048 /* BracketsMask */;
+    }
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * 绑定属性名，当属性值发生改变时，可自动对外抛eventType事件
      *
@@ -7339,6 +7627,9 @@ var jy;
                 break;
             case 7 /* Time */:
                 value = new jy.TimeVO().decodeBit(value || def || 0);
+                break;
+            case 10 /* Condition */:
+                value = new jy.Condition().decode(value);
                 break;
         }
         return value;
@@ -11496,84 +11787,6 @@ var jy;
          */
         remove: function (o) {
             delete _dic[o];
-        }
-    };
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
-    /**
-     * 临时对象
-     * @author 3tion
-     *
-     */
-    jy.Temp = {
-        /**
-         * 共享数组1
-         */
-        SharedArray1: [],
-        /**
-         * 共享数组2
-         */
-        SharedArray2: [],
-        /**
-         * 共享数组3
-         */
-        SharedArray3: [],
-        SharedRect1: { x: 0, y: 0, width: 0, height: 0 },
-        SharedRect2: { x: 0, y: 0, width: 0, height: 0 },
-        /**
-         * 白鹭的点
-         */
-        EgretPoint: new egret.Point(),
-        /**
-         * 白鹭的矩形
-         */
-        EgretRectangle: new egret.Rectangle(),
-        /**
-         * 共享点1
-         */
-        SharedPoint1: { x: 0, y: 0, z: 0 },
-        /**
-         * 共享点2
-         */
-        SharedPoint2: { x: 0, y: 0, z: 0 },
-        /**
-         * 不做任何事情的空方法，接收任意长度的数据，返回空
-         */
-        voidFunction: function () { },
-        /**
-         * 用于替换的方法,接收任意长度的数据，返回null
-         */
-        willReplacedFunction: function () {
-            if (true) {
-                jy.ThrowError("\u9700\u8981\u88AB\u66FF\u6362\u7684\u65B9\u6CD5\uFF0C\u6CA1\u6709\u88AB\u66FF\u6362\uFF0C\u5806\u6808\u4FE1\u606F\uFF1A" + new Error().stack);
-            }
-        },
-        /**
-         * 返回 true 的函数
-         */
-        retTrueFunc: function () {
-            return true;
-        },
-        /**
-         * 返回 false 的函数
-         */
-        retFalseFunc: function () {
-            return false;
-        },
-        /**
-         * 空对象
-         */
-        EmptyObject: Object.freeze({}),
-        /**
-         * 空数组
-         */
-        EmptyArray: Object.freeze([]),
-        /**
-         * 管线方法，用于符合函数的结构，并将数值传递下去
-         */
-        pipeFunction: function (arg) {
-            return arg;
         }
     };
 })(jy || (jy = {}));
