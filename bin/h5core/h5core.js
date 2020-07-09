@@ -6782,7 +6782,7 @@ var jy;
          */
         Condition.regFuncSolver = function (funcName, handler) {
             //新的直接覆盖旧的
-            funcSolvers[funcName] = handler;
+            funcSolvers[funcName.toLowerCase()] = handler;
         };
         /**
          * 上下文数据
@@ -6817,7 +6817,7 @@ var jy;
                         nod.nodes.push(node);
                         if (func) {
                             nod.op = 2049 /* Function */;
-                            nod.value = func;
+                            nod.value = func.toLowerCase();
                         }
                         else {
                             nod.op = 2048 /* Brackets */;

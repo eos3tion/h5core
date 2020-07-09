@@ -61,7 +61,7 @@ namespace jy {
          */
         static regFuncSolver(funcName: string, handler: ConditionFuncSolver) {
             //新的直接覆盖旧的
-            funcSolvers[funcName] = handler;
+            funcSolvers[funcName.toLowerCase()] = handler;
         }
 
         readonly root: Node;
@@ -100,7 +100,7 @@ namespace jy {
                         nod.nodes.push(node);
                         if (func) {
                             nod.op = Operator.Function;
-                            nod.value = func;
+                            nod.value = func.toLowerCase();
                         } else {
                             nod.op = Operator.Brackets;
                         }
