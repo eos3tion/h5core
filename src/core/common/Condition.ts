@@ -182,6 +182,12 @@ namespace jy {
                     }
                     pos++;
                 }
+                if (nod.value == undefined) {
+                    nod.op = Operator.Value
+                    let raw = content.substring(nod.start, pos);
+                    nod.raw = raw;
+                    nod.value = raw;
+                }
             }
             return this;
         }

@@ -5949,6 +5949,12 @@ var jy;
                     }
                     pos++;
                 }
+                if (nod.value == undefined) {
+                    nod.op = 1 /* Value */;
+                    var raw = content.substring(nod.start, pos);
+                    nod.raw = raw;
+                    nod.value = raw;
+                }
             }
             return this;
         };
