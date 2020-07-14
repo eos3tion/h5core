@@ -6775,6 +6775,9 @@ var jy;
         Condition.setValueSolver = function (solver) {
             conditionValueSolver = solver;
         };
+        Condition.setMsgSolver = function (solver) {
+            conditionMsgSolver = solver;
+        };
         /**
          * 注册函数处理器
          * @param funcName
@@ -6785,12 +6788,25 @@ var jy;
             funcSolvers[funcName.toLowerCase()] = handler;
         };
         /**
+         * 设置tip处理器
+         * @param tipHandler
+         */
+        Condition.setTip = function (tipHandler) {
+            showTip = tipHandler;
+        };
+        /**
          * 上下文数据
          * @param context
          */
         Condition.prototype.check = function (context) {
             var root = this.root;
-            return !root || getValue(root, context);
+            var flag = !root || getValue(root, context);
+            if (!flag && context) {
+                var errors = context.errors;
+                if (errors) {
+                    showTip(errors);
+                }
+            }
         };
         Condition.prototype.decode = function (content) {
             if (content) {
@@ -6918,25 +6934,33 @@ var jy;
     }());
     jy.Condition = Condition;
     __reflect(Condition.prototype, "jy.Condition");
-    function checkComparation(_a, context) {
-        var nodes = _a.nodes, value = _a.value;
+    function checkComparation(node, context) {
+        var nodes = node.nodes, value = node.value;
         var c1 = nodes[0], c2 = nodes[1];
         var v1 = getValue(c1, context);
         var v2 = getValue(c2, context);
+        var flag = true;
         switch (value) {
             case "=":
-                return v1 == v2;
+                flag = v1 == v2;
             case "<":
-                return v1 < v2;
+                flag = v1 < v2;
             case ">":
-                return v1 > v2;
+                flag = v1 > v2;
             case "<>":
-                return v1 != v2;
+                flag = v1 != v2;
             case "<=":
-                return v1 <= v2;
+                flag = v1 <= v2;
             case ">=":
-                return v1 >= v2;
+                flag = v1 >= v2;
         }
+        if (!flag && context) {
+            var errors = context.errors;
+            if (errors) {
+                errors.push(conditionMsgSolver(node, context));
+            }
+        }
+        return flag;
     }
     function getValue(node, context) {
         var op = node.op, value = node.value;
@@ -6969,6 +6993,10 @@ var jy;
             }
             return false;
         }
+    };
+    var showTip = jy.Temp.voidFunction;
+    var conditionMsgSolver = function (node) {
+        return node.raw;
     };
     function getFunc(_a, context) {
         var value = _a.value, nodes = _a.nodes;

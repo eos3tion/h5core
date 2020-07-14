@@ -41,6 +41,13 @@ namespace jy {
         end: number;
     }
 
+    export interface ConditionCheckContext {
+        /**
+         * 不符合条件的错误
+         */
+        errors?: string[];
+    }
+
 
     const Comparations =
         ["=", "<", ">"];
@@ -54,6 +61,10 @@ namespace jy {
             conditionValueSolver = solver;
         }
 
+        static setMsgSolver(solver: ConditionMsgSolver) {
+            conditionMsgSolver = solver;
+        }
+
         /**
          * 注册函数处理器
          * @param funcName 
@@ -64,15 +75,29 @@ namespace jy {
             funcSolvers[funcName.toLowerCase()] = handler;
         }
 
+        /**
+         * 设置tip处理器
+         * @param tipHandler 
+         */
+        static setTip(tipHandler: ShowConditionTip) {
+            showTip = tipHandler;
+        }
+
         readonly root: Node;
 
         /**
          * 上下文数据
          * @param context 
          */
-        check(context?: any) {
+        check(context?: ConditionCheckContext) {
             let root = this.root;
-            return !root || getValue(root, context);
+            let flag = !root || getValue(root, context);
+            if (!flag && context) {
+                let errors = context.errors;
+                if (errors) {
+                    showTip(errors);
+                }
+            }
         }
 
         decode(content: string) {
@@ -193,27 +218,37 @@ namespace jy {
         }
     }
 
-    function checkComparation({ nodes, value }: Node, context: any) {
+    function checkComparation(node: Node, context: ConditionCheckContext) {
+        const { nodes, value } = node;
         let [c1, c2] = nodes;
         let v1 = getValue(c1, context);
         let v2 = getValue(c2, context);
+        let flag = true;
         switch (value) {
             case "=":
-                return v1 == v2;
+                flag = v1 == v2;
             case "<":
-                return v1 < v2;
+                flag = v1 < v2;
             case ">":
-                return v1 > v2;
+                flag = v1 > v2;
             case "<>":
-                return v1 != v2;
+                flag = v1 != v2;
             case "<=":
-                return v1 <= v2;
+                flag = v1 <= v2;
             case ">=":
-                return v1 >= v2;
+                flag = v1 >= v2;
         }
+        if (!flag && context) {
+            let errors = context.errors;
+            if (errors) {
+                errors.push(conditionMsgSolver(node, context))
+            }
+        }
+
+        return flag;
     }
 
-    function getValue(node: Node, context: any) {
+    function getValue(node: Node, context: ConditionCheckContext) {
         const { op, value } = node;
         switch (op) {
             case Operator.Value:
@@ -249,11 +284,19 @@ namespace jy {
 
     } as { [func: string]: ConditionFuncSolver }
 
-    export type ConditionFuncSolver = { (nodes: Node[], context: any) };
-    export type ConditionValueSolver = { (value: string, context: any): any };
+    export type ConditionFuncSolver = { (nodes: Node[], context: ConditionCheckContext) };
+    export type ConditionValueSolver = { (value: string, context: ConditionCheckContext): any };
+    export type ConditionMsgSolver = { (node: Node, context: ConditionCheckContext): string };
 
+    export type ShowConditionTip = { (msgs: string[]) };
 
-    function getFunc({ value, nodes }: Node, context: any) {
+    let showTip: ShowConditionTip = Temp.voidFunction;
+
+    let conditionMsgSolver: ConditionMsgSolver = function (node) {
+        return node.raw;
+    };
+
+    function getFunc({ value, nodes }: Node, context: ConditionCheckContext) {
         let handler = funcSolvers[value];
         return handler(nodes, context)
     }
