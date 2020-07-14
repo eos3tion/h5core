@@ -6807,6 +6807,7 @@ var jy;
                     showTip(errors);
                 }
             }
+            return flag;
         };
         Condition.prototype.decode = function (content) {
             if (content) {

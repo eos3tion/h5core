@@ -4143,7 +4143,7 @@ declare namespace jy {
          * 上下文数据
          * @param context
          */
-        check(context?: ConditionCheckContext): void;
+        check(context?: ConditionCheckContext): any;
         decode(content: string): this;
     }
     export type ConditionFuncSolver = {
