@@ -98,6 +98,7 @@ namespace jy {
                     showTip(errors);
                 }
             }
+            return flag;
         }
 
         decode(content: string) {
