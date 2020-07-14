@@ -3558,7 +3558,7 @@ declare namespace jy {
     }): T;
 }
 declare namespace jy {
-    const enum Operator {
+    const enum ConditionOperator {
         /**
          * 具体值
          */
@@ -3578,10 +3578,10 @@ declare namespace jy {
          */
         Comperation = 2
     }
-    interface Node {
-        parent: Node;
-        op: Operator;
-        nodes: Node[];
+    interface ConditionNode {
+        parent: ConditionNode;
+        op: ConditionOperator;
+        nodes: ConditionNode[];
         value: string;
         /**
          * 原始内容
@@ -3596,13 +3596,13 @@ declare namespace jy {
          */
         end: number;
     }
-    export interface ConditionCheckContext {
+    interface ConditionCheckContext {
         /**
          * 不符合条件的错误
          */
         errors?: string[];
     }
-    export class Condition {
+    class Condition {
         /**
          * 注册值处理器
          */
@@ -3619,7 +3619,7 @@ declare namespace jy {
          * @param tipHandler
          */
         static setTip(tipHandler: ShowConditionTip): void;
-        readonly root: Node;
+        readonly root: ConditionNode;
         /**
          * 上下文数据
          * @param context
@@ -3627,19 +3627,18 @@ declare namespace jy {
         check(context?: ConditionCheckContext): any;
         decode(content: string): this;
     }
-    export type ConditionFuncSolver = {
-        (nodes: Node[], context: ConditionCheckContext): any;
+    type ConditionFuncSolver = {
+        (nodes: ConditionNode[], context: ConditionCheckContext): any;
     };
-    export type ConditionValueSolver = {
+    type ConditionValueSolver = {
         (value: string, context: ConditionCheckContext): any;
     };
-    export type ConditionMsgSolver = {
-        (node: Node, context: ConditionCheckContext): string;
+    type ConditionMsgSolver = {
+        (node: ConditionNode, context: ConditionCheckContext): string;
     };
-    export type ShowConditionTip = {
+    type ShowConditionTip = {
         (msgs: string[]): any;
     };
-    export {};
 }
 declare namespace jy {
     /**

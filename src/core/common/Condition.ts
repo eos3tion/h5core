@@ -1,6 +1,6 @@
 namespace jy {
 
-    const enum Operator {
+    export const enum ConditionOperator {
         /**
          * 具体值
          */
@@ -22,10 +22,10 @@ namespace jy {
     }
 
 
-    interface Node {
-        parent: Node;
-        op: Operator;
-        nodes: Node[];
+    export interface ConditionNode {
+        parent: ConditionNode;
+        op: ConditionOperator;
+        nodes: ConditionNode[];
         value: string;
         /**
          * 原始内容
@@ -83,7 +83,7 @@ namespace jy {
             showTip = tipHandler;
         }
 
-        readonly root: Node;
+        readonly root: ConditionNode;
 
         /**
          * 上下文数据
@@ -110,7 +110,7 @@ namespace jy {
                     start: pos,
                     end: len,
                     nodes: []
-                } as Node;
+                } as ConditionNode;
                 //@ts-ignore
                 this.root = nod;
                 while (pos < len) {
@@ -122,13 +122,13 @@ namespace jy {
                             start: pos + 1,
                             nodes: [],
                             parent: nod,
-                        } as Node;
+                        } as ConditionNode;
                         nod.nodes.push(node);
                         if (func) {
-                            nod.op = Operator.Function;
+                            nod.op = ConditionOperator.Function;
                             nod.value = func.toLowerCase();
                         } else {
-                            nod.op = Operator.Brackets;
+                            nod.op = ConditionOperator.Brackets;
                         }
                         nod = node;
                     } else if (char == ",") {
@@ -136,7 +136,7 @@ namespace jy {
                         nod.end = pos;
                         nod.raw = raw;
                         if (!nod.op) {
-                            nod.op = Operator.Value;
+                            nod.op = ConditionOperator.Value;
                             nod.value = raw;
                         }
                         let value = raw.trim();
@@ -149,14 +149,14 @@ namespace jy {
                             parent: nod,
                             raw,
                             value,
-                        } as Node;
+                        } as ConditionNode;
                         nod.nodes.push(node);
                         nod = node;
                     } else if (Comparations.indexOf(char) > -1) {
                         if (nod.op) {
                             throw Error(`${char}左边没有正确的比较值，请检查：${content.substring(0, pos)}`)
                         }
-                        nod.op = Operator.Comperation;
+                        nod.op = ConditionOperator.Comperation;
                         let nextStart = pos + 1;
                         let nextChar = content.charAt(pos + 1);
                         if (char == "<") {
@@ -175,7 +175,7 @@ namespace jy {
                             start: nextStart,
                             nodes: [],
                             parent: nod
-                        } as Node;
+                        } as ConditionNode;
                         nod.nodes.push({
                             op: 1,
                             start: nod.start,
@@ -183,7 +183,7 @@ namespace jy {
                             parent: nod,
                             raw,
                             value: raw,
-                        } as Node, node)
+                        } as ConditionNode, node)
                         nod = node;
                         pos = nextStart - 1;
                     } else if (char == ")") {
@@ -191,7 +191,7 @@ namespace jy {
                         let raw = content.substring(nod.start, pos);
                         nod.raw = raw;
                         if (!nod.op) {
-                            nod.op = Operator.Value;
+                            nod.op = ConditionOperator.Value;
                             nod.value = raw;
                         }
                         do {
@@ -209,7 +209,7 @@ namespace jy {
                     pos++;
                 }
                 if (nod.value == undefined) {
-                    nod.op = Operator.Value
+                    nod.op = ConditionOperator.Value
                     let raw = content.substring(nod.start, pos);
                     nod.raw = raw;
                     nod.value = raw;
@@ -219,7 +219,7 @@ namespace jy {
         }
     }
 
-    function checkComparation(node: Node, context: ConditionCheckContext) {
+    function checkComparation(node: ConditionNode, context: ConditionCheckContext) {
         const { nodes, value } = node;
         let [c1, c2] = nodes;
         let v1 = getValue(c1, context);
@@ -249,14 +249,14 @@ namespace jy {
         return flag;
     }
 
-    function getValue(node: Node, context: ConditionCheckContext) {
+    function getValue(node: ConditionNode, context: ConditionCheckContext) {
         const { op, value } = node;
         switch (op) {
-            case Operator.Value:
+            case ConditionOperator.Value:
                 return conditionValueSolver(value, context);
-            case Operator.Function:
+            case ConditionOperator.Function:
                 return getFunc(node, context);
-            case Operator.Comperation:
+            case ConditionOperator.Comperation:
                 return checkComparation(node, context);
         }
     }
@@ -285,9 +285,9 @@ namespace jy {
 
     } as { [func: string]: ConditionFuncSolver }
 
-    export type ConditionFuncSolver = { (nodes: Node[], context: ConditionCheckContext) };
+    export type ConditionFuncSolver = { (nodes: ConditionNode[], context: ConditionCheckContext) };
     export type ConditionValueSolver = { (value: string, context: ConditionCheckContext): any };
-    export type ConditionMsgSolver = { (node: Node, context: ConditionCheckContext): string };
+    export type ConditionMsgSolver = { (node: ConditionNode, context: ConditionCheckContext): string };
 
     export type ShowConditionTip = { (msgs: string[]) };
 
@@ -297,13 +297,13 @@ namespace jy {
         return node.raw;
     };
 
-    function getFunc({ value, nodes }: Node, context: ConditionCheckContext) {
+    function getFunc({ value, nodes }: ConditionNode, context: ConditionCheckContext) {
         let handler = funcSolvers[value];
         return handler(nodes, context)
     }
 
 
-    function isBrackedsType(op: Operator) {
-        return (op & Operator.BracketsMask) == Operator.BracketsMask
+    function isBrackedsType(op: ConditionOperator) {
+        return (op & ConditionOperator.BracketsMask) == ConditionOperator.BracketsMask
     }
 }
