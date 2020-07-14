@@ -3596,30 +3596,48 @@ declare namespace jy {
          */
         end: number;
     }
+    export interface ConditionCheckContext {
+        /**
+         * 不符合条件的错误
+         */
+        errors?: string[];
+    }
     export class Condition {
         /**
          * 注册值处理器
          */
         static setValueSolver(solver: ConditionValueSolver): void;
+        static setMsgSolver(solver: ConditionMsgSolver): void;
         /**
          * 注册函数处理器
          * @param funcName
          * @param handler
          */
         static regFuncSolver(funcName: string, handler: ConditionFuncSolver): void;
+        /**
+         * 设置tip处理器
+         * @param tipHandler
+         */
+        static setTip(tipHandler: ShowConditionTip): void;
         readonly root: Node;
         /**
          * 上下文数据
          * @param context
          */
-        check(context?: any): any;
+        check(context?: ConditionCheckContext): void;
         decode(content: string): this;
     }
     export type ConditionFuncSolver = {
-        (nodes: Node[], context: any): any;
+        (nodes: Node[], context: ConditionCheckContext): any;
     };
     export type ConditionValueSolver = {
-        (value: string, context: any): any;
+        (value: string, context: ConditionCheckContext): any;
+    };
+    export type ConditionMsgSolver = {
+        (node: Node, context: ConditionCheckContext): string;
+    };
+    export type ShowConditionTip = {
+        (msgs: string[]): any;
     };
     export {};
 }
