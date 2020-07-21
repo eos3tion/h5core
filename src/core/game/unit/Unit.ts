@@ -131,8 +131,8 @@ namespace jy {
         public init(pst: string, setting: UnitSetting) {
             this._resDict = {};
             this.initDisplayList(setting);
-            this.pst = pst;
             this.initDefaultAction();
+            this.pst = pst;
             this.startUnitAction();
             this.onSpawn();
             return this;

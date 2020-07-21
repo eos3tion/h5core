@@ -15678,8 +15678,8 @@ var jy;
         Unit.prototype.init = function (pst, setting) {
             this._resDict = {};
             this.initDisplayList(setting);
-            this.pst = pst;
             this.initDefaultAction();
+            this.pst = pst;
             this.startUnitAction();
             this.onSpawn();
             return this;
