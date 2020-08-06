@@ -11702,6 +11702,10 @@ declare namespace jy {
          */
         selected: boolean;
         /**
+         * 是否不可被选中
+         */
+        unelectable?: boolean;
+        /**
          * 数据改变的标记
          */
         dataChange?: boolean;
@@ -14195,6 +14199,10 @@ declare namespace jy {
          * @type {boolean}
          */
         selected: boolean;
+        /**
+         * 是否不可被选中
+         */
+        unelectable?: boolean;
     }
 }
 /**

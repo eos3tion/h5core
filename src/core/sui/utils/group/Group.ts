@@ -90,23 +90,29 @@ namespace jy {
 
         protected $setSelectedItem(item?: IGroupItem) {
             let _selectedItem = this._selectedItem;
-            if (_selectedItem != item) {
-                if (_selectedItem) {
-                    _selectedItem.selected = false;
-                }
-                let idx = -1;
-                if (item) {
-                    idx = this._list.indexOf(item);
-                    if (~idx) {
+            if (!item || !item.unelectable) {
+                if (_selectedItem != item) {
+                    if (_selectedItem) {
+                        _selectedItem.selected = false;
+                    }
+                    let idx = -1;
+                    if (item) {
+                        idx = this._list.indexOf(item);
+                        if (~idx) {
+                            item.selected = true;
+                        } else {
+                            item = undefined;
+                            ThrowError("Group 设置的组件未添加到该组");
+                        }
+                    }
+                    this._selectedItem = item;
+                    this._selectedIndex = idx;
+                    return this.dispatch(EventConst.GROUP_CHANGE);
+                } else {
+                    if (item && !item.selected) {
                         item.selected = true;
-                    } else {
-                        item = undefined;
-                        ThrowError("Group 设置的组件未添加到该组");
                     }
                 }
-                this._selectedItem = item;
-                this._selectedIndex = idx;
-                return this.dispatch(EventConst.GROUP_CHANGE);
             }
         }
 

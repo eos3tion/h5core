@@ -4312,21 +4312,26 @@ var jy;
         AbsPageList.prototype.onTouchItem = function (e) {
             var render = e.target;
             this.changeRender(render);
+            this.dispatch(-1001 /* ITEM_TOUCH_TAP */, render);
         };
         AbsPageList.prototype.changeRender = function (render, index) {
             var old = this._selectedItem;
-            if (old != render) {
-                index == undefined && (index = this._list.indexOf(render));
-                if (old) {
-                    old.selected = false;
+            if (!render.unelectable) {
+                if (old != render) {
+                    index == undefined && (index = this._list.indexOf(render));
+                    if (old && old != render) {
+                        old.selected = false;
+                    }
+                    this._selectedItem = render;
+                    this._selectedIndex = index;
                 }
-                this._selectedItem = render;
-                this._selectedIndex = index;
+                else if (render.selected) {
+                    return;
+                }
                 render.selected = true;
                 this.onChange();
                 this.dispatch(-1052 /* ITEM_SELECTED */);
             }
-            this.dispatch(-1001 /* ITEM_TOUCH_TAP */, render);
         };
         AbsPageList.prototype.getAllItems = function () {
             return this._list;
@@ -5002,24 +5007,31 @@ var jy;
         });
         Group.prototype.$setSelectedItem = function (item) {
             var _selectedItem = this._selectedItem;
-            if (_selectedItem != item) {
-                if (_selectedItem) {
-                    _selectedItem.selected = false;
+            if (!item || !item.unelectable) {
+                if (_selectedItem != item) {
+                    if (_selectedItem) {
+                        _selectedItem.selected = false;
+                    }
+                    var idx = -1;
+                    if (item) {
+                        idx = this._list.indexOf(item);
+                        if (~idx) {
+                            item.selected = true;
+                        }
+                        else {
+                            item = undefined;
+                            jy.ThrowError("Group 设置的组件未添加到该组");
+                        }
+                    }
+                    this._selectedItem = item;
+                    this._selectedIndex = idx;
+                    return this.dispatch(-1020 /* GROUP_CHANGE */);
                 }
-                var idx = -1;
-                if (item) {
-                    idx = this._list.indexOf(item);
-                    if (~idx) {
+                else {
+                    if (item && !item.selected) {
                         item.selected = true;
                     }
-                    else {
-                        item = undefined;
-                        jy.ThrowError("Group 设置的组件未添加到该组");
-                    }
                 }
-                this._selectedItem = item;
-                this._selectedIndex = idx;
-                return this.dispatch(-1020 /* GROUP_CHANGE */);
             }
         };
         Object.defineProperty(Group.prototype, "selectedIndex", {
