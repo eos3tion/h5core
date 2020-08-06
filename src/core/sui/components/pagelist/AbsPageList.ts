@@ -205,22 +205,26 @@ namespace jy {
         protected onTouchItem(e: egret.TouchEvent) {
             let render = <R>e.target;
             this.changeRender(render);
+            this.dispatch(EventConst.ITEM_TOUCH_TAP, render);
         }
 
         protected changeRender(render: R, index?: number) {
             let old = this._selectedItem;
-            if (old != render) {
-                index == undefined && (index = this._list.indexOf(render));
-                if (old) {
-                    old.selected = false;
+            if (!render.unelectable) {
+                if (old != render) {
+                    index == undefined && (index = this._list.indexOf(render));
+                    if (old && old != render) {
+                        old.selected = false;
+                    }
+                    this._selectedItem = render;
+                    this._selectedIndex = index;
+                } else if (render.selected) {
+                    return
                 }
-                this._selectedItem = render;
-                this._selectedIndex = index;
                 render.selected = true;
                 this.onChange();
                 this.dispatch(EventConst.ITEM_SELECTED);
             }
-            this.dispatch(EventConst.ITEM_TOUCH_TAP, render);
         }
 
 

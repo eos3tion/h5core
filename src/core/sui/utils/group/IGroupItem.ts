@@ -11,5 +11,10 @@ namespace jy {
          * @type {boolean}
          */
         selected: boolean;
+
+        /**
+         * 是否不可被选中
+         */
+        unelectable?: boolean;
     }
 }
