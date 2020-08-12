@@ -112,8 +112,10 @@ namespace jy {
          */
         public sleepLayer(layerID: GameLayerID) {
             let layer = this._layers[layerID];
-            layer.isShow = false;
-            removeDisplay(layer);
+            if (layer) {
+                layer.isShow = false;
+                removeDisplay(layer);
+            }
         }
 
         public awakeLayer(layerID: GameLayerID) {

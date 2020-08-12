@@ -11536,8 +11536,10 @@ var jy;
          */
         GameEngine.prototype.sleepLayer = function (layerID) {
             var layer = this._layers[layerID];
-            layer.isShow = false;
-            jy.removeDisplay(layer);
+            if (layer) {
+                layer.isShow = false;
+                jy.removeDisplay(layer);
+            }
         };
         GameEngine.prototype.awakeLayer = function (layerID) {
             var layer = this._layers[layerID];
