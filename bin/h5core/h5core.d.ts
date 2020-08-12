@@ -12546,9 +12546,11 @@ declare namespace jy {
          * 未经过解析的源组件数据
          */
         sourceComponentData: SourceComponentDataDict;
+        static: boolean;
         constructor(key: string);
         createBmpLoader(ispng: boolean, textures: egret.Texture[]): void;
         noRes(uri: string, file: string, textures: egret.Texture[]): SuiBmd;
+        setStatic(): void;
         /**
          * 刷新位图
          *
@@ -12623,6 +12625,7 @@ declare namespace jy {
         constructor();
         protected initInlineCreators(): void;
         getData(key: string): SuiData;
+        setResStatic(key: string): void;
         /**
          * 加载数据
          */

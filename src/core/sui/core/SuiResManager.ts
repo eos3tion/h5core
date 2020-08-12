@@ -91,6 +91,17 @@ namespace jy {
             return this._suiDatas[key];
         }
 
+        /**
+         * 设置制定的皮肤为静态
+         * @param key 
+         */
+        public setResStatic(key: string) {
+            let data = this._suiDatas[key];
+            if (data) {
+                data.setStatic();
+            }
+        }
+
 		/**
 		 * 加载数据
 		 */
@@ -155,6 +166,7 @@ namespace jy {
             }
             suiData.skinUri = skinUri;
             this._initSuiData(data, suiData);
+            suiData.setStatic();
         }
 
         createSuiData(key: string) {
