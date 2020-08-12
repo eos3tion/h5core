@@ -114,6 +114,10 @@ namespace jy {
          * 未经过解析的源组件数据
          */
         public sourceComponentData: SourceComponentDataDict;
+        /**
+         * 是否为静态资源，不被卸载
+         */
+        static: boolean;
 
         constructor(key: string) {
             this.key = key;
@@ -136,6 +140,18 @@ namespace jy {
             return tmp;
         }
 
+        setStatic() {
+            this.static = true;
+            let tmp = this.jpgbmd;
+            if (tmp) {
+                tmp.using = Infinity;
+            }
+            tmp = this.pngbmd;
+            if (tmp) {
+                tmp.using = Infinity;
+            }
+        }
+
         /**
          * 刷新位图
          * 
@@ -145,7 +161,11 @@ namespace jy {
         public checkRefreshBmp(bmp: SuiBmdCallback, isjpg?: boolean) {
             let tmp = isjpg ? this.jpgbmd : this.pngbmd;
             if (tmp) {
-                tmp.using++;
+                if (this.static) {
+                    tmp.using = Infinity;
+                } else {
+                    tmp.using++;
+                }
                 if (tmp.bmdState == RequestState.COMPLETE) {
                     if (bmp.refreshBMD) {
                         bmp.refreshBMD();

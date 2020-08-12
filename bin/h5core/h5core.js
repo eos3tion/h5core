@@ -20644,6 +20644,17 @@ var jy;
             tmp.textures = textures;
             return tmp;
         };
+        SuiData.prototype.setStatic = function () {
+            this.static = true;
+            var tmp = this.jpgbmd;
+            if (tmp) {
+                tmp.using = Infinity;
+            }
+            tmp = this.pngbmd;
+            if (tmp) {
+                tmp.using = Infinity;
+            }
+        };
         /**
          * 刷新位图
          *
@@ -20653,7 +20664,12 @@ var jy;
         SuiData.prototype.checkRefreshBmp = function (bmp, isjpg) {
             var tmp = isjpg ? this.jpgbmd : this.pngbmd;
             if (tmp) {
-                tmp.using++;
+                if (this.static) {
+                    tmp.using = Infinity;
+                }
+                else {
+                    tmp.using++;
+                }
                 if (tmp.bmdState == 2 /* COMPLETE */) {
                     if (bmp.refreshBMD) {
                         bmp.refreshBMD();
@@ -20761,6 +20777,16 @@ var jy;
             return this._suiDatas[key];
         };
         /**
+         * 设置制定的皮肤为静态
+         * @param key
+         */
+        SuiResManager.prototype.setResStatic = function (key) {
+            var data = this._suiDatas[key];
+            if (data) {
+                data.setStatic();
+            }
+        };
+        /**
          * 加载数据
          */
         SuiResManager.prototype.loadData = function (key, callback, qid) {
@@ -20823,6 +20849,7 @@ var jy;
             }
             suiData.skinUri = skinUri;
             this._initSuiData(data, suiData);
+            suiData.setStatic();
         };
         SuiResManager.prototype.createSuiData = function (key) {
             var suiData = new jy.SuiData(key);
