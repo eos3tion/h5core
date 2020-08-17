@@ -12546,6 +12546,9 @@ declare namespace jy {
          * 未经过解析的源组件数据
          */
         sourceComponentData: SourceComponentDataDict;
+        /**
+         * 是否为静态资源，不被卸载
+         */
         static: boolean;
         constructor(key: string);
         createBmpLoader(ispng: boolean, textures: egret.Texture[]): void;
@@ -12625,6 +12628,10 @@ declare namespace jy {
         constructor();
         protected initInlineCreators(): void;
         getData(key: string): SuiData;
+        /**
+         * 设置制定的皮肤为静态
+         * @param key
+         */
         setResStatic(key: string): void;
         /**
          * 加载数据

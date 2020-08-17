@@ -510,7 +510,42 @@ namespace jy {
 
         function writeElementTo(value: any, type: number, tag: number, bytes: ByteArray, subMsgType?: Key | PBStruct) {
             if (DEBUG) {
-                var out = value;
+                var valueType = typeof value;
+                var out: any;
+                switch (type) {
+                    case PBType.Fixed32:
+                    case PBType.SFixed32:
+                    case PBType.Float:
+                    case PBType.Double:
+                    case PBType.Fixed64:
+                    case PBType.SFixed64:
+                    case PBType.Int32:
+                    case PBType.SInt32:
+                    case PBType.Enum:
+                    case PBType.Uint32:
+                    case PBType.Int64:
+                    case PBType.SInt64:
+                    case PBType.UInt64:
+                        if (valueType != "number") {
+                            ThrowError(`PBMessageUtils写入数据时候，使用的类型：${type}，值为：${value}，数据类型为：${valueType}，数据类型不匹配`);
+                        }
+                        out = +value || 0;
+                        break;
+                    case PBType.Bool:
+                        out = !!value;
+                        break;
+                    case PBType.String:
+                        if (valueType != "string") {
+                            ThrowError(`PBMessageUtils写入数据时候，使用的类型：${type}，值为：${value}，数据类型为：${valueType}，数据类型不匹配`);
+                        }
+                        out = value + "";
+                        break;
+                    case PBType.Bytes:
+                        if (!(value instanceof ByteArray)) {
+                            ThrowError(`PBMessageUtils写入数据时候，使用的类型：${type}，值必须为[ByteArray]的实例`);
+                        }
+                        break;
+                }
             }
             bytes.writeVarint(tag);
             switch (type) {
