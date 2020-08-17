@@ -3087,7 +3087,42 @@ var jy;
         }
         function writeElementTo(value, type, tag, bytes, subMsgType) {
             if (true) {
-                var out = value;
+                var valueType = typeof value;
+                var out;
+                switch (type) {
+                    case 7 /* Fixed32 */:
+                    case 15 /* SFixed32 */:
+                    case 2 /* Float */:
+                    case 1 /* Double */:
+                    case 6 /* Fixed64 */:
+                    case 16 /* SFixed64 */:
+                    case 5 /* Int32 */:
+                    case 17 /* SInt32 */:
+                    case 14 /* Enum */:
+                    case 13 /* Uint32 */:
+                    case 3 /* Int64 */:
+                    case 18 /* SInt64 */:
+                    case 4 /* UInt64 */:
+                        if (valueType != "number") {
+                            jy.ThrowError("PBMessageUtils\u5199\u5165\u6570\u636E\u65F6\u5019\uFF0C\u4F7F\u7528\u7684\u7C7B\u578B\uFF1A" + type + "\uFF0C\u503C\u4E3A\uFF1A" + value + "\uFF0C\u6570\u636E\u7C7B\u578B\u4E3A\uFF1A" + valueType + "\uFF0C\u6570\u636E\u7C7B\u578B\u4E0D\u5339\u914D");
+                        }
+                        out = +value || 0;
+                        break;
+                    case 8 /* Bool */:
+                        out = !!value;
+                        break;
+                    case 9 /* String */:
+                        if (valueType != "string") {
+                            jy.ThrowError("PBMessageUtils\u5199\u5165\u6570\u636E\u65F6\u5019\uFF0C\u4F7F\u7528\u7684\u7C7B\u578B\uFF1A" + type + "\uFF0C\u503C\u4E3A\uFF1A" + value + "\uFF0C\u6570\u636E\u7C7B\u578B\u4E3A\uFF1A" + valueType + "\uFF0C\u6570\u636E\u7C7B\u578B\u4E0D\u5339\u914D");
+                        }
+                        out = value + "";
+                        break;
+                    case 12 /* Bytes */:
+                        if (!(value instanceof jy.ByteArray)) {
+                            jy.ThrowError("PBMessageUtils\u5199\u5165\u6570\u636E\u65F6\u5019\uFF0C\u4F7F\u7528\u7684\u7C7B\u578B\uFF1A" + type + "\uFF0C\u503C\u5FC5\u987B\u4E3A[ByteArray]\u7684\u5B9E\u4F8B");
+                        }
+                        break;
+                }
             }
             bytes.writeVarint(tag);
             switch (type) {
