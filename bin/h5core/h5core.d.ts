@@ -3421,7 +3421,6 @@ declare namespace jy {
         drawTouchArea(content?: egret.Shape): void;
         bindObj2(content: egret.DisplayObject, scrollRect: egret.Rectangle, scrollbar?: ScrollBar): void;
         protected onResize(): void;
-        protected onTouchBegin(): void;
         protected onDragStart(e: egret.TouchEvent): void;
         /**
          * 停止拖拽，避免有些情况下，需要主动停止拖拽的情况
@@ -14257,8 +14256,6 @@ declare namespace jy {
          * 根据render的最右侧，得到的最大宽度
          */
         protected _w: number;
-        noDrawBG: boolean;
-        bg: egret.Bitmap;
         get w(): number;
         /**
          * 根据render的最下方，得到的最大高度
@@ -14504,6 +14501,10 @@ declare namespace jy {
          * 用于判断是不是同一帧
          */
         et?: number;
+        /**
+         * 范围
+         */
+        rect: egret.Rectangle;
     }
     /**
      *
@@ -14512,7 +14513,7 @@ declare namespace jy {
      * @param {number} [minDragTime=300] 最小拖拽事件
      * @param {number} [minSqDist=400] 最小
      */
-    function bindDrag(host: egret.DisplayObject, opt?: DragOption): DragDele;
+    function bindDrag(host: egret.DisplayObject, opt?: DragOption, rect?: egret.Rectangle): DragDele;
     /**
      * 停止指定id的拖拽
      * @param pointId
