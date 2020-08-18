@@ -76,17 +76,13 @@ namespace jy {
          * 用于判断是不是同一帧
          */
         et?: number;
+        /**
+         * 范围
+         */
+        rect: egret.Rectangle;
     }
     let stage: egret.Stage;
 
-    function onStart(this: DragDele, e: TouchEvent) {
-        this.lt = Date.now();
-        this.lx = e.stageX;
-        this.ly = e.stageY;
-        this.dragId = e.touchPointID;
-        stage.on(EgretEvent.TOUCH_MOVE, onMove, this);
-        stage.on(EgretEvent.TOUCH_END, onEnd, this);
-    }
     function onMove(this: DragDele, e: TouchEvent) {
         if (this.et == Global.now) {
             return
@@ -148,13 +144,20 @@ namespace jy {
      * @param {number} [minDragTime=300] 最小拖拽事件 
      * @param {number} [minSqDist=400] 最小 
      */
-    export function bindDrag(host: egret.DisplayObject, opt?: DragOption) {
-        const { stopChildren = true, minDragTime = 300, minSqDist = 400 } = opt || Temp.EmptyObject as DragOption;
+    export function bindDrag(host: egret.DisplayObject, opt?: DragOption, rect?: egret.Rectangle) {
+        const { stopChildren = true, minDragTime = 200, minSqDist = 225 } = opt || Temp.EmptyObject as DragOption;
         stage = stage || egret.sys.$TempStage;
         const isCon = stopChildren && host instanceof egret.DisplayObjectContainer;
         host.touchEnabled = true;
-        let dele: DragDele = { host, isCon, minDragTime, minSqDist };
-        host.on(EgretEvent.TOUCH_BEGIN, onStart, dele);
+        if (!rect) {
+            rect = new egret.Rectangle(0, 0, host.width, host.height);
+        }
+        let dele: DragDele = { host, isCon, minDragTime, minSqDist, rect };
+        if (host.stage) {
+            onAdd.call(dele);
+        }
+        host.on(EgretEvent.ADDED_TO_STAGE, onAdd, dele);
+        host.on(EgretEvent.REMOVED_FROM_STAGE, onRemove, dele);
         host[key] = dele;
         return dele;
     }
@@ -168,6 +171,37 @@ namespace jy {
         if (dele) {
             dragStartDict[dele.pointId] = false;
             dragEnd(dele);
+        }
+    }
+
+    function onAdd(this: DragDele) {
+        stage.on(EgretEvent.TOUCH_BEGIN, checkStart, this);
+    }
+
+    function onRemove(this: DragDele) {
+        stage.off(EgretEvent.TOUCH_BEGIN, checkStart, this);
+        dragEnd(this);
+    }
+
+    const tempPt = new egret.Point;
+    function checkStart(this: DragDele, e: TouchEvent) {
+        let host = this.host;
+        let x = e.stageX;
+        let y = e.stageY;
+        host.globalToLocal(x, y, tempPt);
+        let { x: tx, y: ty } = tempPt;
+        let rect = host.scrollRect;
+        if (rect) {
+            tx -= rect.x;
+            ty -= rect.y;
+        }
+        if (this.rect.contains(tx, ty)) {
+            this.lt = Date.now();
+            this.lx = x;
+            this.ly = y;
+            this.dragId = e.touchPointID;
+            stage.on(EgretEvent.TOUCH_MOVE, onMove, this);
+            stage.on(EgretEvent.TOUCH_END, onEnd, this);
         }
     }
 
@@ -185,8 +219,7 @@ namespace jy {
     export function looseDrag(host: egret.DisplayObject) {
         let dele = host[key];
         if (dele) {
-            dragEnd(dele);
-            dele.host.off(EgretEvent.TOUCH_BEGIN, onStart, dele);
+            onRemove.call(dele);
             if (dele.isCon) {
                 (host as egret.DisplayObjectContainer).touchChildren = true;
             }

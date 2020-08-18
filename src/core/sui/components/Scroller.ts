@@ -125,15 +125,13 @@ namespace jy {
                     old.off(EventConst.Resize, this.onResize, this);
                     looseDrag(old);
                     this.drag = undefined;
-                    old.off(EgretEvent.TOUCH_BEGIN, this.onTouchBegin, this);
                     old.off(EventConst.DragStart, this.onDragStart, this);
                     old.off(EventConst.DragMove, this.onDragMove, this);
                     old.off(EventConst.DragEnd, this.onDragEnd, this);
                 }
                 this._content = content;
                 if (content) {
-                    this.drag = bindDrag(content, this.opt);
-                    content.on(EgretEvent.TOUCH_BEGIN, this.onTouchBegin, this);
+                    this.drag = bindDrag(content, this.opt, scrollRect.clone());
                     content.on(EventConst.DragStart, this.onDragStart, this);
                     content.on(EventConst.Resize, this.onResize, this);
                 }
@@ -193,15 +191,6 @@ namespace jy {
             }
         }
 
-        protected onTouchBegin() {
-            this._moveSpeed = 0;
-            let content = this._content;
-            if (!content) {
-                return;
-            }
-            content.off(EgretEvent.ENTER_FRAME, this.onRender, this);
-        }
-
         protected onDragStart(e: egret.TouchEvent) {
             let content = this._content;
             if (!content) {
@@ -210,6 +199,9 @@ namespace jy {
             if (content[this._measureKey] < content.scrollRect[this._sizeKey]) {
                 return
             }
+            this._moveSpeed = 0;
+            content.off(EgretEvent.ENTER_FRAME, this.onRender, this);
+
             this._lastTargetPos = this.getDragPos(e);
             this._dragSt = Global.now;
             this._offsets = 0;

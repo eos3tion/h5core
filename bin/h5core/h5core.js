@@ -3803,15 +3803,13 @@ var jy;
                     old.off(-1999 /* Resize */, this.onResize, this);
                     jy.looseDrag(old);
                     this.drag = undefined;
-                    old.off("touchBegin" /* TOUCH_BEGIN */, this.onTouchBegin, this);
                     old.off(-1090 /* DragStart */, this.onDragStart, this);
                     old.off(-1089 /* DragMove */, this.onDragMove, this);
                     old.off(-1088 /* DragEnd */, this.onDragEnd, this);
                 }
                 this._content = content;
                 if (content) {
-                    this.drag = jy.bindDrag(content, this.opt);
-                    content.on("touchBegin" /* TOUCH_BEGIN */, this.onTouchBegin, this);
+                    this.drag = jy.bindDrag(content, this.opt, scrollRect.clone());
                     content.on(-1090 /* DragStart */, this.onDragStart, this);
                     content.on(-1999 /* Resize */, this.onResize, this);
                 }
@@ -3868,14 +3866,6 @@ var jy;
                 this.scaleBar();
             }
         };
-        Scroller.prototype.onTouchBegin = function () {
-            this._moveSpeed = 0;
-            var content = this._content;
-            if (!content) {
-                return;
-            }
-            content.off("enterFrame" /* ENTER_FRAME */, this.onRender, this);
-        };
         Scroller.prototype.onDragStart = function (e) {
             var content = this._content;
             if (!content) {
@@ -3884,6 +3874,8 @@ var jy;
             if (content[this._measureKey] < content.scrollRect[this._sizeKey]) {
                 return;
             }
+            this._moveSpeed = 0;
+            content.off("enterFrame" /* ENTER_FRAME */, this.onRender, this);
             this._lastTargetPos = this.getDragPos(e);
             this._dragSt = jy.Global.now;
             this._offsets = 0;
@@ -16084,10 +16076,6 @@ var jy;
             //@ts-ignore
             this.scrollType = type;
             con = con || new egret.Sprite();
-            var bmp = new egret.Bitmap();
-            bmp.texture = jy.ColorUtil.getTexture(0, 0);
-            this.bg = bmp;
-            con.addChild(bmp, false);
             this.container = con;
             var self = this;
             Object.defineProperties(con, jy.makeDefDescriptors({
@@ -16318,9 +16306,6 @@ var jy;
             if (maxWidth != this._w || maxHeight != this._h) {
                 this._w = maxWidth;
                 this._h = maxHeight;
-                var bg = this.bg;
-                bg.width = maxWidth;
-                bg.height = maxHeight;
                 this.dispatch(-1999 /* Resize */);
             }
         };
@@ -16850,14 +16835,6 @@ var jy;
         return result;
     }
     var stage;
-    function onStart(e) {
-        this.lt = Date.now();
-        this.lx = e.stageX;
-        this.ly = e.stageY;
-        this.dragId = e.touchPointID;
-        stage.on("touchMove" /* TOUCH_MOVE */, onMove, this);
-        stage.on("touchEnd" /* TOUCH_END */, onEnd, this);
-    }
     function onMove(e) {
         if (this.et == jy.Global.now) {
             return;
@@ -16920,13 +16897,20 @@ var jy;
      * @param {number} [minDragTime=300] 最小拖拽事件
      * @param {number} [minSqDist=400] 最小
      */
-    function bindDrag(host, opt) {
-        var _a = opt || jy.Temp.EmptyObject, _b = _a.stopChildren, stopChildren = _b === void 0 ? true : _b, _c = _a.minDragTime, minDragTime = _c === void 0 ? 300 : _c, _d = _a.minSqDist, minSqDist = _d === void 0 ? 400 : _d;
+    function bindDrag(host, opt, rect) {
+        var _a = opt || jy.Temp.EmptyObject, _b = _a.stopChildren, stopChildren = _b === void 0 ? true : _b, _c = _a.minDragTime, minDragTime = _c === void 0 ? 200 : _c, _d = _a.minSqDist, minSqDist = _d === void 0 ? 225 : _d;
         stage = stage || egret.sys.$TempStage;
         var isCon = stopChildren && host instanceof egret.DisplayObjectContainer;
         host.touchEnabled = true;
-        var dele = { host: host, isCon: isCon, minDragTime: minDragTime, minSqDist: minSqDist };
-        host.on("touchBegin" /* TOUCH_BEGIN */, onStart, dele);
+        if (!rect) {
+            rect = new egret.Rectangle(0, 0, host.width, host.height);
+        }
+        var dele = { host: host, isCon: isCon, minDragTime: minDragTime, minSqDist: minSqDist, rect: rect };
+        if (host.stage) {
+            onAdd.call(dele);
+        }
+        host.on("addedToStage" /* ADDED_TO_STAGE */, onAdd, dele);
+        host.on("removedFromStage" /* REMOVED_FROM_STAGE */, onRemove, dele);
         host[key] = dele;
         return dele;
     }
@@ -16943,6 +16927,34 @@ var jy;
         }
     }
     jy.stopDrag = stopDrag;
+    function onAdd() {
+        stage.on("touchBegin" /* TOUCH_BEGIN */, checkStart, this);
+    }
+    function onRemove() {
+        stage.off("touchBegin" /* TOUCH_BEGIN */, checkStart, this);
+        dragEnd(this);
+    }
+    var tempPt = new egret.Point;
+    function checkStart(e) {
+        var host = this.host;
+        var x = e.stageX;
+        var y = e.stageY;
+        host.globalToLocal(x, y, tempPt);
+        var tx = tempPt.x, ty = tempPt.y;
+        var rect = host.scrollRect;
+        if (rect) {
+            tx -= rect.x;
+            ty -= rect.y;
+        }
+        if (this.rect.contains(tx, ty)) {
+            this.lt = Date.now();
+            this.lx = x;
+            this.ly = y;
+            this.dragId = e.touchPointID;
+            stage.on("touchMove" /* TOUCH_MOVE */, onMove, this);
+            stage.on("touchEnd" /* TOUCH_END */, onEnd, this);
+        }
+    }
     function dragEnd(dele) {
         dele.et = jy.Global.now;
         dragStartDict[dele.dragId] = false;
@@ -16956,8 +16968,7 @@ var jy;
     function looseDrag(host) {
         var dele = host[key];
         if (dele) {
-            dragEnd(dele);
-            dele.host.off("touchBegin" /* TOUCH_BEGIN */, onStart, dele);
+            onRemove.call(dele);
             if (dele.isCon) {
                 host.touchChildren = true;
             }

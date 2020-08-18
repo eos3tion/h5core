@@ -86,8 +86,6 @@ namespace jy {
          * 根据render的最右侧，得到的最大宽度
          */
         protected _w: number;
-        noDrawBG: boolean;
-        bg: egret.Bitmap;
 
         get w() {
             return this._w;
@@ -212,10 +210,6 @@ namespace jy {
             //@ts-ignore
             this.scrollType = type;
             con = con || new egret.Sprite();
-            let bmp = new egret.Bitmap();
-            bmp.texture = ColorUtil.getTexture(0, 0);
-            this.bg = bmp;
-            con.addChild(bmp, false)
             this.container = con;
             let self = this;
 
@@ -482,9 +476,6 @@ namespace jy {
             if (maxWidth != this._w || maxHeight != this._h) {
                 this._w = maxWidth;
                 this._h = maxHeight;
-                let bg = this.bg;
-                bg.width = maxWidth;
-                bg.height = maxHeight;
                 this.dispatch(EventConst.Resize);
             }
         }
