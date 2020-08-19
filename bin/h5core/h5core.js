@@ -15710,6 +15710,7 @@ var jy;
                 var pstInfo = this.getPstInfo(pst);
                 if (pstInfo != this._pstInfo) {
                     this._pstInfo = pstInfo;
+                    this._action = undefined;
                     this.pstInfoChange();
                 }
             },
