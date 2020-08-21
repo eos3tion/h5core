@@ -11410,14 +11410,6 @@ declare namespace jy {
          */
         moduleID: Key;
         /**
-         * 自己的key(fla的文件名)
-         */
-        suiLib: string;
-        /**
-         * 类名
-         */
-        suiClass: string;
-        /**
          * 依赖的除lib,自己以外的其他fla
          */
         protected _otherDepends: string[];
