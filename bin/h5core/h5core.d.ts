@@ -3361,6 +3361,7 @@ declare namespace jy {
     class Scroller extends egret.EventDispatcher {
         protected _scrollbar: ScrollBar;
         protected _content: egret.DisplayObject;
+        get content(): egret.DisplayObject;
         protected _scrollType: ScrollDirection;
         protected _lastTargetPos: number;
         /***滑块移动一像素，target滚动的距离*/
@@ -3402,6 +3403,7 @@ declare namespace jy {
         get scrollType(): ScrollDirection;
         protected checkScrollBarView(): void;
         protected onScrollBarAdded(): void;
+        setRect(rect: Rect): void;
         /**
          * 绑定目标与滚动条
          *
