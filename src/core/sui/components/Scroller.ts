@@ -13,6 +13,10 @@ namespace jy {
 
         protected _content: egret.DisplayObject;
 
+        get content() {
+            return this._content;
+        }
+
         protected _scrollType = ScrollDirection.Vertical;
 
 
@@ -107,6 +111,13 @@ namespace jy {
 
         protected onScrollBarAdded() {
             this._scrollbar.alpha = ~~this.alwaysShowBar;
+        }
+
+        setRect(rect: Rect) {
+            let { _content, drag } = this;
+            let scrollRect = _content.scrollRect;
+            scrollRect.copyFrom(rect);
+            drag.rect.copyFrom(rect);
         }
 
         /**

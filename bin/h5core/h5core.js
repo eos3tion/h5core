@@ -3736,6 +3736,13 @@ var jy;
             _this.opt = opt;
             return _this;
         }
+        Object.defineProperty(Scroller.prototype, "content", {
+            get: function () {
+                return this._content;
+            },
+            enumerable: true,
+            configurable: true
+        });
         Object.defineProperty(Scroller.prototype, "scrollType", {
             /**
              * 滚动条方式 0：垂直，1：水平 defalut:0
@@ -3786,6 +3793,12 @@ var jy;
         };
         Scroller.prototype.onScrollBarAdded = function () {
             this._scrollbar.alpha = ~~this.alwaysShowBar;
+        };
+        Scroller.prototype.setRect = function (rect) {
+            var _a = this, _content = _a._content, drag = _a.drag;
+            var scrollRect = _content.scrollRect;
+            scrollRect.copyFrom(rect);
+            drag.rect.copyFrom(rect);
         };
         /**
          * 绑定目标与滚动条
