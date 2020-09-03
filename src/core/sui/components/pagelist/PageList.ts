@@ -193,7 +193,11 @@ namespace jy {
             let { hgap, vgap, type, itemWidth, itemHeight, columnCount, staticSize, noScroller, con, scrollerOption } = option;
             this.staticSize = staticSize;
             type = ~~type;
-            columnCount = ~~columnCount;
+            if (itemWidth) {
+                columnCount = (con.suiRawRect.width + hgap) / (itemWidth + hgap) | 0;
+            } else {
+                columnCount = ~~columnCount;
+            }
             if (columnCount < 1) {
                 if (type == ScrollDirection.Horizon) {
                     columnCount = Infinity;
@@ -240,16 +244,30 @@ namespace jy {
             let con = this._con;
             if (con) {
                 let rect = con.scrollRect;
-                if (rect) {
-                    if (!isNaN(+width)) {
+
+                if (!isNaN(+width)) {
+                    if (rect) {
                         rect.width = width;
                     }
-                    if (!isNaN(+height)) {
-                        rect.height = height;
+                    if (this.scrollType == ScrollDirection.Vertical) {
+                        let itemWidth = this.itemWidth;
+                        if (itemWidth) {
+                            let count = (width + this._hgap) / (itemWidth + this._hgap) | 0;
+                            if (count < 1) {
+                                count = 1;
+                            }
+                            this._columncount = count;
+                            this._sizeChanged = true;
+                            this.reCalc();
+                        }
                     }
-
-                    this._lastRect = null;
-                    this.checkViewRect();
+                }
+                if (rect && !isNaN(+height)) {
+                    rect.height = height;
+                }
+                this._lastRect = null;
+                this.checkViewRect();
+                if (rect) {
                     if (width >= this._w) {
                         rect.x = 0;
                     }
@@ -415,7 +433,7 @@ namespace jy {
             let end = len - 1;
             // let lastrender: R;
             //得到单行/单列最大索引数
-            const { itemWidth, itemHeight, _columncount, _hgap, _vgap, staticSize } = this;
+            const { itemWidth, itemHeight, _columncount, _hgap, _vgap } = this;
             let rowCount = len / _columncount;
             let oy = 0, ox = 0;
             let maxWidth = 0, maxHeight = 0;
