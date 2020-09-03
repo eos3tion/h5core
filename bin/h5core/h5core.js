@@ -11530,7 +11530,7 @@ var jy;
         /**
          * 获取或创建容器
          */
-        GameEngine.prototype.getLayer = function (id) {
+        GameEngine.prototype.getLayer = function (id, noAdd) {
             var layers = this._layers;
             var layer = layers[id];
             if (!layer) {
@@ -11540,7 +11540,9 @@ var jy;
                 }
                 var ref = cfg.ref;
                 layer = new ref(id);
-                this.addLayer(layer, cfg);
+                if (!noAdd) {
+                    this.addLayer(layer, cfg);
+                }
                 layers[id] = layer;
                 if (layer instanceof jy.SortedLayer) {
                     this._sortedLayers.push(layer);

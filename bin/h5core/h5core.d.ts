@@ -9062,7 +9062,7 @@ declare namespace jy {
         /**
          * 获取或创建容器
          */
-        getLayer(id: GameLayerID): GameLayer;
+        getLayer(id: GameLayerID, noAdd?: boolean): GameLayer;
         /**
          *
          * @param {GameLayer} layer 要调整的层级
