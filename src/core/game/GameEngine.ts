@@ -65,7 +65,7 @@ namespace jy {
         /**
          * 获取或创建容器
          */
-        public getLayer(id: GameLayerID): GameLayer {
+        public getLayer(id: GameLayerID, noAdd?: boolean): GameLayer {
             let layers = this._layers;
             let layer = layers[id];
             if (!layer) {
@@ -75,7 +75,9 @@ namespace jy {
                 }
                 let ref = cfg.ref;
                 layer = new ref(id);
-                this.addLayer(layer, cfg);
+                if (!noAdd) {
+                    this.addLayer(layer, cfg);
+                }
                 layers[id] = layer;
                 if (layer instanceof SortedLayer) {
                     this._sortedLayers.push(layer);
