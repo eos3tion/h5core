@@ -16073,7 +16073,12 @@ var jy;
             var hgap = option.hgap, vgap = option.vgap, type = option.type, itemWidth = option.itemWidth, itemHeight = option.itemHeight, columnCount = option.columnCount, staticSize = option.staticSize, noScroller = option.noScroller, con = option.con, scrollerOption = option.scrollerOption;
             this.staticSize = staticSize;
             type = ~~type;
-            columnCount = ~~columnCount;
+            if (itemWidth) {
+                columnCount = (con.suiRawRect.width + hgap) / (itemWidth + hgap) | 0;
+            }
+            else {
+                columnCount = ~~columnCount;
+            }
             if (columnCount < 1) {
                 if (type == 1 /* Horizon */) {
                     columnCount = Infinity;
@@ -16115,15 +16120,29 @@ var jy;
             var con = this._con;
             if (con) {
                 var rect = con.scrollRect;
-                if (rect) {
-                    if (!isNaN(+width)) {
+                if (!isNaN(+width)) {
+                    if (rect) {
                         rect.width = width;
                     }
-                    if (!isNaN(+height)) {
-                        rect.height = height;
+                    if (this.scrollType == 0 /* Vertical */) {
+                        var itemWidth = this.itemWidth;
+                        if (itemWidth) {
+                            var count = (width + this._hgap) / (itemWidth + this._hgap) | 0;
+                            if (count < 1) {
+                                count = 1;
+                            }
+                            this._columncount = count;
+                            this._sizeChanged = true;
+                            this.reCalc();
+                        }
                     }
-                    this._lastRect = null;
-                    this.checkViewRect();
+                }
+                if (rect && !isNaN(+height)) {
+                    rect.height = height;
+                }
+                this._lastRect = null;
+                this.checkViewRect();
+                if (rect) {
                     if (width >= this._w) {
                         rect.x = 0;
                     }
@@ -16261,7 +16280,7 @@ var jy;
             var end = len - 1;
             // let lastrender: R;
             //得到单行/单列最大索引数
-            var _a = this, itemWidth = _a.itemWidth, itemHeight = _a.itemHeight, _columncount = _a._columncount, _hgap = _a._hgap, _vgap = _a._vgap, staticSize = _a.staticSize;
+            var _a = this, itemWidth = _a.itemWidth, itemHeight = _a.itemHeight, _columncount = _a._columncount, _hgap = _a._hgap, _vgap = _a._vgap;
             var rowCount = len / _columncount;
             var oy = 0, ox = 0;
             var maxWidth = 0, maxHeight = 0;
