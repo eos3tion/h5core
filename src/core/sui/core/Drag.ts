@@ -76,10 +76,6 @@ namespace jy {
          * 用于判断是不是同一帧
          */
         et?: number;
-        /**
-         * 范围
-         */
-        rect: egret.Rectangle;
     }
     let stage: egret.Stage;
 
@@ -144,15 +140,12 @@ namespace jy {
      * @param {number} [minDragTime=300] 最小拖拽事件 
      * @param {number} [minSqDist=400] 最小 
      */
-    export function bindDrag(host: egret.DisplayObject, opt?: DragOption, rect?: egret.Rectangle) {
+    export function bindDrag(host: egret.DisplayObject, opt?: DragOption) {
         const { stopChildren = true, minDragTime = 200, minSqDist = 225 } = opt || Temp.EmptyObject as DragOption;
         stage = stage || egret.sys.$TempStage;
         const isCon = stopChildren && host instanceof egret.DisplayObjectContainer;
         host.touchEnabled = true;
-        if (!rect) {
-            rect = new egret.Rectangle(0, 0, host.width, host.height);
-        }
-        let dele: DragDele = { host, isCon, minDragTime, minSqDist, rect };
+        let dele: DragDele = { host, isCon, minDragTime, minSqDist };
         if (host.stage) {
             onAdd.call(dele);
         }
@@ -189,13 +182,7 @@ namespace jy {
         let x = e.stageX;
         let y = e.stageY;
         host.globalToLocal(x, y, tempPt);
-        let { x: tx, y: ty } = tempPt;
-        let rect = host.scrollRect;
-        if (rect) {
-            tx -= rect.x;
-            ty -= rect.y;
-        }
-        if (this.rect.contains(tx, ty)) {
+        if (host.scrollRect.containsPoint(tempPt)) {
             this.lt = Date.now();
             this.lx = x;
             this.ly = y;
