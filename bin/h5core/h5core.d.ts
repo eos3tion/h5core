@@ -14495,10 +14495,6 @@ declare namespace jy {
          * 用于判断是不是同一帧
          */
         et?: number;
-        /**
-         * 范围
-         */
-        rect: egret.Rectangle;
     }
     /**
      *
@@ -14507,7 +14503,7 @@ declare namespace jy {
      * @param {number} [minDragTime=300] 最小拖拽事件
      * @param {number} [minSqDist=400] 最小
      */
-    function bindDrag(host: egret.DisplayObject, opt?: DragOption, rect?: egret.Rectangle): DragDele;
+    function bindDrag(host: egret.DisplayObject, opt?: DragOption): DragDele;
     /**
      * 停止指定id的拖拽
      * @param pointId

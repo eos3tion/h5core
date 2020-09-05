@@ -114,10 +114,9 @@ namespace jy {
         }
 
         setRect(rect: Rect) {
-            let { _content, drag } = this;
+            let { _content } = this;
             let scrollRect = _content.scrollRect;
             scrollRect.copyFrom(rect);
-            drag.rect.copyFrom(rect);
         }
 
         /**
@@ -142,7 +141,7 @@ namespace jy {
                 }
                 this._content = content;
                 if (content) {
-                    this.drag = bindDrag(content, this.opt, scrollRect.clone());
+                    this.drag = bindDrag(content, this.opt);
                     content.on(EventConst.DragStart, this.onDragStart, this);
                     content.on(EventConst.Resize, this.onResize, this);
                 }

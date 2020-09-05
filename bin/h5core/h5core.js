@@ -5161,10 +5161,9 @@ var jy;
             this._scrollbar.alpha = ~~this.alwaysShowBar;
         };
         Scroller.prototype.setRect = function (rect) {
-            var _a = this, _content = _a._content, drag = _a.drag;
+            var _content = this._content;
             var scrollRect = _content.scrollRect;
             scrollRect.copyFrom(rect);
-            drag.rect.copyFrom(rect);
         };
         /**
          * 绑定目标与滚动条
@@ -5188,7 +5187,7 @@ var jy;
                 }
                 this._content = content;
                 if (content) {
-                    this.drag = jy.bindDrag(content, this.opt, scrollRect.clone());
+                    this.drag = jy.bindDrag(content, this.opt);
                     content.on(-1090 /* DragStart */, this.onDragStart, this);
                     content.on(-1999 /* Resize */, this.onResize, this);
                 }
@@ -20523,15 +20522,12 @@ var jy;
      * @param {number} [minDragTime=300] 最小拖拽事件
      * @param {number} [minSqDist=400] 最小
      */
-    function bindDrag(host, opt, rect) {
+    function bindDrag(host, opt) {
         var _a = opt || jy.Temp.EmptyObject, _b = _a.stopChildren, stopChildren = _b === void 0 ? true : _b, _c = _a.minDragTime, minDragTime = _c === void 0 ? 200 : _c, _d = _a.minSqDist, minSqDist = _d === void 0 ? 225 : _d;
         stage = stage || egret.sys.$TempStage;
         var isCon = stopChildren && host instanceof egret.DisplayObjectContainer;
         host.touchEnabled = true;
-        if (!rect) {
-            rect = new egret.Rectangle(0, 0, host.width, host.height);
-        }
-        var dele = { host: host, isCon: isCon, minDragTime: minDragTime, minSqDist: minSqDist, rect: rect };
+        var dele = { host: host, isCon: isCon, minDragTime: minDragTime, minSqDist: minSqDist };
         if (host.stage) {
             onAdd.call(dele);
         }
@@ -20566,13 +20562,7 @@ var jy;
         var x = e.stageX;
         var y = e.stageY;
         host.globalToLocal(x, y, tempPt);
-        var tx = tempPt.x, ty = tempPt.y;
-        var rect = host.scrollRect;
-        if (rect) {
-            tx -= rect.x;
-            ty -= rect.y;
-        }
-        if (this.rect.contains(tx, ty)) {
+        if (host.scrollRect.containsPoint(tempPt)) {
             this.lt = Date.now();
             this.lx = x;
             this.ly = y;
