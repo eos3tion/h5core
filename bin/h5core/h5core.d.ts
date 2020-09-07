@@ -8483,7 +8483,7 @@ declare namespace jy {
     export {};
 }
 declare namespace jy {
-    export function getDynamicTexSheet(): {
+    export function getDynamicTexSheet(size?: number): {
         bind: (uri: string, tex: DynamicTexture) => any;
         update: (uri: string, tex: egret.Texture) => void;
         bindOrUpdate(uri: string, tex: DynamicTexture): void;

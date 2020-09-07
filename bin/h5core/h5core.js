@@ -10361,8 +10361,8 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    function getDynamicTexSheet() {
-        var cur = createNewSheet();
+    function getDynamicTexSheet(size) {
+        var cur = createNewSheet(size);
         var dict = {};
         return {
             bind: bind,
@@ -10415,12 +10415,12 @@ var jy;
             var hh = height + 1 /* Padding */; //padding
             var bin = packer.insert(ww, hh);
             if (!bin) { //装不下
-                var size = sheet.getSize();
+                var size_1 = sheet.getSize();
                 //先扩展
-                if (size < 2048 /* MaxSize */) {
-                    size = size << 1;
-                    packer.extSize(size, size);
-                    sheet.extSize(size);
+                if (size_1 < 2048 /* MaxSize */) {
+                    size_1 = size_1 << 1;
+                    packer.extSize(size_1, size_1);
+                    sheet.extSize(size_1);
                     bin = packer.insert(ww, hh);
                     if (!bin) { //加倍纹理大小了，还放不下，说明当前纹理和之前用的纹理大小差异很大，直接不扩充纹理
                         return;
@@ -10483,8 +10483,8 @@ var jy;
             }
             bmd.$dispose();
         }
-        function createNewSheet() {
-            var size = 2048 /* MaxSize */ >> 2;
+        function createNewSheet(size) {
+            size = size || 2048 /* MaxSize */ >> 2;
             var sheet = jy.getTextureSheet(size);
             var packer = new jy.ShortSideBinPacker(size, size);
             return { sheet: sheet, packer: packer };

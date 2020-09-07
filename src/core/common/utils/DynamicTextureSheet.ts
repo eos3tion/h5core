@@ -1,6 +1,6 @@
 namespace jy {
-    export function getDynamicTexSheet() {
-        let cur = createNewSheet();
+    export function getDynamicTexSheet(size?: number) {
+        let cur = createNewSheet(size);
         const dict = {} as { [uri: string]: ReturnType<typeof createNewSheet> }
         return {
             bind,
@@ -122,8 +122,8 @@ namespace jy {
             bmd.$dispose();
         }
 
-        function createNewSheet() {
-            let size = TextureSheetConst.MaxSize >> 2;
+        function createNewSheet(size?: number) {
+            size = size || TextureSheetConst.MaxSize >> 2;
             let sheet = getTextureSheet(size);
             let packer = new ShortSideBinPacker(size, size);
             return { sheet, packer }
