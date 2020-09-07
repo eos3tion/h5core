@@ -150,11 +150,6 @@ namespace jy.Res {
          */
         removed?: boolean;
 
-        /**
-         * 分组标识  
-         * 用于对资源进行区分
-         */
-        group?: Key;
 
         /**
          * 资源回调列队
@@ -553,19 +548,32 @@ namespace jy.Res {
          */
         total: number;
 
+        /**
+         * 加载失败的数量
+         */
+        failed: number;
+        /**
+         * 成功加载的数量
+         */
+        success: number;
+
         list: ResItem[];
     }
     export function loadList(list: ResItem[], opt: LoadResListOption, queueID = ResQueueID.Normal) {
-        let total = list.length;
-        let group = opt.group;
-        (opt as LoadResListParam).current = 0;
-        (opt as LoadResListParam).total = total;
-        (opt as LoadResListParam).list = list;
+        let total = initLoadListOption(opt as LoadResListParam, list);
         for (let i = 0; i < total; i++) {
             let item = list[i];
-            item.group = group;
             loadRes(item, CallbackInfo.get(doLoadList, null, opt), queueID);
         }
+    }
+    function initLoadListOption(opt: LoadResListParam, list: ResItem[]) {
+        let total = list.length;
+        opt.current = 0;
+        opt.success = 0;
+        opt.failed = 0;
+        opt.total = total;
+        opt.list = list;
+        return total
     }
 
     function doLoadList(item: ResItem, param: LoadResListParam) {
@@ -573,31 +581,23 @@ namespace jy.Res {
         if (!callback) {
             return;
         }
-        let group = param.group;
-        if (item.group == group) {
-            let onProgress = param.onProgress;
-            let doRec: boolean, flag: boolean;
-            if (item.state == RequestState.FAILED) {
-                doRec = true;
-                flag = false;
-            } else {
-                param.current++;
-                onProgress && onProgress.call(item);
-                if (param.current >= param.total) {
-                    doRec = true;
-                    flag = true;
-                }
-            }
-            if (doRec) {
-                param.callback = undefined;
-                param.onProgress = undefined;
-                callback.callAndRecycle(flag);
-                onProgress && onProgress.recycle();
-                let list = param.list;
-                if (!flag && list) {
-                    list.forEach(removeItem)
-                }
-            }
+        let onProgress = param.onProgress;
+        let doRec: boolean;
+
+        param.current++;
+        if (item.state == RequestState.FAILED) {
+            param.failed++;
+        } else {
+            param.success++;
+        }
+        onProgress && onProgress.call(item);
+        if (param.current >= param.total) {
+            doRec = true;
+            param.callback = undefined;
+            param.onProgress = undefined;
+            let flag = param.failed == 0;
+            callback.callAndRecycle(flag);
+            onProgress && onProgress.recycle();
         }
     }
 
