@@ -7684,11 +7684,6 @@ declare namespace jy.Res {
          */
         removed?: boolean;
         /**
-         * 分组标识
-         * 用于对资源进行区分
-         */
-        group?: Key;
-        /**
          * 资源回调列队
          */
         callbacks?: ResCallback[];

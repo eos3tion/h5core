@@ -9020,49 +9020,44 @@ var jy;
         Res.load = load;
         function loadList(list, opt, queueID) {
             if (queueID === void 0) { queueID = 0 /* Normal */; }
-            var total = list.length;
-            var group = opt.group;
-            opt.current = 0;
-            opt.total = total;
-            opt.list = list;
+            var total = initLoadListOption(opt, list);
             for (var i = 0; i < total; i++) {
                 var item = list[i];
-                item.group = group;
                 loadRes(item, jy.CallbackInfo.get(doLoadList, null, opt), queueID);
             }
         }
         Res.loadList = loadList;
+        function initLoadListOption(opt, list) {
+            var total = list.length;
+            opt.current = 0;
+            opt.success = 0;
+            opt.failed = 0;
+            opt.total = total;
+            opt.list = list;
+            return total;
+        }
         function doLoadList(item, param) {
             var callback = param.callback;
             if (!callback) {
                 return;
             }
-            var group = param.group;
-            if (item.group == group) {
-                var onProgress = param.onProgress;
-                var doRec = void 0, flag = void 0;
-                if (item.state == -1 /* FAILED */) {
-                    doRec = true;
-                    flag = false;
-                }
-                else {
-                    param.current++;
-                    onProgress && onProgress.call(item);
-                    if (param.current >= param.total) {
-                        doRec = true;
-                        flag = true;
-                    }
-                }
-                if (doRec) {
-                    param.callback = undefined;
-                    param.onProgress = undefined;
-                    callback.callAndRecycle(flag);
-                    onProgress && onProgress.recycle();
-                    var list = param.list;
-                    if (!flag && list) {
-                        list.forEach(removeItem);
-                    }
-                }
+            var onProgress = param.onProgress;
+            var doRec;
+            param.current++;
+            if (item.state == -1 /* FAILED */) {
+                param.failed++;
+            }
+            else {
+                param.success++;
+            }
+            onProgress && onProgress.call(item);
+            if (param.current >= param.total) {
+                doRec = true;
+                param.callback = undefined;
+                param.onProgress = undefined;
+                var flag = param.failed == 0;
+                callback.callAndRecycle(flag);
+                onProgress && onProgress.recycle();
             }
         }
         /**
