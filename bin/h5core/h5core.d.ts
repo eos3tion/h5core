@@ -1310,6 +1310,8 @@ declare namespace jy {
      */
     class BaseCreator<T extends egret.DisplayObject> {
         protected _suiData: SuiData;
+        suiLib: string;
+        suiClass: string;
         get suiData(): SuiData;
         protected _baseData: BaseData;
         protected _createT: () => T;

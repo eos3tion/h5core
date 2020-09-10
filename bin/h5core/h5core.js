@@ -2262,6 +2262,8 @@ var jy;
          */
         BaseCreator.prototype.get = function () {
             var t = this._createT();
+            t.suiLib = this.suiLib;
+            t.suiClass = this.suiClass;
             t.suiRawRect = this.size;
             if (t instanceof jy.Component) {
                 t.init(this);
@@ -15864,7 +15866,7 @@ var jy;
                 var actionInfo = this._pstInfo.frames[action];
                 render.actionInfo = actionInfo;
                 render.reset(now);
-                if (oldAction != null) {
+                if (oldAction != null && startFrame == -1) {
                     startFrame = 0;
                 }
             }
@@ -21069,10 +21071,13 @@ var jy;
                     var ref = this._creators[type];
                     if (ref) {
                         var lib = suiData.lib;
+                        var suiLib = suiData.key;
                         for (var i = 0; i < len; i++) {
                             var name_9 = nameData[i];
                             var dat = comData[i];
                             var creator = new ref;
+                            creator.suiClass = name_9;
+                            creator.suiLib = suiLib;
                             creator.parseData(null, suiData);
                             if (dat) {
                                 creator.parseSelfData(dat);
@@ -21125,8 +21130,6 @@ var jy;
                 if (creator) {
                     creator.setBaseData(baseData);
                     var disp = creator.get();
-                    disp.suiClass = className;
-                    disp.suiLib = uri;
                     return disp;
                 }
                 else if (true) {
@@ -21154,9 +21157,9 @@ var jy;
                 var cRef = this._creators[+data[0]];
                 if (cRef) {
                     var creator = new cRef();
+                    creator.suiLib = suiData.key;
                     creator.parseData(data, suiData);
                     var dis = creator.get();
-                    dis.suiLib = suiData.key;
                     return dis;
                 }
                 else if (true) {
