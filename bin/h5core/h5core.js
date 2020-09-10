@@ -1,13 +1,13 @@
 "use strict";
+var __reflect = (this && this.__reflect) || function (p, c, t) {
+    p.__class__ = c, t ? t.push(c) : t = [c], p.__types__ = p.__types__ ? t.concat(p.__types__) : t;
+};
 var __spreadArrays = (this && this.__spreadArrays) || function () {
     for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
     for (var r = Array(s), k = 0, i = 0; i < il; i++)
         for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
             r[k] = a[j];
     return r;
-};
-var __reflect = (this && this.__reflect) || function (p, c, t) {
-    p.__class__ = c, t ? t.push(c) : t = [c], p.__types__ = p.__types__ ? t.concat(p.__types__) : t;
 };
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -22,6 +22,499 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var jy;
+(function (jy) {
+    /**
+     * 延迟执行
+     * @author 3tion
+     */
+    var CallLater = /** @class */ (function () {
+        function CallLater() {
+            this._callLaters = [];
+            this._temp = [];
+        }
+        CallLater.prototype.tick = function (now) {
+            var i = 0, j = 0, k = 0, callLaters = this._callLaters, temp = this._temp;
+            // 检查callLater，执行时间够的calllater调用
+            for (var len = callLaters.length; i < len; i++) {
+                var cb = callLaters[i];
+                if (now > cb.time) {
+                    temp[j++] = cb;
+                }
+                else {
+                    callLaters[k++] = cb;
+                }
+            }
+            callLaters.length = k;
+            for (i = 0; i < j; i++) {
+                temp[i].execute();
+            }
+        };
+        /**
+         * 增加延迟执行的函数
+         *
+         * @param {Function} callback (description)
+         * @param {number} now (description)
+         * @param {number} [time] (description)
+         * @param {*} [thisObj] (description)
+         * @param args (description)
+         */
+        CallLater.prototype.callLater = function (callback, now, time, thisObj) {
+            var args = [];
+            for (var _i = 4; _i < arguments.length; _i++) {
+                args[_i - 4] = arguments[_i];
+            }
+            var cInfo = jy.CallbackInfo.addToList.apply(jy.CallbackInfo, __spreadArrays([this._callLaters, callback, thisObj], args));
+            cInfo.time = now + (time || 0);
+        };
+        /**
+         * 清理延迟执行的函数
+         *
+         * @param {Function} callback (description)
+         * @param {*} [thisObj] (description)
+         */
+        CallLater.prototype.clearCallLater = function (callback, thisObj) {
+            var callLaters = this._callLaters;
+            for (var i = callLaters.length - 1; i >= 0; --i) {
+                var cInfo = callLaters[i];
+                if (cInfo.checkHandle(callback, thisObj)) {
+                    callLaters.splice(i, 1);
+                    return cInfo.recycle();
+                }
+            }
+        };
+        CallLater.prototype.callLater2 = function (callback, now, time) {
+            if (time === void 0) { time = 0; }
+            this._callLaters.pushOnce(callback);
+            callback.time = now + (time || 0);
+        };
+        CallLater.prototype.clearCallLater2 = function (callback) {
+            this._callLaters.remove(callback);
+            return callback.recycle();
+        };
+        CallLater.prototype.clear = function () {
+            var callLaters = this._callLaters;
+            for (var i = 0; i < callLaters.length; i++) {
+                var cInfo = callLaters[i];
+                cInfo.recycle();
+            }
+            callLaters.length = 0;
+        };
+        return CallLater;
+    }());
+    jy.CallLater = CallLater;
+    __reflect(CallLater.prototype, "jy.CallLater");
+})(jy || (jy = {}));
+/**
+ * 参考createjs和白鹭的tween
+ * 调整tick的驱动方式
+ * https://github.com/CreateJS/TweenJS
+ * @author 3tion
+ */
+var jy;
+(function (jy) {
+    var TweenManager = /** @class */ (function () {
+        function TweenManager() {
+            this._tweens = [];
+            /**
+             * 注册过的插件列表
+             * Key      {string}            属性
+             * Value    {ITweenPlugin[]}    插件列表
+             *
+             * @type {{ [index: string]: ITweenPlugin[] }}
+             */
+            this._plugins = {};
+        }
+        /**
+         * Returns a new tween instance. This is functionally identical to using "new Tween(...)", but looks cleaner
+         * with the chained syntax of TweenJS.
+         * <h4>Example</h4>
+         *
+         *		var tween = createjs. this.get(target);
+        *
+        * @method get
+        * @param {Object} target The target object that will have its properties tweened.
+        * @param {TweenOption} [props] The configuration properties to apply to this tween instance (ex. `{loop:true, paused:true}`).
+        * All properties default to `false`. Supported props are:
+        * <UL>
+        *    <LI> loop: sets the loop property on this tween.</LI>
+        *    <LI> useTicks: uses ticks for all durations instead of milliseconds.</LI>
+        *    <LI> ignoreGlobalPause: sets the {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}} property on
+        *    this tween.</LI>
+        *    <LI> override: if true, `createjs. this.removeTweens(target)` will be called to remove any other tweens with
+        *    the same target.
+        *    <LI> paused: indicates whether to start the tween paused.</LI>
+        *    <LI> position: indicates the initial position for this tween.</LI>
+        *    <LI> onChange: specifies a listener for the {{#crossLink "Tween/change:event"}}{{/crossLink}} event.</LI>
+        * </UL>
+        * @param {Object} [pluginData] An object containing data for use by installed plugins. See individual plugins'
+        * documentation for details.
+        * @param {Boolean} [override=false] If true, any previous tweens on the same target will be removed. This is the
+        * same as calling ` this.removeTweens(target)`.
+        * @return {Tween} A reference to the created tween. Additional chained tweens, method calls, or callbacks can be
+        * applied to the returned tween instance.
+        * @static
+        */
+        TweenManager.prototype.get = function (target, props, pluginData, override) {
+            if (override) {
+                this.removeTweens(target);
+            }
+            return new jy.Tween(target, props, pluginData, this);
+        };
+        /**
+         * 移除指定对象的所有tween
+         * Removes all existing tweens for a target. This is called automatically by new tweens if the `override`
+         * property is `true`.
+         * @method removeTweens
+         * @param {Object} target The target object to remove existing tweens from.
+         * @static
+         */
+        TweenManager.prototype.removeTweens = function (target) {
+            if (!target.tween_count) {
+                return;
+            }
+            var tweens = this._tweens;
+            var j = 0;
+            for (var i = 0, len = tweens.length; i < len; i++) {
+                var tween = tweens[i];
+                if (tween.target == target) {
+                    tween.paused = true;
+                    tween.onRecycle();
+                }
+                else {
+                    tweens[j++] = tween;
+                }
+            }
+            tweens.length = j;
+            target.tween_count = 0;
+        };
+        /**
+         * 移除单个tween
+         *
+         * @param {Tween} twn
+         * @returns
+         *
+         * @memberOf TweenManager
+         */
+        TweenManager.prototype.removeTween = function (twn) {
+            if (!twn) {
+                return;
+            }
+            var tweens = this._tweens;
+            for (var i = tweens.length - 1; i >= 0; i--) {
+                var tween = tweens[i];
+                if (tween == twn) {
+                    tween.paused = true;
+                    tweens.splice(i, 1);
+                    tween.onRecycle();
+                    break;
+                }
+            }
+        };
+        /**
+         * 暂停某个对象的全部Tween
+         *
+         * @static
+         * @param {*} target 指定对象
+         */
+        TweenManager.prototype.pauseTweens = function (target) {
+            if (!target.tween_count) {
+                return;
+            }
+            var tweens = this._tweens;
+            for (var i = tweens.length - 1; i >= 0; i--) {
+                if (tweens[i].target == target) {
+                    tweens[i].paused = true;
+                }
+            }
+        };
+        /**
+         * 恢复某个对象的全部Tween
+         *
+         * @static
+         * @param {*} target 指定对象
+         */
+        TweenManager.prototype.resumeTweens = function (target) {
+            if (!target.tween_count) {
+                return;
+            }
+            var tweens = this._tweens;
+            for (var i = tweens.length - 1; i >= 0; i--) {
+                if (tweens[i].target == target) {
+                    tweens[i].paused = false;
+                }
+            }
+        };
+        /**
+         * 由外部进行调用，进行心跳
+         * Advances all tweens. This typically uses the {{#crossLink "Ticker"}}{{/crossLink}} class, but you can call it
+         * manually if you prefer to use your own "heartbeat" implementation.
+         * @method tick
+         * @param {Number} delta The change in time in milliseconds since the last tick. Required unless all tweens have
+         * `useTicks` set to true.
+         * @param {Boolean} paused Indicates whether a global pause is in effect. Tweens with {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}}
+         * will ignore this, but all others will pause if this is `true`.
+         * @static
+         */
+        TweenManager.prototype.tick = function (delta, paused) {
+            if (!this._tweens.length) {
+                return;
+            }
+            var tweens = this._tweens.concat();
+            for (var i = tweens.length - 1; i >= 0; i--) {
+                var tween = tweens[i];
+                if ((paused && !tween.ignoreGlobalPause) || tween.paused) {
+                    continue;
+                }
+                tween.tick(tween._useTicks ? 1 : delta);
+            }
+        };
+        /**
+         * 将tween注册/注销到管理器中，
+         *
+         * @param {Tween} tween
+         * @param {boolean} [value] (description)
+         * @returns {void}
+         * @private 此方法只允许tween调用
+         */
+        TweenManager.prototype._register = function (tween, value) {
+            var target = tween.target;
+            var tweens = this._tweens;
+            if (value && !tween._registered) {
+                if (target) {
+                    target.tween_count = target.tween_count > 0 ? target.tween_count + 1 : 1;
+                }
+                tweens.push(tween);
+            }
+            else {
+                if (target) {
+                    target.tween_count--;
+                }
+                var i = tweens.length;
+                while (i--) {
+                    if (tweens[i] == tween) {
+                        tweens.splice(i, 1);
+                        tween.onRecycle();
+                        return;
+                    }
+                }
+            }
+        };
+        /**
+         * Stop and remove all existing tweens.
+         * 终止并移除所有的tween
+         * @method removeAllTweens
+         * @static
+         * @since 0.4.1
+         */
+        TweenManager.prototype.removeAllTweens = function () {
+            var tweens = this._tweens;
+            for (var i = 0, l = tweens.length; i < l; i++) {
+                var tween = tweens[i];
+                tween.paused = true;
+                tween.onRecycle();
+                tween.target.tweenjs_count = 0;
+            }
+            tweens.length = 0;
+        };
+        /**
+         * Indicates whether there are any active tweens (and how many) on the target object (if specified) or in general.
+         * @method hasActiveTweens
+         * @param {Object} [target] The target to check for active tweens. If not specified, the return value will indicate
+         * if there are any active tweens on any target.
+         * @return {Boolean} If there are active tweens.
+         * @static
+         */
+        TweenManager.prototype.hasActiveTweens = function (target) {
+            if (target) {
+                return target.tweenjs_count != null && !!target.tweenjs_count;
+            }
+            return this._tweens && !!this._tweens.length;
+        };
+        /**
+         * Installs a plugin, which can modify how certain properties are handled when tweened. See the {{#crossLink "CSSPlugin"}}{{/crossLink}}
+         * for an example of how to write TweenJS plugins.
+         * @method installPlugin
+         * @static
+         * @param {Object} plugin The plugin class to install
+         * @param {Array} properties An array of properties that the plugin will handle.
+         */
+        TweenManager.prototype.installPlugin = function (plugin, properties) {
+            var priority = plugin.priority;
+            if (priority == null) {
+                plugin.priority = priority = 0;
+            }
+            for (var i = 0, l = properties.length, p = this._plugins; i < l; i++) {
+                var n = properties[i];
+                if (!p[n]) {
+                    p[n] = [plugin];
+                }
+                else {
+                    var arr = p[n];
+                    for (var j = 0, jl = arr.length; j < jl; j++) {
+                        if (priority < arr[j].priority) {
+                            break;
+                        }
+                    }
+                    p[n].splice(j, 0, plugin);
+                }
+            }
+        };
+        return TweenManager;
+    }());
+    jy.TweenManager = TweenManager;
+    __reflect(TweenManager.prototype, "jy.TweenManager");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
+    try {
+        var supportWebp = window.supportWebp == false ? false : document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') == 0;
+    }
+    catch (err) { }
+    var _webp = supportWebp ? ".webp" /* WEBP */ : "";
+    var _isNative = egret.Capabilities.engineVersion != "Unknown";
+    /**
+     *  当前这一帧的时间
+     */
+    var now = 0;
+    /**
+     * 按照帧，应该走的时间
+     * 每帧根据帧率加固定时间
+     * 用于处理逐帧同步用
+     */
+    var frameNow = 0;
+    var _callLater = new jy.CallLater();
+    var tweenManager = new jy.TweenManager();
+    var _nextTicks = [];
+    var _intervals = [];
+    /**
+     * 注入白鹭的全局Ticker
+     */
+    function initTick() {
+        //@ts-ignore
+        var ticker = egret.ticker;
+        var update = ticker.render;
+        var delta = 0 | 1000 / ticker.$frameRate;
+        var temp = [];
+        ticker.render = function (triggerByFrame, costTicker) {
+            var _now = Date.now();
+            var dis = _now - now;
+            now = _now;
+            if (dis > 500) {
+                if (dis > 2000) {
+                    //有2秒钟大概就是进入过休眠了
+                    jy.dispatch(-190 /* Awake */);
+                }
+                else {
+                    jy.dispatch(-1996 /* SlowRender */);
+                }
+                console.log("\u4E0A\u6B21\u6267\u884C\u65F6\u95F4\u548C\u5F53\u524D\u65F6\u95F4\u5DEE\u503C\u8FC7\u957F[" + dis + "]");
+                frameNow = _now;
+            }
+            else {
+                frameNow += delta;
+            }
+            if (true) {
+                $();
+            }
+            else if (false) {
+                try {
+                    $();
+                }
+                catch (e) {
+                    jy.ThrowError("ticker.render", e);
+                }
+            }
+            return;
+            function $() {
+                //执行顺序  nextTick  callLater TimerUtil  tween  最后是白鹭的更新
+                var len = _intervals.length;
+                for (var i = 0; i < len; i++) {
+                    var cb = _intervals[i];
+                    cb.execute(false);
+                }
+                len = _nextTicks.length;
+                var tmp = temp;
+                for (var i = 0; i < len; i++) {
+                    tmp[i] = _nextTicks[i];
+                }
+                _nextTicks.length = 0;
+                //先复制再操作是为了防止回调过程中，有新增的nextTick
+                for (var i = 0; i < len; i++) {
+                    tmp[i].execute();
+                }
+                _callLater.tick(_now);
+                jy.TimerUtil.tick(_now);
+                tweenManager.tick(dis);
+                update.call(ticker, triggerByFrame, costTicker);
+            }
+        };
+    }
+    function nextTick(callback, thisObj) {
+        var args = [];
+        for (var _i = 2; _i < arguments.length; _i++) {
+            args[_i - 2] = arguments[_i];
+        }
+        nextTick2(jy.CallbackInfo.get.apply(jy.CallbackInfo, __spreadArrays([callback, thisObj], args)));
+    }
+    function nextTick2(callback) {
+        _nextTicks.push(callback);
+    }
+    /**
+     * 动画的全局对象
+     * @author 3tion
+     *
+     */
+    jy.Global = {
+        initTick: initTick,
+        nextTick: nextTick,
+        nextTick2: nextTick2,
+        callLater: function (callback, time, thisObj) {
+            var args = [];
+            for (var _i = 3; _i < arguments.length; _i++) {
+                args[_i - 3] = arguments[_i];
+            }
+            return _callLater.callLater.apply(_callLater, __spreadArrays([callback, now, time, thisObj], args));
+        },
+        clearCallLater: function (callback, thisObj) {
+            return _callLater.clearCallLater(callback, thisObj);
+        },
+        callLater2: function (callback, time) {
+            return _callLater.callLater2(callback, now, time);
+        },
+        clearCallLater2: function (callback) {
+            return _callLater.clearCallLater2(callback);
+        },
+        getTween: function (target, props, pluginData, override) {
+            return tweenManager.get(target, props, pluginData, override);
+        },
+        removeTween: function (tween) {
+            return tweenManager.removeTween(tween);
+        },
+        removeTweens: function (target) {
+            return tweenManager.removeTweens(target);
+        },
+        get isNative() {
+            return _isNative;
+        },
+        tweenManager: tweenManager,
+        get now() {
+            return now;
+        },
+        get frameNow() {
+            return frameNow;
+        },
+        get webp() {
+            return _webp;
+        },
+        addInterval: function (callback) {
+            _intervals.pushOnce(callback);
+        },
+        removeInterval: function (callback) {
+            _intervals.remove(callback);
+        },
+    };
+})(jy || (jy = {}));
 var jy;
 (function (jy) {
     /**
@@ -635,6 +1128,7 @@ var jy;
         bmd.$deleteSource = false;
         var ctx = canvas.getContext("2d");
         var texCount = 0;
+        var changed = false;
         var texs = {};
         return {
             /**
@@ -696,7 +1190,7 @@ var jy;
                     size = newSize;
                     bmd.width = bmd.height = canvas.height = canvas.width = size;
                     ctx.putImageData(data, 0, 0);
-                    updateEgretTexutre(bmd);
+                    invalidate();
                 }
                 return true;
             },
@@ -717,13 +1211,23 @@ var jy;
                 return size;
             }
         };
+        function invalidate() {
+            if (!changed) {
+                changed = true;
+                jy.Global.nextTick(doUpdate);
+            }
+        }
+        function doUpdate() {
+            updateEgretTexutre(bmd);
+            changed = false;
+        }
         function update(key, _a, tex) {
             var x = _a.x, y = _a.y, width = _a.width, height = _a.height;
             tex.disposeBitmapData = false;
             tex.bitmapData = bmd;
             texs[key] = tex;
-            updateEgretTexutre(bmd);
             tex.$initData(x, y, width, height, 0, 0, width, height, width, height);
+            invalidate();
         }
     }
     jy.getTextureSheet = getTextureSheet;
@@ -2488,89 +2992,6 @@ var jy;
      * 默认的PB工具
      */
     jy.PBUtils = getPBUtils();
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
-    /**
-     * 延迟执行
-     * @author 3tion
-     */
-    var CallLater = /** @class */ (function () {
-        function CallLater() {
-            this._callLaters = [];
-            this._temp = [];
-        }
-        CallLater.prototype.tick = function (now) {
-            var i = 0, j = 0, k = 0, callLaters = this._callLaters, temp = this._temp;
-            // 检查callLater，执行时间够的calllater调用
-            for (var len = callLaters.length; i < len; i++) {
-                var cb = callLaters[i];
-                if (now > cb.time) {
-                    temp[j++] = cb;
-                }
-                else {
-                    callLaters[k++] = cb;
-                }
-            }
-            callLaters.length = k;
-            for (i = 0; i < j; i++) {
-                temp[i].execute();
-            }
-        };
-        /**
-         * 增加延迟执行的函数
-         *
-         * @param {Function} callback (description)
-         * @param {number} now (description)
-         * @param {number} [time] (description)
-         * @param {*} [thisObj] (description)
-         * @param args (description)
-         */
-        CallLater.prototype.callLater = function (callback, now, time, thisObj) {
-            var args = [];
-            for (var _i = 4; _i < arguments.length; _i++) {
-                args[_i - 4] = arguments[_i];
-            }
-            var cInfo = jy.CallbackInfo.addToList.apply(jy.CallbackInfo, __spreadArrays([this._callLaters, callback, thisObj], args));
-            cInfo.time = now + (time || 0);
-        };
-        /**
-         * 清理延迟执行的函数
-         *
-         * @param {Function} callback (description)
-         * @param {*} [thisObj] (description)
-         */
-        CallLater.prototype.clearCallLater = function (callback, thisObj) {
-            var callLaters = this._callLaters;
-            for (var i = callLaters.length - 1; i >= 0; --i) {
-                var cInfo = callLaters[i];
-                if (cInfo.checkHandle(callback, thisObj)) {
-                    callLaters.splice(i, 1);
-                    return cInfo.recycle();
-                }
-            }
-        };
-        CallLater.prototype.callLater2 = function (callback, now, time) {
-            if (time === void 0) { time = 0; }
-            this._callLaters.pushOnce(callback);
-            callback.time = now + (time || 0);
-        };
-        CallLater.prototype.clearCallLater2 = function (callback) {
-            this._callLaters.remove(callback);
-            return callback.recycle();
-        };
-        CallLater.prototype.clear = function () {
-            var callLaters = this._callLaters;
-            for (var i = 0; i < callLaters.length; i++) {
-                var cInfo = callLaters[i];
-                cInfo.recycle();
-            }
-            callLaters.length = 0;
-        };
-        return CallLater;
-    }());
-    jy.CallLater = CallLater;
-    __reflect(CallLater.prototype, "jy.CallLater");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -5108,416 +5529,6 @@ var jy;
     }(egret.EventDispatcher));
     jy.Group = Group;
     __reflect(Group.prototype, "jy.Group");
-})(jy || (jy = {}));
-/**
- * 参考createjs和白鹭的tween
- * 调整tick的驱动方式
- * https://github.com/CreateJS/TweenJS
- * @author 3tion
- */
-var jy;
-(function (jy) {
-    var TweenManager = /** @class */ (function () {
-        function TweenManager() {
-            this._tweens = [];
-            /**
-             * 注册过的插件列表
-             * Key      {string}            属性
-             * Value    {ITweenPlugin[]}    插件列表
-             *
-             * @type {{ [index: string]: ITweenPlugin[] }}
-             */
-            this._plugins = {};
-        }
-        /**
-         * Returns a new tween instance. This is functionally identical to using "new Tween(...)", but looks cleaner
-         * with the chained syntax of TweenJS.
-         * <h4>Example</h4>
-         *
-         *		var tween = createjs. this.get(target);
-        *
-        * @method get
-        * @param {Object} target The target object that will have its properties tweened.
-        * @param {TweenOption} [props] The configuration properties to apply to this tween instance (ex. `{loop:true, paused:true}`).
-        * All properties default to `false`. Supported props are:
-        * <UL>
-        *    <LI> loop: sets the loop property on this tween.</LI>
-        *    <LI> useTicks: uses ticks for all durations instead of milliseconds.</LI>
-        *    <LI> ignoreGlobalPause: sets the {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}} property on
-        *    this tween.</LI>
-        *    <LI> override: if true, `createjs. this.removeTweens(target)` will be called to remove any other tweens with
-        *    the same target.
-        *    <LI> paused: indicates whether to start the tween paused.</LI>
-        *    <LI> position: indicates the initial position for this tween.</LI>
-        *    <LI> onChange: specifies a listener for the {{#crossLink "Tween/change:event"}}{{/crossLink}} event.</LI>
-        * </UL>
-        * @param {Object} [pluginData] An object containing data for use by installed plugins. See individual plugins'
-        * documentation for details.
-        * @param {Boolean} [override=false] If true, any previous tweens on the same target will be removed. This is the
-        * same as calling ` this.removeTweens(target)`.
-        * @return {Tween} A reference to the created tween. Additional chained tweens, method calls, or callbacks can be
-        * applied to the returned tween instance.
-        * @static
-        */
-        TweenManager.prototype.get = function (target, props, pluginData, override) {
-            if (override) {
-                this.removeTweens(target);
-            }
-            return new jy.Tween(target, props, pluginData, this);
-        };
-        /**
-         * 移除指定对象的所有tween
-         * Removes all existing tweens for a target. This is called automatically by new tweens if the `override`
-         * property is `true`.
-         * @method removeTweens
-         * @param {Object} target The target object to remove existing tweens from.
-         * @static
-         */
-        TweenManager.prototype.removeTweens = function (target) {
-            if (!target.tween_count) {
-                return;
-            }
-            var tweens = this._tweens;
-            var j = 0;
-            for (var i = 0, len = tweens.length; i < len; i++) {
-                var tween = tweens[i];
-                if (tween.target == target) {
-                    tween.paused = true;
-                    tween.onRecycle();
-                }
-                else {
-                    tweens[j++] = tween;
-                }
-            }
-            tweens.length = j;
-            target.tween_count = 0;
-        };
-        /**
-         * 移除单个tween
-         *
-         * @param {Tween} twn
-         * @returns
-         *
-         * @memberOf TweenManager
-         */
-        TweenManager.prototype.removeTween = function (twn) {
-            if (!twn) {
-                return;
-            }
-            var tweens = this._tweens;
-            for (var i = tweens.length - 1; i >= 0; i--) {
-                var tween = tweens[i];
-                if (tween == twn) {
-                    tween.paused = true;
-                    tweens.splice(i, 1);
-                    tween.onRecycle();
-                    break;
-                }
-            }
-        };
-        /**
-         * 暂停某个对象的全部Tween
-         *
-         * @static
-         * @param {*} target 指定对象
-         */
-        TweenManager.prototype.pauseTweens = function (target) {
-            if (!target.tween_count) {
-                return;
-            }
-            var tweens = this._tweens;
-            for (var i = tweens.length - 1; i >= 0; i--) {
-                if (tweens[i].target == target) {
-                    tweens[i].paused = true;
-                }
-            }
-        };
-        /**
-         * 恢复某个对象的全部Tween
-         *
-         * @static
-         * @param {*} target 指定对象
-         */
-        TweenManager.prototype.resumeTweens = function (target) {
-            if (!target.tween_count) {
-                return;
-            }
-            var tweens = this._tweens;
-            for (var i = tweens.length - 1; i >= 0; i--) {
-                if (tweens[i].target == target) {
-                    tweens[i].paused = false;
-                }
-            }
-        };
-        /**
-         * 由外部进行调用，进行心跳
-         * Advances all tweens. This typically uses the {{#crossLink "Ticker"}}{{/crossLink}} class, but you can call it
-         * manually if you prefer to use your own "heartbeat" implementation.
-         * @method tick
-         * @param {Number} delta The change in time in milliseconds since the last tick. Required unless all tweens have
-         * `useTicks` set to true.
-         * @param {Boolean} paused Indicates whether a global pause is in effect. Tweens with {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}}
-         * will ignore this, but all others will pause if this is `true`.
-         * @static
-         */
-        TweenManager.prototype.tick = function (delta, paused) {
-            if (!this._tweens.length) {
-                return;
-            }
-            var tweens = this._tweens.concat();
-            for (var i = tweens.length - 1; i >= 0; i--) {
-                var tween = tweens[i];
-                if ((paused && !tween.ignoreGlobalPause) || tween.paused) {
-                    continue;
-                }
-                tween.tick(tween._useTicks ? 1 : delta);
-            }
-        };
-        /**
-         * 将tween注册/注销到管理器中，
-         *
-         * @param {Tween} tween
-         * @param {boolean} [value] (description)
-         * @returns {void}
-         * @private 此方法只允许tween调用
-         */
-        TweenManager.prototype._register = function (tween, value) {
-            var target = tween.target;
-            var tweens = this._tweens;
-            if (value && !tween._registered) {
-                if (target) {
-                    target.tween_count = target.tween_count > 0 ? target.tween_count + 1 : 1;
-                }
-                tweens.push(tween);
-            }
-            else {
-                if (target) {
-                    target.tween_count--;
-                }
-                var i = tweens.length;
-                while (i--) {
-                    if (tweens[i] == tween) {
-                        tweens.splice(i, 1);
-                        tween.onRecycle();
-                        return;
-                    }
-                }
-            }
-        };
-        /**
-         * Stop and remove all existing tweens.
-         * 终止并移除所有的tween
-         * @method removeAllTweens
-         * @static
-         * @since 0.4.1
-         */
-        TweenManager.prototype.removeAllTweens = function () {
-            var tweens = this._tweens;
-            for (var i = 0, l = tweens.length; i < l; i++) {
-                var tween = tweens[i];
-                tween.paused = true;
-                tween.onRecycle();
-                tween.target.tweenjs_count = 0;
-            }
-            tweens.length = 0;
-        };
-        /**
-         * Indicates whether there are any active tweens (and how many) on the target object (if specified) or in general.
-         * @method hasActiveTweens
-         * @param {Object} [target] The target to check for active tweens. If not specified, the return value will indicate
-         * if there are any active tweens on any target.
-         * @return {Boolean} If there are active tweens.
-         * @static
-         */
-        TweenManager.prototype.hasActiveTweens = function (target) {
-            if (target) {
-                return target.tweenjs_count != null && !!target.tweenjs_count;
-            }
-            return this._tweens && !!this._tweens.length;
-        };
-        /**
-         * Installs a plugin, which can modify how certain properties are handled when tweened. See the {{#crossLink "CSSPlugin"}}{{/crossLink}}
-         * for an example of how to write TweenJS plugins.
-         * @method installPlugin
-         * @static
-         * @param {Object} plugin The plugin class to install
-         * @param {Array} properties An array of properties that the plugin will handle.
-         */
-        TweenManager.prototype.installPlugin = function (plugin, properties) {
-            var priority = plugin.priority;
-            if (priority == null) {
-                plugin.priority = priority = 0;
-            }
-            for (var i = 0, l = properties.length, p = this._plugins; i < l; i++) {
-                var n = properties[i];
-                if (!p[n]) {
-                    p[n] = [plugin];
-                }
-                else {
-                    var arr = p[n];
-                    for (var j = 0, jl = arr.length; j < jl; j++) {
-                        if (priority < arr[j].priority) {
-                            break;
-                        }
-                    }
-                    p[n].splice(j, 0, plugin);
-                }
-            }
-        };
-        return TweenManager;
-    }());
-    jy.TweenManager = TweenManager;
-    __reflect(TweenManager.prototype, "jy.TweenManager");
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
-    try {
-        var supportWebp = window.supportWebp == false ? false : document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') == 0;
-    }
-    catch (err) { }
-    var _webp = supportWebp ? ".webp" /* WEBP */ : "";
-    var _isNative = egret.Capabilities.engineVersion != "Unknown";
-    /**
-     *  当前这一帧的时间
-     */
-    var now = 0;
-    /**
-     * 按照帧，应该走的时间
-     * 每帧根据帧率加固定时间
-     * 用于处理逐帧同步用
-     */
-    var frameNow = 0;
-    var _callLater = new jy.CallLater();
-    var tweenManager = new jy.TweenManager();
-    var _nextTicks = [];
-    var _intervals = [];
-    /**
-     * 注入白鹭的全局Ticker
-     */
-    function initTick() {
-        //@ts-ignore
-        var ticker = egret.ticker;
-        var update = ticker.render;
-        var delta = 0 | 1000 / ticker.$frameRate;
-        var temp = [];
-        ticker.render = function (triggerByFrame, costTicker) {
-            var _now = Date.now();
-            var dis = _now - now;
-            now = _now;
-            if (dis > 500) {
-                if (dis > 2000) {
-                    //有2秒钟大概就是进入过休眠了
-                    jy.dispatch(-190 /* Awake */);
-                }
-                else {
-                    jy.dispatch(-1996 /* SlowRender */);
-                }
-                console.log("\u4E0A\u6B21\u6267\u884C\u65F6\u95F4\u548C\u5F53\u524D\u65F6\u95F4\u5DEE\u503C\u8FC7\u957F[" + dis + "]");
-                frameNow = _now;
-            }
-            else {
-                frameNow += delta;
-            }
-            if (true) {
-                $();
-            }
-            else if (false) {
-                try {
-                    $();
-                }
-                catch (e) {
-                    jy.ThrowError("ticker.render", e);
-                }
-            }
-            return;
-            function $() {
-                //执行顺序  nextTick  callLater TimerUtil  tween  最后是白鹭的更新
-                var len = _intervals.length;
-                for (var i = 0; i < len; i++) {
-                    var cb = _intervals[i];
-                    cb.execute(false);
-                }
-                len = _nextTicks.length;
-                var tmp = temp;
-                for (var i = 0; i < len; i++) {
-                    tmp[i] = _nextTicks[i];
-                }
-                _nextTicks.length = 0;
-                //先复制再操作是为了防止回调过程中，有新增的nextTick
-                for (var i = 0; i < len; i++) {
-                    tmp[i].execute();
-                }
-                _callLater.tick(_now);
-                jy.TimerUtil.tick(_now);
-                tweenManager.tick(dis);
-                update.call(ticker, triggerByFrame, costTicker);
-            }
-        };
-    }
-    function nextTick(callback, thisObj) {
-        var args = [];
-        for (var _i = 2; _i < arguments.length; _i++) {
-            args[_i - 2] = arguments[_i];
-        }
-        nextTick2(jy.CallbackInfo.get.apply(jy.CallbackInfo, __spreadArrays([callback, thisObj], args)));
-    }
-    function nextTick2(callback) {
-        _nextTicks.push(callback);
-    }
-    /**
-     * 动画的全局对象
-     * @author 3tion
-     *
-     */
-    jy.Global = {
-        initTick: initTick,
-        nextTick: nextTick,
-        nextTick2: nextTick2,
-        callLater: function (callback, time, thisObj) {
-            var args = [];
-            for (var _i = 3; _i < arguments.length; _i++) {
-                args[_i - 3] = arguments[_i];
-            }
-            return _callLater.callLater.apply(_callLater, __spreadArrays([callback, now, time, thisObj], args));
-        },
-        clearCallLater: function (callback, thisObj) {
-            return _callLater.clearCallLater(callback, thisObj);
-        },
-        callLater2: function (callback, time) {
-            return _callLater.callLater2(callback, now, time);
-        },
-        clearCallLater2: function (callback) {
-            return _callLater.clearCallLater2(callback);
-        },
-        getTween: function (target, props, pluginData, override) {
-            return tweenManager.get(target, props, pluginData, override);
-        },
-        removeTween: function (tween) {
-            return tweenManager.removeTween(tween);
-        },
-        removeTweens: function (target) {
-            return tweenManager.removeTweens(target);
-        },
-        get isNative() {
-            return _isNative;
-        },
-        tweenManager: tweenManager,
-        get now() {
-            return now;
-        },
-        get frameNow() {
-            return frameNow;
-        },
-        get webp() {
-            return _webp;
-        },
-        addInterval: function (callback) {
-            _intervals.pushOnce(callback);
-        },
-        removeInterval: function (callback) {
-            _intervals.remove(callback);
-        },
-    };
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -9941,6 +9952,19 @@ var jy;
             this.freeRects = [new Bin(0, 0, width, height)];
         }
         /**
+         * 重置装箱
+         */
+        ShortSideBinPacker.prototype.reset = function () {
+            var _a = this, usedRects = _a.usedRects, freeRects = _a.freeRects, width = _a.width, height = _a.height;
+            usedRects.length = 0;
+            freeRects.length = 1;
+            var first = freeRects[0];
+            first.x = 0;
+            first.y = 0;
+            first.width = width;
+            first.height = height;
+        };
+        /**
          * 扩展大小，如果宽度或者高度比原先小，则返回false
          * @param width
          * @param height
@@ -10362,6 +10386,7 @@ var jy;
 var jy;
 (function (jy) {
     function getDynamicTexSheet(size) {
+        var _size = size;
         var cur = createNewSheet(size);
         var dict = {};
         return {
@@ -10416,20 +10441,28 @@ var jy;
             var bin = packer.insert(ww, hh);
             if (!bin) { //装不下
                 var size_1 = sheet.getSize();
-                //先扩展
-                if (size_1 < 2048 /* MaxSize */) {
-                    size_1 = size_1 << 1;
-                    packer.extSize(size_1, size_1);
-                    sheet.extSize(size_1);
-                    bin = packer.insert(ww, hh);
-                    if (!bin) { //加倍纹理大小了，还放不下，说明当前纹理和之前用的纹理大小差异很大，直接不扩充纹理
-                        return;
+                while (true) {
+                    var willSize = size_1 << 1;
+                    //先扩展
+                    if (willSize <= 2048 /* MaxSize */) {
+                        size_1 = willSize;
+                        packer.extSize(size_1, size_1);
+                        sheet.extSize(size_1);
+                        bin = packer.insert(ww, hh);
+                        if (bin) { //加倍纹理大小了，还放不下，说明当前纹理和之前用的纹理大小差异很大，直接不扩充纹理
+                            break;
+                        }
                     }
-                }
-                else {
-                    //创建新纹理
-                    cur = createNewSheet();
-                    return bind(uri, tex);
+                    else {
+                        var size_2 = _size;
+                        var max = Math.max(ww, hh);
+                        if (max > size_2) {
+                            size_2 = roundUpToNextPowerOfTwo(max);
+                        }
+                        //创建新纹理
+                        cur = createNewSheet(size_2);
+                        return bind(uri, tex);
+                    }
                 }
             }
             dict[uri] = cur;
@@ -10488,6 +10521,16 @@ var jy;
             var sheet = jy.getTextureSheet(size);
             var packer = new jy.ShortSideBinPacker(size, size);
             return { sheet: sheet, packer: packer };
+        }
+        function roundUpToNextPowerOfTwo(n) {
+            n--;
+            n |= n >>> 1;
+            n |= n >>> 2;
+            n |= n >>> 4;
+            n |= n >>> 8;
+            n |= n >>> 16;
+            n++;
+            return n;
         }
     }
     jy.getDynamicTexSheet = getDynamicTexSheet;
