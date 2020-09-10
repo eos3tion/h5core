@@ -227,14 +227,15 @@ namespace jy {
             let oldAction = this._action;
             if (oldAction != action) {
                 this._action = action;
-                render.actionInfo = this._pstInfo.frames[action];
+                let actionInfo = this._pstInfo.frames[action];
+                render.actionInfo = actionInfo
                 render.reset(now);
-                if (oldAction != null) {
+                if (oldAction != null && startFrame == -1) {
                     startFrame = 0;
                 }
             }
             if (startFrame > -1) {
-                render.f = startFrame;
+                render.idx = startFrame;
             }
             return render.actionInfo as ActionInfo;
         }

@@ -15861,14 +15861,15 @@ var jy;
             var oldAction = this._action;
             if (oldAction != action) {
                 this._action = action;
-                render.actionInfo = this._pstInfo.frames[action];
+                var actionInfo = this._pstInfo.frames[action];
+                render.actionInfo = actionInfo;
                 render.reset(now);
                 if (oldAction != null) {
                     startFrame = 0;
                 }
             }
             if (startFrame > -1) {
-                render.f = startFrame;
+                render.idx = startFrame;
             }
             return render.actionInfo;
         };
