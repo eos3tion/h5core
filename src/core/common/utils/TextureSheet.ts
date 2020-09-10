@@ -24,6 +24,7 @@ namespace jy {
         bmd.$deleteSource = false;
         let ctx = canvas.getContext("2d");
         let texCount = 0;
+        let changed = false;
         const texs = {} as { [key: string]: egret.Texture }
         return {
             /**
@@ -86,7 +87,7 @@ namespace jy {
                     size = newSize;
                     bmd.width = bmd.height = canvas.height = canvas.width = size;
                     ctx.putImageData(data, 0, 0);
-                    updateEgretTexutre(bmd);
+                    invalidate();
                 }
                 return true;
             },
@@ -108,12 +109,24 @@ namespace jy {
             }
         }
 
+        function invalidate() {
+            if (!changed) {
+                changed = true;
+                Global.nextTick(doUpdate);
+            }
+        }
+
+        function doUpdate() {
+            updateEgretTexutre(bmd);
+            changed = false;
+        }
+
         function update(key: Key, { x, y, width, height }: Rect, tex: egret.Texture) {
             tex.disposeBitmapData = false;
             tex.bitmapData = bmd;
             texs[key] = tex;
-            updateEgretTexutre(bmd);
             tex.$initData(x, y, width, height, 0, 0, width, height, width, height);
+            invalidate();
         }
     }
 

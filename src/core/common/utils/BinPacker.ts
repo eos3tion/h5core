@@ -38,6 +38,20 @@ namespace jy {
         }
 
         /**
+         * 重置装箱
+         */
+        reset() {
+            let { usedRects, freeRects, width, height } = this;
+            usedRects.length = 0;
+            freeRects.length = 1;
+            let first = freeRects[0];
+            first.x = 0;
+            first.y = 0;
+            first.width = width;
+            first.height = height;
+        }
+
+        /**
          * 扩展大小，如果宽度或者高度比原先小，则返回false
          * @param width 
          * @param height 

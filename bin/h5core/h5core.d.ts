@@ -12,6 +12,271 @@ declare namespace jy {
         MP3 = ".mp3"
     }
 }
+declare namespace jy {
+    /**
+     * 延迟执行
+     * @author 3tion
+     */
+    class CallLater {
+        private _callLaters;
+        private _temp;
+        constructor();
+        tick(now: number): void;
+        /**
+         * 增加延迟执行的函数
+         *
+         * @param {Function} callback (description)
+         * @param {number} now (description)
+         * @param {number} [time] (description)
+         * @param {*} [thisObj] (description)
+         * @param args (description)
+         */
+        callLater(callback: Function, now: number, time?: number, thisObj?: any, ...args: any[]): void;
+        /**
+         * 清理延迟执行的函数
+         *
+         * @param {Function} callback (description)
+         * @param {*} [thisObj] (description)
+         */
+        clearCallLater(callback: Function, thisObj?: any): any;
+        callLater2(callback: $CallbackInfo, now?: number, time?: number): void;
+        clearCallLater2(callback: $CallbackInfo): any;
+        clear(): void;
+    }
+}
+/**
+ * 参考createjs和白鹭的tween
+ * 调整tick的驱动方式
+ * https://github.com/CreateJS/TweenJS
+ * @author 3tion
+ */
+declare namespace jy {
+    class TweenManager {
+        protected _tweens: Tween[];
+        /**
+         * 注册过的插件列表
+         * Key      {string}            属性
+         * Value    {ITweenPlugin[]}    插件列表
+         *
+         * @type {{ [index: string]: ITweenPlugin[] }}
+         */
+        _plugins: {
+            [index: string]: ITweenPlugin[];
+        };
+        /**
+         * Returns a new tween instance. This is functionally identical to using "new Tween(...)", but looks cleaner
+         * with the chained syntax of TweenJS.
+         * <h4>Example</h4>
+         *
+         *		var tween = createjs. this.get(target);
+        *
+        * @method get
+        * @param {Object} target The target object that will have its properties tweened.
+        * @param {TweenOption} [props] The configuration properties to apply to this tween instance (ex. `{loop:true, paused:true}`).
+        * All properties default to `false`. Supported props are:
+        * <UL>
+        *    <LI> loop: sets the loop property on this tween.</LI>
+        *    <LI> useTicks: uses ticks for all durations instead of milliseconds.</LI>
+        *    <LI> ignoreGlobalPause: sets the {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}} property on
+        *    this tween.</LI>
+        *    <LI> override: if true, `createjs. this.removeTweens(target)` will be called to remove any other tweens with
+        *    the same target.
+        *    <LI> paused: indicates whether to start the tween paused.</LI>
+        *    <LI> position: indicates the initial position for this tween.</LI>
+        *    <LI> onChange: specifies a listener for the {{#crossLink "Tween/change:event"}}{{/crossLink}} event.</LI>
+        * </UL>
+        * @param {Object} [pluginData] An object containing data for use by installed plugins. See individual plugins'
+        * documentation for details.
+        * @param {Boolean} [override=false] If true, any previous tweens on the same target will be removed. This is the
+        * same as calling ` this.removeTweens(target)`.
+        * @return {Tween} A reference to the created tween. Additional chained tweens, method calls, or callbacks can be
+        * applied to the returned tween instance.
+        * @static
+        */
+        get(target: any, props?: TweenOption, pluginData?: any, override?: boolean): Tween;
+        /**
+         * 移除指定对象的所有tween
+         * Removes all existing tweens for a target. This is called automatically by new tweens if the `override`
+         * property is `true`.
+         * @method removeTweens
+         * @param {Object} target The target object to remove existing tweens from.
+         * @static
+         */
+        removeTweens(target: any): void;
+        /**
+         * 移除单个tween
+         *
+         * @param {Tween} twn
+         * @returns
+         *
+         * @memberOf TweenManager
+         */
+        removeTween(twn: Tween): void;
+        /**
+         * 暂停某个对象的全部Tween
+         *
+         * @static
+         * @param {*} target 指定对象
+         */
+        pauseTweens(target: any): void;
+        /**
+         * 恢复某个对象的全部Tween
+         *
+         * @static
+         * @param {*} target 指定对象
+         */
+        resumeTweens(target: any): void;
+        /**
+         * 由外部进行调用，进行心跳
+         * Advances all tweens. This typically uses the {{#crossLink "Ticker"}}{{/crossLink}} class, but you can call it
+         * manually if you prefer to use your own "heartbeat" implementation.
+         * @method tick
+         * @param {Number} delta The change in time in milliseconds since the last tick. Required unless all tweens have
+         * `useTicks` set to true.
+         * @param {Boolean} paused Indicates whether a global pause is in effect. Tweens with {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}}
+         * will ignore this, but all others will pause if this is `true`.
+         * @static
+         */
+        tick(delta: number, paused?: boolean): void;
+        /**
+         * 将tween注册/注销到管理器中，
+         *
+         * @param {Tween} tween
+         * @param {boolean} [value] (description)
+         * @returns {void}
+         * @private 此方法只允许tween调用
+         */
+        _register(tween: Tween, value?: boolean): void;
+        /**
+         * Stop and remove all existing tweens.
+         * 终止并移除所有的tween
+         * @method removeAllTweens
+         * @static
+         * @since 0.4.1
+         */
+        removeAllTweens(): void;
+        /**
+         * Indicates whether there are any active tweens (and how many) on the target object (if specified) or in general.
+         * @method hasActiveTweens
+         * @param {Object} [target] The target to check for active tweens. If not specified, the return value will indicate
+         * if there are any active tweens on any target.
+         * @return {Boolean} If there are active tweens.
+         * @static
+         */
+        hasActiveTweens(target: any): boolean;
+        /**
+         * Installs a plugin, which can modify how certain properties are handled when tweened. See the {{#crossLink "CSSPlugin"}}{{/crossLink}}
+         * for an example of how to write TweenJS plugins.
+         * @method installPlugin
+         * @static
+         * @param {Object} plugin The plugin class to install
+         * @param {Array} properties An array of properties that the plugin will handle.
+         */
+        installPlugin(plugin: ITweenPlugin, properties: string[]): void;
+    }
+}
+declare namespace jy {
+    interface GlobalInstance {
+        initTick: () => void;
+        nextTick: (callback: Function, thisObj?: any, ...args: any[]) => void;
+        nextTick2: (callback: CallbackInfo<Function>) => void;
+        /**
+         * 延迟执行
+         * @param {Function} callback 回调函数
+         * @param {number} [time=0] 延迟执行的时间
+         * @param {*} [thisObj] 回调的`this`指针
+         * @param args 回调参数列表
+         */
+        callLater(callback: Function, time?: number, thisObj?: any, ...args: any[]): any;
+        /**
+         * 延迟执行
+         * @param {$CallbackInfo} callback 回调函数
+         * @param {number} [time=0] 延迟执行的时间
+         */
+        callLater2(callback: $CallbackInfo, time?: number): any;
+        /**
+         * 清理延迟
+         * @param {Function} callback 回调函数
+         * @param {*} [thisObj]  回调的`this`指针
+         */
+        clearCallLater(callback: Function, thisObj?: any): any;
+        /**
+         * 清理延迟
+         * @param {$CallbackInfo} callback 要清理的回调
+         */
+        clearCallLater2(callback: $CallbackInfo): any;
+        /**
+         * 获取Tween
+         *
+         * @static
+         * @param {*} target 要对那个对象做Tween处理
+         * @param {TweenOption} props Tween的附加属性 (如： `{loop:true, paused:true}`).
+         * All properties default to `false`. Supported props are:
+         * <UL>
+         *    <LI> loop: sets the loop property on this tween.</LI>
+         *    <LI> useTicks: uses ticks for all durations instead of milliseconds.</LI>
+         *    <LI> ignoreGlobalPause: sets the {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}} property on
+         *    this tween.</LI>
+         *    <LI> override: if true, `createjs. this.removeTweens(target)` will be called to remove any other tweens with
+         *    the same target.
+         *    <LI> paused: indicates whether to start the tween paused.</LI>
+         *    <LI> position: indicates the initial position for this tween.</LI>
+         *    <LI> onChange: specifies a listener for the {{#crossLink "Tween/change:event"}}{{/crossLink}} event.</LI>
+         * </UL>
+         * @param {*} pluginData 插件数据
+         * @param {boolean} override 是否覆盖
+         * @returns {Tween} tween的实例
+         */
+        getTween(target: any, props?: TweenOption, pluginData?: any, override?: boolean): Tween;
+        /**
+         * 移除指定的Tween
+         *
+         * @param {Tween} tween
+         * @returns
+         */
+        removeTween(tween: Tween): any;
+        /**
+         * 移除指定目标的所有Tween
+         *
+         * @param {any} target
+         * @returns
+         */
+        removeTweens(target: any): any;
+        /**
+         * 判断是否为Native的版本
+         */
+        readonly isNative: boolean;
+        tweenManager: TweenManager;
+        /**
+         *  当前这一帧的时间
+         */
+        readonly now: number;
+        /**
+         * 按照帧，应该走的时间
+         * 每帧根据帧率加固定时间
+         * 用于处理逐帧同步用
+         */
+        readonly frameNow: number;
+        /**
+         * 是否支持webp
+         */
+        readonly webp: "" | Ext.WEBP;
+        /**
+         * 添加每帧执行回调
+         */
+        addInterval(callback: CallbackInfo<Function>): void;
+        /**
+         * 移除每帧执行回调
+         */
+        removeInterval(callback: CallbackInfo<Function>): void;
+    }
+    /**
+     * 动画的全局对象
+     * @author 3tion
+     *
+     */
+    const Global: GlobalInstance;
+}
 declare function parseInt(s: number, radix?: number): number;
 declare namespace jy {
     /**
@@ -372,271 +637,6 @@ interface Storage {
      */
     setItem(key: number | string, data: any): void;
     removeItem(key: number | string): void;
-}
-declare namespace jy {
-    /**
-     * 延迟执行
-     * @author 3tion
-     */
-    class CallLater {
-        private _callLaters;
-        private _temp;
-        constructor();
-        tick(now: number): void;
-        /**
-         * 增加延迟执行的函数
-         *
-         * @param {Function} callback (description)
-         * @param {number} now (description)
-         * @param {number} [time] (description)
-         * @param {*} [thisObj] (description)
-         * @param args (description)
-         */
-        callLater(callback: Function, now: number, time?: number, thisObj?: any, ...args: any[]): void;
-        /**
-         * 清理延迟执行的函数
-         *
-         * @param {Function} callback (description)
-         * @param {*} [thisObj] (description)
-         */
-        clearCallLater(callback: Function, thisObj?: any): any;
-        callLater2(callback: $CallbackInfo, now?: number, time?: number): void;
-        clearCallLater2(callback: $CallbackInfo): any;
-        clear(): void;
-    }
-}
-/**
- * 参考createjs和白鹭的tween
- * 调整tick的驱动方式
- * https://github.com/CreateJS/TweenJS
- * @author 3tion
- */
-declare namespace jy {
-    class TweenManager {
-        protected _tweens: Tween[];
-        /**
-         * 注册过的插件列表
-         * Key      {string}            属性
-         * Value    {ITweenPlugin[]}    插件列表
-         *
-         * @type {{ [index: string]: ITweenPlugin[] }}
-         */
-        _plugins: {
-            [index: string]: ITweenPlugin[];
-        };
-        /**
-         * Returns a new tween instance. This is functionally identical to using "new Tween(...)", but looks cleaner
-         * with the chained syntax of TweenJS.
-         * <h4>Example</h4>
-         *
-         *		var tween = createjs. this.get(target);
-        *
-        * @method get
-        * @param {Object} target The target object that will have its properties tweened.
-        * @param {TweenOption} [props] The configuration properties to apply to this tween instance (ex. `{loop:true, paused:true}`).
-        * All properties default to `false`. Supported props are:
-        * <UL>
-        *    <LI> loop: sets the loop property on this tween.</LI>
-        *    <LI> useTicks: uses ticks for all durations instead of milliseconds.</LI>
-        *    <LI> ignoreGlobalPause: sets the {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}} property on
-        *    this tween.</LI>
-        *    <LI> override: if true, `createjs. this.removeTweens(target)` will be called to remove any other tweens with
-        *    the same target.
-        *    <LI> paused: indicates whether to start the tween paused.</LI>
-        *    <LI> position: indicates the initial position for this tween.</LI>
-        *    <LI> onChange: specifies a listener for the {{#crossLink "Tween/change:event"}}{{/crossLink}} event.</LI>
-        * </UL>
-        * @param {Object} [pluginData] An object containing data for use by installed plugins. See individual plugins'
-        * documentation for details.
-        * @param {Boolean} [override=false] If true, any previous tweens on the same target will be removed. This is the
-        * same as calling ` this.removeTweens(target)`.
-        * @return {Tween} A reference to the created tween. Additional chained tweens, method calls, or callbacks can be
-        * applied to the returned tween instance.
-        * @static
-        */
-        get(target: any, props?: TweenOption, pluginData?: any, override?: boolean): Tween;
-        /**
-         * 移除指定对象的所有tween
-         * Removes all existing tweens for a target. This is called automatically by new tweens if the `override`
-         * property is `true`.
-         * @method removeTweens
-         * @param {Object} target The target object to remove existing tweens from.
-         * @static
-         */
-        removeTweens(target: any): void;
-        /**
-         * 移除单个tween
-         *
-         * @param {Tween} twn
-         * @returns
-         *
-         * @memberOf TweenManager
-         */
-        removeTween(twn: Tween): void;
-        /**
-         * 暂停某个对象的全部Tween
-         *
-         * @static
-         * @param {*} target 指定对象
-         */
-        pauseTweens(target: any): void;
-        /**
-         * 恢复某个对象的全部Tween
-         *
-         * @static
-         * @param {*} target 指定对象
-         */
-        resumeTweens(target: any): void;
-        /**
-         * 由外部进行调用，进行心跳
-         * Advances all tweens. This typically uses the {{#crossLink "Ticker"}}{{/crossLink}} class, but you can call it
-         * manually if you prefer to use your own "heartbeat" implementation.
-         * @method tick
-         * @param {Number} delta The change in time in milliseconds since the last tick. Required unless all tweens have
-         * `useTicks` set to true.
-         * @param {Boolean} paused Indicates whether a global pause is in effect. Tweens with {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}}
-         * will ignore this, but all others will pause if this is `true`.
-         * @static
-         */
-        tick(delta: number, paused?: boolean): void;
-        /**
-         * 将tween注册/注销到管理器中，
-         *
-         * @param {Tween} tween
-         * @param {boolean} [value] (description)
-         * @returns {void}
-         * @private 此方法只允许tween调用
-         */
-        _register(tween: Tween, value?: boolean): void;
-        /**
-         * Stop and remove all existing tweens.
-         * 终止并移除所有的tween
-         * @method removeAllTweens
-         * @static
-         * @since 0.4.1
-         */
-        removeAllTweens(): void;
-        /**
-         * Indicates whether there are any active tweens (and how many) on the target object (if specified) or in general.
-         * @method hasActiveTweens
-         * @param {Object} [target] The target to check for active tweens. If not specified, the return value will indicate
-         * if there are any active tweens on any target.
-         * @return {Boolean} If there are active tweens.
-         * @static
-         */
-        hasActiveTweens(target: any): boolean;
-        /**
-         * Installs a plugin, which can modify how certain properties are handled when tweened. See the {{#crossLink "CSSPlugin"}}{{/crossLink}}
-         * for an example of how to write TweenJS plugins.
-         * @method installPlugin
-         * @static
-         * @param {Object} plugin The plugin class to install
-         * @param {Array} properties An array of properties that the plugin will handle.
-         */
-        installPlugin(plugin: ITweenPlugin, properties: string[]): void;
-    }
-}
-declare namespace jy {
-    interface GlobalInstance {
-        initTick: () => void;
-        nextTick: (callback: Function, thisObj?: any, ...args: any[]) => void;
-        nextTick2: (callback: CallbackInfo<Function>) => void;
-        /**
-         * 延迟执行
-         * @param {Function} callback 回调函数
-         * @param {number} [time=0] 延迟执行的时间
-         * @param {*} [thisObj] 回调的`this`指针
-         * @param args 回调参数列表
-         */
-        callLater(callback: Function, time?: number, thisObj?: any, ...args: any[]): any;
-        /**
-         * 延迟执行
-         * @param {$CallbackInfo} callback 回调函数
-         * @param {number} [time=0] 延迟执行的时间
-         */
-        callLater2(callback: $CallbackInfo, time?: number): any;
-        /**
-         * 清理延迟
-         * @param {Function} callback 回调函数
-         * @param {*} [thisObj]  回调的`this`指针
-         */
-        clearCallLater(callback: Function, thisObj?: any): any;
-        /**
-         * 清理延迟
-         * @param {$CallbackInfo} callback 要清理的回调
-         */
-        clearCallLater2(callback: $CallbackInfo): any;
-        /**
-         * 获取Tween
-         *
-         * @static
-         * @param {*} target 要对那个对象做Tween处理
-         * @param {TweenOption} props Tween的附加属性 (如： `{loop:true, paused:true}`).
-         * All properties default to `false`. Supported props are:
-         * <UL>
-         *    <LI> loop: sets the loop property on this tween.</LI>
-         *    <LI> useTicks: uses ticks for all durations instead of milliseconds.</LI>
-         *    <LI> ignoreGlobalPause: sets the {{#crossLink "Tween/ignoreGlobalPause:property"}}{{/crossLink}} property on
-         *    this tween.</LI>
-         *    <LI> override: if true, `createjs. this.removeTweens(target)` will be called to remove any other tweens with
-         *    the same target.
-         *    <LI> paused: indicates whether to start the tween paused.</LI>
-         *    <LI> position: indicates the initial position for this tween.</LI>
-         *    <LI> onChange: specifies a listener for the {{#crossLink "Tween/change:event"}}{{/crossLink}} event.</LI>
-         * </UL>
-         * @param {*} pluginData 插件数据
-         * @param {boolean} override 是否覆盖
-         * @returns {Tween} tween的实例
-         */
-        getTween(target: any, props?: TweenOption, pluginData?: any, override?: boolean): Tween;
-        /**
-         * 移除指定的Tween
-         *
-         * @param {Tween} tween
-         * @returns
-         */
-        removeTween(tween: Tween): any;
-        /**
-         * 移除指定目标的所有Tween
-         *
-         * @param {any} target
-         * @returns
-         */
-        removeTweens(target: any): any;
-        /**
-         * 判断是否为Native的版本
-         */
-        readonly isNative: boolean;
-        tweenManager: TweenManager;
-        /**
-         *  当前这一帧的时间
-         */
-        readonly now: number;
-        /**
-         * 按照帧，应该走的时间
-         * 每帧根据帧率加固定时间
-         * 用于处理逐帧同步用
-         */
-        readonly frameNow: number;
-        /**
-         * 是否支持webp
-         */
-        readonly webp: "" | Ext.WEBP;
-        /**
-         * 添加每帧执行回调
-         */
-        addInterval(callback: CallbackInfo<Function>): void;
-        /**
-         * 移除每帧执行回调
-         */
-        removeInterval(callback: CallbackInfo<Function>): void;
-    }
-    /**
-     * 动画的全局对象
-     * @author 3tion
-     *
-     */
-    const Global: GlobalInstance;
 }
 interface $NSFilter {
     /**
@@ -1104,6 +1104,10 @@ declare namespace jy {
      */
     class ShortSideBinPacker {
         constructor(width: number, height: number, allowRotation?: boolean);
+        /**
+         * 重置装箱
+         */
+        reset(): void;
         /**
          * 扩展大小，如果宽度或者高度比原先小，则返回false
          * @param width
