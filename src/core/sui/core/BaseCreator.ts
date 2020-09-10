@@ -9,6 +9,8 @@ namespace jy {
 
 
         protected _suiData: SuiData;
+        suiLib: string;
+        suiClass: string;
 
         public get suiData() {
             return this._suiData;
@@ -80,6 +82,8 @@ namespace jy {
          */
         public get(): T {
             var t = this._createT();
+            t.suiLib = this.suiLib;
+            t.suiClass = this.suiClass;
             t.suiRawRect = this.size;
             if (t instanceof Component) {
                 t.init(this);

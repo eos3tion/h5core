@@ -280,10 +280,13 @@ namespace jy {
                     let ref = this._creators[type];
                     if (ref) {
                         let lib = suiData.lib;
+                        let suiLib = suiData.key;
                         for (let i = 0; i < len; i++) {
                             let name = nameData[i];
                             let dat = comData[i];
                             let creator = new ref;
+                            creator.suiClass = name;
+                            creator.suiLib = suiLib;
                             creator.parseData(null, suiData);
                             if (dat) {
                                 creator.parseSelfData(dat);
@@ -339,8 +342,6 @@ namespace jy {
                 if (creator) {
                     creator.setBaseData(baseData);
                     let disp = creator.get();
-                    disp.suiClass = className;
-                    disp.suiLib = uri;
                     return disp;
                 } else if (DEBUG) {
                     ThrowError(`没有在[${suiData.key}]找到对应组件[${className}]`);
@@ -368,9 +369,9 @@ namespace jy {
                 let cRef = this._creators[+data[0]];
                 if (cRef) {
                     let creator = new cRef();
+                    creator.suiLib = suiData.key;
                     creator.parseData(data, suiData);
                     let dis = creator.get();
-                    dis.suiLib = suiData.key;
                     return dis;
                 } else if (DEBUG) {
                     ThrowError(`createElement时，没有找到对应组件，索引：[${+data[0]}]`);
