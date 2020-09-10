@@ -1,5 +1,6 @@
 namespace jy {
     export function getDynamicTexSheet(size?: number) {
+        let _size = size;
         let cur = createNewSheet(size);
         const dict = {} as { [uri: string]: ReturnType<typeof createNewSheet> }
         return {
@@ -54,19 +55,27 @@ namespace jy {
             let bin = packer.insert(ww, hh);
             if (!bin) {//装不下
                 let size = sheet.getSize();
-                //先扩展
-                if (size < TextureSheetConst.MaxSize) {
-                    size = size << 1;
-                    packer.extSize(size, size);
-                    sheet.extSize(size);
-                    bin = packer.insert(ww, hh);
-                    if (!bin) {//加倍纹理大小了，还放不下，说明当前纹理和之前用的纹理大小差异很大，直接不扩充纹理
-                        return
+                while (true) {
+                    let willSize = size << 1;
+                    //先扩展
+                    if (willSize <= TextureSheetConst.MaxSize) {
+                        size = willSize;
+                        packer.extSize(size, size);
+                        sheet.extSize(size);
+                        bin = packer.insert(ww, hh);
+                        if (bin) {//加倍纹理大小了，还放不下，说明当前纹理和之前用的纹理大小差异很大，直接不扩充纹理
+                            break
+                        }
+                    } else {
+                        let size = _size;
+                        let max = Math.max(ww, hh);
+                        if (max > size) {
+                            size = roundUpToNextPowerOfTwo(max);
+                        }
+                        //创建新纹理
+                        cur = createNewSheet(size);
+                        return bind(uri, tex);
                     }
-                } else {
-                    //创建新纹理
-                    cur = createNewSheet();
-                    return bind(uri, tex);
                 }
             }
             dict[uri] = cur;
@@ -127,6 +136,17 @@ namespace jy {
             let sheet = getTextureSheet(size);
             let packer = new ShortSideBinPacker(size, size);
             return { sheet, packer }
+        }
+
+        function roundUpToNextPowerOfTwo(n: number) {
+            n--;
+            n |= n >>> 1;
+            n |= n >>> 2;
+            n |= n >>> 4;
+            n |= n >>> 8;
+            n |= n >>> 16;
+            n++;
+            return n;
         }
     }
 
