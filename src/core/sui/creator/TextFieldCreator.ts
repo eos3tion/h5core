@@ -1,12 +1,12 @@
-module egret{
-    export interface TextField{
+module egret {
+    export interface TextField {
         /**
          * 原始的文本数据
          * 
          * @type {jy.TextData}
          * @memberof TextField
          */
-        rawTextData:jy.TextData;
+        rawTextData: jy.TextData;
     }
 }
 namespace jy {
@@ -19,7 +19,7 @@ namespace jy {
          * @memberof TextData
          */
         0: number;
-    
+
         /**
          * 字体，0为默认字体
          * 
@@ -27,7 +27,7 @@ namespace jy {
          * @memberof TextData
          */
         1: string | 0;
-    
+
         /**
          * align
          *  ["left", "center", "right", "justify"] 的索引值
@@ -35,7 +35,7 @@ namespace jy {
          * @memberof TextData
          */
         2: number;
-    
+
         /**
          * 文字颜色
          * 
@@ -43,7 +43,7 @@ namespace jy {
          * @memberof TextData
          */
         3: string;
-    
+
         /**
          * 字体大小
          * 
@@ -51,7 +51,7 @@ namespace jy {
          * @memberof TextData
          */
         4: number;
-    
+
         /**
          * 行间距
          * 
@@ -59,7 +59,7 @@ namespace jy {
          * @memberof TextData
          */
         5: number;
-    
+
         /**
          * 是否加粗
          * 
@@ -67,7 +67,7 @@ namespace jy {
          * @memberof TextData
          */
         6: boolean;
-    
+
         /**
          * 是否为斜体
          * 
@@ -75,7 +75,7 @@ namespace jy {
          * @memberof TextData
          */
         7: boolean;
-    
+
         /**
          * 描边数据
          * 0 表示没有描边
@@ -84,8 +84,8 @@ namespace jy {
          */
         8: 0 | TextStrokeData
     }
-    
-    export  interface TextStrokeData extends Array<any> {
+
+    export interface TextStrokeData extends Array<any> {
         /**
          * 描边颜色值
          * 
@@ -93,7 +93,7 @@ namespace jy {
          * @memberof TextStrokeData
          */
         0: number | string;
-    
+
         /**
          * 描边宽度
          * 
@@ -102,14 +102,15 @@ namespace jy {
          */
         1: number;
     }
-    
-	/**
-	 * 文本框创建器
-	 * @author 
-	 *
-	 */
+
+    /**
+     * 文本框创建器
+     * @author 
+     *
+     */
     export class TextFieldCreator extends BaseCreator<egret.TextField> {
-        static DefaultFonts: string = "";
+        static DefaultFonts: string;
+        static UniformFonts: string;
         public constructor() {
             super();
         }
@@ -118,15 +119,15 @@ namespace jy {
             this._createT = () => {
                 let tf = new egret.TextField();
                 tf.rawTextData = data;
-                this.initTextData(tf,data);
+                this.initTextData(tf, data);
                 return tf;
             }
         }
 
-        public initTextData(tf:egret.TextField,data: TextData){
+        public initTextData(tf: egret.TextField, data: TextData) {
             //静态文本框按动态文本框处理
             let textType = ["dynamic", "dynamic", "input"][+data[0]];
-            let face = data[1] || TextFieldCreator.DefaultFonts;
+            let face = TextFieldCreator.UniformFonts || data[1] || TextFieldCreator.DefaultFonts;
             let align = ["left", "center", "right", "justify"][+data[2]];
             let color = ColorUtil.getColorValue(data[3]);
             let size = data[4] || 12;//默认12px字
@@ -134,7 +135,7 @@ namespace jy {
             let bold = !!data[6];
             let italic = !!data[7];
             let stroke = 0;
-            let strokeColor:any = 0;
+            let strokeColor: any = 0;
             let strokeDat = data[8];
             //            // blurX 作为描边宽度
             //            data[8] = [filter.color,filter.blurX];

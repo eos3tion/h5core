@@ -22960,7 +22960,7 @@ var jy;
         TextFieldCreator.prototype.initTextData = function (tf, data) {
             //静态文本框按动态文本框处理
             var textType = ["dynamic", "dynamic", "input"][+data[0]];
-            var face = data[1] || TextFieldCreator.DefaultFonts;
+            var face = TextFieldCreator.UniformFonts || data[1] || TextFieldCreator.DefaultFonts;
             var align = ["left", "center", "right", "justify"][+data[2]];
             var color = jy.ColorUtil.getColorValue(data[3]);
             var size = data[4] || 12; //默认12px字
@@ -22990,7 +22990,6 @@ var jy;
             tf.stroke = stroke;
             tf.strokeColor = strokeColor;
         };
-        TextFieldCreator.DefaultFonts = "";
         return TextFieldCreator;
     }(jy.BaseCreator));
     jy.TextFieldCreator = TextFieldCreator;
