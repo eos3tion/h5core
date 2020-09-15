@@ -2065,7 +2065,7 @@ declare namespace egret {
          * @private
          * 纹理宽度
          */
-        private $textureWidth;
+        $textureWidth;
         /**
          * Texture width, read only
          * @version Egret 2.4
@@ -2084,7 +2084,7 @@ declare namespace egret {
          * @private
          * 纹理高度
          */
-        private $textureHeight;
+        $textureHeight;
         /**
          * Texture height, read only
          * @version Egret 2.4

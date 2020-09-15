@@ -3359,8 +3359,8 @@ var jy;
 var jy;
 (function (jy) {
     function getDynamicTexSheet(size) {
-        var _size = size;
-        var cur = createNewSheet(size);
+        var _size = size || 2048 /* MaxSize */ >> 2;
+        var cur = createNewSheet(_size);
         var dict = {};
         return {
             bind: bind,

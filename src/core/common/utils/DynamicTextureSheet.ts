@@ -1,7 +1,7 @@
 namespace jy {
     export function getDynamicTexSheet(size?: number) {
-        let _size = size;
-        let cur = createNewSheet(size);
+        let _size = size || TextureSheetConst.MaxSize >> 2;
+        let cur = createNewSheet(_size);
         const dict = {} as { [uri: string]: ReturnType<typeof createNewSheet> }
         return {
             bind,
