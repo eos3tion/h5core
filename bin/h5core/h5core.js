@@ -3358,12 +3358,19 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
+    var tex;
+    egret.callLater(function () {
+        tex = new egret.RenderTexture();
+    }, null);
+    var tmpSource = { width: 0, height: 0 };
+    var _bmd = new egret.BitmapData(tmpSource);
     function getDynamicTexSheet(size) {
         var _size = size || 2048 /* MaxSize */ >> 2;
         var cur = createNewSheet(_size);
         var dict = {};
         return {
             bind: bind,
+            draw: draw,
             update: update,
             bindOrUpdate: function (uri, tex) {
                 if (get(uri)) {
@@ -3377,11 +3384,11 @@ var jy;
                 var _cur = dict[uri];
                 if (_cur) {
                     var sheet = _cur.sheet, packer = _cur.packer;
-                    var tex = sheet.remove(uri);
-                    if (tex) {
-                        var bin = tex.$bin;
+                    var tex_1 = sheet.remove(uri);
+                    if (tex_1) {
+                        var bin = tex_1.$bin;
                         if (bin) {
-                            tex.$bin = undefined;
+                            tex_1.$bin = undefined;
                             //将位置还原给装箱数据
                             packer.usedRects.remove(bin);
                             packer.freeRects.pushOnce(bin);
@@ -3391,6 +3398,56 @@ var jy;
             },
             get: get
         };
+        function draw(uri, display, clipBounds, scale) {
+            tex.drawToTexture(display, clipBounds, scale);
+            var width = tex.textureWidth, height = tex.textureHeight;
+            var _cur = dict[uri];
+            if (!_cur) { //已经有，不做处理
+                _cur = cur;
+            }
+            var sheet = _cur.sheet;
+            var oldTex = sheet.get(uri);
+            var out;
+            if (oldTex) {
+                if (oldTex.textureWidth == width && oldTex.textureHeight == height) {
+                    out = oldTex;
+                }
+            }
+            else {
+                out = new egret.Texture;
+                tmpSource.width = width;
+                tmpSource.height = height;
+                out.$bitmapData = _bmd;
+                bind(uri, out);
+                sheet = out.sheet;
+            }
+            if (out) {
+                var bin = out.$bin;
+                updateTex(sheet.ctx, bin.x, bin.y, width, height);
+                sheet.update(uri, bin, out);
+            }
+            return out;
+        }
+        function updateTex(ctx, x, y, width, height) {
+            var imgData = ctx.createImageData(width, height);
+            var data = imgData.data;
+            tex.$renderBuffer.context.getPixels(0, 0, width, height, data);
+            var hh = height >> 1;
+            var width4 = width << 2;
+            //调整方向
+            for (var y_1 = 0; y_1 < hh; y_1++) {
+                var index1 = width4 * (height - y_1 - 1);
+                var index2 = width4 * y_1;
+                for (var i = 0; i < width4; i++) {
+                    var d1 = index1 + i;
+                    var d2 = index2 + i;
+                    var tmp = data[d1];
+                    data[d1] = data[d2];
+                    data[d2] = tmp;
+                }
+            }
+            ctx.putImageData(imgData, x, y);
+        }
         function get(uri) {
             var _cur = dict[uri];
             return _cur && _cur.sheet.get(uri);
@@ -3441,6 +3498,7 @@ var jy;
             dict[uri] = cur;
             setTexData(bin, sheet, tex);
             var x = bin.x, y = bin.y;
+            tex.sheet = sheet;
             sheet.reg(uri, { x: x, y: y, width: width, height: height }, tex);
         }
         function update(uri, tex) {
@@ -3456,37 +3514,18 @@ var jy;
             }
         }
         function setTexData(bin, sheet, tex) {
-            var bmd = tex.bitmapData;
-            var source = bmd.source;
-            var width = source.width, height = source.height;
             tex.$bin = bin;
+            tex.sheet = sheet;
+            var bmd = tex.bitmapData;
+            if (bmd == _bmd) {
+                return;
+            }
+            var source = bmd.source;
             //将突破绘制到sheet上，并清除原纹理
             var ctx = sheet.ctx;
             ctx.globalAlpha = 1;
             var x = bin.x, y = bin.y;
-            if (tex instanceof egret.RenderTexture) {
-                var imgData = ctx.createImageData(width, height);
-                var data = imgData.data;
-                tex.$renderBuffer.context.getPixels(0, 0, width, height, data);
-                var hh = height >> 1;
-                var width4 = width << 2;
-                //调整方向
-                for (var y_1 = 0; y_1 < hh; y_1++) {
-                    var index1 = width4 * (height - y_1 - 1);
-                    var index2 = width4 * y_1;
-                    for (var i = 0; i < width4; i++) {
-                        var d1 = index1 + i;
-                        var d2 = index2 + i;
-                        var tmp = data[d1];
-                        data[d1] = data[d2];
-                        data[d2] = tmp;
-                    }
-                }
-                ctx.putImageData(imgData, x, y);
-            }
-            else {
-                ctx.drawImage(source, x, y);
-            }
+            ctx.drawImage(source, x, y);
             bmd.$dispose();
         }
         function createNewSheet(size) {
@@ -14389,9 +14428,9 @@ var jy;
                         g.strokeText(l, x, hh, gridWidth);
                         g.fillText(l, x, hh, gridWidth);
                     }
-                    var tex_1 = new egret.Texture();
-                    tex_1.bitmapData = new egret.BitmapData(canvas);
-                    sheets_1.bindOrUpdate(key, tex_1);
+                    var tex_2 = new egret.Texture();
+                    tex_2.bitmapData = new egret.BitmapData(canvas);
+                    sheets_1.bindOrUpdate(key, tex_2);
                 }
                 return tex;
             }
@@ -15137,9 +15176,9 @@ var jy;
                         g.strokeText(l, x, hh, gridWidth);
                         g.fillText(l, x, hh, gridWidth);
                     }
-                    var tex_2 = new egret.Texture();
-                    tex_2.bitmapData = new egret.BitmapData(canvas);
-                    sheets_2.bindOrUpdate(key, tex_2);
+                    var tex_3 = new egret.Texture();
+                    tex_3.bitmapData = new egret.BitmapData(canvas);
+                    sheets_2.bindOrUpdate(key, tex_3);
                 }
                 return tex;
             }
