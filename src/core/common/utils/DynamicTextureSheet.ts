@@ -1,19 +1,29 @@
 namespace jy {
+
+    let tex: egret.RenderTexture;
+    egret.callLater(function () {
+        tex = new egret.RenderTexture()
+    }, null)
+
+    const tmpSource = { width: 0, height: 0 };
+    const _bmd = new egret.BitmapData(tmpSource);
+
     export function getDynamicTexSheet(size?: number) {
         let _size = size || TextureSheetConst.MaxSize >> 2;
         let cur = createNewSheet(_size);
         const dict = {} as { [uri: string]: ReturnType<typeof createNewSheet> }
         return {
             bind,
+            draw,
             update,
-            bindOrUpdate(uri: string, tex: DynamicTexture) {
+            bindOrUpdate(uri: Key, tex: DynamicTexture) {
                 if (get(uri)) {
                     update(uri, tex);
                 } else {
                     bind(uri, tex);
                 }
             },
-            remove(uri: string) {
+            remove(uri: Key) {
                 let _cur = dict[uri];
                 if (_cur) {
                     const { sheet, packer } = _cur;
@@ -32,11 +42,62 @@ namespace jy {
             get
         }
 
-        function get(uri: string) {
+        function draw(uri: Key, display: egret.DisplayObject, clipBounds?: egret.Rectangle, scale?: number) {
+            tex.drawToTexture(display, clipBounds, scale);
+            const { textureWidth: width, textureHeight: height } = tex;
+            let _cur = dict[uri];
+            if (!_cur) {//已经有，不做处理
+                _cur = cur;
+            }
+            let { sheet } = _cur;
+            let oldTex = sheet.get(uri) as DynamicTexture;
+            let out: DynamicTexture;
+            if (oldTex) {
+                if (oldTex.textureWidth == width && oldTex.textureHeight == height) {
+                    out = oldTex;
+                }
+            } else {
+                out = new egret.Texture as DynamicTexture;
+                tmpSource.width = width;
+                tmpSource.height = height;
+                out.$bitmapData = _bmd;
+                bind(uri, out);
+                sheet = out.sheet;
+            }
+            if (out) {
+                let bin = out.$bin;
+                updateTex(sheet.ctx, bin.x, bin.y, width, height);
+                sheet.update(uri, bin, out);
+            }
+            return out;
+        }
+
+        function updateTex(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number) {
+            let imgData = ctx.createImageData(width, height);
+            let data = imgData.data;
+            tex.$renderBuffer.context.getPixels(0, 0, width, height, data);
+            let hh = height >> 1;
+            let width4 = width << 2;
+            //调整方向
+            for (let y = 0; y < hh; y++) {
+                let index1 = width4 * (height - y - 1);
+                let index2 = width4 * y;
+                for (let i = 0; i < width4; i++) {
+                    let d1 = index1 + i;
+                    let d2 = index2 + i;
+                    let tmp = data[d1];
+                    data[d1] = data[d2];
+                    data[d2] = tmp;
+                }
+            }
+            ctx.putImageData(imgData, x, y);
+        }
+
+        function get(uri: Key) {
             let _cur = dict[uri];
             return _cur && _cur.sheet.get(uri);
         }
-        function bind(uri: string, tex: DynamicTexture) {
+        function bind(uri: Key, tex: DynamicTexture) {
             //检查是否已经加载过
             let _cur = dict[uri];
             if (_cur) {//已经有，不做处理
@@ -81,10 +142,11 @@ namespace jy {
             dict[uri] = cur;
             setTexData(bin, sheet, tex);
             let { x, y } = bin;
+            tex.sheet = sheet;
             sheet.reg(uri, { x, y, width, height }, tex);
         }
 
-        function update(uri: string, tex: egret.Texture) {
+        function update(uri: Key, tex: egret.Texture) {
             let _cur = dict[uri];
             if (_cur) {//已经有，不做处理
                 const { sheet } = _cur;
@@ -98,36 +160,18 @@ namespace jy {
         }
 
         function setTexData(bin: Bin, sheet: TextureSheet, tex: DynamicTexture) {
-            let bmd = tex.bitmapData;
-            let source = bmd.source;
-            let { width, height } = source;
             tex.$bin = bin;
+            tex.sheet = sheet;
+            let bmd = tex.bitmapData;
+            if (bmd == _bmd) {
+                return
+            }
+            let source = bmd.source;
             //将突破绘制到sheet上，并清除原纹理
             let ctx = sheet.ctx;
             ctx.globalAlpha = 1;
             let { x, y } = bin;
-            if (tex instanceof egret.RenderTexture) {
-                let imgData = ctx.createImageData(width, height);
-                let data = imgData.data;
-                tex.$renderBuffer.context.getPixels(0, 0, width, height, data);
-                let hh = height >> 1;
-                let width4 = width << 2;
-                //调整方向
-                for (let y = 0; y < hh; y++) {
-                    let index1 = width4 * (height - y - 1);
-                    let index2 = width4 * y;
-                    for (let i = 0; i < width4; i++) {
-                        let d1 = index1 + i;
-                        let d2 = index2 + i;
-                        let tmp = data[d1];
-                        data[d1] = data[d2];
-                        data[d2] = tmp;
-                    }
-                }
-                ctx.putImageData(imgData, x, y);
-            } else {
-                ctx.drawImage(source as CanvasImageSource, x, y);
-            }
+            ctx.drawImage(source as CanvasImageSource, x, y);
             bmd.$dispose();
         }
 
@@ -152,6 +196,7 @@ namespace jy {
 
     interface DynamicTexture extends egret.Texture {
         $bin?: Bin;
+        sheet?: TextureSheet;
     }
 
     export declare type DynamicTexSheet = ReturnType<typeof getDynamicTexSheet>

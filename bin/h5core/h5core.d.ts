@@ -8490,14 +8490,16 @@ declare namespace jy {
 }
 declare namespace jy {
     export function getDynamicTexSheet(size?: number): {
-        bind: (uri: string, tex: DynamicTexture) => any;
-        update: (uri: string, tex: egret.Texture) => void;
-        bindOrUpdate(uri: string, tex: DynamicTexture): void;
-        remove(uri: string): void;
-        get: (uri: string) => egret.Texture;
+        bind: (uri: string | number, tex: DynamicTexture) => any;
+        draw: (uri: string | number, display: egret.DisplayObject, clipBounds?: egret.Rectangle, scale?: number) => DynamicTexture;
+        update: (uri: string | number, tex: egret.Texture) => void;
+        bindOrUpdate(uri: string | number, tex: DynamicTexture): void;
+        remove(uri: string | number): void;
+        get: (uri: string | number) => egret.Texture;
     };
     interface DynamicTexture extends egret.Texture {
         $bin?: Bin;
+        sheet?: TextureSheet;
     }
     export type DynamicTexSheet = ReturnType<typeof getDynamicTexSheet>;
     export {};
