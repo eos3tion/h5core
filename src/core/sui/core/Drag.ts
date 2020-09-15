@@ -179,6 +179,14 @@ namespace jy {
     const tempPt = new egret.Point;
     function checkStart(this: DragDele, e: TouchEvent) {
         let host = this.host;
+        //检查host和
+        let dis = e.target as egret.DisplayObject;
+        while (dis != host) {
+            if (!dis) {
+                return
+            }
+            dis = dis.parent;
+        }
         let x = e.stageX;
         let y = e.stageY;
         host.globalToLocal(x, y, tempPt);

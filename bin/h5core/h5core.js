@@ -20600,6 +20600,14 @@ var jy;
     var tempPt = new egret.Point;
     function checkStart(e) {
         var host = this.host;
+        //检查host和
+        var dis = e.target;
+        while (dis != host) {
+            if (!dis) {
+                return;
+            }
+            dis = dis.parent;
+        }
         var x = e.stageX;
         var y = e.stageY;
         host.globalToLocal(x, y, tempPt);
