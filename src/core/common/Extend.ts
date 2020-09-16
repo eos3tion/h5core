@@ -781,9 +781,9 @@ module egret {
         refreshBMD();
 
         /**
-		 * 占位用纹理
-		 * 
-		 */
+         * 占位用纹理
+         * 
+         */
         placehoder?: egret.Texture;
     }
     export interface TextField {
@@ -814,13 +814,14 @@ module egret {
         }
     }
     /**重写Bitmap.prototype.$refreshImageData用于支持egret的webgl渲染 */
-    let $rawRefreshImageData = Bitmap.prototype.$refreshImageData;
-    bpt.$refreshImageData = function () {
+    let $rawRefreshImageData = bpt.$refreshImageData;
+    bpt.$refreshImageData = function (this: egret.Bitmap) {
         $rawRefreshImageData.call(this);
         let bmd = this.$bitmapData;
         if (bmd) {
             this.$sourceWidth = bmd.width;
             this.$sourceHeight = bmd.height;
+            this.$updateRenderNode();
         }
     }
     const htmlTextParser = new HtmlTextParser();

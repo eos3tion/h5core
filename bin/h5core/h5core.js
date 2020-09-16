@@ -1029,13 +1029,14 @@ var egret;
         }
     };
     /**重写Bitmap.prototype.$refreshImageData用于支持egret的webgl渲染 */
-    var $rawRefreshImageData = egret.Bitmap.prototype.$refreshImageData;
+    var $rawRefreshImageData = bpt.$refreshImageData;
     bpt.$refreshImageData = function () {
         $rawRefreshImageData.call(this);
         var bmd = this.$bitmapData;
         if (bmd) {
             this.$sourceWidth = bmd.width;
             this.$sourceHeight = bmd.height;
+            this.$updateRenderNode();
         }
     };
     var htmlTextParser = new egret.HtmlTextParser();
@@ -1871,6 +1872,7 @@ var jy;
         var ctx = canvas.getContext("2d");
         var texCount = 0;
         var changed = false;
+        var sizeChanged = false;
         var texs = {};
         return {
             /**
@@ -1932,6 +1934,7 @@ var jy;
                     size = newSize;
                     bmd.width = bmd.height = canvas.height = canvas.width = size;
                     ctx.putImageData(data, 0, 0);
+                    sizeChanged = true;
                     invalidate();
                 }
                 return true;
@@ -1961,6 +1964,10 @@ var jy;
         }
         function doUpdate() {
             updateEgretTexutre(bmd);
+            if (sizeChanged) {
+                egret.BitmapData.$invalidate(bmd);
+                sizeChanged = false;
+            }
             changed = false;
         }
         function update(key, rect, tex) {
@@ -19028,6 +19035,11 @@ var jy;
                     //先设置为占位用，避免有些玩家加载慢，无法看到图
                     res.bind(this, this.placehoder, true);
                 }
+            }
+            var texture = this.texture;
+            if (texture && texture.sheet) {
+                this.$refreshImageData();
+                this.$updateRenderNode();
             }
         };
         Image.prototype.removedFromStage = function () {
