@@ -1221,10 +1221,11 @@ var jy;
             updateEgretTexutre(bmd);
             changed = false;
         }
-        function update(key, _a, tex) {
-            var x = _a.x, y = _a.y, width = _a.width, height = _a.height;
+        function update(key, rect, tex) {
+            var x = rect.x, y = rect.y, width = rect.width, height = rect.height;
             tex.disposeBitmapData = false;
             tex.bitmapData = bmd;
+            tex.$rect = rect;
             texs[key] = tex;
             tex.$initData(x, y, width, height, 0, 0, width, height, width, height);
             invalidate();
@@ -10451,9 +10452,9 @@ var jy;
                 sheet = out.sheet;
             }
             if (out) {
-                var bin = out.$bin;
-                updateTex(sheet.ctx, bin.x, bin.y, width, height);
-                sheet.update(uri, bin, out);
+                var _a = out.$bin, x = _a.x, y = _a.y;
+                updateTex(sheet.ctx, x, y, width, height);
+                sheet.update(uri, { x: x, y: y, width: width, height: height }, out);
             }
             return out;
         }
@@ -10525,8 +10526,8 @@ var jy;
                 }
             }
             dict[uri] = cur;
-            setTexData(bin, sheet, tex);
             var x = bin.x, y = bin.y;
+            setTexData(bin, sheet, tex);
             tex.sheet = sheet;
             sheet.reg(uri, { x: x, y: y, width: width, height: height }, tex);
         }
@@ -10537,8 +10538,9 @@ var jy;
                 var oldTex = sheet.get(uri);
                 if (oldTex && oldTex.textureWidth == tex.textureWidth && oldTex.textureHeight == tex.textureHeight) {
                     var bin = oldTex.$bin;
+                    var rect = oldTex.$rect;
                     setTexData(bin, sheet, tex);
-                    sheet.update(uri, bin, tex);
+                    sheet.update(uri, rect, tex);
                 }
             }
         }

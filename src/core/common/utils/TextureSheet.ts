@@ -121,14 +121,20 @@ namespace jy {
             changed = false;
         }
 
-        function update(key: Key, { x, y, width, height }: Rect, tex: egret.Texture) {
+        function update(key: Key, rect: Rect, tex: DynamicTexture) {
+            const { x, y, width, height } = rect;
             tex.disposeBitmapData = false;
             tex.bitmapData = bmd;
+            tex.$rect = rect;
             texs[key] = tex;
             tex.$initData(x, y, width, height, 0, 0, width, height, width, height);
             invalidate();
         }
     }
-
+    export interface DynamicTexture extends egret.Texture {
+        $bin?: Bin;
+        sheet?: TextureSheet;
+        $rect?: Rect;
+    }
     export type TextureSheet = ReturnType<typeof getTextureSheet>;
 }

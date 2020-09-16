@@ -65,9 +65,9 @@ namespace jy {
                 sheet = out.sheet;
             }
             if (out) {
-                let bin = out.$bin;
-                updateTex(sheet.ctx, bin.x, bin.y, width, height);
-                sheet.update(uri, bin, out);
+                let { x, y } = out.$bin;
+                updateTex(sheet.ctx, x, y, width, height);
+                sheet.update(uri, { x, y, width, height }, out);
             }
             return out;
         }
@@ -140,8 +140,8 @@ namespace jy {
                 }
             }
             dict[uri] = cur;
-            setTexData(bin, sheet, tex);
             let { x, y } = bin;
+            setTexData(bin, sheet, tex);
             tex.sheet = sheet;
             sheet.reg(uri, { x, y, width, height }, tex);
         }
@@ -153,8 +153,9 @@ namespace jy {
                 let oldTex = sheet.get(uri) as DynamicTexture;
                 if (oldTex && oldTex.textureWidth == tex.textureWidth && oldTex.textureHeight == tex.textureHeight) {
                     let bin = oldTex.$bin;
+                    let rect = oldTex.$rect;
                     setTexData(bin, sheet, tex);
-                    sheet.update(uri, bin, tex);
+                    sheet.update(uri, rect, tex);
                 }
             }
         }
@@ -194,10 +195,6 @@ namespace jy {
         }
     }
 
-    interface DynamicTexture extends egret.Texture {
-        $bin?: Bin;
-        sheet?: TextureSheet;
-    }
 
     export declare type DynamicTexSheet = ReturnType<typeof getDynamicTexSheet>
 }
