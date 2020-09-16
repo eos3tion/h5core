@@ -1141,7 +1141,7 @@ declare namespace jy {
         /**
          * 更新纹理
          */
-        update: (key: string | number, { x, y, width, height }: Rect, tex: egret.Texture) => void;
+        update: (key: string | number, rect: Rect, tex: DynamicTexture) => void;
         /**
          * 删除指定纹理
          * @param key
@@ -1166,6 +1166,11 @@ declare namespace jy {
          */
         getSize(): number;
     };
+    interface DynamicTexture extends egret.Texture {
+        $bin?: Bin;
+        sheet?: TextureSheet;
+        $rect?: Rect;
+    }
     type TextureSheet = ReturnType<typeof getTextureSheet>;
 }
 declare namespace jy {
@@ -2325,7 +2330,7 @@ declare namespace jy {
     export {};
 }
 declare namespace jy {
-    export function getDynamicTexSheet(size?: number): {
+    function getDynamicTexSheet(size?: number): {
         bind: (uri: string | number, tex: DynamicTexture) => any;
         draw: (uri: string | number, display: egret.DisplayObject, clipBounds?: egret.Rectangle, scale?: number) => DynamicTexture;
         update: (uri: string | number, tex: egret.Texture) => void;
@@ -2333,12 +2338,7 @@ declare namespace jy {
         remove(uri: string | number): void;
         get: (uri: string | number) => egret.Texture;
     };
-    interface DynamicTexture extends egret.Texture {
-        $bin?: Bin;
-        sheet?: TextureSheet;
-    }
-    export type DynamicTexSheet = ReturnType<typeof getDynamicTexSheet>;
-    export {};
+    type DynamicTexSheet = ReturnType<typeof getDynamicTexSheet>;
 }
 declare namespace jy {
     /**
