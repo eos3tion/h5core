@@ -25,6 +25,7 @@ namespace jy {
         let ctx = canvas.getContext("2d");
         let texCount = 0;
         let changed = false;
+        let sizeChanged = false;
         const texs = {} as { [key: string]: egret.Texture }
         return {
             /**
@@ -87,6 +88,7 @@ namespace jy {
                     size = newSize;
                     bmd.width = bmd.height = canvas.height = canvas.width = size;
                     ctx.putImageData(data, 0, 0);
+                    sizeChanged = true;
                     invalidate();
                 }
                 return true;
@@ -118,6 +120,10 @@ namespace jy {
 
         function doUpdate() {
             updateEgretTexutre(bmd);
+            if (sizeChanged) {
+                egret.BitmapData.$invalidate(bmd);
+                sizeChanged = false;
+            }
             changed = false;
         }
 
@@ -131,6 +137,7 @@ namespace jy {
             invalidate();
         }
     }
+
     export interface DynamicTexture extends egret.Texture {
         $bin?: Bin;
         sheet?: TextureSheet;

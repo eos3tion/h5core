@@ -8,8 +8,8 @@ namespace jy {
 	export class Image extends egret.Bitmap implements TextureResourceOption {
 
 		/**
-         * 资源唯一标识
-         */
+		 * 资源唯一标识
+		 */
 		uri: string;
 		/**
 		 * 设置图片的加载列队优先级
@@ -34,6 +34,11 @@ namespace jy {
 					//先设置为占位用，避免有些玩家加载慢，无法看到图
 					res.bind(this, this.placehoder, true);
 				}
+			}
+			let texture = this.texture;
+			if (texture && (texture as DynamicTexture).sheet) {
+				this.$refreshImageData();
+				this.$updateRenderNode();
 			}
 		}
 
