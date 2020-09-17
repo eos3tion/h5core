@@ -3438,6 +3438,8 @@ var jy;
                 tmpSource.width = width;
                 tmpSource.height = height;
                 out.$bitmapData = _bmd;
+                out.$textureWidth = width;
+                out.$textureHeight = height;
                 bind(uri, out);
                 sheet = out.sheet;
             }
