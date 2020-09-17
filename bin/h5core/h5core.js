@@ -1151,10 +1151,10 @@ var jy;
                 var tex = texs[key];
                 if (!tex) {
                     tex = ntex || new egret.Texture;
-                    update(key, rect, tex);
                     texCount++;
-                    return tex;
                 }
+                update(key, rect, tex);
+                return tex;
             },
             /**
              * 更新纹理
@@ -8762,7 +8762,7 @@ var jy;
      * @implements {IResource}
      */
     var TextureResource = /** @class */ (function () {
-        function TextureResource(uri, noWebp) {
+        function TextureResource(uri, opt) {
             this.state = 0 /* UNREQUEST */;
             /**
              *
@@ -8772,7 +8772,8 @@ var jy;
              */
             this._list = [];
             this.uri = uri;
-            this.url = jy.ConfigUtils.getResUrl(uri + (!noWebp ? jy.Global.webp : ""));
+            this.url = jy.ConfigUtils.getResUrl(uri + (!opt.noWebp ? jy.Global.webp : ""));
+            this.opt = opt;
         }
         Object.defineProperty(TextureResource.prototype, "isStatic", {
             /**
@@ -8829,18 +8830,19 @@ var jy;
         TextureResource.prototype.loadComplete = function (item) {
             var data = item.data, uri = item.uri;
             if (uri == this.uri) {
-                var sheetKey = this.sheetKey;
+                var opt = this.opt;
+                var sheetKey = opt.sheetKey;
                 if (sheetKey && data) {
                     var sheet = sheetsDict[sheetKey];
                     if (!sheet) {
-                        sheetsDict[sheetKey] = sheet = jy.getDynamicTexSheet();
+                        sheetsDict[sheetKey] = sheet = jy.getDynamicTexSheet(opt.sheetSize, opt.sheetPath, opt.sheetColor);
                     }
                     var dat = sheet.get(uri);
                     if (dat) {
                         data = dat;
                     }
                     else {
-                        sheet.bind(uri, data);
+                        data = sheet.bind(uri, data);
                     }
                 }
                 this._tex = data;
@@ -8867,7 +8869,7 @@ var jy;
             var tex = this._tex;
             if (tex) {
                 this._tex = undefined;
-                var sheetKey = this.sheetKey;
+                var sheetKey = this.opt.sheetKey;
                 if (sheetKey) {
                     var sheet = sheetsDict[sheetKey];
                     if (sheet) {
@@ -8886,26 +8888,51 @@ var jy;
          * @param {boolean} [noWebp] 是否不加webp后缀
          * @returns {TextureResource}
          */
-        TextureResource.get = function (uri, _a) {
-            var noWebp = _a.noWebp, sheetKey = _a.sheetKey;
-            var res = jy.ResManager.getResource(uri);
-            if (res) {
-                if (!(res instanceof TextureResource)) {
-                    jy.ThrowError("[" + uri + "]\u8D44\u6E90\u6709\u8BEF\uFF0C\u4E0D\u662FTextureResource");
-                    res = undefined;
+        TextureResource.get = function (uri, opt) {
+            var sheetKey = opt.sheetKey;
+            if (sheetKey) { //有sheetKey的不受ResManager管控，必须自行控制
+                var data = sheetRes[sheetKey];
+                if (!data) {
+                    sheetRes[sheetKey] = data = {};
                 }
+                var res = data[uri];
+                if (!res) {
+                    data[uri] = res = new TextureResource(uri, opt);
+                }
+                return res;
             }
-            if (!res) {
-                res = new TextureResource(uri, noWebp);
-                res.sheetKey = sheetKey;
-                jy.ResManager.regResource(uri, res);
+            else {
+                var res = jy.ResManager.getResource(uri);
+                if (res) {
+                    if (!(res instanceof TextureResource)) {
+                        jy.ThrowError("[" + uri + "]\u8D44\u6E90\u6709\u8BEF\uFF0C\u4E0D\u662FTextureResource");
+                        res = undefined;
+                    }
+                }
+                if (!res) {
+                    res = new TextureResource(uri, opt);
+                    jy.ResManager.regResource(uri, res);
+                }
+                return res;
             }
-            return res;
+        };
+        TextureResource.dispose = function (sheetKey) {
+            var sheet = sheetsDict[sheetKey];
+            var data = sheetRes[sheetKey];
+            if (data) {
+                for (var uri in data) {
+                    var tex = data[uri];
+                    tex.dispose();
+                }
+                sheetRes[sheetKey] = {};
+            }
+            sheet.dispose();
         };
         return TextureResource;
     }());
     jy.TextureResource = TextureResource;
     __reflect(TextureResource.prototype, "jy.TextureResource", ["jy.IResource"]);
+    var sheetRes = {};
     var sheetsDict = {};
 })(jy || (jy = {}));
 var jy;
@@ -10401,10 +10428,15 @@ var jy;
     }, null);
     var tmpSource = { width: 0, height: 0 };
     var _bmd = new egret.BitmapData(tmpSource);
-    function getDynamicTexSheet(size) {
+    var matrix = new DOMMatrix();
+    var dtid = 1;
+    function getDynamicTexSheet(size, path, pathColor) {
+        var $TextureScaleFactor = egret.$TextureScaleFactor;
         var _size = size || 2048 /* MaxSize */ >> 2;
-        var cur = createNewSheet(_size);
+        var _dtid = dtid++;
         var dict = {};
+        var sheets = [];
+        var cur = createNewSheet(_size);
         return {
             bind: bind,
             draw: draw,
@@ -10433,7 +10465,14 @@ var jy;
                     }
                 }
             },
-            get: get
+            get: get,
+            dispose: function () {
+                for (var i = 0; i < sheets.length; i++) {
+                    var sheet = sheets[i];
+                    sheet.dispose();
+                }
+                sheets.length = 0;
+            }
         };
         function draw(uri, display, clipBounds, scale) {
             tex.drawToTexture(display, clipBounds, scale);
@@ -10460,30 +10499,28 @@ var jy;
             }
             if (out) {
                 var _a = out.$bin, x = _a.x, y = _a.y;
-                updateTex(sheet.ctx, x, y, width, height);
+                var ctx = sheet.ctx;
+                var imgData = ctx.createImageData(width, height);
+                var data = imgData.data;
+                tex.$renderBuffer.context.getPixels(0, 0, width, height, data);
+                var hh = height >> 1;
+                var width4 = width << 2;
+                //调整方向
+                for (var y_1 = 0; y_1 < hh; y_1++) {
+                    var index1 = width4 * (height - y_1 - 1);
+                    var index2 = width4 * y_1;
+                    for (var i = 0; i < width4; i++) {
+                        var d1 = index1 + i;
+                        var d2 = index2 + i;
+                        var tmp = data[d1];
+                        data[d1] = data[d2];
+                        data[d2] = tmp;
+                    }
+                }
+                ctx.putImageData(imgData, x, y);
                 sheet.update(uri, { x: x, y: y, width: width, height: height }, out);
             }
             return out;
-        }
-        function updateTex(ctx, x, y, width, height) {
-            var imgData = ctx.createImageData(width, height);
-            var data = imgData.data;
-            tex.$renderBuffer.context.getPixels(0, 0, width, height, data);
-            var hh = height >> 1;
-            var width4 = width << 2;
-            //调整方向
-            for (var y_1 = 0; y_1 < hh; y_1++) {
-                var index1 = width4 * (height - y_1 - 1);
-                var index2 = width4 * y_1;
-                for (var i = 0; i < width4; i++) {
-                    var d1 = index1 + i;
-                    var d2 = index2 + i;
-                    var tmp = data[d1];
-                    data[d1] = data[d2];
-                    data[d2] = tmp;
-                }
-            }
-            ctx.putImageData(imgData, x, y);
         }
         function get(uri) {
             var _cur = dict[uri];
@@ -10493,13 +10530,11 @@ var jy;
             //检查是否已经加载过
             var _cur = dict[uri];
             if (_cur) { //已经有，不做处理
-                return;
+                return tex;
             }
-            var bmd = tex.bitmapData;
-            var source = bmd.source;
-            var width = source.width, height = source.height;
+            var width = tex.textureWidth, height = tex.textureHeight;
             if (width > 2048 /* MaxSize */ || height > 2048 /* MaxSize */) { //超过大小的纹理不做任何处理
-                return;
+                return tex;
             }
             _cur = cur;
             var sheet = _cur.sheet, packer = _cur.packer;
@@ -10534,9 +10569,9 @@ var jy;
             }
             dict[uri] = cur;
             var x = bin.x, y = bin.y;
-            setTexData(bin, sheet, tex);
-            tex.sheet = sheet;
+            tex = setTexData(bin, sheet, tex);
             sheet.reg(uri, { x: x, y: y, width: width, height: height }, tex);
+            return tex;
         }
         function update(uri, tex) {
             var _cur = dict[uri];
@@ -10551,24 +10586,58 @@ var jy;
                 }
             }
         }
-        function setTexData(bin, sheet, tex) {
+        function setTexData(bin, sheet, rawTex) {
+            var $dtid = rawTex.$dtid;
+            var tex = rawTex;
+            var createNew = false;
+            if ($dtid && $dtid != _dtid) {
+                tex = new egret.Texture;
+                createNew = true;
+            }
+            tex.$dtid = _dtid;
             tex.$bin = bin;
             tex.sheet = sheet;
-            var bmd = tex.bitmapData;
-            if (bmd == _bmd) {
-                return;
+            var bmd = rawTex.bitmapData;
+            if (bmd != _bmd) {
+                var _path = path;
+                //检查纹理偏移量
+                if (createNew) {
+                    if (!_path) {
+                        _path = new Path2D();
+                        _path.rect(0, 0, rawTex.$textureWidth, rawTex.$textureHeight);
+                    }
+                }
+                //将突破绘制到sheet上，并清除原纹理
+                var ctx = sheet.ctx;
+                ctx.globalAlpha = 1;
+                var source = bmd.source;
+                var x = bin.x, y = bin.y;
+                if (_path) {
+                    ctx.save();
+                    ctx.translate(x, y);
+                    if (pathColor) {
+                        ctx.fillStyle = pathColor;
+                        ctx.fill(_path);
+                    }
+                    var pattern = ctx.createPattern(source, "no-repeat");
+                    matrix.e = -rawTex.$bitmapX * $TextureScaleFactor;
+                    matrix.f = -rawTex.$bitmapY * $TextureScaleFactor;
+                    pattern.setTransform(matrix);
+                    ctx.fillStyle = pattern;
+                    ctx.fill(_path);
+                    ctx.restore();
+                }
+                else { //直接复制
+                    ctx.drawImage(source, x, y);
+                    bmd.$dispose();
+                }
             }
-            var source = bmd.source;
-            //将突破绘制到sheet上，并清除原纹理
-            var ctx = sheet.ctx;
-            ctx.globalAlpha = 1;
-            var x = bin.x, y = bin.y;
-            ctx.drawImage(source, x, y);
-            bmd.$dispose();
+            return tex;
         }
         function createNewSheet(size) {
             size = size || 2048 /* MaxSize */ >> 2;
             var sheet = jy.getTextureSheet(size);
+            sheets.push(sheet);
             var packer = new jy.ShortSideBinPacker(size, size);
             return { sheet: sheet, packer: packer };
         }
@@ -15436,7 +15505,16 @@ var jy;
         }
         Image.prototype.addedToStage = function () {
             if (this.uri) {
-                var res = jy.TextureResource.get(this.uri, this);
+                var opt = this.opt;
+                if (!opt) {
+                    this.opt = opt = {
+                        sheetKey: this.sheetKey,
+                        noWebp: this.noWebp,
+                        sheetSize: this.sheetSize,
+                        sheetPath: this.sheetPath
+                    };
+                }
+                var res = jy.TextureResource.get(this.uri, opt);
                 if (res) {
                     res.qid = this.qid;
                     //先设置为占位用，避免有些玩家加载慢，无法看到图

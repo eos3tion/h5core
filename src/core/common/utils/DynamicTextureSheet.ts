@@ -7,11 +7,16 @@ namespace jy {
 
     const tmpSource = { width: 0, height: 0 };
     const _bmd = new egret.BitmapData(tmpSource);
+    const matrix = new DOMMatrix();
+    let dtid = 1;
 
-    export function getDynamicTexSheet(size?: number) {
+    export function getDynamicTexSheet(size?: number, path?: Path2D, pathColor?: string) {
+        let $TextureScaleFactor = egret.$TextureScaleFactor;
         let _size = size || TextureSheetConst.MaxSize >> 2;
-        let cur = createNewSheet(_size);
+        let _dtid = dtid++;
         const dict = {} as { [uri: string]: ReturnType<typeof createNewSheet> }
+        let sheets = [] as TextureSheet[];
+        let cur = createNewSheet(_size);
         return {
             bind,
             draw,
@@ -39,7 +44,14 @@ namespace jy {
                     }
                 }
             },
-            get
+            get,
+            dispose() {
+                for (let i = 0; i < sheets.length; i++) {
+                    const sheet = sheets[i];
+                    sheet.dispose();
+                }
+                sheets.length = 0;
+            }
         }
 
         function draw(uri: Key, display: egret.DisplayObject, clipBounds?: egret.Rectangle, scale?: number) {
@@ -66,31 +78,28 @@ namespace jy {
             }
             if (out) {
                 let { x, y } = out.$bin;
-                updateTex(sheet.ctx, x, y, width, height);
+                let ctx = sheet.ctx;
+                let imgData = ctx.createImageData(width, height);
+                let data = imgData.data;
+                tex.$renderBuffer.context.getPixels(0, 0, width, height, data);
+                let hh = height >> 1;
+                let width4 = width << 2;
+                //调整方向
+                for (let y = 0; y < hh; y++) {
+                    let index1 = width4 * (height - y - 1);
+                    let index2 = width4 * y;
+                    for (let i = 0; i < width4; i++) {
+                        let d1 = index1 + i;
+                        let d2 = index2 + i;
+                        let tmp = data[d1];
+                        data[d1] = data[d2];
+                        data[d2] = tmp;
+                    }
+                }
+                ctx.putImageData(imgData, x, y);
                 sheet.update(uri, { x, y, width, height }, out);
             }
             return out;
-        }
-
-        function updateTex(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number) {
-            let imgData = ctx.createImageData(width, height);
-            let data = imgData.data;
-            tex.$renderBuffer.context.getPixels(0, 0, width, height, data);
-            let hh = height >> 1;
-            let width4 = width << 2;
-            //调整方向
-            for (let y = 0; y < hh; y++) {
-                let index1 = width4 * (height - y - 1);
-                let index2 = width4 * y;
-                for (let i = 0; i < width4; i++) {
-                    let d1 = index1 + i;
-                    let d2 = index2 + i;
-                    let tmp = data[d1];
-                    data[d1] = data[d2];
-                    data[d2] = tmp;
-                }
-            }
-            ctx.putImageData(imgData, x, y);
         }
 
         function get(uri: Key) {
@@ -101,13 +110,11 @@ namespace jy {
             //检查是否已经加载过
             let _cur = dict[uri];
             if (_cur) {//已经有，不做处理
-                return
+                return tex;
             }
-            let bmd = tex.bitmapData;
-            let source = bmd.source;
-            let { width, height } = source;
+            let { textureWidth: width, textureHeight: height } = tex;
             if (width > TextureSheetConst.MaxSize || height > TextureSheetConst.MaxSize) {//超过大小的纹理不做任何处理
-                return;
+                return tex;
             }
             _cur = cur;
             const { sheet, packer } = _cur;
@@ -141,9 +148,9 @@ namespace jy {
             }
             dict[uri] = cur;
             let { x, y } = bin;
-            setTexData(bin, sheet, tex);
-            tex.sheet = sheet;
+            tex = setTexData(bin, sheet, tex);
             sheet.reg(uri, { x, y, width, height }, tex);
+            return tex;
         }
 
         function update(uri: Key, tex: egret.Texture) {
@@ -160,25 +167,58 @@ namespace jy {
             }
         }
 
-        function setTexData(bin: Bin, sheet: TextureSheet, tex: DynamicTexture) {
+        function setTexData(bin: Bin, sheet: TextureSheet, rawTex: DynamicTexture) {
+            let $dtid = rawTex.$dtid;
+            let tex = rawTex;
+            let createNew = false;
+            if ($dtid && $dtid != _dtid) {
+                tex = new egret.Texture;
+                createNew = true;
+            }
+            tex.$dtid = _dtid;
             tex.$bin = bin;
             tex.sheet = sheet;
-            let bmd = tex.bitmapData;
-            if (bmd == _bmd) {
-                return
+            let bmd = rawTex.bitmapData;
+            if (bmd != _bmd) {
+                let _path = path;
+                //检查纹理偏移量
+                if (createNew) {
+                    if (!_path) {
+                        _path = new Path2D();
+                        _path.rect(0, 0, rawTex.$textureWidth, rawTex.$textureHeight);
+                    }
+                }
+                //将突破绘制到sheet上，并清除原纹理
+                let ctx = sheet.ctx;
+                ctx.globalAlpha = 1;
+                let source = bmd.source;
+                let { x, y } = bin;
+                if (_path) {
+                    ctx.save();
+                    ctx.translate(x, y);
+                    if (pathColor) {
+                        ctx.fillStyle = pathColor;
+                        ctx.fill(_path);
+                    }
+                    let pattern = ctx.createPattern(source as CanvasImageSource, "no-repeat");
+                    matrix.e = -rawTex.$bitmapX * $TextureScaleFactor;
+                    matrix.f = -rawTex.$bitmapY * $TextureScaleFactor;
+                    pattern.setTransform(matrix);
+                    ctx.fillStyle = pattern;
+                    ctx.fill(_path);
+                    ctx.restore();
+                } else {//直接复制
+                    ctx.drawImage(source as CanvasImageSource, x, y);
+                    bmd.$dispose();
+                }
             }
-            let source = bmd.source;
-            //将突破绘制到sheet上，并清除原纹理
-            let ctx = sheet.ctx;
-            ctx.globalAlpha = 1;
-            let { x, y } = bin;
-            ctx.drawImage(source as CanvasImageSource, x, y);
-            bmd.$dispose();
+            return tex;
         }
 
         function createNewSheet(size?: number) {
             size = size || TextureSheetConst.MaxSize >> 2;
             let sheet = getTextureSheet(size);
+            sheets.push(sheet);
             let packer = new ShortSideBinPacker(size, size);
             return { sheet, packer }
         }

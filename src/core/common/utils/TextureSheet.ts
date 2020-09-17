@@ -46,10 +46,10 @@ namespace jy {
                 let tex = texs[key];
                 if (!tex) {
                     tex = ntex || new egret.Texture;
-                    update(key, rect, tex)
                     texCount++;
-                    return tex;
                 }
+                update(key, rect, tex)
+                return tex;
             },
             /**
              * 更新纹理
@@ -142,6 +142,7 @@ namespace jy {
         $bin?: Bin;
         sheet?: TextureSheet;
         $rect?: Rect;
+        $dtid?: number;
     }
     export type TextureSheet = ReturnType<typeof getTextureSheet>;
 }

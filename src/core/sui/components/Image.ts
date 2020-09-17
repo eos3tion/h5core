@@ -20,6 +20,12 @@ namespace jy {
 
 		sheetKey?: Key;
 
+		sheetSize?: number;
+
+		sheetPath?: Path2D;
+
+		opt?: TextureResourceOption;
+
 		constructor() {
 			super();
 			this.on(EgretEvent.ADDED_TO_STAGE, this.addedToStage, this);
@@ -28,7 +34,16 @@ namespace jy {
 
 		addedToStage() {
 			if (this.uri) {
-				let res = TextureResource.get(this.uri, this);
+				let opt = this.opt;
+				if (!opt) {
+					this.opt = opt = {
+						sheetKey: this.sheetKey,
+						noWebp: this.noWebp,
+						sheetSize: this.sheetSize,
+						sheetPath: this.sheetPath
+					}
+				}
+				let res = TextureResource.get(this.uri, opt);
 				if (res) {
 					res.qid = this.qid;
 					//先设置为占位用，避免有些玩家加载慢，无法看到图
