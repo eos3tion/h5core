@@ -15,6 +15,21 @@ namespace jy {
          * 如果不设置，则表示没有
          */
         sheetKey?: Key;
+
+        /**
+         * sheet的尺寸
+         */
+        sheetSize?: number;
+
+        /**
+         * 绘制特殊形状的纹理
+         */
+        sheetPath?: Path2D;
+
+        /**
+         * 路径的底色
+         */
+        sheetColor?: string;
     }
 
 
@@ -47,14 +62,15 @@ namespace jy {
          * 加载列队
          */
         qid?: Res.ResQueueID;
-        /**
-         * 关联的纹理表单标识
-         */
-        sheetKey: Key;
 
-        constructor(uri: string, noWebp?: boolean) {
+
+        readonly opt: TextureResourceOption;
+
+
+        constructor(uri: string, opt: TextureResourceOption) {
             this.uri = uri;
-            this.url = ConfigUtils.getResUrl(uri + (!noWebp ? Global.webp : ""))
+            this.url = ConfigUtils.getResUrl(uri + (!opt.noWebp ? Global.webp : ""))
+            this.opt = opt;
         }
         /**
          * 
@@ -120,17 +136,18 @@ namespace jy {
         loadComplete(item: Res.TypedResItem<egret.Texture>) {
             let { data, uri } = item;
             if (uri == this.uri) {
-                let sheetKey = this.sheetKey;
+                let opt = this.opt;
+                let sheetKey = opt.sheetKey;
                 if (sheetKey && data) {
                     let sheet = sheetsDict[sheetKey];
                     if (!sheet) {
-                        sheetsDict[sheetKey] = sheet = getDynamicTexSheet();
+                        sheetsDict[sheetKey] = sheet = getDynamicTexSheet(opt.sheetSize, opt.sheetPath, opt.sheetColor);
                     }
                     let dat = sheet.get(uri);
                     if (dat) {
                         data = dat;
                     } else {
-                        sheet.bind(uri, data);
+                        data = sheet.bind(uri, data);
                     }
                 }
                 this._tex = data;
@@ -157,7 +174,7 @@ namespace jy {
             let tex = this._tex;
             if (tex) {
                 this._tex = undefined;
-                let sheetKey = this.sheetKey;
+                let sheetKey = this.opt.sheetKey;
                 if (sheetKey) {
                     let sheet = sheetsDict[sheetKey];
                     if (sheet) {
@@ -177,24 +194,49 @@ namespace jy {
          * @param {boolean} [noWebp] 是否不加webp后缀
          * @returns {TextureResource} 
          */
-        static get(uri: string, { noWebp, sheetKey }: TextureResourceOption) {
-            let res = ResManager.getResource(uri) as TextureResource;
-            if (res) {
-                if (!(res instanceof TextureResource)) {
-                    ThrowError(`[${uri}]资源有误，不是TextureResource`);
-                    res = undefined;
+        static get(uri: string, opt: TextureResourceOption) {
+            let sheetKey = opt.sheetKey;
+            if (sheetKey) {//有sheetKey的不受ResManager管控，必须自行控制
+                let data = sheetRes[sheetKey];
+                if (!data) {
+                    sheetRes[sheetKey] = data = {};
                 }
+                let res = data[uri];
+                if (!res) {
+                    data[uri] = res = new TextureResource(uri, opt);
+                }
+                return res;
+            } else {
+                let res = ResManager.getResource(uri) as TextureResource;
+                if (res) {
+                    if (!(res instanceof TextureResource)) {
+                        ThrowError(`[${uri}]资源有误，不是TextureResource`);
+                        res = undefined;
+                    }
+                }
+                if (!res) {
+                    res = new TextureResource(uri, opt);
+                    ResManager.regResource(uri, res);
+                }
+                return res;
             }
-            if (!res) {
-                res = new TextureResource(uri, noWebp);
-                res.sheetKey = sheetKey;
-                ResManager.regResource(uri, res);
+        }
+
+        static dispose(sheetKey: Key) {
+            let sheet = sheetsDict[sheetKey];
+            let data = sheetRes[sheetKey];
+            if (data) {
+                for (let uri in data) {
+                    let tex = data[uri];
+                    tex.dispose();
+                }
+                sheetRes[sheetKey] = {};
             }
-            return res;
+            sheet.dispose();
         }
     }
 
-
+    const sheetRes = {} as { [key: string]: { [uri: string]: TextureResource } }
     const sheetsDict = {} as { [key: string]: DynamicTexSheet };
 
 }

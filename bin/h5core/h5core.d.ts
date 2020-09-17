@@ -1170,6 +1170,7 @@ declare namespace jy {
         $bin?: Bin;
         sheet?: TextureSheet;
         $rect?: Rect;
+        $dtid?: number;
     }
     type TextureSheet = ReturnType<typeof getTextureSheet>;
 }
@@ -2330,13 +2331,14 @@ declare namespace jy {
     export {};
 }
 declare namespace jy {
-    function getDynamicTexSheet(size?: number): {
+    function getDynamicTexSheet(size?: number, path?: Path2D, pathColor?: string): {
         bind: (uri: string | number, tex: DynamicTexture) => any;
         draw: (uri: string | number, display: egret.DisplayObject, clipBounds?: egret.Rectangle, scale?: number) => DynamicTexture;
         update: (uri: string | number, tex: egret.Texture) => void;
         bindOrUpdate(uri: string | number, tex: DynamicTexture): void;
         remove(uri: string | number): void;
         get: (uri: string | number) => egret.Texture;
+        dispose(): void;
     };
     type DynamicTexSheet = ReturnType<typeof getDynamicTexSheet>;
 }
@@ -7975,6 +7977,18 @@ declare namespace jy {
          * 如果不设置，则表示没有
          */
         sheetKey?: Key;
+        /**
+         * sheet的尺寸
+         */
+        sheetSize?: number;
+        /**
+         * 绘制特殊形状的纹理
+         */
+        sheetPath?: Path2D;
+        /**
+         * 路径的底色
+         */
+        sheetColor?: string;
     }
     import Bitmap = egret.Bitmap;
     /**
@@ -8002,11 +8016,8 @@ declare namespace jy {
          * 加载列队
          */
         qid?: Res.ResQueueID;
-        /**
-         * 关联的纹理表单标识
-         */
-        sheetKey: Key;
-        constructor(uri: string, noWebp?: boolean);
+        readonly opt: TextureResourceOption;
+        constructor(uri: string, opt: TextureResourceOption);
         /**
          *
          * 是否为静态不销毁的资源
@@ -8049,7 +8060,8 @@ declare namespace jy {
          * @param {boolean} [noWebp] 是否不加webp后缀
          * @returns {TextureResource}
          */
-        static get(uri: string, { noWebp, sheetKey }: TextureResourceOption): TextureResource;
+        static get(uri: string, opt: TextureResourceOption): TextureResource;
+        static dispose(sheetKey: Key): void;
     }
 }
 declare namespace jy {
@@ -13896,6 +13908,9 @@ declare namespace jy {
         qid?: Res.ResQueueID;
         noWebp?: boolean;
         sheetKey?: Key;
+        sheetSize?: number;
+        sheetPath?: Path2D;
+        opt?: TextureResourceOption;
         constructor();
         addedToStage(): void;
         removedFromStage(): void;
