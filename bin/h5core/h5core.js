@@ -3482,6 +3482,10 @@ var jy;
             if (width > 2048 /* MaxSize */ || height > 2048 /* MaxSize */) { //超过大小的纹理不做任何处理
                 return tex;
             }
+            if (!tex.$bitmapData.source) { //source已经被干掉，则不合并
+                true && jy.ThrowError("\u8981\u7ED1\u5B9A\u7684DynamicTexture[uri:" + uri + "]\uFF0Csource\u5DF2\u7ECF\u88AB\u5E72\u6389\uFF0C\u8BF7\u68C0\u67E5\uFF0C\u5E94\u8BE5\u53EF\u4EE5\u8FDB\u884C\u4F18\u5316");
+                return tex;
+            }
             _cur = cur;
             var sheet = _cur.sheet, packer = _cur.packer;
             var ww = width + 1 /* Padding */; //padding
