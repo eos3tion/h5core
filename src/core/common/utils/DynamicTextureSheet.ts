@@ -118,6 +118,10 @@ namespace jy {
             if (width > TextureSheetConst.MaxSize || height > TextureSheetConst.MaxSize) {//超过大小的纹理不做任何处理
                 return tex;
             }
+            if (!tex.$bitmapData.source) {//source已经被干掉，则不合并
+                DEBUG && ThrowError(`要绑定的DynamicTexture[uri:${uri}]，source已经被干掉，请检查，应该可以进行优化`)
+                return tex;
+            }
             _cur = cur;
             const { sheet, packer } = _cur;
             let ww = width + TextureSheetConst.Padding;//padding
