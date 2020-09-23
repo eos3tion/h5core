@@ -1556,33 +1556,41 @@ var jy;
                         }
                     }
                     if (flag) {
-                        switch (type) {
-                            case 0 /* Null */:
-                                break;
-                            case 1 /* Boolean */:
-                                data = bytes.readBoolean();
-                                break;
-                            case 5 /* Double */:
-                                data = bytes.readDouble();
-                                break;
-                            case 6 /* Int32 */:
-                                data = bytes.readInt();
-                                break;
-                            case 7 /* Uint32 */:
-                                data = bytes.readUnsignedInt();
-                                break;
-                            case 8 /* Int64 */:
-                                data = bytes.readInt64();
-                                break;
-                            case 2 /* String */:
-                                data = bytes.readUTFBytes(len);
-                                break;
-                            case 4 /* Bytes */:
-                                data = bytes.readByteArray(len);
-                                break;
-                            default:
-                                data = jy.PBUtils.readFrom(type, bytes, len);
-                                break;
+                        try {
+                            switch (type) {
+                                case 0 /* Null */:
+                                    break;
+                                case 1 /* Boolean */:
+                                    data = bytes.readBoolean();
+                                    break;
+                                case 5 /* Double */:
+                                    data = bytes.readDouble();
+                                    break;
+                                case 6 /* Int32 */:
+                                    data = bytes.readInt();
+                                    break;
+                                case 7 /* Uint32 */:
+                                    data = bytes.readUnsignedInt();
+                                    break;
+                                case 8 /* Int64 */:
+                                    data = bytes.readInt64();
+                                    break;
+                                case 2 /* String */:
+                                    data = bytes.readUTFBytes(len);
+                                    break;
+                                case 4 /* Bytes */:
+                                    data = bytes.readByteArray(len);
+                                    break;
+                                default:
+                                    data = jy.PBUtils.readFrom(type, bytes, len);
+                                    break;
+                            }
+                        }
+                        catch (e) {
+                            flag = false;
+                            if (true) {
+                                jy.Log("\u901A\u4FE1\u6D88\u606F\u89E3\u6790\u65F6cmd[" + cmd + "]\uFF0C\u6570\u636E\u89E3\u6790\u51FA\u73B0\u9519\u8BEF\uFF1A" + e.message);
+                            }
                         }
                     }
                     if (flag) {

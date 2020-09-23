@@ -349,13 +349,13 @@ namespace jy {
         }
     }
 
-	/**
-	 * 通信服务
-	 * 收发的协议结构：
-	 * 2字节协议号 2字节包长度(n) n字节包
-	 * @author 3tion
-	 *
-	 */
+    /**
+     * 通信服务
+     * 收发的协议结构：
+     * 2字节协议号 2字节包长度(n) n字节包
+     * @author 3tion
+     *
+     */
     export abstract class NetService {
         /**
         * 请求地址
@@ -395,9 +395,9 @@ namespace jy {
 
         protected _router: NetRouter;
 
-    	/**
-    	 * 待发送的的被动指令列表
-    	 */
+        /**
+         * 待发送的的被动指令列表
+         */
         protected _pcmdList: Recyclable<NetSendData>[];
 
 
@@ -406,9 +406,9 @@ namespace jy {
          */
         protected _tmpList: Recyclable<NetData>[];
 
-    	/**
-    	 * 读取的字节缓存
-    	 */
+        /**
+         * 读取的字节缓存
+         */
         protected _readBuffer: ByteArray;
 
         /**
@@ -525,13 +525,13 @@ namespace jy {
         protected _reconCount = 0;
 
         /**
-    	 * 下次自动拉取请求的时间戳
-    	 */
+         * 下次自动拉取请求的时间戳
+         */
         protected _nextAutoTime = 0;
 
-    	/**
-    	 * 下次自动请求的最短
-    	 */
+        /**
+         * 下次自动请求的最短
+         */
         protected _autoTimeDelay: number;
 
         protected showReconnect() {
@@ -551,29 +551,29 @@ namespace jy {
             this._nextAutoTime = Global.now + this._autoTimeDelay;
         }
 
-    	/**
-    	 * 基础类型消息
-    	 */
+        /**
+         * 基础类型消息
+         */
         public regReceiveMSGRef(cmd: number, ref: Key) {
             this._receiveMSG[cmd] = ref;
         }
 
-    	/**
-    	 * 注册处理器
-    	 * @param {number} cmd 协议号
-    	 * @param {INetHandler} handler 处理网络数据的处理器
-    	 * @param {number} [priority=0] 处理优先级
-    	 */
+        /**
+         * 注册处理器
+         * @param {number} cmd 协议号
+         * @param {INetHandler} handler 处理网络数据的处理器
+         * @param {number} [priority=0] 处理优先级
+         */
         public register(cmd: number, handler: INetHandler, priotity = 0): boolean {
             return this._register(cmd, handler, priotity, false);
         }
 
-    	/**
-    	 * 注册单次执行的处理器
-    	 * @param {number} cmd 协议号
-    	 * @param {INetHandler} handler 处理网络数据的处理器
-    	 * @param {number} [priority=0] 处理优先级
-    	 */
+        /**
+         * 注册单次执行的处理器
+         * @param {number} cmd 协议号
+         * @param {INetHandler} handler 处理网络数据的处理器
+         * @param {number} [priority=0] 处理优先级
+         */
         public regOnce(cmd: number, handler: INetHandler, priotity = 0): boolean {
             return this._register(cmd, handler, priotity, true);
         }
@@ -599,14 +599,14 @@ namespace jy {
             return true;
         }
 
-    	/**
-    	 * 即时发送指令<br/>
-    	 * 用于处理角色主动操作的请求，如点击合成道具，使用物品等
-    	 * @param {number} cmd 协议号
+        /**
+         * 即时发送指令<br/>
+         * 用于处理角色主动操作的请求，如点击合成道具，使用物品等
+         * @param {number} cmd 协议号
          * @param {any} [data] 数据，简单数据(number,boolean,string)复合数据
          * @param {string} [msgType] 如果是复合数据，必须有此值
-    	 * @param {number} [limit] 客户端发送时间限制，默认500毫秒
-    	 */
+         * @param {number} [limit] 客户端发送时间限制，默认500毫秒
+         */
         public send(cmd: number, data?: any, msgType?: Key, limit?: number) {
             if (RequestLimit.check(cmd, limit)) {
                 this._send(cmd, data, msgType);
@@ -761,33 +761,40 @@ namespace jy {
                         }
                     }
                     if (flag) {
-                        switch (type) {
-                            case NSType.Null:
-                                break;
-                            case NSType.Boolean:
-                                data = bytes.readBoolean();
-                                break;
-                            case NSType.Double:
-                                data = bytes.readDouble();
-                                break;
-                            case NSType.Int32:
-                                data = bytes.readInt();
-                                break;
-                            case NSType.Uint32:
-                                data = bytes.readUnsignedInt();
-                                break;
-                            case NSType.Int64:
-                                data = bytes.readInt64();
-                                break;
-                            case NSType.String:
-                                data = bytes.readUTFBytes(len);
-                                break;
-                            case NSType.Bytes:
-                                data = bytes.readByteArray(len);
-                                break;
-                            default:
-                                data = PBUtils.readFrom(<string>type, bytes, len);
-                                break;
+                        try {
+                            switch (type) {
+                                case NSType.Null:
+                                    break;
+                                case NSType.Boolean:
+                                    data = bytes.readBoolean();
+                                    break;
+                                case NSType.Double:
+                                    data = bytes.readDouble();
+                                    break;
+                                case NSType.Int32:
+                                    data = bytes.readInt();
+                                    break;
+                                case NSType.Uint32:
+                                    data = bytes.readUnsignedInt();
+                                    break;
+                                case NSType.Int64:
+                                    data = bytes.readInt64();
+                                    break;
+                                case NSType.String:
+                                    data = bytes.readUTFBytes(len);
+                                    break;
+                                case NSType.Bytes:
+                                    data = bytes.readByteArray(len);
+                                    break;
+                                default:
+                                    data = PBUtils.readFrom(<string>type, bytes, len);
+                                    break;
+                            }
+                        } catch (e) {
+                            flag = false;
+                            if (DEBUG) {
+                                Log(`通信消息解析时cmd[${cmd}]，数据解析出现错误：${e.message}`);
+                            }
                         }
                     }
                     if (flag) {
