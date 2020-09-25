@@ -17185,6 +17185,8 @@ var jy;
     function looseDrag(host) {
         var dele = host[key];
         if (dele) {
+            host.off("addedToStage" /* ADDED_TO_STAGE */, onAdd, dele);
+            host.off("removedFromStage" /* REMOVED_FROM_STAGE */, onRemove, dele);
             onRemove.call(dele);
             if (dele.isCon) {
                 host.touchChildren = true;

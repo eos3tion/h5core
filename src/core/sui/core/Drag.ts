@@ -214,6 +214,8 @@ namespace jy {
     export function looseDrag(host: egret.DisplayObject) {
         let dele = host[key];
         if (dele) {
+            host.off(EgretEvent.ADDED_TO_STAGE, onAdd, dele);
+            host.off(EgretEvent.REMOVED_FROM_STAGE, onRemove, dele);
             onRemove.call(dele);
             if (dele.isCon) {
                 (host as egret.DisplayObjectContainer).touchChildren = true;
