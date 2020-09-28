@@ -13145,6 +13145,12 @@ declare namespace jy {
     }): Mediator & IStateSwitcher & AwakeCheck;
 }
 declare namespace jy {
+    interface BaseMCfg {
+        /**
+         * 当前显示状态
+         */
+        showState: ModuleShowState;
+    }
     /**
      * 功能配置的基类
      * @author 3tion

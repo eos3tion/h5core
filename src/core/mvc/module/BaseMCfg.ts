@@ -1,4 +1,10 @@
 namespace jy {
+    export interface BaseMCfg {
+        /**
+         * 当前显示状态
+         */
+        showState: ModuleShowState;
+    }
     /**
      * 功能配置的基类
      * @author 3tion
@@ -10,18 +16,18 @@ namespace jy {
          */
         showState: ModuleShowState = ModuleShowState.HIDE;
 
-		/**
-		 * 服务器认为此功能开放
-		 */
+        /**
+         * 服务器认为此功能开放
+         */
         serverOpen: boolean = true;
-		/**
-		 * 显示限制数据
-		 */
+        /**
+         * 显示限制数据
+         */
         showlimits: any[];
 
-		/**
-		 * 使用限制数据
-		 */
+        /**
+         * 使用限制数据
+         */
         limits: any[];
         /**
          * 
