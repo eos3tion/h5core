@@ -44,23 +44,23 @@ namespace jy {
         }
     }
 
-
-	/**
-	 * 用于处理接收flash软件制作的UI，导出的数据，仿照eui
-	 * 不过简化eui的一些layout的支持
-	 * 按目前情况看，不太会制作复杂排版的ui，父容器不做统一的测量和重新布局
-	 * 都会基于固定大小(传奇世界H5，采用480×800，viewport设置为不可缩放，宽度基于设备的)
-	 * @author 3tion 
-	 *
-	 */
-    export class Component extends egret.Sprite {
+    export interface Component {
 
         /**
          * 附加的数据
-         * 
-         * @type {*}@memberof Component
          */
-        public data?: any;
+        data?: any;
+    }
+
+    /**
+     * 用于处理接收flash软件制作的UI，导出的数据，仿照eui
+     * 不过简化eui的一些layout的支持
+     * 按目前情况看，不太会制作复杂排版的ui，父容器不做统一的测量和重新布局
+     * 都会基于固定大小(传奇世界H5，采用480×800，viewport设置为不可缩放，宽度基于设备的)
+     * @author 3tion 
+     *
+     */
+    export class Component extends egret.Sprite {
 
         protected _guid: string;
 
@@ -75,20 +75,20 @@ namespace jy {
          */
         useDisFilter = true;
 
-    	/**
-    	 * 控件命名规则
-    	 * 如果是和模块关联@开头，则为mediator，通过getView取到面板
-    	 * 为!开头的数字guid，则此控件的上级是个列表，通过getItemViewAt(idx)可以取得控件
-    	 * 
-    	 * 如引导:
-    	 * skill对应面板下
-    	 * 模块zhudongskill对应面板下
-    	 * 名字为skillpage的控件下
-    	 * 索引2的控件下
-    	 * 名字为btnButton的按钮
-    	 * 可以构造一个@skill/@zhudongskill/skillpage/!2/btnButton的字符串来主播引导
-    	 * 
-    	 */
+        /**
+         * 控件命名规则
+         * 如果是和模块关联@开头，则为mediator，通过getView取到面板
+         * 为!开头的数字guid，则此控件的上级是个列表，通过getItemViewAt(idx)可以取得控件
+         * 
+         * 如引导:
+         * skill对应面板下
+         * 模块zhudongskill对应面板下
+         * 名字为skillpage的控件下
+         * 索引2的控件下
+         * 名字为btnButton的按钮
+         * 可以构造一个@skill/@zhudongskill/skillpage/!2/btnButton的字符串来主播引导
+         * 
+         */
         public get guid() {
             return this._guid;
         }
@@ -126,9 +126,9 @@ namespace jy {
 
         }
 
-		/**
-		 * 绘制一个代理图形
-		 */
+        /**
+         * 绘制一个代理图形
+         */
         protected drawDele() {
             if (this._creator) {
                 let g = this.graphics;
@@ -160,7 +160,7 @@ namespace jy {
 
 
 
-		/**
+        /**
          * @language zh_CN
          * 获取组件的首选尺寸,常用于父级的<code>measure()</code>方法中。<p/>
          * 按照：外部显式设置尺寸>测量尺寸 的优先级顺序返回尺寸。<p/>

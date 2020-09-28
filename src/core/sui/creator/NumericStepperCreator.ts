@@ -57,7 +57,7 @@ namespace jy {
 
         }
 
-        public set width(value: number) {
+        $setWidth(value: number) {
             if (this._width == value) return;
             let sub: number = value - this._width;
             this.txt.width += sub;
@@ -68,7 +68,7 @@ namespace jy {
             this._width = value;
         }
 
-        public get width(): number {
+        $getWidth(): number {
             return this._width;
         }
 

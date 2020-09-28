@@ -31,11 +31,11 @@ namespace jy {
      * @extends {GameLayer}
      */
     export class UILayer extends BaseLayer {
-        get width() {
+        $getWidth() {
             return egret.sys.$TempStage.stageWidth;
         }
 
-        get height() {
+        $getHeight() {
             return egret.sys.$TempStage.stageHeight;
         }
     }

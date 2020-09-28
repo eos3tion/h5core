@@ -175,7 +175,7 @@ namespace jy {
         /**
          * 设置底条宽度
          */
-        public set width(value: number) {
+        $setWidth(value: number) {
             if (this._width != value) {
                 this._width = value;
                 let { bg } = this;
@@ -185,7 +185,7 @@ namespace jy {
             }
         }
 
-        public get width(): number {
+        $getWidth(): number {
             return this._width;
         }
 

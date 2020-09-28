@@ -349,6 +349,14 @@ namespace jy {
         }
     }
 
+    export interface NetService {
+
+        /**
+         * 是否连通
+         */
+        readonly connected?: boolean;
+    }
+
     /**
      * 通信服务
      * 收发的协议结构：
@@ -419,10 +427,6 @@ namespace jy {
 
         protected _tempBytes: ByteArray;
 
-        /**
-         * 是否连通
-         */
-        readonly connected?: boolean;
 
         /**
          * 接收消息的创建器
