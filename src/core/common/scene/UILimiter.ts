@@ -29,11 +29,11 @@ namespace jy {
             }
         }
 
-		/**
-		 * 设置状态
-		 * @param value
-		 * 
-		 */
+        /**
+         * 设置状态
+         * @param value
+         * 
+         */
         public setState(value: Key) {
             this._current = value;
             let queue = this._queue;
@@ -111,12 +111,12 @@ namespace jy {
             return _currentState;
         },
 
-		/** 
-		 * 取得状态侦听管理器(以便注册关注的状态)
-		 * @return 
-		 * 
-		 */
-        get listener(this: UILimiterType): StateMachine {
+        /** 
+         * 取得状态侦听管理器(以便注册关注的状态)
+         * @return 
+         * 
+         */
+        get listener(): StateMachine {
             return <StateMachine>this.impl.listener;
         },
 

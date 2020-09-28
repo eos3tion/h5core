@@ -185,10 +185,10 @@ namespace jy {
             super.dispose();
         }
 
-        get width() {
+        $getWidth() {
             return this.suiRawRect.width;
         }
-        get height() {
+        $getHeight() {
             return this.suiRawRect.height;
         }
     }

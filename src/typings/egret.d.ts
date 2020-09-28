@@ -80,7 +80,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        readonly hashCode: number;
+        get hashCode(): number;
     }
 }
 declare namespace egret {
@@ -384,7 +384,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        name: string;
+        get name(): string;
+        set name(value: string);
         /**
          * @private
          */
@@ -403,7 +404,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        readonly parent: DisplayObjectContainer;
+        get parent(): DisplayObjectContainer;
         /**
          * @private
          * 设置父级显示对象
@@ -446,7 +447,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        readonly stage: Stage;
+        get stage(): Stage;
         /**
          * A Matrix object containing values that alter the scaling, rotation, and translation of the display object.<br/>
          * Note: to change the value of a display object's matrix, you must make a copy of the entire matrix object, then copy
@@ -474,7 +475,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        matrix: Matrix;
+        get matrix(): Matrix;
         private $matrix;
         private $matrixDirty;
         /**
@@ -482,6 +483,7 @@ declare namespace egret {
          * 获取矩阵
          */
         $getMatrix(): Matrix;
+        set matrix(value: Matrix);
         /**
          * @private
          * 设置矩阵
@@ -521,12 +523,13 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        x: number;
+        get x(): number;
         /**
          * @private
          * 获取x坐标
          */
         $getX(): number;
+        set x(value: number);
         /**
          * @private
          * 设置x坐标
@@ -554,12 +557,13 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        y: number;
+        get y(): number;
         /**
          * @private
          * 获取y坐标
          */
         $getY(): number;
+        set y(value: number);
         /**
          * @private
          * 设置y坐标
@@ -582,7 +586,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        scaleX: number;
+        get scaleX(): number;
+        set scaleX(value: number);
         /**
          * @private
          *
@@ -610,7 +615,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        scaleY: number;
+        get scaleY(): number;
+        set scaleY(value: number);
         /**
          * @private
          *
@@ -642,11 +648,12 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        rotation: number;
+        get rotation(): number;
         /**
          * @private
          */
         $getRotation(): number;
+        set rotation(value: number);
         $setRotation(value: number): void;
         private $skewX;
         private $skewXdeg;
@@ -657,7 +664,8 @@ declare namespace egret {
          * @version Egret 2.4
          * @platform Web,Native
          */
-        skewX: number;
+        get skewX(): number;
+        set skewX(value: number);
         /**
          * @private
          *
@@ -673,7 +681,8 @@ declare namespace egret {
          * @version Egret 2.4
          * @platform Web,Native
          */
-        skewY: number;
+        get skewY(): number;
+        set skewY(value: number);
         /**
          * @private
          *
@@ -694,13 +703,14 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        width: number;
+        get width(): number;
         /**
          * @private
          * 获取显示宽度
          */
         $getWidth(): number;
         $explicitWidth: number;
+        set width(value: number);
         /**
          * @private
          * 设置显示宽度
@@ -719,13 +729,14 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        height: number;
+        get height(): number;
         $explicitHeight: number;
         /**
          * @private
          * 获取显示高度
          */
         $getHeight(): number;
+        set height(value: number);
         /**
          * @private
          * 设置显示高度
@@ -738,7 +749,7 @@ declare namespace egret {
          * @version Egret 2.4
          * @platform Web,Native
          */
-        readonly measuredWidth: number;
+        get measuredWidth(): number;
         /**
          * 测量高度
          * @returns {number}
@@ -746,7 +757,7 @@ declare namespace egret {
          * @version Egret 2.4
          * @platform Web,Native
          */
-        readonly measuredHeight: number;
+        get measuredHeight(): number;
         $anchorOffsetX: number;
         /**
          * X represents the object of which is the anchor.
@@ -762,7 +773,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        anchorOffsetX: number;
+        get anchorOffsetX(): number;
+        set anchorOffsetX(value: number);
         /**
          * @private
          *
@@ -785,7 +797,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        anchorOffsetY: number;
+        get anchorOffsetY(): number;
+        set anchorOffsetY(value: number);
         /**
          * @private
          *
@@ -812,7 +825,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        visible: boolean;
+        get visible(): boolean;
+        set visible(value: boolean);
         $setVisible(value: boolean): void;
         /**
          * @private
@@ -842,7 +856,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        cacheAsBitmap: boolean;
+        get cacheAsBitmap(): boolean;
+        set cacheAsBitmap(value: boolean);
         $setHasDisplayList(value: boolean): void;
         $cacheDirty: boolean;
         $cacheDirtyUp(): void;
@@ -866,7 +881,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        alpha: number;
+        get alpha(): number;
+        set alpha(value: number);
         /**
          * @private
          *
@@ -913,7 +929,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        touchEnabled: boolean;
+        get touchEnabled(): boolean;
+        set touchEnabled(value: boolean);
         /**
          * @private
          */
@@ -962,7 +979,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        scrollRect: Rectangle;
+        get scrollRect(): Rectangle;
+        set scrollRect(value: Rectangle);
         /**
          * @private
          *
@@ -992,7 +1010,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        blendMode: string;
+        get blendMode(): string;
+        set blendMode(value: string);
         /**
          * @private
          * 被遮罩的对象
@@ -1035,7 +1054,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        mask: DisplayObject | Rectangle;
+        get mask(): DisplayObject | Rectangle;
+        set mask(value: DisplayObject | Rectangle);
         $filters: Array<Filter | CustomFilter>;
         /**
          * An indexed array that contains each filter object currently associated with the display object.
@@ -1049,7 +1069,8 @@ declare namespace egret {
          * @platform Web
          * @language zh_CN
          */
-        filters: Array<Filter | CustomFilter>;
+        get filters(): Array<Filter | CustomFilter>;
+        set filters(value: Array<Filter | CustomFilter>);
         /**
          * Returns a rectangle that defines the area of the display object relative to the coordinate system of the targetCoordinateSpace object.
          * @param targetCoordinateSpace The display object that defines the coordinate system to use.
@@ -1269,6 +1290,28 @@ declare namespace egret {
         willTrigger(type: string): boolean;
         removeListeners(type: string | number, useCapture?: boolean): void;
         removeAllListeners(): void;
+        /**
+        * inspired by pixi.js
+        */
+        private _tint;
+        /**
+         * @private
+         */
+        $tintRGB: number;
+        /**
+         * Set a tint color for the current object
+         * @version Egret 5.2.24
+         * @platform Web,Native
+         * @language en_US
+         */
+        /**
+         * 给当前对象设置填充色
+         * @version Egret 5.2.24
+         * @platform Web,Native
+         * @language zh_CN
+         */
+        get tint(): number;
+        set tint(value: number);
     }
 }
 declare namespace egret {
@@ -1450,7 +1493,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        texture: Texture;
+        get texture(): Texture;
+        set texture(value: Texture);
         /**
          * @private
          */
@@ -1485,7 +1529,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        scale9Grid: egret.Rectangle;
+        get scale9Grid(): egret.Rectangle;
+        set scale9Grid(value: egret.Rectangle);
         protected $setScale9Grid(value: egret.Rectangle): void;
         /**
          * @private
@@ -1515,7 +1560,8 @@ declare namespace egret {
          * @platform Web
          * @language zh_CN
          */
-        fillMode: string;
+        get fillMode(): string;
+        set fillMode(value: string);
         $setFillMode(value: string): boolean;
         /**
          * The default value of whether or not is smoothed when scaled.
@@ -1546,7 +1592,8 @@ declare namespace egret {
          * @platform Web
          * @language zh_CN
          */
-        smoothing: boolean;
+        get smoothing(): boolean;
+        set smoothing(value: boolean);
         /**
          * @private
          *
@@ -1596,7 +1643,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        pixelHitTest: boolean;
+        get pixelHitTest(): boolean;
+        set pixelHitTest(value: boolean);
         $hitTest(stageX: number, stageY: number): DisplayObject;
     }
 }
@@ -1649,7 +1697,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        readonly numChildren: number;
+        get numChildren(): number;
         /**
          * Adds a child DisplayObject instance to this DisplayObjectContainer instance. The child is added to the front
          * (top) of all other children in this DisplayObjectContainer instance. (To add a child to a specific index position,
@@ -1961,13 +2009,14 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        touchChildren: boolean;
+        get touchChildren(): boolean;
         /**
          * @private
          *
          * @returns
          */
         $getTouchChildren(): boolean;
+        set touchChildren(value: boolean);
         /**
          * @private
          */
@@ -2065,7 +2114,7 @@ declare namespace egret {
          * @private
          * 纹理宽度
          */
-        $textureWidth;
+        $textureWidth: number;
         /**
          * Texture width, read only
          * @version Egret 2.4
@@ -2078,13 +2127,13 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        readonly textureWidth: number;
+        get textureWidth(): number;
         $getTextureWidth(): number;
         /**
          * @private
          * 纹理高度
          */
-        $textureHeight;
+        $textureHeight: number;
         /**
          * Texture height, read only
          * @version Egret 2.4
@@ -2097,7 +2146,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        readonly textureHeight: number;
+        get textureHeight(): number;
         $getTextureHeight(): number;
         $getScaleBitmapWidth(): number;
         $getScaleBitmapHeight(): number;
@@ -2131,7 +2180,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        bitmapData: BitmapData;
+        get bitmapData(): BitmapData;
+        set bitmapData(value: BitmapData);
         /**
         * Set the BitmapData object.
         * @version Egret 3.2.1
@@ -2554,7 +2604,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        readonly type: string | number;
+        get type(): string | number;
         /**
          * @private
          */
@@ -2571,7 +2621,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        readonly bubbles: boolean;
+        get bubbles(): boolean;
         /**
          * @private
          */
@@ -2591,7 +2641,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        readonly cancelable: boolean;
+        get cancelable(): boolean;
         /**
          * @private
          */
@@ -2616,7 +2666,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        readonly eventPhase: number;
+        get eventPhase(): number;
         /**
          * @private
          */
@@ -2636,7 +2686,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        readonly currentTarget: any;
+        get currentTarget(): any;
         /**
          * @private
          */
@@ -2654,7 +2704,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        readonly target: any;
+        get target(): any;
         $setTarget(target: any): boolean;
         /**
          * @private
@@ -2897,6 +2947,12 @@ declare namespace egret {
         x: number;
         y: number;
     }
+    interface Point3 extends Point2 {
+        z: number;
+    }
+    interface Point4 extends Point3 {
+        w: number;
+    }
     /**
      * The Point object represents a location in a two-dimensional coordinate system, where x represents the horizontal
      * axis and y represents the vertical axis.
@@ -3002,7 +3058,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        readonly length: number;
+        get length(): number;
         /**
          * Sets the members of Point to the specified values
          * @param x The horizontal coordinate.
@@ -3281,7 +3337,8 @@ declare namespace egret {
          * @platform Web
          * @language zh_CN
          */
-        color: number;
+        get color(): number;
+        set color(value: number);
         /**
          * @private
          */
@@ -3298,7 +3355,8 @@ declare namespace egret {
          * @platform Web
          * @language zh_CN
          */
-        alpha: number;
+        get alpha(): number;
+        set alpha(value: number);
         /**
          * @private
          */
@@ -3315,7 +3373,8 @@ declare namespace egret {
          * @platform Web
          * @language zh_CN
          */
-        blurX: number;
+        get blurX(): number;
+        set blurX(value: number);
         /**
          * @private
          */
@@ -3332,7 +3391,8 @@ declare namespace egret {
          * @platform Web
          * @language zh_CN
          */
-        blurY: number;
+        get blurY(): number;
+        set blurY(value: number);
         /**
          * @private
          */
@@ -3349,7 +3409,8 @@ declare namespace egret {
          * @platform Web
          * @language zh_CN
          */
-        strength: number;
+        get strength(): number;
+        set strength(value: number);
         /**
          * @private
          */
@@ -3366,7 +3427,8 @@ declare namespace egret {
          * @platform Web
          * @language zh_CN
          */
-        quality: number;
+        get quality(): number;
+        set quality(value: number);
         /**
          * @private
          */
@@ -3383,7 +3445,8 @@ declare namespace egret {
          * @platform Web
          * @language zh_CN
          */
-        inner: boolean;
+        get inner(): boolean;
+        set inner(value: boolean);
         /**
          * @private
          */
@@ -3400,7 +3463,8 @@ declare namespace egret {
          * @platform Web
          * @language zh_CN
          */
-        knockout: boolean;
+        get knockout(): boolean;
+        set knockout(value: boolean);
         /**
          * @private
          */
@@ -3816,7 +3880,8 @@ declare namespace egret {
          * @language zh_CN
          */
         constructor(source: any);
-        source: TexImageSource;
+        get source(): TexImageSource;
+        set source(value: TexImageSource);
         static create(type: "arraybuffer", data: ArrayBuffer, callback?: (bitmapData: BitmapData) => void): BitmapData;
         static create(type: "base64", data: string, callback?: (bitmapData: BitmapData) => void): BitmapData;
         $dispose(): void;
@@ -4710,7 +4775,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        readonly graphics: Graphics;
+        get graphics(): Graphics;
         /**
          * @private
          */
@@ -4767,7 +4832,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        readonly graphics: Graphics;
+        get graphics(): Graphics;
         $hitTest(stageX: number, stageY: number): DisplayObject;
         /**
          * @private
@@ -4830,7 +4895,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        frameRate: number;
+        get frameRate(): number;
+        set frameRate(value: number);
         /**
          * @private
          */
@@ -4847,7 +4913,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        readonly stageWidth: number;
+        get stageWidth(): number;
         /**
          * @private
          */
@@ -4864,7 +4930,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        readonly stageHeight: number;
+        get stageHeight(): number;
         /**
          * After you call the invalidate() method, when the display list is next rendered, the Egret runtime sends a render
          * event to each display object that has registered to listen for the render event. You must call the invalidate()
@@ -4921,33 +4987,35 @@ declare namespace egret {
          * @default egret.StageScaleMode.SHOW_ALL
          * @language zh_CN
          */
-        scaleMode: string;
+        get scaleMode(): string;
+        set scaleMode(value: string);
         $orientation: string;
+        set orientation(value: string);
         /**
-        * Horizontal and vertical screen display screen, can only be set under the current Native in the configuration file. A egret.OrientationMode class that specifies which display mode to use. The following are valid values:<br/>
-        * <ul>
-        * <li>egret.OrientationMode.AUTO -- Always follow the direction of application display screen, always guaranteed by the look down.</li>
-        * <li>egret.OrientationMode.PORTRAIT -- Applications remain portrait mode, namely horizontal screen look, the screen from left to right.</li>
-        * <li>egret.OrientationMode.LANDSCAPE -- Applications remain horizontal screen mode, namely vertical screen, the screen from right to left.</li>
-        * <li>egret.OrientationMode.LANDSCAPE_FLIPPED -- Applications remain horizontal screen mode, namely vertical screen, the screen from left to right.</li>
-        * </ul>
-        * @platform Web
-        * @version 2.4
-        * @language en_US
-        */
+         * Horizontal and vertical screen display screen, can only be set under the current Native in the configuration file. A egret.OrientationMode class that specifies which display mode to use. The following are valid values:<br/>
+         * <ul>
+         * <li>egret.OrientationMode.AUTO -- Always follow the direction of application display screen, always guaranteed by the look down.</li>
+         * <li>egret.OrientationMode.PORTRAIT -- Applications remain portrait mode, namely horizontal screen look, the screen from left to right.</li>
+         * <li>egret.OrientationMode.LANDSCAPE -- Applications remain horizontal screen mode, namely vertical screen, the screen from right to left.</li>
+         * <li>egret.OrientationMode.LANDSCAPE_FLIPPED -- Applications remain horizontal screen mode, namely vertical screen, the screen from left to right.</li>
+         * </ul>
+         * @platform Web
+         * @version 2.4
+         * @language en_US
+         */
         /**
-        * 屏幕横竖屏显示方式，目前 Native 下只能在配置文件里设置。一个 egret.OrientationMode 类中指定要使用哪种显示方式。以下是有效值：<br/>
-        * <ul>
-        * <li>egret.OrientationMode.AUTO -- 应用始终跟随屏幕的方向显示，始终保证由上往下看。</li>
-        * <li>egret.OrientationMode.PORTRAIT -- 应用始终保持竖屏模式，即横屏看时，屏幕由左往右看。</li>
-        * <li>egret.OrientationMode.LANDSCAPE -- 应用始终保持横屏模式，即竖屏看时，屏幕显示由右往左。</li>
-        * <li>egret.OrientationMode.LANDSCAPE_FLIPPED -- 应用始终保持横屏模式，即竖屏看时，屏幕显示由左往右。</li>
-        * </ul>
-        * @platform Web
-        * @version 2.4
-        * @language zh_CN
-        */
-        orientation: string;
+         * 屏幕横竖屏显示方式，目前 Native 下只能在配置文件里设置。一个 egret.OrientationMode 类中指定要使用哪种显示方式。以下是有效值：<br/>
+         * <ul>
+         * <li>egret.OrientationMode.AUTO -- 应用始终跟随屏幕的方向显示，始终保证由上往下看。</li>
+         * <li>egret.OrientationMode.PORTRAIT -- 应用始终保持竖屏模式，即横屏看时，屏幕由左往右看。</li>
+         * <li>egret.OrientationMode.LANDSCAPE -- 应用始终保持横屏模式，即竖屏看时，屏幕显示由右往左。</li>
+         * <li>egret.OrientationMode.LANDSCAPE_FLIPPED -- 应用始终保持横屏模式，即竖屏看时，屏幕显示由左往右。</li>
+         * </ul>
+         * @platform Web
+         * @version 2.4
+         * @language zh_CN
+         */
+        get orientation(): string;
         /**
          * Draw texture zoom ratio
          * @default 1
@@ -4958,7 +5026,8 @@ declare namespace egret {
          * @default 1
          * @language zh_CN
          */
-        textureScaleFactor: number;
+        get textureScaleFactor(): number;
+        set textureScaleFactor(value: number);
         $maxTouches: number;
         /**
          * Set the number of screens can simultaneously touch. Above this amount will not be triggered in response.
@@ -4970,7 +5039,8 @@ declare namespace egret {
          * @default 99
          * @language zh_CN
          */
-        maxTouches: number;
+        get maxTouches(): number;
+        set maxTouches(value: number);
         /**
          * Set resolution size
          * @param width width
@@ -5295,7 +5365,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        readonly status: number;
+        get status(): number;
         /**
          * EventDispatcher object using the specified event object thrown Event. The objects will be thrown in the object cache pool for the next round robin.
          * @param target {egret.IEventDispatcher} Distribute event target
@@ -6207,7 +6277,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        readonly stageX: number;
+        get stageX(): number;
         /**
          * @private
          */
@@ -6224,7 +6294,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        readonly stageY: number;
+        get stageY(): number;
         private _localX;
         /**
          * The horizontal coordinate at which the event occurred relative to the display object.
@@ -6238,7 +6308,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        readonly localX: number;
+        get localX(): number;
         private _localY;
         /**
          * The vertical coordinate at which the event occurred relative to the display object.
@@ -6252,7 +6322,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        readonly localY: number;
+        get localY(): number;
         private targetChanged;
         /**
          * @private
@@ -6427,7 +6497,8 @@ declare namespace egret {
          * @platform Web
          * @language zh_CN
          */
-        blurX: number;
+        get blurX(): number;
+        set blurX(value: number);
         /**
          * @private
          */
@@ -6444,7 +6515,8 @@ declare namespace egret {
          * @platform Web
          * @language zh_CN
          */
-        blurY: number;
+        get blurY(): number;
+        set blurY(value: number);
         /**
          * @private
          */
@@ -6528,7 +6600,8 @@ declare namespace egret {
          * @platform Web
          * @language zh_CN
          */
-        matrix: number[];
+        get matrix(): number[];
+        set matrix(value: number[]);
         /**
          * @private
          */
@@ -6584,7 +6657,8 @@ declare namespace egret {
          * @platform Web
          * @language zh_CN
          */
-        padding: number;
+        get padding(): number;
+        set padding(value: number);
         /**
          * The initial value of the uniform in the shader (key, value one-to-one correspondence), currently only supports numbers and arrays.
          * @version Egret 4.1.0
@@ -6597,7 +6671,7 @@ declare namespace egret {
          * @platform Web
          * @language zh_CN
          */
-        readonly uniforms: any;
+        get uniforms(): any;
         /**
          * Initialize the CustomFilter object.
          * @param vertexSrc Custom vertex shader program.
@@ -6682,7 +6756,8 @@ declare namespace egret {
          * @platform Web
          * @language zh_CN
          */
-        distance: number;
+        get distance(): number;
+        set distance(value: number);
         /**
          * @private
          */
@@ -6699,7 +6774,8 @@ declare namespace egret {
          * @platform Web
          * @language zh_CN
          */
-        angle: number;
+        get angle(): number;
+        set angle(value: number);
         /**
          * @private
          */
@@ -6716,7 +6792,8 @@ declare namespace egret {
          * @platform Web
          * @language zh_CN
          */
-        hideObject: boolean;
+        get hideObject(): boolean;
+        set hideObject(value: boolean);
         /**
          * @private
          */
@@ -7408,7 +7485,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        right: number;
+        get right(): number;
+        set right(value: number);
         /**
          * The sum of the y and height properties.
          * @version Egret 2.4
@@ -7421,7 +7499,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        bottom: number;
+        get bottom(): number;
+        set bottom(value: number);
         /**
          * The x coordinate of the top-left corner of the rectangle. Changing the left property of a Rectangle object has
          * no effect on the y and height properties. However it does affect the width property, whereas changing the x value
@@ -7438,7 +7517,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        left: number;
+        get left(): number;
+        set left(value: number);
         /**
          * The y coordinate of the top-left corner of the rectangle. Changing the top property of a Rectangle object has
          * no effect on the x and width properties. However it does affect the height property, whereas changing the y
@@ -7455,7 +7535,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        top: number;
+        get top(): number;
+        set top(value: number);
         /**
          * The location of the Rectangle object's top-left corner, determined by the x and y coordinates of the point.
          * @version Egret 2.4
@@ -7468,7 +7549,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        topLeft: Point;
+        get topLeft(): Point;
+        set topLeft(value: Point);
         /**
          * The location of the Rectangle object's bottom-right corner, determined by the values of the right and bottom properties.
          * @version Egret 2.4
@@ -7481,7 +7563,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        bottomRight: Point;
+        get bottomRight(): Point;
+        set bottomRight(value: Point);
         /**
          * Copies all of rectangle data from the source Rectangle object into the calling Rectangle object.
          * @param sourceRect The Rectangle object from which to copy the data.
@@ -8265,7 +8348,7 @@ declare namespace egret {
      * @platform Web,Native
      * @language zh_CN
      */
-    namespace HttpMethod {
+    const enum HttpMethod {
         /**
          * Specifies that the HttpRequest object is a GET.
          * @version Egret 2.4
@@ -8278,7 +8361,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        const GET = "GET";
+        GET = "GET",
         /**
          * Specifies that the HttpRequest object is a POST.
          * @version Egret 2.4
@@ -8291,7 +8374,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        const POST = "POST";
+        POST = "POST"
     }
 }
 declare namespace egret {
@@ -8830,6 +8913,9 @@ interface FPSData extends Object {
 }
 declare namespace egret.sys {
     let $TempStage: egret.Stage;
+    let context: any;
+    let gl: WebGLRenderingContext;
+    let autoClear: boolean;
     /**
      * @private
      * Egret播放器
@@ -9862,6 +9948,20 @@ declare namespace egret.sys {
      * 文本渲染节点
      */
     class TextNode extends RenderNode {
+        /**
+         * 纹理偏移x
+         */
+        sx: number;
+        /**
+         * 纹理偏移y
+         */
+        sy: number;
+        sw: number;
+        sh: number;
+        /**
+         * 是否移除webglTexture
+         */
+        remTex: boolean;
         constructor();
         /**
          * 颜色值
@@ -11585,7 +11685,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        fontFamily: string;
+        get fontFamily(): string;
+        set fontFamily(value: string);
         $setFontFamily(value: string): boolean;
         /**
          * The size in pixels of text
@@ -11601,7 +11702,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        size: number;
+        get size(): number;
+        set size(value: number);
         $setSize(value: number): boolean;
         /**
          * Specifies whether the text is boldface.
@@ -11617,7 +11719,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        bold: boolean;
+        get bold(): boolean;
+        set bold(value: boolean);
         $setBold(value: boolean): boolean;
         /**
          * Determines whether the text is italic font.
@@ -11633,7 +11736,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        italic: boolean;
+        get italic(): boolean;
+        set italic(value: boolean);
         $setItalic(value: boolean): boolean;
         /**
          * @private
@@ -11654,7 +11758,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        textAlign: string;
+        get textAlign(): string;
+        set textAlign(value: string);
         $setTextAlign(value: string): boolean;
         /**
          * Vertical alignment of text.
@@ -11670,7 +11775,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        verticalAlign: string;
+        get verticalAlign(): string;
+        set verticalAlign(value: string);
         $setVerticalAlign(value: string): boolean;
         /**
          * An integer representing the amount of vertical space between lines.
@@ -11686,7 +11792,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        lineSpacing: number;
+        get lineSpacing(): number;
+        set lineSpacing(value: number);
         $setLineSpacing(value: number): boolean;
         /**
          * Color of the text.
@@ -11702,7 +11809,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        textColor: number;
+        get textColor(): number;
+        set textColor(value: number);
         $setTextColor(value: number): boolean;
         /**
          * A Boolean value that indicates whether the text field word wrap. If the value is true, then the text field by word wrap;
@@ -11720,7 +11828,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        wordWrap: boolean;
+        get wordWrap(): boolean;
+        set wordWrap(value: boolean);
         $setWordWrap(value: boolean): void;
         /**
          * @private
@@ -11738,17 +11847,18 @@ declare namespace egret {
          * @default egret.TextFieldType.DYNAMIC
          * @language zh_CN
          */
-        /**
-        * @version Egret 2.4
-        * @platform Web,Native
-        */
-        type: string;
+        set type(value: string);
         /**
          * @private
          *
          * @param value
          */
         $setType(value: string): boolean;
+        /**
+         * @version Egret 2.4
+         * @platform Web,Native
+         */
+        get type(): string;
         /**
          * Pop-up keyboard type.
          * Any of a TextFieldInputType constants.
@@ -11759,30 +11869,32 @@ declare namespace egret {
          * TextFieldInputType 常量中的任一个。
          * @language zh_CN
          */
+        set inputType(value: string);
         /**
-        * @version Egret 3.1.2
-        * @platform Web,Native
-        */
-        inputType: string;
+         * @version Egret 3.1.2
+         * @platform Web,Native
+         */
+        get inputType(): string;
         /**
          * @version Egret 2.4
          * @platform Web,Native
          */
-        /**
-        * Serve as a string of the current text field in the text
-        * @language en_US
-        */
-        /**
-        * 作为文本字段中当前文本的字符串
-        * @language zh_CN
-        */
-        text: string;
+        get text(): string;
         /**
          * @private
          *
          * @returns
          */
         $getText(): string;
+        /**
+         * Serve as a string of the current text field in the text
+         * @language en_US
+         */
+        /**
+         * 作为文本字段中当前文本的字符串
+         * @language zh_CN
+         */
+        set text(value: string);
         /**
          * @private
          *
@@ -11807,7 +11919,8 @@ declare namespace egret {
          * @default false
          * @language zh_CN
          */
-        displayAsPassword: boolean;
+        get displayAsPassword(): boolean;
+        set displayAsPassword(value: boolean);
         /**
          * @private
          *
@@ -11818,19 +11931,20 @@ declare namespace egret {
          * @version Egret 2.4
          * @platform Web,Native
          */
+        get strokeColor(): number;
         /**
-        * Represent the stroke color of the text.
-        * Contain three 8-bit numbers with RGB color components; for example, 0xFF0000 is red, 0x00FF00 is green.
-        * @default 0x000000
-        * @language en_US
-        */
+         * Represent the stroke color of the text.
+         * Contain three 8-bit numbers with RGB color components; for example, 0xFF0000 is red, 0x00FF00 is green.
+         * @default 0x000000
+         * @language en_US
+         */
         /**
-        * 表示文本的描边颜色。
-        * 包含三个 8 位 RGB 颜色成分的数字；例如，0xFF0000 为红色，0x00FF00 为绿色。
-        * @default 0x000000
-        * @language zh_CN
-        */
-        strokeColor: number;
+         * 表示文本的描边颜色。
+         * 包含三个 8 位 RGB 颜色成分的数字；例如，0xFF0000 为红色，0x00FF00 为绿色。
+         * @default 0x000000
+         * @language zh_CN
+         */
+        set strokeColor(value: number);
         /**
          * @private
          *
@@ -11841,19 +11955,20 @@ declare namespace egret {
          * @version Egret 2.4
          * @platform Web,Native
          */
+        get stroke(): number;
         /**
-        * Indicate the stroke width.
-        * 0 means no stroke.
-        * @default 0
-        * @language en_US
-        */
+         * Indicate the stroke width.
+         * 0 means no stroke.
+         * @default 0
+         * @language en_US
+         */
         /**
-        * 表示描边宽度。
-        * 0为没有描边。
-        * @default 0
-        * @language zh_CN
-        */
-        stroke: number;
+         * 表示描边宽度。
+         * 0为没有描边。
+         * @default 0
+         * @language zh_CN
+         */
+        set stroke(value: number);
         /**
          * @private
          *
@@ -11872,7 +11987,8 @@ declare namespace egret {
          * @default 0
          * @language zh_CN
          */
-        maxChars: number;
+        get maxChars(): number;
+        set maxChars(value: number);
         /**
          * @private
          *
@@ -11891,11 +12007,12 @@ declare namespace egret {
          * 如果显示的第一行是文本字段中的第一行，则 scrollV 设置为 1（而非 0）。
          * @language zh_CN
          */
+        set scrollV(value: number);
         /**
-        * @version Egret 2.4
-        * @platform Web,Native
-        */
-        scrollV: number;
+         * @version Egret 2.4
+         * @platform Web,Native
+         */
+        get scrollV(): number;
         /**
          * The maximum value of scrollV
          * @version Egret 2.4
@@ -11908,25 +12025,25 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        readonly maxScrollV: number;
+        get maxScrollV(): number;
         /**
          * @private
          * @version Egret 2.4
          * @platform Web,Native
          */
-        readonly selectionBeginIndex: number;
+        get selectionBeginIndex(): number;
         /**
          * @private
          * @version Egret 2.4
          * @platform Web,Native
          */
-        readonly selectionEndIndex: number;
+        get selectionEndIndex(): number;
         /**
          * @private
          * @version Egret 2.4
          * @platform Web,Native
          */
-        readonly caretIndex: number;
+        get caretIndex(): number;
         /**
          * @private
          *
@@ -11952,7 +12069,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        readonly numLines: number;
+        get numLines(): number;
         /**
          * Indicate whether field is a multiline text field. Note that this property is valid only when the type is TextFieldType.INPUT.
          * If the value is true, the text field is multiline; if the value is false, the text field is a single-line text field. In a field of type TextFieldType.INPUT, the multiline value determines whether the Enter key creates a new line (a value of false, and the Enter key is ignored).
@@ -11965,13 +12082,14 @@ declare namespace egret {
          * @default false
          * @language zh_CN
          */
-        multiline: boolean;
+        set multiline(value: boolean);
         /**
          * @private
          *
          * @param value
          */
         $setMultiline(value: boolean): boolean;
+        get multiline(): boolean;
         /**
          * Indicates a user can enter into the text field character set. If you restrict property is null, you can enter any character. If you restrict property is an empty string, you can not enter any character. If you restrict property is a string of characters, you can enter only characters in the string in the text field. The string is scanned from left to right. You can use a hyphen (-) to specify a range. Only restricts user interaction; a script may put any text into the text field. <br/>
                   * If the string of characters caret (^) at the beginning, all characters are initially accepted, then the string are excluded from receiving ^ character. If the string does not begin with a caret (^) to, any characters are initially accepted and then a string of characters included in the set of accepted characters. <br/>
@@ -12002,7 +12120,8 @@ declare namespace egret {
          * @default null
          * @language zh_CN
          */
-        restrict: string;
+        set restrict(value: string);
+        get restrict(): string;
         /**
          * @private
          *
@@ -12047,15 +12166,16 @@ declare namespace egret {
          * @default false
          * @language zh_CN
          */
-        /**
-        * @version Egret 2.4
-        * @platform Web,Native
-        */
-        border: boolean;
+        set border(value: boolean);
         /**
          * @private
          */
         $setBorder(value: boolean): void;
+        /**
+         * @version Egret 2.4
+         * @platform Web,Native
+         */
+        get border(): boolean;
         /**
          * The color of the text field border.
          * Even currently is no border can be retrieved or set this property, but only if the text field has the border property is set to true, the color is visible.
@@ -12068,15 +12188,16 @@ declare namespace egret {
          * @default 0x000000
          * @language zh_CN
          */
-        /**
-        * @version Egret 2.4
-        * @platform Web,Native
-        */
-        borderColor: number;
+        set borderColor(value: number);
         /**
          * @private
          */
         $setBorderColor(value: number): void;
+        /**
+         * @version Egret 2.4
+         * @platform Web,Native
+         */
+        get borderColor(): number;
         /**
          * Specifies whether the text field has a background fill.
          * If true, the text field has a background fill. If false, the text field has no background fill.
@@ -12091,15 +12212,16 @@ declare namespace egret {
          * @default false
          * @language zh_CN
          */
-        /**
-        * @version Egret 2.4
-        * @platform Web,Native
-        */
-        background: boolean;
+        set background(value: boolean);
         /**
          * @private
          */
         $setBackground(value: boolean): void;
+        /**
+         * @version Egret 2.4
+         * @platform Web,Native
+         */
+        get background(): boolean;
         /**
          * Color of the text field background.
          * Even currently is no background, can be retrieved or set this property, but only if the text field has the background property set to true, the color is visible.
@@ -12112,15 +12234,16 @@ declare namespace egret {
          * @default 0xFFFFFF
          * @language zh_CN
          */
-        /**
-        * @version Egret 2.4
-        * @platform Web,Native
-        */
-        backgroundColor: number;
+        set backgroundColor(value: number);
         /**
          * @private
          */
         $setBackgroundColor(value: number): void;
+        /**
+         * @version Egret 2.4
+         * @platform Web,Native
+         */
+        get backgroundColor(): number;
         /**
          * @private
          *
@@ -12171,11 +12294,12 @@ declare namespace egret {
          * @see http://edn.egret.com/cn/index.php/article/index/id/146
          * @language zh_CN
          */
+        set textFlow(textArr: Array<egret.ITextElement>);
         /**
-        * @version Egret 2.4
-        * @platform Web,Native
-        */
-        textFlow: Array<egret.ITextElement>;
+         * @version Egret 2.4
+         * @platform Web,Native
+         */
+        get textFlow(): Array<egret.ITextElement>;
         /**
          * @private
          *
@@ -12205,7 +12329,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        readonly textWidth: number;
+        get textWidth(): number;
         /**
          * Get Text measuring height
          * @version Egret 2.4
@@ -12218,7 +12342,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        readonly textHeight: number;
+        get textHeight(): number;
         /**
          * @private
          * @param text
@@ -12683,7 +12807,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        endian: string;
+        get endian(): string;
+        set endian(value: string);
         protected $endian: EndianConst;
         /**
          * @version Egret 2.4
@@ -12703,26 +12828,28 @@ declare namespace egret {
          *
          * @memberOf ByteArray
          */
-        readonly readAvailable: number;
+        get readAvailable(): number;
+        get buffer(): ArrayBuffer;
+        get rawBuffer(): ArrayBuffer;
         /**
-        * @private
-        */
-        buffer: ArrayBuffer;
-        readonly rawBuffer: ArrayBuffer;
-        readonly bytes: Uint8Array;
+         * @private
+         */
+        set buffer(value: ArrayBuffer);
+        get bytes(): Uint8Array;
         /**
          * @private
          * @version Egret 2.4
          * @platform Web,Native
          */
-        /**
-        * @private
-        */
-        dataView: DataView;
+        get dataView(): DataView;
         /**
          * @private
          */
-        readonly bufferOffset: number;
+        set dataView(value: DataView);
+        /**
+         * @private
+         */
+        get bufferOffset(): number;
         /**
          * The current position of the file pointer (in bytes) to move or return to the ByteArray object. The next time you start reading reading method call in this position, or will start writing in this position next time call a write method.
          * @version Egret 2.4
@@ -12735,7 +12862,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        position: number;
+        get position(): number;
+        set position(value: number);
         /**
          * The length of the ByteArray object (in bytes).
                   * If the length is set to be larger than the current length, the right-side zero padding byte array.
@@ -12752,7 +12880,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        length: number;
+        get length(): number;
+        set length(value: number);
         protected _validateBuffer(value: number): void;
         /**
          * The number of bytes that can be read from the current position of the byte array to the end of the array data.
@@ -12768,7 +12897,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        readonly bytesAvailable: number;
+        get bytesAvailable(): number;
         /**
          * Clears the contents of the byte array and resets the length and position properties to 0.
          * @version Egret 2.4
@@ -13376,7 +13505,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        static logLevel: string;
+        static set logLevel(logType: string);
     }
 }
 declare namespace egret {
@@ -13526,7 +13655,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        delay: number;
+        get delay(): number;
+        set delay(value: number);
         /**
          * The total number of times the timer is set to run. If the repeat count is set to 0, the timer continues indefinitely,
          * until the stop() method is invoked or the program stops. If the repeat count is nonzero, the timer runs the specified
@@ -13559,7 +13689,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        readonly currentCount: number;
+        get currentCount(): number;
         /**
          * @private
          */
@@ -13576,7 +13706,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        readonly running: boolean;
+        get running(): boolean;
         /**
          * Stops the timer, if it is running, and sets the currentCount property back to 0, like the reset button of a stopwatch.
          * Then, when start() is called, the timer instance runs for the specified number of repetitions, as set by the repeatCount value.
@@ -14185,5 +14315,7 @@ declare namespace egret {
         private static canUseWebGL;
         static checkCanUseWebGL(): boolean;
         static deleteWebGLTexture(bitmapData: any): void;
+        static updateEgretTexutre(bmd: egret.BitmapData): void;
+        static premultiplyTint(tint: number, alpha: number): number;
     }
 }

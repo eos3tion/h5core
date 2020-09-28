@@ -883,6 +883,12 @@ declare namespace jy {
          */
         len: number;
     }
+    interface NetService {
+        /**
+         * 是否连通
+         */
+        readonly connected?: boolean;
+    }
     /**
      * 通信服务
      * 收发的协议结构：
@@ -936,10 +942,6 @@ declare namespace jy {
          */
         protected _sendBuffer: ByteArray;
         protected _tempBytes: ByteArray;
-        /**
-         * 是否连通
-         */
-        readonly connected?: boolean;
         /**
          * 接收消息的创建器
          *
@@ -1129,7 +1131,7 @@ declare namespace jy {
          * 获取纹理
          * @param key
          */
-        get(key: string | number): egret.Texture;
+        get(key: Key): egret.Texture;
         /**
          * 注册纹理
          * @param key 纹理的key
@@ -1137,16 +1139,16 @@ declare namespace jy {
          * @param [ntex] 外部纹理，如果不传，则直接创建
          * @returns {egret.Texture} 则表明注册成功
          */
-        reg(key: string | number, rect: Rect, ntex?: egret.Texture): egret.Texture;
+        reg(key: Key, rect: Rect, ntex?: egret.Texture): egret.Texture;
         /**
          * 更新纹理
          */
-        update: (key: string | number, rect: Rect, tex: DynamicTexture) => void;
+        update: (key: Key, rect: Rect, tex: DynamicTexture) => void;
         /**
          * 删除指定纹理
          * @param key
          */
-        remove(key: string | number): egret.Texture;
+        remove(key: Key): egret.Texture;
         /**
          * 获取上下文对象
          */
@@ -1198,8 +1200,8 @@ declare namespace jy {
      * @extends {GameLayer}
      */
     class UILayer extends BaseLayer {
-        get width(): number;
-        get height(): number;
+        $getWidth(): number;
+        $getHeight(): number;
     }
     /**
      * 需要对子对象排序的层
@@ -1373,6 +1375,12 @@ declare namespace jy {
         prototype: any;
         useDisFilter?: boolean;
     }): void;
+    interface Component {
+        /**
+         * 附加的数据
+         */
+        data?: any;
+    }
     /**
      * 用于处理接收flash软件制作的UI，导出的数据，仿照eui
      * 不过简化eui的一些layout的支持
@@ -1382,12 +1390,6 @@ declare namespace jy {
      *
      */
     class Component extends egret.Sprite {
-        /**
-         * 附加的数据
-         *
-         * @type {*}@memberof Component
-         */
-        data?: any;
         protected _guid: string;
         protected _creator: BaseCreator<egret.DisplayObject>;
         /**
@@ -2214,9 +2216,9 @@ declare namespace jy {
          */
         regDef: {
             (msg: PBStruct, def: any): any;
-            (msgType: string | number, def: any): any;
+            (msgType: Key, def: any): any;
         };
-        regStruct: (msgType: string | number, struct: PBStruct) => void;
+        regStruct: (msgType: Key, struct: PBStruct) => void;
         /**
          * 初始化默认值
          */
@@ -2233,9 +2235,9 @@ declare namespace jy {
          * @memberOf PBMessageUtils
          */
         add(dict: PBStructDictInput): void;
-        readFrom: (msgType: string | number | PBStruct, bytes: ByteArray, len?: number) => any;
-        writeTo: (msg: object, msgType: string | number | PBStruct, bytes?: ByteArray, debugOutData?: Object) => ByteArray;
-        readMessage: (bytes: ByteArray, msgType: string | number | PBStruct) => any;
+        readFrom: (msgType: Key | PBStruct, bytes: ByteArray, len?: number) => any;
+        writeTo: (msg: object, msgType: Key | PBStruct, bytes?: ByteArray, debugOutData?: Object) => ByteArray;
+        readMessage: (bytes: ByteArray, msgType: Key | PBStruct) => any;
         readString: (bytes: ByteArray) => string;
         readBytes: (bytes: ByteArray) => ByteArray;
     };
@@ -2248,9 +2250,9 @@ declare namespace jy {
          */
         regDef: {
             (msg: PBStruct, def: any): any;
-            (msgType: string | number, def: any): any;
+            (msgType: Key, def: any): any;
         };
-        regStruct: (msgType: string | number, struct: PBStruct) => void;
+        regStruct: (msgType: Key, struct: PBStruct) => void;
         /**
          * 初始化默认值
          */
@@ -2267,9 +2269,9 @@ declare namespace jy {
          * @memberOf PBMessageUtils
          */
         add(dict: PBStructDictInput): void;
-        readFrom: (msgType: string | number | PBStruct, bytes: ByteArray, len?: number) => any;
-        writeTo: (msg: object, msgType: string | number | PBStruct, bytes?: ByteArray, debugOutData?: Object) => ByteArray;
-        readMessage: (bytes: ByteArray, msgType: string | number | PBStruct) => any;
+        readFrom: (msgType: Key | PBStruct, bytes: ByteArray, len?: number) => any;
+        writeTo: (msg: object, msgType: Key | PBStruct, bytes?: ByteArray, debugOutData?: Object) => ByteArray;
+        readMessage: (bytes: ByteArray, msgType: Key | PBStruct) => any;
         readString: (bytes: ByteArray) => string;
         readBytes: (bytes: ByteArray) => ByteArray;
     };
@@ -2332,12 +2334,12 @@ declare namespace jy {
 }
 declare namespace jy {
     function getDynamicTexSheet(size?: number, path?: Path2D, pathColor?: string): {
-        bind: (uri: string | number, tex: DynamicTexture) => any;
-        draw: (uri: string | number, display: egret.DisplayObject, clipBounds?: egret.Rectangle, scale?: number) => DynamicTexture;
-        update: (uri: string | number, tex: egret.Texture) => void;
-        bindOrUpdate(uri: string | number, tex: DynamicTexture): void;
-        remove(uri: string | number): void;
-        get: (uri: string | number) => egret.Texture;
+        bind: (uri: Key, tex: DynamicTexture) => any;
+        draw: (uri: Key, display: egret.DisplayObject, clipBounds?: egret.Rectangle, scale?: number) => DynamicTexture;
+        update: (uri: Key, tex: egret.Texture) => void;
+        bindOrUpdate(uri: Key, tex: DynamicTexture): void;
+        remove(uri: Key): void;
+        get: (uri: Key) => egret.Texture;
         dispose(): void;
     };
     type DynamicTexSheet = ReturnType<typeof getDynamicTexSheet>;
@@ -2671,7 +2673,7 @@ declare namespace jy {
          * @param {number} direction D(方向)标识
          * @returns {number} A(动作)D(方向)的标识
          */
-        get(action: number, direction: number): number;
+        get(action: number, direction: number): ADKey;
         /**
          * 从A(动作)D(方向)的标识中获取 A(动作)标识
          *
@@ -2679,7 +2681,7 @@ declare namespace jy {
          * @param {ADKey} adKey A(动作)D(方向)的标识
          * @returns {number} A(动作)标识
          */
-        getAction(adKey: number): number;
+        getAction(adKey: ADKey): number;
         /**
          * 从A(动作)D(方向)的标识中获取 D(方向)标识
          *
@@ -2687,7 +2689,7 @@ declare namespace jy {
          * @param {ADKey} adKey A(动作)D(方向)的标识
          * @returns {number} D(方向)标识
          */
-        getDirection(adKey: number): number;
+        getDirection(adKey: ADKey): number;
     };
 }
 declare namespace jy {
@@ -6912,7 +6914,7 @@ declare namespace jy {
          * 解析版本控制文件
          * @param {ArrayBufferLike} hash
          */
-        parseHash(hash: ArrayBuffer): void;
+        parseHash(hash: ArrayBufferLike): void;
         /**
          * 设置版本控制文件
          * @param hash
@@ -7861,7 +7863,7 @@ declare namespace jy.Res {
          * @param {ResItem} data
          * @param {(this: IDBRequest, ev: Event) => any} callback 存储资源执行完成后的回调
          */
-        save(data: ResItem, callback?: (ev: Error | Event) => any): void;
+        save(data: ResItem, callback?: (ev: Event | Error) => any): void;
         /**
          * 获取资源
          *
@@ -7875,13 +7877,13 @@ declare namespace jy.Res {
          * @param {string} url
          * @param {{ (this: IDBRequest, ev: Event) }} callback 删除指定资源执行完成后的回调
          */
-        delete(url: string, callback?: (url: string, ev: Error | Event) => any): void;
+        delete(url: string, callback?: (url: string, ev: Event | Error) => any): void;
         /**
          * 删除全部资源
          *
          * @param {{ (this: IDBRequest, ev: Event) }} callback 删除全部资源执行完成后的回调
          */
-        clear(callback?: (ev: Error | Event) => any): void;
+        clear(callback?: (ev: Event | Error) => any): void;
     };
     /**
      *  尝试启用本地资源缓存
@@ -15354,8 +15356,8 @@ declare namespace jy {
         private _maxValue;
         constructor();
         bindChildren(): void;
-        set width(value: number);
-        get width(): number;
+        $setWidth(value: number): void;
+        $getWidth(): number;
         private setMinValue;
         private addValue;
         private subValue;
@@ -15577,8 +15579,8 @@ declare namespace jy {
         /**
          * 设置底条宽度
          */
-        set width(value: number);
-        get width(): number;
+        $setWidth(value: number): void;
+        $getWidth(): number;
         setMinMax(min: number, max: number, step?: number): void;
     }
     class SliderCreator extends BaseCreator<Slider> {
@@ -15656,8 +15658,8 @@ declare namespace jy {
          * to be override
          */
         dispose(): void;
-        get width(): number;
-        get height(): number;
+        $getWidth(): number;
+        $getHeight(): number;
     }
     /**
      * 格位创建器
