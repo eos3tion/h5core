@@ -13,7 +13,7 @@ var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
         return extendStatics(d, b);
     };
     return function (d, b) {
@@ -24,10 +24,6 @@ var __extends = (this && this.__extends) || (function () {
 })();
 var jy;
 (function (jy) {
-    /**
-     * 延迟执行
-     * @author 3tion
-     */
     var CallLater = /** @class */ (function () {
         function CallLater() {
             this._callLaters = [];
@@ -1012,7 +1008,7 @@ if (typeof Map == "undefined") {
             get: function () {
                 return this._size;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         return PolyfillMap;
@@ -1242,11 +1238,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * Mediator和Proxy的基类
-     * @author 3tion
-     *
-     */
     var FHost = /** @class */ (function () {
         function FHost(name) {
             this._name = name;
@@ -1266,7 +1257,7 @@ var jy;
             get: function () {
                 return this._name;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         /**
@@ -1313,7 +1304,7 @@ var jy;
             get: function () {
                 return false;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         FHost.prototype.startSync = function () {
@@ -1387,11 +1378,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 基础创建器
-     * @author 3tion
-     *
-     */
     var BaseCreator = /** @class */ (function () {
         function BaseCreator() {
         }
@@ -1399,7 +1385,7 @@ var jy;
             get: function () {
                 return this._suiData;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         BaseCreator.prototype.bindSuiData = function (suiData) {
@@ -1493,14 +1479,6 @@ var jy;
             this.filters = value ? null : jy.FilterUtils.gray;
         }
     }
-    /**
-     * 用于处理接收flash软件制作的UI，导出的数据，仿照eui
-     * 不过简化eui的一些layout的支持
-     * 按目前情况看，不太会制作复杂排版的ui，父容器不做统一的测量和重新布局
-     * 都会基于固定大小(传奇世界H5，采用480×800，viewport设置为不可缩放，宽度基于设备的)
-     * @author 3tion
-     *
-     */
     var Component = /** @class */ (function (_super) {
         __extends(Component, _super);
         function Component() {
@@ -1533,7 +1511,7 @@ var jy;
             get: function () {
                 return this._guid;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Component.prototype.init = function (c) {
@@ -1633,7 +1611,7 @@ var jy;
             get: function () {
                 return this;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         return Component;
@@ -1904,13 +1882,6 @@ var jy;
             jy.dispatch(-189 /* NetServiceSendLimit */, cmd);
         }
     }
-    /**
-     * 通信服务
-     * 收发的协议结构：
-     * 2字节协议号 2字节包长度(n) n字节包
-     * @author 3tion
-     *
-     */
     var NetService = /** @class */ (function () {
         function NetService() {
             var _this = this;
@@ -2341,10 +2312,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 状态机
-     * @author 3tion
-     */
     var StateMachine = /** @class */ (function () {
         function StateMachine() {
             this.swis = {};
@@ -2360,7 +2327,7 @@ var jy;
             get: function () {
                 return this._stas;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         StateMachine.prototype.add = function (value) {
@@ -3193,11 +3160,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 基础渲染器
-     * @author 3tion
-     *
-     */
     var BaseRender = /** @class */ (function () {
         function BaseRender() {
             /**原始方向索引 */
@@ -3241,7 +3203,7 @@ var jy;
                     this._playSpeed = value;
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         /**
@@ -3388,9 +3350,6 @@ var jy;
         }
         return parsers[t];
     }
-    /**
-     * 存储pst信息
-     */
     var PstInfo = /** @class */ (function () {
         function PstInfo() {
             this.urCreator = jy.UnitResource;
@@ -3483,10 +3442,6 @@ var jy;
     }());
     jy.PstInfo = PstInfo;
     __reflect(PstInfo.prototype, "jy.PstInfo");
-    /**
-     * 资源打包分隔信息
-     * 只保留了最主流的单动作，单方向
-     */
     var SplitInfo = /** @class */ (function () {
         function SplitInfo(key) {
             this.key = key;
@@ -3585,10 +3540,6 @@ var jy;
             }
         }
     }();
-    /**
-     * 单方向单动作分隔数据
-     * 后面只用这种打包方式
-     */
     var OneADSInfo = /** @class */ (function (_super) {
         __extends(OneADSInfo, _super);
         function OneADSInfo() {
@@ -3637,10 +3588,6 @@ var jy;
         return OneADSInfo;
     }(SplitInfo));
     __reflect(OneADSInfo.prototype, "OneADSInfo");
-    /**
-     * 基于动作打包的分隔数据
-     * @deprecated 已弃用
-     */
     var ActionSInfo = /** @class */ (function (_super) {
         __extends(ActionSInfo, _super);
         function ActionSInfo() {
@@ -3746,14 +3693,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     *
-     * 震动的基本实现
-     * @export
-     * @class BaseShake
-     * @implements {Shake}
-     * @author 3tion
-     */
     var BaseShake = /** @class */ (function () {
         function BaseShake() {
         }
@@ -3761,7 +3700,7 @@ var jy;
             get: function () {
                 return this._target;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(BaseShake.prototype, "total", {
@@ -3771,7 +3710,7 @@ var jy;
             get: function () {
                 return this._total;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         BaseShake.prototype.setShakeTarget = function (target) {
@@ -3819,12 +3758,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 用于君游项目数据同步，后台运行<br/>
-     * 只有注册和注销，没有awake和sleep
-     * @author 3tion
-     *
-     */
     var Proxy = /** @class */ (function (_super) {
         __extends(Proxy, _super);
         function Proxy(name) {
@@ -3839,7 +3772,7 @@ var jy;
             get: function () {
                 return this._readyState == 2 /* COMPLETE */ && this._selfReady;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Proxy.prototype.startSync = function () {
@@ -3911,14 +3844,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 可以调用 @d_interest 的视图
-     * 可以进行关注facade中的事件
-     *
-     * @export
-     * @class ViewController
-     * @extends {FHost}
-     */
     var ViewController = /** @class */ (function (_super) {
         __extends(ViewController, _super);
         function ViewController() {
@@ -4050,7 +3975,7 @@ var jy;
             get: function () {
                 return this._ready;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         ViewController.prototype.onStage = function (e) {
@@ -4179,7 +4104,7 @@ var jy;
             get: function () {
                 return this._content;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Scroller.prototype, "scrollType", {
@@ -4212,7 +4137,7 @@ var jy;
                     this.checkScrollBarView();
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Scroller.prototype.checkScrollBarView = function () {
@@ -4565,7 +4490,7 @@ var jy;
                 var scrollSize = rect[this._sizeKey];
                 return contentSize - scrollSize;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Scroller.prototype.checkAndResetBarPos = function () {
@@ -4608,7 +4533,7 @@ var jy;
             get: function () {
                 return this._dataLen;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(AbsPageList.prototype, "data", {
@@ -4620,7 +4545,7 @@ var jy;
             get: function () {
                 return this._data;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         /**
@@ -4675,7 +4600,7 @@ var jy;
                 }
                 this.$setSelectedIndex(value);
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         AbsPageList.prototype.$setSelectedIndex = function (value) {
@@ -4696,7 +4621,7 @@ var jy;
                 var item = this.selectedItem;
                 return item && item.data;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         /**
@@ -4768,7 +4693,7 @@ var jy;
             get: function () {
                 return this._selectedItem;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         /**
@@ -4818,7 +4743,7 @@ var jy;
             get: function () {
                 return this._list.length;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         /**
@@ -4870,11 +4795,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 位图的创建器
-     * @author 3tion
-     *
-     */
     var BitmapCreator = /** @class */ (function (_super) {
         __extends(BitmapCreator, _super);
         function BitmapCreator(value) {
@@ -4922,20 +4842,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 按钮
-     * 在fla中 按钮只是需要1帧
-     * 按钮帧数对应的状态为
-     * 第1帧  启用 未选中
-     * 第2帧  启用 选中
-     * 第3帧  禁用 未选中
-     * 第4帧  禁用 选中
-     *
-     * 第4帧 没有，会用 第3帧代替
-     * 第3帧 或者 第2帧 没有，会用第一帧代替
-     * @author 3tion
-     *
-     */
     var Button = /** @class */ (function (_super) {
         __extends(Button, _super);
         function Button() {
@@ -4965,7 +4871,7 @@ var jy;
                     this.$setLabel(value);
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Button.prototype.$setLabel = function (value) {
@@ -4994,7 +4900,7 @@ var jy;
                     this.$setSelected(value);
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Button.prototype.$setSelected = function (value) {
@@ -5080,12 +4986,7 @@ var jy;
         return Button;
     }(jy.Component));
     jy.Button = Button;
-    __reflect(Button.prototype, "jy.Button", ["jy.IButton", "jy.Component", "jy.ComponentWithEnable"]);
-    /**
-     * 按钮创建器
-     * @author 3tion
-     *
-     */
+    __reflect(Button.prototype, "jy.Button", ["jy.IButton", "jy.Component"]);
     var ButtonCreator = /** @class */ (function (_super) {
         __extends(ButtonCreator, _super);
         function ButtonCreator() {
@@ -5182,7 +5083,7 @@ var jy;
             get: function () {
                 return this._host;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         LayoutContainer.prototype.show = function () {
@@ -5320,15 +5221,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * @author gushuai
-     * (description)
-     *
-     * @export
-     * @class MenuBaseRender
-     * @extends {egret.Sprite}
-     * @template T
-     */
     var MenuBaseRender = /** @class */ (function () {
         function MenuBaseRender() {
         }
@@ -5351,7 +5243,7 @@ var jy;
             set: function (value) {
                 this.$setData(value);
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         /**
@@ -5370,7 +5262,7 @@ var jy;
                     this.$setSkin(value);
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         MenuBaseRender.prototype.$setSkin = function (value) {
@@ -5385,7 +5277,7 @@ var jy;
             get: function () {
                 return this._skin;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         return MenuBaseRender;
@@ -5395,9 +5287,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 单选按钮组
-     */
     var Group = /** @class */ (function (_super) {
         __extends(Group, _super);
         function Group() {
@@ -5424,7 +5313,7 @@ var jy;
             get: function () {
                 return this._list.length;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         /**
@@ -5480,7 +5369,7 @@ var jy;
             set: function (item) {
                 this.$setSelectedItem(item);
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Group.prototype.$setSelectedItem = function (item) {
@@ -5522,7 +5411,7 @@ var jy;
             set: function (idx) {
                 this.$setSelectedIndex(idx);
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Group.prototype.$setSelectedIndex = function (idx) {
@@ -5582,11 +5471,6 @@ var jy;
             jy.ThrowError("\u5BF9\u5DF2\u56DE\u6536\u7684CallbackInfo\u6267\u884C\u4E86\u56DE\u8C03\uFF0C\u6700\u540E\u4E00\u6B21\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + new Error().stack);
         }
     }
-    /**
-     * 回调信息，用于存储回调数据
-     * @author 3tion
-     *
-     */
     var CallbackInfo = /** @class */ (function () {
         function CallbackInfo() {
             this.doRecycle = true;
@@ -5718,13 +5602,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     *
-     * 调整ClassFactory
-     * @export
-     * @class ClassFactory
-     * @template T
-     */
     var ClassFactory = /** @class */ (function () {
         /**
          * @param {Creator<T>} creator
@@ -5752,11 +5629,6 @@ var jy;
     }());
     jy.ClassFactory = ClassFactory;
     __reflect(ClassFactory.prototype, "jy.ClassFactory");
-    /**
-     * 回收池
-     * @author 3tion
-     *
-     */
     var RecyclablePool = /** @class */ (function () {
         function RecyclablePool(TCreator, max) {
             if (max === void 0) { max = 100; }
@@ -7185,11 +7057,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 使用http进行通信的网络服务
-     * @author 3tion
-     *
-     */
     var HttpNetService = /** @class */ (function (_super) {
         __extends(HttpNetService, _super);
         function HttpNetService() {
@@ -7371,10 +7238,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 用于发送的网络数据<br/>
-     * @author 3tion
-     */
     var NetSendData = /** @class */ (function () {
         function NetSendData() {
         }
@@ -7386,11 +7249,6 @@ var jy;
     }());
     jy.NetSendData = NetSendData;
     __reflect(NetSendData.prototype, "jy.NetSendData", ["jy.IRecyclable"]);
-    /**
-     * 网络数据，类似AS3项目中Stream<br/>
-     * @author 3tion
-     *
-     */
     var NetData = /** @class */ (function (_super) {
         __extends(NetData, _super);
         function NetData() {
@@ -7403,11 +7261,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     *
-     * @author 3tion
-     *
-     */
     var NetRouter = /** @class */ (function () {
         function NetRouter() {
             this.dispatchList = [];
@@ -7652,10 +7505,6 @@ var jy;
         ws.onmessage = null;
         ws.onopen = null;
     }
-    /**
-     * WebSocket版本的NetService
-     * @author 3tion
-     */
     var WSNetService = /** @class */ (function (_super) {
         __extends(WSNetService, _super);
         function WSNetService() {
@@ -7725,7 +7574,7 @@ var jy;
                 var ws = this._ws;
                 return ws && ws.readyState == WebSocket.OPEN;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         /**
@@ -8762,13 +8611,6 @@ if (true) {
 }
 var jy;
 (function (jy) {
-    /**
-     *
-     * 纹理资源
-     * @export
-     * @class TextureResource
-     * @implements {IResource}
-     */
     var TextureResource = /** @class */ (function () {
         function TextureResource(uri, opt) {
             this.state = 0 /* UNREQUEST */;
@@ -8792,7 +8634,7 @@ var jy;
             get: function () {
                 return this._list.length > 0;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         /**
@@ -8945,10 +8787,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-    * 限制列队
-    * @author 3tion
-    */
     var LimitQueue = /** @class */ (function () {
         function LimitQueue() {
             this._queue = [];
@@ -9082,15 +8920,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 使用数值或者字符串类型作为Key
-     * V 作为Value的字典
-     * 原生的map(ECMAScript5无Map)无法自定义列表顺序，而是完全按照加载顺序的，所以才需要有此类型
-     * 列表存储Value
-     * @author 3tion
-     * @class ArraySet
-     * @template V
-     */
     var ArraySet = /** @class */ (function () {
         function ArraySet() {
             this._list = [];
@@ -9106,7 +8935,7 @@ var jy;
             get: function () {
                 return this._list;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(ArraySet.prototype, "rawDict", {
@@ -9119,7 +8948,7 @@ var jy;
             get: function () {
                 return this._dict;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         /**
@@ -9240,7 +9069,7 @@ var jy;
             get: function () {
                 return this._list.length;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         return ArraySet;
@@ -9250,12 +9079,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 方便后续调整
-     * 加入ProtoBuf的varint支持
-     * @author 3tion
-     *
-     */
     var ByteArray = /** @class */ (function (_super) {
         __extends(ByteArray, _super);
         function ByteArray(buffer, ext) {
@@ -9533,7 +9356,7 @@ var jy;
             get: function () {
                 return new Uint8Array(this._bytes.buffer, 0, this.write_position);
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         /**
@@ -9555,11 +9378,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 项目中不使用long类型，此值暂时只用于存储Protobuff中的int64 sint64
-     * @author
-     *
-     */
     var Int64 = /** @class */ (function () {
         function Int64(low, high) {
             this.low = low | 0;
@@ -9886,9 +9704,6 @@ var jy;
         _this.strTime = hour.zeroize(2) + ":" + minute.zeroize(2);
         return _this;
     }
-    /**
-     * TimveVO
-     */
     var TimeVO = /** @class */ (function () {
         function TimeVO(timeStr) {
             if (timeStr) {
@@ -9945,7 +9760,7 @@ var jy;
             get: function () {
                 return this.getDayTime();
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         /**
@@ -9984,10 +9799,6 @@ var jy;
     }(egret.Rectangle));
     jy.Bin = Bin;
     __reflect(Bin.prototype, "jy.Bin");
-    /**
-     * 短边优先装箱
-     * 动态装箱，暂时只用短边优先的单一策略
-     */
     var ShortSideBinPacker = /** @class */ (function () {
         function ShortSideBinPacker(width, height, allowRotation) {
             this.width = width;
@@ -10149,12 +9960,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 圆圈倒计时
-     *
-     * @export
-     * @class CircleCountdown
-     */
     var CircleCountdown = /** @class */ (function () {
         function CircleCountdown() {
             /**
@@ -11648,11 +11453,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 2d游戏的引擎管理游戏层级关系<br/>
-     * @author 3tion
-     *
-     */
     var GameEngine = /** @class */ (function (_super) {
         __extends(GameEngine, _super);
         function GameEngine(stage) {
@@ -11694,7 +11494,7 @@ var jy;
             get: function () {
                 return this._viewRect;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         /**
@@ -11798,10 +11598,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * GameLayer
-     * 用于后期扩展
-     */
     var BaseLayer = /** @class */ (function (_super) {
         __extends(BaseLayer, _super);
         function BaseLayer(id) {
@@ -11813,39 +11609,21 @@ var jy;
     }(egret.Sprite));
     jy.BaseLayer = BaseLayer;
     __reflect(BaseLayer.prototype, "jy.BaseLayer");
-    /**
-     * UI使用的层级，宽度和高度设定为和stage一致
-     *
-     * @export
-     * @class UILayer
-     * @extends {GameLayer}
-     */
     var UILayer = /** @class */ (function (_super) {
         __extends(UILayer, _super);
         function UILayer() {
             return _super !== null && _super.apply(this, arguments) || this;
         }
-        Object.defineProperty(UILayer.prototype, "width", {
-            get: function () {
-                return egret.sys.$TempStage.stageWidth;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(UILayer.prototype, "height", {
-            get: function () {
-                return egret.sys.$TempStage.stageHeight;
-            },
-            enumerable: true,
-            configurable: true
-        });
+        UILayer.prototype.$getWidth = function () {
+            return egret.sys.$TempStage.stageWidth;
+        };
+        UILayer.prototype.$getHeight = function () {
+            return egret.sys.$TempStage.stageHeight;
+        };
         return UILayer;
     }(BaseLayer));
     jy.UILayer = UILayer;
     __reflect(UILayer.prototype, "jy.UILayer");
-    /**
-     * 需要对子对象排序的层
-     */
     var SortedLayer = /** @class */ (function (_super) {
         __extends(SortedLayer, _super);
         function SortedLayer() {
@@ -11889,11 +11667,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 用于处理无方向的动画信息
-     * @author 3tion
-     *
-     */
     var AniInfo = /** @class */ (function (_super) {
         __extends(AniInfo, _super);
         function AniInfo() {
@@ -11970,7 +11743,7 @@ var jy;
                 var frames = this.frames;
                 return frames && frames[0];
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         return AniInfo;
@@ -12027,11 +11800,6 @@ if (true) {
 }
 var jy;
 (function (jy) {
-    /**
-     * 由于目前特效和渲染器是完全一一对应关系，所以直接做成AniBitmap
-     * @author 3tion
-     *
-     */
     var AniRender = /** @class */ (function (_super) {
         __extends(AniRender, _super);
         function AniRender() {
@@ -12067,7 +11835,7 @@ var jy;
                 var info = this.aniInfo;
                 return info && info.key;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         /**
@@ -12496,9 +12264,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 资源显示用位图
-     */
     var ResourceBitmap = /** @class */ (function (_super) {
         __extends(ResourceBitmap, _super);
         function ResourceBitmap() {
@@ -12515,7 +12280,7 @@ var jy;
             get: function () {
                 return this.y + this.z;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         /**
@@ -12553,10 +12318,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 拆分的资源
-     * @author 3tion
-     */
     var SplitUnitResource = /** @class */ (function () {
         function SplitUnitResource(uri, url) {
             /**
@@ -12571,7 +12332,7 @@ var jy;
             get: function () {
                 return this.state == 1 /* REQUESTING */; //加载中，本次不允许卸载
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         /**
@@ -12669,11 +12430,6 @@ var jy;
         bmp.anchorOffsetX = tx || 0;
         bmp.anchorOffsetY = ty || 0;
     }
-    /**
-     * 单位资源<br/>
-     * 图片按动作或者方向的序列帧，装箱处理后的图片位图资源<br/>
-     * 以及图片的坐标信息
-     */
     var UnitResource = /** @class */ (function () {
         function UnitResource(key, pstInfo) {
             this.state = 0 /* UNREQUEST */;
@@ -12847,11 +12603,6 @@ var jy;
 var jy;
 (function (jy) {
     var clamp = Math.clamp;
-    /**
-     * 相机
-     * @author 3tion
-     *
-     */
     var Camera = /** @class */ (function (_super) {
         __extends(Camera, _super);
         function Camera(width, height) {
@@ -12899,7 +12650,7 @@ var jy;
                 }
                 return this._changed;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         /**
@@ -12931,7 +12682,7 @@ var jy;
             get: function () {
                 return this._host;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         /**
@@ -13025,7 +12776,7 @@ var jy;
                 }
                 return this._rect;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         return Camera;
@@ -13050,15 +12801,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 旋转的屏幕抖动
-     * 角度统一从0开始，正向或者逆向旋转，振幅从最大到0
-     *
-     * @export
-     * @class CircleShake
-     * @extends {BaseShake}
-     * @author 3tion
-     */
     var CircleShake = /** @class */ (function (_super) {
         __extends(CircleShake, _super);
         function CircleShake() {
@@ -13104,13 +12846,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 带方向的震动
-     *
-     * @export
-     * @class DirectionShake
-     * @extends {BaseShake}
-     */
     var DirectionShake = /** @class */ (function (_super) {
         __extends(DirectionShake, _super);
         function DirectionShake() {
@@ -13185,17 +12920,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 旋转抖动
-     * 屏幕朝顺时针/逆时针方向抖动一定角度
-     * 抖动从0绝对距离的偏移开始，当中间角度时，达到最大偏移值，最后回到0偏移值
-     * 偏移:swing*( sin 0) 角度：startRad ---------->偏移:swing*( sin Math.PI/2) 角度： (startRad + endRad)/2 -------------->偏移:swing*( sin Math.PI) 角度： endRad
-     *
-     * @export
-     * @class RotateShake
-     * @extends {BaseShake}
-     * @author 3tion
-     */
     var RotateShake = /** @class */ (function (_super) {
         __extends(RotateShake, _super);
         function RotateShake() {
@@ -13235,12 +12959,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 屏幕抖动管理器
-     *
-     * @export
-     * @class ScreenShakeManager
-     */
     var ScreenShakeManager = /** @class */ (function () {
         function ScreenShakeManager() {
             /**
@@ -13354,11 +13072,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 异步工具类，用于加方法兼听
-     * @author 3tion
-     *
-     */
     var AsyncHelper = /** @class */ (function () {
         function AsyncHelper() {
             /**
@@ -13411,11 +13124,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 依赖项的辅助类
-     * @author 3tion
-     *
-     */
     var DependerHelper = /** @class */ (function () {
         /**
          *
@@ -13507,10 +13215,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 代码构建类，用于注册代码
-     * @author 3tion
-     */
     var Facade = /** @class */ (function (_super) {
         __extends(Facade, _super);
         function Facade() {
@@ -13560,7 +13264,7 @@ var jy;
             get: function () {
                 return this._mm;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Facade.prototype._removeHost = function (name, dict) {
@@ -14012,12 +13716,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 视图控制器，持有视图<br/>
-     * 持有Proxy，主要监听视图和Proxy的事件，变更面板状态<br/>
-     * @author 3tion
-     *
-     */
     var Mediator = /** @class */ (function (_super) {
         __extends(Mediator, _super);
         /**
@@ -14052,7 +13750,7 @@ var jy;
                     }
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         /**
@@ -14127,11 +13825,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 模块脚本，后续开发模块，分成多个模块文件
-     * @author 3tion
-     *
-     */
     var ModuleScript = /** @class */ (function () {
         function ModuleScript() {
             /**
@@ -14172,10 +13865,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 用于和服务端通信的数据
-     * @author 3tion
-     */
     var Service = /** @class */ (function (_super) {
         __extends(Service, _super);
         function Service(name) {
@@ -14305,10 +13994,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 功能配置的基类
-     * @author 3tion
-     */
     var BaseMCfg = /** @class */ (function () {
         function BaseMCfg() {
             /**
@@ -14334,12 +14019,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 模块管理器
-     * 用于管理模块的开启/关闭
-     * @author 3tion
-     *
-     */
     var ModuleManager = /** @class */ (function () {
         function ModuleManager() {
             /**
@@ -14406,7 +14085,7 @@ var jy;
                 this._checkers = value;
                 this.doCheckLimits();
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         ModuleManager.prototype.doCheckLimits = function () {
@@ -14832,13 +14511,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     *
-     * 用于弹出窗口，并将下层模糊的工具类
-     * @export
-     * @class BlurScreen
-     * @author gushuai
-     */
     var BlurScreen = /** @class */ (function () {
         function BlurScreen() {
             this._engine = jy.GameEngine.instance;
@@ -14920,11 +14592,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 模块面板
-     * @author 3tion
-     *
-     */
     var Panel = /** @class */ (function (_super) {
         __extends(Panel, _super);
         function Panel() {
@@ -14937,7 +14604,7 @@ var jy;
             get: function () {
                 return this._readyState == 2 /* COMPLETE */;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Panel.prototype.init = function () {
@@ -15046,7 +14713,7 @@ var jy;
                     }
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         /**
@@ -15135,7 +14802,7 @@ var jy;
             get: function () {
                 return this.stage != undefined && this.visible == true;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Panel.prototype.show = function () {
@@ -15176,13 +14843,6 @@ var jy;
      * 左上的点
      */
     var tl = { x: 0, y: 0 };
-    /**
-     * 用于做翻页效果
-     *
-     * @author 3tion
-     * @export
-     * @class Flip
-     */
     var Flip = /** @class */ (function (_super) {
         __extends(Flip, _super);
         function Flip() {
@@ -15503,12 +15163,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 图片
-     * 外部加载
-     * @pb
-     *
-     */
     var Image = /** @class */ (function (_super) {
         __extends(Image, _super);
         function Image() {
@@ -15570,7 +15224,7 @@ var jy;
                     this.texture = undefined;
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         /**
@@ -15617,7 +15271,7 @@ var jy;
                     v.$_rndIdx = value;
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(ListItemRenderer.prototype, "dataChange", {
@@ -15627,7 +15281,7 @@ var jy;
             set: function (value) {
                 this._dataChange = value;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         ListItemRenderer.prototype.onRecycle = function () {
@@ -15673,7 +15327,7 @@ var jy;
                     this.$setData(value);
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         /**
@@ -15716,7 +15370,7 @@ var jy;
                     this.$setSkin(value);
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         ListItemRenderer.prototype.$setSkin = function (value) {
@@ -15779,7 +15433,7 @@ var jy;
             get: function () {
                 return this._skin;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(ListItemRenderer.prototype, "visible", {
@@ -15791,7 +15445,7 @@ var jy;
                     this.$setVisible(value);
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         ListItemRenderer.prototype.$setVisible = function (value) {
@@ -15810,7 +15464,7 @@ var jy;
                     this.$setSelected(value);
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         ListItemRenderer.prototype.setPos = function (x, y) {
@@ -15888,7 +15542,7 @@ var jy;
             get: function () {
                 return this._ready;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         ListItemRenderer.prototype.startSync = function () {
@@ -15921,13 +15575,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 翻页，一次手势翻一页
-     *
-     * @export
-     * @class PageScroller
-     * @extends {Scroller}
-     */
     var PageScroller = /** @class */ (function (_super) {
         __extends(PageScroller, _super);
         function PageScroller() {
@@ -15967,7 +15614,7 @@ var jy;
             get: function () {
                 return this._totalpageCount;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         PageScroller.prototype.bindObj = function (content, scrollRect, scrollbar) {
@@ -16091,13 +15738,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 为已布局好的render提供List功能
-     *
-     * @export
-     * @class MPageList
-     * @extends {PageList}
-     */
     var MPageList = /** @class */ (function (_super) {
         __extends(MPageList, _super);
         function MPageList() {
@@ -16214,14 +15854,14 @@ var jy;
             get: function () {
                 return this._w;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(PageList.prototype, "h", {
             get: function () {
                 return this._h;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(PageList.prototype, "container", {
@@ -16249,7 +15889,7 @@ var jy;
                     Object.defineProperty(con, "scrollRect", define);
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         PageList.prototype.init = function (option) {
@@ -16646,7 +16286,7 @@ var jy;
                     con.scrollRect = rect;
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(PageList.prototype, "tweenY", {
@@ -16667,7 +16307,7 @@ var jy;
                     con.scrollRect = rect;
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         /**
@@ -16787,7 +16427,7 @@ var jy;
             get: function () {
                 return this._showStart;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(PageList.prototype, "showEnd", {
@@ -16799,7 +16439,7 @@ var jy;
             get: function () {
                 return this._showEnd;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         PageList.prototype.checkViewRect = function () {
@@ -16988,15 +16628,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 图片字字库
-     * Key为图片文字文件名（不带扩展名）
-     * Value为egret.Texture
-     *
-     * @export
-     * @class ArtWord
-     * @author 3tion
-     */
     var ArtWord = /** @class */ (function () {
         function ArtWord(name) {
             this._txs = {};
@@ -17198,13 +16829,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     *
-     * 用于处理SuiData中的纹理加载
-     * @export
-     * @class SuiBmd
-     * @author gushuai
-     */
     var SuiBmd = /** @class */ (function () {
         function SuiBmd(uri, url) {
             this.textures = [];
@@ -17225,7 +16849,7 @@ var jy;
             get: function () {
                 return this.using > 0;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         SuiBmd.prototype.loadBmd = function () {
@@ -17281,11 +16905,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 用于加载和存储fla导出的ui数据和位图
-     * @author 3tion
-     *
-     */
     var SuiData = /** @class */ (function () {
         function SuiData(key) {
             /**
@@ -17416,11 +17035,6 @@ var jy;
         return "$SuiData$_" + key;
     }
     jy.getSuiDataUri = getSuiDataUri;
-    /**
-     * 用于管理位图和数据
-     * @author 3tion
-     *
-     */
     var SuiResManager = /** @class */ (function () {
         function SuiResManager() {
             this._suiDatas = {};
@@ -18028,9 +17642,6 @@ var jy;
             bmp.y = maxHeight - bmp.height;
         },
         _a);
-    /**
-     * 艺术字
-     */
     var ArtText = /** @class */ (function (_super) {
         __extends(ArtText, _super);
         function ArtText() {
@@ -18116,7 +17727,7 @@ var jy;
             set: function (val) {
                 this.$setValue(val);
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         ArtText.prototype.$getWidth = function () {
@@ -18139,11 +17750,6 @@ var jy;
     }(jy.Component));
     jy.ArtText = ArtText;
     __reflect(ArtText.prototype, "jy.ArtText");
-    /**
-     *
-     * @author gushuai
-     *
-     */
     var ArtTextCreator = /** @class */ (function (_super) {
         __extends(ArtTextCreator, _super);
         function ArtTextCreator() {
@@ -18196,15 +17802,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     *
-     * 新版使用MC的按钮，减少制作按钮的难度
-     *
-     *
-     * @export
-     * @class MCButton
-     * @extends {Button}
-     */
     var MCButton = /** @class */ (function (_super) {
         __extends(MCButton, _super);
         function MCButton(mc) {
@@ -18240,13 +17837,6 @@ var jy;
     jy.MCButton = MCButton;
     __reflect(MCButton.prototype, "jy.MCButton");
     MCButton.prototype.addChild = jy.Component.prototype.addChild;
-    /**
-     * MC按钮创建器
-     *
-     * @export
-     * @class MCButtonCreator
-     * @extends {BaseCreator<MCButton>}
-     */
     var MCButtonCreator = /** @class */ (function (_super) {
         __extends(MCButtonCreator, _super);
         function MCButtonCreator() {
@@ -18397,13 +17987,6 @@ var jy;
     }(jy.Component));
     jy.MovieClip = MovieClip;
     __reflect(MovieClip.prototype, "jy.MovieClip");
-    /**
-     * MC创建器
-     *
-     * @export
-     * @class MovieClipCreator
-     * @extends {BaseCreator<MovieClip>}
-     */
     var MovieClipCreator = /** @class */ (function (_super) {
         __extends(MovieClipCreator, _super);
         function MovieClipCreator() {
@@ -18467,24 +18050,20 @@ var jy;
                 this._width = this.addBtn.width + this.addBtn.x;
             }
         };
-        Object.defineProperty(NumericStepper.prototype, "width", {
-            get: function () {
-                return this._width;
-            },
-            set: function (value) {
-                if (this._width == value)
-                    return;
-                var sub = value - this._width;
-                this.txt.width += sub;
-                this.txtbg.width += sub;
-                this.addBtn.x += sub;
-                if (this.maxBtn)
-                    this.maxBtn.x += sub;
-                this._width = value;
-            },
-            enumerable: true,
-            configurable: true
-        });
+        NumericStepper.prototype.$setWidth = function (value) {
+            if (this._width == value)
+                return;
+            var sub = value - this._width;
+            this.txt.width += sub;
+            this.txtbg.width += sub;
+            this.addBtn.x += sub;
+            if (this.maxBtn)
+                this.maxBtn.x += sub;
+            this._width = value;
+        };
+        NumericStepper.prototype.$getWidth = function () {
+            return this._width;
+        };
         NumericStepper.prototype.setMinValue = function (e) {
             if (this._minValue)
                 this.value = this._minValue;
@@ -18514,7 +18093,7 @@ var jy;
                     this.dispatch(-1040 /* VALUE_CHANGE */);
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(NumericStepper.prototype, "minValue", {
@@ -18528,7 +18107,7 @@ var jy;
                 else
                     jy.ThrowError("最小值需大于0");
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(NumericStepper.prototype, "maxValue", {
@@ -18542,7 +18121,7 @@ var jy;
                 else
                     jy.ThrowError("最大值需大于0");
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         return NumericStepper;
@@ -18612,11 +18191,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 进度条
-     * @author 3tion
-     *
-     */
     var ProgressBar = /** @class */ (function (_super) {
         __extends(ProgressBar, _super);
         function ProgressBar() {
@@ -18643,7 +18217,7 @@ var jy;
                     this.refresh();
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         /**
@@ -18672,7 +18246,7 @@ var jy;
                     this.tf = tf;
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         /*设置进度*/
@@ -18732,10 +18306,6 @@ var jy;
     }(jy.Component));
     jy.ProgressBar = ProgressBar;
     __reflect(ProgressBar.prototype, "jy.ProgressBar");
-    /**
-     * 进度条创建
-     *
-     */
     var ProgressBarCreator = /** @class */ (function (_super) {
         __extends(ProgressBarCreator, _super);
         function ProgressBarCreator() {
@@ -18779,13 +18349,6 @@ var jy;
     }(jy.BaseCreator));
     jy.ProgressBarCreator = ProgressBarCreator;
     __reflect(ProgressBarCreator.prototype, "jy.ProgressBarCreator");
-    /**
-     * MC进度条创建
-     *
-     * @export
-     * @class MCProgressCreator
-     * @extends {BaseCreator<ProgressBar>}
-     */
     var MCProgressCreator = /** @class */ (function (_super) {
         __extends(MCProgressCreator, _super);
         function MCProgressCreator() {
@@ -18885,7 +18448,7 @@ var jy;
                 this.checkBgSize();
                 this.$setSupportSize(this._supportSize);
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         /**
@@ -18936,7 +18499,7 @@ var jy;
                     this.$setBgSize(value);
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(ScrollBar.prototype, "barSize", {
@@ -18951,7 +18514,7 @@ var jy;
                     this.$setBarSize(value);
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(ScrollBar.prototype, "supportSize", {
@@ -18964,7 +18527,7 @@ var jy;
                     this.$setSupportSize(value);
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         ScrollBar.prototype.$setSupportSize = function (_supportSize) {
@@ -19110,7 +18673,7 @@ var jy;
                 thumb.on("touchBegin" /* TOUCH_BEGIN */, this.onThumbBegin, this);
                 this.on("addedToStage" /* ADDED_TO_STAGE */, this.onAddToStage, this);
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Slider.prototype.onAddToStage = function () {
@@ -19136,7 +18699,7 @@ var jy;
                     }
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Slider.prototype.bgClick = function (e) {
@@ -19212,28 +18775,24 @@ var jy;
                     }
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
-        Object.defineProperty(Slider.prototype, "width", {
-            get: function () {
-                return this._width;
-            },
-            /**
-             * 设置底条宽度
-             */
-            set: function (value) {
-                if (this._width != value) {
-                    this._width = value;
-                    var bg = this.bg;
-                    if (bg) {
-                        bg.width = value;
-                    }
+        /**
+         * 设置底条宽度
+         */
+        Slider.prototype.$setWidth = function (value) {
+            if (this._width != value) {
+                this._width = value;
+                var bg = this.bg;
+                if (bg) {
+                    bg.width = value;
                 }
-            },
-            enumerable: true,
-            configurable: true
-        });
+            }
+        };
+        Slider.prototype.$getWidth = function () {
+            return this._width;
+        };
         Slider.prototype.setMinMax = function (min, max, step) {
             if (step === void 0) { step = 1; }
             if (min > max) {
@@ -19271,10 +18830,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 格位基本类
-     * @author 3tion
-     */
     var Slot = /** @class */ (function (_super) {
         __extends(Slot, _super);
         function Slot() {
@@ -19291,7 +18846,7 @@ var jy;
             set: function (value) {
                 this.$setData(value);
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         /**
@@ -19315,7 +18870,7 @@ var jy;
                     icon.height = rect.height;
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Slot.prototype, "countTxt", {
@@ -19331,7 +18886,7 @@ var jy;
                     this.invalidateDisplay();
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Slot.prototype, "iconSource", {
@@ -19341,7 +18896,7 @@ var jy;
                     this.icon.source = uri;
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Slot.prototype, "count", {
@@ -19351,7 +18906,7 @@ var jy;
                     this.refreshCount();
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Slot.prototype, "countShow", {
@@ -19370,7 +18925,7 @@ var jy;
                     this.refreshCount();
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Slot.prototype.refreshCount = function () {
@@ -19430,20 +18985,12 @@ var jy;
             this.icon.dispose();
             _super.prototype.dispose.call(this);
         };
-        Object.defineProperty(Slot.prototype, "width", {
-            get: function () {
-                return this.suiRawRect.width;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Slot.prototype, "height", {
-            get: function () {
-                return this.suiRawRect.height;
-            },
-            enumerable: true,
-            configurable: true
-        });
+        Slot.prototype.$getWidth = function () {
+            return this.suiRawRect.width;
+        };
+        Slot.prototype.$getHeight = function () {
+            return this.suiRawRect.height;
+        };
         /**
          *
          * 获取类型2的数量处理方法
@@ -19454,14 +19001,6 @@ var jy;
     }(jy.Component));
     jy.Slot = Slot;
     __reflect(Slot.prototype, "jy.Slot");
-    /**
-     * 格位创建器
-     *
-     * @export
-     * @class SlotCreator
-     * @extends {BaseCreator<Slot>}
-     * @author pb
-     */
     var SlotCreator = /** @class */ (function (_super) {
         __extends(SlotCreator, _super);
         function SlotCreator() {
@@ -19500,11 +19039,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 文本框创建器
-     * @author
-     *
-     */
     var TextFieldCreator = /** @class */ (function (_super) {
         __extends(TextFieldCreator, _super);
         function TextFieldCreator() {
@@ -19559,19 +19093,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * ## 背景图容器
-     * 1. 当屏幕长或者宽任意一边大于`基准尺寸(basis)`时
-     *      * 首先根据基准尺寸的宽边得到缩放比
-     *      * 然后将容器按此缩放比进行缩放
-     *      * 根据容器内UI的布局配置，基于当前屏幕大小进行重新布局
-     * 2. 如果屏幕的长或者宽都小于或者等于`基准尺寸(basis)`时
-     *      * 直接根据容器内UI的布局配置，基于当前屏幕大小进行重新布局
-     *
-     * @export
-     * @class MainUIContainer
-     * @extends {egret.Sprite}
-     */
     var BGContainer = /** @class */ (function (_super) {
         __extends(BGContainer, _super);
         function BGContainer(basis, host, layout) {
@@ -19826,20 +19347,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * ## 主体UI的容器
-     * 1. 当屏幕长或者宽任意一边小于`基准尺寸(basis)`时
-     *      * 首先根据基准尺寸的窄边得到缩放比
-     *      * 然后将容器按此缩放比进行缩放
-     *      * 根据容器内UI的布局配置，基于当前屏幕大小进行重新布局
-     * 2. 如果屏幕的长或者宽都大于或者等于`基准尺寸(basis)`时
-     *      * 容器内UI不做缩放
-     *      * 直接根据容器内UI的布局配置，基于当前屏幕大小进行重新布局
-     *
-     * @export
-     * @class MainUIContainer
-     * @extends {egret.Sprite}
-     */
     var MainUIContainer = /** @class */ (function (_super) {
         __extends(MainUIContainer, _super);
         function MainUIContainer() {
@@ -19916,15 +19423,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 按钮形式的菜单
-     * @author gushuai
-     * (description)
-     *
-     * @export
-     * @class SkillItemMenuRender
-     * @extends {MenuBaseRender<MenuBaseVO>}
-     */
     var ButtonMenuRender = /** @class */ (function (_super) {
         __extends(ButtonMenuRender, _super);
         function ButtonMenuRender(key, className) {
@@ -19947,14 +19445,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * @author gushuai
-     * (description)
-     *
-     * @export
-     * @class Menu
-     * @extends {egret.Sprite}
-     */
     var Menu = /** @class */ (function (_super) {
         __extends(Menu, _super);
         function Menu(style, maxRendercount) {
@@ -20084,10 +19574,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 错误提示
-     * @author pb
-     */
     var ErrorTips = /** @class */ (function () {
         function ErrorTips(parent) {
             this._parent = parent;
@@ -20128,11 +19614,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 简易的ToolTip
-     * 只处理字符串类型的描述
-     * @author 3tion
-     */
     var SimToolTip = /** @class */ (function (_super) {
         __extends(SimToolTip, _super);
         function SimToolTip(maxWidth, maxHeight, corner, autoSize) {
@@ -20194,10 +19675,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * ToolTip的数据
-     * @author 3tion
-     */
     var ToolTipData = /** @class */ (function () {
         function ToolTipData() {
         }
@@ -20245,12 +19722,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 默认的Tip
-     * 手指按下控件以后，弹出Tip进行显示
-     * @author 3tion
-     *
-     */
     var ToolTipManager = /** @class */ (function () {
         function ToolTipManager() {
         }
@@ -20455,14 +19926,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    /**
-     * 多选分组
-     *
-     * @export
-     * @class CheckBoxGroup
-     * @extends {Group}
-     * @author 3tion
-     */
     var CheckBoxGroup = /** @class */ (function (_super) {
         __extends(CheckBoxGroup, _super);
         function CheckBoxGroup(maxSelected) {
@@ -20525,7 +19988,7 @@ var jy;
             get: function () {
                 return this._selected;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         CheckBoxGroup.prototype.clear = function () {
@@ -20604,12 +20067,6 @@ var jy;
  */
 var jy;
 (function (jy) {
-    /**
-     * tween的执行效果，参考页面：http://www.cnblogs.com/cloudgamer/archive/2009/01/06/Tween.html
-     *
-     * @export
-     * @class Ease
-     */
     var Ease = /** @class */ (function () {
         function Ease() {
         }
