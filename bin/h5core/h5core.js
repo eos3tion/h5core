@@ -16751,12 +16751,11 @@ var jy;
         stage = stage || egret.sys.$TempStage;
         var isCon = stopChildren && host instanceof egret.DisplayObjectContainer;
         host.touchEnabled = true;
-        var dele = { host: host, isCon: isCon, minDragTime: minDragTime, minSqDist: minSqDist };
-        if (host.stage) {
-            onAdd.call(dele);
+        if (host instanceof egret.DisplayObjectContainer) {
+            host.isOpaque = true;
         }
-        host.on("addedToStage" /* ADDED_TO_STAGE */, onAdd, dele);
-        host.on("removedFromStage" /* REMOVED_FROM_STAGE */, onRemove, dele);
+        var dele = { host: host, isCon: isCon, minDragTime: minDragTime, minSqDist: minSqDist };
+        host.on("touchBegin" /* TOUCH_BEGIN */, checkStart, dele);
         host[key] = dele;
         return dele;
     }
@@ -16773,35 +16772,15 @@ var jy;
         }
     }
     jy.stopDrag = stopDrag;
-    function onAdd() {
-        stage.on("touchBegin" /* TOUCH_BEGIN */, checkStart, this);
-    }
-    function onRemove() {
-        stage.off("touchBegin" /* TOUCH_BEGIN */, checkStart, this);
-        dragEnd(this);
-    }
-    var tempPt = new egret.Point;
     function checkStart(e) {
-        var host = this.host;
-        //检查host和
-        var dis = e.target;
-        while (dis != host) {
-            if (!dis) {
-                return;
-            }
-            dis = dis.parent;
-        }
         var x = e.stageX;
         var y = e.stageY;
-        host.globalToLocal(x, y, tempPt);
-        if (host.scrollRect.containsPoint(tempPt)) {
-            this.lt = Date.now();
-            this.lx = x;
-            this.ly = y;
-            this.dragId = e.touchPointID;
-            stage.on("touchMove" /* TOUCH_MOVE */, onMove, this);
-            stage.on("touchEnd" /* TOUCH_END */, onEnd, this);
-        }
+        this.lt = Date.now();
+        this.lx = x;
+        this.ly = y;
+        this.dragId = e.touchPointID;
+        stage.on("touchMove" /* TOUCH_MOVE */, onMove, this);
+        stage.on("touchEnd" /* TOUCH_END */, onEnd, this);
     }
     function dragEnd(dele) {
         dele.et = jy.Global.now;
@@ -16816,11 +16795,12 @@ var jy;
     function looseDrag(host) {
         var dele = host[key];
         if (dele) {
-            host.off("addedToStage" /* ADDED_TO_STAGE */, onAdd, dele);
-            host.off("removedFromStage" /* REMOVED_FROM_STAGE */, onRemove, dele);
-            onRemove.call(dele);
+            host.off("touchBegin" /* TOUCH_BEGIN */, checkStart, dele);
             if (dele.isCon) {
                 host.touchChildren = true;
+            }
+            if (host instanceof egret.DisplayObjectContainer) {
+                host.isOpaque = false;
             }
             delete host[key];
         }
