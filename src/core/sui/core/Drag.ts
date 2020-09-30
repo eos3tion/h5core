@@ -145,12 +145,11 @@ namespace jy {
         stage = stage || egret.sys.$TempStage;
         const isCon = stopChildren && host instanceof egret.DisplayObjectContainer;
         host.touchEnabled = true;
-        let dele: DragDele = { host, isCon, minDragTime, minSqDist };
-        if (host.stage) {
-            onAdd.call(dele);
+        if (host instanceof egret.DisplayObjectContainer) {
+            host.isOpaque = true;
         }
-        host.on(EgretEvent.ADDED_TO_STAGE, onAdd, dele);
-        host.on(EgretEvent.REMOVED_FROM_STAGE, onRemove, dele);
+        let dele: DragDele = { host, isCon, minDragTime, minSqDist };
+        host.on(EgretEvent.TOUCH_BEGIN, checkStart, dele);
         host[key] = dele;
         return dele;
     }
@@ -167,37 +166,15 @@ namespace jy {
         }
     }
 
-    function onAdd(this: DragDele) {
-        stage.on(EgretEvent.TOUCH_BEGIN, checkStart, this);
-    }
-
-    function onRemove(this: DragDele) {
-        stage.off(EgretEvent.TOUCH_BEGIN, checkStart, this);
-        dragEnd(this);
-    }
-
-    const tempPt = new egret.Point;
     function checkStart(this: DragDele, e: TouchEvent) {
-        let host = this.host;
-        //检查host和
-        let dis = e.target as egret.DisplayObject;
-        while (dis != host) {
-            if (!dis) {
-                return
-            }
-            dis = dis.parent;
-        }
         let x = e.stageX;
         let y = e.stageY;
-        host.globalToLocal(x, y, tempPt);
-        if (host.scrollRect.containsPoint(tempPt)) {
-            this.lt = Date.now();
-            this.lx = x;
-            this.ly = y;
-            this.dragId = e.touchPointID;
-            stage.on(EgretEvent.TOUCH_MOVE, onMove, this);
-            stage.on(EgretEvent.TOUCH_END, onEnd, this);
-        }
+        this.lt = Date.now();
+        this.lx = x;
+        this.ly = y;
+        this.dragId = e.touchPointID;
+        stage.on(EgretEvent.TOUCH_MOVE, onMove, this);
+        stage.on(EgretEvent.TOUCH_END, onEnd, this);
     }
 
     function dragEnd(dele: DragDele) {
@@ -214,11 +191,12 @@ namespace jy {
     export function looseDrag(host: egret.DisplayObject) {
         let dele = host[key];
         if (dele) {
-            host.off(EgretEvent.ADDED_TO_STAGE, onAdd, dele);
-            host.off(EgretEvent.REMOVED_FROM_STAGE, onRemove, dele);
-            onRemove.call(dele);
+            host.off(EgretEvent.TOUCH_BEGIN, checkStart, dele);
             if (dele.isCon) {
                 (host as egret.DisplayObjectContainer).touchChildren = true;
+            }
+            if (host instanceof egret.DisplayObjectContainer) {
+                host.isOpaque = false;
             }
             delete host[key];
         }

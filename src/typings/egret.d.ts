@@ -1673,6 +1673,11 @@ declare namespace egret {
          */
         static $EVENT_REMOVE_FROM_STAGE_LIST: DisplayObject[];
         /**
+         * 是否为不透明的
+         * 如果为不透明，则hitTest将不会穿透
+         */
+        isOpaque?: boolean;
+        /**
          * Creates a new DisplayObjectContainer instance.
          * @version Egret 2.4
          * @platform Web,Native
