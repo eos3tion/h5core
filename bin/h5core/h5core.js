@@ -15197,7 +15197,7 @@ var jy;
         };
         Image.prototype.removedFromStage = function () {
             if (this.uri) {
-                var res = jy.ResManager.getResource(this.uri);
+                var res = jy.TextureResource.get(this.uri, this.opt);
                 if (res) {
                     res.loose(this);
                 }
@@ -15211,9 +15211,7 @@ var jy;
             set: function (value) {
                 if (this.uri == value)
                     return;
-                if (this.uri) { //解除资源绑定
-                    this.removedFromStage();
-                }
+                this.removedFromStage(); //解除资源绑定
                 this.uri = value;
                 if (value) {
                     if (this.stage) {
