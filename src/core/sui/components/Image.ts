@@ -59,7 +59,7 @@ namespace jy {
 
 		removedFromStage() {
 			if (this.uri) {
-				let res = <TextureResource>ResManager.getResource(this.uri);
+				let res = TextureResource.get(this.uri, this.opt);
 				if (res) {
 					res.loose(this);
 				}
@@ -73,9 +73,7 @@ namespace jy {
 		public set source(value: string) {
 			if (this.uri == value)
 				return;
-			if (this.uri) {//解除资源绑定
-				this.removedFromStage();
-			}
+			this.removedFromStage();//解除资源绑定
 			this.uri = value;
 			if (value) {
 				if (this.stage) {
