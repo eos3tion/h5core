@@ -8062,7 +8062,7 @@ declare namespace jy {
          * @param {boolean} [noWebp] 是否不加webp后缀
          * @returns {TextureResource}
          */
-        static get(uri: string, opt?: TextureResourceOption): TextureResource;
+        static get(uri: string, opt: TextureResourceOption): TextureResource;
         static dispose(sheetKey: Key): void;
     }
 }
@@ -13931,6 +13931,7 @@ declare namespace jy {
          */
         dispose(): void;
         hasTexture(): boolean;
+        getOpt(): TextureResourceOption;
     }
     interface Image extends ComponentWithEnable {
     }

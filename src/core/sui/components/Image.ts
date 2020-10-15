@@ -34,15 +34,7 @@ namespace jy {
 
 		addedToStage() {
 			if (this.uri) {
-				let opt = this.opt;
-				if (!opt) {
-					this.opt = opt = {
-						sheetKey: this.sheetKey,
-						noWebp: this.noWebp,
-						sheetSize: this.sheetSize,
-						sheetPath: this.sheetPath
-					}
-				}
+				let opt = this.getOpt();
 				let res = TextureResource.get(this.uri, opt);
 				if (res) {
 					res.qid = this.qid;
@@ -59,7 +51,8 @@ namespace jy {
 
 		removedFromStage() {
 			if (this.uri) {
-				let res = TextureResource.get(this.uri, this.opt);
+				let opt = this.getOpt();
+				let res = TextureResource.get(this.uri, opt);
 				if (res) {
 					res.loose(this);
 				}
@@ -98,6 +91,18 @@ namespace jy {
 			return this.texture != this.placehoder;
 		}
 
+		getOpt() {
+			let opt = this.opt;
+			if (!opt) {
+				this.opt = opt = {
+					sheetKey: this.sheetKey,
+					noWebp: this.noWebp,
+					sheetSize: this.sheetSize,
+					sheetPath: this.sheetPath
+				}
+			}
+			return opt;
+		}
 	}
 
 	export interface Image extends ComponentWithEnable { };
