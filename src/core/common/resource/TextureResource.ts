@@ -194,8 +194,8 @@ namespace jy {
          * @param {boolean} [noWebp] 是否不加webp后缀
          * @returns {TextureResource} 
          */
-        static get(uri: string, opt?: TextureResourceOption) {
-            let sheetKey = opt && opt.sheetKey;
+        static get(uri: string, opt: TextureResourceOption) {
+            let sheetKey = opt.sheetKey;
             if (sheetKey) {//有sheetKey的不受ResManager管控，必须自行控制
                 let data = sheetRes[sheetKey];
                 if (!data) {

@@ -8739,7 +8739,7 @@ var jy;
          * @returns {TextureResource}
          */
         TextureResource.get = function (uri, opt) {
-            var sheetKey = opt && opt.sheetKey;
+            var sheetKey = opt.sheetKey;
             if (sheetKey) { //有sheetKey的不受ResManager管控，必须自行控制
                 var data = sheetRes[sheetKey];
                 if (!data) {
@@ -15173,15 +15173,7 @@ var jy;
         }
         Image.prototype.addedToStage = function () {
             if (this.uri) {
-                var opt = this.opt;
-                if (!opt) {
-                    this.opt = opt = {
-                        sheetKey: this.sheetKey,
-                        noWebp: this.noWebp,
-                        sheetSize: this.sheetSize,
-                        sheetPath: this.sheetPath
-                    };
-                }
+                var opt = this.getOpt();
                 var res = jy.TextureResource.get(this.uri, opt);
                 if (res) {
                     res.qid = this.qid;
@@ -15197,7 +15189,8 @@ var jy;
         };
         Image.prototype.removedFromStage = function () {
             if (this.uri) {
-                var res = jy.TextureResource.get(this.uri, this.opt);
+                var opt = this.getOpt();
+                var res = jy.TextureResource.get(this.uri, opt);
                 if (res) {
                     res.loose(this);
                 }
@@ -15235,6 +15228,18 @@ var jy;
         };
         Image.prototype.hasTexture = function () {
             return this.texture != this.placehoder;
+        };
+        Image.prototype.getOpt = function () {
+            var opt = this.opt;
+            if (!opt) {
+                this.opt = opt = {
+                    sheetKey: this.sheetKey,
+                    noWebp: this.noWebp,
+                    sheetSize: this.sheetSize,
+                    sheetPath: this.sheetPath
+                };
+            }
+            return opt;
         };
         return Image;
     }(egret.Bitmap));
