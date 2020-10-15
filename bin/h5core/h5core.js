@@ -8739,7 +8739,7 @@ var jy;
          * @returns {TextureResource}
          */
         TextureResource.get = function (uri, opt) {
-            var sheetKey = opt.sheetKey;
+            var sheetKey = opt && opt.sheetKey;
             if (sheetKey) { //有sheetKey的不受ResManager管控，必须自行控制
                 var data = sheetRes[sheetKey];
                 if (!data) {
