@@ -177,7 +177,7 @@ namespace jy {
             let $dtid = rawTex.$dtid;
             let tex = rawTex;
             let createNew = false;
-            if ($dtid && $dtid != _dtid) {
+            if (!$dtid && path || $dtid && $dtid != _dtid) {
                 tex = new egret.Texture;
                 createNew = true;
             }
