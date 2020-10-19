@@ -10409,7 +10409,7 @@ var jy;
             var $dtid = rawTex.$dtid;
             var tex = rawTex;
             var createNew = false;
-            if ($dtid && $dtid != _dtid) {
+            if (!$dtid && path || $dtid && $dtid != _dtid) {
                 tex = new egret.Texture;
                 createNew = true;
             }
