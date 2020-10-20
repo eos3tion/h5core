@@ -14995,7 +14995,7 @@ var jy;
                     jy.bindMapPos(map);
                 }
                 var gridWidth = map.gridWidth, gridHeight = map.gridHeight, columns = map.columns, rows = map.rows;
-                for (var i = x / gridWidth >> 0, len = Math.min(i + w / gridWidth + 1, columns), jstart = (y * 2 / gridHeight >> 0) - 1, jlen = Math.min(jstart + h * 2 / gridHeight + 1, rows); i < len; i++) {
+                for (var i = x / gridWidth >> 0, len = Math.min(i + w / gridWidth + 1, columns), jstart = (y * 2 / gridHeight >> 0) - 1, jlen = Math.min(jstart + h * 2 / gridHeight + 2, rows); i < len; i++) {
                     for (var j = jstart; j < jlen; j++) {
                         var level = map.getWalk(i, j);
                         var tex = getTexture(gridWidth, gridHeight, level);

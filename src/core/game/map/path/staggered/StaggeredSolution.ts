@@ -122,7 +122,7 @@ namespace jy {
                         bindMapPos(map);
                     }
                     const { gridWidth, gridHeight, columns, rows } = map;
-                    for (let i = x / gridWidth >> 0, len = Math.min(i + w / gridWidth + 1, columns), jstart = (y * 2 / gridHeight >> 0) - 1, jlen = Math.min(jstart + h * 2 / gridHeight + 1, rows); i < len; i++) {
+                    for (let i = x / gridWidth >> 0, len = Math.min(i + w / gridWidth + 1, columns), jstart = (y * 2 / gridHeight >> 0) - 1, jlen = Math.min(jstart + h * 2 / gridHeight + 2, rows); i < len; i++) {
                         for (let j = jstart; j < jlen; j++) {
                             let level = map.getWalk(i, j);
                             let tex = getTexture(gridWidth, gridHeight, level);
