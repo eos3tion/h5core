@@ -9755,7 +9755,9 @@ var jy;
                         sheet.remove(this.uri);
                     }
                 }
-                tex.dispose();
+                if (!tex.sheet) { //有sheet的不销毁，只切断引用
+                    tex.dispose();
+                }
             }
             this._list.length = 0;
             this.state = 0 /* UNREQUEST */;
