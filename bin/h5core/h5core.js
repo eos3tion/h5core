@@ -9631,6 +9631,9 @@ var jy;
         if (resID in resources) { //资源id重复                
             return resources[resID] === res;
         }
+        if (true) {
+            res["$DEBUG_TRACE"] = new Error().stack;
+        }
         resources[resID] = res;
         return true;
     }
