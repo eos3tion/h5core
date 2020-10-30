@@ -17803,6 +17803,7 @@ var jy;
             //检查是否有文本框
             this.txtLabel = mc.tf;
             this.mc = mc;
+            mc.touchEnabled = mc.touchChildren = false;
             this.addChild(mc, false);
             this.refresh();
         };

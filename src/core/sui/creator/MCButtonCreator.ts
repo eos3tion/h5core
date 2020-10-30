@@ -23,6 +23,7 @@ namespace jy {
             //检查是否有文本框
             this.txtLabel = (mc as any).tf;
             this.mc = mc;
+            mc.touchEnabled = mc.touchChildren = false;
             this.addChild(mc, false);
             this.refresh();
         }
