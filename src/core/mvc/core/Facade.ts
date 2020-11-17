@@ -369,7 +369,11 @@ namespace jy {
                 self._executeMediator(mediator, handlerName, ...args);
             } else {
                 view.once(EgretEvent.ADDED_TO_STAGE, function () {
-                    self._executeMediator(mediator, handlerName, ...args);
+                    try {
+                        self._executeMediator(mediator, handlerName, ...args);
+                    } catch (e) {
+                        ThrowError(e.message, e);
+                    }
                 })
             }
         }
