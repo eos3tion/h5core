@@ -13568,7 +13568,12 @@ var jy;
             }
             else {
                 view.once("addedToStage" /* ADDED_TO_STAGE */, function () {
-                    self._executeMediator.apply(self, __spreadArrays([mediator, handlerName], args));
+                    try {
+                        self._executeMediator.apply(self, __spreadArrays([mediator, handlerName], args));
+                    }
+                    catch (e) {
+                        jy.ThrowError(e.message, e);
+                    }
                 });
             }
         };
