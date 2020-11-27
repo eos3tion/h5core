@@ -13213,6 +13213,7 @@ declare namespace jy {
         getPercent(): number;
         updateBar(): void;
         refresh(): void;
+        $setVisible(flag: boolean): void;
     }
     /**
      * 进度条创建

@@ -163,6 +163,19 @@ namespace jy {
 			this.updateLabel();
 			this.updateBar();
 		}
+
+		$setVisible(flag: boolean) {
+			let { tf, bar, bg } = this;
+			if (tf) {
+				tf.visible = flag;
+			}
+			if (bar) {
+				bar.visible = flag;
+			}
+			if (bg) {
+				bg.visible = flag;
+			}
+		}
 	}
 	/**
 	 * 进度条创建

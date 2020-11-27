@@ -18293,6 +18293,18 @@ var jy;
             this.updateLabel();
             this.updateBar();
         };
+        ProgressBar.prototype.$setVisible = function (flag) {
+            var _a = this, tf = _a.tf, bar = _a.bar, bg = _a.bg;
+            if (tf) {
+                tf.visible = flag;
+            }
+            if (bar) {
+                bar.visible = flag;
+            }
+            if (bg) {
+                bg.visible = flag;
+            }
+        };
         ProgressBar.defaultLabelFunction = function (value, maxValue) {
             return value + " / " + maxValue;
         };
