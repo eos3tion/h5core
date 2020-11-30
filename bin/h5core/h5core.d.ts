@@ -13542,6 +13542,7 @@ declare namespace jy {
     class TextFieldCreator extends BaseCreator<egret.TextField> {
         static DefaultFonts: string;
         static UniformFonts: string;
+        static UniformOffsetSize: number;
         constructor();
         parseSelfData(data: TextData): void;
         initTextData(tf: egret.TextField, data: TextData): void;

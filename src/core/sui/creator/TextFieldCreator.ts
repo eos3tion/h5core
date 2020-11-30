@@ -111,6 +111,7 @@ namespace jy {
     export class TextFieldCreator extends BaseCreator<egret.TextField> {
         static DefaultFonts: string;
         static UniformFonts: string;
+        static UniformOffsetSize = 0;
         public constructor() {
             super();
         }
@@ -131,6 +132,7 @@ namespace jy {
             let align = ["left", "center", "right", "justify"][+data[2]];
             let color = ColorUtil.getColorValue(data[3]);
             let size = data[4] || 12;//默认12px字
+            let offsetSize = TextFieldCreator.UniformOffsetSize || 0;
             let spacing = +data[5];
             let bold = !!data[6];
             let italic = !!data[7];
@@ -151,7 +153,7 @@ namespace jy {
             tf.fontFamily = face;
             tf.textAlign = align;
             tf.textColor = color;
-            tf.size = size;
+            tf.size = size + offsetSize;
             tf.lineSpacing = spacing;
             tf.bold = bold;
             tf.italic = italic;
