@@ -52,5 +52,11 @@ declare namespace jy {
 		 * 可选参数 分组名称
 		 */
 		group?: string;
+
+		/**
+		 * 类型，0或者没有为ani
+		 * 1 龙骨
+		 */
+		type?: number;
 	}
 }

@@ -10720,6 +10720,15 @@ declare namespace jy {
     type MapDataHelper = ReturnType<typeof getMapDataHelper>;
 }
 declare namespace jy {
+    /**
+     * 地图特效类型
+     */
+    const enum MapEffType {
+        Ani = 0,
+        DBone = 1
+    }
+}
+declare namespace jy {
     const enum MapPBDictKey {
         GridMapInfoPB = 100,
         MapEffPB = 101,
@@ -10832,6 +10841,11 @@ declare namespace jy {
          * 可选参数 分组名称
          */
         group?: string;
+        /**
+         * 类型，0或者没有为ani
+         * 1 龙骨
+         */
+        type?: number;
     }
 }
 /**
