@@ -18,6 +18,9 @@ namespace jy {
         let sheets = [] as TextureSheet[];
         let cur = createNewSheet(_size);
         return {
+            getSheet(uri: string) {
+                return dict[uri]?.sheet;
+            },
             bind,
             draw,
             update,

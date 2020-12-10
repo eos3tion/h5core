@@ -646,6 +646,7 @@ declare namespace jy {
     }
     function updateEgretTexutre(bmd: egret.BitmapData): void;
     function getTextureSheet(size?: number, canvas?: HTMLCanvasElement): {
+        getBmd(): egret.BitmapData;
         /**
          * 获取纹理
          * @param key
@@ -8508,6 +8509,18 @@ declare namespace jy {
 }
 declare namespace jy {
     function getDynamicTexSheet(size?: number, path?: Path2D, pathColor?: string): {
+        getSheet(uri: string): {
+            getBmd(): egret.BitmapData;
+            get(key: string | number): egret.Texture;
+            reg(key: string | number, rect: Rect, ntex?: egret.Texture): egret.Texture;
+            update: (key: string | number, rect: Rect, tex: DynamicTexture) => void;
+            remove(key: string | number): egret.Texture;
+            readonly ctx: CanvasRenderingContext2D;
+            extSize(newSize: number): boolean;
+            dispose(): void;
+            getTexCount(): number;
+            getSize(): number;
+        };
         bind: (uri: Key, tex: DynamicTexture) => any;
         draw: (uri: Key, display: egret.DisplayObject, clipBounds?: egret.Rectangle, scale?: number) => DynamicTexture;
         update: (uri: Key, tex: egret.Texture) => void;

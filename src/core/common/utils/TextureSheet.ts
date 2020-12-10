@@ -28,6 +28,9 @@ namespace jy {
         let sizeChanged = false;
         const texs = {} as { [key: string]: egret.Texture }
         return {
+            getBmd() {
+                return bmd;
+            },
             /**
              * 获取纹理
              * @param key 
