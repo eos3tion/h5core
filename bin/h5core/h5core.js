@@ -1868,6 +1868,9 @@ var jy;
         var sizeChanged = false;
         var texs = {};
         return {
+            getBmd: function () {
+                return bmd;
+            },
             /**
              * 获取纹理
              * @param key
@@ -3331,6 +3334,10 @@ var jy;
         var sheets = [];
         var cur = createNewSheet(_size);
         return {
+            getSheet: function (uri) {
+                var _a;
+                return (_a = dict[uri]) === null || _a === void 0 ? void 0 : _a.sheet;
+            },
             bind: bind,
             draw: draw,
             update: update,
