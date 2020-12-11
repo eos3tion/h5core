@@ -43,7 +43,7 @@ namespace jy {
          */
         protected _st: number;
 
-
+        protected _tickCallBack = CallbackInfo.get(this.tick, this);
         /**
          * 开始一个新的震动
          * 
@@ -65,7 +65,7 @@ namespace jy {
                 }
                 shake.setTargetPos().start();
                 this._st = Global.now;
-                egret.startTick(this.tick, this);
+                Global.addInterval(this._tickCallBack);
             }
             return shake;
         }
@@ -104,9 +104,14 @@ namespace jy {
                 target.x = x;
                 target.y = y;
             } else {
-                shake.end();
+                this.stop();
             }
             return true;
+        }
+
+        public stop() {
+            Global.removeInterval(this._tickCallBack);
+            this._cur?.end();
         }
     }
 }

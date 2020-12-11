@@ -11672,6 +11672,7 @@ declare namespace jy {
          * @type {number}
          */
         protected _st: number;
+        protected _tickCallBack: CallbackInfo<() => boolean>;
         /**
          * 开始一个新的震动
          *
@@ -11681,6 +11682,7 @@ declare namespace jy {
          */
         start<T extends Shake>(shake: T): T;
         tick(): boolean;
+        stop(): void;
     }
 }
 declare namespace jy {

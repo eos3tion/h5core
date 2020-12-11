@@ -15302,6 +15302,7 @@ var jy;
             this.shakable = true;
             this._pt = { x: 0, y: 0 };
             this._tmp = new egret.Rectangle();
+            this._tickCallBack = jy.CallbackInfo.get(this.tick, this);
         }
         ScreenShakeManager.prototype.setLimits = function (width, height, x, y) {
             if (width === void 0) { width = Infinity; }
@@ -15332,7 +15333,7 @@ var jy;
                 }
                 shake.setTargetPos().start();
                 this._st = jy.Global.now;
-                egret.startTick(this.tick, this);
+                jy.Global.addInterval(this._tickCallBack);
             }
             return shake;
         };
@@ -15373,9 +15374,14 @@ var jy;
                 target.y = y;
             }
             else {
-                shake.end();
+                this.stop();
             }
             return true;
+        };
+        ScreenShakeManager.prototype.stop = function () {
+            var _a;
+            jy.Global.removeInterval(this._tickCallBack);
+            (_a = this._cur) === null || _a === void 0 ? void 0 : _a.end();
         };
         return ScreenShakeManager;
     }());
