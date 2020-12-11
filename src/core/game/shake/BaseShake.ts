@@ -69,6 +69,7 @@ namespace jy {
             if (cy === undefined) cy = target ? target.y : 0;
             this._cx = cx;
             this._cy = cy;
+            return this;
         }
 
 
@@ -83,9 +84,13 @@ namespace jy {
 
         public end(): void {
             if (this._shaking) {
-                let target = this._target;
-                target.x = this._cx;
-                target.y = this._cy;
+                let { _cx, _cy, _target } = this;
+                if (_target.dispatch) {
+                    _target.dispatch(EventConst.ShakeEnd, { x: _cx, y: _cy });
+                } else {
+                    _target.x = _cx;
+                    _target.y = _cy;
+                }
                 this._shaking = false;
             }
         }

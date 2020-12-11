@@ -43,7 +43,10 @@ declare namespace jy {
         /**
          * ani 回收前触发
          */
-        AniBeforeRecycle
-
+        AniBeforeRecycle,
+        /**
+         * 震屏结束
+         */
+        ShakeEnd,
     }
 }

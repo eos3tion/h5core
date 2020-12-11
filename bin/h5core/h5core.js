@@ -3734,6 +3734,7 @@ var jy;
                 cy = target ? target.y : 0;
             this._cx = cx;
             this._cy = cy;
+            return this;
         };
         BaseShake.prototype.start = function () {
             if (this._target) {
@@ -3742,9 +3743,14 @@ var jy;
         };
         BaseShake.prototype.end = function () {
             if (this._shaking) {
-                var target = this._target;
-                target.x = this._cx;
-                target.y = this._cy;
+                var _a = this, _cx = _a._cx, _cy = _a._cy, _target = _a._target;
+                if (_target.dispatch) {
+                    _target.dispatch(-1991 /* ShakeEnd */, { x: _cx, y: _cy });
+                }
+                else {
+                    _target.x = _cx;
+                    _target.y = _cy;
+                }
                 this._shaking = false;
             }
         };
@@ -12982,9 +12988,7 @@ var jy;
             this.shakable = true;
             this._pt = { x: 0, y: 0 };
             this._tmp = new egret.Rectangle();
-            // private clearShakeRect() {
-            //     GameEngine.instance.checkViewRect = undefined;
-            // }
+            this._tickCallBack = jy.CallbackInfo.get(this.tick, this);
         }
         ScreenShakeManager.prototype.setLimits = function (width, height, x, y) {
             if (width === void 0) { width = Infinity; }
@@ -13013,29 +13017,12 @@ var jy;
                 if (cur != shake) {
                     shake.setShakeTarget(layer);
                 }
-                shake.start();
+                shake.setTargetPos().start();
                 this._st = jy.Global.now;
-                egret.startTick(this.tick, this);
-                // engine.checkViewRect = this.checkViewRect;
-                // Global.clearCallLater(this.clearShakeRect);
+                jy.Global.addInterval(this._tickCallBack);
             }
             return shake;
         };
-        // private checkViewRect = (rect: egret.Rectangle) => {
-        //     let limits = this._limits;
-        //     let tmp = this._tmp;
-        //     let x = rect.x - 50;
-        //     let y = rect.y - 50;
-        //     let width = rect.width + 100;
-        //     let height = rect.height + 100;
-        //     if (limits) {
-        //         tmp.setTo(Math.clamp(x, limits.x, limits.width), Math.clamp(y, limits.y, limits.height), Math.clamp(width, limits.x, limits.width), Math.clamp(height, limits.y, limits.height));
-        //     } else {
-        //         tmp.setTo(x, y, width, height);
-        //     }
-        //     return tmp;
-        //     // return this._tmp.setTo(rect.x - 50, rect.y - 50, rect.width + 100, rect.height + 100);
-        // }
         ScreenShakeManager.prototype.tick = function () {
             var shake = this._cur;
             var duration = jy.Global.now - this._st;
@@ -13045,11 +13032,11 @@ var jy;
                 cur.tick(duration, pt);
                 var target = cur.target;
                 var limits = this._limits;
+                var px = pt.x;
+                var py = pt.y;
+                var x = px, y = py;
                 if (limits) {
                     var rect = jy.GameEngine.instance.viewRect;
-                    var px = pt.x;
-                    var py = pt.y;
-                    var x = void 0, y = void 0;
                     if (px < 0) {
                         var lx = limits.x;
                         var rx = rect.x;
@@ -13068,15 +13055,19 @@ var jy;
                         var dh = limits.height - rect.height;
                         y = py < dh ? py : dh;
                     }
-                    target.x = x;
-                    target.y = y;
                 }
+                target.x = x;
+                target.y = y;
             }
             else {
-                shake.end();
-                // Global.callLater(this.clearShakeRect, 30000);
+                this.stop();
             }
             return true;
+        };
+        ScreenShakeManager.prototype.stop = function () {
+            var _a;
+            jy.Global.removeInterval(this._tickCallBack);
+            (_a = this._cur) === null || _a === void 0 ? void 0 : _a.end();
         };
         return ScreenShakeManager;
     }());

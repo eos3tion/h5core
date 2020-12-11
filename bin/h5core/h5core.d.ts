@@ -2658,7 +2658,7 @@ declare namespace jy {
          * @param {number} [cx]
          * @param {number} [cy]
          */
-        setTargetPos(cx?: number, cy?: number): void;
+        setTargetPos(cx?: number, cy?: number): this;
         start(): void;
         abstract tick(duration: number, outPt: {
             x: number;
@@ -9021,7 +9021,11 @@ declare namespace jy {
         /**
          * ani 回收前触发
          */
-        AniBeforeRecycle = -1992
+        AniBeforeRecycle = -1992,
+        /**
+         * 震屏结束
+         */
+        ShakeEnd = -1991
     }
 }
 declare namespace jy {
@@ -10173,6 +10177,7 @@ declare namespace jy {
          * @type {number}
          */
         protected _st: number;
+        protected _tickCallBack: CallbackInfo<() => boolean>;
         /**
          * 开始一个新的震动
          *
@@ -10182,6 +10187,7 @@ declare namespace jy {
          */
         start<T extends Shake>(shake: T): T;
         tick(): boolean;
+        stop(): void;
     }
 }
 declare namespace jy {
@@ -10208,6 +10214,10 @@ declare namespace jy {
          * @memberOf Shake
          */
         setShakeTarget(target: ShakeTarget): Shake;
+        /**
+         * 设置震动中心点
+         */
+        setTargetPos(cx?: number, cy?: number): Shake;
         readonly target: ShakeTarget;
         /**
          *
@@ -10242,6 +10252,12 @@ declare namespace jy {
     interface ShakeTarget {
         x: number;
         y: number;
+        /**
+         * 可派发事件
+         */
+        dispatch?: {
+            (type: string | number, ...any: any[]): boolean;
+        };
     }
 }
 declare namespace jy {

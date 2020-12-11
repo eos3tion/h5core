@@ -23,6 +23,11 @@ namespace jy {
          * @memberOf Shake
          */
         setShakeTarget(target: ShakeTarget): Shake;
+        /**
+         * 设置震动中心点
+         */
+        setTargetPos(cx?: number, cy?: number): Shake;
+
         readonly target: ShakeTarget;
         /**
          * 
@@ -58,5 +63,9 @@ namespace jy {
     export interface ShakeTarget {
         x: number;
         y: number;
+        /**
+         * 可派发事件
+         */
+        dispatch?: { (type: string | number, ...any): boolean }
     }
 }
