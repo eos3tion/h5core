@@ -3338,6 +3338,9 @@ var jy;
                 var _a;
                 return (_a = dict[uri]) === null || _a === void 0 ? void 0 : _a.sheet;
             },
+            getSheets: function () {
+                return sheets;
+            },
             bind: bind,
             draw: draw,
             update: update,
