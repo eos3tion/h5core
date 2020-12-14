@@ -21,6 +21,9 @@ namespace jy {
             getSheet(uri: string) {
                 return dict[uri]?.sheet;
             },
+            getSheets() {
+                return sheets;
+            },
             bind,
             draw,
             update,
