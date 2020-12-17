@@ -165,15 +165,24 @@ namespace jy {
 		}
 
 		$setVisible(flag: boolean) {
-			let { tf, bar, bg } = this;
-			if (tf) {
-				tf.visible = flag;
-			}
-			if (bar) {
-				bar.visible = flag;
-			}
-			if (bg) {
-				bg.visible = flag;
+			let skin = this._skin;
+			if (skin instanceof egret.DisplayObject) {
+				if (skin.parent === this) {
+					super.$setVisible(flag);
+				} else {
+					skin.visible = flag;
+				}
+			} else {
+				let { tf, bar, bg } = this;
+				if (tf) {
+					tf.visible = flag;
+				}
+				if (bar) {
+					bar.visible = flag;
+				}
+				if (bg) {
+					bg.visible = flag;
+				}
 			}
 		}
 	}
