@@ -21822,15 +21822,26 @@ var jy;
             this.updateBar();
         };
         ProgressBar.prototype.$setVisible = function (flag) {
-            var _a = this, tf = _a.tf, bar = _a.bar, bg = _a.bg;
-            if (tf) {
-                tf.visible = flag;
+            var skin = this._skin;
+            if (skin instanceof egret.DisplayObject) {
+                if (skin.parent === this) {
+                    _super.prototype.$setVisible.call(this, flag);
+                }
+                else {
+                    skin.visible = flag;
+                }
             }
-            if (bar) {
-                bar.visible = flag;
-            }
-            if (bg) {
-                bg.visible = flag;
+            else {
+                var _a = this, tf = _a.tf, bar = _a.bar, bg = _a.bg;
+                if (tf) {
+                    tf.visible = flag;
+                }
+                if (bar) {
+                    bar.visible = flag;
+                }
+                if (bg) {
+                    bg.visible = flag;
+                }
             }
         };
         ProgressBar.defaultLabelFunction = function (value, maxValue) {
