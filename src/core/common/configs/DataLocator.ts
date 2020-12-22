@@ -102,7 +102,6 @@ namespace jy {
             //清理内存
             parsers = null;
             _plist = null;
-            delete jy.DataLocator;
         },
         /**
          * 
