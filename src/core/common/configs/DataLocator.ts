@@ -36,8 +36,10 @@ namespace jy {
         Dictionary = 3
     }
 
-    let parsers: { [index: string]: ConfigDataParser } = {};
+    let parsers: { [key: string]: ConfigDataParser } = {};
 
+
+    const parserCfgs: { [key: string]: { type: CfgDataType, idkey: string | 0 } } = {};
 
     /**
      * 
@@ -46,14 +48,16 @@ namespace jy {
      * @static
      */
     let _plist: string[] = [];
-	/**
-	 * 配置加载器<br/>
+    /**
+     * 配置加载器<br/>
      * 用于预加载数据的解析
-	 * @author 3tion
-	 *
-	 */
+     * @author 3tion
+     *
+     */
     export let DataLocator = {
         regParser,
+        getParserOption,
+        parserCfgs,
         /**
          * 解析打包的配置
          */
@@ -133,6 +137,7 @@ namespace jy {
                 }
             }
             ([type, dict, forEach] = getParserOption(idkey, type));
+            parserCfgs[key] = { idkey, type };
             try {
                 let ref = CfgCreator || Object;
                 for (let i = 1; i < data.length; i++) {

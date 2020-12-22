@@ -6494,6 +6494,13 @@ declare namespace jy {
      */
     export let DataLocator: {
         regParser: typeof regParser;
+        getParserOption: typeof getParserOption;
+        parserCfgs: {
+            [key: string]: {
+                type: CfgDataType;
+                idkey: string | 0;
+            };
+        };
         /**
          * 解析打包的配置
          */
@@ -6545,6 +6552,7 @@ declare namespace jy {
      */
     export interface CfgData {
     }
+    function getParserOption(idkey?: string | 0, type?: CfgDataType): any[];
     /**
      * 通用的Bytes版本的配置解析器
      * @param buffer
