@@ -6773,6 +6773,7 @@ var jy;
             }
             var dict, forEach;
             (_a = getParserOption(idkey, type), type = _a[0], dict = _a[1], forEach = _a[2]);
+            parserCfgs[key] = { idkey: idkey, type: type };
             try {
                 var struct = {};
                 var headersRaw = [];

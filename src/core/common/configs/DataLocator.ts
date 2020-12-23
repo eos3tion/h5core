@@ -447,6 +447,7 @@ namespace jy {
             }
             let dict, forEach: { (t: any, idx: number, key: string, dict: any, idkey: string) };
             ([type, dict, forEach] = getParserOption(idkey, type));
+            parserCfgs[key] = { idkey, type };
             try {
                 let struct = {} as PBStruct;
                 let headersRaw = [] as (JSONHeadItem & { 4?: number })[];
