@@ -9875,6 +9875,7 @@ var jy;
                         bestNode.height = height;
                         bestShortSideFit = shortSideFit;
                         bestLongSideFit = longSideFit;
+                        bestNode.rot = false;
                     }
                 }
                 if (rotations && rw >= height && rh >= width) {
