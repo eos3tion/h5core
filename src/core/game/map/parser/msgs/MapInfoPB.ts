@@ -52,5 +52,9 @@ declare namespace jy {
 		 * 可选参数 没有地图数据的数据索引
 		 */
 		noPic?: ByteArray;
+		/**
+		 * 可选参数 tiled生成的地图数据
+		 */
+		tiledMap?: TiledMapPB;
 	}
 }
