@@ -12420,7 +12420,12 @@ declare namespace jy {
          * 拖拽结束
          * data {egret.TouchEvent} touch事件
          */
-        DragEnd = -1088
+        DragEnd = -1088,
+        /**
+         * mainUI进行layout之后派发
+         * data {MainUIContainer} 执行layout的容器
+         */
+        MainUIContainerLayoutComplete = -1087
     }
 }
 declare namespace jy {
@@ -13837,6 +13842,7 @@ declare namespace jy {
      * @extends {egret.Sprite}
      */
     class MainUIContainer extends LayoutContainer {
+        resizeFlag: boolean;
         onResize(): void;
         add(d: egret.DisplayObject, type: LayoutType, offsetRect?: egret.Rectangle, hide?: boolean): void;
         protected binLayout(bin: LayoutBin): void;

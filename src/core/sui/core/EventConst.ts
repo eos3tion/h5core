@@ -90,5 +90,11 @@ declare namespace jy {
          * data {egret.TouchEvent} touch事件
          */
         DragEnd,
+        /*=======================================MainUIContainer============================== */
+        /**
+         * mainUI进行layout之后派发  
+         * data {MainUIContainer} 执行layout的容器
+         */
+        MainUIContainerLayoutComplete,
     }
 }
