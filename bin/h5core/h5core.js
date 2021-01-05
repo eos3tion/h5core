@@ -22903,7 +22903,9 @@ var jy;
     var MainUIContainer = /** @class */ (function (_super) {
         __extends(MainUIContainer, _super);
         function MainUIContainer() {
-            return _super !== null && _super.apply(this, arguments) || this;
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this.resizeFlag = true;
+            return _this;
         }
         MainUIContainer.prototype.onResize = function () {
             var host = this._host;
@@ -22912,7 +22914,7 @@ var jy;
             var sw = stage.stageWidth, sh = stage.stageHeight, bw = basis.width, bh = basis.height;
             var lw = sw, lh = sh;
             var scale = 1;
-            if (sw < bw || sh < bh) { //屏幕宽高，任意一边小于基准宽高
+            if (this.resizeFlag || (sw < bw || sh < bh)) { //屏幕宽高，任意一边小于基准宽高
                 var result = jy.getFixedLayout(sw, sh, bw, bh);
                 lw = result.lw;
                 lh = result.lh;
@@ -22924,6 +22926,7 @@ var jy;
             host.y = 0;
             host.scaleY = host.scaleX = scale;
             this.layoutAll();
+            jy.dispatch(-1087 /* MainUIContainerLayoutComplete */, this);
         };
         MainUIContainer.prototype.add = function (d, type, offsetRect, hide) {
             var raw = d.suiRawRect;

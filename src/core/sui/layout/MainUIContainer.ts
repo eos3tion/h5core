@@ -14,7 +14,7 @@ namespace jy {
      * @extends {egret.Sprite}
      */
     export class MainUIContainer extends LayoutContainer {
-
+        resizeFlag = true;
         onResize() {
             let host = this._host;
             let stage = host.stage || egret.sys.$TempStage;
@@ -22,7 +22,7 @@ namespace jy {
             let sw = stage.stageWidth, sh = stage.stageHeight, bw = basis.width, bh = basis.height;
             let lw = sw, lh = sh;
             let scale = 1;
-            if (sw < bw || sh < bh) { //屏幕宽高，任意一边小于基准宽高
+            if (this.resizeFlag || (sw < bw || sh < bh)) { //屏幕宽高，任意一边小于基准宽高
                 let result = getFixedLayout(sw, sh, bw, bh);
                 lw = result.lw;
                 lh = result.lh;
@@ -34,6 +34,7 @@ namespace jy {
             host.y = 0;
             host.scaleY = host.scaleX = scale;
             this.layoutAll();
+            dispatch(EventConst.MainUIContainerLayoutComplete, this)
         }
 
         public add(d: egret.DisplayObject, type: LayoutType, offsetRect?: egret.Rectangle, hide?: boolean) {
