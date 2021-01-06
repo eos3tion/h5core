@@ -3325,7 +3325,7 @@ var jy;
     }, null);
     var tmpSource = { width: 0, height: 0 };
     var _bmd = new egret.BitmapData(tmpSource);
-    var matrix = new DOMMatrix();
+    var matrix = typeof DOMMatrix !== "undefined" ? new DOMMatrix() : { a: 0, b: 0, c: 0, d: 0, e: 0, f: 0 };
     var dtid = 1;
     function getDynamicTexSheet(size, path, pathColor) {
         var $TextureScaleFactor = egret.$TextureScaleFactor;
