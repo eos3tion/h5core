@@ -7,7 +7,7 @@ namespace jy {
 
     const tmpSource = { width: 0, height: 0 };
     const _bmd = new egret.BitmapData(tmpSource);
-    const matrix = new DOMMatrix();
+    const matrix = typeof DOMMatrix !== "undefined" ? new DOMMatrix() : { a: 0, b: 0, c: 0, d: 0, e: 0, f: 0 };
     let dtid = 1;
 
     export function getDynamicTexSheet(size?: number, path?: Path2D, pathColor?: string) {
