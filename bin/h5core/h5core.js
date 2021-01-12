@@ -4398,9 +4398,10 @@ var jy;
         /**
          * 设置小地图
          * @param uri
+         * @param directUseUri 是否直接使用uri作为miniMap的Uri
          */
-        TileMapLayer.prototype.setMini = function (uri) {
-            var miniUri = uri && this._currentMap.getImgUri(uri);
+        TileMapLayer.prototype.setMini = function (uri, directUseUri) {
+            var miniUri = directUseUri ? uri : uri && this._currentMap.getImgUri(uri);
             var old = this.miniUri;
             if (old != miniUri) {
                 if (old) {

@@ -2948,8 +2948,9 @@ declare namespace jy {
         /**
          * 设置小地图
          * @param uri
+         * @param directUseUri 是否直接使用uri作为miniMap的Uri
          */
-        setMini(uri: string): void;
+        setMini(uri: string, directUseUri?: boolean): void;
         miniLoad(item: Res.ResItem): void;
         removeChildren(): void;
     }

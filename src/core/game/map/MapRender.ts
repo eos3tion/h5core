@@ -234,9 +234,10 @@ namespace jy {
         /**
          * 设置小地图
          * @param uri 
+         * @param directUseUri 是否直接使用uri作为miniMap的Uri
          */
-        setMini(uri: string) {
-            let miniUri = uri && this._currentMap.getImgUri(uri);
+        setMini(uri: string, directUseUri?: boolean) {
+            let miniUri = directUseUri ? uri : uri && this._currentMap.getImgUri(uri);
             let old = this.miniUri;
             if (old != miniUri) {
                 if (old) {
