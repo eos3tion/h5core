@@ -1,9 +1,9 @@
 namespace jy {
-	/**
-	 *
-	 * @author 3tion
-	 *
-	 */
+    /**
+     *
+     * @author 3tion
+     *
+     */
     export class NetRouter {
 
         /**
@@ -16,15 +16,15 @@ namespace jy {
             this._listenerMaps = {};
         }
 
-		/**
-		 * 注册一cmd侦听; 
-		 * @param cmd      协议号
-		 * @param handler   处理器   
-		 * @param priority  越大越优先
-		 * @param once      是否只执行一次
-		 * @return boolean true 做为新的兼听添加进去，false 原来就有处理器
-		 * 
-		 */
+        /**
+         * 注册一cmd侦听; 
+         * @param cmd      协议号
+         * @param handler   处理器   
+         * @param priority  越大越优先
+         * @param once      是否只执行一次
+         * @return boolean true 做为新的兼听添加进去，false 原来就有处理器
+         * 
+         */
         public register(cmd: number, handler: INetHandler, priority = 0, once = false): boolean {
             const listenerMaps = this._listenerMaps;
             let netBin = { handler, priority, once };
@@ -62,13 +62,13 @@ namespace jy {
             return true;
         }
 
-		/**
-		 * 删除兼听处理器
-		 * @param cmd      协议号
-		 * @param handler   处理器
-		 * @return boolean true 删除成功  <br/>
-		 *                 false 没有这个兼听
-		 */
+        /**
+         * 删除兼听处理器
+         * @param cmd      协议号
+         * @param handler   处理器
+         * @return boolean true 删除成功  <br/>
+         *                 false 没有这个兼听
+         */
         public remove(cmd: number, handler: INetHandler) {
             let listenerMaps = this._listenerMaps;
             let list = listenerMaps[cmd];
@@ -95,7 +95,11 @@ namespace jy {
         * 调用列表
         */
         public dispatch(data: Recyclable<NetData>) {
-            egret.callLater(this._dispatch, this, data);
+            if (document.visibilityState == "visible") {
+                Global.nextTick(this._dispatch, this, data);
+            } else {
+                this._dispatch(data);
+            }
         }
         private _dispatch(data: Recyclable<NetData>) {
             let cmd = data.cmd;
@@ -139,9 +143,9 @@ namespace jy {
         }
     }
 
-	/**
-	 * 协议处理函数
-	 */
+    /**
+     * 协议处理函数
+     */
     export interface INetHandler { (data: NetData): void };
 
     interface NetBin {

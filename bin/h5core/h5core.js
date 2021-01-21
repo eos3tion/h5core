@@ -8388,7 +8388,12 @@ var jy;
         * 调用列表
         */
         NetRouter.prototype.dispatch = function (data) {
-            egret.callLater(this._dispatch, this, data);
+            if (document.visibilityState == "visible") {
+                jy.Global.nextTick(this._dispatch, this, data);
+            }
+            else {
+                this._dispatch(data);
+            }
         };
         NetRouter.prototype._dispatch = function (data) {
             var cmd = data.cmd;
