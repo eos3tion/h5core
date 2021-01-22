@@ -15639,7 +15639,10 @@ declare namespace jy {
         thumb: egret.DisplayObject;
     }
     interface SliderTip extends egret.DisplayObject {
-        label: string;
+        /**
+         * tip常驻显示
+         */
+        alwaysShow?: boolean;
         setLabel(value: string): any;
     }
     class Slider extends Component {
@@ -15671,6 +15674,7 @@ declare namespace jy {
         private mouseMove;
         private calculatevalue;
         set value(val: number);
+        protected setValue(val: number, showTip?: boolean): void;
         get value(): number;
         /**
          * 设置底条宽度

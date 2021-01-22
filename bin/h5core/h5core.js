@@ -22308,8 +22308,7 @@ var jy;
                 this._lastThumbX = thumb.localToGlobal().x;
                 var tip = this.tip;
                 if (tip) {
-                    tip.x = thumb.x;
-                    tip.setLabel(value + "");
+                    checkTip(this, tip);
                 }
             }
         };
@@ -22318,22 +22317,31 @@ var jy;
                 return this._value;
             },
             set: function (val) {
-                var _a = this, _min = _a._min, _max = _a._max, _step = _a._step, _perStepPixel = _a._perStepPixel;
-                val = Math.clamp(val, _min, _max);
-                if (this._value != val) {
-                    this._value = val;
-                    this.dispatch(-1040 /* VALUE_CHANGE */);
-                    var x = _perStepPixel ? ((val - _min) / _step) * _perStepPixel : this._width;
-                    this.thumb.x = x;
-                    var bar = this.bar;
-                    if (bar) {
-                        bar.width = x;
-                    }
-                }
+                this.setValue(val, true);
             },
             enumerable: false,
             configurable: true
         });
+        Slider.prototype.setValue = function (val, showTip) {
+            var _a = this, _min = _a._min, _max = _a._max, _step = _a._step, _perStepPixel = _a._perStepPixel;
+            val = Math.clamp(val, _min, _max);
+            if (this._value != val) {
+                this._value = val;
+                this.dispatch(-1040 /* VALUE_CHANGE */);
+                var x = _perStepPixel ? ((val - _min) / _step) * _perStepPixel : this._width;
+                this.thumb.x = x;
+                var bar = this.bar;
+                if (bar) {
+                    bar.width = x;
+                }
+                if (showTip) {
+                    var tip = this.tip;
+                    if (tip && tip.alwaysShow) {
+                        checkTip(this, tip);
+                    }
+                }
+            }
+        };
         /**
          * 设置底条宽度
          */
@@ -22363,6 +22371,16 @@ var jy;
     }(jy.Component));
     jy.Slider = Slider;
     __reflect(Slider.prototype, "jy.Slider");
+    function checkTip(slider, tip) {
+        var stage = tip.stage;
+        if (stage) {
+            var thumb = slider.thumb, value = slider.value;
+            var rect = jy.Temp.EgretRectangle;
+            thumb.getTransformedBounds(tip.parent, rect);
+            tip.x = rect.x;
+            tip.setLabel(value + "");
+        }
+    }
     var SliderCreator = /** @class */ (function (_super) {
         __extends(SliderCreator, _super);
         function SliderCreator() {

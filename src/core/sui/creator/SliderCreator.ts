@@ -7,7 +7,10 @@ namespace jy {
     }
 
     export interface SliderTip extends egret.DisplayObject {
-        label: string;
+        /**
+         * tip常驻显示
+         */
+        alwaysShow?: boolean;
         setLabel(value: string);
     }
 
@@ -144,16 +147,18 @@ namespace jy {
 
                 this.value = value;
                 this._lastThumbX = thumb.localToGlobal().x;
-
                 let tip = this.tip;
                 if (tip) {
-                    tip.x = thumb.x;
-                    tip.setLabel(value + "")
+                    checkTip(this, tip)
                 }
             }
         }
 
         public set value(val: number) {
+            this.setValue(val, true);
+        }
+
+        protected setValue(val: number, showTip?: boolean) {
             let { _min, _max, _step, _perStepPixel } = this;
             val = Math.clamp(val, _min, _max)
             if (this._value != val) {
@@ -164,6 +169,12 @@ namespace jy {
                 let bar = this.bar;
                 if (bar) {
                     bar.width = x;
+                }
+                if (showTip) {
+                    let tip = this.tip;
+                    if (tip && tip.alwaysShow) {
+                        checkTip(this, tip)
+                    }
                 }
             }
         }
@@ -199,6 +210,18 @@ namespace jy {
             this._perStepPixel = min == max ? 0 : this._width * step / (max - min);
         }
     }
+
+    function checkTip(slider: Slider, tip: SliderTip) {
+        let stage = tip.stage;
+        if (stage) {
+            let { thumb, value } = slider;
+            let rect = Temp.EgretRectangle;
+            thumb.getTransformedBounds(tip.parent, rect);
+            tip.x = rect.x;
+            tip.setLabel(value + "");
+        }
+    }
+
     export class SliderCreator extends BaseCreator<Slider>{
 
         public parseSelfData(data: any) {
