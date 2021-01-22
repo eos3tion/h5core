@@ -299,8 +299,7 @@ namespace jy {
         }
 
         public displayList(data?: T[], noScrollToHead?: boolean) {
-            this._selectedIndex = -1;
-            this._selectedItem = undefined;
+            this.selectedIndex = -1;
             if (this._data != data) {
                 this.rawDataChanged = true;
             }
