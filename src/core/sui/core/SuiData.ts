@@ -30,19 +30,19 @@ namespace jy {
         suiDataFailed(suiData: SuiData): void;
     }
 
-	/**
-	 * 用于加载和存储fla导出的ui数据和位图
-	 * @author 3tion
-	 *
-	 */
+    /**
+     * 用于加载和存储fla导出的ui数据和位图
+     * @author 3tion
+     *
+     */
     export class SuiData {
         /**
          * 强制设置的皮肤标识
          */
         skinUri?: string;
-    	/**
-    	 * fla的名字
-    	 */
+        /**
+         * fla的名字
+         */
         readonly key: string;
 
         /**
@@ -53,32 +53,32 @@ namespace jy {
         readonly uri: string;
 
         /**
-    	 * 位图数据
-    	 */
+         * 位图数据
+         */
         public pngbmd: SuiBmd
         /**
-    	 * 位图数据
-    	 */
+         * 位图数据
+         */
         public jpgbmd: SuiBmd;
 
-    	/**
-    	 * 回调函数
-    	 */
+        /**
+         * 回调函数
+         */
         public callbacks?: SuiDataCallback[];
 
-    	/**
-    	 * 数据加载状态
-    	 * 0 未加载
-    	 * 1 加载中
-    	 * 2 数据加载完成
-    	 */
+        /**
+         * 数据加载状态
+         * 0 未加载
+         * 1 加载中
+         * 2 数据加载完成
+         */
         public state: RequestState = RequestState.UNREQUEST;
 
-    	/**
-    	 * 库数据
+        /**
+         * 库数据
          * key      fla中设置的导出名<br/>
          * value    皮肤数据<br/>
-    	 */
+         */
         public lib: { [index: string]: BaseCreator<egret.DisplayObject> } = {};
 
         /**
@@ -152,6 +152,25 @@ namespace jy {
             }
         }
 
+        addToStage(isjpg?: boolean) {
+            let tmp = isjpg ? this.jpgbmd : this.pngbmd;
+            if (tmp) {
+                if (this.static) {
+                    tmp.using = Infinity;
+                } else {
+                    tmp.using++;
+                }
+            }
+        }
+
+        removeFromStage(isjpg?: boolean) {
+            let tmp = isjpg ? this.jpgbmd : this.pngbmd;
+            if (tmp) {
+                tmp.using--;
+                tmp.lastUseTime = Global.now;
+            }
+        }
+
         /**
          * 刷新位图
          * 
@@ -161,11 +180,6 @@ namespace jy {
         public checkRefreshBmp(bmp: SuiBmdCallback, isjpg?: boolean) {
             let tmp = isjpg ? this.jpgbmd : this.pngbmd;
             if (tmp) {
-                if (this.static) {
-                    tmp.using = Infinity;
-                } else {
-                    tmp.using++;
-                }
                 if (tmp.bmdState == RequestState.COMPLETE) {
                     if (bmp.refreshBMD) {
                         bmp.refreshBMD();

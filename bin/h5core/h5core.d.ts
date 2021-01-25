@@ -14901,6 +14901,8 @@ declare namespace jy {
         createBmpLoader(ispng: boolean, textures: egret.Texture[]): void;
         noRes(uri: string, file: string, textures: egret.Texture[]): SuiBmd;
         setStatic(): void;
+        addToStage(isjpg?: boolean): void;
+        removeFromStage(isjpg?: boolean): void;
         /**
          * 刷新位图
          *
