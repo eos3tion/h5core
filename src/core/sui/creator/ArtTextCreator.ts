@@ -138,11 +138,11 @@ namespace jy {
         }
 
     }
-	/**
-	 *
-	 * @author gushuai
-	 *
-	 */
+    /**
+     *
+     * @author gushuai
+     *
+     */
     export class ArtTextCreator extends BaseCreator<ArtText>{
 
         private _txs: { [index: string]: egret.Texture };
@@ -177,6 +177,7 @@ namespace jy {
             var suiData = this._suiData;
             if (suiData) {
                 let bmp = <egret.Bitmap>e.currentTarget;
+                suiData.addToStage();
                 suiData.checkRefreshBmp(bmp);
             }
         }
@@ -184,9 +185,7 @@ namespace jy {
         protected onRemoveFromStage() {
             var suiData = this._suiData;
             if (suiData) {
-                let bmd = suiData.pngbmd;
-                bmd.using--;
-                bmd.lastUseTime = Global.now;
+                suiData.removeFromStage();
             }
         }
     }

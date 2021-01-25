@@ -1,9 +1,9 @@
 namespace jy {
-	/**
-	 * 位图的创建器
-	 * @author 3tion
-	 *
-	 */
+    /**
+     * 位图的创建器
+     * @author 3tion
+     *
+     */
     export class BitmapCreator<T extends egret.Bitmap> extends BaseCreator<T> {
         /**
          * 是否为jpg
@@ -40,16 +40,16 @@ namespace jy {
             const suiData = this._suiData;
             if (suiData) {
                 let bmp = e.currentTarget as egret.Bitmap;
-                suiData.checkRefreshBmp(bmp, this.isjpg);
+                let isjpg = this.isjpg;
+                suiData.addToStage(isjpg)
+                suiData.checkRefreshBmp(bmp, isjpg);
             }
         }
 
         protected sleep() {
             const suiData = this._suiData;
             if (suiData) {
-                let bmd = this.isjpg ? suiData.jpgbmd : suiData.pngbmd;
-                bmd.using--;
-                bmd.lastUseTime = Global.now;
+                suiData.removeFromStage(this.isjpg);
             }
         }
     }

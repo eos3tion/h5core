@@ -4833,15 +4833,15 @@ var jy;
             var suiData = this._suiData;
             if (suiData) {
                 var bmp = e.currentTarget;
-                suiData.checkRefreshBmp(bmp, this.isjpg);
+                var isjpg = this.isjpg;
+                suiData.addToStage(isjpg);
+                suiData.checkRefreshBmp(bmp, isjpg);
             }
         };
         BitmapCreator.prototype.sleep = function () {
             var suiData = this._suiData;
             if (suiData) {
-                var bmd = this.isjpg ? suiData.jpgbmd : suiData.pngbmd;
-                bmd.using--;
-                bmd.lastUseTime = jy.Global.now;
+                suiData.removeFromStage(this.isjpg);
             }
         };
         return BitmapCreator;
@@ -16952,6 +16952,24 @@ var jy;
                 tmp.using = Infinity;
             }
         };
+        SuiData.prototype.addToStage = function (isjpg) {
+            var tmp = isjpg ? this.jpgbmd : this.pngbmd;
+            if (tmp) {
+                if (this.static) {
+                    tmp.using = Infinity;
+                }
+                else {
+                    tmp.using++;
+                }
+            }
+        };
+        SuiData.prototype.removeFromStage = function (isjpg) {
+            var tmp = isjpg ? this.jpgbmd : this.pngbmd;
+            if (tmp) {
+                tmp.using--;
+                tmp.lastUseTime = jy.Global.now;
+            }
+        };
         /**
          * 刷新位图
          *
@@ -16961,12 +16979,6 @@ var jy;
         SuiData.prototype.checkRefreshBmp = function (bmp, isjpg) {
             var tmp = isjpg ? this.jpgbmd : this.pngbmd;
             if (tmp) {
-                if (this.static) {
-                    tmp.using = Infinity;
-                }
-                else {
-                    tmp.using++;
-                }
                 if (tmp.bmdState == 2 /* COMPLETE */) {
                     if (bmp.refreshBMD) {
                         bmp.refreshBMD();
@@ -17788,15 +17800,14 @@ var jy;
             var suiData = this._suiData;
             if (suiData) {
                 var bmp = e.currentTarget;
+                suiData.addToStage();
                 suiData.checkRefreshBmp(bmp);
             }
         };
         ArtTextCreator.prototype.onRemoveFromStage = function () {
             var suiData = this._suiData;
             if (suiData) {
-                var bmd = suiData.pngbmd;
-                bmd.using--;
-                bmd.lastUseTime = jy.Global.now;
+                suiData.removeFromStage();
             }
         };
         return ArtTextCreator;
