@@ -1985,7 +1985,7 @@ declare namespace jy {
          *
          * @readonly
          */
-        get states(): (string | number)[];
+        get states(): Key[];
         add(value: IStateListener): void;
         remove(value: IStateListener): void;
         /**
@@ -8519,10 +8519,10 @@ declare namespace jy {
     function getDynamicTexSheet(size?: number, path?: Path2D, pathColor?: string): {
         getSheet(uri: string): {
             getBmd(): egret.BitmapData;
-            get(key: string | number): egret.Texture;
-            reg(key: string | number, rect: Rect, ntex?: egret.Texture): egret.Texture;
-            update: (key: string | number, rect: Rect, tex: DynamicTexture) => void;
-            remove(key: string | number): egret.Texture;
+            get(key: Key): egret.Texture;
+            reg(key: Key, rect: Rect, ntex?: egret.Texture): egret.Texture;
+            update: (key: Key, rect: Rect, tex: DynamicTexture) => void;
+            remove(key: Key): egret.Texture;
             readonly ctx: CanvasRenderingContext2D;
             extSize(newSize: number): boolean;
             dispose(): void;
@@ -8531,10 +8531,10 @@ declare namespace jy {
         };
         getSheets(): {
             getBmd(): egret.BitmapData;
-            get(key: string | number): egret.Texture;
-            reg(key: string | number, rect: Rect, ntex?: egret.Texture): egret.Texture;
-            update: (key: string | number, rect: Rect, tex: DynamicTexture) => void;
-            remove(key: string | number): egret.Texture;
+            get(key: Key): egret.Texture;
+            reg(key: Key, rect: Rect, ntex?: egret.Texture): egret.Texture;
+            update: (key: Key, rect: Rect, tex: DynamicTexture) => void;
+            remove(key: Key): egret.Texture;
             readonly ctx: CanvasRenderingContext2D;
             extSize(newSize: number): boolean;
             dispose(): void;

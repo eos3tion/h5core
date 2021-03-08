@@ -19,7 +19,7 @@ namespace jy {
             let l = _len - 1;
             let s = "(?:"; //必须加?:作为非捕获分组，否则分组会超过99个上限，最终导致无法replace
             for (i = 0; i < l; i++) {
-                t = arr[i];
+                t = arr[i].trim();
                 if (t) {
                     t = t.replace(p2, "[\\$1]");
                     t = t.replace(p, "[$1]");
@@ -39,10 +39,12 @@ namespace jy {
         } //超过长度的采用方案2
         _filterList = new Array<RegExp>(_len + 1);
         for (i = 0; i < _len; i++) {
-            t = arr[i];
-            t = t.replace(p2, "[\\$1]");
-            t = t.replace(p, "[$1]");
-            _filterList[i] = new RegExp(t, "g");
+            t = arr[i].trim();
+            if (t) {
+                t = t.replace(p2, "[\\$1]");
+                t = t.replace(p, "[$1]");
+                _filterList[i] = new RegExp(t, "g");
+            }
         }
         //| 一般我们特殊用途，也加入屏蔽字符
         _filterList[i] = new RegExp("[|]", "g");

@@ -2,12 +2,10 @@
 var __reflect = (this && this.__reflect) || function (p, c, t) {
     p.__class__ = c, t ? t.push(c) : t = [c], p.__types__ = p.__types__ ? t.concat(p.__types__) : t;
 };
-var __spreadArrays = (this && this.__spreadArrays) || function () {
-    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
-    for (var r = Array(s), k = 0, i = 0; i < il; i++)
-        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
-            r[k] = a[j];
-    return r;
+var __spreadArray = (this && this.__spreadArray) || function (to, from) {
+    for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
+        to[j] = from[i];
+    return to;
 };
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -17,6 +15,8 @@ var __extends = (this && this.__extends) || (function () {
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -60,7 +60,7 @@ var jy;
             for (var _i = 4; _i < arguments.length; _i++) {
                 args[_i - 4] = arguments[_i];
             }
-            var cInfo = jy.CallbackInfo.addToList.apply(jy.CallbackInfo, __spreadArrays([this._callLaters, callback, thisObj], args));
+            var cInfo = jy.CallbackInfo.addToList.apply(jy.CallbackInfo, __spreadArray([this._callLaters, callback, thisObj], args));
             cInfo.time = now + (time || 0);
         };
         /**
@@ -451,7 +451,7 @@ var jy;
         for (var _i = 2; _i < arguments.length; _i++) {
             args[_i - 2] = arguments[_i];
         }
-        nextTick2(jy.CallbackInfo.get.apply(jy.CallbackInfo, __spreadArrays([callback, thisObj], args)));
+        nextTick2(jy.CallbackInfo.get.apply(jy.CallbackInfo, __spreadArray([callback, thisObj], args)));
     }
     function nextTick2(callback) {
         _nextTicks.push(callback);
@@ -470,7 +470,7 @@ var jy;
             for (var _i = 3; _i < arguments.length; _i++) {
                 args[_i - 3] = arguments[_i];
             }
-            return _callLater.callLater.apply(_callLater, __spreadArrays([callback, now, time, thisObj], args));
+            return _callLater.callLater.apply(_callLater, __spreadArray([callback, now, time, thisObj], args));
         },
         clearCallLater: function (callback, thisObj) {
             return _callLater.clearCallLater(callback, thisObj);
@@ -808,7 +808,7 @@ Array.binaryInsert = function (partArr, item, filter) {
     while (left <= right) {
         var middle = (left + right) >> 1;
         var test = partArr[middle];
-        if (filter.apply(void 0, __spreadArrays([test], args))) {
+        if (filter.apply(void 0, __spreadArray([test], args))) {
             right = middle - 1;
         }
         else {
@@ -1301,7 +1301,7 @@ var jy;
                 this._asyncHelper = _asyncHelper = new jy.AsyncHelper();
                 _asyncHelper.isReady = this.isReady;
             }
-            _asyncHelper.addReadyExecute.apply(_asyncHelper, __spreadArrays([handle, thisObj], args));
+            _asyncHelper.addReadyExecute.apply(_asyncHelper, __spreadArray([handle, thisObj], args));
         };
         Object.defineProperty(FHost.prototype, "isReady", {
             get: function () {
@@ -1794,7 +1794,7 @@ if (true) {
             $gm.printSendFilter = undefined;
         }
         else {
-            $gm.printSendFilter = $gm.__getNSFilter.apply($gm, __spreadArrays([filter], args));
+            $gm.printSendFilter = $gm.__getNSFilter.apply($gm, __spreadArray([filter], args));
         }
     };
     $gm.printReceive = function (filter) {
@@ -1806,7 +1806,7 @@ if (true) {
             $gm.printReceiveFilter = undefined;
         }
         else {
-            $gm.printReceiveFilter = $gm.__getNSFilter.apply($gm, __spreadArrays([filter], args));
+            $gm.printReceiveFilter = $gm.__getNSFilter.apply($gm, __spreadArray([filter], args));
         }
     };
     $gm.showNSLog = function (filter) {
@@ -1814,7 +1814,7 @@ if (true) {
         for (var _i = 1; _i < arguments.length; _i++) {
             args[_i - 1] = arguments[_i];
         }
-        var nsFilter = $gm.__getNSFilter.apply($gm, __spreadArrays([filter], args));
+        var nsFilter = $gm.__getNSFilter.apply($gm, __spreadArray([filter], args));
         var output = [];
         var msg = "";
         $gm.nsLogs.forEach(function (log) {
@@ -1838,7 +1838,7 @@ if (true) {
                 }
             }
             else if (filter) {
-                return filter.apply(void 0, __spreadArrays([log], filterParams));
+                return filter.apply(void 0, __spreadArray([log], filterParams));
             }
             else {
                 return true;
@@ -3931,7 +3931,7 @@ var jy;
             if (!_tList) {
                 this._tList = _tList = [];
             }
-            var info = jy.CallbackInfo.addToList.apply(jy.CallbackInfo, __spreadArrays([_tList, callback, thisObj], args));
+            var info = jy.CallbackInfo.addToList.apply(jy.CallbackInfo, __spreadArray([_tList, callback, thisObj], args));
             info.time = time;
             jy.TimerUtil.add(time, info);
             if (trigger) {
@@ -4671,7 +4671,7 @@ var jy;
             for (var i = 0; i < len; i++) {
                 var data = datas[i];
                 var render = renders[i];
-                handle.apply(void 0, __spreadArrays([data, render, i], otherParams));
+                handle.apply(void 0, __spreadArray([data, render, i], otherParams));
             }
             return this;
         };
@@ -4693,7 +4693,7 @@ var jy;
             for (var i = 0; i < len; i++) {
                 var data = datas[i];
                 var render = renders[i];
-                if (handle.apply(void 0, __spreadArrays([data, render, i], otherParams))) {
+                if (handle.apply(void 0, __spreadArray([data, render, i], otherParams))) {
                     return render;
                 }
             }
@@ -5471,7 +5471,7 @@ var jy;
                 if (true) {
                     var debug = info["_debug"];
                     jy.ThrowError("CallbackInfo\u6267\u884C\u62A5\u9519\uFF0C\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n}==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + e.stack);
-                    console.log.apply(console, __spreadArrays(["参数列表"], args));
+                    console.log.apply(console, __spreadArray(["参数列表"], args));
                 }
             }
         }
@@ -5573,7 +5573,7 @@ var jy;
                     return callback;
                 }
             }
-            callback = this.get.apply(this, __spreadArrays([handle, thisObj], args));
+            callback = this.get.apply(this, __spreadArray([handle, thisObj], args));
             list.push(callback);
             return callback;
         };
@@ -8933,7 +8933,7 @@ var jy;
         for (var _i = 1; _i < arguments.length; _i++) {
             ids[_i - 1] = arguments[_i];
         }
-        (_a = jy.UILimiter.listener).addToStates.apply(_a, __spreadArrays([value], ids));
+        (_a = jy.UILimiter.listener).addToStates.apply(_a, __spreadArray([value], ids));
     }
     jy.addToStates = addToStates;
     function addToState(id, value) {
@@ -10954,8 +10954,8 @@ var jy;
             for (var _i = 4; _i < arguments.length; _i++) {
                 args[_i - 4] = arguments[_i];
             }
-            var success = jy.CallbackInfo.get.apply(jy.CallbackInfo, __spreadArrays([callback, thisObj], args));
-            var error = jy.CallbackInfo.get.apply(jy.CallbackInfo, __spreadArrays([withError ? callback : noErrorCallback(callback, thisObj), thisObj], args));
+            var success = jy.CallbackInfo.get.apply(jy.CallbackInfo, __spreadArray([callback, thisObj], args));
+            var error = jy.CallbackInfo.get.apply(jy.CallbackInfo, __spreadArray([withError ? callback : noErrorCallback(callback, thisObj), thisObj], args));
             return registerCallback(success, error, timeout);
         },
         /**
@@ -10983,7 +10983,7 @@ var jy;
             for (var _i = 1; _i < arguments.length; _i++) {
                 args[_i - 1] = arguments[_i];
             }
-            callback.call.apply(callback, __spreadArrays([thisObj, undefined], args));
+            callback.call.apply(callback, __spreadArray([thisObj, undefined], args));
         };
     }
     /**
@@ -11168,10 +11168,10 @@ var jy;
             var list = [];
             timer = { tid: time, nt: jy.Global.now + time, list: list };
             _timeobj[time] = timer;
-            list.push(jy.CallbackInfo.get.apply(jy.CallbackInfo, __spreadArrays([callback, thisObj], args)));
+            list.push(jy.CallbackInfo.get.apply(jy.CallbackInfo, __spreadArray([callback, thisObj], args)));
         }
         else {
-            jy.CallbackInfo.addToList.apply(jy.CallbackInfo, __spreadArrays([timer.list, callback, thisObj], args));
+            jy.CallbackInfo.addToList.apply(jy.CallbackInfo, __spreadArray([timer.list, callback, thisObj], args));
         }
     }
     /**
@@ -11273,7 +11273,7 @@ var jy;
             var l = _len - 1;
             var s = "(?:"; //必须加?:作为非捕获分组，否则分组会超过99个上限，最终导致无法replace
             for (i = 0; i < l; i++) {
-                t = arr[i];
+                t = arr[i].trim();
                 if (t) {
                     t = t.replace(p2, "[\\$1]");
                     t = t.replace(p, "[$1]");
@@ -11293,10 +11293,12 @@ var jy;
         } //超过长度的采用方案2
         _filterList = new Array(_len + 1);
         for (i = 0; i < _len; i++) {
-            t = arr[i];
-            t = t.replace(p2, "[\\$1]");
-            t = t.replace(p, "[$1]");
-            _filterList[i] = new RegExp(t, "g");
+            t = arr[i].trim();
+            if (t) {
+                t = t.replace(p2, "[\\$1]");
+                t = t.replace(p, "[$1]");
+                _filterList[i] = new RegExp(t, "g");
+            }
         }
         //| 一般我们特殊用途，也加入屏蔽字符
         _filterList[i] = new RegExp("[|]", "g");
@@ -13132,7 +13134,7 @@ var jy;
             if (!_readyExecutes) {
                 this._cbs = _readyExecutes = [];
             }
-            jy.CallbackInfo.addToList.apply(jy.CallbackInfo, __spreadArrays([_readyExecutes, handle, thisObj], args));
+            jy.CallbackInfo.addToList.apply(jy.CallbackInfo, __spreadArray([_readyExecutes, handle, thisObj], args));
         };
         return AsyncHelper;
     }());
@@ -13495,10 +13497,10 @@ var jy;
             }
             var callback = bin.callback;
             if (host.isReady) {
-                callback && callback.call.apply(callback, __spreadArrays([bin.thisObj, host], bin.args));
+                callback && callback.call.apply(callback, __spreadArray([bin.thisObj, host], bin.args));
             }
             else {
-                callback && host.addReadyExecute.apply(host, __spreadArrays([callback, bin.thisObj, host], bin.args));
+                callback && host.addReadyExecute.apply(host, __spreadArray([callback, bin.thisObj, host], bin.args));
                 host.startSync();
             }
             return host;
@@ -13536,7 +13538,7 @@ var jy;
             }
             if (this._mm && this._mm.isModuleOpened(moduleID, showTip)) {
                 var hander = show ? this._executeAndShowMediator : this._executeMediator;
-                return this.getMediator.apply(this, __spreadArrays([moduleID, hander, this, handlerName], args));
+                return this.getMediator.apply(this, __spreadArray([moduleID, hander, this, handlerName], args));
             }
         };
         /**
@@ -13576,12 +13578,12 @@ var jy;
             self.toggle(mediator.name, 1 /* SHOW */, false); //showTip为 false是不用再次提示，executeMediator已经执行过模块是否开启的检查
             var view = mediator.$view;
             if (view.stage) {
-                self._executeMediator.apply(self, __spreadArrays([mediator, handlerName], args));
+                self._executeMediator.apply(self, __spreadArray([mediator, handlerName], args));
             }
             else {
                 view.once("addedToStage" /* ADDED_TO_STAGE */, function () {
                     try {
-                        self._executeMediator.apply(self, __spreadArrays([mediator, handlerName], args));
+                        self._executeMediator.apply(self, __spreadArray([mediator, handlerName], args));
                     }
                     catch (e) {
                         jy.ThrowError(e.message, e);
@@ -13600,7 +13602,7 @@ var jy;
             for (var _i = 2; _i < arguments.length; _i++) {
                 args[_i - 2] = arguments[_i];
             }
-            return this.getProxy.apply(this, __spreadArrays([proxyName, this._executeProxy, this, handlerName], args));
+            return this.getProxy.apply(this, __spreadArray([proxyName, this._executeProxy, this, handlerName], args));
         };
         Facade.prototype._executeProxy = function (proxy, handlerName) {
             var args = [];
