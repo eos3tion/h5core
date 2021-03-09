@@ -37,7 +37,7 @@ namespace jy {
                 return;
             }
         } //超过长度的采用方案2
-        _filterList = new Array<RegExp>(_len + 1);
+        _filterList = new Array<RegExp>();
         for (i = 0; i < _len; i++) {
             t = arr[i].trim();
             if (t) {
