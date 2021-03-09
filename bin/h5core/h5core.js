@@ -12020,7 +12020,6 @@ var jy;
         }
         //| 一般我们特殊用途，也加入屏蔽字符
         _filterList.push(new RegExp("[|]", "g"));
-        _len = _len + 1;
         jy.WordFilter.wordCensor = wordCensor2;
         jy.WordFilter.checkWord = checkWord2;
     }
