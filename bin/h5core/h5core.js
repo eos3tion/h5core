@@ -12015,11 +12015,11 @@ var jy;
             if (t) {
                 t = t.replace(p2, "[\\$1]");
                 t = t.replace(p, "[$1]");
-                _filterList[i] = new RegExp(t, "g");
+                _filterList.push(new RegExp(t, "g"));
             }
         }
         //| 一般我们特殊用途，也加入屏蔽字符
-        _filterList[i] = new RegExp("[|]", "g");
+        _filterList.push(new RegExp("[|]", "g"));
         _len = _len + 1;
         jy.WordFilter.wordCensor = wordCensor2;
         jy.WordFilter.checkWord = checkWord2;
