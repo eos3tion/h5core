@@ -15773,7 +15773,11 @@ var jy;
         }
         MPageList.prototype.displayList = function (data) {
             this._selectedIndex = -1;
-            this._selectedItem = undefined;
+            var selectedItem = this._selectedItem;
+            if (selectedItem) {
+                selectedItem.selected = false;
+                this._selectedItem = undefined;
+            }
             var dataLen = data && data.length || 0;
             //如果新赋值的数据长度比以前的短，就自动清理掉多出来的item
             var olen = Math.max(this._dataLen, this._viewCount);
