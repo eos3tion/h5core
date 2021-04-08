@@ -13800,7 +13800,7 @@ declare namespace jy {
         constructor();
         get isReady(): boolean;
         protected init(): void;
-        bind(key: string, className: string, ...otherDepends: string[]): void;
+        bind(key: string, className?: string, ...otherDepends: string[]): void;
         startSync(): void;
         protected loadNext(): void;
         suiDataComplete(suiData: SuiData): void;

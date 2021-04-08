@@ -7,11 +7,11 @@ namespace jy {
     export interface Panel extends IAsync, ComponentWithEnable {
         createNativeDisplayObject(): void;
     }
-	/**
-	 * 模块面板
-	 * @author 3tion
-	 *
-	 */
+    /**
+     * 模块面板
+     * @author 3tion
+     *
+     */
     export class Panel extends egret.Sprite implements SuiDataCallback, IAsyncPanel {
         /**
          * 背景/底
@@ -86,7 +86,7 @@ namespace jy {
             //this._otherDepends=[other...];
         }
 
-        public bind(key: string, className: string, ...otherDepends: string[]) {
+        public bind(key: string, className?: string, ...otherDepends: string[]) {
             this.suiLib = key;
             this.suiClass = className;
             this._otherDepends = otherDepends;
@@ -139,16 +139,19 @@ namespace jy {
             }
         }
 
-		/**
-		 * 绑定皮肤
-		 */
+        /**
+         * 绑定皮肤
+         */
         protected bindComponent() {
-            singleton(SuiResManager).createComponents(this.suiLib, this.suiClass, this);
+            let suiClass = this.suiClass;
+            if (suiClass) {
+                singleton(SuiResManager).createComponents(this.suiLib, suiClass, this);
+            }
         }
 
-		/**
-		 * 皮肤数据加载完成
-		 */
+        /**
+         * 皮肤数据加载完成
+         */
         skinDataComplete() {
             this.bindComponent();
             let bg = this.bg;
