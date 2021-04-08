@@ -14692,7 +14692,10 @@ var jy;
          * 绑定皮肤
          */
         Panel.prototype.bindComponent = function () {
-            jy.singleton(jy.SuiResManager).createComponents(this.suiLib, this.suiClass, this);
+            var suiClass = this.suiClass;
+            if (suiClass) {
+                jy.singleton(jy.SuiResManager).createComponents(this.suiLib, suiClass, this);
+            }
         };
         /**
          * 皮肤数据加载完成
