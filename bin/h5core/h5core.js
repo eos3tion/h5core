@@ -8721,8 +8721,8 @@ var jy;
                 for (var _i = 0, _a = this._list; _i < _a.length; _i++) {
                     var bmp = _a[_i];
                     bmp.texture = data;
-                    if (true && !data) {
-                        bmp.texture = bmp.placehoder || ErrorTexture;
+                    if (!data) {
+                        bmp.texture = bmp.placehoder || (true && ErrorTexture);
                         var rect = bmp.suiRawRect;
                         if (rect) {
                             bmp.width = rect.width;
