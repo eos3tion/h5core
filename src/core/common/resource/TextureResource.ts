@@ -154,8 +154,8 @@ namespace jy {
                 this.state = RequestState.COMPLETE;
                 for (let bmp of this._list) {
                     bmp.texture = data;
-                    if (DEBUG && !data) {
-                        bmp.texture = bmp.placehoder || ErrorTexture;
+                    if (!data) {
+                        bmp.texture = bmp.placehoder || (DEBUG && ErrorTexture);
                         let rect = bmp.suiRawRect;
                         if (rect) {
                             bmp.width = rect.width;
