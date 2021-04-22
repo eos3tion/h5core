@@ -11,12 +11,12 @@ namespace jy {
         SIZE_OF_UINT16 = 2,
         SIZE_OF_INT16 = 2
     }
-	/**
-	 * 方便后续调整
-	 * 加入ProtoBuf的varint支持
-	 * @author 3tion
-	 *
-	 */
+    /**
+     * 方便后续调整
+     * 加入ProtoBuf的varint支持
+     * @author 3tion
+     *
+     */
     export class ByteArray extends egret.ByteArray {
 
         public $endian: egret.EndianConst;
@@ -191,15 +191,15 @@ namespace jy {
             ba.$endian = this.$endian;
             return ba;
         }
-		/**
-		 * 向字节流中写入64位的可变长度的整数(Protobuf)
-		 */
+        /**
+         * 向字节流中写入64位的可变长度的整数(Protobuf)
+         */
         public writeVarint64(value: number): void {
             let i64 = Int64.fromNumber(value);
             var high = i64.high;
             var low = i64.low;
             if (high == 0) {
-                this.writeVarint(low);
+                this.writeVarint(low >>> 0);
             }
             else {
                 for (var i: number = 0; i < 4; ++i) {
@@ -217,8 +217,8 @@ namespace jy {
         }
 
         /**
-		 * 向字节流中写入32位的可变长度的整数(Protobuf)
-		 */
+         * 向字节流中写入32位的可变长度的整数(Protobuf)
+         */
         public writeVarint(value: number): void {
             for (; ;) {
                 if (value < 0x80) {
