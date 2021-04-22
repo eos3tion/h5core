@@ -1,10 +1,10 @@
 namespace jy {
 
-	/**
-	 * 基础渲染器
-	 * @author 3tion
-	 *
-	 */
+    /**
+     * 基础渲染器
+     * @author 3tion
+     *
+     */
     export class BaseRender implements IDrawInfo {
         /**
          * 当render执行时间需要处理2秒+的数据时，是否派发Slow Render事件
@@ -15,9 +15,9 @@ namespace jy {
         public static dispatchSlowRender: boolean;
 
 
-    	/**
-    	 * 全局单位播放速度
-    	 */
+        /**
+         * 全局单位播放速度
+         */
         public static globalPlaySpeed: number = 1;
         /**
          * 是否有当前帧
@@ -143,6 +143,10 @@ namespace jy {
                 if (isCom && this.isComplete(actionInfo)) {
                     this.doComplete(now);
                 }
+            } else {
+                let frames = actionInfo.frames;
+                //当前帧
+                this.willRenderFrame = frames[this.idx];
             }
         }
 
