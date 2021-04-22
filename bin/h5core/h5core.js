@@ -3763,6 +3763,11 @@ var jy;
                     this.doComplete(now);
                 }
             }
+            else {
+                var frames_2 = actionInfo.frames;
+                //当前帧
+                this.willRenderFrame = frames_2[this.idx];
+            }
         };
         BaseRender.prototype.isComplete = function (info) {
             return !info.isCircle;
@@ -13245,9 +13250,9 @@ var jy;
                 var a = info.a, f = info.f, d = info.d;
                 var dDatas = datas[a];
                 if (dDatas) {
-                    var frames_2 = dDatas[d];
-                    if (frames_2) {
-                        var frame = frames_2[f];
+                    var frames_3 = dDatas[d];
+                    if (frames_3) {
+                        var frame = frames_3[f];
                         if (frame) {
                             return frame;
                         }
