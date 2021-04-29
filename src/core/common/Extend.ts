@@ -864,6 +864,14 @@ module egret {
          * 调整scrollRect的y
          */
         sRectY: number;
+        /**
+         * 调整scrollRect的width
+         */
+        sRectW: number;
+        /**
+         * 调整scrollRect的height
+         */
+        sRectH: number;
     }
 
     const enum BrightConst {
@@ -908,9 +916,11 @@ module egret {
         },
         sRectX: setScrollRectPos("x"),
         sRectY: setScrollRectPos("y"),
+        sRectW: setScrollRectPos("width"),
+        sRectH: setScrollRectPos("height"),
     }))
 
-    function setScrollRectPos(key: "x" | "y") {
+    function setScrollRectPos(key: keyof egret.Rect) {
         return {
             set: function (this: egret.DisplayObject, value: number) {
                 let scroll = this.scrollRect;
