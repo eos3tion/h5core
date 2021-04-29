@@ -1087,6 +1087,8 @@ var egret;
         },
         sRectX: setScrollRectPos("x"),
         sRectY: setScrollRectPos("y"),
+        sRectW: setScrollRectPos("width"),
+        sRectH: setScrollRectPos("height"),
     }));
     function setScrollRectPos(key) {
         return {

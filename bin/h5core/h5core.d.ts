@@ -623,6 +623,14 @@ declare module egret {
          * 调整scrollRect的y
          */
         sRectY: number;
+        /**
+         * 调整scrollRect的width
+         */
+        sRectW: number;
+        /**
+         * 调整scrollRect的height
+         */
+        sRectH: number;
     }
 }
 interface Storage {
