@@ -1,6 +1,6 @@
 namespace jy {
-    export declare type ScaleBitmap = egret.Bitmap;
-    export class ScaleBitmapCreator extends BitmapCreator<ScaleBitmap>{
+    export declare type ScaleBitmap = SuiBitmap;
+    export class ScaleBitmapCreator extends BitmapCreator {
 
         public constructor() {
             super();
@@ -22,7 +22,8 @@ namespace jy {
             }
             this._createT = () => {
                 let suiData = this._suiData;
-                let bitmap = new egret.Bitmap();
+                let bitmap = new SuiBitmap();
+                bitmap.suiData = suiData;
                 // let inx = textureIndex;
                 // let img = suiData.pngtexs;
                 // if(!this.ispng){
@@ -34,7 +35,6 @@ namespace jy {
                     bitmap.texture = suiData.getTexture(textureIndex);//img[inx];//suiData.imgs[textureIndex];
                     bitmap.width = width;
                     bitmap.height = height;
-                    this.bindEvent(bitmap);
                 }
                 return bitmap;
             }

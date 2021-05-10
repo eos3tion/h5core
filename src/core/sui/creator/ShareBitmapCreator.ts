@@ -1,5 +1,5 @@
 namespace jy {
-    export class ShareBitmapCreator extends BitmapCreator<egret.Bitmap>{
+    export class ShareBitmapCreator extends BitmapCreator {
 
         public constructor() {
             super();

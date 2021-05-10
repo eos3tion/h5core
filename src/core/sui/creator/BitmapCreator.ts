@@ -1,10 +1,25 @@
 namespace jy {
+    export class SuiBitmap extends egret.Bitmap {
+        isjpg: boolean;
+        suiData: SuiData;
+        flag: boolean;
+        refreshBMD() {
+            if (!this.flag) {
+                super.refreshBMD();
+                this.flag = true;
+            }
+        }
+        beforeDraw() {
+            this.suiData.checkRefreshBmp(this, this.isjpg);
+        }
+    }
+
     /**
      * 位图的创建器
      * @author 3tion
      *
      */
-    export class BitmapCreator<T extends egret.Bitmap> extends BaseCreator<T> {
+    export class BitmapCreator extends BaseCreator<SuiBitmap> {
         /**
          * 是否为jpg
          * 
@@ -23,34 +38,15 @@ namespace jy {
                     this.isjpg = true;
                 }
                 this._createT = () => {
-                    let bmp = new egret.Bitmap;
-                    bmp.texture = this._suiData.getTexture(data);
-                    this.bindEvent(bmp);
-                    return bmp as T;
+                    let bmp = new SuiBitmap;
+                    let suiData = this._suiData;
+                    bmp.suiData = suiData;
+                    bmp.isjpg = this.isjpg;
+                    bmp.texture = suiData.getTexture(data);
+                    return bmp;
                 }
             }
         }
 
-        protected bindEvent(bmp: egret.Bitmap) {
-            bmp.on(EgretEvent.ADDED_TO_STAGE, this.awake, this);
-            bmp.on(EgretEvent.REMOVED_FROM_STAGE, this.sleep, this);
-        }
-
-        protected awake(e: egret.Event) {
-            const suiData = this._suiData;
-            if (suiData) {
-                let bmp = e.currentTarget as egret.Bitmap;
-                let isjpg = this.isjpg;
-                suiData.addToStage(isjpg)
-                suiData.checkRefreshBmp(bmp, isjpg);
-            }
-        }
-
-        protected sleep() {
-            const suiData = this._suiData;
-            if (suiData) {
-                suiData.removeFromStage(this.isjpg);
-            }
-        }
     }
 }

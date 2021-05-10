@@ -19,7 +19,10 @@ namespace jy {
     export class ArtText extends Component {
 
         public suiData: SuiData;
-
+        flag: any;
+        beforeDraw() {
+            this.suiData.checkRefreshBmp(this);
+        }
         /**
          * 垂直对齐方式
          * 
@@ -47,8 +50,11 @@ namespace jy {
         }
 
         public refreshBMD(): void {
-            for (let bmp of <egret.Bitmap[]>this.$children) {
-                bmp.refreshBMD();
+            if (!this.flag) {
+                for (let bmp of <egret.Bitmap[]>this.$children) {
+                    bmp.refreshBMD();
+                }
+                this.flag = true;
             }
         }
 
@@ -145,8 +151,6 @@ namespace jy {
      */
     export class ArtTextCreator extends BaseCreator<ArtText>{
 
-        private _txs: { [index: string]: egret.Texture };
-
         public parseSelfData(data: any) {
             const splitStr = data[0];
             const len = splitStr.length;
@@ -158,34 +162,12 @@ namespace jy {
                 let key: string = splitStr.charAt(i);
                 txs[key] = tx;
             }
-            this._txs = txs;
             refreshTexs(suiData, this as any);
             this._createT = (): ArtText => {
-                var shape: ArtText = new ArtText();
-                this.bindEvent(shape);
+                let shape = new ArtText();
+                shape.suiData = suiData;
                 shape.textures = txs;
                 return shape;
-            }
-        }
-
-        protected bindEvent(bmp: ArtText) {
-            bmp.on(EgretEvent.ADDED_TO_STAGE, this.onAddedToStage, this);
-            bmp.on(EgretEvent.REMOVED_FROM_STAGE, this.onRemoveFromStage, this);
-        }
-
-        protected onAddedToStage(e: egret.Event) {
-            var suiData = this._suiData;
-            if (suiData) {
-                let bmp = <egret.Bitmap>e.currentTarget;
-                suiData.addToStage();
-                suiData.checkRefreshBmp(bmp);
-            }
-        }
-
-        protected onRemoveFromStage() {
-            var suiData = this._suiData;
-            if (suiData) {
-                suiData.removeFromStage();
             }
         }
     }
