@@ -107,7 +107,7 @@ namespace jy {
         /**
          * 位图创建器
          */
-        public bmplibs: { [index: number]: BitmapCreator<egret.Bitmap> };
+        public bmplibs: { [index: number]: BitmapCreator };
 
 
         /***
@@ -137,6 +137,7 @@ namespace jy {
             let url = ConfigUtils.getSkinFile(this.key, file) + Global.webp;
             let tmp = new SuiBmd(uri, url);
             tmp.textures = textures;
+            tmp.isStatic = this.static;
             return tmp;
         }
 
@@ -144,30 +145,11 @@ namespace jy {
             this.static = true;
             let tmp = this.jpgbmd;
             if (tmp) {
-                tmp.using = Infinity;
+                tmp.isStatic = true;
             }
             tmp = this.pngbmd;
             if (tmp) {
-                tmp.using = Infinity;
-            }
-        }
-
-        addToStage(isjpg?: boolean) {
-            let tmp = isjpg ? this.jpgbmd : this.pngbmd;
-            if (tmp) {
-                if (this.static) {
-                    tmp.using = Infinity;
-                } else {
-                    tmp.using++;
-                }
-            }
-        }
-
-        removeFromStage(isjpg?: boolean) {
-            let tmp = isjpg ? this.jpgbmd : this.pngbmd;
-            if (tmp) {
-                tmp.using--;
-                tmp.lastUseTime = Global.now;
+                tmp.isStatic = true;
             }
         }
 
@@ -180,6 +162,7 @@ namespace jy {
         public checkRefreshBmp(bmp: SuiBmdCallback, isjpg?: boolean) {
             let tmp = isjpg ? this.jpgbmd : this.pngbmd;
             if (tmp) {
+                tmp.lastUseTime = Global.now;
                 if (tmp.bmdState == RequestState.COMPLETE) {
                     if (bmp.refreshBMD) {
                         bmp.refreshBMD();

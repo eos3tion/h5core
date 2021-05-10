@@ -3082,12 +3082,19 @@ declare namespace jy {
     }
 }
 declare namespace jy {
+    class SuiBitmap extends egret.Bitmap {
+        isjpg: boolean;
+        suiData: SuiData;
+        flag: boolean;
+        refreshBMD(): void;
+        beforeDraw(): void;
+    }
     /**
      * 位图的创建器
      * @author 3tion
      *
      */
-    class BitmapCreator<T extends egret.Bitmap> extends BaseCreator<T> {
+    class BitmapCreator extends BaseCreator<SuiBitmap> {
         /**
          * 是否为jpg
          *
@@ -3097,9 +3104,6 @@ declare namespace jy {
         protected isjpg?: boolean;
         constructor(value?: SuiData);
         parseSelfData(data: any): void;
-        protected bindEvent(bmp: egret.Bitmap): void;
-        protected awake(e: egret.Event): void;
-        protected sleep(): void;
     }
 }
 declare namespace jy {
@@ -12509,8 +12513,7 @@ declare namespace jy {
         /**
          * 使用计数
          */
-        using: number;
-        get isStatic(): boolean;
+        isStatic: boolean;
         readonly uri: string;
         lastUseTime: number;
         /**
@@ -12620,7 +12623,7 @@ declare namespace jy {
          * 位图创建器
          */
         bmplibs: {
-            [index: number]: BitmapCreator<egret.Bitmap>;
+            [index: number]: BitmapCreator;
         };
         /***
          * 未经过解析的源组件数据
@@ -12634,8 +12637,6 @@ declare namespace jy {
         createBmpLoader(ispng: boolean, textures: egret.Texture[]): void;
         noRes(uri: string, file: string, textures: egret.Texture[]): SuiBmd;
         setStatic(): void;
-        addToStage(isjpg?: boolean): void;
-        removeFromStage(isjpg?: boolean): void;
         /**
          * 刷新位图
          *
@@ -12999,6 +13000,8 @@ declare namespace jy {
      */
     class ArtText extends Component {
         suiData: SuiData;
+        flag: any;
+        beforeDraw(): void;
         /**
          * 垂直对齐方式
          *
@@ -13038,11 +13041,7 @@ declare namespace jy {
      *
      */
     class ArtTextCreator extends BaseCreator<ArtText> {
-        private _txs;
         parseSelfData(data: any): void;
-        protected bindEvent(bmp: ArtText): void;
-        protected onAddedToStage(e: egret.Event): void;
-        protected onRemoveFromStage(): void;
     }
 }
 declare namespace jy {
@@ -13298,8 +13297,8 @@ declare namespace jy {
     }
 }
 declare namespace jy {
-    type ScaleBitmap = egret.Bitmap;
-    class ScaleBitmapCreator extends BitmapCreator<ScaleBitmap> {
+    type ScaleBitmap = SuiBitmap;
+    class ScaleBitmapCreator extends BitmapCreator {
         constructor();
         parseSelfData(data: any): void;
     }
@@ -13362,7 +13361,7 @@ declare namespace jy {
     }
 }
 declare namespace jy {
-    class ShareBitmapCreator extends BitmapCreator<egret.Bitmap> {
+    class ShareBitmapCreator extends BitmapCreator {
         constructor();
         parseSelfData(data: any): void;
     }

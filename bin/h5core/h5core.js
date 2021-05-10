@@ -4811,6 +4811,24 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
+    var SuiBitmap = /** @class */ (function (_super) {
+        __extends(SuiBitmap, _super);
+        function SuiBitmap() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        SuiBitmap.prototype.refreshBMD = function () {
+            if (!this.flag) {
+                _super.prototype.refreshBMD.call(this);
+                this.flag = true;
+            }
+        };
+        SuiBitmap.prototype.beforeDraw = function () {
+            this.suiData.checkRefreshBmp(this, this.isjpg);
+        };
+        return SuiBitmap;
+    }(egret.Bitmap));
+    jy.SuiBitmap = SuiBitmap;
+    __reflect(SuiBitmap.prototype, "jy.SuiBitmap");
     var BitmapCreator = /** @class */ (function (_super) {
         __extends(BitmapCreator, _super);
         function BitmapCreator(value) {
@@ -4825,30 +4843,13 @@ var jy;
                     this.isjpg = true;
                 }
                 this._createT = function () {
-                    var bmp = new egret.Bitmap;
-                    bmp.texture = _this._suiData.getTexture(data);
-                    _this.bindEvent(bmp);
+                    var bmp = new SuiBitmap;
+                    var suiData = _this._suiData;
+                    bmp.suiData = suiData;
+                    bmp.isjpg = _this.isjpg;
+                    bmp.texture = suiData.getTexture(data);
                     return bmp;
                 };
-            }
-        };
-        BitmapCreator.prototype.bindEvent = function (bmp) {
-            bmp.on("addedToStage" /* ADDED_TO_STAGE */, this.awake, this);
-            bmp.on("removedFromStage" /* REMOVED_FROM_STAGE */, this.sleep, this);
-        };
-        BitmapCreator.prototype.awake = function (e) {
-            var suiData = this._suiData;
-            if (suiData) {
-                var bmp = e.currentTarget;
-                var isjpg = this.isjpg;
-                suiData.addToStage(isjpg);
-                suiData.checkRefreshBmp(bmp, isjpg);
-            }
-        };
-        BitmapCreator.prototype.sleep = function () {
-            var suiData = this._suiData;
-            if (suiData) {
-                suiData.removeFromStage(this.isjpg);
             }
         };
         return BitmapCreator;
@@ -16852,10 +16853,6 @@ var jy;
         function SuiBmd(uri, url) {
             this.textures = [];
             this.bmdState = 0 /* UNREQUEST */;
-            /**
-             * 使用计数
-             */
-            this.using = 0;
             this.lastUseTime = 0;
             /**
              * 未加载的时候，请求的位图
@@ -16864,13 +16861,6 @@ var jy;
             this.uri = uri;
             this.url = url;
         }
-        Object.defineProperty(SuiBmd.prototype, "isStatic", {
-            get: function () {
-                return this.using > 0;
-            },
-            enumerable: false,
-            configurable: true
-        });
         SuiBmd.prototype.loadBmd = function () {
             if (this.bmdState <= 0 /* UNREQUEST */) {
                 jy.Res.load(this.uri, this.url, jy.CallbackInfo.get(this.checkBitmap, this));
@@ -16954,35 +16944,18 @@ var jy;
             var url = jy.ConfigUtils.getSkinFile(this.key, file) + jy.Global.webp;
             var tmp = new jy.SuiBmd(uri, url);
             tmp.textures = textures;
+            tmp.isStatic = this.static;
             return tmp;
         };
         SuiData.prototype.setStatic = function () {
             this.static = true;
             var tmp = this.jpgbmd;
             if (tmp) {
-                tmp.using = Infinity;
+                tmp.isStatic = true;
             }
             tmp = this.pngbmd;
             if (tmp) {
-                tmp.using = Infinity;
-            }
-        };
-        SuiData.prototype.addToStage = function (isjpg) {
-            var tmp = isjpg ? this.jpgbmd : this.pngbmd;
-            if (tmp) {
-                if (this.static) {
-                    tmp.using = Infinity;
-                }
-                else {
-                    tmp.using++;
-                }
-            }
-        };
-        SuiData.prototype.removeFromStage = function (isjpg) {
-            var tmp = isjpg ? this.jpgbmd : this.pngbmd;
-            if (tmp) {
-                tmp.using--;
-                tmp.lastUseTime = jy.Global.now;
+                tmp.isStatic = true;
             }
         };
         /**
@@ -16994,6 +16967,7 @@ var jy;
         SuiData.prototype.checkRefreshBmp = function (bmp, isjpg) {
             var tmp = isjpg ? this.jpgbmd : this.pngbmd;
             if (tmp) {
+                tmp.lastUseTime = jy.Global.now;
                 if (tmp.bmdState == 2 /* COMPLETE */) {
                     if (bmp.refreshBMD) {
                         bmp.refreshBMD();
@@ -17688,10 +17662,16 @@ var jy;
             _this._maxHeight = 0;
             return _this;
         }
+        ArtText.prototype.beforeDraw = function () {
+            this.suiData.checkRefreshBmp(this);
+        };
         ArtText.prototype.refreshBMD = function () {
-            for (var _i = 0, _a = this.$children; _i < _a.length; _i++) {
-                var bmp = _a[_i];
-                bmp.refreshBMD();
+            if (!this.flag) {
+                for (var _i = 0, _a = this.$children; _i < _a.length; _i++) {
+                    var bmp = _a[_i];
+                    bmp.refreshBMD();
+                }
+                this.flag = true;
             }
         };
         /**
@@ -17787,7 +17767,6 @@ var jy;
             return _super !== null && _super.apply(this, arguments) || this;
         }
         ArtTextCreator.prototype.parseSelfData = function (data) {
-            var _this = this;
             var splitStr = data[0];
             var len = splitStr.length;
             var suiData = this._suiData;
@@ -17798,32 +17777,13 @@ var jy;
                 var key = splitStr.charAt(i);
                 txs[key] = tx;
             }
-            this._txs = txs;
             jy.refreshTexs(suiData, this);
             this._createT = function () {
                 var shape = new ArtText();
-                _this.bindEvent(shape);
+                shape.suiData = suiData;
                 shape.textures = txs;
                 return shape;
             };
-        };
-        ArtTextCreator.prototype.bindEvent = function (bmp) {
-            bmp.on("addedToStage" /* ADDED_TO_STAGE */, this.onAddedToStage, this);
-            bmp.on("removedFromStage" /* REMOVED_FROM_STAGE */, this.onRemoveFromStage, this);
-        };
-        ArtTextCreator.prototype.onAddedToStage = function (e) {
-            var suiData = this._suiData;
-            if (suiData) {
-                var bmp = e.currentTarget;
-                suiData.addToStage();
-                suiData.checkRefreshBmp(bmp);
-            }
-        };
-        ArtTextCreator.prototype.onRemoveFromStage = function () {
-            var suiData = this._suiData;
-            if (suiData) {
-                suiData.removeFromStage();
-            }
         };
         return ArtTextCreator;
     }(jy.BaseCreator));
@@ -18448,7 +18408,8 @@ var jy;
             }
             this._createT = function () {
                 var suiData = _this._suiData;
-                var bitmap = new egret.Bitmap();
+                var bitmap = new jy.SuiBitmap();
+                bitmap.suiData = suiData;
                 // let inx = textureIndex;
                 // let img = suiData.pngtexs;
                 // if(!this.ispng){
@@ -18460,7 +18421,6 @@ var jy;
                     bitmap.texture = suiData.getTexture(textureIndex); //img[inx];//suiData.imgs[textureIndex];
                     bitmap.width = width;
                     bitmap.height = height;
-                    _this.bindEvent(bitmap);
                 }
                 return bitmap;
             };

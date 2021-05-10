@@ -18,11 +18,7 @@ namespace jy {
         /**
          * 使用计数
          */
-        public using = 0;
-
-        public get isStatic() {
-            return this.using > 0;
-        }
+        isStatic: boolean;
 
         readonly uri: string;
 
