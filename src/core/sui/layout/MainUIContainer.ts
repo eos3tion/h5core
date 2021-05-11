@@ -15,11 +15,21 @@ namespace jy {
      */
     export class MainUIContainer extends LayoutContainer {
         resizeFlag = true;
+        checkOffset = true;
         onResize() {
             let host = this._host;
             let stage = host.stage || egret.sys.$TempStage;
             let basis = this._basis;
             let sw = stage.stageWidth, sh = stage.stageHeight, bw = basis.width, bh = basis.height;
+            let sx = 0;
+            let sy = 0;
+            if (this.checkOffset) {
+                let { left, right, top, bottom } = Layout.offsets;
+                sx = left;
+                sy = top;
+                sw -= left + right;
+                sh -= top + bottom;
+            }
             let lw = sw, lh = sh;
             let scale = 1;
             if (this.resizeFlag || (sw < bw || sh < bh)) { //屏幕宽高，任意一边小于基准宽高
@@ -30,8 +40,8 @@ namespace jy {
             }
             this._lw = lw;
             this._lh = lh;
-            host.x = 0;
-            host.y = 0;
+            host.x = sx;
+            host.y = sy;
             host.scaleY = host.scaleX = scale;
             this.layoutAll();
             dispatch(EventConst.MainUIContainerLayoutComplete, this)
@@ -58,8 +68,14 @@ namespace jy {
                 let scale = host.scaleX;
                 let stage = host.stage || egret.sys.$TempStage;
                 let rect = dis.suiRawRect;
-                let sw = stage.stageWidth / scale;
-                let sh = stage.stageHeight / scale;
+                let sw = stage.stageWidth, sh = stage.stageHeight
+                if (this.checkOffset) {
+                    let { left, right, top, bottom } = Layout.offsets;
+                    sw -= left + right;
+                    sh -= top + bottom;
+                }
+                sw /= scale;
+                sh /= scale;
                 if (left != undefined) {
                     dis.x = left;
                     if (right != undefined) {

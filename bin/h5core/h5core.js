@@ -22924,6 +22924,7 @@ var jy;
         function MainUIContainer() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
             _this.resizeFlag = true;
+            _this.checkOffset = true;
             return _this;
         }
         MainUIContainer.prototype.onResize = function () {
@@ -22931,6 +22932,15 @@ var jy;
             var stage = host.stage || egret.sys.$TempStage;
             var basis = this._basis;
             var sw = stage.stageWidth, sh = stage.stageHeight, bw = basis.width, bh = basis.height;
+            var sx = 0;
+            var sy = 0;
+            if (this.checkOffset) {
+                var _a = jy.Layout.offsets, left = _a.left, right = _a.right, top_1 = _a.top, bottom = _a.bottom;
+                sx = left;
+                sy = top_1;
+                sw -= left + right;
+                sh -= top_1 + bottom;
+            }
             var lw = sw, lh = sh;
             var scale = 1;
             if (this.resizeFlag || (sw < bw || sh < bh)) { //屏幕宽高，任意一边小于基准宽高
@@ -22941,8 +22951,8 @@ var jy;
             }
             this._lw = lw;
             this._lh = lh;
-            host.x = 0;
-            host.y = 0;
+            host.x = sx;
+            host.y = sy;
             host.scaleY = host.scaleX = scale;
             this.layoutAll();
             jy.dispatch(-1087 /* MainUIContainerLayoutComplete */, this);
@@ -22961,13 +22971,19 @@ var jy;
         };
         MainUIContainer.prototype.binLayout = function (bin) {
             if (bin.type == 0 /* FullScreen */) {
-                var dis = bin.dis, top_1 = bin.top, left = bin.left, bottom = bin.bottom, right = bin.right;
+                var dis = bin.dis, top_2 = bin.top, left = bin.left, bottom = bin.bottom, right = bin.right;
                 var host = this._host;
                 var scale = host.scaleX;
                 var stage = host.stage || egret.sys.$TempStage;
                 var rect = dis.suiRawRect;
-                var sw = stage.stageWidth / scale;
-                var sh = stage.stageHeight / scale;
+                var sw = stage.stageWidth, sh = stage.stageHeight;
+                if (this.checkOffset) {
+                    var _a = jy.Layout.offsets, left_1 = _a.left, right_1 = _a.right, top_3 = _a.top, bottom_1 = _a.bottom;
+                    sw -= left_1 + right_1;
+                    sh -= top_3 + bottom_1;
+                }
+                sw /= scale;
+                sh /= scale;
                 if (left != undefined) {
                     dis.x = left;
                     if (right != undefined) {
@@ -22977,10 +22993,10 @@ var jy;
                 else if (right != undefined) {
                     dis.x = sw - rect.width - right;
                 }
-                if (top_1 != undefined) {
-                    dis.y = top_1;
+                if (top_2 != undefined) {
+                    dis.y = top_2;
                     if (bottom != undefined) {
-                        dis.height = sh - top_1 - bottom;
+                        dis.height = sh - top_2 - bottom;
                     }
                 }
                 else if (bottom != undefined) {
