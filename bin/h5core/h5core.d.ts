@@ -13864,6 +13864,7 @@ declare namespace jy {
      */
     class MainUIContainer extends LayoutContainer {
         resizeFlag: boolean;
+        checkOffset: boolean;
         onResize(): void;
         add(d: egret.DisplayObject, type: LayoutType, offsetRect?: egret.Rectangle, hide?: boolean): void;
         protected binLayout(bin: LayoutBin): void;
