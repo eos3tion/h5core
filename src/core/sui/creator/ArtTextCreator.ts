@@ -20,6 +20,7 @@ namespace jy {
 
         public suiData: SuiData;
         flag: any;
+        version: number;
         beforeDraw() {
             this.suiData.checkRefreshBmp(this);
         }
@@ -50,11 +51,8 @@ namespace jy {
         }
 
         public refreshBMD(): void {
-            if (!this.flag) {
-                for (let bmp of <egret.Bitmap[]>this.$children) {
-                    bmp.refreshBMD();
-                }
-                this.flag = true;
+            for (let bmp of <egret.Bitmap[]>this.$children) {
+                bmp.refreshBMD();
             }
         }
 

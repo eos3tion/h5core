@@ -4816,14 +4816,9 @@ var jy;
         function SuiBitmap() {
             return _super !== null && _super.apply(this, arguments) || this;
         }
-        SuiBitmap.prototype.refreshBMD = function () {
-            if (!this.flag) {
-                _super.prototype.refreshBMD.call(this);
-                this.flag = true;
-            }
-        };
         SuiBitmap.prototype.beforeDraw = function () {
-            this.suiData.checkRefreshBmp(this, this.isjpg);
+            var suiData = this.suiData;
+            suiData.checkRefreshBmp(this, this.isjpg);
         };
         return SuiBitmap;
     }(egret.Bitmap));
@@ -16858,6 +16853,10 @@ var jy;
              * 未加载的时候，请求的位图
              */
             this.loading = [];
+            /**
+             * 版本号
+             */
+            this.version = 0;
             this.uri = uri;
             this.url = url;
         }
@@ -16882,6 +16881,8 @@ var jy;
                 var bmd = data.bitmapData;
                 var imgs = this.textures;
                 this.bmd = bmd;
+                var version = this.version;
+                version++;
                 for (var _i = 0, imgs_1 = imgs; _i < imgs_1.length; _i++) {
                     var tex = imgs_1[_i];
                     tex.$bitmapData = bmd;
@@ -16892,14 +16893,17 @@ var jy;
                     for (var _a = 0, loading_1 = loading; _a < loading_1.length; _a++) {
                         var bmp = loading_1[_a];
                         bmp.refreshBMD();
+                        bmp.version = version;
                     }
                     loading.length = 0;
                 }
+                this.version = version;
                 this.bmdState = 2 /* COMPLETE */;
             }
         };
         SuiBmd.prototype.dispose = function () {
             var bmd = this.bmd;
+            this.version++;
             this.bmdState = 0 /* UNREQUEST */;
             if (bmd) {
                 bmd.$dispose();
@@ -16968,14 +16972,22 @@ var jy;
             var tmp = isjpg ? this.jpgbmd : this.pngbmd;
             if (tmp) {
                 tmp.lastUseTime = jy.Global.now;
+                var version = tmp.version;
+                var flag = bmp.version != version;
                 if (tmp.bmdState == 2 /* COMPLETE */) {
-                    if (bmp.refreshBMD) {
-                        bmp.refreshBMD();
+                    if (flag) {
+                        if (bmp.refreshBMD) {
+                            bmp.refreshBMD();
+                        }
+                        bmp.version = version;
                     }
                     return true;
                 }
                 else {
-                    tmp.loading.pushOnce(bmp);
+                    if (flag) {
+                        tmp.loading.pushOnce(bmp);
+                        bmp.version = version;
+                    }
                     tmp.loadBmd();
                     return false;
                 }
@@ -17666,12 +17678,9 @@ var jy;
             this.suiData.checkRefreshBmp(this);
         };
         ArtText.prototype.refreshBMD = function () {
-            if (!this.flag) {
-                for (var _i = 0, _a = this.$children; _i < _a.length; _i++) {
-                    var bmp = _a[_i];
-                    bmp.refreshBMD();
-                }
-                this.flag = true;
+            for (var _i = 0, _a = this.$children; _i < _a.length; _i++) {
+                var bmp = _a[_i];
+                bmp.refreshBMD();
             }
         };
         /**

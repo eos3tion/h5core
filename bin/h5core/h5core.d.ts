@@ -3085,8 +3085,10 @@ declare namespace jy {
     class SuiBitmap extends egret.Bitmap {
         isjpg: boolean;
         suiData: SuiData;
-        flag: boolean;
-        refreshBMD(): void;
+        /**
+         * 纹理数据版本号
+         */
+        version: number;
         beforeDraw(): void;
     }
     /**
@@ -12520,6 +12522,10 @@ declare namespace jy {
          * 未加载的时候，请求的位图
          */
         loading: SuiBmdCallback[];
+        /**
+         * 版本号
+         */
+        version: number;
         constructor(uri: string, url: string);
         loadBmd(): void;
         protected checkBitmap(item: Res.ResItem): void;
@@ -12534,6 +12540,7 @@ declare namespace jy {
      * @interface SuiBmdCallback
      */
     interface SuiBmdCallback {
+        version: number;
         /**
          * suidata中用的位图加载完成后，对于加载的组件的回调函数
          *
@@ -13001,6 +13008,7 @@ declare namespace jy {
     class ArtText extends Component {
         suiData: SuiData;
         flag: any;
+        version: number;
         beforeDraw(): void;
         /**
          * 垂直对齐方式

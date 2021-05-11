@@ -29,6 +29,11 @@ namespace jy {
          */
         public loading: SuiBmdCallback[] = [];
 
+        /**
+         * 版本号
+         */
+        version = 0;
+
         public constructor(uri: string, url: string) {
             this.uri = uri;
             this.url = url;
@@ -55,7 +60,8 @@ namespace jy {
                 let bmd = data.bitmapData;
                 let imgs = this.textures;
                 this.bmd = bmd;
-
+                let version = this.version;
+                version++;
                 for (let tex of imgs) {
                     tex.$bitmapData = bmd;
                 }
@@ -65,15 +71,18 @@ namespace jy {
                     //将绑定的位图，全部重新设置一次
                     for (let bmp of loading) {
                         bmp.refreshBMD();
+                        bmp.version = version;
                     }
                     loading.length = 0;
                 }
+                this.version = version;
                 this.bmdState = RequestState.COMPLETE;
             }
         }
 
         public dispose() {
             let bmd = this.bmd;
+            this.version++;
             this.bmdState = RequestState.UNREQUEST;
             if (bmd) {
                 bmd.$dispose();
