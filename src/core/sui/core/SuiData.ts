@@ -10,6 +10,7 @@ namespace jy {
      * @interface SuiBmdCallback
      */
     export interface SuiBmdCallback {
+        version: number;
         /**
          * suidata中用的位图加载完成后，对于加载的组件的回调函数
          * 
@@ -163,13 +164,21 @@ namespace jy {
             let tmp = isjpg ? this.jpgbmd : this.pngbmd;
             if (tmp) {
                 tmp.lastUseTime = Global.now;
+                let version = tmp.version;
+                let flag = bmp.version != version;
                 if (tmp.bmdState == RequestState.COMPLETE) {
-                    if (bmp.refreshBMD) {
-                        bmp.refreshBMD();
+                    if (flag) {
+                        if (bmp.refreshBMD) {
+                            bmp.refreshBMD();
+                        }
+                        bmp.version = version;
                     }
                     return true;
                 } else {
-                    tmp.loading.pushOnce(bmp);
+                    if (flag) {
+                        tmp.loading.pushOnce(bmp);
+                        bmp.version = version;
+                    }
                     tmp.loadBmd();
                     return false;
                 }
@@ -213,6 +222,8 @@ namespace jy {
         count: number;
 
         callback?: $CallbackInfo;
+
+        version: number;
         refreshBMD() {
             let count = this.count;
             if (!--count) {

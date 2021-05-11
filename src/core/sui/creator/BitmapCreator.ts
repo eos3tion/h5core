@@ -2,15 +2,13 @@ namespace jy {
     export class SuiBitmap extends egret.Bitmap {
         isjpg: boolean;
         suiData: SuiData;
-        flag: boolean;
-        refreshBMD() {
-            if (!this.flag) {
-                super.refreshBMD();
-                this.flag = true;
-            }
-        }
+        /**
+         * 纹理数据版本号
+         */
+        version: number;
         beforeDraw() {
-            this.suiData.checkRefreshBmp(this, this.isjpg);
+            let suiData = this.suiData;
+            suiData.checkRefreshBmp(this, this.isjpg);
         }
     }
 
