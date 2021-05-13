@@ -12187,6 +12187,7 @@ declare namespace jy {
         protected onChange(): void;
         protected _get(index: number): R;
         protected onSizeChange(): void;
+        protected $onSizeChange(): void;
         getSize(v: egret.DisplayObject): Size;
         /**
          * 重新计算Render的坐标

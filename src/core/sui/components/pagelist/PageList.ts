@@ -399,8 +399,21 @@ namespace jy {
         protected onSizeChange() {
             if (!this._sizeChanged) {
                 this._sizeChanged = true;
-                Global.callLater(this.reCalc, 100, this);
+                Global.callLater(this.$onSizeChange, 0, this);
             }
+        }
+
+        protected $onSizeChange() {
+            this.reCalc();
+            let lastRect = this._lastRect;
+            if (lastRect) {
+                let key1 = PosKey.X;
+                if (this.scrollType == ScrollDirection.Vertical) {
+                    key1 = PosKey.Y;
+                }
+                lastRect[key1]--;
+            }
+            this.checkViewRect();
         }
 
         getSize(v: egret.DisplayObject) {
