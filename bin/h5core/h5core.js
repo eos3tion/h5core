@@ -5295,7 +5295,8 @@ var jy;
             if (!content) {
                 return;
             }
-            if (content[this._measureKey] < content.scrollRect[this._sizeKey]) {
+            var scrollRect = content.scrollRect;
+            if (content[this._measureKey] < scrollRect[this._sizeKey] - scrollRect[this._key]) {
                 return;
             }
             this._moveSpeed = 0;
@@ -5327,6 +5328,16 @@ var jy;
         Scroller.prototype.onDragMove = function (e) {
             var currentPos = this.getDragPos(e);
             var sub = currentPos - this._lastTargetPos;
+            var content = this._content;
+            if (!content) {
+                return;
+            }
+            if (sub < 0) {
+                var scrollRect = content.scrollRect;
+                if (content[this._measureKey] < scrollRect[this._sizeKey]) {
+                    return;
+                }
+            }
             this._offsets += sub;
             this._offCount++;
             this._lastTargetPos = currentPos;
@@ -19637,8 +19648,20 @@ var jy;
         PageList.prototype.onSizeChange = function () {
             if (!this._sizeChanged) {
                 this._sizeChanged = true;
-                jy.Global.callLater(this.reCalc, 100, this);
+                jy.Global.callLater(this.$onSizeChange, 0, this);
             }
+        };
+        PageList.prototype.$onSizeChange = function () {
+            this.reCalc();
+            var lastRect = this._lastRect;
+            if (lastRect) {
+                var key1 = "x" /* X */;
+                if (this.scrollType == 0 /* Vertical */) {
+                    key1 = "y" /* Y */;
+                }
+                lastRect[key1]--;
+            }
+            this.checkViewRect();
         };
         PageList.prototype.getSize = function (v) {
             var size = v;

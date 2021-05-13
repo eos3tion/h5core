@@ -206,7 +206,8 @@ namespace jy {
             if (!content) {
                 return;
             }
-            if (content[this._measureKey] < content.scrollRect[this._sizeKey]) {
+            let scrollRect = content.scrollRect;
+            if (content[this._measureKey] < scrollRect[this._sizeKey] - scrollRect[this._key]) {
                 return
             }
             this._moveSpeed = 0;
@@ -242,6 +243,16 @@ namespace jy {
         protected onDragMove(e: egret.TouchEvent) {
             let currentPos = this.getDragPos(e);
             let sub = currentPos - this._lastTargetPos;
+            let content = this._content;
+            if (!content) {
+                return;
+            }
+            if (sub < 0) {
+                let scrollRect = content.scrollRect;
+                if (content[this._measureKey] < scrollRect[this._sizeKey]) {
+                    return
+                }
+            }
             this._offsets += sub;
             this._offCount++;
             this._lastTargetPos = currentPos;
