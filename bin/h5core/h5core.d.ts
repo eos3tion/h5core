@@ -10430,6 +10430,10 @@ declare namespace jy {
         };
         private _lastPos;
         protected _changed: boolean;
+        /**
+         * 是否限制关注的对象
+         */
+        protected limitHost: boolean;
         get changed(): boolean;
         /**
          * 标记已经改变完
@@ -10445,8 +10449,9 @@ declare namespace jy {
         /**
          * 相机跟随一个可视对象
          * @param target 镜头要跟随的目标
+         * @param limit 是否限制目标
          */
-        lookat(target: Point): Boolean;
+        lookat(target: Point, limit?: boolean): Boolean;
         /**
          * 获取当前镜头绑定的单位
          */
@@ -10475,7 +10480,7 @@ declare namespace jy {
         /**
          * 将相机移动到指定坐标
          */
-        moveTo(x: number, y: number): this;
+        moveTo(x: number, y: number, target?: Point): this;
         /**
          * 获取相机显示区域
          */

@@ -13312,7 +13312,6 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
-    var clamp = Math.clamp;
     var Camera = /** @class */ (function (_super) {
         __extends(Camera, _super);
         function Camera(width, height) {
@@ -13380,9 +13379,11 @@ var jy;
         /**
          * 相机跟随一个可视对象
          * @param target 镜头要跟随的目标
+         * @param limit 是否限制目标
          */
-        Camera.prototype.lookat = function (target) {
+        Camera.prototype.lookat = function (target, limit) {
             this._host = target;
+            this.limitHost = limit;
             return !!target;
         };
         Object.defineProperty(Camera.prototype, "host", {
@@ -13436,7 +13437,7 @@ var jy;
             return this;
         };
         Camera.prototype.check = function () {
-            var _a = this, _lx = _a._lx, _ly = _a._ly, _lw = _a._lw, _lh = _a._lh, _rect = _a._rect;
+            var _a = this, _lw = _a._lw, _lh = _a._lh, _rect = _a._rect;
             var w = _rect.width, h = _rect.height;
             var flag = w < _lw;
             this._hScroll = flag;
@@ -13452,23 +13453,43 @@ var jy;
         /**
          * 将相机移动到指定坐标
          */
-        Camera.prototype.moveTo = function (x, y) {
-            var _a = this, _hScroll = _a._hScroll, _vScroll = _a._vScroll, _rect = _a._rect, _lx = _a._lx, _ly = _a._ly, _lw = _a._lw, _lh = _a._lh;
+        Camera.prototype.moveTo = function (x, y, target) {
+            var _a = this, _hScroll = _a._hScroll, _vScroll = _a._vScroll, _rect = _a._rect, _lx = _a._lx, _ly = _a._ly, _lw = _a._lw, _lh = _a._lh, limitHost = _a.limitHost;
             var rw = _rect.width, rh = _rect.height, rx = _rect.x, ry = _rect.y;
             var changed = this._changed;
             if (_hScroll) {
-                x -= rw * .5;
-                x = clamp(x, _lx, _lw - rw);
-                if (x != rx) {
-                    _rect.x = x;
+                var hrw = rw * .5;
+                var nx = x - hrw;
+                var max = _lw - rw;
+                if (nx < _lx) {
+                    nx = _lx;
+                }
+                else if (nx > max) {
+                    nx = max;
+                }
+                if (limitHost && target) {
+                    target.x = nx + hrw;
+                }
+                if (nx != rx) {
+                    _rect.x = nx;
                     changed = true;
                 }
             }
             if (_vScroll) {
-                y -= rh * .5;
-                y = clamp(y, _ly, _lh - rh);
+                var hrh = rh * .5;
+                var ny = y - hrh;
+                var max = _lh - rh;
+                if (ny < _ly) {
+                    ny = _ly;
+                }
+                else if (ny > max) {
+                    ny = max;
+                }
+                if (limitHost && target) {
+                    target.y = ny + hrh;
+                }
                 if (y != ry) {
-                    _rect.y = y;
+                    _rect.y = ny;
                     changed = true;
                 }
             }
@@ -13482,7 +13503,7 @@ var jy;
             get: function () {
                 var target = this._host;
                 if (target) {
-                    this.moveTo(target.x, target.y);
+                    this.moveTo(target.x, target.y, target);
                 }
                 return this._rect;
             },
