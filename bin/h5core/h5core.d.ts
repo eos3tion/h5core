@@ -11021,13 +11021,19 @@ declare namespace jy {
      */
     interface ILimitChecker {
         /**
-         * 是否通过检查
+         * 是否可以显示
          * @param data		数据
          * @param showtip	是否显示tip
          * @return
          *
          */
-        check(data: any, showtip: boolean): boolean;
+        checkShow(cfg: IModuleCfg, showtip: boolean): boolean;
+        /**
+         * 是否开启
+         * @param cfg
+         * @param showtip
+         */
+        checkOpen(cfg: IModuleCfg, showtip: boolean): boolean;
     }
 }
 declare namespace jy {
@@ -11158,7 +11164,7 @@ declare namespace jy {
          * @param	{any}	limits			使用限制的数据
          * @return	{boolean}   <br/>true 有配置错误<br/>false 无配置错误
          */
-        adjustLimitDatas(showLimits: any, limits: any): boolean;
+        adjustLimits(cfg: IModuleCfg): boolean;
     }
 }
 declare namespace jy {
