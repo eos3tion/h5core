@@ -1,10 +1,10 @@
 namespace jy {
-	/**
-	 * 模块管理器
-	 * 用于管理模块的开启/关闭
-	 * @author 3tion
-	 *
-	 */
+    /**
+     * 模块管理器
+     * 用于管理模块的开启/关闭
+     * @author 3tion
+     *
+     */
     export class ModuleManager {
 
         /**
@@ -12,11 +12,11 @@ namespace jy {
          */
         showTip: { (msg: ModuleTipState): void };
 
-    	/**
-    	 * 字典<br/>
-    	 * Key      {string}        模块ID<br/>
-    	 * Value    {ModuleCfg}     模块配置
-    	 */
+        /**
+         * 字典<br/>
+         * Key      {string}        模块ID<br/>
+         * Value    {ModuleCfg}     模块配置
+         */
         _allById: { [index: string]: IModuleCfg };
 
         /**
@@ -39,8 +39,8 @@ namespace jy {
         _needCheckShow = false;
 
         /**
-		 * 未显示的按钮的模块
-		 */
+         * 未显示的按钮的模块
+         */
         _unshowns: Key[];
 
         /**
@@ -51,7 +51,7 @@ namespace jy {
 
         /**
          * Key      {number} 模块id<br/>
-		 * Value    {egret.DisplayObject[]} 绑定在同一个模块上的按钮的数组
+         * Value    {egret.DisplayObject[]} 绑定在同一个模块上的按钮的数组
          */
         _bindedIOById: { [index: number]: egret.DisplayObject[] };
 
@@ -96,10 +96,10 @@ namespace jy {
          */
         createToolTip: (cfg: IModuleCfg) => string;
 
-    	/**
-    	 * 设置模块配置数据
-    	 * @param { [index: string]: ModuleCfg }    cfgs
-    	 */
+        /**
+         * 设置模块配置数据
+         * @param { [index: string]: ModuleCfg }    cfgs
+         */
         setCfgs(cfgs: { [index: string]: IModuleCfg }) {
             this._allById = cfgs;
             this.doCheckLimits();
@@ -128,13 +128,13 @@ namespace jy {
                 ThrowError("ModuleManager 注册模块处理函数时，没有找到对应的模块配置，模块id:" + id);
             }
         }
-    	/**
-		 * 设置限制检查器
-		 * @param value	一个字典<br/>
-		 * Key  	{number}            限制器(showtype,limittype)类型<br/>
-		 * Value	{IModuleChecker}	    模块限制检查器
-		 *
-		 */
+        /**
+         * 设置限制检查器
+         * @param value	一个字典<br/>
+         * Key  	{number}            限制器(showtype,limittype)类型<br/>
+         * Value	{IModuleChecker}	    模块限制检查器
+         *
+         */
         set checkers(value: { [index: number]: IModuleChecker }) {
             this._checkers = value;
             this.doCheckLimits();
@@ -182,10 +182,10 @@ namespace jy {
                         if (showtype == limittype) {
                             if (checker) {
                                 if (RELEASE) {
-                                    checker.adjustLimitDatas(cfg.showlimits, cfg.limits);
+                                    checker.adjustLimits(cfg);
                                 }
                                 if (DEBUG) {
-                                    if (checker.adjustLimitDatas(cfg.showlimits, cfg.limits)) {
+                                    if (checker.adjustLimits(cfg)) {
                                         errString += cfg.id + " ";
                                     }
                                 }
@@ -243,7 +243,7 @@ namespace jy {
             if (flag && this._checkers) {
                 let checker = this._checkers[cfg.showtype];
                 if (checker) {
-                    flag = checker.check(cfg.showlimits, false);
+                    flag = checker.checkShow(cfg, false);
                 }
             }
             return flag;
@@ -269,7 +269,7 @@ namespace jy {
                 if (this._checkers) {
                     let checker = this._checkers[cfg.limittype];
                     if (checker) {
-                        flag = checker.check(cfg.limits, showtip);
+                        flag = checker.checkOpen(cfg, showtip);
                     }
                 }
             }
@@ -332,10 +332,10 @@ namespace jy {
         }
 
         /**
-		 * 检查显示/开启
-		 * @param event
-		 *
-		 */
+         * 检查显示/开启
+         * @param event
+         *
+         */
         check(): void {
             this._needCheckShow = true;
             egret.callLater(this._check, this);

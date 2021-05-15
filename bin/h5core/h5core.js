@@ -17714,10 +17714,10 @@ var jy;
                         if (showtype == limittype) {
                             if (checker) {
                                 if (false) {
-                                    checker.adjustLimitDatas(cfg.showlimits, cfg.limits);
+                                    checker.adjustLimits(cfg);
                                 }
                                 if (true) {
-                                    if (checker.adjustLimitDatas(cfg.showlimits, cfg.limits)) {
+                                    if (checker.adjustLimits(cfg)) {
                                         errString += cfg.id + " ";
                                     }
                                 }
@@ -17772,7 +17772,7 @@ var jy;
             if (flag && this._checkers) {
                 var checker = this._checkers[cfg.showtype];
                 if (checker) {
-                    flag = checker.check(cfg.showlimits, false);
+                    flag = checker.checkShow(cfg, false);
                 }
             }
             return flag;
@@ -17797,7 +17797,7 @@ var jy;
                 if (this._checkers) {
                     var checker = this._checkers[cfg.limittype];
                     if (checker) {
-                        flag = checker.check(cfg.limits, showtip);
+                        flag = checker.checkOpen(cfg, showtip);
                     }
                 }
             }
