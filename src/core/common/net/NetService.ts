@@ -733,11 +733,10 @@ namespace jy {
 
 
         /**
-         * @private 
-         * @param bytes
-         * @param out
+         * @param bytes      字节流
+         * @param dataSolver 外部数据处理器
          */
-        decodeBytes(bytes: ByteArray) {
+        decodeBytes(bytes: ByteArray, dataSolver?: { (list: Recyclable<NetData>[]): any }) {
             let receiveMSG = this._receiveMSG;
             let tmpList = this._tmpList;
             let idx = 0;
@@ -822,6 +821,10 @@ namespace jy {
                     let ndata = tmpList[i];
                     this.$writeNSLog(now, "receive", ndata.cmd, ndata.data);
                 }
+            }
+
+            if (dataSolver && dataSolver(tmpList)) {
+                return
             }
 
             var router = this._router;

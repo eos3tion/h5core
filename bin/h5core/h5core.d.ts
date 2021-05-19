@@ -1057,11 +1057,12 @@ declare namespace jy {
          */
         writeToBuffer(bytes: ByteArray, data: NetSendData): void;
         /**
-         * @private
-         * @param bytes
-         * @param out
+         * @param bytes      字节流
+         * @param dataSolver 外部数据处理器
          */
-        decodeBytes(bytes: ByteArray): void;
+        decodeBytes(bytes: ByteArray, dataSolver?: {
+            (list: Recyclable<NetData>[]): any;
+        }): void;
         /**
          * 解析头部信息
          *

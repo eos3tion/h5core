@@ -1515,11 +1515,10 @@ var jy;
             }
         };
         /**
-         * @private
-         * @param bytes
-         * @param out
+         * @param bytes      字节流
+         * @param dataSolver 外部数据处理器
          */
-        NetService.prototype.decodeBytes = function (bytes) {
+        NetService.prototype.decodeBytes = function (bytes, dataSolver) {
             var receiveMSG = this._receiveMSG;
             var tmpList = this._tmpList;
             var idx = 0;
@@ -1605,6 +1604,9 @@ var jy;
                     var ndata = tmpList[i];
                     this.$writeNSLog(now, "receive", ndata.cmd, ndata.data);
                 }
+            }
+            if (dataSolver && dataSolver(tmpList)) {
+                return;
             }
             var router = this._router;
             //分发数据
