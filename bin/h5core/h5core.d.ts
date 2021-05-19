@@ -16522,26 +16522,42 @@ declare namespace jy {
     }
 }
 declare namespace jy {
+    const enum TouchDownConst {
+        /**
+         * TouchDown时放大比例
+         */
+        Scale = 1.125,
+        /**
+         * 居中后的乘数
+         * (Scale-1)*0.5
+         */
+        Multi = 0.0625
+    }
     /**
      * 可做TouchDown放大的对象接口
      */
-    interface TouchDownItem extends egret.DisplayObject {
+    export interface TouchDownItem extends egret.DisplayObject {
         $_tdi?: TouchDownData;
+        /**
+         * TouchDown缩放，如果设置此值，走此值，如果未设置，走全局遍历`TouchDown.Scale`
+         */
+        $_tdScale?: number;
     }
-    interface TouchDownBin {
+    export interface TouchDownBin {
         x?: number;
         y?: number;
         scaleX: number;
         scaleY: number;
     }
-    interface TouchDownData {
+    export interface TouchDownData {
         raw: TouchDownBin;
         tween: Tween;
     }
     /**
      * TouchDown显示对象放大效果
      */
-    module TouchDown {
+    export module TouchDown {
+        let Scale: TouchDownConst;
         /**
          * 绑定组件
          *
@@ -16562,6 +16578,7 @@ declare namespace jy {
          */
         function reset(item: TouchDownItem): void;
     }
+    export {};
 }
 declare namespace jy {
     /**

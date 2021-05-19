@@ -23539,6 +23539,7 @@ var jy;
      */
     var TouchDown;
     (function (TouchDown) {
+        TouchDown.Scale = 1.125 /* Scale */;
         /**
          * 绑定组件
          *
@@ -23611,7 +23612,8 @@ var jy;
                 data.raw = { x: x, y: y, scaleX: scaleX, scaleY: scaleY };
             }
             var raw = data.raw;
-            data.tween = jy.Global.getTween(target, _$TDOpt).to({ x: raw.x - target.width * 0.0625 /* Multi */, y: raw.y - target.height * 0.0625 /* Multi */, scaleX: 1.125 /* Scale */ * raw.scaleX, scaleY: 1.125 /* Scale */ * raw.scaleY }, 100, jy.Ease.quadOut);
+            var scale = target.$_tdScale || TouchDown.Scale;
+            data.tween = jy.Global.getTween(target, _$TDOpt).to({ x: raw.x - target.width * 0.0625 /* Multi */, y: raw.y - target.height * 0.0625 /* Multi */, scaleX: scale * raw.scaleX, scaleY: scale * raw.scaleY }, 100, jy.Ease.quadOut);
         }
         function touchEnd(e) {
             var target = e.target;
