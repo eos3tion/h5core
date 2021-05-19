@@ -16542,6 +16542,10 @@ declare namespace jy {
          * TouchDown缩放，如果设置此值，走此值，如果未设置，走全局遍历`TouchDown.Scale`
          */
         $_tdScale?: number;
+        /**
+         * TouchDown缩放，居中后的乘数
+         */
+        $_tdMulti?: number;
     }
     export interface TouchDownBin {
         x?: number;
@@ -16558,6 +16562,7 @@ declare namespace jy {
      */
     export module TouchDown {
         let Scale: TouchDownConst;
+        let Multi: TouchDownConst;
         /**
          * 绑定组件
          *
