@@ -22,6 +22,10 @@ namespace jy {
          * TouchDown缩放，如果设置此值，走此值，如果未设置，走全局遍历`TouchDown.Scale`
          */
         $_tdScale?: number;
+        /**
+         * TouchDown缩放，居中后的乘数
+         */
+        $_tdMulti?: number;
     }
 
     export interface TouchDownBin {
@@ -45,6 +49,7 @@ namespace jy {
     export module TouchDown {
 
         export let Scale = TouchDownConst.Scale;
+        export let Multi = TouchDownConst.Multi;
         /**
          * 绑定组件
          * 
@@ -118,7 +123,8 @@ namespace jy {
             }
             let raw = data.raw;
             let scale = target.$_tdScale || TouchDown.Scale;
-            data.tween = Global.getTween(target, _$TDOpt).to({ x: raw.x - target.width * TouchDownConst.Multi, y: raw.y - target.height * TouchDownConst.Multi, scaleX: scale * raw.scaleX, scaleY: scale * raw.scaleY }, 100, Ease.quadOut);
+            let multi = target.$_tdMulti || TouchDown.Multi;
+            data.tween = Global.getTween(target, _$TDOpt).to({ x: raw.x - target.width * multi, y: raw.y - target.height * multi, scaleX: scale * raw.scaleX, scaleY: scale * raw.scaleY }, 100, Ease.quadOut);
         }
 
         function touchEnd(e: egret.Event) {
