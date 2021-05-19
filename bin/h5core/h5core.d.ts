@@ -1683,6 +1683,10 @@ interface $gmType {
      */
     route(cmd: number, data?: any): any;
     /**
+     * 调试用，如果开启后，所有send指令时，按此值额外将同一数据发送多次，加上本身的一次，一共发送`multiSend+1`次
+     */
+    multiSend: number;
+    /**
      * 使用日志数据进行模拟调试
      *
      * @param {$NSLog[]} logs

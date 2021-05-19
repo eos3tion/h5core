@@ -1756,6 +1756,7 @@ var jy;
 })(jy || (jy = {}));
 if (true) {
     var $gm = $gm || {};
+    $gm.multiSend = 0;
     $gm.__getNSFilter = function () {
         var args = [];
         for (var _i = 0; _i < arguments.length; _i++) {
@@ -1882,6 +1883,12 @@ var jy;
     function send2(cmd, data, msgType, limit) {
         if (jy.RequestLimit.check(cmd, limit)) {
             this._send(cmd, data, msgType);
+            if (true) {
+                var multiSend = $gm.multiSend;
+                for (var i = 0; i < multiSend; i++) {
+                    this._send(cmd, data, msgType);
+                }
+            }
         }
         else {
             jy.dispatch(-189 /* NetServiceSendLimit */, cmd);
@@ -2054,6 +2061,12 @@ var jy;
         NetService.prototype.send = function (cmd, data, msgType, limit) {
             if (jy.RequestLimit.check(cmd, limit)) {
                 this._send(cmd, data, msgType);
+                if (true) {
+                    var multiSend = $gm.multiSend;
+                    for (var i = 0; i < multiSend; i++) {
+                        this._send(cmd, data, msgType);
+                    }
+                }
             }
         };
         /**
