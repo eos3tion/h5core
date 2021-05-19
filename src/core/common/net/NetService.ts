@@ -174,6 +174,11 @@ interface $gmType {
     route(cmd: number, data?: any);
 
     /**
+     * 调试用，如果开启后，所有send指令时，按此值额外将同一数据发送多次，加上本身的一次，一共发送`multiSend+1`次
+     */
+    multiSend: number;
+
+    /**
      * 使用日志数据进行模拟调试
      * 
      * @param {$NSLog[]} logs 
@@ -204,6 +209,7 @@ interface $gmType {
 
 if (DEBUG) {
     var $gm: $gmType = <$gmType>$gm || <$gmType>{};
+    $gm.multiSend = 0;
     $gm.__getNSFilter = (...args) => {
         let nsFilter = <$NSFilter>{};
         if (args.length) {
@@ -344,6 +350,12 @@ namespace jy {
     function send2(cmd: number, data?: any, msgType?: Key, limit?: number) {
         if (RequestLimit.check(cmd, limit)) {
             this._send(cmd, data, msgType);
+            if (DEBUG) {
+                let multiSend = $gm.multiSend;
+                for (let i = 0; i < multiSend; i++) {
+                    this._send(cmd, data, msgType);
+                }
+            }
         } else {
             dispatch(EventConst.NetServiceSendLimit, cmd);
         }
@@ -614,6 +626,12 @@ namespace jy {
         public send(cmd: number, data?: any, msgType?: Key, limit?: number) {
             if (RequestLimit.check(cmd, limit)) {
                 this._send(cmd, data, msgType);
+                if (DEBUG) {
+                    let multiSend = $gm.multiSend;
+                    for (let i = 0; i < multiSend; i++) {
+                        this._send(cmd, data, msgType);
+                    }
+                }
             }
         }
 
