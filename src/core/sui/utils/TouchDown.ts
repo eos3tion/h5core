@@ -17,6 +17,11 @@ namespace jy {
      */
     export interface TouchDownItem extends egret.DisplayObject {
         $_tdi?: TouchDownData;
+
+        /**
+         * TouchDown缩放，如果设置此值，走此值，如果未设置，走全局遍历`TouchDown.Scale`
+         */
+        $_tdScale?: number;
     }
 
     export interface TouchDownBin {
@@ -39,6 +44,7 @@ namespace jy {
      */
     export module TouchDown {
 
+        export let Scale = TouchDownConst.Scale;
         /**
          * 绑定组件
          * 
@@ -111,7 +117,8 @@ namespace jy {
                 data.raw = { x, y, scaleX, scaleY };
             }
             let raw = data.raw;
-            data.tween = Global.getTween(target, _$TDOpt).to({ x: raw.x - target.width * TouchDownConst.Multi, y: raw.y - target.height * TouchDownConst.Multi, scaleX: TouchDownConst.Scale * raw.scaleX, scaleY: TouchDownConst.Scale * raw.scaleY }, 100, Ease.quadOut);
+            let scale = target.$_tdScale || TouchDown.Scale;
+            data.tween = Global.getTween(target, _$TDOpt).to({ x: raw.x - target.width * TouchDownConst.Multi, y: raw.y - target.height * TouchDownConst.Multi, scaleX: scale * raw.scaleX, scaleY: scale * raw.scaleY }, 100, Ease.quadOut);
         }
 
         function touchEnd(e: egret.Event) {
