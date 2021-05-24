@@ -13968,7 +13968,9 @@ var jy;
                 }
             }
             function doReg(cmd, handler, ref) {
-                ns.register(cmd, handler);
+                if (handler) {
+                    ns.register(cmd, handler);
+                }
                 ns.regReceiveMSGRef(cmd, ref);
             }
         };
