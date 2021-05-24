@@ -13957,7 +13957,9 @@ var jy;
                 var cmd = args[i];
                 var ref = args[i + 1];
                 var handler = args[i + 2];
-                handler = handler.bind(this);
+                if (handler) {
+                    handler = handler.bind(this);
+                }
                 if (Array.isArray(cmd)) {
                     for (var i_1 = 0; i_1 < cmd.length; i_1++) {
                         doReg(cmd[i_1], handler, ref);
@@ -13968,7 +13970,9 @@ var jy;
                 }
             }
             function doReg(cmd, handler, ref) {
-                ns.register(cmd, handler);
+                if (handler) {
+                    ns.register(cmd, handler);
+                }
                 ns.regReceiveMSGRef(cmd, ref);
             }
         };

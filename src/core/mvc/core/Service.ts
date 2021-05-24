@@ -34,7 +34,9 @@ namespace jy {
                 let cmd = args[i];
                 let ref = args[i + 1];
                 let handler = args[i + 2] as Function;
-                handler = handler.bind(this);
+                if (handler) {
+                    handler = handler.bind(this);
+                }
                 if (Array.isArray(cmd)) {
                     for (let i = 0; i < cmd.length; i++) {
                         doReg(cmd[i], handler, ref);
@@ -44,7 +46,9 @@ namespace jy {
                 }
             }
             function doReg(cmd, handler, ref) {
-                ns.register(cmd, handler);
+                if (handler) {
+                    ns.register(cmd, handler);
+                }
                 ns.regReceiveMSGRef(cmd, ref);
             }
         }
