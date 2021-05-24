@@ -17486,7 +17486,9 @@ var jy;
                 var cmd = args[i];
                 var ref = args[i + 1];
                 var handler = args[i + 2];
-                handler = handler.bind(this);
+                if (handler) {
+                    handler = handler.bind(this);
+                }
                 if (Array.isArray(cmd)) {
                     for (var i_2 = 0; i_2 < cmd.length; i_2++) {
                         doReg(cmd[i_2], handler, ref);
