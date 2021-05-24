@@ -754,7 +754,7 @@ namespace jy {
          * @param bytes      字节流
          * @param dataSolver 外部数据处理器
          */
-        decodeBytes(bytes: ByteArray, dataSolver?: { (list: Recyclable<NetData>[]): any }) {
+        decodeBytes(bytes: ByteArray, dataSolver?: { (list: Recyclable<NetData>[], length: number): any }) {
             let receiveMSG = this._receiveMSG;
             let tmpList = this._tmpList;
             let idx = 0;
@@ -841,7 +841,7 @@ namespace jy {
                 }
             }
 
-            if (dataSolver && dataSolver(tmpList)) {
+            if (dataSolver && dataSolver(tmpList, idx)) {
                 return
             }
 

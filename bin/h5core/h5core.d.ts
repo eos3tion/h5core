@@ -1930,7 +1930,7 @@ declare namespace jy {
          * @param dataSolver 外部数据处理器
          */
         decodeBytes(bytes: ByteArray, dataSolver?: {
-            (list: Recyclable<NetData>[]): any;
+            (list: Recyclable<NetData>[], length: number): any;
         }): void;
         /**
          * 解析头部信息
