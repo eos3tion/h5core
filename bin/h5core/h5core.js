@@ -1618,7 +1618,7 @@ var jy;
                     this.$writeNSLog(now, "receive", ndata.cmd, ndata.data);
                 }
             }
-            if (dataSolver && dataSolver(tmpList)) {
+            if (dataSolver && dataSolver(tmpList, idx)) {
                 return;
             }
             var router = this._router;
