@@ -3412,8 +3412,25 @@ declare namespace jy {
     class Scroller extends egret.EventDispatcher {
         protected _scrollbar: ScrollBar;
         protected _content: egret.DisplayObject;
+        protected dragging: boolean;
         get content(): egret.DisplayObject;
         protected _scrollType: ScrollDirection;
+        /**
+         * 回弹距离，默认`0`
+         */
+        bounceDist: number;
+        /**
+         * 回弹时间，默认`500`
+         */
+        bounceTime: number;
+        /**
+         * 是否需要检查回弹
+         */
+        protected _checkBounce: boolean;
+        /**
+         * 当前是否正在回弹
+         */
+        protected _isBounce: boolean;
         protected _lastTargetPos: number;
         /***滑块移动一像素，target滚动的距离*/
         protected _piexlDistance: number;
@@ -3484,6 +3501,7 @@ declare namespace jy {
         stopTouchTween(): void;
         protected onRender(): void;
         protected onDragEnd(e: egret.TouchEvent): void;
+        protected bounceEnd(): void;
         showBar(): void;
         hideBar(): void;
         /**

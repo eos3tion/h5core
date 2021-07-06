@@ -5141,6 +5141,14 @@ var jy;
         function Scroller(opt) {
             var _this = _super.call(this) || this;
             _this._scrollType = 0 /* Vertical */;
+            /**
+             * 是否需要检查回弹
+             */
+            _this._checkBounce = false;
+            /**
+             * 当前是否正在回弹
+             */
+            _this._isBounce = false;
             /**鼠标每移动1像素，元件移动的像素 */
             _this.globalspeed = 1;
             /**最小的滑动速度，当前值低于此值后不再滚动 */
@@ -5245,12 +5253,14 @@ var jy;
                     old.off(-1090 /* DragStart */, this.onDragStart, this);
                     old.off(-1089 /* DragMove */, this.onDragMove, this);
                     old.off(-1088 /* DragEnd */, this.onDragEnd, this);
+                    old.off("touchBegin" /* TOUCH_BEGIN */, this.stopTouchTween, this);
                 }
                 this._content = content;
                 if (content) {
                     this.drag = jy.bindDrag(content, this.opt);
                     content.on(-1090 /* DragStart */, this.onDragStart, this);
                     content.on(-1999 /* Resize */, this.onResize, this);
+                    content.on("touchBegin" /* TOUCH_BEGIN */, this.stopTouchTween, this);
                 }
                 if ("scroller" in content) {
                     content.scroller = this;
@@ -5314,8 +5324,6 @@ var jy;
             if (content[this._measureKey] < scrollRect[this._sizeKey] - scrollRect[this._key]) {
                 return;
             }
-            this._moveSpeed = 0;
-            content.off("enterFrame" /* ENTER_FRAME */, this.onRender, this);
             this._lastTargetPos = this.getDragPos(e);
             this._dragSt = jy.Global.now;
             this._offsets = 0;
@@ -5323,6 +5331,7 @@ var jy;
             this.showBar();
             content.on(-1089 /* DragMove */, this.onDragMove, this);
             content.on(-1088 /* DragEnd */, this.onDragEnd, this);
+            this.dragging = true;
             this.dispatch(-1051 /* ScrollerDragStart */);
         };
         /**
@@ -5336,6 +5345,7 @@ var jy;
             jy.stopDrag(content);
             content.off(-1089 /* DragMove */, this.onDragMove, this);
             content.off(-1088 /* DragEnd */, this.onDragEnd, this);
+            this.dragging = false;
         };
         Scroller.prototype.getDragPos = function (e) {
             return this._scrollType == 0 /* Vertical */ ? e.stageY : e.stageX;
@@ -5359,8 +5369,10 @@ var jy;
             this.doScrollContent(sub);
         };
         Scroller.prototype.stopTouchTween = function () {
+            var _content = this._content;
+            jy.Global.removeTweens(_content);
             this._moveSpeed = 0;
-            this._content.off("enterFrame" /* ENTER_FRAME */, this.onRender, this);
+            _content.off("enterFrame" /* ENTER_FRAME */, this.onRender, this);
         };
         Scroller.prototype.onRender = function () {
             var content = this._content;
@@ -5385,27 +5397,48 @@ var jy;
             this._moveSpeed = moveSpeed;
         };
         Scroller.prototype.onDragEnd = function (e) {
+            var _a;
             var content = this._content;
             if (!content) {
                 return;
             }
-            var currentPos = this.getDragPos(e);
-            var _a = this, _offsets = _a._offsets, _offCount = _a._offCount;
-            _offsets += this._lastTargetPos - currentPos;
-            _offCount++;
-            this._offsets = _offsets;
-            this._offCount = _offCount;
-            var sub = _offsets / _offCount;
-            this._deriction = sub > 0 ? 1 : -1;
-            sub = Math.abs(sub);
+            var rect = content.scrollRect;
+            var key = this._key;
+            var v = rect[key];
             var now = jy.Global.now;
-            var subTime = now - this._dragSt;
-            this._lastTargetPos = currentPos;
-            this._moveSpeed = subTime > 0 ? sub / subTime : 0;
-            content.on("enterFrame" /* ENTER_FRAME */, this.onRender, this);
-            this._lastFrameTime = now;
+            var scrollEndPos = this.scrollEndPos;
+            if (v < 0 || v > scrollEndPos) {
+                this._isBounce = true;
+                var data = 0;
+                if (v > 0) {
+                    data = scrollEndPos;
+                }
+                var tKey = "sRect" + key.toUpperCase();
+                jy.Global.getTween(content, null, null, true)
+                    .to((_a = {}, _a[tKey] = data, _a), this.bounceTime, jy.Ease.sineOut)
+                    .call(this.bounceEnd, this);
+            }
+            else {
+                var currentPos = this.getDragPos(e);
+                var _b = this, _offsets = _b._offsets, _offCount = _b._offCount;
+                _offsets += this._lastTargetPos - currentPos;
+                _offCount++;
+                this._offsets = _offsets;
+                this._offCount = _offCount;
+                var sub = _offsets / _offCount;
+                this._deriction = sub > 0 ? 1 : -1;
+                sub = Math.abs(sub);
+                var subTime = now - this._dragSt;
+                this._lastTargetPos = currentPos;
+                this._moveSpeed = subTime > 0 ? sub / subTime : 0;
+                content.on("enterFrame" /* ENTER_FRAME */, this.onRender, this);
+                this._lastFrameTime = now;
+            }
             this.stopDrag();
             this.dispatch(-1050 /* ScrollerDragEnd */);
+        };
+        Scroller.prototype.bounceEnd = function () {
+            this._isBounce = false;
         };
         Scroller.prototype.showBar = function () {
             if (this._useScrollBar && !this.alwaysShowBar) {
@@ -5431,24 +5464,32 @@ var jy;
             var key = this._key;
             var old = rect[key];
             var pos = old;
-            var scrollEnd = this.scrollEndPos;
             pos -= sub;
             var speed = this._moveSpeed;
-            if (pos < 0) {
-                pos = 0;
-                speed = 0;
+            if (!this._isBounce) {
+                var scrollStart = 0;
+                var scrollEnd = this.scrollEndPos;
+                if (this.dragging) {
+                    var bounceDist = this.bounceDist;
+                    scrollStart -= bounceDist;
+                    scrollEnd += bounceDist;
+                }
+                if (pos < scrollStart) {
+                    pos = scrollStart;
+                    speed = 0;
+                }
+                else if (pos > scrollEnd) {
+                    pos = scrollEnd;
+                    speed = 0;
+                }
+                this._moveSpeed = speed;
+                if (old != pos) {
+                    rect[key] = pos;
+                    content.scrollRect = rect;
+                    content.dispatch(-1051 /* SCROLL_POSITION_CHANGE */);
+                }
+                this.doMoveScrollBar(sub);
             }
-            else if (pos > scrollEnd) {
-                pos = scrollEnd;
-                speed = 0;
-            }
-            this._moveSpeed = speed;
-            if (old != pos) {
-                rect[key] = pos;
-                content.scrollRect = rect;
-                content.dispatch(-1051 /* SCROLL_POSITION_CHANGE */);
-            }
-            this.doMoveScrollBar(sub);
         };
         Scroller.prototype.doMoveScrollBar = function (sub) {
             var scrollbar = this._scrollbar;
@@ -5586,6 +5627,8 @@ var jy;
     }(egret.EventDispatcher));
     jy.Scroller = Scroller;
     __reflect(Scroller.prototype, "jy.Scroller");
+    Scroller.prototype.bounceDist = 0;
+    Scroller.prototype.bounceTime = 500;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {

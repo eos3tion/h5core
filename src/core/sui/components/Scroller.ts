@@ -12,6 +12,7 @@ namespace jy {
         protected _scrollbar: ScrollBar;
 
         protected _content: egret.DisplayObject;
+        protected dragging: boolean;
 
         get content() {
             return this._content;
@@ -19,7 +20,22 @@ namespace jy {
 
         protected _scrollType = ScrollDirection.Vertical;
 
-
+        /**
+         * 回弹距离，默认`0`
+         */
+        bounceDist: number;
+        /**
+         * 回弹时间，默认`500`
+         */
+        bounceTime: number;
+        /**
+         * 是否需要检查回弹
+         */
+        protected _checkBounce = false;
+        /**
+         * 当前是否正在回弹
+         */
+        protected _isBounce = false;
         protected _lastTargetPos: number;
 
         /***滑块移动一像素，target滚动的距离*/
@@ -138,12 +154,14 @@ namespace jy {
                     old.off(EventConst.DragStart, this.onDragStart, this);
                     old.off(EventConst.DragMove, this.onDragMove, this);
                     old.off(EventConst.DragEnd, this.onDragEnd, this);
+                    old.off(EgretEvent.TOUCH_BEGIN, this.stopTouchTween, this);
                 }
                 this._content = content;
                 if (content) {
                     this.drag = bindDrag(content, this.opt);
                     content.on(EventConst.DragStart, this.onDragStart, this);
                     content.on(EventConst.Resize, this.onResize, this);
+                    content.on(EgretEvent.TOUCH_BEGIN, this.stopTouchTween, this);
                 }
                 if ("scroller" in content) {
                     content.scroller = this;
@@ -165,6 +183,8 @@ namespace jy {
             }
             this.scrollToHead();
         }
+
+
 
         /**
          * 对content绘制鼠标触发区域  
@@ -210,8 +230,6 @@ namespace jy {
             if (content[this._measureKey] < scrollRect[this._sizeKey] - scrollRect[this._key]) {
                 return
             }
-            this._moveSpeed = 0;
-            content.off(EgretEvent.ENTER_FRAME, this.onRender, this);
 
             this._lastTargetPos = this.getDragPos(e);
             this._dragSt = Global.now;
@@ -220,6 +238,7 @@ namespace jy {
             this.showBar();
             content.on(EventConst.DragMove, this.onDragMove, this);
             content.on(EventConst.DragEnd, this.onDragEnd, this);
+            this.dragging = true;
             this.dispatch(EventConst.ScrollerDragStart);
         }
 
@@ -234,6 +253,7 @@ namespace jy {
             stopDrag(content);
             content.off(EventConst.DragMove, this.onDragMove, this);
             content.off(EventConst.DragEnd, this.onDragEnd, this);
+            this.dragging = false;
         }
 
         protected getDragPos(e: egret.TouchEvent) {
@@ -260,8 +280,10 @@ namespace jy {
         }
 
         public stopTouchTween() {
+            const _content = this._content;
+            Global.removeTweens(_content)
             this._moveSpeed = 0;
-            this._content.off(EgretEvent.ENTER_FRAME, this.onRender, this);
+            _content.off(EgretEvent.ENTER_FRAME, this.onRender, this);
         }
 
         protected onRender() {
@@ -292,25 +314,44 @@ namespace jy {
             if (!content) {
                 return;
             }
-            let currentPos = this.getDragPos(e);
-            let { _offsets, _offCount } = this;
-            _offsets += this._lastTargetPos - currentPos;
-            _offCount++;
-            this._offsets = _offsets;
-            this._offCount = _offCount;
-            let sub = _offsets / _offCount;
-            this._deriction = sub > 0 ? 1 : -1;
-            sub = Math.abs(sub);
+            let rect = content.scrollRect;
+            let key = this._key;
+            let v = rect[key];
             let now = Global.now;
-            let subTime = now - this._dragSt;
-            this._lastTargetPos = currentPos;
-            this._moveSpeed = subTime > 0 ? sub / subTime : 0;
+            let scrollEndPos = this.scrollEndPos;
+            if (v < 0 || v > scrollEndPos) {
+                this._isBounce = true;
+                let data = 0;
+                if (v > 0) {
+                    data = scrollEndPos;
+                }
+                let tKey = "sRect" + key.toUpperCase();
+                Global.getTween(content, null, null, true)
+                    .to({ [tKey]: data }, this.bounceTime, Ease.sineOut)
+                    .call(this.bounceEnd, this);
+            } else {
+                let currentPos = this.getDragPos(e);
+                let { _offsets, _offCount } = this;
+                _offsets += this._lastTargetPos - currentPos;
+                _offCount++;
+                this._offsets = _offsets;
+                this._offCount = _offCount;
+                let sub = _offsets / _offCount;
+                this._deriction = sub > 0 ? 1 : -1;
+                sub = Math.abs(sub);
+                let subTime = now - this._dragSt;
+                this._lastTargetPos = currentPos;
+                this._moveSpeed = subTime > 0 ? sub / subTime : 0;
 
-            content.on(EgretEvent.ENTER_FRAME, this.onRender, this);
-            this._lastFrameTime = now;
-
+                content.on(EgretEvent.ENTER_FRAME, this.onRender, this);
+                this._lastFrameTime = now;
+            }
             this.stopDrag();
             this.dispatch(EventConst.ScrollerDragEnd);
+        }
+
+        protected bounceEnd() {
+            this._isBounce = false;
         }
 
         public showBar() {
@@ -339,24 +380,32 @@ namespace jy {
             let key = this._key;
             let old = rect[key];
             let pos = old;
-            let scrollEnd = this.scrollEndPos;
             pos -= sub;
             let speed = this._moveSpeed;
-            if (pos < 0) {
-                pos = 0;
-                speed = 0;
-            } else if (pos > scrollEnd) {
-                pos = scrollEnd;
-                speed = 0;
-            }
-            this._moveSpeed = speed;
+            if (!this._isBounce) {
+                let scrollStart = 0;
+                let scrollEnd = this.scrollEndPos;
+                if (this.dragging) {
+                    const bounceDist = this.bounceDist;
+                    scrollStart -= bounceDist;
+                    scrollEnd += bounceDist;
+                }
+                if (pos < scrollStart) {
+                    pos = scrollStart;
+                    speed = 0;
+                } else if (pos > scrollEnd) {
+                    pos = scrollEnd;
+                    speed = 0;
+                }
+                this._moveSpeed = speed;
 
-            if (old != pos) {
-                rect[key] = pos;
-                content.scrollRect = rect;
-                content.dispatch(EventConst.SCROLL_POSITION_CHANGE);
+                if (old != pos) {
+                    rect[key] = pos;
+                    content.scrollRect = rect;
+                    content.dispatch(EventConst.SCROLL_POSITION_CHANGE);
+                }
+                this.doMoveScrollBar(sub);
             }
-            this.doMoveScrollBar(sub);
         }
 
         public doMoveScrollBar(sub: number) {
@@ -490,4 +539,7 @@ namespace jy {
             bar[key] = tmp;
         }
     }
+
+    Scroller.prototype.bounceDist = 0;
+    Scroller.prototype.bounceTime = 500;
 }
