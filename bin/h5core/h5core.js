@@ -5372,6 +5372,7 @@ var jy;
             var _content = this._content;
             jy.Global.removeTweens(_content);
             this._moveSpeed = 0;
+            this._isBounce = false;
             _content.off("enterFrame" /* ENTER_FRAME */, this.onRender, this);
         };
         Scroller.prototype.onRender = function () {

@@ -283,6 +283,7 @@ namespace jy {
             const _content = this._content;
             Global.removeTweens(_content)
             this._moveSpeed = 0;
+            this._isBounce = false;
             _content.off(EgretEvent.ENTER_FRAME, this.onRender, this);
         }
 
