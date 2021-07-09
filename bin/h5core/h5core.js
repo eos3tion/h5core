@@ -4026,8 +4026,12 @@ var jy;
                 }
                 var _awakeCallers = this._awakeCallers;
                 if (_awakeCallers) {
-                    for (var i = 0; i < _awakeCallers.length; i++) {
-                        _awakeCallers[i].call(this);
+                    var len = _awakeCallers.length;
+                    if (len) {
+                        var list = _awakeCallers.concat();
+                        for (var i = 0; i < len; i++) {
+                            list[i].call(this);
+                        }
                     }
                 }
                 //检查timer绑定
