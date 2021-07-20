@@ -12888,7 +12888,7 @@ var jy;
                 if (limitHost && target) {
                     target.y = ny + hrh;
                 }
-                if (y != ry) {
+                if (ny != ry) {
                     _rect.y = ny;
                     changed = true;
                 }
