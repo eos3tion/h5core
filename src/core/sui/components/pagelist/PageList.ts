@@ -919,41 +919,43 @@ namespace jy {
             return;
             function check(i, d: PageList<T, ListItemRender<T>>) {
                 let render = list[i];
-                let v = render.view;
-                if (v) {
-                    let rec: Rect;
-                    if (staticSize) {
-                        rec = tmpRect;
-                        rec.x = v.x;
-                        rec.y = v.y;
-                        let suiRect = v.suiRawRect;
-                        rec.width = d.itemWidth || suiRect.width;
-                        rec.height = d.itemHeight || suiRect.height;
-                    } else {
-                        let size = render.size;
-                        if (size) {
-                            tempRect.x = v.x;
-                            tempRect.y = v.y;
-                            tempRect.width = size.width;
-                            tempRect.height = size.height;
-                            rec = tempRect;
+                if (render) {
+                    let v = render.view;
+                    if (v) {
+                        let rec: Rect;
+                        if (staticSize) {
+                            rec = tmpRect;
+                            rec.x = v.x;
+                            rec.y = v.y;
+                            let suiRect = v.suiRawRect;
+                            rec.width = d.itemWidth || suiRect.width;
+                            rec.height = d.itemHeight || suiRect.height;
                         } else {
-                            rec = v;
+                            let size = render.size;
+                            if (size) {
+                                tempRect.x = v.x;
+                                tempRect.y = v.y;
+                                tempRect.width = size.width;
+                                tempRect.height = size.height;
+                                rec = tempRect;
+                            } else {
+                                rec = v;
+                            }
                         }
-                    }
-                    if (intersects(rec, rect)) {
-                        if (!first) {
-                            first = render;
-                            fIdx = i;
-                        }
-                        render.$_stage = true;
-                        tmp.push(v);
-                    } else {
-                        if (first) {
-                            last = render;
-                            lIdx = i;
-                            if (staticSize) {//固定大小的允许 return，非固定大小的遍历全部数据
-                                return true;
+                        if (intersects(rec, rect)) {
+                            if (!first) {
+                                first = render;
+                                fIdx = i;
+                            }
+                            render.$_stage = true;
+                            tmp.push(v);
+                        } else {
+                            if (first) {
+                                last = render;
+                                lIdx = i;
+                                if (staticSize) {//固定大小的允许 return，非固定大小的遍历全部数据
+                                    return true;
+                                }
                             }
                         }
                     }

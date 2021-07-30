@@ -16712,44 +16712,46 @@ var jy;
             return;
             function check(i, d) {
                 var render = list[i];
-                var v = render.view;
-                if (v) {
-                    var rec = void 0;
-                    if (staticSize) {
-                        rec = tmpRect;
-                        rec.x = v.x;
-                        rec.y = v.y;
-                        var suiRect = v.suiRawRect;
-                        rec.width = d.itemWidth || suiRect.width;
-                        rec.height = d.itemHeight || suiRect.height;
-                    }
-                    else {
-                        var size = render.size;
-                        if (size) {
-                            tempRect.x = v.x;
-                            tempRect.y = v.y;
-                            tempRect.width = size.width;
-                            tempRect.height = size.height;
-                            rec = tempRect;
+                if (render) {
+                    var v = render.view;
+                    if (v) {
+                        var rec = void 0;
+                        if (staticSize) {
+                            rec = tmpRect;
+                            rec.x = v.x;
+                            rec.y = v.y;
+                            var suiRect = v.suiRawRect;
+                            rec.width = d.itemWidth || suiRect.width;
+                            rec.height = d.itemHeight || suiRect.height;
                         }
                         else {
-                            rec = v;
+                            var size = render.size;
+                            if (size) {
+                                tempRect.x = v.x;
+                                tempRect.y = v.y;
+                                tempRect.width = size.width;
+                                tempRect.height = size.height;
+                                rec = tempRect;
+                            }
+                            else {
+                                rec = v;
+                            }
                         }
-                    }
-                    if (jy.intersects(rec, rect)) {
-                        if (!first) {
-                            first = render;
-                            fIdx = i;
+                        if (jy.intersects(rec, rect)) {
+                            if (!first) {
+                                first = render;
+                                fIdx = i;
+                            }
+                            render.$_stage = true;
+                            tmp.push(v);
                         }
-                        render.$_stage = true;
-                        tmp.push(v);
-                    }
-                    else {
-                        if (first) {
-                            last = render;
-                            lIdx = i;
-                            if (staticSize) { //固定大小的允许 return，非固定大小的遍历全部数据
-                                return true;
+                        else {
+                            if (first) {
+                                last = render;
+                                lIdx = i;
+                                if (staticSize) { //固定大小的允许 return，非固定大小的遍历全部数据
+                                    return true;
+                                }
                             }
                         }
                     }
