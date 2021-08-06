@@ -3127,6 +3127,7 @@ declare namespace jy {
          * @type {boolean}
          */
         protected isjpg?: boolean;
+        texIdx: number;
         constructor(value?: SuiData);
         parseSelfData(data: any): void;
     }
@@ -12880,6 +12881,7 @@ declare namespace jy {
          * @returns
          */
         getSize(key: string, className: string, outRect?: egret.Rectangle): egret.Rectangle;
+        getTexture(key: string, className: string): Texture;
     }
     type SourceComponentDataDict = {
         [type in ExportType]: SourceComponentData;
