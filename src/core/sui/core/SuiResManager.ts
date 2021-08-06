@@ -30,35 +30,35 @@ namespace jy {
     export function getSuiDataUri(key: string) {
         return "$SuiData$_" + key;
     }
-	/**
-	 * 用于管理位图和数据
-	 * @author 3tion
-	 *
-	 */
+    /**
+     * 用于管理位图和数据
+     * @author 3tion
+     *
+     */
     export class SuiResManager {
 
-    	/**
-    	 * Key      {string}    fla的文件名
-    	 * Value    {SuiData}   数据
-    	 */
+        /**
+         * Key      {string}    fla的文件名
+         * Value    {SuiData}   数据
+         */
         protected _suiDatas: { [index: string]: SuiData };
 
 
-    	/**
-    	 * Key      {string}    主配置文件的加载地址
-    	 * Value    {SuiData}   数据
-    	 */
+        /**
+         * Key      {string}    主配置文件的加载地址
+         * Value    {SuiData}   数据
+         */
         protected _urlKey: { [index: string]: SuiData };
 
-    	/**
-    	 * 创建器
-    	 */
+        /**
+         * 创建器
+         */
         protected _creators: { [index: string]: { new(): BaseCreator<egret.DisplayObject> } };
 
 
-    	/**
-    	 * 共享的文本创建器
-    	 */
+        /**
+         * 共享的文本创建器
+         */
         sharedTFCreator: TextFieldCreator;
 
         public constructor() {
@@ -102,9 +102,9 @@ namespace jy {
             }
         }
 
-		/**
-		 * 加载数据
-		 */
+        /**
+         * 加载数据
+         */
         public loadData(key: string, callback?: SuiDataCallback, qid?: Res.ResQueueID) {
             let suiData = this._suiDatas[key];
             if (!suiData) {
@@ -130,9 +130,9 @@ namespace jy {
             }
         }
 
-		/**
-		 * 数据加载完成
-		 */
+        /**
+         * 数据加载完成
+         */
         protected checkData(item: Res.ResItem) {
             let { uri, data } = item;
             var suiData = this._urlKey[uri];
@@ -638,6 +638,16 @@ namespace jy {
                         outRect.setTo(sizeData[0], sizeData[1], sizeData[2], sizeData[3]);
                         return outRect;
                     }
+                }
+            }
+        }
+
+        public getTexture(key: string, className: string) {
+            const suiData = this._suiDatas[key];
+            if (suiData) {
+                const creator = suiData.lib[className];
+                if (creator instanceof BitmapCreator) {
+                    return suiData.getTexture(creator.texIdx);
                 }
             }
         }

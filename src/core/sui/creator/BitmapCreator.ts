@@ -25,6 +25,8 @@ namespace jy {
          * @type {boolean}
          */
         protected isjpg?: boolean;
+
+        texIdx: number;
         public constructor(value?: SuiData) {
             super();
             this._suiData = value;
@@ -35,6 +37,7 @@ namespace jy {
                 if (data < 0) {
                     this.isjpg = true;
                 }
+                this.texIdx = data;
                 this._createT = () => {
                     let bmp = new SuiBitmap;
                     let suiData = this._suiData;

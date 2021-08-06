@@ -5943,6 +5943,7 @@ var jy;
                 if (data < 0) {
                     this.isjpg = true;
                 }
+                this.texIdx = data;
                 this._createT = function () {
                     var bmp = new SuiBitmap;
                     var suiData = _this._suiData;
@@ -21256,6 +21257,15 @@ var jy;
                 }
             }
         };
+        SuiResManager.prototype.getTexture = function (key, className) {
+            var suiData = this._suiDatas[key];
+            if (suiData) {
+                var creator = suiData.lib[className];
+                if (creator instanceof jy.BitmapCreator) {
+                    return suiData.getTexture(creator.texIdx);
+                }
+            }
+        };
         return SuiResManager;
     }());
     jy.SuiResManager = SuiResManager;
@@ -22049,6 +22059,7 @@ var jy;
             if (textureIndex < 0) {
                 this.isjpg = true;
             }
+            this.texIdx = textureIndex;
             var rectData = data[1];
             var flag = data[0] != 0;
             var rectData2 = mdata[1];
@@ -22061,15 +22072,9 @@ var jy;
                 var suiData = _this._suiData;
                 var bitmap = new jy.SuiBitmap();
                 bitmap.suiData = suiData;
-                // let inx = textureIndex;
-                // let img = suiData.pngtexs;
-                // if(!this.ispng){
-                //     inx = -1-textureIndex;
-                //     img = suiData.jpgtexs;
-                // }
                 bitmap.scale9Grid = rect;
                 if (flag) {
-                    bitmap.texture = suiData.getTexture(textureIndex); //img[inx];//suiData.imgs[textureIndex];
+                    bitmap.texture = suiData.getTexture(textureIndex);
                     bitmap.width = width;
                     bitmap.height = height;
                 }

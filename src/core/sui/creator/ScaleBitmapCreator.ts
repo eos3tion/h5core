@@ -12,6 +12,7 @@ namespace jy {
             if (textureIndex < 0) {
                 this.isjpg = true;
             }
+            this.texIdx = textureIndex;
             let rectData = data[1];
             let flag = data[0] != 0;
             let rectData2 = mdata[1];
@@ -24,15 +25,9 @@ namespace jy {
                 let suiData = this._suiData;
                 let bitmap = new SuiBitmap();
                 bitmap.suiData = suiData;
-                // let inx = textureIndex;
-                // let img = suiData.pngtexs;
-                // if(!this.ispng){
-                //     inx = -1-textureIndex;
-                //     img = suiData.jpgtexs;
-                // }
                 bitmap.scale9Grid = rect;
                 if (flag) {
-                    bitmap.texture = suiData.getTexture(textureIndex);//img[inx];//suiData.imgs[textureIndex];
+                    bitmap.texture = suiData.getTexture(textureIndex);
                     bitmap.width = width;
                     bitmap.height = height;
                 }
