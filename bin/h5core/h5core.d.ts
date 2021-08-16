@@ -2864,6 +2864,20 @@ declare namespace jy {
     interface ScrollerOption extends DragOption {
     }
     class Scroller extends egret.EventDispatcher {
+        /**
+         * 是否独占拖拽，默认`true`
+         * 如果独占拖拽，当Scroller 嵌套 Scroller，并且拖拽方向不一致时
+         * 在子Scroller发生，发生`横向`或者`纵向`的拖拽，立即锁定拖拽方向
+         */
+        static exclusivable: boolean;
+        /**
+         * 当前锁定的方向
+         */
+        static exScroller: Scroller;
+        /**
+         * 触发独占拖拽的最小拖拽范围
+         */
+        static exMinDist: number;
         protected _scrollbar: ScrollBar;
         protected _content: egret.DisplayObject;
         protected dragging: boolean;
@@ -12031,6 +12045,7 @@ declare namespace jy {
     }
 }
 declare const enum ScrollDirection {
+    None = -1,
     Vertical = 0,
     Horizon = 1
 }

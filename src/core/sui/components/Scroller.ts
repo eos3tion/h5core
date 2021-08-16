@@ -9,6 +9,22 @@ namespace jy {
 
 
     export class Scroller extends egret.EventDispatcher {
+        /**
+         * 是否独占拖拽，默认`true`  
+         * 如果独占拖拽，当Scroller 嵌套 Scroller，并且拖拽方向不一致时
+         * 在子Scroller发生，发生`横向`或者`纵向`的拖拽，立即锁定拖拽方向
+         */
+        static exclusivable = true;
+
+        /**
+         * 当前锁定的方向
+         */
+        static exScroller: Scroller = null;
+
+        /**
+         * 触发独占拖拽的最小拖拽范围
+         */
+        static exMinDist = 10;
         protected _scrollbar: ScrollBar;
 
         protected _content: egret.DisplayObject;
@@ -261,6 +277,12 @@ namespace jy {
         }
 
         protected onDragMove(e: egret.TouchEvent) {
+            const { exclusivable, exScroller } = Scroller;
+            if (exclusivable) {
+                if (exScroller !== null && exScroller !== this) {
+                    return
+                }
+            }
             let currentPos = this.getDragPos(e);
             let sub = currentPos - this._lastTargetPos;
             let content = this._content;
@@ -277,6 +299,11 @@ namespace jy {
             this._offCount++;
             this._lastTargetPos = currentPos;
             this.doScrollContent(sub);
+            if (exclusivable) {
+                if (exScroller === null && Math.abs(sub) >= Scroller.exMinDist) {
+                    Scroller.exScroller = this;
+                }
+            }
         }
 
         public stopTouchTween() {
@@ -349,6 +376,9 @@ namespace jy {
             }
             this.stopDrag();
             this.dispatch(EventConst.ScrollerDragEnd);
+            if (Scroller.exScroller === this) {
+                Scroller.exScroller = null;
+            }
         }
 
         protected bounceEnd() {

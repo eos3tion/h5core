@@ -4323,6 +4323,12 @@ var jy;
             return this._scrollType == 0 /* Vertical */ ? e.stageY : e.stageX;
         };
         Scroller.prototype.onDragMove = function (e) {
+            var exclusivable = Scroller.exclusivable, exScroller = Scroller.exScroller;
+            if (exclusivable) {
+                if (exScroller !== null && exScroller !== this) {
+                    return;
+                }
+            }
             var currentPos = this.getDragPos(e);
             var sub = currentPos - this._lastTargetPos;
             var content = this._content;
@@ -4339,6 +4345,11 @@ var jy;
             this._offCount++;
             this._lastTargetPos = currentPos;
             this.doScrollContent(sub);
+            if (exclusivable) {
+                if (exScroller === null && Math.abs(sub) >= Scroller.exMinDist) {
+                    Scroller.exScroller = this;
+                }
+            }
         };
         Scroller.prototype.stopTouchTween = function () {
             var _content = this._content;
@@ -4409,6 +4420,9 @@ var jy;
             }
             this.stopDrag();
             this.dispatch(-1050 /* ScrollerDragEnd */);
+            if (Scroller.exScroller === this) {
+                Scroller.exScroller = null;
+            }
         };
         Scroller.prototype.bounceEnd = function () {
             this._isBounce = false;
@@ -4596,6 +4610,20 @@ var jy;
             }
             bar[key] = tmp;
         };
+        /**
+         * 是否独占拖拽，默认`true`
+         * 如果独占拖拽，当Scroller 嵌套 Scroller，并且拖拽方向不一致时
+         * 在子Scroller发生，发生`横向`或者`纵向`的拖拽，立即锁定拖拽方向
+         */
+        Scroller.exclusivable = true;
+        /**
+         * 当前锁定的方向
+         */
+        Scroller.exScroller = null;
+        /**
+         * 触发独占拖拽的最小拖拽范围
+         */
+        Scroller.exMinDist = 10;
         return Scroller;
     }(egret.EventDispatcher));
     jy.Scroller = Scroller;
