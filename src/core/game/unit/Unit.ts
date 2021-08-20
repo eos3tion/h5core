@@ -1,10 +1,10 @@
 namespace jy {
-	/**
-	 * 基本单位<br/>
-	 * 是一个状态机<br/>
-	 * @author 3tion
-	 *
-	 */
+    /**
+     * 基本单位<br/>
+     * 是一个状态机<br/>
+     * @author 3tion
+     *
+     */
     export abstract class Unit extends egret.EventDispatcher {
 
         /**
@@ -33,15 +33,15 @@ namespace jy {
             this._render.playSpeed = value;
         }
 
-    	/**
-    	 * 用于放纸娃娃贴图的容器
+        /**
+         * 用于放纸娃娃贴图的容器
          * 只允许放ResourceBitmap
-    	 */
+         */
         protected _model: UModel;
         /**
-    	 * 用于放纸娃娃贴图的容器
+         * 用于放纸娃娃贴图的容器
          * 只允许放ResourceBitmap
-    	 */
+         */
         public get model(): Readonly<UModel> {
             return this._model;
         }
@@ -361,8 +361,9 @@ namespace jy {
             this.z = 0;
             // 回收ResourceBitmap
             for (let key in _resDict) {
-                delete _resDict[key];
+                _resDict[key] = undefined;
             }
+            this.invalidateResList();
             let current = this._currentAction;
             if (current) {
                 current.recycle();

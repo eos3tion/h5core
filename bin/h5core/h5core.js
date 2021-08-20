@@ -15940,8 +15940,9 @@ var jy;
             this.z = 0;
             // 回收ResourceBitmap
             for (var key in _resDict) {
-                delete _resDict[key];
+                _resDict[key] = undefined;
             }
+            this.invalidateResList();
             var current = this._currentAction;
             if (current) {
                 current.recycle();
