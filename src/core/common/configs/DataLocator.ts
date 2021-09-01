@@ -403,8 +403,10 @@ namespace jy {
             len = buffer.readVarint();
             switch (type) {
                 case 0://JSON字符串
-                    let str = buffer.readUTFBytes(len);
-                    value = JSON.parse(str);
+                    if (len > 0) {
+                        let str = buffer.readUTFBytes(len);
+                        value = JSON.parse(str);
+                    }
                     break;
                 case 1://PBBytes
                     value = buffer.readByteArray(len);
