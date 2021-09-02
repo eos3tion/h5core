@@ -17,7 +17,7 @@ namespace jy {
         static exclusivable = true;
 
         /**
-         * 当前锁定的方向
+         * 当前锁定方向正在拖拽的Scroller
          */
         static exScroller: Scroller = null;
 
@@ -256,6 +256,7 @@ namespace jy {
             content.on(EventConst.DragEnd, this.onDragEnd, this);
             this.dragging = true;
             this.dispatch(EventConst.ScrollerDragStart);
+            Scroller.exScroller = null;
         }
 
         /**
@@ -376,9 +377,6 @@ namespace jy {
             }
             this.stopDrag();
             this.dispatch(EventConst.ScrollerDragEnd);
-            if (Scroller.exScroller === this) {
-                Scroller.exScroller = null;
-            }
         }
 
         protected bounceEnd() {
@@ -571,6 +569,8 @@ namespace jy {
         }
     }
 
-    Scroller.prototype.bounceDist = 0;
-    Scroller.prototype.bounceTime = 500;
+    const prototype = Scroller.prototype;
+
+    prototype.bounceDist = 0;
+    prototype.bounceTime = 500;
 }
