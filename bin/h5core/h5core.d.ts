@@ -3417,7 +3417,7 @@ declare namespace jy {
          */
         static exclusivable: boolean;
         /**
-         * 当前锁定的方向
+         * 当前锁定方向正在拖拽的Scroller
          */
         static exScroller: Scroller;
         /**

@@ -5337,6 +5337,7 @@ var jy;
             content.on(-1088 /* DragEnd */, this.onDragEnd, this);
             this.dragging = true;
             this.dispatch(-1051 /* ScrollerDragStart */);
+            Scroller.exScroller = null;
         };
         /**
          * 停止拖拽，避免有些情况下，需要主动停止拖拽的情况
@@ -5452,9 +5453,6 @@ var jy;
             }
             this.stopDrag();
             this.dispatch(-1050 /* ScrollerDragEnd */);
-            if (Scroller.exScroller === this) {
-                Scroller.exScroller = null;
-            }
         };
         Scroller.prototype.bounceEnd = function () {
             this._isBounce = false;
@@ -5649,7 +5647,7 @@ var jy;
          */
         Scroller.exclusivable = true;
         /**
-         * 当前锁定的方向
+         * 当前锁定方向正在拖拽的Scroller
          */
         Scroller.exScroller = null;
         /**
@@ -5660,8 +5658,9 @@ var jy;
     }(egret.EventDispatcher));
     jy.Scroller = Scroller;
     __reflect(Scroller.prototype, "jy.Scroller");
-    Scroller.prototype.bounceDist = 0;
-    Scroller.prototype.bounceTime = 500;
+    var prototype = Scroller.prototype;
+    prototype.bounceDist = 0;
+    prototype.bounceTime = 500;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
