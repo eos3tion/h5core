@@ -16216,7 +16216,7 @@ var jy;
             this.checkViewRect();
         };
         PageList.prototype.onChange = function () {
-            if (!this.itemWidth || !this.itemHeight) { //并未设置固定的宽度高度，需要重新计算坐标
+            if (!this.staticSize && (!this.itemWidth || !this.itemHeight)) { //并未设置固定的宽度高度，需要重新计算坐标
                 this._sizeChanged = true;
                 this.reCalc();
             }
