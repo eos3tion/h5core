@@ -1312,6 +1312,7 @@ declare namespace egret {
          */
         get tint(): number;
         set tint(value: number);
+        beforeDraw(): void;
     }
 }
 declare namespace egret {
@@ -4055,7 +4056,7 @@ declare namespace egret {
      * @platform Web,Native
      * @language zh_CN
      */
-    const CapsStyle: {
+    const enum CapsStyle {
         /**
          * Used to specify no caps in the caps parameter of the egret.Graphics.lineStyle() method.
          * @version Egret 2.5
@@ -4068,7 +4069,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        NONE: string;
+        NONE = "none",
         /**
          * Used to specify round caps in the caps parameter of the egret.Graphics.lineStyle() method.
          * @version Egret 2.5
@@ -4081,7 +4082,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        ROUND: string;
+        ROUND = "round",
         /**
          * Used to specify square caps in the caps parameter of the egret.Graphics.lineStyle() method.
          * @version Egret 2.5
@@ -4094,8 +4095,8 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        SQUARE: string;
-    };
+        SQUARE = "square"
+    }
 }
 declare namespace egret {
     /**
@@ -8843,6 +8844,9 @@ declare namespace egret {
         canvasScaleFactor?: number;
         calculateCanvasScaleFactor?: (context: CanvasRenderingContext2D) => number;
         entryClassName?: string;
+        entryClass?: {
+            new (): egret.DisplayObject;
+        };
         scaleMode?: string;
         frameRate?: number;
         contentWidth?: number;
@@ -8930,11 +8934,14 @@ declare namespace egret.sys {
          * @private
          * 实例化一个播放器对象。
          */
-        constructor(buffer: RenderBuffer, stage: Stage, entryClassName: string);
+        constructor(buffer: RenderBuffer, stage: Stage, opt: PlayerOption);
         /**
          * @private
          */
         private createDisplayList;
+        entryClass: {
+            new (): egret.DisplayObject;
+        };
         /**
          * @private
          */
@@ -9024,6 +9031,12 @@ declare namespace egret.sys {
  * @private
  */
 interface PlayerOption {
+    /**
+     * 入口类
+     */
+    entryClass?: {
+        new (): egret.DisplayObject;
+    };
     /**
      * 入口类完整类名
      */
@@ -9945,6 +9958,7 @@ declare namespace egret.sys {
          * 字体名称
          */
         fontFamily?: string;
+        underline?: boolean;
     }
 }
 declare namespace egret.sys {
@@ -9963,6 +9977,7 @@ declare namespace egret.sys {
         sy: number;
         sw: number;
         sh: number;
+        upPlus: number;
         /**
          * 是否移除webglTexture
          */
@@ -10185,6 +10200,7 @@ declare namespace egret {
         private renderNormalBitmap;
         private renderBitmap;
         private renderMesh;
+        private drawMesh;
         renderText(node: sys.TextNode, context: CanvasRenderingContext2D): void;
         private renderingMask;
         /**
@@ -11661,6 +11677,8 @@ declare namespace egret {
          * @language zh_CN
          */
         static default_textColor: number;
+        private upPlus;
+        private downPlus;
         /**
          * @version Egret 2.4
          * @platform Web,Native
@@ -12586,7 +12604,7 @@ declare namespace egret {
      * @platform Web,Native
      * @language zh_CN
      */
-    class VerticalAlign {
+    const enum VerticalAlign {
         /**
          * Vertically align content to the top of the container.
          * @version Egret 2.4
@@ -12599,7 +12617,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        static TOP: string;
+        TOP = "top",
         /**
          * Vertically align content to the bottom of the container.
          * @version Egret 2.4
@@ -12612,7 +12630,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        static BOTTOM: string;
+        BOTTOM = "bottom",
         /**
          * Vertically align content in the middle of the container.
          * @version Egret 2.4
@@ -12625,7 +12643,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        static MIDDLE: string;
+        MIDDLE = "middle",
         /**
          * Vertical alignment with both edges
          * Note: TextFiled does not support this alignment method."
@@ -12640,7 +12658,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        static JUSTIFY: string;
+        JUSTIFY = "justify",
         /**
          * Align the content of the child items, relative to the container. This operation will adjust uniformly the size of all the child items to be the Content Height \" of the container \".
          * The Content Height \" of the container \" is the size of the max. child item. If the size of all child items are less than the height of the container, they will be adjusted to the height of the container.
@@ -12657,7 +12675,7 @@ declare namespace egret {
          * @platform Web,Native
          * @language zh_CN
          */
-        static CONTENT_JUSTIFY: string;
+        CONTENT_JUSTIFY = "contentJustify"
     }
 }
 declare namespace egret {
@@ -13385,6 +13403,9 @@ declare namespace egret {
      * @language zh_CN
      */
     function registerClass(classDefinition: any, className: string, interfaceNames?: string[]): void;
+}
+declare namespace egret {
+    const SharedIndices: Uint16Array;
 }
 declare namespace egret {
     /**
