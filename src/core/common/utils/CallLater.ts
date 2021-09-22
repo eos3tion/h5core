@@ -45,6 +45,20 @@ namespace jy {
         }
 
         /**
+         * 增加延迟执行的函数 不去重
+         * 
+         * @param {Function} callback (description)
+         * @param {number} now (description)
+         * @param {number} [time] (description)
+         * @param {*} [thisObj] (description)
+         * @param args (description)
+         */
+        public callLater3(callback: Function, now: number, time?: number, thisObj?: any, ...args) {
+            let cInfo = CallbackInfo.addToList2(this._callLaters, callback, thisObj, ...args);
+            cInfo.time = now + (time || 0);
+        }
+
+        /**
          * 清理延迟执行的函数
          * 
          * @param {Function} callback (description)

@@ -33,6 +33,16 @@ declare namespace jy {
          */
         callLater(callback: Function, now: number, time?: number, thisObj?: any, ...args: any[]): void;
         /**
+         * 增加延迟执行的函数 不去重
+         *
+         * @param {Function} callback (description)
+         * @param {number} now (description)
+         * @param {number} [time] (description)
+         * @param {*} [thisObj] (description)
+         * @param args (description)
+         */
+        callLater3(callback: Function, now: number, time?: number, thisObj?: any, ...args: any[]): void;
+        /**
          * 清理延迟执行的函数
          *
          * @param {Function} callback (description)
@@ -188,6 +198,14 @@ declare namespace jy {
          * @param args 回调参数列表
          */
         callLater(callback: Function, time?: number, thisObj?: any, ...args: any[]): any;
+        /**
+         * 延迟执行，不去重
+         * @param {Function} callback 回调函数
+         * @param {number} [time=0] 延迟执行的时间
+         * @param {*} [thisObj] 回调的`this`指针
+         * @param args 回调参数列表
+         */
+        callLater3(callback: Function, time?: number, thisObj?: any, ...args: any[]): any;
         /**
          * 延迟执行
          * @param {$CallbackInfo} callback 回调函数
@@ -3503,6 +3521,15 @@ declare namespace jy {
          * @param thisObj
          */
         static addToList<T extends Function>(list: CallbackInfo<T>[], handle: T, thisObj?: any, ...args: any[]): CallbackInfo<T>;
+        /**
+         * 加入到数组，不去重
+         * @param list
+         * @param handle
+         * @param thisObj
+         * @param args
+         * @returns
+         */
+        static addToList2<T extends Function>(list: CallbackInfo<T>[], handle: T, thisObj?: any, ...args: any[]): CallbackInfo<T>;
         /**
          * 从列表中移除
          *

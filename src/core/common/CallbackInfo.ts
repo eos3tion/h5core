@@ -38,11 +38,11 @@ namespace jy {
 
     export type $CallbackInfo = CallbackInfo<Function>;
 
-	/**
-	 * 回调信息，用于存储回调数据
-	 * @author 3tion
-	 *
-	 */
+    /**
+     * 回调信息，用于存储回调数据
+     * @author 3tion
+     *
+     */
     export class CallbackInfo<T extends Function> implements IRecyclable {
         callback: T;
         args: any[];
@@ -161,6 +161,21 @@ namespace jy {
                 }
             }
             callback = this.get(handle, thisObj, ...args);
+            list.push(callback);
+            return callback;
+        }
+
+        /**
+         * 加入到数组，不去重
+         * @param list 
+         * @param handle 
+         * @param thisObj 
+         * @param args 
+         * @returns 
+         */
+        static addToList2<T extends Function>(list: CallbackInfo<T>[], handle: T, thisObj?: any, ...args: any[]) {
+            //检查是否有this和handle相同的callback
+            let callback = this.get(handle, thisObj, ...args);
             list.push(callback);
             return callback;
         }
