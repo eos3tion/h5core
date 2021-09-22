@@ -115,6 +115,14 @@ namespace jy {
 		 */
 		callLater(callback: Function, time?: number, thisObj?: any, ...args: any[]);
 		/**
+		 * 延迟执行，不去重
+		 * @param {Function} callback 回调函数
+		 * @param {number} [time=0] 延迟执行的时间
+		 * @param {*} [thisObj] 回调的`this`指针
+		 * @param args 回调参数列表
+		 */
+		callLater3(callback: Function, time?: number, thisObj?: any, ...args: any[]);
+		/**
 		 * 延迟执行
 		 * @param {$CallbackInfo} callback 回调函数
 		 * @param {number} [time=0] 延迟执行的时间
@@ -210,7 +218,9 @@ namespace jy {
 		callLater(callback: Function, time?: number, thisObj?: any, ...args) {
 			return _callLater.callLater(callback, now, time, thisObj, ...args);
 		},
-
+		callLater3(callback: Function, time?: number, thisObj?: any, ...args) {
+			return _callLater.callLater3(callback, now, time, thisObj, ...args);
+		},
 		clearCallLater(callback: Function, thisObj?: any) {
 			return _callLater.clearCallLater(callback, thisObj);
 		},

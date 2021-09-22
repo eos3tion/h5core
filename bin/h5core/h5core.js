@@ -64,6 +64,23 @@ var jy;
             cInfo.time = now + (time || 0);
         };
         /**
+         * 增加延迟执行的函数 不去重
+         *
+         * @param {Function} callback (description)
+         * @param {number} now (description)
+         * @param {number} [time] (description)
+         * @param {*} [thisObj] (description)
+         * @param args (description)
+         */
+        CallLater.prototype.callLater3 = function (callback, now, time, thisObj) {
+            var args = [];
+            for (var _i = 4; _i < arguments.length; _i++) {
+                args[_i - 4] = arguments[_i];
+            }
+            var cInfo = jy.CallbackInfo.addToList2.apply(jy.CallbackInfo, __spreadArray([this._callLaters, callback, thisObj], args));
+            cInfo.time = now + (time || 0);
+        };
+        /**
          * 清理延迟执行的函数
          *
          * @param {Function} callback (description)
@@ -471,6 +488,13 @@ var jy;
                 args[_i - 3] = arguments[_i];
             }
             return _callLater.callLater.apply(_callLater, __spreadArray([callback, now, time, thisObj], args));
+        },
+        callLater3: function (callback, time, thisObj) {
+            var args = [];
+            for (var _i = 3; _i < arguments.length; _i++) {
+                args[_i - 3] = arguments[_i];
+            }
+            return _callLater.callLater3.apply(_callLater, __spreadArray([callback, now, time, thisObj], args));
         },
         clearCallLater: function (callback, thisObj) {
             return _callLater.clearCallLater(callback, thisObj);
@@ -6711,6 +6735,24 @@ var jy;
                 }
             }
             callback = this.get.apply(this, __spreadArray([handle, thisObj], args));
+            list.push(callback);
+            return callback;
+        };
+        /**
+         * 加入到数组，不去重
+         * @param list
+         * @param handle
+         * @param thisObj
+         * @param args
+         * @returns
+         */
+        CallbackInfo.addToList2 = function (list, handle, thisObj) {
+            var args = [];
+            for (var _i = 3; _i < arguments.length; _i++) {
+                args[_i - 3] = arguments[_i];
+            }
+            //检查是否有this和handle相同的callback
+            var callback = this.get.apply(this, __spreadArray([handle, thisObj], args));
             list.push(callback);
             return callback;
         };
