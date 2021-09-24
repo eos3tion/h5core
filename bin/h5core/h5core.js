@@ -5349,7 +5349,7 @@ var jy;
                 return;
             }
             var scrollRect = content.scrollRect;
-            if (content[this._measureKey] < scrollRect[this._sizeKey] - scrollRect[this._key]) {
+            if (this.bounceDist === 0 && content[this._measureKey] < scrollRect[this._sizeKey] - scrollRect[this._key]) {
                 return;
             }
             this._lastTargetPos = this.getDragPos(e);
@@ -5392,7 +5392,7 @@ var jy;
             if (!content) {
                 return;
             }
-            if (sub < 0) {
+            if (this.bounceDist === 0 && sub < 0) {
                 var scrollRect = content.scrollRect;
                 if (content[this._measureKey] < scrollRect[this._sizeKey]) {
                     return;
