@@ -318,5 +318,14 @@ namespace jy {
         public reset() {
             this.write_position = this.position = 0;
         }
+
+        toJSON() {
+            const bytes = this.outBytes;
+            const arr = [];
+            for (let i = 0; i < bytes.length; i++) {
+                arr[i] = bytes[i];
+            }
+            return arr;
+        }
     }
 }
