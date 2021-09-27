@@ -10571,6 +10571,14 @@ var jy;
         ByteArray.prototype.reset = function () {
             this.write_position = this.position = 0;
         };
+        ByteArray.prototype.toJSON = function () {
+            var bytes = this.outBytes;
+            var arr = [];
+            for (var i = 0; i < bytes.length; i++) {
+                arr[i] = bytes[i];
+            }
+            return arr;
+        };
         return ByteArray;
     }(egret.ByteArray));
     jy.ByteArray = ByteArray;

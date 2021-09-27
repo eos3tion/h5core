@@ -8491,6 +8491,7 @@ declare namespace jy {
          * @memberof ByteArray
          */
         reset(): void;
+        toJSON(): any[];
     }
 }
 declare namespace jy {
