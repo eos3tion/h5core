@@ -101,7 +101,7 @@ namespace jy {
                         g.fillText(l, x, hh, gridWidth);
                     }
 
-                    let tex = new egret.Texture();
+                    tex = new egret.Texture();
                     tex.bitmapData = new egret.BitmapData(canvas);
                     sheets.bindOrUpdate(key, tex);
                 }

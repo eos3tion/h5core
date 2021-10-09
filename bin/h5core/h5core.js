@@ -14437,9 +14437,9 @@ var jy;
                         g.strokeText(l, x, hh, gridWidth);
                         g.fillText(l, x, hh, gridWidth);
                     }
-                    var tex_2 = new egret.Texture();
-                    tex_2.bitmapData = new egret.BitmapData(canvas);
-                    sheets_1.bindOrUpdate(key, tex_2);
+                    tex = new egret.Texture();
+                    tex.bitmapData = new egret.BitmapData(canvas);
+                    sheets_1.bindOrUpdate(key, tex);
                 }
                 return tex;
             }
@@ -15185,9 +15185,9 @@ var jy;
                         g.strokeText(l, x, hh, gridWidth);
                         g.fillText(l, x, hh, gridWidth);
                     }
-                    var tex_3 = new egret.Texture();
-                    tex_3.bitmapData = new egret.BitmapData(canvas);
-                    sheets_2.bindOrUpdate(key, tex_3);
+                    tex = new egret.Texture();
+                    tex.bitmapData = new egret.BitmapData(canvas);
+                    sheets_2.bindOrUpdate(key, tex);
                 }
                 return tex;
             }
