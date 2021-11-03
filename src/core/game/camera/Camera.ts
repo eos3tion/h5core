@@ -148,14 +148,16 @@ namespace jy {
         }
 
         protected check() {
-            let { _lR, _lB, _rect } = this;
-            let { right, bottom } = _rect;
-            let flag = right < _lR;
+            let { _lL, _lT, _lR, _lB, _rect } = this;
+            let lW = _lR - _lL;
+            let lH = _lB - _lT;
+            let { width, height } = _rect;
+            let flag = lW > width;
             this._hScroll = flag;
             if (!flag) {//可视范围比限制范围还要大，则直接居中显示
                 _rect.x = 0;
             }
-            flag = bottom < _lB;
+            flag = lH > height;
             this._vScroll = flag;
             if (!flag) {
                 _rect.y = 0;
