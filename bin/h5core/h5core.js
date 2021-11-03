@@ -12797,10 +12797,10 @@ var jy;
         function Camera(width, height) {
             var _this = _super.call(this) || this;
             //限制范围
-            _this._lx = 0;
-            _this._ly = 0;
-            _this._lw = Infinity;
-            _this._lh = Infinity;
+            _this._lL = 0;
+            _this._lT = 0;
+            _this._lR = Infinity;
+            _this._lB = Infinity;
             /**
              * 是否需要横向滚动
              *
@@ -12901,30 +12901,30 @@ var jy;
         /**
          * 设置限制范围
          *
-         * @param {number} [width=Infinity]
-         * @param {number} [height=Infinity]
-         * @param {number} [x=0]
-         * @param {number} [y=0]
+         * @param {number} [right=Infinity]
+         * @param {number} [bottom=Infinity]
+         * @param {number} [left=0]
+         * @param {number} [top=0]
          * @returns
          * @memberof Camera
          */
-        Camera.prototype.setLimits = function (width, height, x, y) {
-            this._lx = x || 0;
-            this._ly = y || 0;
-            this._lw = width || Infinity;
-            this._lh = height || Infinity;
+        Camera.prototype.setLimits = function (right, bottom, left, top) {
+            this._lL = left || 0;
+            this._lT = top || 0;
+            this._lR = right || Infinity;
+            this._lB = bottom || Infinity;
             this.check();
             return this;
         };
         Camera.prototype.check = function () {
-            var _a = this, _lw = _a._lw, _lh = _a._lh, _rect = _a._rect;
-            var w = _rect.width, h = _rect.height;
-            var flag = w < _lw;
+            var _a = this, _lR = _a._lR, _lB = _a._lB, _rect = _a._rect;
+            var right = _rect.right, bottom = _rect.bottom;
+            var flag = right < _lR;
             this._hScroll = flag;
             if (!flag) { //可视范围比限制范围还要大，则直接居中显示
                 _rect.x = 0;
             }
-            flag = h < _lh;
+            flag = bottom < _lB;
             this._vScroll = flag;
             if (!flag) {
                 _rect.y = 0;
@@ -12934,15 +12934,15 @@ var jy;
          * 将相机移动到指定坐标
          */
         Camera.prototype.moveTo = function (x, y, target) {
-            var _a = this, _hScroll = _a._hScroll, _vScroll = _a._vScroll, _rect = _a._rect, _lx = _a._lx, _ly = _a._ly, _lw = _a._lw, _lh = _a._lh, limitHost = _a.limitHost;
+            var _a = this, _hScroll = _a._hScroll, _vScroll = _a._vScroll, _rect = _a._rect, _lL = _a._lL, _lT = _a._lT, _lR = _a._lR, _lB = _a._lB, limitHost = _a.limitHost;
             var rw = _rect.width, rh = _rect.height, rx = _rect.x, ry = _rect.y;
             var changed = this._changed;
             if (_hScroll) {
                 var hrw = rw * .5;
                 var nx = x - hrw;
-                var max = _lw - rw;
-                if (nx < _lx) {
-                    nx = _lx;
+                var max = _lR - rw;
+                if (nx < _lL) {
+                    nx = _lL;
                 }
                 else if (nx > max) {
                     nx = max;
@@ -12958,9 +12958,9 @@ var jy;
             if (_vScroll) {
                 var hrh = rh * .5;
                 var ny = y - hrh;
-                var max = _lh - rh;
-                if (ny < _ly) {
-                    ny = _ly;
+                var max = _lB - rh;
+                if (ny < _lT) {
+                    ny = _lT;
                 }
                 else if (ny > max) {
                     ny = max;
