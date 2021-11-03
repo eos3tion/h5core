@@ -10468,10 +10468,10 @@ declare namespace jy {
          * 可视区域大小
          */
         protected _rect: egret.Rectangle;
-        protected _lx: number;
-        protected _ly: number;
-        protected _lw: number;
-        protected _lh: number;
+        protected _lL: number;
+        protected _lT: number;
+        protected _lR: number;
+        protected _lB: number;
         /**
          * 是否需要横向滚动
          *
@@ -10534,14 +10534,14 @@ declare namespace jy {
         /**
          * 设置限制范围
          *
-         * @param {number} [width=Infinity]
-         * @param {number} [height=Infinity]
-         * @param {number} [x=0]
-         * @param {number} [y=0]
+         * @param {number} [right=Infinity]
+         * @param {number} [bottom=Infinity]
+         * @param {number} [left=0]
+         * @param {number} [top=0]
          * @returns
          * @memberof Camera
          */
-        setLimits(width?: number, height?: number, x?: number, y?: number): this;
+        setLimits(right?: number, bottom?: number, left?: number, top?: number): this;
         protected check(): void;
         /**
          * 将相机移动到指定坐标

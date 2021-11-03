@@ -12,10 +12,10 @@ namespace jy {
         protected _rect: egret.Rectangle;
 
         //限制范围
-        protected _lx = 0;
-        protected _ly = 0;
-        protected _lw = Infinity;
-        protected _lh = Infinity;
+        protected _lL = 0;
+        protected _lT = 0;
+        protected _lR = Infinity;
+        protected _lB = Infinity;
 
         /**
          * 是否需要横向滚动
@@ -131,31 +131,31 @@ namespace jy {
         /**
          * 设置限制范围
          * 
-         * @param {number} [width=Infinity] 
-         * @param {number} [height=Infinity] 
-         * @param {number} [x=0] 
-         * @param {number} [y=0] 
+         * @param {number} [right=Infinity] 
+         * @param {number} [bottom=Infinity] 
+         * @param {number} [left=0] 
+         * @param {number} [top=0] 
          * @returns 
          * @memberof Camera
          */
-        public setLimits(width?: number, height?: number, x?: number, y?: number) {
-            this._lx = x || 0;
-            this._ly = y || 0;
-            this._lw = width || Infinity;
-            this._lh = height || Infinity;
+        public setLimits(right?: number, bottom?: number, left?: number, top?: number) {
+            this._lL = left || 0;
+            this._lT = top || 0;
+            this._lR = right || Infinity;
+            this._lB = bottom || Infinity;
             this.check();
             return this;
         }
 
         protected check() {
-            let { _lw, _lh, _rect } = this;
-            let { width: w, height: h } = _rect;
-            let flag = w < _lw;
+            let { _lR, _lB, _rect } = this;
+            let { right, bottom } = _rect;
+            let flag = right < _lR;
             this._hScroll = flag;
             if (!flag) {//可视范围比限制范围还要大，则直接居中显示
                 _rect.x = 0;
             }
-            flag = h < _lh;
+            flag = bottom < _lB;
             this._vScroll = flag;
             if (!flag) {
                 _rect.y = 0;
@@ -166,15 +166,15 @@ namespace jy {
          * 将相机移动到指定坐标
          */
         public moveTo(x: number, y: number, target?: Point) {
-            let { _hScroll, _vScroll, _rect, _lx, _ly, _lw, _lh, limitHost } = this;
+            let { _hScroll, _vScroll, _rect, _lL, _lT, _lR, _lB, limitHost } = this;
             let { width: rw, height: rh, x: rx, y: ry } = _rect;
             let changed = this._changed;
             if (_hScroll) {
                 let hrw = rw * .5;
                 let nx = x - hrw;
-                let max = _lw - rw;
-                if (nx < _lx) {
-                    nx = _lx;
+                let max = _lR - rw;
+                if (nx < _lL) {
+                    nx = _lL;
                 } else if (nx > max) {
                     nx = max;
                 }
@@ -189,9 +189,9 @@ namespace jy {
             if (_vScroll) {
                 let hrh = rh * .5;
                 let ny = y - hrh;
-                let max = _lh - rh;
-                if (ny < _ly) {
-                    ny = _ly;
+                let max = _lB - rh;
+                if (ny < _lT) {
+                    ny = _lT;
                 } else if (ny > max) {
                     ny = max;
                 }
