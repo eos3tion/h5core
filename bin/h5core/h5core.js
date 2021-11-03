@@ -13580,14 +13580,16 @@ var jy;
             return this;
         };
         Camera.prototype.check = function () {
-            var _a = this, _lR = _a._lR, _lB = _a._lB, _rect = _a._rect;
-            var right = _rect.right, bottom = _rect.bottom;
-            var flag = right < _lR;
+            var _a = this, _lL = _a._lL, _lT = _a._lT, _lR = _a._lR, _lB = _a._lB, _rect = _a._rect;
+            var lW = _lR - _lL;
+            var lH = _lB - _lT;
+            var width = _rect.width, height = _rect.height;
+            var flag = lW > width;
             this._hScroll = flag;
             if (!flag) { //可视范围比限制范围还要大，则直接居中显示
                 _rect.x = 0;
             }
-            flag = bottom < _lB;
+            flag = lH > height;
             this._vScroll = flag;
             if (!flag) {
                 _rect.y = 0;
