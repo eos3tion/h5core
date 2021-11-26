@@ -550,7 +550,11 @@ namespace jy {
             let rect = content.scrollRect;
             let contentSize: number = content[this._measureKey];
             let scrollSize: number = rect[this._sizeKey];
-            return contentSize - scrollSize;
+            let v = contentSize - scrollSize;
+            if (v < 0) {
+                v = 0;
+            }
+            return v;
         }
 
         protected checkAndResetBarPos() {

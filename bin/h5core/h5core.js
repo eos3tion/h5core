@@ -4612,7 +4612,11 @@ var jy;
                 var rect = content.scrollRect;
                 var contentSize = content[this._measureKey];
                 var scrollSize = rect[this._sizeKey];
-                return contentSize - scrollSize;
+                var v = contentSize - scrollSize;
+                if (v < 0) {
+                    v = 0;
+                }
+                return v;
             },
             enumerable: false,
             configurable: true
