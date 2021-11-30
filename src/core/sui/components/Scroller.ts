@@ -428,12 +428,23 @@ namespace jy {
                 }
                 this._moveSpeed = speed;
 
-                if (old != pos) {
-                    rect[key] = pos;
-                    content.scrollRect = rect;
-                    content.dispatch(EventConst.SCROLL_POSITION_CHANGE);
-                }
+                this.$scroll(pos);
                 this.doMoveScrollBar(sub);
+            }
+        }
+
+        protected $scroll(pos: number) {
+            let content = this._content;
+            if (!content) {
+                return;
+            }
+            let rect = content.scrollRect;
+            let key = this._key;
+            let old = rect[key];
+            if (old != pos) {
+                rect[key] = pos;
+                content.scrollRect = rect;
+                content.dispatch(EventConst.SCROLL_POSITION_CHANGE);
             }
         }
 
@@ -468,8 +479,7 @@ namespace jy {
             } else if (pos >= this.scrollEndPos) {
                 this.scrollToEnd();
             } else {
-                let curpos = this._content.scrollRect[this._key];
-                this.doScrollContent(pos - curpos);
+                this.$scroll(pos);
             }
         }
 
