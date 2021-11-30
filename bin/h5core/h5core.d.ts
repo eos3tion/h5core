@@ -3542,6 +3542,7 @@ declare namespace jy {
          * @ sub (滚动的距离)
          */
         doScrollContent(sub: number): void;
+        protected $scroll(pos: number): void;
         doMoveScrollBar(sub: number): void;
         /**
          * 移动到指定位置

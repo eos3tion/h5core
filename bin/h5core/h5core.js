@@ -5524,12 +5524,22 @@ var jy;
                     speed = 0;
                 }
                 this._moveSpeed = speed;
-                if (old != pos) {
-                    rect[key] = pos;
-                    content.scrollRect = rect;
-                    content.dispatch(-1051 /* SCROLL_POSITION_CHANGE */);
-                }
+                this.$scroll(pos);
                 this.doMoveScrollBar(sub);
+            }
+        };
+        Scroller.prototype.$scroll = function (pos) {
+            var content = this._content;
+            if (!content) {
+                return;
+            }
+            var rect = content.scrollRect;
+            var key = this._key;
+            var old = rect[key];
+            if (old != pos) {
+                rect[key] = pos;
+                content.scrollRect = rect;
+                content.dispatch(-1051 /* SCROLL_POSITION_CHANGE */);
             }
         };
         Scroller.prototype.doMoveScrollBar = function (sub) {
@@ -5565,8 +5575,7 @@ var jy;
                 this.scrollToEnd();
             }
             else {
-                var curpos = this._content.scrollRect[this._key];
-                this.doScrollContent(pos - curpos);
+                this.$scroll(pos);
             }
         };
         /**移动至头 */
