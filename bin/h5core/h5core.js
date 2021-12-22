@@ -14460,7 +14460,7 @@ var jy;
             0x006600, 0x003300, 0xFF6666, 0x33FFCC, 0xFF3333
         ];
         var getTexture = function (gridWidth, gridHeight, level) {
-            var showLevel = level > 1;
+            var showLevel = level > 1 /* MapData_Walkable */;
             var color = colors_1[level];
             if (color === undefined) {
                 color = Math.random() * 0xFFFFFF;
@@ -14522,17 +14522,19 @@ var jy;
                 for (var i = x / gridWidth >> 0, len = Math.min(i + w / gridWidth + 1, columns), jstart = y / gridHeight >> 0, jlen = Math.min(jstart + h / gridHeight + 1, rows); i < len; i++) {
                     for (var j = jstart; j < jlen; j++) {
                         var level = map.getWalk(i, j);
-                        var tex = getTexture(gridWidth, gridHeight, level);
-                        var s = gp[k];
-                        if (!s) {
-                            gp[k] = s = new egret.Bitmap();
+                        if (level !== 1 /* MapData_Walkable */) {
+                            var tex = getTexture(gridWidth, gridHeight, level);
+                            var s = gp[k];
+                            if (!s) {
+                                gp[k] = s = new egret.Bitmap();
+                            }
+                            s.texture = tex;
+                            var pt = map.map2Screen(i, j);
+                            s.x = pt.x;
+                            s.y = pt.y;
+                            this.addChild(s);
+                            k++;
                         }
-                        s.texture = tex;
-                        var pt = map.map2Screen(i, j);
-                        s.x = pt.x;
-                        s.y = pt.y;
-                        this.addChild(s);
-                        k++;
                     }
                 }
             }
@@ -15257,7 +15259,7 @@ var jy;
             0x006600, 0x003300, 0xFF6666, 0x33FFCC, 0xFF3333
         ];
         var getTexture = function (gridWidth, gridHeight, level) {
-            var showLevel = level > 1;
+            var showLevel = level > 1 /* MapData_Walkable */;
             var color = colors_2[level];
             if (color === undefined) {
                 color = Math.random() * 0xFFFFFF;
@@ -15319,17 +15321,19 @@ var jy;
                 for (var i = x / gridWidth >> 0, len = Math.min(i + w / gridWidth + 1, columns), jstart = (y * 2 / gridHeight >> 0) - 1, jlen = Math.min(jstart + h * 2 / gridHeight + 2, rows); i < len; i++) {
                     for (var j = jstart; j < jlen; j++) {
                         var level = map.getWalk(i, j);
-                        var tex = getTexture(gridWidth, gridHeight, level);
-                        var s = gp[k];
-                        if (!s) {
-                            gp[k] = s = new egret.Bitmap();
+                        if (level !== 1 /* MapData_Walkable */) { //可走的格子不再渲染
+                            var tex = getTexture(gridWidth, gridHeight, level);
+                            var s = gp[k];
+                            if (!s) {
+                                gp[k] = s = new egret.Bitmap();
+                            }
+                            s.texture = tex;
+                            var pt = map.map2Screen(i, j);
+                            s.x = pt.x;
+                            s.y = pt.y;
+                            this.addChild(s);
+                            k++;
                         }
-                        s.texture = tex;
-                        this.addChild(s);
-                        k++;
-                        var pt = map.map2Screen(i, j);
-                        s.x = pt.x;
-                        s.y = pt.y;
                     }
                 }
             }

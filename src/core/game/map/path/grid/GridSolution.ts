@@ -91,7 +91,7 @@ namespace jy {
 
 
         var getTexture = function (gridWidth: number, gridHeight: number, level: number) {
-            let showLevel = level > 1;
+            let showLevel = level > MapConst.MapData_Walkable;
             let color = colors[level];
             if (color === undefined) {
                 color = Math.random() * 0xFFFFFF;
@@ -156,17 +156,19 @@ namespace jy {
                     for (let i = x / gridWidth >> 0, len = Math.min(i + w / gridWidth + 1, columns), jstart = y / gridHeight >> 0, jlen = Math.min(jstart + h / gridHeight + 1, rows); i < len; i++) {
                         for (let j = jstart; j < jlen; j++) {
                             let level = map.getWalk(i, j);
-                            let tex = getTexture(gridWidth, gridHeight, level);
-                            let s = gp[k];
-                            if (!s) {
-                                gp[k] = s = new egret.Bitmap();
+                            if (level !== MapConst.MapData_Walkable) {
+                                let tex = getTexture(gridWidth, gridHeight, level);
+                                let s = gp[k];
+                                if (!s) {
+                                    gp[k] = s = new egret.Bitmap();
+                                }
+                                s.texture = tex;
+                                let pt = map.map2Screen(i, j);
+                                s.x = pt.x;
+                                s.y = pt.y;
+                                this.addChild(s);
+                                k++;
                             }
-                            s.texture = tex;
-                            let pt = map.map2Screen(i, j);
-                            s.x = pt.x;
-                            s.y = pt.y;
-                            this.addChild(s);
-                            k++;
                         }
                     }
                 }

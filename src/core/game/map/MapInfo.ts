@@ -3,10 +3,19 @@ namespace jy {
     /**
      * 默认地图宽/高
      */
-    const enum MapConst {
+    export const enum MapConst {
         DefaultSize = 256,
 
         MapPath = "m/",
+
+        /**
+         * 不可走
+         */
+        MapData_Block = 0,
+        /**
+         * 可走
+         */
+        MapData_Walkable = 1,
     }
     const webp = Global.webp ? Ext.WEBP : "";
 
@@ -28,12 +37,12 @@ namespace jy {
         Staggered = 2,
     }
 
-	/**
-	 * 地图基础信息<br/>
-	 * 由地图编辑器生成的地图信息
-	 * @author 3tion
-	 *
-	 */
+    /**
+     * 地图基础信息<br/>
+     * 由地图编辑器生成的地图信息
+     * @author 3tion
+     *
+     */
     export class MapInfo {
 
         /**
@@ -41,9 +50,9 @@ namespace jy {
          */
         ext = Ext.JPG;
 
-    	/**
-    	 * 地图唯一标识
-    	 */
+        /**
+         * 地图唯一标识
+         */
         public id: Key;
 
         /**

@@ -2750,6 +2750,21 @@ declare namespace jy {
 }
 declare namespace jy {
     /**
+     * 默认地图宽/高
+     */
+    const enum MapConst {
+        DefaultSize = 256,
+        MapPath = "m/",
+        /**
+         * 不可走
+         */
+        MapData_Block = 0,
+        /**
+         * 可走
+         */
+        MapData_Walkable = 1
+    }
+    /**
      * 地图路径点寻路类型
      */
     const enum MapPathType {
