@@ -18938,8 +18938,7 @@ var jy;
             configurable: true
         });
         Slider.prototype.bgClick = function (e) {
-            this._lastThumbX = this.thumb.localToGlobal().x;
-            var currentX = e.stageX;
+            var currentX = this.getX(e);
             this.calculatevalue(currentX);
             var tip = this.tip;
             if (tip) {
@@ -18949,9 +18948,9 @@ var jy;
         Slider.prototype.bgOut = function () {
             this.tip.visible = false;
         };
-        Slider.prototype.onThumbBegin = function () {
+        Slider.prototype.onThumbBegin = function (e) {
             var _a = this, thumb = _a.thumb, stage = _a.stage, tip = _a.tip;
-            this._lastThumbX = thumb.localToGlobal().x;
+            this._lastThumbX = this.getX(e);
             stage.on("touchMove" /* TOUCH_MOVE */, this.mouseMove, this);
             thumb.on("touchEnd" /* TOUCH_END */, this.onThumbEnd, this);
             thumb.on("touchReleaseOutside" /* TOUCH_RELEASE_OUTSIDE */, this.onThumbEnd, this);
@@ -18966,13 +18965,13 @@ var jy;
             thumb.off("touchReleaseOutside" /* TOUCH_RELEASE_OUTSIDE */, onThumbEnd, this);
         };
         Slider.prototype.mouseMove = function (e) {
-            this.calculatevalue(e.stageX);
+            this.calculatevalue(this.getX(e));
         };
         Slider.prototype.calculatevalue = function (currentX) {
             var sub = currentX - this._lastThumbX;
             var steps;
             var value;
-            var _a = this, _perStepPixel = _a._perStepPixel, _min = _a._min, _max = _a._max, _value = _a._value, _step = _a._step, thumb = _a.thumb;
+            var _a = this, _perStepPixel = _a._perStepPixel, _min = _a._min, _max = _a._max, _value = _a._value, _step = _a._step;
             if (Math.abs(sub) >= _perStepPixel) {
                 steps = sub / _perStepPixel;
                 steps = Math.round(steps);
@@ -18984,11 +18983,19 @@ var jy;
                     value = _max;
                 }
                 this.value = value;
-                this._lastThumbX = thumb.localToGlobal().x;
+                this._lastThumbX = currentX;
                 var tip = this.tip;
                 if (tip) {
                     checkTip(this, tip);
                 }
+            }
+        };
+        Slider.prototype.getX = function (e) {
+            var pt = jy.Temp.SharedPoint1;
+            var parent = this.thumb.parent;
+            if (parent) {
+                parent.globalToLocal(e.stageX, e.stageY, pt);
+                return pt.x;
             }
         };
         Object.defineProperty(Slider.prototype, "value", {

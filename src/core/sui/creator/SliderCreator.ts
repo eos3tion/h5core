@@ -91,8 +91,7 @@ namespace jy {
         }
 
         bgClick(e: egret.TouchEvent) {
-            this._lastThumbX = this.thumb.localToGlobal().x;
-            let currentX: number = e.stageX;
+            let currentX = this.getX(e);
             this.calculatevalue(currentX);
             let tip = this.tip;
             if (tip) {
@@ -104,9 +103,9 @@ namespace jy {
             this.tip.visible = false;
         }
 
-        private onThumbBegin() {
+        private onThumbBegin(e: egret.TouchEvent) {
             let { thumb, stage, tip } = this;
-            this._lastThumbX = thumb.localToGlobal().x;
+            this._lastThumbX = this.getX(e);
             stage.on(EgretEvent.TOUCH_MOVE, this.mouseMove, this)
             thumb.on(EgretEvent.TOUCH_END, this.onThumbEnd, this);
             thumb.on(EgretEvent.TOUCH_RELEASE_OUTSIDE, this.onThumbEnd, this);
@@ -125,14 +124,14 @@ namespace jy {
         }
 
         private mouseMove(e: egret.TouchEvent) {
-            this.calculatevalue(e.stageX);
+            this.calculatevalue(this.getX(e));
         }
 
         private calculatevalue(currentX: number) {
             let sub = currentX - this._lastThumbX;
             let steps: number;
             let value: number;
-            let { _perStepPixel, _min, _max, _value, _step, thumb } = this;
+            let { _perStepPixel, _min, _max, _value, _step } = this;
             if (Math.abs(sub) >= _perStepPixel) {
                 steps = sub / _perStepPixel;
                 steps = Math.round(steps);
@@ -146,11 +145,20 @@ namespace jy {
                 }
 
                 this.value = value;
-                this._lastThumbX = thumb.localToGlobal().x;
+                this._lastThumbX = currentX;
                 let tip = this.tip;
                 if (tip) {
                     checkTip(this, tip)
                 }
+            }
+        }
+
+        private getX(e: egret.TouchEvent) {
+            const pt = Temp.SharedPoint1;
+            const parent = this.thumb.parent;
+            if (parent) {
+                parent.globalToLocal(e.stageX, e.stageY, pt);
+                return pt.x
             }
         }
 

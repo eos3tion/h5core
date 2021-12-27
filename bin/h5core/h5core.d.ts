@@ -13496,6 +13496,7 @@ declare namespace jy {
         private onThumbEnd;
         private mouseMove;
         private calculatevalue;
+        private getX;
         set value(val: number);
         protected setValue(val: number, showTip?: boolean): void;
         get value(): number;
