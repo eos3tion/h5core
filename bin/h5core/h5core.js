@@ -14581,8 +14581,8 @@ var jy;
         },
         screen2Map: function (x, y) {
             return {
-                x: Math.round(x / this.gridWidth),
-                y: Math.round(y / this.gridHeight)
+                x: x / this.gridWidth | 0,
+                y: y / this.gridHeight | 0
             };
         },
         getFacePos: function (x, y, face8) {

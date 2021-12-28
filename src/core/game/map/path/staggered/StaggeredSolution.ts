@@ -1,38 +1,5 @@
 namespace jy {
-    export interface StaggeredMapInfo extends MapInfo {
-
-        pathdata: Uint8Array;
-
-        /**
-         * 路径数据最大支持的位数
-         */
-        pdatabit: number;
-
-        /**
-         * 透明区域点数据
-         */
-        adata?: Uint8Array;
-
-        /**
-         * 格子宽度
-         */
-        gridWidth: number;
-
-        /**
-         * 格子高度
-         */
-        gridHeight: number;
-
-        /**
-         * 地图格子列数
-         */
-        columns: number;
-
-        /**
-         * 地图格子行数
-         */
-        rows: number;
-
+    export interface StaggeredMapInfo extends Gridable, MapInfo {
         /**
          * 算格子用多边形
          */

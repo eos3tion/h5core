@@ -1,33 +1,7 @@
 namespace jy {
 
-    export interface GridMapInfo extends MapInfo {
-        /**
-         * 路径点数据
-         */
-        pathdata: Uint8Array;
-        /**
-         * 透明区域点数据
-         */
-        adata?: Uint8Array;
-        /**
-         * 格子宽度
-         */
-        gridWidth: number;
+    export interface GridMapInfo extends Gridable, MapInfo {
 
-        /**
-         * 格子高度
-         */
-        gridHeight: number;
-
-        /**
-         * 地图格子列数
-         */
-        columns: number;
-
-        /**
-         * 地图格子行数
-         */
-        rows: number;
     }
 
     interface GridPathDraw {
@@ -219,8 +193,8 @@ namespace jy {
         },
         screen2Map(x, y) {
             return {
-                x: Math.round(x / this.gridWidth),
-                y: Math.round(y / this.gridHeight)
+                x: x / this.gridWidth | 0,
+                y: y / this.gridHeight | 0
             }
         },
         getFacePos(x: number, y: number, face8: number) {
