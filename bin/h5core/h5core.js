@@ -2022,6 +2022,151 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
+    var GameEngine = /** @class */ (function (_super) {
+        __extends(GameEngine, _super);
+        function GameEngine(stage) {
+            var _this = _super.call(this) || this;
+            _this._layers = [];
+            /**
+             * 排序层
+             */
+            _this._sortedLayers = [];
+            _this._stage = stage;
+            _this.init();
+            return _this;
+        }
+        GameEngine.init = function (stage, ref) {
+            ref = ref || GameEngine;
+            GameEngine.instance = new ref(stage);
+        };
+        GameEngine.addLayerConfig = function (id, parentid, ref) {
+            if (parentid === void 0) { parentid = 0; }
+            var lc = {};
+            lc.id = id;
+            lc.parentid = parentid;
+            lc.ref = ref || jy.BaseLayer;
+            GameEngine.layerConfigs[id] = lc;
+        };
+        /**
+          * 单位坐标发生变化时调用
+          */
+        GameEngine.invalidateSort = function () {
+            GameEngine.instance.invalidateSort();
+        };
+        /**
+         * 单位坐标发生变化时调用
+         */
+        GameEngine.prototype.invalidateSort = function () {
+            this._sortDirty = true;
+        };
+        Object.defineProperty(GameEngine.prototype, "viewRect", {
+            get: function () {
+                return this._viewRect;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        /**
+         * 获取或创建容器
+         */
+        GameEngine.prototype.getLayer = function (id, noAdd) {
+            var layers = this._layers;
+            var layer = layers[id];
+            if (!layer) {
+                var cfg = GameEngine.layerConfigs[id];
+                if (!cfg) {
+                    return;
+                }
+                var ref = cfg.ref;
+                layer = new ref(id);
+                if (!noAdd) {
+                    this.addLayer(layer, cfg);
+                }
+                layers[id] = layer;
+                if (layer instanceof jy.SortedLayer) {
+                    this._sortedLayers.push(layer);
+                }
+            }
+            return layer;
+        };
+        /**
+         *
+         * @param {GameLayer} layer 要调整的层级
+         * @param {number} newid 新的层级id
+         * @param {boolean} [awake=true] 是否执行一次awake
+         */
+        GameEngine.prototype.changeId = function (layer, newid, awake) {
+            if (awake === void 0) { awake = true; }
+            var id = layer.id;
+            if (id != newid) {
+                var layers = this._layers;
+                if (layers[id] == layer) { //清理旧的id数据
+                    layers[id] = undefined;
+                }
+                layers[newid] = layer;
+                layer.id = newid;
+            }
+            awake && this.awakeLayer(newid);
+        };
+        /**
+         * 将指定
+         *
+         * @param {GameLayerID} layerID
+         *
+         * @memberOf GameEngine
+         */
+        GameEngine.prototype.sleepLayer = function (layerID) {
+            var layer = this._layers[layerID];
+            if (layer) {
+                layer.isShow = false;
+                jy.removeDisplay(layer);
+            }
+        };
+        GameEngine.prototype.awakeLayer = function (layerID) {
+            var layer = this._layers[layerID];
+            var cfg = GameEngine.layerConfigs[layerID];
+            if (layer) {
+                this.addLayer(layer, cfg);
+            }
+        };
+        GameEngine.prototype.addLayer = function (layer, cfg) {
+            layer.isShow = true;
+            if (cfg && cfg.parentid) {
+                var parent_1 = this.getLayer(cfg.parentid);
+                if (parent_1 instanceof egret.DisplayObjectContainer) {
+                    this.addLayerToContainer(layer, parent_1);
+                }
+            }
+            else {
+                this.addLayerToContainer(layer, this._stage);
+            }
+        };
+        GameEngine.prototype.addLayerToContainer = function (layer, container) {
+            var children = container.$children;
+            var id = layer.id;
+            var j = 0;
+            for (var i = 0, len = children.length; i < len; i++) {
+                var child = children[i];
+                if (layer != child) {
+                    var childLayer = child;
+                    if (childLayer.id > id) {
+                        break;
+                    }
+                    j++;
+                }
+            }
+            container.addChildAt(layer, j);
+        };
+        GameEngine.prototype.init = function () {
+        };
+        GameEngine.layerConfigs = {};
+        return GameEngine;
+    }(egret.EventDispatcher));
+    jy.GameEngine = GameEngine;
+    __reflect(GameEngine.prototype, "jy.GameEngine");
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     var BaseLayer = /** @class */ (function (_super) {
         __extends(BaseLayer, _super);
         function BaseLayer(id) {
@@ -4281,8 +4426,14 @@ var jy;
 })(jy || (jy = {}));
 if (true) {
     var $gm = $gm || {};
+    $gm.$defaultMapGridId = 1730 /* Background */;
     $gm.toggleMapGrid = function () {
-        this.$showMapGrid = !this.$showMapGrid;
+        if ($gm.$showMapGrid) {
+            $gm.$showMapGrid = 0;
+        }
+        else {
+            $gm.$showMapGrid = $gm.$defaultMapGridId;
+        }
     };
     $gm.pathSolution = {};
     $gm.regPathDraw = function (type, handler) {
@@ -7545,9 +7696,9 @@ var jy;
             function getPath(p, paths) {
                 var parentKey = p.parent;
                 if (parentKey) {
-                    var parent_1 = paths[parentKey];
-                    if (parent_1) {
-                        return getPath(parent_1, paths) + p.path;
+                    var parent_2 = paths[parentKey];
+                    if (parent_2) {
+                        return getPath(parent_2, paths) + p.path;
                     }
                     else if (true) {
                         jy.ThrowError("\u8DEF\u5F84[" + p.path + "]\u914D\u7F6E\u4E86\u7236\u7EA7(parent)\uFF0C\u4F46\u662F\u627E\u4E0D\u5230\u5BF9\u5E94\u7684\u7236\u7EA7");
@@ -10627,14 +10778,14 @@ var jy;
             if (_count < maxSize) {
                 heap[_count] = obj;
                 var i = _count;
-                var parent_2 = i >> 1;
+                var parent_3 = i >> 1;
                 var tmp = heap[i];
-                while (parent_2 > 0) {
-                    var v = heap[parent_2];
+                while (parent_3 > 0) {
+                    var v = heap[parent_3];
                     if (compare(tmp, v) > 0) {
                         heap[i] = v;
-                        i = parent_2;
-                        parent_2 >>= 1;
+                        i = parent_3;
+                        parent_3 >>= 1;
                     }
                     else
                         break;
@@ -12370,151 +12521,6 @@ var jy;
         jy.ThrowError.MaxCount = 50;
         jy.ThrowError.errorMsg = errorMsg;
     }
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
-    var GameEngine = /** @class */ (function (_super) {
-        __extends(GameEngine, _super);
-        function GameEngine(stage) {
-            var _this = _super.call(this) || this;
-            _this._layers = [];
-            /**
-             * 排序层
-             */
-            _this._sortedLayers = [];
-            _this._stage = stage;
-            _this.init();
-            return _this;
-        }
-        GameEngine.init = function (stage, ref) {
-            ref = ref || GameEngine;
-            GameEngine.instance = new ref(stage);
-        };
-        GameEngine.addLayerConfig = function (id, parentid, ref) {
-            if (parentid === void 0) { parentid = 0; }
-            var lc = {};
-            lc.id = id;
-            lc.parentid = parentid;
-            lc.ref = ref || jy.BaseLayer;
-            GameEngine.layerConfigs[id] = lc;
-        };
-        /**
-          * 单位坐标发生变化时调用
-          */
-        GameEngine.invalidateSort = function () {
-            GameEngine.instance.invalidateSort();
-        };
-        /**
-         * 单位坐标发生变化时调用
-         */
-        GameEngine.prototype.invalidateSort = function () {
-            this._sortDirty = true;
-        };
-        Object.defineProperty(GameEngine.prototype, "viewRect", {
-            get: function () {
-                return this._viewRect;
-            },
-            enumerable: false,
-            configurable: true
-        });
-        /**
-         * 获取或创建容器
-         */
-        GameEngine.prototype.getLayer = function (id, noAdd) {
-            var layers = this._layers;
-            var layer = layers[id];
-            if (!layer) {
-                var cfg = GameEngine.layerConfigs[id];
-                if (!cfg) {
-                    return;
-                }
-                var ref = cfg.ref;
-                layer = new ref(id);
-                if (!noAdd) {
-                    this.addLayer(layer, cfg);
-                }
-                layers[id] = layer;
-                if (layer instanceof jy.SortedLayer) {
-                    this._sortedLayers.push(layer);
-                }
-            }
-            return layer;
-        };
-        /**
-         *
-         * @param {GameLayer} layer 要调整的层级
-         * @param {number} newid 新的层级id
-         * @param {boolean} [awake=true] 是否执行一次awake
-         */
-        GameEngine.prototype.changeId = function (layer, newid, awake) {
-            if (awake === void 0) { awake = true; }
-            var id = layer.id;
-            if (id != newid) {
-                var layers = this._layers;
-                if (layers[id] == layer) { //清理旧的id数据
-                    layers[id] = undefined;
-                }
-                layers[newid] = layer;
-                layer.id = newid;
-            }
-            awake && this.awakeLayer(newid);
-        };
-        /**
-         * 将指定
-         *
-         * @param {GameLayerID} layerID
-         *
-         * @memberOf GameEngine
-         */
-        GameEngine.prototype.sleepLayer = function (layerID) {
-            var layer = this._layers[layerID];
-            if (layer) {
-                layer.isShow = false;
-                jy.removeDisplay(layer);
-            }
-        };
-        GameEngine.prototype.awakeLayer = function (layerID) {
-            var layer = this._layers[layerID];
-            var cfg = GameEngine.layerConfigs[layerID];
-            if (layer) {
-                this.addLayer(layer, cfg);
-            }
-        };
-        GameEngine.prototype.addLayer = function (layer, cfg) {
-            layer.isShow = true;
-            if (cfg && cfg.parentid) {
-                var parent_3 = this.getLayer(cfg.parentid);
-                if (parent_3 instanceof egret.DisplayObjectContainer) {
-                    this.addLayerToContainer(layer, parent_3);
-                }
-            }
-            else {
-                this.addLayerToContainer(layer, this._stage);
-            }
-        };
-        GameEngine.prototype.addLayerToContainer = function (layer, container) {
-            var children = container.$children;
-            var id = layer.id;
-            var j = 0;
-            for (var i = 0, len = children.length; i < len; i++) {
-                var child = children[i];
-                if (layer != child) {
-                    var childLayer = child;
-                    if (childLayer.id > id) {
-                        break;
-                    }
-                    j++;
-                }
-            }
-            container.addChildAt(layer, j);
-        };
-        GameEngine.prototype.init = function () {
-        };
-        GameEngine.layerConfigs = {};
-        return GameEngine;
-    }(egret.EventDispatcher));
-    jy.GameEngine = GameEngine;
-    __reflect(GameEngine.prototype, "jy.GameEngine");
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
@@ -14514,7 +14520,7 @@ var jy;
                 this.debugGridPanes = gp = [];
             }
             var k = 0;
-            if ($gm.$showMapGrid) {
+            if ($gm.$showMapGrid === this.id) {
                 if (!map.map2Screen) {
                     jy.bindMapPos(map);
                 }
@@ -15172,7 +15178,7 @@ var jy;
             if (!gp) {
                 this.debugPane = gp = new egret.Sprite;
             }
-            if ($gm.$showMapGrid) {
+            if ($gm.$showMapGrid === this.id) {
                 var cells = map.cells;
                 var g = gp.graphics;
                 gp.removeChildren();
@@ -15313,7 +15319,7 @@ var jy;
                 this.debugGridPanes = gp = [];
             }
             var k = 0;
-            if ($gm.$showMapGrid) {
+            if ($gm.$showMapGrid === this.id) {
                 if (!map.map2Screen) {
                     jy.bindMapPos(map);
                 }

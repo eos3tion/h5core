@@ -32,7 +32,7 @@ namespace jy {
                 if (!gp) {
                     this.debugPane = gp = new egret.Sprite;
                 }
-                if ($gm.$showMapGrid) {
+                if ($gm.$showMapGrid === this.id) {
                     let cells = map.cells;
                     const g = gp.graphics;
                     gp.removeChildren();

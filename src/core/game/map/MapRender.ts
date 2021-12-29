@@ -6,7 +6,9 @@ interface $gmType {
      * @memberOf $gmType
      */
     toggleMapGrid();
-    $showMapGrid: boolean;
+    $showMapGrid: number;
+
+    $defaultMapGridId: number;
 
     regPathDraw(type: jy.MapPathType, handler: jy.drawPath);
 
@@ -15,8 +17,13 @@ interface $gmType {
 
 if (DEBUG) {
     var $gm = $gm || <$gmType>{};
+    $gm.$defaultMapGridId = jy.GameLayerID.Background;
     $gm.toggleMapGrid = function () {
-        this.$showMapGrid = !this.$showMapGrid;
+        if ($gm.$showMapGrid) {
+            $gm.$showMapGrid = 0;
+        } else {
+            $gm.$showMapGrid = $gm.$defaultMapGridId;
+        }
     }
     $gm.pathSolution = {} as { [type in jy.MapPathType]: jy.drawPath };
 

@@ -122,7 +122,7 @@ namespace jy {
                     this.debugGridPanes = gp = [];
                 }
                 let k = 0;
-                if ($gm.$showMapGrid) {
+                if ($gm.$showMapGrid === this.id) {
                     if (!map.map2Screen) {
                         bindMapPos(map);
                     }

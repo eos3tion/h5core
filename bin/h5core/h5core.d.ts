@@ -1209,6 +1209,166 @@ declare namespace jy {
     type TextureSheet = ReturnType<typeof getTextureSheet>;
 }
 declare namespace jy {
+    /**
+     * 2d游戏的引擎管理游戏层级关系<br/>
+     * @author 3tion
+     *
+     */
+    class GameEngine extends egret.EventDispatcher {
+        protected static layerConfigs: {
+            [index: number]: LayerConfig;
+        };
+        static instance: GameEngine;
+        static init(stage: egret.Stage, ref?: {
+            new (stage: egret.Stage): GameEngine;
+        }): void;
+        static addLayerConfig(id: number, parentid?: number, ref?: new (id: number) => GameLayer): void;
+        /**
+          * 单位坐标发生变化时调用
+          */
+        static invalidateSort(): void;
+        /**
+         * 摄像机，用于处理镜头坐标相关
+         */
+        camera: Camera;
+        protected _viewRect: egret.Rectangle;
+        /**
+         * 单位的排序是否发生改变
+         */
+        protected _sortDirty: Boolean;
+        /**
+         * 单位坐标发生变化时调用
+         */
+        invalidateSort(): void;
+        get viewRect(): egret.Rectangle;
+        protected _stage: egret.Stage;
+        protected _layers: GameLayer[];
+        /**
+         * 排序层
+         */
+        protected _sortedLayers: SortedLayer[];
+        /**
+         * 获取或创建容器
+         */
+        getLayer(id: GameLayerID, noAdd?: boolean): GameLayer;
+        /**
+         *
+         * @param {GameLayer} layer 要调整的层级
+         * @param {number} newid 新的层级id
+         * @param {boolean} [awake=true] 是否执行一次awake
+         */
+        changeId(layer: GameLayer, newid: number, awake?: boolean): void;
+        /**
+         * 将指定
+         *
+         * @param {GameLayerID} layerID
+         *
+         * @memberOf GameEngine
+         */
+        sleepLayer(layerID: GameLayerID): void;
+        awakeLayer(layerID: GameLayerID): void;
+        protected addLayer(layer: GameLayer, cfg?: LayerConfig): void;
+        protected addLayerToContainer(layer: GameLayer, container: egret.DisplayObjectContainer): void;
+        constructor(stage: egret.Stage);
+        protected init(): void;
+    }
+    /**
+     * 游戏中层级标识
+     */
+    const enum GameLayerID {
+        /**
+         * Tip层
+         * 用于放alert等最高层级
+         * 不进行滚轴
+         */
+        Tip = 9000,
+        /**
+         * UI层
+         * 用于放各种UI
+         * 不进行滚轴
+         * 在菜单和头像下面，属最底层
+         */
+        UI = 8000,
+        /**
+         * 游戏层
+         * 人物死亡如果进行颜色变灰，则基于此容器变灰
+         */
+        Game = 1000,
+        /**
+         * 游戏蒙版层
+         * 用于放流血效果，迷雾效果之类的容器
+         * 无鼠标事件
+         * 不进行滚轴
+         **/
+        Mask = 1900,
+        /**
+         * 相机特效层
+         * 用于处理飘雪，飘雨类似效果
+         * 无鼠标事件
+         * 不进行滚轴
+         **/
+        TopEffect = 1800,
+        /**
+         * 游戏滚轴层
+         * 下级容器参与滚轴
+         */
+        GameScene = 1700,
+        /**
+         * 顶部场景特效
+         * 用于放云朵等特效
+         * 无鼠标事件
+         * 不排序
+         */
+        CeilEffect = 1790,
+        /**
+         * 用于放置跟随单位一起的UI，角色血条，角色名字，头衔等
+         */
+        SortedUI = 1780,
+        /**
+         * 游戏特效层，
+         * 一般盖在人身上的特效放于此层
+         * 无鼠标事件
+         * 不排序
+         */
+        GameEffect = 1770,
+        /**
+         * 参与排序的单位的容器
+         * 放人，怪物，会进行排序
+         */
+        Sorted = 1760,
+        /**
+         * 底层
+         * 放置尸体，光环
+         * 会排序
+         */
+        Bottom = 1750,
+        /**
+         * 底部场景特效层
+         */
+        BottomEffect = 1740,
+        /**
+         * 地图渲染层
+         */
+        Background = 1730,
+        /**
+         * 地图预览图
+         */
+        Mini = 1710,
+        /**
+         * 地图之下的一层
+         */
+        UnderMap = 1705
+    }
+    /**
+     * 层级配置
+     */
+    interface LayerConfig {
+        id: number;
+        parentid: number;
+        ref: new (id: number) => GameLayer;
+    }
+}
+declare namespace jy {
     interface GameLayer extends egret.DisplayObject {
         id: number;
         isShow?: boolean;
@@ -2906,7 +3066,8 @@ interface $gmType {
      * @memberOf $gmType
      */
     toggleMapGrid(): any;
-    $showMapGrid: boolean;
+    $showMapGrid: number;
+    $defaultMapGridId: number;
     regPathDraw(type: jy.MapPathType, handler: jy.drawPath): any;
     pathSolution: {
         [type in jy.MapPathType]: jy.drawPath;
@@ -9683,166 +9844,6 @@ declare namespace jy {
          * 特效文件夹
          */
         Ani = "a/"
-    }
-}
-declare namespace jy {
-    /**
-     * 2d游戏的引擎管理游戏层级关系<br/>
-     * @author 3tion
-     *
-     */
-    class GameEngine extends egret.EventDispatcher {
-        protected static layerConfigs: {
-            [index: number]: LayerConfig;
-        };
-        static instance: GameEngine;
-        static init(stage: egret.Stage, ref?: {
-            new (stage: egret.Stage): GameEngine;
-        }): void;
-        static addLayerConfig(id: number, parentid?: number, ref?: new (id: number) => GameLayer): void;
-        /**
-          * 单位坐标发生变化时调用
-          */
-        static invalidateSort(): void;
-        /**
-         * 摄像机，用于处理镜头坐标相关
-         */
-        camera: Camera;
-        protected _viewRect: egret.Rectangle;
-        /**
-         * 单位的排序是否发生改变
-         */
-        protected _sortDirty: Boolean;
-        /**
-         * 单位坐标发生变化时调用
-         */
-        invalidateSort(): void;
-        get viewRect(): egret.Rectangle;
-        protected _stage: egret.Stage;
-        protected _layers: GameLayer[];
-        /**
-         * 排序层
-         */
-        protected _sortedLayers: SortedLayer[];
-        /**
-         * 获取或创建容器
-         */
-        getLayer(id: GameLayerID, noAdd?: boolean): GameLayer;
-        /**
-         *
-         * @param {GameLayer} layer 要调整的层级
-         * @param {number} newid 新的层级id
-         * @param {boolean} [awake=true] 是否执行一次awake
-         */
-        changeId(layer: GameLayer, newid: number, awake?: boolean): void;
-        /**
-         * 将指定
-         *
-         * @param {GameLayerID} layerID
-         *
-         * @memberOf GameEngine
-         */
-        sleepLayer(layerID: GameLayerID): void;
-        awakeLayer(layerID: GameLayerID): void;
-        protected addLayer(layer: GameLayer, cfg?: LayerConfig): void;
-        protected addLayerToContainer(layer: GameLayer, container: egret.DisplayObjectContainer): void;
-        constructor(stage: egret.Stage);
-        protected init(): void;
-    }
-    /**
-     * 游戏中层级标识
-     */
-    const enum GameLayerID {
-        /**
-         * Tip层
-         * 用于放alert等最高层级
-         * 不进行滚轴
-         */
-        Tip = 9000,
-        /**
-         * UI层
-         * 用于放各种UI
-         * 不进行滚轴
-         * 在菜单和头像下面，属最底层
-         */
-        UI = 8000,
-        /**
-         * 游戏层
-         * 人物死亡如果进行颜色变灰，则基于此容器变灰
-         */
-        Game = 1000,
-        /**
-         * 游戏蒙版层
-         * 用于放流血效果，迷雾效果之类的容器
-         * 无鼠标事件
-         * 不进行滚轴
-         **/
-        Mask = 1900,
-        /**
-         * 相机特效层
-         * 用于处理飘雪，飘雨类似效果
-         * 无鼠标事件
-         * 不进行滚轴
-         **/
-        TopEffect = 1800,
-        /**
-         * 游戏滚轴层
-         * 下级容器参与滚轴
-         */
-        GameScene = 1700,
-        /**
-         * 顶部场景特效
-         * 用于放云朵等特效
-         * 无鼠标事件
-         * 不排序
-         */
-        CeilEffect = 1790,
-        /**
-         * 用于放置跟随单位一起的UI，角色血条，角色名字，头衔等
-         */
-        SortedUI = 1780,
-        /**
-         * 游戏特效层，
-         * 一般盖在人身上的特效放于此层
-         * 无鼠标事件
-         * 不排序
-         */
-        GameEffect = 1770,
-        /**
-         * 参与排序的单位的容器
-         * 放人，怪物，会进行排序
-         */
-        Sorted = 1760,
-        /**
-         * 底层
-         * 放置尸体，光环
-         * 会排序
-         */
-        Bottom = 1750,
-        /**
-         * 底部场景特效层
-         */
-        BottomEffect = 1740,
-        /**
-         * 地图渲染层
-         */
-        Background = 1730,
-        /**
-         * 地图预览图
-         */
-        Mini = 1710,
-        /**
-         * 地图之下的一层
-         */
-        UnderMap = 1705
-    }
-    /**
-     * 层级配置
-     */
-    interface LayerConfig {
-        id: number;
-        parentid: number;
-        ref: new (id: number) => GameLayer;
     }
 }
 declare namespace jy {
