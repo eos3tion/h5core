@@ -14473,9 +14473,12 @@ var jy;
             }
             return $getTexture(gridWidth, gridHeight, color, level, showLevel);
             function $getTexture(gridWidth, gridHeight, color, level, showLevel) {
-                var key = gridWidth + "_" + gridHeight + "_" + color + "_" + level + "_" + showLevel;
+                var aspectRadio = (gridWidth / gridHeight) * 128 >> 0;
+                var key = aspectRadio + "_" + color + "_" + level + "_" + showLevel;
                 var tex = sheets_1.get(key);
                 if (!tex) {
+                    gridHeight = 128;
+                    gridWidth = aspectRadio;
                     var hw = gridWidth >> 1;
                     var hh = gridHeight >> 1;
                     var canvas = document.createElement("canvas");
@@ -14533,6 +14536,8 @@ var jy;
                             var s = gp[k];
                             if (!s) {
                                 gp[k] = s = new egret.Bitmap();
+                                s.width = gridWidth;
+                                s.height = gridHeight;
                             }
                             s.texture = tex;
                             var pt = map.map2Screen(i, j);
@@ -15272,9 +15277,12 @@ var jy;
             }
             return $getTexture(gridWidth, gridHeight, color, level, showLevel);
             function $getTexture(gridWidth, gridHeight, color, level, showLevel) {
-                var key = gridWidth + "_" + gridHeight + "_" + color + "_" + level + "_" + showLevel;
+                var aspectRadio = (gridWidth / gridHeight) * 128 >> 0;
+                var key = aspectRadio + "_" + color + "_" + level + "_" + showLevel;
                 var tex = sheets_2.get(key);
                 if (!tex) {
+                    gridHeight = 128;
+                    gridWidth = aspectRadio;
                     var hw = gridWidth >> 1;
                     var hh = gridHeight >> 1;
                     var canvas = document.createElement("canvas");
@@ -15332,6 +15340,8 @@ var jy;
                             var s = gp[k];
                             if (!s) {
                                 gp[k] = s = new egret.Bitmap();
+                                s.width = gridWidth;
+                                s.height = gridHeight;
                             }
                             s.texture = tex;
                             var pt = map.map2Screen(i, j);

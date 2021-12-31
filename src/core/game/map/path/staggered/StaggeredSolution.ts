@@ -83,9 +83,12 @@ namespace jy {
             return $getTexture(gridWidth, gridHeight, color, level, showLevel);
 
             function $getTexture(gridWidth: number, gridHeight: number, color: number, level: number, showLevel?: boolean) {
-                let key = gridWidth + "_" + gridHeight + "_" + color + "_" + level + "_" + showLevel;
+                const aspectRadio = (gridWidth / gridHeight) * 128 >> 0;
+                let key = aspectRadio + "_" + color + "_" + level + "_" + showLevel;
                 let tex = sheets.get(key);
                 if (!tex) {
+                    gridHeight = 128;
+                    gridWidth = aspectRadio;
                     let hw = gridWidth >> 1;
                     let hh = gridHeight >> 1;
                     let canvas = document.createElement("canvas");
@@ -147,6 +150,8 @@ namespace jy {
                                 let s = gp[k];
                                 if (!s) {
                                     gp[k] = s = new egret.Bitmap();
+                                    s.width = gridWidth;
+                                    s.height = gridHeight;
                                 }
                                 s.texture = tex;
                                 let pt = map.map2Screen(i, j);
