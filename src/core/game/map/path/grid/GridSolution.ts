@@ -96,7 +96,7 @@ namespace jy {
                     g.lineTo(0, 0);
                     g.closePath();
                     g.stroke();
-                    g.globalAlpha = 0.3;
+                    g.globalAlpha = level === MapConst.MapData_Walkable ? 0 : 0.3;
                     g.fill();
                     if (showLevel) {
                         g.globalAlpha = 1;
@@ -133,21 +133,19 @@ namespace jy {
                     for (let i = x / gridWidth >> 0, len = Math.min(i + w / gridWidth + 1, columns), jstart = y / gridHeight >> 0, jlen = Math.min(jstart + h / gridHeight + 1, rows); i < len; i++) {
                         for (let j = jstart; j < jlen; j++) {
                             let level = map.getWalk(i, j);
-                            if (level !== MapConst.MapData_Walkable) {
-                                let tex = getTexture(gridWidth, gridHeight, level);
-                                let s = gp[k];
-                                if (!s) {
-                                    gp[k] = s = new egret.Bitmap();
-                                    s.width = gridWidth;
-                                    s.height = gridHeight;
-                                }
-                                s.texture = tex;
-                                let pt = map.map2Screen(i, j);
-                                s.x = pt.x;
-                                s.y = pt.y;
-                                this.addChild(s);
-                                k++;
+                            let tex = getTexture(gridWidth, gridHeight, level);
+                            let s = gp[k];
+                            if (!s) {
+                                gp[k] = s = new egret.Bitmap();
+                                s.width = gridWidth;
+                                s.height = gridHeight;
                             }
+                            s.texture = tex;
+                            let pt = map.map2Screen(i, j);
+                            s.x = pt.x;
+                            s.y = pt.y;
+                            this.addChild(s);
+                            k++;
                         }
                     }
                 }
