@@ -210,7 +210,7 @@ namespace jy {
             map.hw = hw;
             polygon.points = [{ x: hw, y: 0 }, { x: gridWidth, y: hh }, { x: hw, y: gridHeight }, { x: 0, y: hh }]
         },
-        map2Screen(i, j, isCenter?: boolean) {
+        map2Screen(i, j, out?: Point, isCenter?: boolean) {
             const { gridWidth, hw, hh } = this;
             let x = i * gridWidth;
             if (j & 1) {
@@ -221,12 +221,12 @@ namespace jy {
                 x += hw;
                 y += hh;
             }
-            return {
-                x,
-                y,
-            }
+            out ||= {} as Point;
+            out.x = x;
+            out.y = y;
+            return out;
         },
-        screen2Map(x, y) {
+        screen2Map(x, y, out?: Point) {
             const { gridHeight, gridWidth, hw, hh } = this;
             let i = x / gridWidth >> 0;
             let j = y / gridHeight >> 0;
@@ -248,8 +248,10 @@ namespace jy {
                     j++;
                 }
             }
-
-            return { x: i, y: j };
+            out ||= {} as Point;
+            out.x = i;
+            out.y = j;
+            return out;
         },
         /**
          * 根据当前坐标相邻的指定朝向对应的坐标
@@ -264,13 +266,13 @@ namespace jy {
          *              6 ←  
          *              7 ↙
          */
-        getFacePos(x: number, y: number, face8: number) {
+        getFacePos(x: number, y: number, face8: number, out?: Point) {
             const poses = y & 1 ? posesOdd : posesEven
-            const [ox, oy] = poses[face8];
-            return {
-                x: x + ox,
-                y: y + oy
-            }
+            const pos = poses[face8];
+            out ||= {} as Point;
+            out.x = x + pos[0];
+            out.y = y + pos[1];
+            return out;
         }
     } as MapPosSolver<StaggeredMapInfo>)
 }

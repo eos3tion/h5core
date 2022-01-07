@@ -118,14 +118,14 @@ namespace jy {
          * @param x 
          * @param y 
          */
-        screen2Map?(x: number, y: number): Point;
+        screen2Map?(x: number, y: number, out?: Point): Point;
         /**
          * 此方法在执行过`bindMapPos`后生效  
          * 地图坐标转换为屏幕坐标
          * @param x 
          * @param y 
          */
-        map2Screen?(x: number, y: number): Point;
+        map2Screen?(x: number, y: number, out?: Point): Point;
 
 
         /**
@@ -164,7 +164,7 @@ namespace jy {
 
     export interface MapPosSolver<T extends MapInfo> {
         init?(map: T);
-        screen2Map(this: T, x: number, y: number): Point;
+        screen2Map(this: T, x: number, y: number, out?: Point): Point;
         /**
          * 地图坐标转为屏幕坐标，默认左上
          * @param this 
@@ -172,7 +172,7 @@ namespace jy {
          * @param y 
          * @param isCenter 转为中心点
          */
-        map2Screen(this: T, x: number, y: number, isCenter?: boolean): Point;
+        map2Screen(this: T, x: number, y: number, out?: Point, isCenter?: boolean): Point;
 
         getFacePos(x: number, y: number, face: number): Point;
     }

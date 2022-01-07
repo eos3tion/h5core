@@ -179,7 +179,7 @@ namespace jy {
                 }
             }
         },
-        map2Screen(x, y, isCenter?: boolean) {
+        map2Screen(x, y, out?: Point, isCenter?: boolean) {
             const { gridWidth, gridHeight } = this;
             let hw = gridWidth >> 1;
             let hh = gridHeight >> 1;
@@ -189,23 +189,23 @@ namespace jy {
                 x += hw;
                 y += hh;
             }
-            return {
-                x,
-                y,
-            }
+            out ||= {} as Point;
+            out.x = x;
+            out.y = y;
+            return out;
         },
-        screen2Map(x, y) {
-            return {
-                x: x / this.gridWidth | 0,
-                y: y / this.gridHeight | 0
-            }
+        screen2Map(x, y, out?: Point) {
+            out ||= {} as Point;
+            out.x = x / this.gridWidth | 0;
+            out.y = y / this.gridHeight | 0;
+            return out;
         },
-        getFacePos(x: number, y: number, face8: number) {
+        getFacePos(x: number, y: number, face8: number, out?: Point) {
             let pos = poses[face8];
-            return {
-                x: x + pos[0],
-                y: y + pos[1]
-            }
+            out ||= {} as Point;
+            out.x = x + pos[0];
+            out.y = y + pos[1];
+            return out;
         }
     } as MapPosSolver<GridMapInfo>)
 

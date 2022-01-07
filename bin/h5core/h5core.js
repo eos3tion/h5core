@@ -14573,7 +14573,7 @@ var jy;
                 };
             }
         },
-        map2Screen: function (x, y, isCenter) {
+        map2Screen: function (x, y, out, isCenter) {
             var _a = this, gridWidth = _a.gridWidth, gridHeight = _a.gridHeight;
             var hw = gridWidth >> 1;
             var hh = gridHeight >> 1;
@@ -14583,23 +14583,23 @@ var jy;
                 x += hw;
                 y += hh;
             }
-            return {
-                x: x,
-                y: y,
-            };
+            out || (out = {});
+            out.x = x;
+            out.y = y;
+            return out;
         },
-        screen2Map: function (x, y) {
-            return {
-                x: x / this.gridWidth | 0,
-                y: y / this.gridHeight | 0
-            };
+        screen2Map: function (x, y, out) {
+            out || (out = {});
+            out.x = x / this.gridWidth | 0;
+            out.y = y / this.gridHeight | 0;
+            return out;
         },
-        getFacePos: function (x, y, face8) {
+        getFacePos: function (x, y, face8, out) {
             var pos = poses[face8];
-            return {
-                x: x + pos[0],
-                y: y + pos[1]
-            };
+            out || (out = {});
+            out.x = x + pos[0];
+            out.y = y + pos[1];
+            return out;
         }
     });
 })(jy || (jy = {}));
@@ -15393,7 +15393,7 @@ var jy;
             map.hw = hw;
             polygon.points = [{ x: hw, y: 0 }, { x: gridWidth, y: hh }, { x: hw, y: gridHeight }, { x: 0, y: hh }];
         },
-        map2Screen: function (i, j, isCenter) {
+        map2Screen: function (i, j, out, isCenter) {
             var _a = this, gridWidth = _a.gridWidth, hw = _a.hw, hh = _a.hh;
             var x = i * gridWidth;
             if (j & 1) {
@@ -15404,12 +15404,12 @@ var jy;
                 x += hw;
                 y += hh;
             }
-            return {
-                x: x,
-                y: y,
-            };
+            out || (out = {});
+            out.x = x;
+            out.y = y;
+            return out;
         },
-        screen2Map: function (x, y) {
+        screen2Map: function (x, y, out) {
             var _a = this, gridHeight = _a.gridHeight, gridWidth = _a.gridWidth, hw = _a.hw, hh = _a.hh;
             var i = x / gridWidth >> 0;
             var j = y / gridHeight >> 0;
@@ -15431,7 +15431,10 @@ var jy;
                     j++;
                 }
             }
-            return { x: i, y: j };
+            out || (out = {});
+            out.x = i;
+            out.y = j;
+            return out;
         },
         /**
          * 根据当前坐标相邻的指定朝向对应的坐标
@@ -15446,13 +15449,13 @@ var jy;
          *              6 ←
          *              7 ↙
          */
-        getFacePos: function (x, y, face8) {
+        getFacePos: function (x, y, face8, out) {
             var poses = y & 1 ? posesOdd : posesEven;
-            var _a = poses[face8], ox = _a[0], oy = _a[1];
-            return {
-                x: x + ox,
-                y: y + oy
-            };
+            var pos = poses[face8];
+            out || (out = {});
+            out.x = x + pos[0];
+            out.y = y + pos[1];
+            return out;
         }
     });
 })(jy || (jy = {}));
