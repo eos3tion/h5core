@@ -5821,24 +5821,31 @@ var jy;
                     });
                 }
             }
+            ins.$recState = 3 /* Spawning */;
             if (typeof ins.onSpawn === "function") {
                 ins.onSpawn();
             }
             if (true) {
                 ins["_insid" /* DebugIDPropertyKey */] = _recid++;
             }
+            ins.$recState = 2 /* Spawn */;
             return ins;
         };
         /**
          * 回收
          */
         RecyclablePool.prototype.recycle = function (t) {
+            if (t.$recState === 1 /* Recycling */) {
+                return;
+            }
             var pool = this._pool;
             var idx = pool.indexOf(t);
             if (!~idx) { //不在池中才进行回收
+                t.$recState = 1 /* Recycling */;
                 if (typeof t.onRecycle === "function") {
                     t.onRecycle();
                 }
+                t.$recState = 0 /* Recycled */;
                 if (pool.length < this._max) {
                     pool.push(t);
                 }

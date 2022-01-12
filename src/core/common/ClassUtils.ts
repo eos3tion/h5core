@@ -3,6 +3,41 @@ namespace jy {
     export const enum ClassConst {
         DebugIDPropertyKey = "_insid"
     }
+
+    export const enum RecycleState {
+        /**
+         * 未初始化，已回收
+         */
+        Recycled = 0b00,
+
+        /**
+         * 准备回收  
+         * 准备放入池，正在执行 onRecycle 方法
+         */
+        Recycling = 0b01,
+
+        /**
+         * 已经初始化完毕
+         */
+        Spawn = 0b10,
+
+        /**
+         * 准备初始化  
+         * 已经从回收池中拿出，正在执行 onSpawn 方法
+         */
+        Spawning = 0b11,
+
+        /**
+         * 已从池中拿出的Mask
+         */
+        SpawnMask = 0b10,
+
+        /**
+         * 已经放入池的Mask
+         */
+        RecycleMask = 0b01,
+    }
+
     /**
      * 创建器
      */
@@ -63,6 +98,11 @@ namespace jy {
         onSpawn?: { () };
 
         /**
+         * @readonly
+         */
+        $recState?: RecycleState;
+
+        /**
          * 回收对象的唯一自增标识  
          * 从回收池取出后，会变化  
          * 此属性只有在`DEBUG`时有效
@@ -70,11 +110,11 @@ namespace jy {
         _insid?: number;
     }
 
-	/**
-	 * 回收池
-	 * @author 3tion
-	 *
-	 */
+    /**
+     * 回收池
+     * @author 3tion
+     *
+     */
     export class RecyclablePool<T> {
 
         private _pool: T[];
@@ -96,25 +136,32 @@ namespace jy {
                     })
                 }
             }
+            ins.$recState = RecycleState.Spawning
             if (typeof ins.onSpawn === "function") {
                 ins.onSpawn();
             }
             if (DEBUG) {
                 ins[ClassConst.DebugIDPropertyKey] = _recid++;
             }
+            ins.$recState = RecycleState.Spawn;
             return ins;
         }
 
         /**
          * 回收
          */
-        public recycle(t: T) {
+        public recycle(t: T & IRecyclable) {
+            if (t.$recState === RecycleState.Recycling) {
+                return
+            }
             let pool = this._pool;
             let idx = pool.indexOf(t);
             if (!~idx) {//不在池中才进行回收
-                if (typeof (t as IRecyclable).onRecycle === "function") {
-                    (t as IRecyclable).onRecycle();
+                t.$recState = RecycleState.Recycling;
+                if (typeof t.onRecycle === "function") {
+                    t.onRecycle();
                 }
+                t.$recState = RecycleState.Recycled;
                 if (pool.length < this._max) {
                     pool.push(t);
                 }
@@ -127,7 +174,7 @@ namespace jy {
             this._creator = TCreator;
         }
     }
-    export type Recyclable<T> = T & { recycle(): void };
+    export type Recyclable<T> = T & { recycle(): void, $recState?: RecycleState };
 
     if (DEBUG) {
         var _recid = 0;

@@ -3549,6 +3549,34 @@ declare namespace jy {
     const enum ClassConst {
         DebugIDPropertyKey = "_insid"
     }
+    const enum RecycleState {
+        /**
+         * 未初始化，已回收
+         */
+        Recycled = 0,
+        /**
+         * 准备回收
+         * 准备放入池，正在执行 onRecycle 方法
+         */
+        Recycling = 1,
+        /**
+         * 已经初始化完毕
+         */
+        Spawn = 2,
+        /**
+         * 准备初始化
+         * 已经从回收池中拿出，正在执行 onSpawn 方法
+         */
+        Spawning = 3,
+        /**
+         * 已从池中拿出的Mask
+         */
+        SpawnMask = 2,
+        /**
+         * 已经放入池的Mask
+         */
+        RecycleMask = 1
+    }
     /**
      * 创建器
      */
@@ -3600,6 +3628,10 @@ declare namespace jy {
             (): any;
         };
         /**
+         * @readonly
+         */
+        $recState?: RecycleState;
+        /**
          * 回收对象的唯一自增标识
          * 从回收池取出后，会变化
          * 此属性只有在`DEBUG`时有效
@@ -3619,11 +3651,12 @@ declare namespace jy {
         /**
          * 回收
          */
-        recycle(t: T): void;
+        recycle(t: T & IRecyclable): void;
         constructor(TCreator: Creator<T>, max?: number);
     }
     type Recyclable<T> = T & {
         recycle(): void;
+        $recState?: RecycleState;
     };
     /**
      * 获取一个recyclable的对象
