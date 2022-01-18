@@ -10939,7 +10939,8 @@ declare namespace jy {
         PointGroupPB = 108,
         PolyPointIdxPB = 109,
         TPointIdxPB = 110,
-        TiledMapPB = 111
+        TiledMapPB = 111,
+        SubPathPB = 112
     }
     /**
      * 地图的PB数据
@@ -11105,6 +11106,10 @@ declare namespace jy {
          * 可选参数 tiled生成的地图数据
          */
         tiledMap?: TiledMapPB;
+        /**
+         * 可选参数 子路径数据
+         */
+        subPaths?: SubPathPB[];
     }
 }
 /**
@@ -11237,6 +11242,26 @@ declare namespace jy {
          * 可选参数 点的索引集合
          */
         idxs?: number[];
+    }
+}
+/**
+ * 使用JunyouProtoTools，从 [文本框中，复制粘贴] 生成
+ * 生成时间 2022-01-18 17:00:14
+ **/
+declare namespace jy {
+    interface SubPathPB {
+        /**
+         * 子路径数据标识
+         */
+        id: string;
+        /**
+         * 地图类型 `0` GridMapInfo `1` NavMeshMapInfo `2` StaggerdMapInfo
+         */
+        type: number;
+        /**
+         * 特殊地图数据，根据`type`不同，里面数据不同
+         */
+        data: ByteArray;
     }
 }
 /**

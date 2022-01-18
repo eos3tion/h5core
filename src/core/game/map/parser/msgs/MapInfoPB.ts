@@ -56,5 +56,9 @@ declare namespace jy {
 		 * 可选参数 tiled生成的地图数据
 		 */
 		tiledMap?: TiledMapPB;
+		/**
+		 * 可选参数 子路径数据
+		 */
+		subPaths?: SubPathPB[];
 	}
 }
