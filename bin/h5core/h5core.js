@@ -4510,6 +4510,9 @@ var jy;
             configurable: true
         });
         TileMapLayer.prototype.addMap = function (uri, c, r, map) {
+            if (map.tiledMap) {
+                return;
+            }
             var pW = map.pWidth, pH = map.pHeight, noPic = map.noPic, maxPicX = map.maxPicX;
             if (!noPic || getMapBit(c, r, maxPicX + 1, noPic) == 0) { //检查是否需要放置底图
                 var tm = jy.ResManager.get(uri, this.noRes, this, uri, c, r, pW, pH);

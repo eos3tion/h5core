@@ -2971,6 +2971,10 @@ declare namespace jy {
          */
         noPic: Uint8Array;
         /**
+         * 是否有通过 Tiled 编辑器生成的数据
+         */
+        tiledMap?: TiledMapPB;
+        /**
          * 地图像素宽度
          */
         width: number;

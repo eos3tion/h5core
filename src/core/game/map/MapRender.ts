@@ -153,6 +153,9 @@ namespace jy {
         protected _idx: number;
 
         protected addMap(uri: string, c: number, r: number, map: MapInfo) {
+            if (map.tiledMap) {
+                return
+            }
             let { pWidth: pW, pHeight: pH, noPic, maxPicX } = map;
             if (!noPic || getMapBit(c, r, maxPicX + 1, noPic) == 0) {//检查是否需要放置底图
                 let tm = ResManager.get(uri, this.noRes, this, uri, c, r, pW, pH);
