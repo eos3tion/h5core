@@ -7021,20 +7021,18 @@ var jy;
          * 回收
          */
         RecyclablePool.prototype.recycle = function (t) {
-            if (t.$recState === 1 /* Recycling */) {
+            var state = t.$recState;
+            if (state === 1 /* Recycling */ || state === 0 /* Recycled */) {
                 return;
             }
             var pool = this._pool;
-            var idx = pool.indexOf(t);
-            if (!~idx) { //不在池中才进行回收
-                t.$recState = 1 /* Recycling */;
-                if (typeof t.onRecycle === "function") {
-                    t.onRecycle();
-                }
-                t.$recState = 0 /* Recycled */;
-                if (pool.length < this._max) {
-                    pool.push(t);
-                }
+            t.$recState = 1 /* Recycling */;
+            if (typeof t.onRecycle === "function") {
+                t.onRecycle();
+            }
+            t.$recState = 0 /* Recycled */;
+            if (pool.length < this._max) {
+                pool.push(t);
             }
         };
         return RecyclablePool;
