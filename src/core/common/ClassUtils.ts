@@ -151,20 +151,18 @@ namespace jy {
          * 回收
          */
         public recycle(t: T & IRecyclable) {
-            if (t.$recState === RecycleState.Recycling) {
+            const state = t.$recState;
+            if (state === RecycleState.Recycling || state === RecycleState.Recycled) {
                 return
             }
-            let pool = this._pool;
-            let idx = pool.indexOf(t);
-            if (!~idx) {//不在池中才进行回收
-                t.$recState = RecycleState.Recycling;
-                if (typeof t.onRecycle === "function") {
-                    t.onRecycle();
-                }
-                t.$recState = RecycleState.Recycled;
-                if (pool.length < this._max) {
-                    pool.push(t);
-                }
+            const pool = this._pool;
+            t.$recState = RecycleState.Recycling;
+            if (typeof t.onRecycle === "function") {
+                t.onRecycle();
+            }
+            t.$recState = RecycleState.Recycled;
+            if (pool.length < this._max) {
+                pool.push(t);
             }
         }
 
