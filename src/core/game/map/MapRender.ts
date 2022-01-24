@@ -153,9 +153,6 @@ namespace jy {
         protected _idx: number;
 
         protected addMap(uri: string, c: number, r: number, map: MapInfo) {
-            if (map.tiledMap) {
-                return
-            }
             let { pWidth: pW, pHeight: pH, noPic, maxPicX } = map;
             if (!noPic || getMapBit(c, r, maxPicX + 1, noPic) == 0) {//检查是否需要放置底图
                 let tm = ResManager.get(uri, this.noRes, this, uri, c, r, pW, pH);
@@ -203,6 +200,9 @@ namespace jy {
                 if (this.drawGrid) {
                     this.drawGrid(rect.x + ox, rect.y + oy, rect.width, rect.height, cM);
                 }
+            }
+            if (cM.tiledMap) {
+                return
             }
             this._idx = 0;
             if (checkRect(cM, rect, this.preload, this.addMap, this.check, this, ox, oy)) {

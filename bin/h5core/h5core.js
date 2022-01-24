@@ -4510,9 +4510,6 @@ var jy;
             configurable: true
         });
         TileMapLayer.prototype.addMap = function (uri, c, r, map) {
-            if (map.tiledMap) {
-                return;
-            }
             var pW = map.pWidth, pH = map.pHeight, noPic = map.noPic, maxPicX = map.maxPicX;
             if (!noPic || getMapBit(c, r, maxPicX + 1, noPic) == 0) { //检查是否需要放置底图
                 var tm = jy.ResManager.get(uri, this.noRes, this, uri, c, r, pW, pH);
@@ -4559,6 +4556,9 @@ var jy;
                 if (this.drawGrid) {
                     this.drawGrid(rect.x + ox, rect.y + oy, rect.width, rect.height, cM);
                 }
+            }
+            if (cM.tiledMap) {
+                return;
             }
             this._idx = 0;
             if (checkRect(cM, rect, this.preload, this.addMap, this.check, this, ox, oy)) {
