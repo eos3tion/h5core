@@ -8722,13 +8722,14 @@ var jy;
          * 初始化
          * @param time 设置资源销毁的时间(单位：毫秒)，至少大于检查时间 `30秒`
          */
-        init: function (time) {
+        init: function (time, checkTime) {
             if (time === void 0) { time = 300000 /* DisposeTime */; }
-            if (time < 30000 /* CheckTime */) {
-                time = 30000 /* CheckTime */;
+            if (checkTime === void 0) { checkTime = 30000 /* CheckTime */; }
+            if (time < checkTime) {
+                time = checkTime;
             }
             disposeTime = time;
-            jy.TimerUtil.addCallback(30000 /* CheckTime */, checkRes);
+            jy.TimerUtil.addCallback(checkTime, checkRes);
         },
         /**
          * 强制gc
@@ -8881,6 +8882,12 @@ var jy;
                     }
                     else {
                         data = sheet.bind(uri, data);
+                    }
+                    if (true) {
+                        if (!data.$bitmapData.source) { //source已经被干掉，则不合并
+                            jy.Log("\u8981\u7ED1\u5B9A\u7684DynamicTexture[uri:" + uri + "]\uFF0Csource\u5DF2\u7ECF\u88AB\u5E72\u6389\uFF0C\u8BF7\u68C0\u67E5\uFF0C\u5E94\u8BE5\u53EF\u4EE5\u8FDB\u884C\u4F18\u5316\uFF0C\u8D44\u6E90\u9996\u6B21\u6CE8\u518C:\n" + this["DEBUG_TRACE"]);
+                            console.log("控件列表", this._list);
+                        }
                     }
                 }
                 this._tex = data;
@@ -10558,7 +10565,6 @@ var jy;
                 return tex;
             }
             if (!tex.$bitmapData.source) { //source已经被干掉，则不合并
-                true && jy.ThrowError("\u8981\u7ED1\u5B9A\u7684DynamicTexture[uri:" + uri + "]\uFF0Csource\u5DF2\u7ECF\u88AB\u5E72\u6389\uFF0C\u8BF7\u68C0\u67E5\uFF0C\u5E94\u8BE5\u53EF\u4EE5\u8FDB\u884C\u4F18\u5316");
                 return tex;
             }
             _cur = cur;

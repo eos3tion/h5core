@@ -7541,7 +7541,7 @@ declare namespace jy {
          * 初始化
          * @param time 设置资源销毁的时间(单位：毫秒)，至少大于检查时间 `30秒`
          */
-        init(time?: number): void;
+        init(time?: number, checkTime?: number): void;
         /**
          * 强制gc
          * 清理所有未使用的资源

@@ -46,12 +46,12 @@ namespace jy {
          * 初始化
          * @param time 设置资源销毁的时间(单位：毫秒)，至少大于检查时间 `30秒`  
          */
-        init(time: number = ResourceManagerConst.DisposeTime) {
-            if (time < ResourceManagerConst.CheckTime) {
-                time = ResourceManagerConst.CheckTime;
+        init(time: number = ResourceManagerConst.DisposeTime, checkTime: number = ResourceManagerConst.CheckTime) {
+            if (time < checkTime) {
+                time = checkTime;
             }
             disposeTime = time;
-            TimerUtil.addCallback(ResourceManagerConst.CheckTime, checkRes);
+            TimerUtil.addCallback(checkTime, checkRes);
         },
 
         /**
