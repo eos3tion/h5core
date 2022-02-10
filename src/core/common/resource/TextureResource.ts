@@ -149,6 +149,12 @@ namespace jy {
                     } else {
                         data = sheet.bind(uri, data);
                     }
+                    if (DEBUG) {
+                        if (!data.$bitmapData.source) {//source已经被干掉，则不合并
+                            Log(`要绑定的DynamicTexture[uri:${uri}]，source已经被干掉，请检查，应该可以进行优化，资源首次注册:\n${this["DEBUG_TRACE"]}`);
+                            console.log("控件列表", this._list);
+                        }
+                    }
                 }
                 this._tex = data;
                 this.state = RequestState.COMPLETE;
