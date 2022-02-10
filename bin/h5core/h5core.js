@@ -8885,7 +8885,7 @@ var jy;
                     }
                     if (true) {
                         if (!data.$bitmapData.source) { //source已经被干掉，则不合并
-                            jy.Log("\u8981\u7ED1\u5B9A\u7684DynamicTexture[uri:" + uri + "]\uFF0Csource\u5DF2\u7ECF\u88AB\u5E72\u6389\uFF0C\u8BF7\u68C0\u67E5\uFF0C\u5E94\u8BE5\u53EF\u4EE5\u8FDB\u884C\u4F18\u5316\uFF0C\u8D44\u6E90\u9996\u6B21\u6CE8\u518C:\n" + this["DEBUG_TRACE"]);
+                            jy.Log("\u8981\u7ED1\u5B9A\u7684DynamicTexture[uri:" + uri + "]\uFF0Csource\u5DF2\u7ECF\u88AB\u5E72\u6389\uFF0C\u8BF7\u68C0\u67E5\uFF0C\u5E94\u8BE5\u53EF\u4EE5\u8FDB\u884C\u4F18\u5316\uFF0C\u8D44\u6E90\u9996\u6B21\u6CE8\u518C:\n" + this["$DEBUG_TRACE"]);
                             console.log("控件列表", this._list);
                         }
                     }
