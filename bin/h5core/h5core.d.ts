@@ -7120,6 +7120,17 @@ declare namespace jy {
      * @author 3tion
      */
     class WSNetService extends NetService {
+        protected _st: boolean;
+        /**
+         * 发送延迟时间
+         * 设置 0 则无延迟
+         * 否则send的数据会先进入缓冲，直到数据大于`immSendSize`，或者达到延迟时间
+         */
+        sendDelay: number;
+        /**
+         * 超过此值的数据也会立即发送
+         */
+        immSendSize: number;
         protected _ws: WebSocket;
         readonly dataMode: WSNetServiceDataMode;
         $send: (this: WSNetService, cmd: number, data: any, msgType: Key) => void;

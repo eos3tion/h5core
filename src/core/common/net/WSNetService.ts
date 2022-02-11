@@ -108,21 +108,34 @@ namespace jy {
     }
 
     function sendMultiDataPerFrame(this: WSNetService, cmd: number, data: any, msgType: string) {
-        //@ts-ignore
         let ws = this._ws;
         if (!ws || ws.readyState != WebSocket.OPEN) {
             return;
         }
-        //@ts-ignore
-        let { _pcmdList, _sendBuffer } = this;
+        let { _sendBuffer } = this;
         //没有同协议的指令，新增数据
         let pdata = recyclable(NetSendData);
         pdata.cmd = cmd;
         pdata.data = data;
         pdata.msgType = msgType;
-        _sendBuffer.reset();
         this.writeToBuffer(_sendBuffer, pdata);
         pdata.recycle();
+        if (_sendBuffer.length > this.immSendSize || this.sendDelay === 0) {
+            sendBuffer.call(this);
+        } else {
+            if (!this._st) {
+                this._st = true;
+                Global.callLater(sendBuffer, this.sendDelay, this);
+            }
+        }
+    }
+
+    function sendBuffer(this: WSNetService) {
+        let ws = this._ws;
+        if (!ws || ws.readyState != WebSocket.OPEN) {
+            return;
+        }
+        let { _pcmdList, _sendBuffer } = this;
         for (let pdata of _pcmdList) {
             this.writeToBuffer(_sendBuffer, pdata);
             pdata.recycle();
@@ -130,30 +143,30 @@ namespace jy {
         //清空被动数据
         _pcmdList.length = 0;
         ws.send(_sendBuffer.outBytes);
+        _sendBuffer.reset();
+        this._st = false;
     }
 
     function sendOneDataPerFrame(this: WSNetService, cmd: number, data: any, msgType: string) {
-        //@ts-ignore
         let ws = this._ws;
         if (!ws || ws.readyState != WebSocket.OPEN) {
             return;
         }
-        //@ts-ignore
         let { _pcmdList, _sendBuffer } = this;
         //没有同协议的指令，新增数据
         let pdata = recyclable(NetSendData);
         pdata.cmd = cmd;
         pdata.data = data;
         pdata.msgType = msgType;
-        _sendBuffer.reset();
         this.writeToBuffer(_sendBuffer, pdata);
         pdata.recycle();
         ws.send(_sendBuffer.outBytes);
+        _sendBuffer.reset();
         for (let pdata of _pcmdList) {
-            _sendBuffer.reset();
             this.writeToBuffer(_sendBuffer, pdata);
             pdata.recycle();
             ws.send(_sendBuffer.outBytes);
+            _sendBuffer.reset();
         }
         //清空被动数据
         _pcmdList.length = 0;
@@ -166,7 +179,6 @@ namespace jy {
      * @memberof WSNetService
      */
     function onData(this: WSNetService, ev: MessageEvent) {
-        //@ts-ignore
         const readBuffer = this._readBuffer;
         readBuffer.replaceBuffer(ev.data);
         readBuffer.position = 0;
@@ -179,7 +191,6 @@ namespace jy {
      * @protected
      */
     function onDataN(this: WSNetService, ev: MessageEvent) {
-        //@ts-ignore
         const readBuffer = this._readBuffer;
         let ab = new Uint8Array(<ArrayBuffer>ev.data);
         let temp: Uint8Array;
@@ -223,6 +234,19 @@ namespace jy {
      * @author 3tion
      */
     export class WSNetService extends NetService {
+
+        protected _st = false;
+        /**
+         * 发送延迟时间  
+         * 设置 0 则无延迟
+         * 否则send的数据会先进入缓冲，直到数据大于`immSendSize`，或者达到延迟时间
+         */
+        sendDelay = 0;
+
+        /**
+         * 超过此值的数据也会立即发送
+         */
+        immSendSize = 1400;
 
         protected _ws: WebSocket;
         readonly dataMode: WSNetServiceDataMode;
