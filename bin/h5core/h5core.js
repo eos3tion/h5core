@@ -2,10 +2,14 @@
 var __reflect = (this && this.__reflect) || function (p, c, t) {
     p.__class__ = c, t ? t.push(c) : t = [c], p.__types__ = p.__types__ ? t.concat(p.__types__) : t;
 };
-var __spreadArray = (this && this.__spreadArray) || function (to, from) {
-    for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
-        to[j] = from[i];
-    return to;
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
 };
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -60,7 +64,7 @@ var jy;
             for (var _i = 4; _i < arguments.length; _i++) {
                 args[_i - 4] = arguments[_i];
             }
-            var cInfo = jy.CallbackInfo.addToList.apply(jy.CallbackInfo, __spreadArray([this._callLaters, callback, thisObj], args));
+            var cInfo = jy.CallbackInfo.addToList.apply(jy.CallbackInfo, __spreadArray([this._callLaters, callback, thisObj], args, false));
             cInfo.time = now + (time || 0);
         };
         /**
@@ -77,7 +81,7 @@ var jy;
             for (var _i = 4; _i < arguments.length; _i++) {
                 args[_i - 4] = arguments[_i];
             }
-            var cInfo = jy.CallbackInfo.addToList2.apply(jy.CallbackInfo, __spreadArray([this._callLaters, callback, thisObj], args));
+            var cInfo = jy.CallbackInfo.addToList2.apply(jy.CallbackInfo, __spreadArray([this._callLaters, callback, thisObj], args, false));
             cInfo.time = now + (time || 0);
         };
         /**
@@ -421,7 +425,7 @@ var jy;
                 else {
                     jy.dispatch(-1996 /* SlowRender */);
                 }
-                console.log("\u4E0A\u6B21\u6267\u884C\u65F6\u95F4\u548C\u5F53\u524D\u65F6\u95F4\u5DEE\u503C\u8FC7\u957F[" + dis + "]");
+                console.log("\u4E0A\u6B21\u6267\u884C\u65F6\u95F4\u548C\u5F53\u524D\u65F6\u95F4\u5DEE\u503C\u8FC7\u957F[".concat(dis, "]"));
                 frameNow = _now;
             }
             else {
@@ -468,7 +472,7 @@ var jy;
         for (var _i = 2; _i < arguments.length; _i++) {
             args[_i - 2] = arguments[_i];
         }
-        nextTick2(jy.CallbackInfo.get.apply(jy.CallbackInfo, __spreadArray([callback, thisObj], args)));
+        nextTick2(jy.CallbackInfo.get.apply(jy.CallbackInfo, __spreadArray([callback, thisObj], args, false)));
     }
     function nextTick2(callback) {
         _nextTicks.push(callback);
@@ -487,14 +491,14 @@ var jy;
             for (var _i = 3; _i < arguments.length; _i++) {
                 args[_i - 3] = arguments[_i];
             }
-            return _callLater.callLater.apply(_callLater, __spreadArray([callback, now, time, thisObj], args));
+            return _callLater.callLater.apply(_callLater, __spreadArray([callback, now, time, thisObj], args, false));
         },
         callLater3: function (callback, time, thisObj) {
             var args = [];
             for (var _i = 3; _i < arguments.length; _i++) {
                 args[_i - 3] = arguments[_i];
             }
-            return _callLater.callLater3.apply(_callLater, __spreadArray([callback, now, time, thisObj], args));
+            return _callLater.callLater3.apply(_callLater, __spreadArray([callback, now, time, thisObj], args, false));
         },
         clearCallLater: function (callback, thisObj) {
             return _callLater.clearCallLater(callback, thisObj);
@@ -781,10 +785,10 @@ String.subHandler = {};
 String.regSubHandler = function (key, handler) {
     if (true) {
         if (handler.length != 1) {
-            jy.ThrowError("String.regSubHandler\u6CE8\u518C\u7684\u51FD\u6570\uFF0C\u53C2\u6570\u6570\u91CF\u5FC5\u987B\u4E3A\u4E00\u4E2A\uFF0C\u5806\u6808\uFF1A\n" + new Error().stack + "\n\u51FD\u6570\u5185\u5BB9\uFF1A" + handler.toString());
+            jy.ThrowError("String.regSubHandler\u6CE8\u518C\u7684\u51FD\u6570\uFF0C\u53C2\u6570\u6570\u91CF\u5FC5\u987B\u4E3A\u4E00\u4E2A\uFF0C\u5806\u6808\uFF1A\n".concat(new Error().stack, "\n\u51FD\u6570\u5185\u5BB9\uFF1A").concat(handler.toString()));
         }
         if (key in this.subHandler) {
-            jy.ThrowError("String.regSubHandler\u6CE8\u518C\u7684\u51FD\u6570\uFF0C\u6CE8\u518C\u4E86\u91CD\u590D\u7684key[" + key + "]\uFF0C\u5806\u6808\uFF1A\n" + new Error().stack);
+            jy.ThrowError("String.regSubHandler\u6CE8\u518C\u7684\u51FD\u6570\uFF0C\u6CE8\u518C\u4E86\u91CD\u590D\u7684key[".concat(key, "]\uFF0C\u5806\u6808\uFF1A\n").concat(new Error().stack));
         }
     }
     this.subHandler[key] = handler;
@@ -832,7 +836,7 @@ Array.binaryInsert = function (partArr, item, filter) {
     while (left <= right) {
         var middle = (left + right) >> 1;
         var test = partArr[middle];
-        if (filter.apply(void 0, __spreadArray([test], args))) {
+        if (filter.apply(void 0, __spreadArray([test], args, false))) {
             right = middle - 1;
         }
         else {
@@ -929,7 +933,7 @@ Object.defineProperties(Array.prototype, jy.makeDefDescriptors({
                     var typeb = typeof bv;
                     if (typea == "object" || typeb == "object") {
                         if (true) {
-                            jy.ThrowError("multiSort \u6BD4\u8F83\u7684\u7C7B\u578B\u4E0D\u5E94\u4E3Aobject," + typea + "    " + typeb);
+                            jy.ThrowError("multiSort \u6BD4\u8F83\u7684\u7C7B\u578B\u4E0D\u5E94\u4E3Aobject,".concat(typea, "    ").concat(typeb));
                         }
                         return 0;
                     }
@@ -942,7 +946,7 @@ Object.defineProperties(Array.prototype, jy.makeDefDescriptors({
                         }
                         else {
                             if (true) {
-                                jy.ThrowError("multiSort \u6BD4\u8F83\u7684\u7C7B\u578B\u4E0D\u4E00\u81F4," + typea + "    " + typeb);
+                                jy.ThrowError("multiSort \u6BD4\u8F83\u7684\u7C7B\u578B\u4E0D\u4E00\u81F4,".concat(typea, "    ").concat(typeb));
                             }
                             return 0;
                         }
@@ -1327,7 +1331,7 @@ var jy;
                 this._asyncHelper = _asyncHelper = new jy.AsyncHelper();
                 _asyncHelper.isReady = this.isReady;
             }
-            _asyncHelper.addReadyExecute.apply(_asyncHelper, __spreadArray([handle, thisObj], args));
+            _asyncHelper.addReadyExecute.apply(_asyncHelper, __spreadArray([handle, thisObj], args, false));
         };
         Object.defineProperty(FHost.prototype, "isReady", {
             get: function () {
@@ -1821,7 +1825,7 @@ if (true) {
             $gm.printSendFilter = undefined;
         }
         else {
-            $gm.printSendFilter = $gm.__getNSFilter.apply($gm, __spreadArray([filter], args));
+            $gm.printSendFilter = $gm.__getNSFilter.apply($gm, __spreadArray([filter], args, false));
         }
     };
     $gm.printReceive = function (filter) {
@@ -1833,7 +1837,7 @@ if (true) {
             $gm.printReceiveFilter = undefined;
         }
         else {
-            $gm.printReceiveFilter = $gm.__getNSFilter.apply($gm, __spreadArray([filter], args));
+            $gm.printReceiveFilter = $gm.__getNSFilter.apply($gm, __spreadArray([filter], args, false));
         }
     };
     $gm.showNSLog = function (filter) {
@@ -1841,13 +1845,13 @@ if (true) {
         for (var _i = 1; _i < arguments.length; _i++) {
             args[_i - 1] = arguments[_i];
         }
-        var nsFilter = $gm.__getNSFilter.apply($gm, __spreadArray([filter], args));
+        var nsFilter = $gm.__getNSFilter.apply($gm, __spreadArray([filter], args, false));
         var output = [];
         var msg = "";
         $gm.nsLogs.forEach(function (log) {
             if ($gm.__nsLogCheck(log, nsFilter)) {
                 output.push({ type: log.type, time: log.time, cmd: log.cmd, data: log.data, json: JSON.stringify(log.data) });
-                msg += log.time + "\t" + log.type + "\t" + log.cmd + "\t" + JSON.stringify(log.data) + "\n";
+                msg += "".concat(log.time, "\t").concat(log.type, "\t").concat(log.cmd, "\t").concat(JSON.stringify(log.data), "\n");
             }
         });
         console.table(output);
@@ -1865,7 +1869,7 @@ if (true) {
                 }
             }
             else if (filter) {
-                return filter.apply(void 0, __spreadArray([log], filterParams));
+                return filter.apply(void 0, __spreadArray([log], filterParams, false));
             }
             else {
                 return true;
@@ -2067,7 +2071,7 @@ var jy;
         NetService.prototype._register = function (cmd, handler, priotity, once) {
             if (cmd > 32767 || cmd < -32768) {
                 if (true) {
-                    jy.Log("\u534F\u8BAE\u53F7\u7684\u8303\u56F4\u5FC5\u987B\u662F-32768~32767\u4E4B\u95F4\uFF0C\u5F53\u524Dcmd:" + cmd);
+                    jy.Log("\u534F\u8BAE\u53F7\u7684\u8303\u56F4\u5FC5\u987B\u662F-32768~32767\u4E4B\u95F4\uFF0C\u5F53\u524Dcmd:".concat(cmd));
                 }
                 return false;
             }
@@ -2224,7 +2228,7 @@ var jy;
                     if (len > 0 && type in jy.NSBytesLen) {
                         var blen = jy.NSBytesLen[type];
                         if (true && blen != len) {
-                            jy.Log("\u89E3\u6790\u6307\u4EE4\u65F6\uFF0C\u7C7B\u578B[" + type + "]\u7684\u6307\u4EE4\u957F\u5EA6[" + len + "]\u548C\u9884\u8BBE\u7684\u957F\u5EA6[" + blen + "]\u4E0D\u5339\u914D");
+                            jy.Log("\u89E3\u6790\u6307\u4EE4\u65F6\uFF0C\u7C7B\u578B[".concat(type, "]\u7684\u6307\u4EE4\u957F\u5EA6[").concat(len, "]\u548C\u9884\u8BBE\u7684\u957F\u5EA6[").concat(blen, "]\u4E0D\u5339\u914D"));
                         }
                         if (len < blen) {
                             flag = false;
@@ -2264,7 +2268,7 @@ var jy;
                         catch (e) {
                             flag = false;
                             if (true) {
-                                jy.Log("\u901A\u4FE1\u6D88\u606F\u89E3\u6790\u65F6cmd[" + cmd + "]\uFF0C\u6570\u636E\u89E3\u6790\u51FA\u73B0\u9519\u8BEF\uFF1A" + e.message);
+                                jy.Log("\u901A\u4FE1\u6D88\u606F\u89E3\u6790\u65F6cmd[".concat(cmd, "]\uFF0C\u6570\u636E\u89E3\u6790\u51FA\u73B0\u9519\u8BEF\uFF1A").concat(e.message));
                             }
                         }
                     }
@@ -2277,7 +2281,7 @@ var jy;
                     }
                 }
                 else if (true) {
-                    jy.Log("\u901A\u4FE1\u6D88\u606F\u89E3\u6790\u65F6cmd[" + cmd + "]\uFF0C\u51FA\u73B0\u672A\u6CE8\u518C\u7684\u7C7B\u578B");
+                    jy.Log("\u901A\u4FE1\u6D88\u606F\u89E3\u6790\u65F6cmd[".concat(cmd, "]\uFF0C\u51FA\u73B0\u672A\u6CE8\u518C\u7684\u7C7B\u578B"));
                 }
                 bytes.position = endPos;
             }
@@ -2574,7 +2578,7 @@ var jy;
          */
         function regStruct(msgType, struct) {
             if (true && (msgType in structDict)) {
-                jy.ThrowError("PB\u7684\u7ED3\u6784\u5B9A\u4E49\u7684key[" + msgType + "]\u6CE8\u518C\u91CD\u590D");
+                jy.ThrowError("PB\u7684\u7ED3\u6784\u5B9A\u4E49\u7684key[".concat(msgType, "]\u6CE8\u518C\u91CD\u590D"));
             }
             var def = defDict[msgType];
             if (def) {
@@ -2685,7 +2689,7 @@ var jy;
             }
             var struct = typeof msgType == "object" ? msgType : structDict[msgType];
             if (!struct) {
-                jy.ThrowError("\u975E\u6CD5\u7684\u901A\u4FE1\u7C7B\u578B[" + msgType + "]");
+                jy.ThrowError("\u975E\u6CD5\u7684\u901A\u4FE1\u7C7B\u578B[".concat(msgType, "]"));
                 return;
             }
             //检查处理默认值
@@ -2698,7 +2702,7 @@ var jy;
                 var idx = tag >>> 3;
                 var body = struct[idx];
                 if (!body) {
-                    jy.ThrowError("\u8BFB\u53D6\u6D88\u606F\u7C7B\u578B\u4E3A\uFF1A" + msgType + "\uFF0C\u7D22\u5F15" + idx + "\u65F6\u6570\u636E\u51FA\u73B0\u9519\u8BEF\uFF0C\u627E\u4E0D\u5230\u5BF9\u5E94\u7684\u6570\u636E\u7ED3\u6784\u914D\u7F6E");
+                    jy.ThrowError("\u8BFB\u53D6\u6D88\u606F\u7C7B\u578B\u4E3A\uFF1A".concat(msgType, "\uFF0C\u7D22\u5F15").concat(idx, "\u65F6\u6570\u636E\u51FA\u73B0\u9519\u8BEF\uFF0C\u627E\u4E0D\u5230\u5BF9\u5E94\u7684\u6570\u636E\u7ED3\u6784\u914D\u7F6E"));
                     // 使用默认读取
                     readValue(tag, bytes);
                     continue;
@@ -2745,7 +2749,7 @@ var jy;
                     case 10 /* Group */: //(protobuf 已弃用)
                         value = undefined;
                         if (true) {
-                            jy.ThrowError("\u8BFB\u53D6\u6D88\u606F\u7C7B\u578B\u4E3A\uFF1A" + msgType + "\uFF0C\u7D22\u5F15" + idx + "\u65F6\u6570\u636E\u51FA\u73B0\u5DF2\u5F03\u7528\u7684GROUP\u5206\u7EC4\u7C7B\u578B");
+                            jy.ThrowError("\u8BFB\u53D6\u6D88\u606F\u7C7B\u578B\u4E3A\uFF1A".concat(msgType, "\uFF0C\u7D22\u5F15").concat(idx, "\u65F6\u6570\u636E\u51FA\u73B0\u5DF2\u5F03\u7528\u7684GROUP\u5206\u7EC4\u7C7B\u578B"));
                         }
                         break;
                     case 11 /* Message */: //消息
@@ -2830,7 +2834,7 @@ var jy;
             }
             var struct = typeof msgType == "object" ? msgType : structDict[msgType];
             if (!struct) {
-                jy.ThrowError("\u975E\u6CD5\u7684\u901A\u4FE1\u7C7B\u578B[" + msgType + "]\uFF0C\u5806\u6808\u4FE1\u606F:" + new Error());
+                jy.ThrowError("\u975E\u6CD5\u7684\u901A\u4FE1\u7C7B\u578B[".concat(msgType, "]\uFF0C\u5806\u6808\u4FE1\u606F:").concat(new Error()));
                 return;
             }
             if (!bytes) {
@@ -2898,7 +2902,7 @@ var jy;
                     case 18 /* SInt64 */:
                     case 4 /* UInt64 */:
                         if (valueType != "number") {
-                            jy.ThrowError("PBMessageUtils\u5199\u5165\u6570\u636E\u65F6\u5019\uFF0C\u4F7F\u7528\u7684\u7C7B\u578B\uFF1A" + type + "\uFF0C\u503C\u4E3A\uFF1A" + value + "\uFF0C\u6570\u636E\u7C7B\u578B\u4E3A\uFF1A" + valueType + "\uFF0C\u6570\u636E\u7C7B\u578B\u4E0D\u5339\u914D");
+                            jy.ThrowError("PBMessageUtils\u5199\u5165\u6570\u636E\u65F6\u5019\uFF0C\u4F7F\u7528\u7684\u7C7B\u578B\uFF1A".concat(type, "\uFF0C\u503C\u4E3A\uFF1A").concat(value, "\uFF0C\u6570\u636E\u7C7B\u578B\u4E3A\uFF1A").concat(valueType, "\uFF0C\u6570\u636E\u7C7B\u578B\u4E0D\u5339\u914D"));
                         }
                         out = +value || 0;
                         break;
@@ -2907,13 +2911,13 @@ var jy;
                         break;
                     case 9 /* String */:
                         if (valueType != "string") {
-                            jy.ThrowError("PBMessageUtils\u5199\u5165\u6570\u636E\u65F6\u5019\uFF0C\u4F7F\u7528\u7684\u7C7B\u578B\uFF1A" + type + "\uFF0C\u503C\u4E3A\uFF1A" + value + "\uFF0C\u6570\u636E\u7C7B\u578B\u4E3A\uFF1A" + valueType + "\uFF0C\u6570\u636E\u7C7B\u578B\u4E0D\u5339\u914D");
+                            jy.ThrowError("PBMessageUtils\u5199\u5165\u6570\u636E\u65F6\u5019\uFF0C\u4F7F\u7528\u7684\u7C7B\u578B\uFF1A".concat(type, "\uFF0C\u503C\u4E3A\uFF1A").concat(value, "\uFF0C\u6570\u636E\u7C7B\u578B\u4E3A\uFF1A").concat(valueType, "\uFF0C\u6570\u636E\u7C7B\u578B\u4E0D\u5339\u914D"));
                         }
                         out = value + "";
                         break;
                     case 12 /* Bytes */:
                         if (!(value instanceof jy.ByteArray)) {
-                            jy.ThrowError("PBMessageUtils\u5199\u5165\u6570\u636E\u65F6\u5019\uFF0C\u4F7F\u7528\u7684\u7C7B\u578B\uFF1A" + type + "\uFF0C\u503C\u5FC5\u987B\u4E3A[ByteArray]\u7684\u5B9E\u4F8B");
+                            jy.ThrowError("PBMessageUtils\u5199\u5165\u6570\u636E\u65F6\u5019\uFF0C\u4F7F\u7528\u7684\u7C7B\u578B\uFF1A".concat(type, "\uFF0C\u503C\u5FC5\u987B\u4E3A[ByteArray]\u7684\u5B9E\u4F8B"));
                         }
                         break;
                 }
@@ -2996,7 +3000,7 @@ var jy;
         function checkUInt32(value, type) {
             value = +value || 0;
             if (value > 4294967295 || value < 0) {
-                jy.ThrowError("PBMessageUtils\u5199\u5165\u6570\u636E\u65F6\u5019\uFF0C\u4F7F\u7528\u7684\u7C7B\u578B\uFF1A" + type + "\uFF0C\u503C\u4E3A\uFF1A" + value + "\uFF0C\u4F46\u8D85\u51FA\u6574\u578B\u8303\u56F4\u3002");
+                jy.ThrowError("PBMessageUtils\u5199\u5165\u6570\u636E\u65F6\u5019\uFF0C\u4F7F\u7528\u7684\u7C7B\u578B\uFF1A".concat(type, "\uFF0C\u503C\u4E3A\uFF1A").concat(value, "\uFF0C\u4F46\u8D85\u51FA\u6574\u578B\u8303\u56F4\u3002"));
                 value >>> 0;
             }
             return value;
@@ -3004,7 +3008,7 @@ var jy;
         function checkInt32(value, type) {
             value = +value || 0;
             if (value > 2147483647 || value < -2147483648) {
-                jy.ThrowError("PBMessageUtils\u5199\u5165\u6570\u636E\u65F6\u5019\uFF0C\u4F7F\u7528\u7684\u7C7B\u578B\uFF1A" + type + "\uFF0C\u503C\u4E3A\uFF1A" + value + "\uFF0C\u4F46\u8D85\u51FA\u6574\u578B\u8303\u56F4\u3002");
+                jy.ThrowError("PBMessageUtils\u5199\u5165\u6570\u636E\u65F6\u5019\uFF0C\u4F7F\u7528\u7684\u7C7B\u578B\uFF1A".concat(type, "\uFF0C\u503C\u4E3A\uFF1A").concat(value, "\uFF0C\u4F46\u8D85\u51FA\u6574\u578B\u8303\u56F4\u3002"));
                 value >> 0;
             }
             return value;
@@ -3075,7 +3079,7 @@ var jy;
             }
             else {
                 if (true) {
-                    jy.ThrowError("\u4F7F\u7528\u7684\u989C\u8272" + c + "\u6709\u8BEF");
+                    jy.ThrowError("\u4F7F\u7528\u7684\u989C\u8272".concat(c, "\u6709\u8BEF"));
                 }
                 return 0;
             }
@@ -3171,7 +3175,7 @@ var jy;
          */
         willReplacedFunction: function () {
             if (true) {
-                jy.ThrowError("\u9700\u8981\u88AB\u66FF\u6362\u7684\u65B9\u6CD5\uFF0C\u6CA1\u6709\u88AB\u66FF\u6362\uFF0C\u5806\u6808\u4FE1\u606F\uFF1A" + new Error().stack);
+                jy.ThrowError("\u9700\u8981\u88AB\u66FF\u6362\u7684\u65B9\u6CD5\uFF0C\u6CA1\u6709\u88AB\u66FF\u6362\uFF0C\u5806\u6808\u4FE1\u606F\uFF1A".concat(new Error().stack));
             }
         },
         /**
@@ -3977,7 +3981,7 @@ var jy;
             if (!_tList) {
                 this._tList = _tList = [];
             }
-            var info = jy.CallbackInfo.addToList.apply(jy.CallbackInfo, __spreadArray([_tList, callback, thisObj], args));
+            var info = jy.CallbackInfo.addToList.apply(jy.CallbackInfo, __spreadArray([_tList, callback, thisObj], args, false));
             info.time = time;
             jy.TimerUtil.add(time, info);
             if (trigger) {
@@ -4816,7 +4820,7 @@ var jy;
             for (var i = 0; i < len; i++) {
                 var data = datas[i];
                 var render = renders[i];
-                handle.apply(void 0, __spreadArray([data, render, i], otherParams));
+                handle.apply(void 0, __spreadArray([data, render, i], otherParams, false));
             }
             return this;
         };
@@ -4838,7 +4842,7 @@ var jy;
             for (var i = 0; i < len; i++) {
                 var data = datas[i];
                 var render = renders[i];
-                if (handle.apply(void 0, __spreadArray([data, render, i], otherParams))) {
+                if (handle.apply(void 0, __spreadArray([data, render, i], otherParams, false))) {
                     return render;
                 }
             }
@@ -5612,14 +5616,14 @@ var jy;
             catch (e) {
                 if (true) {
                     var debug = info["_debug"];
-                    jy.ThrowError("CallbackInfo\u6267\u884C\u62A5\u9519\uFF0C\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n}==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + e.stack);
-                    console.log.apply(console, __spreadArray(["参数列表"], args));
+                    jy.ThrowError("CallbackInfo\u6267\u884C\u62A5\u9519\uFF0C\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n".concat(debug.handle, "\n}==============Stack============:\n").concat(debug.stack, "\n\u5F53\u524D\u5806\u6808\uFF1A").concat(e.stack));
+                    console.log.apply(console, __spreadArray(["参数列表"], args, false));
                 }
             }
         }
         else if (true) {
             var debug = info["_debug"];
-            jy.ThrowError("\u5BF9\u5DF2\u56DE\u6536\u7684CallbackInfo\u6267\u884C\u4E86\u56DE\u8C03\uFF0C\u6700\u540E\u4E00\u6B21\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n" + debug.handle + "\n==============Stack============:\n" + debug.stack + "\n\u5F53\u524D\u5806\u6808\uFF1A" + new Error().stack);
+            jy.ThrowError("\u5BF9\u5DF2\u56DE\u6536\u7684CallbackInfo\u6267\u884C\u4E86\u56DE\u8C03\uFF0C\u6700\u540E\u4E00\u6B21\u8D4B\u503C\u5185\u5BB9\uFF1A============Function=============:\n".concat(debug.handle, "\n==============Stack============:\n").concat(debug.stack, "\n\u5F53\u524D\u5806\u6808\uFF1A").concat(new Error().stack));
         }
     }
     var CallbackInfo = /** @class */ (function () {
@@ -5715,7 +5719,7 @@ var jy;
                     return callback;
                 }
             }
-            callback = this.get.apply(this, __spreadArray([handle, thisObj], args));
+            callback = this.get.apply(this, __spreadArray([handle, thisObj], args, false));
             list.push(callback);
             return callback;
         };
@@ -5733,7 +5737,7 @@ var jy;
                 args[_i - 3] = arguments[_i];
             }
             //检查是否有this和handle相同的callback
-            var callback = this.get.apply(this, __spreadArray([handle, thisObj], args));
+            var callback = this.get.apply(this, __spreadArray([handle, thisObj], args, false));
             list.push(callback);
             return callback;
         };
@@ -6035,7 +6039,7 @@ var jy;
                     }
                     else if (Comparations.indexOf(char) > -1) {
                         if (nod.op) {
-                            throw Error(char + "\u5DE6\u8FB9\u6CA1\u6709\u6B63\u786E\u7684\u6BD4\u8F83\u503C\uFF0C\u8BF7\u68C0\u67E5\uFF1A" + content.substring(0, pos));
+                            throw Error("".concat(char, "\u5DE6\u8FB9\u6CA1\u6709\u6B63\u786E\u7684\u6BD4\u8F83\u503C\uFF0C\u8BF7\u68C0\u67E5\uFF1A").concat(content.substring(0, pos)));
                         }
                         nod.op = 2 /* Comperation */;
                         var nextStart = pos + 1;
@@ -6193,7 +6197,7 @@ var jy;
         return function (host, property) {
             var data = host.getPropertyDescriptor(property);
             if (data && !data.configurable) {
-                return true && jy.ThrowError("\u65E0\u6CD5\u7ED1\u5B9A" + host + "," + property + ",\u8BE5\u5C5E\u6027\u4E0D\u53EF\u8BBE\u7F6E");
+                return true && jy.ThrowError("\u65E0\u6CD5\u7ED1\u5B9A".concat(host, ",").concat(property, ",\u8BE5\u5C5E\u6027\u4E0D\u53EF\u8BBE\u7F6E"));
             }
             var key = "$d_fire_e$" + property;
             var events = host[key];
@@ -6228,7 +6232,7 @@ var jy;
                     };
                 }
                 else {
-                    return true && jy.ThrowError("\u65E0\u6CD5\u7ED1\u5B9A" + host + "," + property);
+                    return true && jy.ThrowError("\u65E0\u6CD5\u7ED1\u5B9A".concat(host, ",").concat(property));
                 }
                 Object.defineProperty(host, property, data);
             }
@@ -6272,7 +6276,7 @@ var jy;
         if (!fn) {
             throw new Error('not supported');
         }
-        var memoizeKey = "$memoize$" + key;
+        var memoizeKey = "$memoize$".concat(key);
         descriptor[fnKey] = function () {
             var args = [];
             for (var _i = 0; _i < arguments.length; _i++) {
@@ -6523,7 +6527,7 @@ var jy;
                         return getPath(parent_1, paths) + p.path;
                     }
                     else if (true) {
-                        jy.ThrowError("\u8DEF\u5F84[" + p.path + "]\u914D\u7F6E\u4E86\u7236\u7EA7(parent)\uFF0C\u4F46\u662F\u627E\u4E0D\u5230\u5BF9\u5E94\u7684\u7236\u7EA7");
+                        jy.ThrowError("\u8DEF\u5F84[".concat(p.path, "]\u914D\u7F6E\u4E86\u7236\u7EA7(parent)\uFF0C\u4F46\u662F\u627E\u4E0D\u5230\u5BF9\u5E94\u7684\u7236\u7EA7"));
                     }
                 }
                 return p.path;
@@ -6580,7 +6584,7 @@ var jy;
                 }
                 if (true) {
                     if (url.search(/(undefined|null)/) > -1) {
-                        jy.ThrowError("url\u4E2D\u51FA\u73B0\u4E86" + RegExp.$1 + "\u8FD9\u6837\u7684\u5B57\u7B26\uFF0C\u8BF7\u68C0\u67E5");
+                        jy.ThrowError("url\u4E2D\u51FA\u73B0\u4E86".concat(RegExp.$1, "\u8FD9\u6837\u7684\u5B57\u7B26\uFF0C\u8BF7\u68C0\u67E5"));
                     }
                 }
                 return url;
@@ -6779,7 +6783,7 @@ var jy;
             }
             catch (e) {
                 if (true) {
-                    jy.ThrowError("\u89E3\u6790\u914D\u7F6E:" + key + "\u51FA\u9519", e);
+                    jy.ThrowError("\u89E3\u6790\u914D\u7F6E:".concat(key, "\u51FA\u9519"), e);
                 }
             }
             return dict;
@@ -6858,16 +6862,16 @@ var jy;
             var id = t[idKey];
             if (true) {
                 if (typeof id === "object") {
-                    jy.Log("\u914D\u7F6E" + key + "\u7684\u6570\u636E\u6709\u8BEF\uFF0C\u552F\u4E00\u6807\u8BC6" + idKey + "\u4E0D\u80FD\u4E3A\u5BF9\u8C61");
+                    jy.Log("\u914D\u7F6E".concat(key, "\u7684\u6570\u636E\u6709\u8BEF\uFF0C\u552F\u4E00\u6807\u8BC6").concat(idKey, "\u4E0D\u80FD\u4E3A\u5BF9\u8C61"));
                 }
                 if (id in dict) {
-                    jy.Log("\u914D\u7F6E" + key + "\u7684\u6570\u636E\u6709\u8BEF\uFF0C\u552F\u4E00\u6807\u8BC6" + idKey + "\u6709\u91CD\u590D\u503C\uFF1A" + id);
+                    jy.Log("\u914D\u7F6E".concat(key, "\u7684\u6570\u636E\u6709\u8BEF\uFF0C\u552F\u4E00\u6807\u8BC6").concat(idKey, "\u6709\u91CD\u590D\u503C\uFF1A").concat(id));
                 }
             }
             dict[id] = t;
         }
         else if (true) {
-            jy.Log("\u914D\u7F6E" + key + "\u89E3\u6790\u6709\u8BEF\uFF0C\u65E0\u6CD5\u627E\u5230\u6307\u5B9A\u7684\u552F\u4E00\u6807\u793A\uFF1A" + idKey + "\uFF0C\u6570\u636E\u7D22\u5F15\uFF1A" + idx);
+            jy.Log("\u914D\u7F6E".concat(key, "\u89E3\u6790\u6709\u8BEF\uFF0C\u65E0\u6CD5\u627E\u5230\u6307\u5B9A\u7684\u552F\u4E00\u6807\u793A\uFF1A").concat(idKey, "\uFF0C\u6570\u636E\u7D22\u5F15\uFF1A").concat(idx));
         }
     }
     var CfgHeadStruct = {
@@ -7025,7 +7029,7 @@ var jy;
             }
             catch (e) {
                 if (true) {
-                    jy.ThrowError("\u89E3\u6790\u914D\u7F6E:" + key + "\u51FA\u9519\uFF0C\u8BF7\u91CD\u65B0\u6253\u5305\u914D\u7F6E", e, true);
+                    jy.ThrowError("\u89E3\u6790\u914D\u7F6E:".concat(key, "\u51FA\u9519\uFF0C\u8BF7\u91CD\u65B0\u6253\u5305\u914D\u7F6E"), e, true);
                 }
             }
             return dict;
@@ -7560,7 +7564,7 @@ var jy;
                         bin.handler(data);
                     }
                     catch (e) {
-                        jy.ThrowError("NetHander Error:" + JSON.stringify(data), e);
+                        jy.ThrowError("NetHander Error:".concat(JSON.stringify(data)), e);
                     }
                     if (bin.once) { //如果只执行一次的，就移除
                         this.remove(cmd, bin.handler);
@@ -8097,7 +8101,7 @@ var jy;
             addResResult[1] = false;
             if (old) {
                 if (old != resItem && old.url != resItem.url) {
-                    true && jy.ThrowError("\u8D44\u6E90[" + uri + "]\u91CD\u540D\uFF0C\u52A0\u8F7D\u8DEF\u5F84\u5206\u5E03\u4E3A[" + old.url + "]\u548C[" + resItem.url + "]");
+                    true && jy.ThrowError("\u8D44\u6E90[".concat(uri, "]\u91CD\u540D\uFF0C\u52A0\u8F7D\u8DEF\u5F84\u5206\u5E03\u4E3A[").concat(old.url, "]\u548C[").concat(resItem.url, "]"));
                 }
                 else { //资源和加载路径完全相同
                     var state = old.state;
@@ -8907,7 +8911,7 @@ var jy;
                     }
                     if (true) {
                         if (!data.$bitmapData.source) { //source已经被干掉，则不合并
-                            jy.Log("\u8981\u7ED1\u5B9A\u7684DynamicTexture[uri:" + uri + "]\uFF0Csource\u5DF2\u7ECF\u88AB\u5E72\u6389\uFF0C\u8BF7\u68C0\u67E5\uFF0C\u5E94\u8BE5\u53EF\u4EE5\u8FDB\u884C\u4F18\u5316\uFF0C\u8D44\u6E90\u9996\u6B21\u6CE8\u518C:\n" + this["$DEBUG_TRACE"]);
+                            jy.Log("\u8981\u7ED1\u5B9A\u7684DynamicTexture[uri:".concat(uri, "]\uFF0Csource\u5DF2\u7ECF\u88AB\u5E72\u6389\uFF0C\u8BF7\u68C0\u67E5\uFF0C\u5E94\u8BE5\u53EF\u4EE5\u8FDB\u884C\u4F18\u5316\uFF0C\u8D44\u6E90\u9996\u6B21\u6CE8\u518C:\n").concat(this["$DEBUG_TRACE"]));
                             console.log("控件列表", this._list);
                         }
                     }
@@ -8974,7 +8978,7 @@ var jy;
                 var res = jy.ResManager.getResource(uri);
                 if (res) {
                     if (!(res instanceof TextureResource)) {
-                        jy.ThrowError("[" + uri + "]\u8D44\u6E90\u6709\u8BEF\uFF0C\u4E0D\u662FTextureResource");
+                        jy.ThrowError("[".concat(uri, "]\u8D44\u6E90\u6709\u8BEF\uFF0C\u4E0D\u662FTextureResource"));
                         res = undefined;
                     }
                 }
@@ -9129,7 +9133,7 @@ var jy;
         for (var _i = 1; _i < arguments.length; _i++) {
             ids[_i - 1] = arguments[_i];
         }
-        (_a = jy.UILimiter.listener).addToStates.apply(_a, __spreadArray([value], ids));
+        (_a = jy.UILimiter.listener).addToStates.apply(_a, __spreadArray([value], ids, false));
     }
     jy.addToStates = addToStates;
     function addToState(id, value) {
@@ -11157,8 +11161,8 @@ var jy;
             for (var _i = 4; _i < arguments.length; _i++) {
                 args[_i - 4] = arguments[_i];
             }
-            var success = jy.CallbackInfo.get.apply(jy.CallbackInfo, __spreadArray([callback, thisObj], args));
-            var error = jy.CallbackInfo.get.apply(jy.CallbackInfo, __spreadArray([withError ? callback : noErrorCallback(callback, thisObj), thisObj], args));
+            var success = jy.CallbackInfo.get.apply(jy.CallbackInfo, __spreadArray([callback, thisObj], args, false));
+            var error = jy.CallbackInfo.get.apply(jy.CallbackInfo, __spreadArray([withError ? callback : noErrorCallback(callback, thisObj), thisObj], args, false));
             return registerCallback(success, error, timeout);
         },
         /**
@@ -11186,7 +11190,7 @@ var jy;
             for (var _i = 1; _i < arguments.length; _i++) {
                 args[_i - 1] = arguments[_i];
             }
-            callback.call.apply(callback, __spreadArray([thisObj, undefined], args));
+            callback.call.apply(callback, __spreadArray([thisObj, undefined], args, false));
         };
     }
     /**
@@ -11371,10 +11375,10 @@ var jy;
             var list = [];
             timer = { tid: time, nt: jy.Global.now + time, list: list };
             _timeobj[time] = timer;
-            list.push(jy.CallbackInfo.get.apply(jy.CallbackInfo, __spreadArray([callback, thisObj], args)));
+            list.push(jy.CallbackInfo.get.apply(jy.CallbackInfo, __spreadArray([callback, thisObj], args, false)));
         }
         else {
-            jy.CallbackInfo.addToList.apply(jy.CallbackInfo, __spreadArray([timer.list, callback, thisObj], args));
+            jy.CallbackInfo.addToList.apply(jy.CallbackInfo, __spreadArray([timer.list, callback, thisObj], args, false));
         }
     }
     /**
@@ -11667,12 +11671,12 @@ var jy;
         msg = jy.errorPrefix + msg;
         msg += "%c";
         if (err) {
-            msg += "\nError:\n[name]:" + err.name + ",[message]:" + err.message;
+            msg += "\nError:\n[name]:".concat(err.name, ",[message]:").concat(err.message);
         }
         else {
             err = new Error();
         }
-        msg += "\n[stack]:\n" + err.stack;
+        msg += "\n[stack]:\n".concat(err.stack);
         if (true) {
             msg = getMsg(msg);
         }
@@ -11871,7 +11875,7 @@ var jy;
                 return _super.prototype.$doAddChild.call(this, child, index, notifyListeners);
             }
             else {
-                throw new Error("Only IDepth can be added to this LayerID(" + this.id + ")");
+                throw new Error("Only IDepth can be added to this LayerID(".concat(this.id, ")"));
             }
         };
         /**
@@ -13359,7 +13363,7 @@ var jy;
             if (!_readyExecutes) {
                 this._cbs = _readyExecutes = [];
             }
-            jy.CallbackInfo.addToList.apply(jy.CallbackInfo, __spreadArray([_readyExecutes, handle, thisObj], args));
+            jy.CallbackInfo.addToList.apply(jy.CallbackInfo, __spreadArray([_readyExecutes, handle, thisObj], args, false));
         };
         return AsyncHelper;
     }());
@@ -13536,7 +13540,7 @@ var jy;
         Facade.prototype.removeProxy = function (proxyName) {
             var proxy = this._proxys[proxyName];
             if (proxy.host._$isDep) {
-                true && jy.ThrowError("\u6A21\u5757[" + proxyName + "]\u88AB\u4F9D\u8D56\uFF0C\u4E0D\u5141\u8BB8\u79FB\u9664", null, true);
+                true && jy.ThrowError("\u6A21\u5757[".concat(proxyName, "]\u88AB\u4F9D\u8D56\uFF0C\u4E0D\u5141\u8BB8\u79FB\u9664"), null, true);
                 return;
             }
             return this._removeHost(proxyName, this._proxys);
@@ -13722,10 +13726,10 @@ var jy;
             }
             var callback = bin.callback;
             if (host.isReady) {
-                callback && callback.call.apply(callback, __spreadArray([bin.thisObj, host], bin.args));
+                callback && callback.call.apply(callback, __spreadArray([bin.thisObj, host], bin.args, false));
             }
             else {
-                callback && host.addReadyExecute.apply(host, __spreadArray([callback, bin.thisObj, host], bin.args));
+                callback && host.addReadyExecute.apply(host, __spreadArray([callback, bin.thisObj, host], bin.args, false));
                 host.startSync();
             }
             return host;
@@ -13763,7 +13767,7 @@ var jy;
             }
             if (this._mm && this._mm.isModuleOpened(moduleID, showTip)) {
                 var hander = show ? this._executeAndShowMediator : this._executeMediator;
-                return this.getMediator.apply(this, __spreadArray([moduleID, hander, this, handlerName], args));
+                return this.getMediator.apply(this, __spreadArray([moduleID, hander, this, handlerName], args, false));
             }
         };
         /**
@@ -13803,12 +13807,12 @@ var jy;
             self.toggle(mediator.name, 1 /* SHOW */, false); //showTip为 false是不用再次提示，executeMediator已经执行过模块是否开启的检查
             var view = mediator.$view;
             if (view.stage) {
-                self._executeMediator.apply(self, __spreadArray([mediator, handlerName], args));
+                self._executeMediator.apply(self, __spreadArray([mediator, handlerName], args, false));
             }
             else {
                 view.once("addedToStage" /* ADDED_TO_STAGE */, function () {
                     try {
-                        self._executeMediator.apply(self, __spreadArray([mediator, handlerName], args));
+                        self._executeMediator.apply(self, __spreadArray([mediator, handlerName], args, false));
                     }
                     catch (e) {
                         jy.ThrowError(e.message, e);
@@ -13827,7 +13831,7 @@ var jy;
             for (var _i = 2; _i < arguments.length; _i++) {
                 args[_i - 2] = arguments[_i];
             }
-            return this.getProxy.apply(this, __spreadArray([proxyName, this._executeProxy, this, handlerName], args));
+            return this.getProxy.apply(this, __spreadArray([proxyName, this._executeProxy, this, handlerName], args, false));
         };
         Facade.prototype._executeProxy = function (proxy, handlerName) {
             var args = [];
@@ -14431,7 +14435,7 @@ var jy;
             var cfg = this.getCfg(module);
             if (true) {
                 if (!cfg) {
-                    jy.ThrowError("\u6CA1\u6709\u627E\u5230\u5BF9\u5E94\u7684\u529F\u80FD\u914D\u7F6E[" + module + "]");
+                    jy.ThrowError("\u6CA1\u6709\u627E\u5230\u5BF9\u5E94\u7684\u529F\u80FD\u914D\u7F6E[".concat(module, "]"));
                 }
             }
             var flag = cfg && cfg.close != 2 /* Closed */;
@@ -14452,7 +14456,7 @@ var jy;
             var cfg = this.getCfg(module);
             if (true) {
                 if (!cfg) {
-                    jy.ThrowError("\u6CA1\u6709\u627E\u5230\u5BF9\u5E94\u7684\u529F\u80FD\u914D\u7F6E[" + module + "]");
+                    jy.ThrowError("\u6CA1\u6709\u627E\u5230\u5BF9\u5E94\u7684\u529F\u80FD\u914D\u7F6E[".concat(module, "]"));
                 }
                 if (noClientCheck) { //屏蔽客户端检测只针对open，不针对show
                     return true;
@@ -16478,7 +16482,7 @@ var jy;
             var v = render.view;
             if (!v) {
                 if (true) {
-                    jy.ThrowError("render[" + egret.getQualifiedClassName(render) + "]\u6CA1\u6709renderView");
+                    jy.ThrowError("render[".concat(egret.getQualifiedClassName(render), "]\u6CA1\u6709renderView"));
                 }
                 return;
             }
@@ -17396,6 +17400,9 @@ var jy;
             suiData.skinUri = skinUri;
             this._initSuiData(data, suiData);
             suiData.setStatic();
+            if (skinUri) {
+                suiData.loadBmd();
+            }
         };
         SuiResManager.prototype.createSuiData = function (key) {
             var suiData = new jy.SuiData(key);
@@ -17567,7 +17574,7 @@ var jy;
                     return disp;
                 }
                 else if (true) {
-                    jy.ThrowError("\u6CA1\u6709\u5728[" + suiData.key + "]\u627E\u5230\u5BF9\u5E94\u7EC4\u4EF6[" + className + "]");
+                    jy.ThrowError("\u6CA1\u6709\u5728[".concat(suiData.key, "]\u627E\u5230\u5BF9\u5E94\u7EC4\u4EF6[").concat(className, "]"));
                 }
             }
             // //[3,["btn2",14.5,139,79,28,0],0,0]
@@ -17597,7 +17604,7 @@ var jy;
                     return dis;
                 }
                 else if (true) {
-                    jy.ThrowError("createElement\u65F6\uFF0C\u6CA1\u6709\u627E\u5230\u5BF9\u5E94\u7EC4\u4EF6\uFF0C\u7D22\u5F15\uFF1A[" + +data[0] + "]");
+                    jy.ThrowError("createElement\u65F6\uFF0C\u6CA1\u6709\u627E\u5230\u5BF9\u5E94\u7EC4\u4EF6\uFF0C\u7D22\u5F15\uFF1A[".concat(+data[0], "]"));
                 }
             }
         };
@@ -17759,7 +17766,7 @@ var jy;
                     view.addChild(ele, false);
                 }
                 else if (true) {
-                    jy.ThrowError("\u6CA1\u6709\u6B63\u786E\u521B\u5EFA\u539F\u4EF6\uFF0C\u7C7B\u578B\uFF1A" + type + "\uFF0C\u6570\u636E\uFF1A" + JSON.stringify(data));
+                    jy.ThrowError("\u6CA1\u6709\u6B63\u786E\u521B\u5EFA\u539F\u4EF6\uFF0C\u7C7B\u578B\uFF1A".concat(type, "\uFF0C\u6570\u636E\uFF1A").concat(JSON.stringify(data)));
                 }
             }
             var name = baseData[0];
@@ -17971,7 +17978,7 @@ var jy;
                 var tx = txs[key];
                 if (!tx) {
                     if (true) {
-                        jy.ThrowError("\u4F20\u5165\u4E86\u7EB9\u7406\u4E2D\u6CA1\u6709\u7684\u6570\u636E[" + key + "]");
+                        jy.ThrowError("\u4F20\u5165\u4E86\u7EB9\u7406\u4E2D\u6CA1\u6709\u7684\u6570\u636E[".concat(key, "]"));
                     }
                     continue;
                 }

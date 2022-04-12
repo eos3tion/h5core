@@ -167,6 +167,9 @@ namespace jy {
             suiData.skinUri = skinUri;
             this._initSuiData(data, suiData);
             suiData.setStatic();
+            if (skinUri) {
+                suiData.loadBmd();
+            }
         }
 
         createSuiData(key: string) {
