@@ -13376,6 +13376,10 @@ declare namespace jy {
         bg: egret.DisplayObject;
         tf: egret.TextField;
         bar: egret.DisplayObject;
+        /**
+         * 允许超过100%
+         */
+        allowExceed: boolean;
         protected _labelFun: (value: number, maxValue: number) => string;
         protected _value: number;
         protected _maxValue: number;
