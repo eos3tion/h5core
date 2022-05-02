@@ -22103,6 +22103,10 @@ var jy;
         __extends(ProgressBar, _super);
         function ProgressBar() {
             var _this = _super.call(this) || this;
+            /**
+             * 允许超过100%
+             */
+            _this.allowExceed = false;
             _this._labelFun = ProgressBar.defaultLabelFunction;
             _this._value = 0;
             _this._maxValue = 1;
@@ -22134,7 +22138,7 @@ var jy;
          * @param {number} width
          */
         ProgressBar.prototype.setWidth = function (width) {
-            var _a = this, bg = _a.bg, bar = _a.bar, tf = _a.tf;
+            var _a = this, bg = _a.bg, bar = _a.bar;
             if (bg) {
                 bg.width = width;
             }
@@ -22168,8 +22172,10 @@ var jy;
                 }
                 maxValue = 0.00001;
             }
-            if (value > maxValue) {
-                value = maxValue;
+            if (!this.allowExceed) {
+                if (value > maxValue) {
+                    value = maxValue;
+                }
             }
             this._value = value;
             this._maxValue = maxValue;
@@ -22189,7 +22195,11 @@ var jy;
         /*更新进度条显示*/
         ProgressBar.prototype.updateBar = function () {
             var bar = this.bar;
-            var v = this.getPercent() * this._barWidth;
+            var p = this.getPercent();
+            if (p > 1) {
+                p = 1;
+            }
+            var v = p * this._barWidth;
             if (this.useMask) {
                 var rect = bar.scrollRect;
                 if (!rect) {

@@ -41,6 +41,11 @@ namespace jy {
 
 		bar: egret.DisplayObject;
 
+		/**
+		 * 允许超过100%
+		 */
+		allowExceed = false;
+
 		protected _labelFun = ProgressBar.defaultLabelFunction;
 
 		protected _value: number = 0;
@@ -87,7 +92,7 @@ namespace jy {
 		 * @param {number} width 
 		 */
 		setWidth(width: number) {
-			const { bg, bar, tf } = this;
+			const { bg, bar } = this;
 			if (bg) {
 				bg.width = width;
 			}
@@ -121,8 +126,10 @@ namespace jy {
 				}
 				maxValue = 0.00001;
 			}
-			if (value > maxValue) {
-				value = maxValue;
+			if (!this.allowExceed) {
+				if (value > maxValue) {
+					value = maxValue;
+				}
 			}
 			this._value = value;
 			this._maxValue = maxValue;
@@ -145,7 +152,11 @@ namespace jy {
 		/*更新进度条显示*/
 		updateBar() {
 			let bar = this.bar;
-			let v = this.getPercent() * this._barWidth;
+			let p = this.getPercent();
+			if (p > 1) {
+				p = 1;
+			}
+			let v = p * this._barWidth;
 			if (this.useMask) {
 				let rect = bar.scrollRect;
 				if (!rect) {
