@@ -284,8 +284,9 @@ namespace jy {
                     return
                 }
             }
+
             let currentPos = this.getDragPos(e);
-            let sub = currentPos - this._lastTargetPos;
+            let sub = this._scrollType == ScrollDirection.Vertical ? e.deltaY : e.deltaX;
             let content = this._content;
             if (!content) {
                 return;
