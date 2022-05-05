@@ -4359,7 +4359,7 @@ var jy;
                 }
             }
             var currentPos = this.getDragPos(e);
-            var sub = currentPos - this._lastTargetPos;
+            var sub = this._scrollType == 0 /* Vertical */ ? e.deltaY : e.deltaX;
             var content = this._content;
             if (!content) {
                 return;
@@ -16971,19 +16971,28 @@ var jy;
         if (!e.touchDown) {
             return onEnd.call(this, e);
         }
+        var host = this.host;
+        var parent = host.parent;
+        if (!parent) {
+            return onEnd.call(this, e);
+        }
         var nx = e.stageX;
         var ny = e.stageY;
         var dx = nx - this.lx;
         var dy = ny - this.ly;
         var now = Date.now();
         var delta = now - this.lt;
-        var _a = this, dragId = _a.dragId, host = _a.host;
+        var _a = this, dragId = _a.dragId, posL = _a.posL, posN = _a.posN;
+        parent.globalToLocal(nx, ny, posN);
+        parent.globalToLocal(this.lx, this.ly, posL);
+        var ldx = posN.x - posL.x;
+        var ldy = posN.y - posL.y;
         var dragStart = dragStartDict[dragId];
         if (dragStart) {
             if (this.isCon) {
                 host.touchChildren = false;
             }
-            dispatchTouchEvent(host, -1089 /* DragMove */, e, dx, dy, delta);
+            dispatchTouchEvent(host, -1089 /* DragMove */, e, ldx, ldy, delta);
         }
         else {
             if (delta > this.minDragTime) {
@@ -16996,7 +17005,7 @@ var jy;
                 }
             }
             if (dragStart) {
-                dispatchTouchEvent(host, -1090 /* DragStart */, e, dx, dy, delta);
+                dispatchTouchEvent(host, -1090 /* DragStart */, e, ldx, ldy, delta);
             }
             dragStartDict[dragId] = dragStart;
         }
@@ -17034,7 +17043,7 @@ var jy;
         if (host instanceof egret.DisplayObjectContainer) {
             host.isOpaque = true;
         }
-        var dele = { host: host, isCon: isCon, minDragTime: minDragTime, minSqDist: minSqDist };
+        var dele = { host: host, isCon: isCon, minDragTime: minDragTime, minSqDist: minSqDist, posL: { x: 0, y: 0 }, posN: { x: 0, y: 0 } };
         host.on("touchBegin" /* TOUCH_BEGIN */, checkStart, dele);
         host[key] = dele;
         return dele;
