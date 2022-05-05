@@ -60,6 +60,8 @@ namespace jy {
         lt?: number;
         lx?: number;
         ly?: number;
+        posN: Point;
+        posL: Point;
         dragId?: number;
         isCon: boolean;
         /**
@@ -86,19 +88,31 @@ namespace jy {
         if (!e.touchDown) {
             return onEnd.call(this, e);
         }
+        const host = this.host;
+        const parent = host.parent;
+        if (!parent) {
+            return onEnd.call(this, e);
+        }
+
         let nx = e.stageX;
         let ny = e.stageY;
         let dx = nx - this.lx;
         let dy = ny - this.ly;
         let now = Date.now();
         let delta = now - this.lt;
-        let { dragId, host } = this;
+
+        let { dragId, posL, posN } = this;
+        parent.globalToLocal(nx, ny, posN);
+        parent.globalToLocal(this.lx, this.ly, posL);
+        let ldx = posN.x - posL.x;
+        let ldy = posN.y - posL.y;
+
         let dragStart = dragStartDict[dragId];
         if (dragStart) {
             if (this.isCon) {
                 (host as egret.DisplayObjectContainer).touchChildren = false;
             }
-            dispatchTouchEvent(host, EventConst.DragMove, e, dx, dy, delta);
+            dispatchTouchEvent(host, EventConst.DragMove, e, ldx, ldy, delta);
         } else {
             if (delta > this.minDragTime) {
                 dragStart = true;
@@ -109,7 +123,7 @@ namespace jy {
                 }
             }
             if (dragStart) {
-                dispatchTouchEvent(host, EventConst.DragStart, e, dx, dy, delta);
+                dispatchTouchEvent(host, EventConst.DragStart, e, ldx, ldy, delta);
             }
             dragStartDict[dragId] = dragStart;
         }
@@ -148,7 +162,7 @@ namespace jy {
         if (host instanceof egret.DisplayObjectContainer) {
             host.isOpaque = true;
         }
-        let dele: DragDele = { host, isCon, minDragTime, minSqDist };
+        let dele: DragDele = { host, isCon, minDragTime, minSqDist, posL: { x: 0, y: 0 }, posN: { x: 0, y: 0 } };
         host.on(EgretEvent.TOUCH_BEGIN, checkStart, dele);
         host[key] = dele;
         return dele;

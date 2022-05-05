@@ -14753,6 +14753,8 @@ declare namespace jy {
         lt?: number;
         lx?: number;
         ly?: number;
+        posN: Point;
+        posL: Point;
         dragId?: number;
         isCon: boolean;
         /**
