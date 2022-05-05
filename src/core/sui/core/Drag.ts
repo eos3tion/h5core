@@ -88,6 +88,11 @@ namespace jy {
         if (!e.touchDown) {
             return onEnd.call(this, e);
         }
+        const host = this.host;
+        const parent = host.parent;
+        if (!parent) {
+            return onEnd.call(this, e);
+        }
 
         let nx = e.stageX;
         let ny = e.stageY;
@@ -96,8 +101,7 @@ namespace jy {
         let now = Date.now();
         let delta = now - this.lt;
 
-        let { dragId, host, posL, posN } = this;
-        let parent = host.parent;
+        let { dragId, posL, posN } = this;
         parent.globalToLocal(nx, ny, posN);
         parent.globalToLocal(this.lx, this.ly, posL);
         let ldx = posN.x - posL.x;
