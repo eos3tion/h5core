@@ -24,7 +24,7 @@ namespace jy {
         /**
          * 触发独占拖拽的最小拖拽范围
          */
-        static exMinDist = 10;
+        static exMinDist = 0.5;
         protected _scrollbar: ScrollBar;
 
         protected _content: egret.DisplayObject;
