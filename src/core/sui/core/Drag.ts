@@ -82,9 +82,6 @@ namespace jy {
     let stage: egret.Stage;
 
     function onMove(this: DragDele, e: TouchEvent) {
-        if (e.target !== this.host) {
-            return
-        }
         if (this.et == Global.now) {
             return
         }

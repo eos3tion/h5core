@@ -16965,9 +16965,6 @@ var jy;
     }
     var stage;
     function onMove(e) {
-        if (e.target !== this.host) {
-            return;
-        }
         if (this.et == jy.Global.now) {
             return;
         }
