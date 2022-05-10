@@ -5847,7 +5847,7 @@ var jy;
         /**
          * 触发独占拖拽的最小拖拽范围
          */
-        Scroller.exMinDist = 10;
+        Scroller.exMinDist = 0.5;
         return Scroller;
     }(egret.EventDispatcher));
     jy.Scroller = Scroller;
