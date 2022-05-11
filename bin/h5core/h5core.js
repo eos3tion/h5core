@@ -4333,7 +4333,6 @@ var jy;
             content.on(-1088 /* DragEnd */, this.onDragEnd, this);
             this.dragging = true;
             this.dispatch(-1051 /* ScrollerDragStart */);
-            Scroller.exScroller = null;
         };
         /**
          * 停止拖拽，避免有些情况下，需要主动停止拖拽的情况
@@ -4352,17 +4351,18 @@ var jy;
             return this._scrollType == 0 /* Vertical */ ? e.stageY : e.stageX;
         };
         Scroller.prototype.onDragMove = function (e) {
-            var exclusivable = Scroller.exclusivable, exScroller = Scroller.exScroller;
-            if (exclusivable) {
-                if (exScroller !== null && exScroller !== this) {
-                    return;
-                }
-            }
-            var currentPos = this.getDragPos(e);
-            var sub = this._scrollType == 0 /* Vertical */ ? e.deltaY : e.deltaX;
             var content = this._content;
             if (!content) {
                 return;
+            }
+            var matrix = content.$getInvertedConcatenatedMatrix();
+            var currentPos = this.getDragPos(e);
+            var sub;
+            if (this._scrollType === 0 /* Vertical */) {
+                sub = e.deltaY * matrix.$getScaleY();
+            }
+            else {
+                sub = e.deltaX * matrix.$getScaleX();
             }
             if (this.bounceDist === 0 && sub < 0) {
                 var scrollRect = content.scrollRect;
@@ -4374,11 +4374,6 @@ var jy;
             this._offCount++;
             this._lastTargetPos = currentPos;
             this.doScrollContent(sub);
-            if (exclusivable) {
-                if (exScroller === null && Math.abs(sub) >= Scroller.exMinDist) {
-                    Scroller.exScroller = this;
-                }
-            }
         };
         Scroller.prototype.stopTouchTween = function () {
             var _content = this._content;
@@ -4649,20 +4644,6 @@ var jy;
             }
             bar[key] = tmp;
         };
-        /**
-         * 是否独占拖拽，默认`true`
-         * 如果独占拖拽，当Scroller 嵌套 Scroller，并且拖拽方向不一致时
-         * 在子Scroller发生，发生`横向`或者`纵向`的拖拽，立即锁定拖拽方向
-         */
-        Scroller.exclusivable = true;
-        /**
-         * 当前锁定方向正在拖拽的Scroller
-         */
-        Scroller.exScroller = null;
-        /**
-         * 触发独占拖拽的最小拖拽范围
-         */
-        Scroller.exMinDist = 0.5;
         return Scroller;
     }(egret.EventDispatcher));
     jy.Scroller = Scroller;
@@ -16945,7 +16926,6 @@ var jy;
     var TouchEvent = egret.TouchEvent;
     var Event = egret.Event;
     var key = "$__$Drag";
-    var dragStartDict = {};
     function dispatchTouchEvent(target, type, e, deltaX, deltaY, deltaTime) {
         if (!target.hasListen(type)) {
             return true;
@@ -16964,16 +16944,16 @@ var jy;
         return result;
     }
     var stage;
+    var currentDragger = null;
     function onMove(e) {
+        var host = this.host;
+        if (currentDragger && currentDragger != host) {
+            return;
+        }
         if (this.et == jy.Global.now) {
             return;
         }
         if (!e.touchDown) {
-            return onEnd.call(this, e);
-        }
-        var host = this.host;
-        var parent = host.parent;
-        if (!parent) {
             return onEnd.call(this, e);
         }
         var nx = e.stageX;
@@ -16982,19 +16962,14 @@ var jy;
         var dy = ny - this.ly;
         var now = Date.now();
         var delta = now - this.lt;
-        var _a = this, dragId = _a.dragId, posL = _a.posL, posN = _a.posN;
-        parent.globalToLocal(nx, ny, posN);
-        parent.globalToLocal(this.lx, this.ly, posL);
-        var ldx = posN.x - posL.x;
-        var ldy = posN.y - posL.y;
-        var dragStart = dragStartDict[dragId];
-        if (dragStart) {
+        if (currentDragger) {
             if (this.isCon) {
-                host.touchChildren = false;
+                currentDragger.touchChildren = false;
             }
-            dispatchTouchEvent(host, -1089 /* DragMove */, e, ldx, ldy, delta);
+            dispatchTouchEvent(currentDragger, -1089 /* DragMove */, e, dx, dy, delta);
         }
         else {
+            var dragStart = false;
             if (delta > this.minDragTime) {
                 dragStart = true;
             }
@@ -17005,11 +16980,11 @@ var jy;
                 }
             }
             if (dragStart) {
-                dispatchTouchEvent(host, -1090 /* DragStart */, e, ldx, ldy, delta);
+                currentDragger = host;
+                dispatchTouchEvent(currentDragger, -1090 /* DragStart */, e, dx, dy, delta);
             }
-            dragStartDict[dragId] = dragStart;
         }
-        if (dragStart) {
+        if (currentDragger) {
             this.lx = nx;
             this.ly = ny;
             this.lt = now;
@@ -17019,12 +16994,10 @@ var jy;
         if (this.et == jy.Global.now) {
             return;
         }
-        var dragId = this.dragId;
-        if (dragId != null && dragStartDict[dragId]) {
+        if (currentDragger) {
             e.preventDefault(); //阻止普通点击事件发生
             e.stopImmediatePropagation();
-            var host = this.host;
-            dispatchTouchEvent(host, -1088 /* DragEnd */, e);
+            dispatchTouchEvent(currentDragger, -1088 /* DragEnd */, e);
         }
         dragEnd(this);
     }
@@ -17043,7 +17016,7 @@ var jy;
         if (host instanceof egret.DisplayObjectContainer) {
             host.isOpaque = true;
         }
-        var dele = { host: host, isCon: isCon, minDragTime: minDragTime, minSqDist: minSqDist, posL: { x: 0, y: 0 }, posN: { x: 0, y: 0 } };
+        var dele = { host: host, isCon: isCon, minDragTime: minDragTime, minSqDist: minSqDist };
         host.on("touchBegin" /* TOUCH_BEGIN */, checkStart, dele);
         host[key] = dele;
         return dele;
@@ -17056,12 +17029,14 @@ var jy;
     function stopDrag(host) {
         var dele = host[key];
         if (dele) {
-            dragStartDict[dele.pointId] = false;
             dragEnd(dele);
         }
     }
     jy.stopDrag = stopDrag;
     function checkStart(e) {
+        if (currentDragger) {
+            return;
+        }
         var x = e.stageX;
         var y = e.stageY;
         this.lt = Date.now();
@@ -17073,13 +17048,14 @@ var jy;
     }
     function dragEnd(dele) {
         dele.et = jy.Global.now;
-        dragStartDict[dele.dragId] = false;
-        dele.dragId = null;
         if (dele.isCon) {
-            dele.host.touchChildren = true;
+            if (currentDragger) {
+                currentDragger.touchChildren = true;
+            }
         }
         stage.off("touchMove" /* TOUCH_MOVE */, onMove, dele);
         stage.off("touchEnd" /* TOUCH_END */, onEnd, dele);
+        currentDragger = null;
     }
     function looseDrag(host) {
         var dele = host[key];
