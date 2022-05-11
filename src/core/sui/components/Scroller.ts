@@ -9,22 +9,6 @@ namespace jy {
 
 
     export class Scroller extends egret.EventDispatcher {
-        /**
-         * 是否独占拖拽，默认`true`  
-         * 如果独占拖拽，当Scroller 嵌套 Scroller，并且拖拽方向不一致时
-         * 在子Scroller发生，发生`横向`或者`纵向`的拖拽，立即锁定拖拽方向
-         */
-        static exclusivable = true;
-
-        /**
-         * 当前锁定方向正在拖拽的Scroller
-         */
-        static exScroller: Scroller = null;
-
-        /**
-         * 触发独占拖拽的最小拖拽范围
-         */
-        static exMinDist = 0.5;
         protected _scrollbar: ScrollBar;
 
         protected _content: egret.DisplayObject;
@@ -256,7 +240,6 @@ namespace jy {
             content.on(EventConst.DragEnd, this.onDragEnd, this);
             this.dragging = true;
             this.dispatch(EventConst.ScrollerDragStart);
-            Scroller.exScroller = null;
         }
 
         /**
@@ -278,19 +261,19 @@ namespace jy {
         }
 
         protected onDragMove(e: egret.TouchEvent) {
-            const { exclusivable, exScroller } = Scroller;
-            if (exclusivable) {
-                if (exScroller !== null && exScroller !== this) {
-                    return
-                }
-            }
-
-            let currentPos = this.getDragPos(e);
-            let sub = this._scrollType == ScrollDirection.Vertical ? e.deltaY : e.deltaX;
             let content = this._content;
             if (!content) {
                 return;
             }
+            let matrix = content.$getInvertedConcatenatedMatrix();
+            let currentPos = this.getDragPos(e);
+            let sub: number;
+            if (this._scrollType === ScrollDirection.Vertical) {
+                sub = e.deltaY * matrix.$getScaleY();
+            } else {
+                sub = e.deltaX * matrix.$getScaleX();
+            }
+
             if (this.bounceDist === 0 && sub < 0) {
                 let scrollRect = content.scrollRect;
                 if (content[this._measureKey] < scrollRect[this._sizeKey]) {
@@ -301,11 +284,6 @@ namespace jy {
             this._offCount++;
             this._lastTargetPos = currentPos;
             this.doScrollContent(sub);
-            if (exclusivable) {
-                if (exScroller === null && Math.abs(sub) >= Scroller.exMinDist) {
-                    Scroller.exScroller = this;
-                }
-            }
         }
 
         public stopTouchTween() {

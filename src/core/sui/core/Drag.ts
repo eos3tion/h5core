@@ -20,7 +20,6 @@ namespace jy {
     import Event = egret.Event;
     const key = "$__$Drag";
 
-    const dragStartDict = {} as { [pointer: number]: boolean };
 
     function dispatchTouchEvent(target: egret.DisplayObject, type: any, e: egret.TouchEvent, deltaX?: number, deltaY?: number, deltaTime?: number) {
         if (!target.hasListen(type)) {
@@ -60,8 +59,6 @@ namespace jy {
         lt?: number;
         lx?: number;
         ly?: number;
-        posN: Point;
-        posL: Point;
         dragId?: number;
         isCon: boolean;
         /**
@@ -80,17 +77,17 @@ namespace jy {
         et?: number;
     }
     let stage: egret.Stage;
+    let currentDragger: egret.DisplayObject = null;
 
     function onMove(this: DragDele, e: TouchEvent) {
+        const host = this.host;
+        if (currentDragger && currentDragger != host) {
+            return
+        }
         if (this.et == Global.now) {
             return
         }
         if (!e.touchDown) {
-            return onEnd.call(this, e);
-        }
-        const host = this.host;
-        const parent = host.parent;
-        if (!parent) {
             return onEnd.call(this, e);
         }
 
@@ -100,20 +97,13 @@ namespace jy {
         let dy = ny - this.ly;
         let now = Date.now();
         let delta = now - this.lt;
-
-        let { dragId, posL, posN } = this;
-        parent.globalToLocal(nx, ny, posN);
-        parent.globalToLocal(this.lx, this.ly, posL);
-        let ldx = posN.x - posL.x;
-        let ldy = posN.y - posL.y;
-
-        let dragStart = dragStartDict[dragId];
-        if (dragStart) {
+        if (currentDragger) {
             if (this.isCon) {
-                (host as egret.DisplayObjectContainer).touchChildren = false;
+                (currentDragger as egret.DisplayObjectContainer).touchChildren = false;
             }
-            dispatchTouchEvent(host, EventConst.DragMove, e, ldx, ldy, delta);
+            dispatchTouchEvent(currentDragger, EventConst.DragMove, e, dx, dy, delta);
         } else {
+            let dragStart = false;
             if (delta > this.minDragTime) {
                 dragStart = true;
             } else {
@@ -123,11 +113,11 @@ namespace jy {
                 }
             }
             if (dragStart) {
-                dispatchTouchEvent(host, EventConst.DragStart, e, ldx, ldy, delta);
+                currentDragger = host;
+                dispatchTouchEvent(currentDragger, EventConst.DragStart, e, dx, dy, delta);
             }
-            dragStartDict[dragId] = dragStart;
         }
-        if (dragStart) {
+        if (currentDragger) {
             this.lx = nx;
             this.ly = ny;
             this.lt = now;
@@ -137,12 +127,10 @@ namespace jy {
         if (this.et == Global.now) {
             return
         }
-        let dragId = this.dragId;
-        if (dragId != null && dragStartDict[dragId]) {
+        if (currentDragger) {
             e.preventDefault();//阻止普通点击事件发生
             e.stopImmediatePropagation();
-            let host = this.host;
-            dispatchTouchEvent(host, EventConst.DragEnd, e);
+            dispatchTouchEvent(currentDragger, EventConst.DragEnd, e);
         }
         dragEnd(this);
     }
@@ -162,7 +150,7 @@ namespace jy {
         if (host instanceof egret.DisplayObjectContainer) {
             host.isOpaque = true;
         }
-        let dele: DragDele = { host, isCon, minDragTime, minSqDist, posL: { x: 0, y: 0 }, posN: { x: 0, y: 0 } };
+        let dele: DragDele = { host, isCon, minDragTime, minSqDist };
         host.on(EgretEvent.TOUCH_BEGIN, checkStart, dele);
         host[key] = dele;
         return dele;
@@ -175,12 +163,14 @@ namespace jy {
     export function stopDrag(host: egret.DisplayObject) {
         let dele = host[key];
         if (dele) {
-            dragStartDict[dele.pointId] = false;
             dragEnd(dele);
         }
     }
 
     function checkStart(this: DragDele, e: TouchEvent) {
+        if (currentDragger) {
+            return
+        }
         let x = e.stageX;
         let y = e.stageY;
         this.lt = Date.now();
@@ -193,13 +183,14 @@ namespace jy {
 
     function dragEnd(dele: DragDele) {
         dele.et = Global.now;
-        dragStartDict[dele.dragId] = false;
-        dele.dragId = null;
         if (dele.isCon) {
-            (dele.host as egret.DisplayObjectContainer).touchChildren = true;
+            if (currentDragger) {
+                (currentDragger as egret.DisplayObjectContainer).touchChildren = true;
+            }
         }
         stage.off(EgretEvent.TOUCH_MOVE, onMove, dele);
         stage.off(EgretEvent.TOUCH_END, onEnd, dele);
+        currentDragger = null;
     }
 
     export function looseDrag(host: egret.DisplayObject) {
