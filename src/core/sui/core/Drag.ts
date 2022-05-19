@@ -25,7 +25,7 @@ namespace jy {
         if (!target.hasListen(type)) {
             return true;
         }
-        let event: TouchEvent = Event.create(TouchEvent, type, true, true);
+        let event: TouchEvent = Event.create(TouchEvent, type, false, true);
         event.$initTo(e.stageX, e.stageY, e.touchPointID);
         event.touchDown = e.touchDown;
         event.deltaX = deltaX;
