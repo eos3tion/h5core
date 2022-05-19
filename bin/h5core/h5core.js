@@ -16930,7 +16930,7 @@ var jy;
         if (!target.hasListen(type)) {
             return true;
         }
-        var event = Event.create(TouchEvent, type, true, true);
+        var event = Event.create(TouchEvent, type, false, true);
         event.$initTo(e.stageX, e.stageY, e.touchPointID);
         event.touchDown = e.touchDown;
         event.deltaX = deltaX;
