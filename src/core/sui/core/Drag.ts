@@ -69,7 +69,10 @@ namespace jy {
          * 最小拖拽距离的平方
          */
         minSqDist: number;
-
+        /**
+         * host绑定时，touchChildren的值
+         */
+        touchChildren?: boolean;
         /**
          * 调用了EndDrag的时间  
          * 用于判断是不是同一帧
@@ -151,6 +154,9 @@ namespace jy {
             host.isOpaque = true;
         }
         let dele: DragDele = { host, isCon, minDragTime, minSqDist };
+        if (isCon) {
+            dele.touchChildren = host.touchChildren;
+        }
         host.on(EgretEvent.TOUCH_BEGIN, checkStart, dele);
         host[key] = dele;
         return dele;
@@ -185,7 +191,7 @@ namespace jy {
         dele.et = Global.now;
         if (dele.isCon) {
             if (currentDragger) {
-                (currentDragger as egret.DisplayObjectContainer).touchChildren = true;
+                (currentDragger as egret.DisplayObjectContainer).touchChildren = dele.touchChildren;
             }
         }
         stage.off(EgretEvent.TOUCH_MOVE, onMove, dele);
