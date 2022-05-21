@@ -14750,6 +14750,10 @@ declare namespace jy {
          */
         minSqDist: number;
         /**
+         * host绑定时，touchChildren的值
+         */
+        touchChildren?: boolean;
+        /**
          * 调用了EndDrag的时间
          * 用于判断是不是同一帧
          */

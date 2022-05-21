@@ -20668,6 +20668,9 @@ var jy;
             host.isOpaque = true;
         }
         var dele = { host: host, isCon: isCon, minDragTime: minDragTime, minSqDist: minSqDist };
+        if (isCon) {
+            dele.touchChildren = host.touchChildren;
+        }
         host.on("touchBegin" /* TOUCH_BEGIN */, checkStart, dele);
         host[key] = dele;
         return dele;
@@ -20701,7 +20704,7 @@ var jy;
         dele.et = jy.Global.now;
         if (dele.isCon) {
             if (currentDragger) {
-                currentDragger.touchChildren = true;
+                currentDragger.touchChildren = dele.touchChildren;
             }
         }
         stage.off("touchMove" /* TOUCH_MOVE */, onMove, dele);
