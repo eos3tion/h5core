@@ -256,8 +256,14 @@ namespace jy {
                 this.miniUri = miniUri;
                 this.mini = undefined;
                 this.miniTexDict = {};
+
                 if (miniUri) {
-                    Res.load(miniUri, ConfigUtils.getResUrl(miniUri), CallbackInfo.get(this.miniLoad, this), Res.ResQueueID.Highway);
+                    let data = Res.get(miniUri);
+                    if (data) {
+                        this.mini = data;
+                    } else {
+                        Res.load(miniUri, ConfigUtils.getResUrl(miniUri), CallbackInfo.get(this.miniLoad, this), Res.ResQueueID.Highway);
+                    }
                 }
             }
         }

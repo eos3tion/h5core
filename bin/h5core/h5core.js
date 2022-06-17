@@ -4614,7 +4614,13 @@ var jy;
                 this.mini = undefined;
                 this.miniTexDict = {};
                 if (miniUri) {
-                    jy.Res.load(miniUri, jy.ConfigUtils.getResUrl(miniUri), jy.CallbackInfo.get(this.miniLoad, this), 2 /* Highway */);
+                    var data = jy.Res.get(miniUri);
+                    if (data) {
+                        this.mini = data;
+                    }
+                    else {
+                        jy.Res.load(miniUri, jy.ConfigUtils.getResUrl(miniUri), jy.CallbackInfo.get(this.miniLoad, this), 2 /* Highway */);
+                    }
                 }
             }
         };
