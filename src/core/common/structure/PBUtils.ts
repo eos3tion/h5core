@@ -511,7 +511,7 @@ namespace jy {
         function writeElementTo(value: any, type: number, tag: number, bytes: ByteArray, subMsgType?: Key | PBStruct) {
             if (DEBUG) {
                 var valueType = typeof value;
-                var out: any;
+                var out = value;
                 switch (type) {
                     case PBType.Fixed32:
                     case PBType.SFixed32:
@@ -601,9 +601,6 @@ namespace jy {
                     }
                     else if (type == PBType.Bytes) {
                         temp = value as ByteArray;
-                        if (DEBUG) {
-                            out = Uint8Array.from(temp.bytes);
-                        }
                     }
                     else {
                         temp = new ByteArray;

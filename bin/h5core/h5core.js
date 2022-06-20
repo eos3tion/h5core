@@ -2180,9 +2180,6 @@ var jy;
                         var b = dat;
                         bytes.writeUnsignedShort(b.length);
                         bytes.writeBytes(b);
-                        if (true) {
-                            outdata = Uint8Array.from(b.bytes);
-                        }
                         break;
                     default:
                         var tempBytes = this._tempBytes;
@@ -2886,7 +2883,7 @@ var jy;
         function writeElementTo(value, type, tag, bytes, subMsgType) {
             if (true) {
                 var valueType = typeof value;
-                var out;
+                var out = value;
                 switch (type) {
                     case 7 /* Fixed32 */:
                     case 15 /* SFixed32 */:
@@ -2978,9 +2975,6 @@ var jy;
                     }
                     else if (type == 12 /* Bytes */) {
                         temp = value;
-                        if (true) {
-                            out = Uint8Array.from(temp.bytes);
-                        }
                     }
                     else {
                         temp = new jy.ByteArray;
