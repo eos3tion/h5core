@@ -349,11 +349,21 @@ namespace jy {
                 }
                 let pt = Temp.SharedPoint1;
                 Layout.getLayoutPos(_w, _h, width, height, type, pt);
+                const scrollRect = con.scrollRect;
+                let w = width;
                 if (_w < width) {
                     x += pt.x;
+                    w = _w;
                 }
+                let h = height;
                 if (_h < height) {
                     y += pt.y;
+                    h = _h;
+                }
+                if (scrollRect) {
+                    scrollRect.width = w;
+                    scrollRect.height = h;
+                    con.scrollRect = scrollRect;
                 }
                 con.x = x;
                 con.y = y;
