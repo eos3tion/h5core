@@ -266,7 +266,6 @@ namespace jy {
                     rect.height = height;
                 }
                 this._lastRect = null;
-                this.checkViewRect();
                 if (rect) {
                     if (width >= this._w) {
                         rect.x = 0;
@@ -276,6 +275,7 @@ namespace jy {
                     }
                     con.scrollRect = rect;
                 }
+                this.checkViewRect();
             }
         }
 
@@ -361,9 +361,13 @@ namespace jy {
                     h = _h;
                 }
                 if (scrollRect) {
-                    scrollRect.width = w;
-                    scrollRect.height = h;
-                    con.scrollRect = scrollRect;
+                    if (w !== scrollRect.width || h !== scrollRect.height) {
+                        scrollRect.width = w;
+                        scrollRect.height = h;
+                        con.scrollRect = scrollRect;
+                        this._lastRect = undefined;
+                        this.checkViewRect();
+                    }
                 }
                 con.x = x;
                 con.y = y;
