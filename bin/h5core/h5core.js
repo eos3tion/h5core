@@ -4401,8 +4401,14 @@ var jy;
     }());
     jy.MapInfo = MapInfo;
     __reflect(MapInfo.prototype, "jy.MapInfo");
-    function defaultPosSolver(x, y) {
+    function defaultPosSolver(x, y, out) {
+        out || (out = {});
+        out.x = x;
+        out.y = y;
         return { x: x, y: y };
+    }
+    function defaultFaceSolver(x, y, _, out) {
+        return defaultPosSolver(x, y, out);
     }
     var mapPosSolver = {};
     function regMapPosSolver(type, solver) {
@@ -4417,7 +4423,7 @@ var jy;
         }
         map.screen2Map = solver && solver.screen2Map || defaultPosSolver;
         map.map2Screen = solver && solver.map2Screen || defaultPosSolver;
-        map.getFacePos = solver && solver.getFacePos || defaultPosSolver;
+        map.getFacePos = solver && solver.getFacePos || defaultFaceSolver;
     }
     jy.bindMapPos = bindMapPos;
 })(jy || (jy = {}));

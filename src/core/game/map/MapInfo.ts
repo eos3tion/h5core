@@ -138,7 +138,7 @@ namespace jy {
          * @param y 
          * @param face 
          */
-        getFacePos?(x: number, y: number, face: number): Point;
+        getFacePos?(x: number, y: number, face: number, out?: Point): Point;
 
         /**
         * 获取地图图块资源路径
@@ -178,13 +178,20 @@ namespace jy {
          */
         map2Screen(this: T, x: number, y: number, out?: Point, isCenter?: boolean): Point;
 
-        getFacePos(x: number, y: number, face: number): Point;
+        getFacePos(x: number, y: number, face: number, out?: Point): Point;
     }
 
 
 
-    function defaultPosSolver(x: number, y: number) {
+    function defaultPosSolver(x: number, y: number, out?: Point) {
+        out ||= {} as Point;
+        out.x = x;
+        out.y = y;
         return { x, y };
+    }
+
+    function defaultFaceSolver(x: number, y: number, _: number, out?: Point) {
+        return defaultPosSolver(x, y, out);
     }
 
     const mapPosSolver = {} as { [type: number]: MapPosSolver<MapInfo> };
@@ -200,6 +207,6 @@ namespace jy {
         }
         map.screen2Map = solver && solver.screen2Map || defaultPosSolver;
         map.map2Screen = solver && solver.map2Screen || defaultPosSolver;
-        map.getFacePos = solver && solver.getFacePos || defaultPosSolver;
+        map.getFacePos = solver && solver.getFacePos || defaultFaceSolver;
     }
 }

@@ -3027,7 +3027,7 @@ declare namespace jy {
          * @param y
          * @param face
          */
-        getFacePos?(x: number, y: number, face: number): Point;
+        getFacePos?(x: number, y: number, face: number, out?: Point): Point;
         /**
         * 获取地图图块资源路径
         */
@@ -3057,7 +3057,7 @@ declare namespace jy {
          * @param isCenter 转为中心点
          */
         map2Screen(this: T, x: number, y: number, out?: Point, isCenter?: boolean): Point;
-        getFacePos(x: number, y: number, face: number): Point;
+        getFacePos(x: number, y: number, face: number, out?: Point): Point;
     }
     function regMapPosSolver<T extends MapInfo>(type: MapPathType, solver: MapPosSolver<T>): void;
     function bindMapPos(map: MapInfo): void;
