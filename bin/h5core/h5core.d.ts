@@ -7326,6 +7326,7 @@ declare namespace jy {
                 idkey: string | 0;
             };
         };
+        getCount(): number;
         /**
          * 解析打包的配置
          */
@@ -7619,10 +7620,19 @@ declare namespace jy {
          */
         ResLoadSuccess = -186,
         /**
-         * 单个配置加载成功
+         * 单个配置解析成功
          * data {string} 配置的Key
          */
-        OneCfgComplete = -185
+        OneCfgComplete = -185,
+        /**
+         * 单个配置加载完成
+         * data {string} 配置的Key
+         */
+        OneCfgLoaded = -184,
+        /**
+         * 配置解析完毕
+         */
+        CfgParseComplete = -183
     }
 }
 declare namespace jy {

@@ -49,6 +49,10 @@ namespace jy {
      */
     let _plist: string[] = [];
     /**
+     * 配置总数
+     */
+    let _count = 0;
+    /**
      * 配置加载器<br/>
      * 用于预加载数据的解析
      * @author 3tion
@@ -58,6 +62,9 @@ namespace jy {
         regParser,
         getParserOption,
         parserCfgs,
+        getCount() {
+            return _count;
+        },
         /**
          * 解析打包的配置
          */
@@ -65,43 +72,49 @@ namespace jy {
             let configs = Res.get("cfgs");
             Res.remove("cfgs");
             if (type == 1) {
-                configs = decodePakCfgs(new ByteArray(configs as ArrayBuffer));
-            }
-            // 按顺序解析
-            for (let key of _plist) {
-                let parser = parsers[key];
-                let data = parser(configs[key]);
-                if (data) { // 支持一些void的情况
-                    $DD[key] = data;
-                    dispatch(EventConst.OneCfgComplete, key);
-                }
+                decodePakCfgs(new ByteArray(configs as ArrayBuffer), parse);
+            } else {
+                parse(configs);
             }
 
-            let extraData = $DE;
-            //处理额外数据
-            for (let key in configs) {
-                if (key.charAt(0) == "$") {
-                    let raw: any[] = configs[key];
-                    key = key.substr(1);
-                    if (raw) {
-                        let i = 0, len = raw.length, data: { [index: string]: any } = {};
-                        while (i < len) {
-                            let sub: string = raw[i++];
-                            let value = raw[i++];
-                            let test = raw[i];
-                            if (typeof test === "number") {
-                                i++;
-                                value = getJSONValue(value, test);
-                            }
-                            data[sub] = value;
-                        }
-                        extraData[key] = data;
+            function parse(configs: any) {
+                // 按顺序解析
+                for (let key of _plist) {
+                    let parser = parsers[key];
+                    let data = parser(configs[key]);
+                    if (data) { // 支持一些void的情况
+                        $DD[key] = data;
+                        dispatch(EventConst.OneCfgComplete, key);
                     }
                 }
+
+                let extraData = $DE;
+                //处理额外数据
+                for (let key in configs) {
+                    if (key.charAt(0) == "$") {
+                        let raw: any[] = configs[key];
+                        key = key.substring(1);
+                        if (raw) {
+                            let i = 0, len = raw.length, data: { [index: string]: any } = {};
+                            while (i < len) {
+                                let sub: string = raw[i++];
+                                let value = raw[i++];
+                                let test = raw[i];
+                                if (typeof test === "number") {
+                                    i++;
+                                    value = getJSONValue(value, test);
+                                }
+                                data[sub] = value;
+                            }
+                            extraData[key] = data;
+                        }
+                    }
+                }
+                //清理内存
+                parsers = null;
+                _plist = null;
+                dispatch(EventConst.CfgParseComplete);
             }
-            //清理内存
-            parsers = null;
-            _plist = null;
         },
         /**
          * 
@@ -178,6 +191,7 @@ namespace jy {
     function regParser(key: keyof CfgData, parser: ConfigDataParser) {
         parsers[key] = parser;
         _plist.push(key);
+        _count++;
     }
 
 
@@ -393,28 +407,37 @@ namespace jy {
     //配置数据 打包的文件结构数据
     //readUnsignedByte 字符串长度 readString 表名字 readUnsignedByte 配置类型(0 PBBytes 1 JSON字符串) readVarint 数据长度
 
-    function decodePakCfgs(buffer: ByteArray) {
+    function decodePakCfgs(buffer: ByteArray, callback: { (cfgs: any) }) {
         let cfgs = {};
-        while (buffer.readAvailable) {
-            let len = buffer.readUnsignedByte();
-            let key = buffer.readUTFBytes(len);//得到表名
-            let type = buffer.readUnsignedByte();
-            let value: any;
-            len = buffer.readVarint();
-            switch (type) {
-                case 0://JSON字符串
-                    if (len > 0) {
-                        let str = buffer.readUTFBytes(len);
-                        value = JSON.parse(str);
-                    }
-                    break;
-                case 1://PBBytes
-                    value = buffer.readByteArray(len);
-                    break;
+
+        parseNext(buffer, cfgs, callback)
+        function parseNext(buffer: ByteArray, cfgs: { [key: string]: any }, callback: { (cfgs: any) }) {
+            let time = Date.now();
+            while (buffer.readAvailable) {
+                let len = buffer.readUnsignedByte();
+                let key = buffer.readUTFBytes(len);//得到表名
+                let type = buffer.readUnsignedByte();
+                let value: any;
+                len = buffer.readVarint();
+                switch (type) {
+                    case 0://JSON字符串
+                        if (len > 0) {
+                            let str = buffer.readUTFBytes(len);
+                            value = JSON.parse(str);
+                        }
+                        break;
+                    case 1://PBBytes
+                        value = buffer.readByteArray(len);
+                        break;
+                }
+                cfgs[key] = value;
+                dispatch(EventConst.OneCfgLoaded, key);
+                if (Date.now() - time > 10) {
+                    return Global.nextTick(parseNext, undefined, buffer, cfgs, callback);
+                }
             }
-            cfgs[key] = value;
+            callback(cfgs);
         }
-        return cfgs;
     }
 
     function getParserOption(idkey: string | 0 = "id", type?: CfgDataType) {

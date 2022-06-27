@@ -7837,6 +7837,10 @@ var jy;
      */
     var _plist = [];
     /**
+     * 配置总数
+     */
+    var _count = 0;
+    /**
      * 配置加载器<br/>
      * 用于预加载数据的解析
      * @author 3tion
@@ -7846,6 +7850,9 @@ var jy;
         regParser: regParser,
         getParserOption: getParserOption,
         parserCfgs: parserCfgs,
+        getCount: function () {
+            return _count;
+        },
         /**
          * 解析打包的配置
          */
@@ -7853,43 +7860,49 @@ var jy;
             var configs = jy.Res.get("cfgs");
             jy.Res.remove("cfgs");
             if (type == 1) {
-                configs = decodePakCfgs(new jy.ByteArray(configs));
+                decodePakCfgs(new jy.ByteArray(configs), parse);
             }
-            // 按顺序解析
-            for (var _i = 0, _plist_1 = _plist; _i < _plist_1.length; _i++) {
-                var key = _plist_1[_i];
-                var parser = parsers[key];
-                var data = parser(configs[key]);
-                if (data) { // 支持一些void的情况
-                    $DD[key] = data;
-                    jy.dispatch(-185 /* OneCfgComplete */, key);
-                }
+            else {
+                parse(configs);
             }
-            var extraData = $DE;
-            //处理额外数据
-            for (var key in configs) {
-                if (key.charAt(0) == "$") {
-                    var raw = configs[key];
-                    key = key.substr(1);
-                    if (raw) {
-                        var i = 0, len = raw.length, data = {};
-                        while (i < len) {
-                            var sub = raw[i++];
-                            var value = raw[i++];
-                            var test = raw[i];
-                            if (typeof test === "number") {
-                                i++;
-                                value = getJSONValue(value, test);
-                            }
-                            data[sub] = value;
-                        }
-                        extraData[key] = data;
+            function parse(configs) {
+                // 按顺序解析
+                for (var _i = 0, _plist_1 = _plist; _i < _plist_1.length; _i++) {
+                    var key = _plist_1[_i];
+                    var parser = parsers[key];
+                    var data = parser(configs[key]);
+                    if (data) { // 支持一些void的情况
+                        $DD[key] = data;
+                        jy.dispatch(-185 /* OneCfgComplete */, key);
                     }
                 }
+                var extraData = $DE;
+                //处理额外数据
+                for (var key in configs) {
+                    if (key.charAt(0) == "$") {
+                        var raw = configs[key];
+                        key = key.substring(1);
+                        if (raw) {
+                            var i = 0, len = raw.length, data = {};
+                            while (i < len) {
+                                var sub = raw[i++];
+                                var value = raw[i++];
+                                var test = raw[i];
+                                if (typeof test === "number") {
+                                    i++;
+                                    value = getJSONValue(value, test);
+                                }
+                                data[sub] = value;
+                            }
+                            extraData[key] = data;
+                        }
+                    }
+                }
+                //清理内存
+                parsers = null;
+                _plist = null;
+                jy.dispatch(-183 /* CfgParseComplete */);
             }
-            //清理内存
-            parsers = null;
-            _plist = null;
         },
         /**
          *
@@ -7969,6 +7982,7 @@ var jy;
     function regParser(key, parser) {
         parsers[key] = parser;
         _plist.push(key);
+        _count++;
     }
     function getJSONValue(value, type, def) {
         // 特殊类型数据
@@ -8058,28 +8072,36 @@ var jy;
     PBUtils.initDefault(CfgHeadStruct);
     //配置数据 打包的文件结构数据
     //readUnsignedByte 字符串长度 readString 表名字 readUnsignedByte 配置类型(0 PBBytes 1 JSON字符串) readVarint 数据长度
-    function decodePakCfgs(buffer) {
+    function decodePakCfgs(buffer, callback) {
         var cfgs = {};
-        while (buffer.readAvailable) {
-            var len = buffer.readUnsignedByte();
-            var key = buffer.readUTFBytes(len); //得到表名
-            var type = buffer.readUnsignedByte();
-            var value = void 0;
-            len = buffer.readVarint();
-            switch (type) {
-                case 0: //JSON字符串
-                    if (len > 0) {
-                        var str = buffer.readUTFBytes(len);
-                        value = JSON.parse(str);
-                    }
-                    break;
-                case 1: //PBBytes
-                    value = buffer.readByteArray(len);
-                    break;
+        parseNext(buffer, cfgs, callback);
+        function parseNext(buffer, cfgs, callback) {
+            var time = Date.now();
+            while (buffer.readAvailable) {
+                var len = buffer.readUnsignedByte();
+                var key = buffer.readUTFBytes(len); //得到表名
+                var type = buffer.readUnsignedByte();
+                var value = void 0;
+                len = buffer.readVarint();
+                switch (type) {
+                    case 0: //JSON字符串
+                        if (len > 0) {
+                            var str = buffer.readUTFBytes(len);
+                            value = JSON.parse(str);
+                        }
+                        break;
+                    case 1: //PBBytes
+                        value = buffer.readByteArray(len);
+                        break;
+                }
+                cfgs[key] = value;
+                jy.dispatch(-184 /* OneCfgLoaded */, key);
+                if (Date.now() - time > 10) {
+                    return jy.Global.nextTick(parseNext, undefined, buffer, cfgs, callback);
+                }
             }
-            cfgs[key] = value;
+            callback(cfgs);
         }
-        return cfgs;
     }
     function getParserOption(idkey, type) {
         if (idkey === void 0) { idkey = "id"; }

@@ -6,14 +6,14 @@ declare namespace jy {
 	 */
 	export const enum EventConst {
 
-    	/**
-    	 * 登录成功
-    	 */
+		/**
+		 * 登录成功
+		 */
 		LOGIN_COMPLETE = -199,
 
-        /**
-         * 登录失败
-         */
+		/**
+		 * 登录失败
+		 */
 		LOGIN_FAILED,
 
 		/**
@@ -64,9 +64,18 @@ declare namespace jy {
 		 */
 		ResLoadSuccess,
 		/**
-		 * 单个配置加载成功  
+		 * 单个配置解析成功  
 		 * data {string} 配置的Key
 		 */
 		OneCfgComplete,
+		/**
+		 * 单个配置加载完成
+		 * data {string} 配置的Key
+		 */
+		OneCfgLoaded,
+		/**
+		 * 配置解析完毕
+		 */
+		CfgParseComplete,
 	}
 }
