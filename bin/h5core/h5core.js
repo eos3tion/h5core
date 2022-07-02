@@ -7856,11 +7856,12 @@ var jy;
         /**
          * 解析打包的配置
          */
-        parsePakedDatas: function (type) {
+        parsePakedDatas: function (type, parseTime) {
+            if (parseTime === void 0) { parseTime = 100; }
             var configs = jy.Res.get("cfgs");
             jy.Res.remove("cfgs");
             if (type == 1) {
-                decodePakCfgs(new jy.ByteArray(configs), parse);
+                decodePakCfgs(new jy.ByteArray(configs), parse, parseTime);
             }
             else {
                 parse(configs);
@@ -8072,10 +8073,10 @@ var jy;
     PBUtils.initDefault(CfgHeadStruct);
     //配置数据 打包的文件结构数据
     //readUnsignedByte 字符串长度 readString 表名字 readUnsignedByte 配置类型(0 PBBytes 1 JSON字符串) readVarint 数据长度
-    function decodePakCfgs(buffer, callback) {
+    function decodePakCfgs(buffer, callback, parseTime) {
         var cfgs = {};
-        parseNext(buffer, cfgs, callback);
-        function parseNext(buffer, cfgs, callback) {
+        parseNext(buffer, cfgs, callback, parseTime);
+        function parseNext(buffer, cfgs, callback, parseTime) {
             var time = Date.now();
             while (buffer.readAvailable) {
                 var len = buffer.readUnsignedByte();
@@ -8096,8 +8097,8 @@ var jy;
                 }
                 cfgs[key] = value;
                 jy.dispatch(-184 /* OneCfgLoaded */, key);
-                if (Date.now() - time > 10) {
-                    return jy.Global.nextTick(parseNext, undefined, buffer, cfgs, callback);
+                if (Date.now() - time > parseTime) {
+                    return jy.Global.nextTick(parseNext, undefined, buffer, cfgs, callback, parseTime);
                 }
             }
             callback(cfgs);
