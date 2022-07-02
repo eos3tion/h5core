@@ -68,11 +68,11 @@ namespace jy {
         /**
          * 解析打包的配置
          */
-        parsePakedDatas(type?: number) {
+        parsePakedDatas(type?: number, parseTime = 100) {
             let configs = Res.get("cfgs");
             Res.remove("cfgs");
             if (type == 1) {
-                decodePakCfgs(new ByteArray(configs as ArrayBuffer), parse);
+                decodePakCfgs(new ByteArray(configs as ArrayBuffer), parse, parseTime);
             } else {
                 parse(configs);
             }
@@ -407,11 +407,11 @@ namespace jy {
     //配置数据 打包的文件结构数据
     //readUnsignedByte 字符串长度 readString 表名字 readUnsignedByte 配置类型(0 PBBytes 1 JSON字符串) readVarint 数据长度
 
-    function decodePakCfgs(buffer: ByteArray, callback: { (cfgs: any) }) {
+    function decodePakCfgs(buffer: ByteArray, callback: { (cfgs: any) }, parseTime: number) {
         let cfgs = {};
 
-        parseNext(buffer, cfgs, callback)
-        function parseNext(buffer: ByteArray, cfgs: { [key: string]: any }, callback: { (cfgs: any) }) {
+        parseNext(buffer, cfgs, callback, parseTime)
+        function parseNext(buffer: ByteArray, cfgs: { [key: string]: any }, callback: { (cfgs: any) }, parseTime: number) {
             let time = Date.now();
             while (buffer.readAvailable) {
                 let len = buffer.readUnsignedByte();
@@ -432,8 +432,8 @@ namespace jy {
                 }
                 cfgs[key] = value;
                 dispatch(EventConst.OneCfgLoaded, key);
-                if (Date.now() - time > 10) {
-                    return Global.nextTick(parseNext, undefined, buffer, cfgs, callback);
+                if (Date.now() - time > parseTime) {
+                    return Global.nextTick(parseNext, undefined, buffer, cfgs, callback, parseTime);
                 }
             }
             callback(cfgs);

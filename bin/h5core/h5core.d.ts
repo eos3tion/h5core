@@ -6604,7 +6604,7 @@ declare namespace jy {
         /**
          * 解析打包的配置
          */
-        parsePakedDatas(type?: number): void;
+        parsePakedDatas(type?: number, parseTime?: number): void;
         /**
          *
          * 注册通过H5ExcelTool导出的数据并且有唯一标识的使用此方法注册
