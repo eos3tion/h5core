@@ -6019,18 +6019,20 @@ var jy;
                         nod.op = 2 /* Comperation */;
                         var nextStart = pos + 1;
                         var nextChar = content.charAt(pos + 1);
+                        var value = char;
                         if (char == "<") {
                             if (nextChar == "=" || nextChar == ">") {
-                                nod.value = char + nextChar;
+                                value += nextChar;
                                 nextStart++;
                             }
                         }
                         else if (char == ">") {
                             if (nextChar == "=") {
-                                nod.value = char + nextChar;
+                                value += nextChar;
                                 nextStart++;
                             }
                         }
+                        nod.value = value;
                         var raw = content.substring(nod.start, pos);
                         var node = {
                             start: nextStart,
