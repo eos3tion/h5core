@@ -159,17 +159,19 @@ namespace jy {
                         nod.op = ConditionOperator.Comperation;
                         let nextStart = pos + 1;
                         let nextChar = content.charAt(pos + 1);
+                        let value = char;
                         if (char == "<") {
                             if (nextChar == "=" || nextChar == ">") {
-                                nod.value = char + nextChar;
+                                value += nextChar;
                                 nextStart++;
                             }
                         } else if (char == ">") {
                             if (nextChar == "=") {
-                                nod.value = char + nextChar;
+                                value += nextChar;
                                 nextStart++;
                             }
                         }
+                        nod.value = value;
                         let raw = content.substring(nod.start, pos);
                         let node = {
                             start: nextStart,
