@@ -2516,6 +2516,109 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
+    function toNumber(low, high) {
+        return (high | 0) * _2_32 + (low >>> 0);
+    }
+    var Int64 = /** @class */ (function () {
+        function Int64(low, high) {
+            this.set(low, high);
+        }
+        Int64.prototype.set = function (low, high) {
+            this.low = low | 0;
+            this.high = high | 0;
+            return this;
+        };
+        Int64.prototype.toNumber = function () {
+            return toNumber(this.low, this.high);
+        };
+        Int64.fromNumber = function (value) {
+            if (isNaN(value) || !isFinite(value)) {
+                return ZERO;
+            }
+            if (value <= -_2_63) {
+                return MIN_VALUE;
+            }
+            if (value + 1 >= _2_63) {
+                return MAX_VALUE;
+            }
+            if (value < 0) {
+                var v = Int64.fromNumber(-value);
+                if (v.high === MIN_VALUE.high && v.low === MIN_VALUE.low) {
+                    return MIN_VALUE;
+                }
+                v.low = ~v.low;
+                v.high = ~v.high;
+                return v.add(ONE);
+            }
+            else {
+                return new Int64((value % _2_32) | 0, (value / _2_32) | 0);
+            }
+        };
+        Int64.prototype.add = function (addend) {
+            var a48 = this.high >>> 16;
+            var a32 = this.high & 0xFFFF;
+            var a16 = this.low >>> 16;
+            var a00 = this.low & 0xFFFF;
+            var b48 = addend.high >>> 16;
+            var b32 = addend.high & 0xFFFF;
+            var b16 = addend.low >>> 16;
+            var b00 = addend.low & 0xFFFF;
+            var c48 = 0, c32 = 0, c16 = 0, c00 = 0;
+            c00 += a00 + b00;
+            c16 += c00 >>> 16;
+            c00 &= 0xFFFF;
+            c16 += a16 + b16;
+            c32 += c16 >>> 16;
+            c16 &= 0xFFFF;
+            c32 += a32 + b32;
+            c48 += c32 >>> 16;
+            c32 &= 0xFFFF;
+            c48 += a48 + b48;
+            c48 &= 0xFFFF;
+            return new Int64((c16 << 16) | c00, (c48 << 16) | c32);
+        };
+        Int64.prototype.zigzag = function () {
+            var _a = this, low = _a.low, high = _a.high;
+            var mask = high >> 31;
+            this.high = ((high << 1 | low >>> 31) ^ mask) >>> 0;
+            this.low = (low << 1 ^ mask) >>> 0;
+            return this;
+        };
+        Int64.prototype.zigzagDecode = function () {
+            var _a = this, low = _a.low, high = _a.high;
+            var mask = -(low & 1);
+            this.low = ((low >>> 1 | high << 31) ^ mask) >>> 0;
+            this.high = (high >>> 1 ^ mask) >>> 0;
+            return this;
+        };
+        Int64.toNumber = toNumber;
+        return Int64;
+    }());
+    jy.Int64 = Int64;
+    __reflect(Int64.prototype, "jy.Int64");
+    /**
+     * 2的16次方
+     */
+    var _2_16 = 1 << 16;
+    /**
+     * 2的32次方
+     */
+    var _2_32 = _2_16 * _2_16;
+    /**
+     * 2的64次方
+     */
+    var _2_64 = _2_32 * _2_32;
+    /**
+     * 2的63次方
+     */
+    var _2_63 = _2_64 / 2;
+    var ZERO = new Int64();
+    var MAX_VALUE = new Int64(-1, 0x7FFFFFFF);
+    var MIN_VALUE = new Int64(0, -2147483648);
+    var ONE = new Int64(1);
+})(jy || (jy = {}));
+var jy;
+(function (jy) {
     /**
      * protobuf wiretype的字典
      * key  {number}    ProtoBuf的类型
@@ -2719,8 +2822,10 @@ var jy;
                         break;
                     case 3 /* Int64 */:
                     case 4 /* UInt64 */:
-                    case 18 /* SInt64 */:
                         value = bytes.readVarint64(); //理论上项目不使用
+                        break;
+                    case 18 /* SInt64 */:
+                        value = bytes.readSint64();
                         break;
                     case 17 /* SInt32 */:
                         value = decodeZigzag32(bytes.readVarint());
@@ -2954,9 +3059,11 @@ var jy;
                     bytes.writeVarint(checkUInt32(value, type));
                     break;
                 case 3 /* Int64 */:
-                case 18 /* SInt64 */:
                 case 4 /* UInt64 */:
                     bytes.writeVarint64(value);
+                    break;
+                case 18 /* SInt64 */:
+                    bytes.writeSint64(value);
                     break;
                 case 8 /* Bool */:
                     bytes.writeVarint(value ? 1 : 0);
@@ -9302,6 +9409,7 @@ var jy;
 })(jy || (jy = {}));
 var jy;
 (function (jy) {
+    var tmpI64 = new jy.Int64();
     var ByteArray = /** @class */ (function (_super) {
         __extends(ByteArray, _super);
         function ByteArray(buffer, ext) {
@@ -9468,6 +9576,14 @@ var jy;
          */
         ByteArray.prototype.writeVarint64 = function (value) {
             var i64 = jy.Int64.fromNumber(value);
+            this.inVarint64(i64);
+        };
+        ByteArray.prototype.writeSint64 = function (value) {
+            var i64 = jy.Int64.fromNumber(value);
+            i64.zigzag();
+            this.inVarint64(i64);
+        };
+        ByteArray.prototype.inVarint64 = function (i64) {
             var high = i64.high;
             var low = i64.low;
             if (high == 0) {
@@ -9529,6 +9645,15 @@ var jy;
           * 读取字节流中的32位变长整数(Protobuf)
           */
         ByteArray.prototype.readVarint64 = function () {
+            this.outVarint64(tmpI64);
+            return tmpI64.toNumber();
+        };
+        ByteArray.prototype.readSint64 = function () {
+            this.outVarint64(tmpI64);
+            tmpI64.zigzagDecode();
+            return tmpI64.toNumber();
+        };
+        ByteArray.prototype.outVarint64 = function (i64) {
             var b, low, high, i = 0;
             for (;; i += 7) {
                 b = this.readUnsignedByte();
@@ -9541,7 +9666,7 @@ var jy;
                     }
                     else {
                         low |= (b << i);
-                        return jy.Int64.toNumber(low, high);
+                        return i64.set(low, high);
                     }
                 }
             }
@@ -9553,7 +9678,7 @@ var jy;
             else {
                 low |= (b << i);
                 high = b >>> 4;
-                return jy.Int64.toNumber(low, high);
+                return i64.set(low, high);
             }
             for (i = 3;; i += 7) {
                 b = this.readUnsignedByte();
@@ -9567,7 +9692,7 @@ var jy;
                     }
                 }
             }
-            return jy.Int64.toNumber(low, high);
+            return i64.set(low, high);
         };
         Object.defineProperty(ByteArray.prototype, "outBytes", {
             /**
@@ -9606,90 +9731,6 @@ var jy;
 var jy;
 (function (jy) {
     ;
-})(jy || (jy = {}));
-var jy;
-(function (jy) {
-    var Int64 = /** @class */ (function () {
-        function Int64(low, high) {
-            this.low = low | 0;
-            this.high = high | 0;
-        }
-        Int64.prototype.toNumber = function () {
-            return this.high * _2_32 + (this.low >>> 0);
-        };
-        Int64.toNumber = function (low, high) {
-            return (high | 0) * _2_32 + (low >>> 0);
-        };
-        Int64.fromNumber = function (value) {
-            if (isNaN(value) || !isFinite(value)) {
-                return ZERO;
-            }
-            if (value <= -_2_63) {
-                return MIN_VALUE;
-            }
-            if (value + 1 >= _2_63) {
-                return MAX_VALUE;
-            }
-            if (value < 0) {
-                var v = Int64.fromNumber(-value);
-                if (v.high === MIN_VALUE.high && v.low === MIN_VALUE.low) {
-                    return MIN_VALUE;
-                }
-                v.low = ~v.low;
-                v.high = ~v.high;
-                return v.add(ONE);
-            }
-            else {
-                return new Int64((value % _2_32) | 0, (value / _2_32) | 0);
-            }
-        };
-        Int64.prototype.add = function (addend) {
-            var a48 = this.high >>> 16;
-            var a32 = this.high & 0xFFFF;
-            var a16 = this.low >>> 16;
-            var a00 = this.low & 0xFFFF;
-            var b48 = addend.high >>> 16;
-            var b32 = addend.high & 0xFFFF;
-            var b16 = addend.low >>> 16;
-            var b00 = addend.low & 0xFFFF;
-            var c48 = 0, c32 = 0, c16 = 0, c00 = 0;
-            c00 += a00 + b00;
-            c16 += c00 >>> 16;
-            c00 &= 0xFFFF;
-            c16 += a16 + b16;
-            c32 += c16 >>> 16;
-            c16 &= 0xFFFF;
-            c32 += a32 + b32;
-            c48 += c32 >>> 16;
-            c32 &= 0xFFFF;
-            c48 += a48 + b48;
-            c48 &= 0xFFFF;
-            return new Int64((c16 << 16) | c00, (c48 << 16) | c32);
-        };
-        return Int64;
-    }());
-    jy.Int64 = Int64;
-    __reflect(Int64.prototype, "jy.Int64");
-    /**
-     * 2的16次方
-     */
-    var _2_16 = 1 << 16;
-    /**
-     * 2的32次方
-     */
-    var _2_32 = _2_16 * _2_16;
-    /**
-     * 2的64次方
-     */
-    var _2_64 = _2_32 * _2_32;
-    /**
-     * 2的63次方
-     */
-    var _2_63 = _2_64 / 2;
-    var ZERO = new Int64();
-    var MAX_VALUE = new Int64(-1, 0x7FFFFFFF);
-    var MIN_VALUE = new Int64(0, -2147483648);
-    var ONE = new Int64(1);
 })(jy || (jy = {}));
 var jy;
 (function (jy) {

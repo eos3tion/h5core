@@ -11,6 +11,8 @@ namespace jy {
         SIZE_OF_UINT16 = 2,
         SIZE_OF_INT16 = 2
     }
+
+    const tmpI64 = new Int64();
     /**
      * 方便后续调整
      * 加入ProtoBuf的varint支持
@@ -196,13 +198,23 @@ namespace jy {
          */
         public writeVarint64(value: number): void {
             let i64 = Int64.fromNumber(value);
-            var high = i64.high;
-            var low = i64.low;
+            this.inVarint64(i64);
+        }
+
+        writeSint64(value: number) {
+            let i64 = Int64.fromNumber(value);
+            i64.zigzag();
+            this.inVarint64(i64);
+        }
+
+        inVarint64(i64: Int64) {
+            let high = i64.high;
+            let low = i64.low;
             if (high == 0) {
                 this.writeVarint(low >>> 0);
             }
             else {
-                for (var i: number = 0; i < 4; ++i) {
+                for (let i: number = 0; i < 4; ++i) {
                     this.writeByte((low & 0x7F) | 0x80);
                     low >>>= 7;
                 }
@@ -259,6 +271,16 @@ namespace jy {
           * 读取字节流中的32位变长整数(Protobuf)
           */
         public readVarint64(): number {
+            this.outVarint64(tmpI64);
+            return tmpI64.toNumber();
+        }
+        public readSint64() {
+            this.outVarint64(tmpI64);
+            tmpI64.zigzagDecode();
+            return tmpI64.toNumber();
+        }
+
+        outVarint64(i64: Int64) {
             let b: number, low: number, high: number, i = 0;
             for (; ; i += 7) {
                 b = this.readUnsignedByte();
@@ -271,7 +293,7 @@ namespace jy {
                     }
                     else {
                         low |= (b << i);
-                        return Int64.toNumber(low, high);
+                        return i64.set(low, high);
                     }
                 }
             }
@@ -283,7 +305,7 @@ namespace jy {
             else {
                 low |= (b << i);
                 high = b >>> 4;
-                return Int64.toNumber(low, high);
+                return i64.set(low, high);
             }
             for (i = 3; ; i += 7) {
                 b = this.readUnsignedByte();
@@ -297,8 +319,9 @@ namespace jy {
                     }
                 }
             }
-            return Int64.toNumber(low, high);
+            return i64.set(low, high);
         }
+
 
         /**
          * 获取写入的字节

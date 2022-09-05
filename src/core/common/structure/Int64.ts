@@ -1,4 +1,9 @@
 namespace jy {
+
+	function toNumber(low?: number, high?: number) {
+		return (high | 0) * _2_32 + (low >>> 0);
+	}
+
 	/**
 	 * 项目中不使用long类型，此值暂时只用于存储Protobuff中的int64 sint64
 	 * @author 
@@ -15,19 +20,22 @@ namespace jy {
 		public low: number;
 
 		public constructor(low?: number, high?: number) {
+			this.set(low, high);
+		}
+
+		set(low?: number, high?: number) {
 			this.low = low | 0;
 			this.high = high | 0;
+			return this;
 		}
 
 		public toNumber() {
-			return this.high * _2_32 + (this.low >>> 0);
+			return toNumber(this.low, this.high);
 		}
 
-		public static toNumber(low?: number, high?: number) {
-			return (high | 0) * _2_32 + (low >>> 0);
-		}
+		public static toNumber = toNumber;
 
-		public static fromNumber(value: number) {
+		public static fromNumber(value: number): Int64 {
 			if (isNaN(value) || !isFinite(value)) {
 				return ZERO;
 			}
@@ -47,24 +55,23 @@ namespace jy {
 				v.low = ~v.low;
 				v.high = ~v.high;
 				return v.add(ONE);
-			}
-			else {
+			} else {
 				return new Int64((value % _2_32) | 0, (value / _2_32) | 0);
 			}
 		}
 
 		public add(addend: Int64) {
-			var a48 = this.high >>> 16;
-			var a32 = this.high & 0xFFFF;
-			var a16 = this.low >>> 16;
-			var a00 = this.low & 0xFFFF;
+			let a48 = this.high >>> 16;
+			let a32 = this.high & 0xFFFF;
+			let a16 = this.low >>> 16;
+			let a00 = this.low & 0xFFFF;
 
-			var b48 = addend.high >>> 16;
-			var b32 = addend.high & 0xFFFF;
-			var b16 = addend.low >>> 16;
-			var b00 = addend.low & 0xFFFF;
+			let b48 = addend.high >>> 16;
+			let b32 = addend.high & 0xFFFF;
+			let b16 = addend.low >>> 16;
+			let b00 = addend.low & 0xFFFF;
 
-			var c48 = 0, c32 = 0, c16 = 0, c00 = 0;
+			let c48 = 0, c32 = 0, c16 = 0, c00 = 0;
 			c00 += a00 + b00;
 			c16 += c00 >>> 16;
 			c00 &= 0xFFFF;
@@ -78,6 +85,23 @@ namespace jy {
 			c48 &= 0xFFFF;
 			return new Int64((c16 << 16) | c00, (c48 << 16) | c32);
 		}
+
+		zigzag() {
+			const { low, high } = this;
+			const mask = high >> 31;
+			this.high = ((high << 1 | low >>> 31) ^ mask) >>> 0;
+			this.low = (low << 1 ^ mask) >>> 0;
+			return this;
+		}
+
+		zigzagDecode() {
+			const { low, high } = this;
+			const mask = -(low & 1);
+			this.low = ((low >>> 1 | high << 31) ^ mask) >>> 0;
+			this.high = (high >>> 1 ^ mask) >>> 0;
+			return this;
+		}
+
 	}
 
 	/**
@@ -101,4 +125,5 @@ namespace jy {
 	const MAX_VALUE = new Int64(-1, 0x7FFFFFFF);
 	const MIN_VALUE = new Int64(0, -2147483648);
 	const ONE = new Int64(1);
+
 }
