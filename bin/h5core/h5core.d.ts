@@ -2303,6 +2303,33 @@ declare namespace jy {
     }
 }
 declare namespace jy {
+    function toNumber(low?: number, high?: number): number;
+    /**
+     * 项目中不使用long类型，此值暂时只用于存储Protobuff中的int64 sint64
+     * @author
+     *
+     */
+    export class Int64 {
+        /**
+         * 高位
+         */
+        high: number;
+        /**
+         * 低位
+         */
+        low: number;
+        constructor(low?: number, high?: number);
+        set(low?: number, high?: number): this;
+        toNumber(): number;
+        static toNumber: typeof toNumber;
+        static fromNumber(value: number): Int64;
+        add(addend: Int64): Int64;
+        zigzag(): this;
+        zigzagDecode(): this;
+    }
+    export {};
+}
+declare namespace jy {
     const enum PBType {
         Double = 1,
         Float = 2,
@@ -8687,6 +8714,8 @@ declare namespace jy {
          * 向字节流中写入64位的可变长度的整数(Protobuf)
          */
         writeVarint64(value: number): void;
+        writeSint64(value: number): void;
+        inVarint64(i64: Int64): void;
         /**
          * 向字节流中写入32位的可变长度的整数(Protobuf)
          */
@@ -8699,6 +8728,8 @@ declare namespace jy {
           * 读取字节流中的32位变长整数(Protobuf)
           */
         readVarint64(): number;
+        readSint64(): number;
+        outVarint64(i64: Int64): Int64;
         /**
          * 获取写入的字节
          * 此方法不会新建 ArrayBuffer
@@ -8806,28 +8837,6 @@ declare namespace jy {
          * @param thisArg 回调函数的 this 指针
          */
         forEach(callbackfn: (value: T, cursor: number, heap: Heap<T>) => boolean, thisArg?: any): void;
-    }
-}
-declare namespace jy {
-    /**
-     * 项目中不使用long类型，此值暂时只用于存储Protobuff中的int64 sint64
-     * @author
-     *
-     */
-    class Int64 {
-        /**
-         * 高位
-         */
-        high: number;
-        /**
-         * 低位
-         */
-        low: number;
-        constructor(low?: number, high?: number);
-        toNumber(): number;
-        static toNumber(low?: number, high?: number): number;
-        static fromNumber(value: number): any;
-        add(addend: Int64): Int64;
     }
 }
 declare namespace jy {
